@@ -1,6 +1,6 @@
 # Better Call Sir
 
-Find a suitable Maths or Science teacher for Classes 6–10 in Raipur, online or at home. This repository implements a **synthetic development build** from the owner's [Version 3 PRD](docs/BetterCallSir_MVP_PRD.docx). See the [sprint board](docs/SPRINTS.md) for implemented slices and remaining acceptance criteria. It is not the complete live MVP or a production-ready service.
+Find a suitable Maths or Science teacher for Classes 6–10 in Raipur, online or at home. This repository implements a **synthetic development build** from the owner's [Version 3 PRD](docs/BetterCallSir_MVP_PRD.docx). See the [Phase 1 acceptance record](docs/PHASE_1_ACCEPTANCE.md) and [sprint board](docs/SPRINTS.md) for implemented slices and remaining acceptance criteria. It is not the complete live MVP or a production-ready service.
 
 ## Run locally
 

@@ -12,11 +12,11 @@ Source: **BetterCallSir_MVP_PRD.docx, Version 3.0, 11 October 2026**, supplied b
 
 ## Phase sequence — PRD Section 10
 
-**Active phase: 1 — Foundation, completion audit and remaining foundation tickets.** The initial implementation contains later-phase slices; they do not close those phases. The demo increments belong to Phase 4, even though they were developed earlier. The next implementation work closes Phase 1 gaps rather than extending recurring scheduling now.
+**Active phase: 1 — Foundation implementation validated; acceptance record completed.** The initial implementation contains later-phase slices; they do not close those phases. The demo increments belong to Phase 4, even though they were developed earlier. See `docs/PHASE_1_ACCEPTANCE.md` for the foundation review and `docs/VALIDATION.md` for source-linked checks. Phase 2 is the next planned implementation phase; it has not started.
 
 | Phase | PRD deliverables | Exit evidence | Current status |
 | --- | --- | --- | --- |
-| 1 Foundation | Threat model, modules, schema draft, OpenAPI, CI, auth/consent skeleton | Contract/ownership tests and reviewed foundation evidence; integrated guardian demonstration | Implemented in part; audit and outstanding foundation tickets remain |
+| 1 Foundation | Threat model, modules, schema draft, OpenAPI, CI, auth/consent skeleton | Contract/ownership tests and reviewed foundation evidence; integrated guardian demonstration | Foundation implementation/review recorded; 64 tests, builds, scans and hosted CI pass |
 | 2 Backend core | Teacher screening, public projection, intake, eligible matching, reservations, audit | Real-database constraints and authorization checks | Early slices present; phase not accepted |
 | 3 Frontend | Independent web screens against mocks and the real Phase 2 API | Mobile/accessibility and integrated discovery tests | Early screens present; phase not accepted |
 | 4 Transactions | Demos, terms, placement invoices, revision holds, checkout, reconciliation | Payment replay, concurrency and actual provider sandbox evidence | Development demo/booking slices present; phase not accepted |
@@ -30,16 +30,16 @@ Phase 1's definition of done explicitly permits labelled provider stubs with liv
 
 This initial implementation also contains early development slices from later phases. Their presence does not mean those phases are complete.
 
-| PRD ticket | Implemented now | Outstanding acceptance |
+| PRD ticket | Foundation status | Later-phase scope |
 | --- | --- | --- |
-| S1-01 | npm workspaces; separate API, worker and Next.js builds; Node 24; synthetic fixtures; PostgreSQL 17.11 pinned image | Qualify immutable application containers for pilot |
-| S1-02 | Architecture decision, threat boundaries and delivery board | Independent security/privacy review; complete control register |
-| S1-03 | Versioned OpenAPI, generated TypeScript definitions, lint, explicit foundation schemas/examples and contract-generated mock server | Contract-diff CI; stronger later-phase resource schemas tracked in their phases |
-| S1-04 | PostgreSQL migrations, account/session/consent/request and later-flow schema, isolated real-DB tests | Full foreign-key ownership model and operational schema evolution/restore rehearsal |
-| S1-05 | Development OTP expiry/rate limiting, hashed session rotation/replay, CSRF/Origin, consent gates | Live OTP, independently reviewed adult verification, production MFA, distributed rate limiter |
-| S1-06 | Guardian intake against the separate API; ownership, validation and retry protection | Saved onboarding drafts and step-by-step resume; complete bilingual notices |
-| S1-07 | Unit, real-DB API, contract, mock and browser tasks; secrets/runtime/tooling scans; per-commit CI evidence and JUnit artifacts | Verify updated hosted CI; SAST/container/DAST, coverage and independent security qualification belong to Phase 6 |
-| S1-08 | Integrated discovery/intake/dashboard demonstration; withdrawal and ownership tests | All production provider contracts and signed release evidence |
+| S1-01 | Separate builds, pinned runtime/database, lockfile and synthetic fixtures validated | Immutable application-container/pilot qualification: Phases 6–7 |
+| S1-02 | ADR, initial threat model, role matrix and module ownership reviewed in Phase 1 acceptance record | Independent security/privacy review: Phase 6 |
+| S1-03 | Explicit foundation schemas/examples, structural lint, generated client, contract-derived mock and real/mock response checks validated | Later API schemas and v1 change-review tooling: Phases 2–5 |
+| S1-04 | Fresh isolated DB migrations, identity/consent/request models and ownership tests validated | Complete later-domain FKs: Phase 2; migration/restore rehearsal: Phase 6 |
+| S1-05 | Sandbox OTP, atomic session-family rotation/replay/logout, consent and production adapter/MFA boundary validated | Reviewed live OTP/adult-verification/MFA adapters remain open; startup stays blocked |
+| S1-06 | Minimal separate guardian frontend tested against mock successes/failures and real API | Draft resume, complete bilingual and later-role flows: Phase 3 |
+| S1-07 | Test pipeline, secrets and runtime/tooling scans, source-bound results and JUnit artifacts; hosted CI passed | SAST/SBOM/container/DAST, coverage and load/recovery qualification: Phase 6 |
+| S1-08 | Integrated guardian demonstration, ownership/withdrawal/replay checks and implementation review recorded | Independent live-service and final release acceptance: Phase 6 |
 
 ## Story coverage — development only
 
@@ -64,11 +64,11 @@ This initial implementation also contains early development slices from later ph
 | US19 | Separate routes, guardian-bound hashed single-use invitations and student principal | Draft resume, device revocation UI, reviewed activation/privacy notices, private teacher uploads |
 | US20 | Development console, explicit review/flag reason, audit history and kill switches | Live MFA, region-scoped delegation, dual approval, finance/refund/retry controls, full configuration rollback |
 
-## Next sprint — close Phase 1
+## Next planned phase — Phase 2 backend core
 
-Audit S1-01–S1-08 against the PRD's foundation definition of done and classify each gap into its actual phase. Complete the foundation discovery/intake/auth mock server and contract checks; audit the role/module ownership documentation and MFA integration boundary; add the required secrets scan configuration; obtain CI evidence for the exact pushed commit and record the integrated guardian demonstration and review evidence. Keep provider stubs labelled, with live integrations as open tickets. Do not claim the foundation accepted until its evidence is recorded.
+Phase 1's implementation review and evidence are recorded in `docs/PHASE_1_ACCEPTANCE.md` and `docs/VALIDATION.md`. Hosted acceptance passed for the reviewed source commit. Live provider stubs remain explicitly open, as permitted by the foundation definition of done.
 
-After Phase 1 acceptance, start Phase 2 tickets for private teacher evidence and capability review, availability, and schedule/capacity-aware matching. Full frontend completion follows in Phase 3. Qualify existing demo work and extend recurring schedules, invoice checkout and reconciliation in Phase 4. Parent Pro calling remains required under the Version 3 additions and its release gates.
+Phase 2 has not started. Its next sprint covers private teacher evidence/quarantine, capability-review records, public availability, schedule/capacity-aware eligibility and the remaining core relational/authorization checks. Full frontend completion follows in Phase 3. Qualify the existing demo slice and extend recurring schedules, invoice checkout and reconciliation in Phase 4. Parent Pro calling remains required under Version 3 and its release gates.
 
 The remaining PRD phases stay required: frontend completion, transaction qualification, service operations, security/recovery/load evidence, and the final VPS pilot. Production release is blocked until all P0 stories and Sections 14–16 gates pass. The owner's 440–720 hour estimate is planning context, not work already completed.
 
@@ -101,3 +101,7 @@ The tooling audit identified vulnerable transitive packages. Removed the affecte
 The foundation review reproduced a race by delaying only the synthetic test's replacement-session insert: a replay could finish before that insert and leave the new session active. Refresh now serializes the whole family and inserts its replacement in the rotation transaction; cookies are emitted after commit. Logout uses the same family lock. Refresh preserves the absolute family expiry, validates CSRF before replay revocation, rejects malformed cookie values and checks student guardian consent before issuing credentials.
 
 Validation: the controlled regression fails before the fix and passes after it; all 30 real-DB API tests and all application type checks pass. Added positive/single-use sandbox OTP and hashed-cookie assertions, invalid-CSRF/absolute-expiry checks, consent-withdrawn student refresh denial and API/worker production-startup rejection. Live OTP, independently approved adult verification and administrator MFA remain unconfigured and cannot be enabled by development evidence.
+
+## Phase 1 completion record
+
+Completed the S1-01–S1-08 implementation audit, role/module ownership matrix, OTP/adult-verification/MFA boundary and synthetic guardian demonstration record. 64 automated tests pass, all builds/type checks pass, source secrets scan has no findings and both runtime/tooling audits have zero known advisories at this run. Hosted CI run `38172798589` succeeds for reviewed source `2a0cc438af0c14bd8e3b777f597931921076bf71`. Raw private artifact payloads and independent live-service review are outside the claimed evidence. No Phase 2 implementation, merge or deployment occurred in this increment.
