@@ -7,6 +7,7 @@ import {
   ReactNode,
 } from "react";
 import Link from "next/link";
+import { DemoChoice, DemoJourney } from "./demo-journey";
 import { usePathname, useRouter } from "next/navigation";
 import {
   QueryClient,
@@ -1633,6 +1634,7 @@ function DashboardPage({ tab }: { tab: string }) {
       });
       setMessage("Saved. Your dashboard is up to date.");
       await client.invalidateQueries({ queryKey: ["dashboard"] });
+      await client.invalidateQueries({ queryKey: ["demos"] });
       return result;
     } catch (e) {
       setError((e as Error).message);
@@ -1915,8 +1917,9 @@ function DashboardPage({ tab }: { tab: string }) {
           )}
           {tab.endsWith("bookings") && (
             <>
+              <DemoJourney session={session} act={act} />
               <div className="panel-title">
-                <h3>Reservations</h3>
+                <h3>Revision & recurring reservations</h3>
                 {d.role === "GUARDIAN" && (
                   <Link className="button small" href="/revision">
                     Request revision <Plus size={16} />
@@ -1924,71 +1927,76 @@ function DashboardPage({ tab }: { tab: string }) {
                 )}
               </div>
               {d.reservations?.length ? (
-                d.reservations.map((r) => (
-                  <div className="panel reservation-card" key={r.id}>
-                    <div className="panel-title">
-                      <h3>
-                        {pretty(r.kind)} · {date(r.startsAt)}
-                      </h3>
-                      <Badge>{pretty(r.status)}</Badge>
+                d.reservations
+                  .filter((r) => r.kind !== "DEMO")
+                  .map((r) => (
+                    <div className="panel reservation-card" key={r.id}>
+                      <div className="panel-title">
+                        <h3>
+                          {pretty(r.kind)} · {date(r.startsAt)}
+                        </h3>
+                        <Badge>{pretty(r.status)}</Badge>
+                      </div>
+                      <p>{r.topic}</p>
+                      <p className="muted">
+                        {rupees(r.amountPaise)} total · Scope{" "}
+                        {r.scopeAccepted ? "accepted" : "pending"}
+                        {r.expiresAt
+                          ? ` · Hold expires ${date(r.expiresAt)}`
+                          : ""}
+                      </p>
+                      <div className="action-row">
+                        {d.role === "TEACHER" &&
+                          r.kind === "REVISION" &&
+                          r.status === "HOLD" &&
+                          !r.scopeAccepted && (
+                            <Button
+                              secondary
+                              onClick={() =>
+                                void act(
+                                  `/reservations/${r.id}/scope`,
+                                  { expectedVersion: r.version },
+                                  false,
+                                )
+                              }
+                            >
+                              Accept topic scope
+                            </Button>
+                          )}
+                        {d.role === "GUARDIAN" &&
+                          r.kind === "REVISION" &&
+                          r.status === "HOLD" &&
+                          r.scopeAccepted && (
+                            <Button
+                              onClick={() =>
+                                void act(`/dev/reservations/${r.id}/capture`, {
+                                  providerEventId: `sandbox-${r.id}`,
+                                  amountPaise: r.amountPaise,
+                                  currency: "INR",
+                                })
+                              }
+                            >
+                              Simulate sandbox capture
+                            </Button>
+                          )}
+                        {d.role === "GUARDIAN" &&
+                          r.kind === "REVISION" &&
+                          ["HOLD", "CONFIRMED"].includes(r.status) && (
+                            <Button
+                              secondary
+                              onClick={() =>
+                                void act(`/reservations/${r.id}/cancel`, {
+                                  expectedVersion: r.version,
+                                  reason: "Guardian cancellation",
+                                })
+                              }
+                            >
+                              Cancel reservation
+                            </Button>
+                          )}
+                      </div>
                     </div>
-                    <p>{r.topic}</p>
-                    <p className="muted">
-                      {rupees(r.amountPaise)} total · Scope{" "}
-                      {r.scopeAccepted ? "accepted" : "pending"}
-                      {r.expiresAt
-                        ? ` · Hold expires ${date(r.expiresAt)}`
-                        : ""}
-                    </p>
-                    <div className="action-row">
-                      {d.role === "TEACHER" &&
-                        r.status === "HOLD" &&
-                        !r.scopeAccepted && (
-                          <Button
-                            secondary
-                            onClick={() =>
-                              void act(
-                                `/reservations/${r.id}/scope`,
-                                { expectedVersion: r.version },
-                                false,
-                              )
-                            }
-                          >
-                            Accept topic scope
-                          </Button>
-                        )}
-                      {d.role === "GUARDIAN" &&
-                        r.status === "HOLD" &&
-                        r.scopeAccepted && (
-                          <Button
-                            onClick={() =>
-                              void act(`/dev/reservations/${r.id}/capture`, {
-                                providerEventId: `sandbox-${r.id}`,
-                                amountPaise: r.amountPaise,
-                                currency: "INR",
-                              })
-                            }
-                          >
-                            Simulate sandbox capture
-                          </Button>
-                        )}
-                      {d.role === "GUARDIAN" &&
-                        ["HOLD", "CONFIRMED"].includes(r.status) && (
-                          <Button
-                            secondary
-                            onClick={() =>
-                              void act(`/reservations/${r.id}/cancel`, {
-                                expectedVersion: r.version,
-                                reason: "Guardian cancellation",
-                              })
-                            }
-                          >
-                            Cancel reservation
-                          </Button>
-                        )}
-                    </div>
-                  </div>
-                ))
+                  ))
               ) : (
                 <Empty>No reservations. Choose a topic to begin.</Empty>
               )}
@@ -2059,7 +2067,12 @@ function DashboardPage({ tab }: { tab: string }) {
           )}
           {tab.endsWith("pro") && <Pro dashboard={d} act={act} busy={busy} />}
           {tab.endsWith("notes") && <Notes dashboard={d} />}
-          {tab.endsWith("admin") && <AdminPanel dashboard={d} act={act} />}
+          {tab.endsWith("admin") && (
+            <>
+              <DemoJourney session={session} act={act} />
+              <AdminPanel dashboard={d} act={act} />
+            </>
+          )}
         </>
       )}
     </DashboardShell>
@@ -2192,17 +2205,12 @@ function RequestCard({ request, act }: { request: TuitionRequest; act: Act }) {
               <Badge>Teacher response: {pretty(c.response)}</Badge>
             </div>
             {c.response === "ACCEPTED" && request.status === "OPEN" && (
-              <Button
-                secondary
-                onClick={() =>
-                  void act("/placements", {
-                    requestId: request.id,
-                    teacherId: c.teacherId,
-                  })
-                }
-              >
-                Choose & review terms
-              </Button>
+              <DemoChoice
+                session={session}
+                requestId={request.id}
+                teacherId={c.teacherId}
+                act={act}
+              />
             )}
           </div>
         ))

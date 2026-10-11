@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import {ids} from "../../packages/test-fixtures/src";
 async function login(page: import("@playwright/test").Page, name: string) {
   await page.goto("/login");
   await page.getByRole("button", { name: new RegExp(name) }).click();
@@ -157,4 +158,184 @@ test("homepage screenshot and server-rendered catalog contain real API profiles"
     path: "test-results/home-desktop.png",
     fullPage: true,
   });
+});
+
+test("guardian arranges and reschedules a demo; no-show reaches operator review", async ({
+  page,
+  playwright,
+}) => {
+  const { randomUUID } = await import("node:crypto");
+  const operator = await playwright.request.newContext({
+    baseURL: "http://localhost:3000",
+  });
+  const teacher = await playwright.request.newContext({
+    baseURL: "http://localhost:3000",
+  });
+  const post = async (
+    client: import("@playwright/test").APIRequestContext,
+    path: string,
+    body: unknown,
+    csrf = "",
+  ) => {
+    const response = await client.post("/api/v1" + path, {
+      data: body,
+      headers: {
+        Origin: "http://localhost:3000",
+        "X-CSRF-Token": csrf,
+        "Idempotency-Key": randomUUID(),
+      },
+    });
+    const data = await response.json();
+    expect(response.status(), JSON.stringify(data)).toBe(201);
+    return data;
+  };
+  try {
+    const op = await post(operator, "/dev/session", { accountId: ids.admin });
+    const t = await post(teacher, "/dev/session", {
+      accountId: ids.teacherAccount,
+    });
+    await login(page, "Kavita");
+    const session = await (
+      await page.request.get("/api/v1/auth/session")
+    ).json();
+    const schedule = "Browser demo " + randomUUID();
+    const request = await post(
+      page.request,
+      "/requests",
+      {
+        childId: ids.child,
+        alias: "Aarav",
+        grade: 8,
+        board: "CBSE",
+        subject: "Maths",
+        mode: "HOME",
+        language: "English",
+        locality: "Shankar Nagar",
+        budgetPaise: 400000,
+        schedule,
+      },
+      session.csrfToken,
+    );
+    const recommendations = await post(
+      operator,
+      `/admin/requests/${request.id}/recommendations`,
+      { expectedVersion: 1 },
+      op.csrfToken,
+    );
+    const candidate = recommendations.items.find(
+      (x: { teacherId: string }) => x.teacherId === ids.teacher,
+    );
+    await post(
+      teacher,
+      `/candidates/${candidate.id}/responses`,
+      { response: "ACCEPTED" },
+      t.csrfToken,
+    );
+    await page.goto("/dashboard/requests");
+    const panel = page.locator(".panel").filter({ hasText: schedule });
+    await panel.getByRole("button", { name: "Choose & arrange demo" }).click();
+    const slot = new Date();
+    slot.setUTCDate(slot.getUTCDate() + 40);
+    slot.setUTCHours(11, Date.now() % 50, 0, 0);
+    const ist = slot.toISOString().slice(0, 16);
+    await panel.getByLabel("Demo start (IST)").fill(ist);
+    await panel
+      .getByRole("button", { name: "Propose demo", exact: true })
+      .click();
+    await expect(
+      panel.getByRole("link", { name: /Review demo/ }),
+    ).toBeVisible();
+    await panel.getByRole("link", { name: /Review demo/ }).click();
+    const demos = await (await page.request.get("/api/v1/demos")).json();
+    let demo = demos.items.find(
+      (d: { requestId: string }) => d.requestId === request.id,
+    );
+    const card = page.locator(`[data-demo-id="${demo.id}"]`);
+    await card.getByRole("button", { name: "Accept demo time" }).click();
+    await expect(
+      card.getByText(/Guardian accepted · Teacher pending/),
+    ).toBeVisible();
+    demo = (await (await page.request.get("/api/v1/demos")).json()).items.find(
+      (d: { id: string }) => d.id === demo.id,
+    );
+    await post(
+      teacher,
+      `/demos/${demo.id}/acceptances`,
+      { expectedVersion: demo.version },
+      t.csrfToken,
+    );
+    await page.reload();
+    await expect(card.getByText("confirmed", { exact: true })).toBeVisible();
+    await card
+      .getByRole("button", { name: "Reschedule demo", exact: true })
+      .click();
+    slot.setUTCDate(slot.getUTCDate() + 1);
+    await card
+      .getByLabel("Demo start (IST)")
+      .fill(slot.toISOString().slice(0, 16));
+    await card
+      .getByLabel("Reason for rescheduling")
+      .fill("Guardian schedule changed");
+    await card.getByRole("button", { name: "Propose new demo time" }).click();
+    await expect(
+      card.getByText(/Guardian pending · Teacher pending/),
+    ).toBeVisible();
+    await card.getByRole("button", { name: "Accept demo time" }).click();
+    await expect(
+      card.getByText(/Guardian accepted · Teacher pending/),
+    ).toBeVisible();
+    demo = (await (await page.request.get("/api/v1/demos")).json()).items.find(
+      (d: { id: string }) => d.id === demo.id,
+    );
+    await post(
+      teacher,
+      `/demos/${demo.id}/acceptances`,
+      { expectedVersion: demo.version },
+      t.csrfToken,
+    );
+    await page.reload();
+    await expect(card.getByText("confirmed", { exact: true })).toBeVisible();
+    await card.screenshot({ path: "test-results/demo-confirmed.png" });
+    // Move only this synthetic test's confirmed slot into the past to exercise the outcome UI.
+    const { Pool } = await import("pg");
+    const { readFileSync } = await import("node:fs");
+    const { parseEnv } = await import("node:util");
+    const connectionString = parseEnv(
+      readFileSync(".env", "utf8"),
+    ).DATABASE_URL;
+    expect(["localhost", "127.0.0.1"]).toContain(
+      new URL(connectionString).hostname,
+    );
+    const db = new Pool({ connectionString });
+    try {
+      await db.query(
+        'UPDATE "Reservation" SET "startsAt"=NOW()-INTERVAL \'2 hours\', "endsAt"=NOW()-INTERVAL \'1 hour\' WHERE id=$1 AND kind=\'DEMO\' AND "guardianId"=$2',
+        [demo.reservationId, ids.guardian],
+      );
+    } finally {
+      await db.end();
+    }
+    await page.reload();
+    await card.getByLabel("Demo outcome").selectOption("NO_SHOW");
+    await card
+      .getByLabel("Outcome details")
+      .fill("Teacher did not attend this synthetic demo");
+    await card.getByRole("button", { name: "Record demo outcome" }).click();
+    await expect(card.getByText(/awaiting operator review/)).toBeVisible();
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await login(page, "Operator");
+    await page.goto("/dashboard/admin");
+    const review = page.locator(`[data-demo-id="${demo.id}"]`);
+    await expect(review.getByText("disputed", { exact: true })).toBeVisible();
+    await review
+      .getByLabel("Review evidence and reason")
+      .fill(
+        "Reviewed guardian report and synthetic teacher evidence: no demo took place",
+      );
+    await review.getByRole("button", { name: "Resolve demo dispute" }).click();
+    await expect(review).toHaveCount(0);
+  } finally {
+    await operator.dispose();
+    await teacher.dispose();
+  }
 });
