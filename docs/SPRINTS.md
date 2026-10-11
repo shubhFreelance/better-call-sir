@@ -4,11 +4,27 @@ Source: **BetterCallSir_MVP_PRD.docx, Version 3.0, 11 October 2026**, supplied b
 
 ## Working agreement
 
-- Work in sprint-sized increments, starting with the PRD's foundation sprint.
+- Follow the PRD Section 10 phases in order. Sprint-sized increments belong to the active phase; record its acceptance evidence before advancing. Existing later-phase slices are retained and qualified when their phase arrives.
 - Link every API/feature to PRD tickets and stories. Define acceptance cases before extending it.
 - Run the relevant checks, create a focused commit, and push the feature branch after each completed API or feature. Never call untested or synthetic provider behavior production-complete.
 - Preserve the PRD's separate Next.js, NestJS API and worker applications, versioned contract, PostgreSQL constraints and server-owned permissions.
 - Push implementation branches without merging or deploying unless requested. No real child records or production credentials in fixtures or Git history.
+
+## Phase sequence — PRD Section 10
+
+**Active phase: 1 — Foundation, completion audit and remaining foundation tickets.** The initial implementation contains later-phase slices; they do not close those phases. The demo increments belong to Phase 4, even though they were developed earlier. The next implementation work closes Phase 1 gaps rather than extending recurring scheduling now.
+
+| Phase | PRD deliverables | Exit evidence | Current status |
+| --- | --- | --- | --- |
+| 1 Foundation | Threat model, modules, schema draft, OpenAPI, CI, auth/consent skeleton | Contract/ownership tests and reviewed foundation evidence; integrated guardian demonstration | Implemented in part; audit and outstanding foundation tickets remain |
+| 2 Backend core | Teacher screening, public projection, intake, eligible matching, reservations, audit | Real-database constraints and authorization checks | Early slices present; phase not accepted |
+| 3 Frontend | Independent web screens against mocks and the real Phase 2 API | Mobile/accessibility and integrated discovery tests | Early screens present; phase not accepted |
+| 4 Transactions | Demos, terms, placement invoices, revision holds, checkout, reconciliation | Payment replay, concurrency and actual provider sandbox evidence | Development demo/booking slices present; phase not accepted |
+| 5 Service operations | Notes, cases, rematches, follow-ups, deletion, outbox, reports | Privacy/retry tests and operator drills | Early slices present; phase not accepted |
+| 6 Release qualification | Security scans, adversarial review, load, backup restore, migrations, rollback | All PRD release gates | Not accepted |
+| 7 VPS pilot | Supported host, synthetic rehearsal, immutable image release and verification | Deployment gate and smoke/restore evidence | Not started; deployment requires separate authorization |
+
+Phase 1's definition of done explicitly permits labelled provider stubs with live integration left as open tickets. Missing live-provider qualification is tracked for the relevant later phase and final release; it is not silently treated as complete or added as a new prerequisite to the foundation skeleton.
 
 ## Sprint 1 — foundation and an integrated development journey
 
@@ -48,13 +64,15 @@ This initial implementation also contains early development slices from later ph
 | US19 | Separate routes, guardian-bound hashed single-use invitations and student principal | Draft resume, device revocation UI, reviewed activation/privacy notices, private teacher uploads |
 | US20 | Development console, explicit review/flag reason, audit history and kill switches | Live MFA, region-scoped delegation, dual approval, finance/refund/retry controls, full configuration rollback |
 
-## Next sprint — backend core completion
+## Next sprint — close Phase 1
 
-Complete US03–US07 in focused increments: private-evidence adapter and capability-review records; public availability contract; schedule/capacity-aware matching evidence; demo proposal and dual acceptance with shared-calendar tests. Then extend terms and recurring schedules (US08), followed by transactions and actual provider sandbox integration (US09/US10/US18).
+Audit S1-01–S1-08 against the PRD's foundation definition of done and classify each gap into its actual phase. Complete the foundation discovery/intake/auth mock server and contract checks; audit the role/module ownership documentation and MFA integration boundary; add the required secrets scan configuration; obtain CI evidence for the exact pushed commit and record the integrated guardian demonstration and review evidence. Keep provider stubs labelled, with live integrations as open tickets. Do not claim the foundation accepted until its evidence is recorded.
+
+After Phase 1 acceptance, start Phase 2 tickets for private teacher evidence and capability review, availability, and schedule/capacity-aware matching. Full frontend completion follows in Phase 3. Qualify existing demo work and extend recurring schedules, invoice checkout and reconciliation in Phase 4. Parent Pro calling remains required under the Version 3 additions and its release gates.
 
 The remaining PRD phases stay required: frontend completion, transaction qualification, service operations, security/recovery/load evidence, and the final VPS pilot. Production release is blocked until all P0 stories and Sections 14–16 gates pass. The owner's 440–720 hour estimate is planning context, not work already completed.
 
-## Sprint 2 — US07 demo API increment
+## Earlier Phase 4 slice — US07 demo API increment
 
 Implemented `GET/POST /demos`, versioned acceptance/reschedule/outcome/cancellation endpoints and restricted operator dispute review. Every mutation uses principal/resource-scoped retry keys, active guardian consent and an audit/outbox transaction. Proposals expire after 24 hours or at the proposed start, whichever comes first; demos last 20–60 minutes in this development increment. This is scheduling metadata, not a delivered video service.
 
