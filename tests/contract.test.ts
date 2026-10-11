@@ -2,21 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
-import Ajv from "ajv/dist/2020";
-import addFormats from "ajv-formats";
 import { teachers, ids } from "../packages/test-fixtures/src";
-const contract = JSON.parse(readFileSync("contracts/openapi.yaml", "utf8"));
-const ajv = new Ajv({ strict: false, allErrors: true });
-addFormats(ajv);
-const defs = JSON.parse(
-  JSON.stringify(contract.components.schemas).replaceAll(
-    "#/components/schemas/",
-    "#/$defs/",
-  ),
-);
-function validator(name: string) {
-  return ajv.compile({ $defs: defs, $ref: "#/$defs/" + name });
-}
+import { contract, validator, operationValidator } from "./helpers/contract";
 function files(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((f) =>
     f.isDirectory()
@@ -122,4 +109,61 @@ test("demo contract validates time, version and outcome boundaries", () => {
     }),
     false,
   );
+});
+
+test("foundation examples validate against their operation response schemas", () => {
+  for (const route of [
+    "/catalog",
+    "/teachers",
+    "/teachers/{slug}",
+    "/auth/otp/request",
+    "/auth/otp/verify",
+    "/auth/session",
+    "/auth/refresh",
+    "/auth/logout",
+    "/dev/accounts",
+    "/dev/session",
+    "/consents",
+    "/consents/withdraw",
+    "/requests",
+    "/requests/{id}",
+    "/children",
+  ])
+    for (const [method, op] of Object.entries(contract.paths[route]) as [
+      string,
+      any,
+    ][])
+      for (const [status, response] of Object.entries(op.responses) as [
+        string,
+        any,
+      ][]) {
+        const media = response.content["application/json"];
+        assert(media.examples, `${method} ${route} ${status} example missing`);
+        const validate = operationValidator(route, method, status);
+        for (const example of Object.values(media.examples) as {
+          value: unknown;
+        }[])
+          assert(
+            validate(example.value),
+            `${method} ${route} ${status}: ${JSON.stringify(validate.errors)}`,
+          );
+      }
+});
+test("OTP contract accepts supported phone/code formats and rejects malformed input", () => {
+  const request = validator("OtpRequest"),
+    verify = validator("OtpVerify");
+  assert(request({ phone: "+919999999991" }));
+  assert(verify({ phone: "+919999999991", code: "123456", name: "Synthetic" }));
+  for (const phone of [
+    "9999999991",
+    "+915999999991",
+    "+91999999999",
+    "+9199999999911",
+  ])
+    assert.equal(request({ phone }), false);
+  for (const code of ["12345", "1234567", "abcdef"])
+    assert.equal(
+      verify({ phone: "+919999999991", code, name: "Synthetic" }),
+      false,
+    );
 });

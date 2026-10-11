@@ -34,7 +34,7 @@ This initial implementation also contains early development slices from later ph
 | --- | --- | --- |
 | S1-01 | npm workspaces; separate API, worker and Next.js builds; Node 24; synthetic fixtures; PostgreSQL 17.11 pinned image | Qualify immutable application containers for pilot |
 | S1-02 | Architecture decision, threat boundaries and delivery board | Independent security/privacy review; complete control register |
-| S1-03 | Versioned OpenAPI, generated TypeScript definitions, schema and operation coverage checks | Full resource schemas for all later APIs; contract-diff CI; full mock server |
+| S1-03 | Versioned OpenAPI, generated TypeScript definitions, lint, explicit foundation schemas/examples and contract-generated mock server | Contract-diff CI; stronger later-phase resource schemas tracked in their phases |
 | S1-04 | PostgreSQL migrations, account/session/consent/request and later-flow schema, isolated real-DB tests | Full foreign-key ownership model and operational schema evolution/restore rehearsal |
 | S1-05 | Development OTP expiry/rate limiting, hashed session rotation/replay, CSRF/Origin, consent gates | Live OTP, independently reviewed adult verification, production MFA, distributed rate limiter |
 | S1-06 | Guardian intake against the separate API; ownership, validation and retry protection | Saved onboarding drafts and step-by-step resume; complete bilingual notices |
@@ -83,3 +83,9 @@ Acceptance checks: isolated fresh-database migrations; cross-family/student deni
 Guardian recommendations now lead to demo scheduling. Guardian and teacher booking screens show current version, both acceptances, proposal expiry and outcome state; rescheduling requires a reason and resets acceptance. Operators can resolve a no-show case with a version and evidence/reason. Revision payment/scope controls are restricted to revision records. Tuition terms appear only after a completed demo.
 
 Validated through a real browser/API journey: guardian proposal and acceptance; teacher acceptance; guardian reschedule with both acceptances reset; reconfirmation; no-show report after the synthetic test's demo end; restricted operator review and case resolution. All nine browser journeys and the separate API, worker and Next.js builds pass. Meeting delivery and actual notification providers remain outstanding.
+
+## Phase 1 increment — S1-03 / S1-06 foundation contract and mocks
+
+Added pinned Prism and Redocly tooling, explicit discovery/OTP/consent/intake schemas, named synthetic success/error examples, mock HTTP tests and validation against the real foundation API. Fixed over-escaped phone and OTP patterns in the contract. The gateway binds loopback, rejects production startup and marks responses as synthetic; it does not implement authentication, ownership or persistence. Existing real-DB acceptance remains authoritative for those controls.
+
+Validation for this increment: 26 real-DB API tests, seven contract tests, four mock HTTP/startup tests and two mock-backed guardian browser cases pass. Type checks and OpenAPI structural lint pass (one unused generic component warning). The mock browser tests cover saved and denied-consent states; they do not establish live authentication or provider acceptance.

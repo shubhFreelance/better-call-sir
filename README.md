@@ -30,6 +30,10 @@ The root `.env` is ignored. The example database credentials are for a loopback-
 - `contracts/openapi.yaml`: versioned API contract. All existing routes are documented; later resource contracts still need stronger schemas.
 - `prisma/migrations`: explicit SQL, including half-open interval exclusion, entitlement checks and append-only audit history.
 
+## Foundation mock server
+
+Run `npm run dev:mock` for a contract-generated, loopback-only API mock on port 4010. It includes deterministic discovery, identity, consent and intake examples plus selectable failure responses. See [mock usage and limits](contracts/MOCKS.md). Run `npm run contract:lint` and `npm run test:mock` to validate it. Mocks have no persisted user or financial state.
+
 ## Validation
 
 ```bash

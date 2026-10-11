@@ -17,14 +17,17 @@
     "contract:generate": "openapi-typescript contracts/openapi.yaml -o packages/api-client/src/generated.ts",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "npm run test:unit && npm run test:integration && npm run test:contract",
+    "test": "npm run test:unit && npm run test:integration && npm run test:contract && npm run test:mock",
     "test:unit": "tsx --test tests/policies.test.ts",
     "test:integration": "tsx --test --test-concurrency=1 tests/api.test.ts",
     "test:contract": "tsx --test tests/contract.test.ts",
     "test:e2e": "playwright test",
     "security:dependencies": "npm audit --omit=dev",
     "release:verify": "node scripts/release-verify.mjs",
-    "test:release-gate": "tsx --test tests/release.test.ts"
+    "test:release-gate": "tsx --test tests/release.test.ts",
+    "dev:mock": "node scripts/mock-server.mjs",
+    "contract:lint": "redocly lint contracts/openapi.yaml",
+    "test:mock": "tsx --test tests/mock.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "5.2.2",
@@ -49,7 +52,9 @@
   "devDependencies": {
     "@axe-core/playwright": "4.11.1",
     "@playwright/test": "1.58.2",
+    "@redocly/cli": "2.62.1",
     "@sparticuz/chromium": "153.0.0",
+    "@stoplight/prism-cli": "5.16.0",
     "@types/cookie-parser": "1.4.10",
     "@types/express": "5.0.6",
     "@types/node": "24.12.0",

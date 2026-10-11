@@ -8,6 +8,7 @@ import {Pool} from 'pg';
 import {PrismaClient} from '@prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg';
 import {ids} from '../packages/test-fixtures/src';
+import {operationValidator} from './helpers/contract';
 const local=parseEnv(readFileSync('.env','utf8'));
 const base=new URL(local.DATABASE_URL);
 assert(['127.0.0.1','localhost'].includes(base.hostname),'Integration tests require a local synthetic database.');
@@ -147,6 +148,13 @@ test('expired demo cannot be accepted; cancellation releases its calendar slot',
  assert.equal((await teacher.call(`/demos/${proposed.data.id}/acceptances`,{expectedVersion:1})).status,409);
  const cancelled=await parent.call(`/demos/${proposed.data.id}/cancellations`,{expectedVersion:1,reason:'Choose another time'});assert.equal(cancelled.status,201);
  assert.equal((await parent.call('/revision/holds',{teacherId:ids.teacher,startsAt:future(35),duration:20,topic:'Released slot'})).status,201);
+});
+
+test('real foundation responses match the discovery, identity and intake contract',async()=>{
+ const check=(route:string,method:string,status:number,result:any)=>{assert.equal(result.status,status);const validate=operationValidator(route,method,String(status));assert(validate(result.data),JSON.stringify(validate.errors));};
+ for(const route of ['/catalog','/teachers','/teachers/ananya-sharma','/auth/session','/dev/accounts','/children','/requests']) check(route==='/teachers/ananya-sharma'?'/teachers/{slug}':route,'get',200,await parent.call(route));
+ const request=await parent.call('/requests',intake());check('/requests','post',201,request);check('/requests/{id}','get',200,await parent.call(`/requests/${request.data.id}`));
+ check('/consents','post',201,await parent.call('/consents',{purpose:'tuition-and-learning-records',policyVersion:'development-v1',accepted:true}));
 });
 
 test('consent withdrawal blocks new intake, note sharing and student sessions',async()=>{assert.equal((await parent.call('/consents/withdraw',{})).status,201);assert.equal((await parent.call('/requests',intake())).status,403);assert.equal((await student.call('/dashboard')).status,401);assert.equal((await teacher.call('/notes')).data.items.length,0);});

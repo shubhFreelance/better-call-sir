@@ -1062,6 +1062,109 @@ export interface components {
             createdAt: string;
             reservation: components["schemas"]["Reservation"];
         };
+        Catalog: {
+            /** @constant */
+            city: "Raipur";
+            subjects: ("Maths" | "Science")[];
+            boards: ("CBSE" | "CGBSE")[];
+            grades: number[];
+            languages: ("English" | "Hindi")[];
+            modes: ("ONLINE" | "HOME")[];
+            localities: string[];
+            /** @constant */
+            timezone: "Asia/Kolkata";
+        };
+        OtpRequest: {
+            phone: string;
+        };
+        OtpVerify: {
+            phone: string;
+            code: string;
+            name: string;
+        };
+        OtpSandbox: {
+            /** @constant */
+            status: "SANDBOX";
+            developmentCode: string;
+            /** @constant */
+            expiresIn: 300;
+        };
+        Consent: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            guardianId: string;
+            /** @constant */
+            purpose: "tuition-and-learning-records";
+            /** @constant */
+            policyVersion: "development-v1";
+            /** Format: date-time */
+            grantedAt: string;
+            /** Format: date-time */
+            withdrawnAt: string | null;
+        };
+        Candidate: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            requestId: string;
+            /** Format: uuid */
+            teacherId: string;
+            score: number;
+            reasons: string[];
+            rankerVersion: string;
+            /** @enum {string} */
+            response: "PENDING" | "ACCEPTED" | "DECLINED";
+        };
+        TuitionRequestDetails: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            guardianId: string;
+            /** Format: uuid */
+            childId: string;
+            /** @enum {string} */
+            subject: "Maths" | "Science";
+            /** @enum {string} */
+            mode: "ONLINE" | "HOME";
+            /** @enum {string} */
+            language: "English" | "Hindi";
+            locality: string;
+            budgetPaise: number;
+            schedule: string;
+            status: string;
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            candidates: components["schemas"]["Candidate"][];
+        };
+        RequestList: {
+            items: components["schemas"]["TuitionRequest"][];
+        };
+        Child: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            guardianId: string;
+            alias: string;
+            grade: number;
+            /** @enum {string} */
+            board: "CBSE" | "CGBSE";
+            /** Format: uuid */
+            studentAccountId: string | null;
+        };
+        Children: {
+            items: components["schemas"]["Child"][];
+        };
+        AccountList: components["schemas"]["Account"][];
+        Withdrawal: {
+            /** @constant */
+            status: "WITHDRAWN";
+        };
+        Logout: {
+            /** @constant */
+            status: "SIGNED_OUT";
+        };
     };
     responses: never;
     parameters: never;
@@ -1252,7 +1355,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["Catalog"];
                 };
             };
             /** @description Validation */
@@ -1322,7 +1425,11 @@ export interface operations {
     };
     getTeachers: {
         parameters: {
-            query?: never;
+            query?: {
+                q?: string;
+                subject?: string;
+                mode?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1506,7 +1613,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["AccountList"];
                 };
             };
             /** @description Validation */
@@ -1577,7 +1684,10 @@ export interface operations {
     postDevSession: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1667,15 +1777,16 @@ export interface operations {
     postAuthOtpRequest: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
             path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": {
-                    phone: string;
-                };
+                "application/json": components["schemas"]["OtpRequest"];
             };
         };
         responses: {
@@ -1685,7 +1796,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["OtpSandbox"];
                 };
             };
             /** @description Validation */
@@ -1756,17 +1867,16 @@ export interface operations {
     postAuthOtpVerify: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
             path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": {
-                    phone: string;
-                    code: string;
-                    name: string;
-                };
+                "application/json": components["schemas"]["OtpVerify"];
             };
         };
         responses: {
@@ -1932,6 +2042,8 @@ export interface operations {
             query?: never;
             header: {
                 "X-CSRF-Token": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
             };
             path?: never;
             cookie?: never;
@@ -2017,6 +2129,8 @@ export interface operations {
             query?: never;
             header: {
                 "X-CSRF-Token": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
             };
             path?: never;
             cookie?: never;
@@ -2029,7 +2143,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["Logout"];
                 };
             };
             /** @description Validation */
@@ -2102,6 +2216,8 @@ export interface operations {
             query?: never;
             header: {
                 "X-CSRF-Token": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
             };
             path?: never;
             cookie?: never;
@@ -2125,7 +2241,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["Consent"];
                 };
             };
             /** @description Validation */
@@ -2198,6 +2314,8 @@ export interface operations {
             query?: never;
             header: {
                 "X-CSRF-Token": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
             };
             path?: never;
             cookie?: never;
@@ -2210,7 +2328,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["Withdrawal"];
                 };
             };
             /** @description Validation */
@@ -2293,7 +2411,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["Children"];
                 };
             };
             /** @description Validation */
@@ -2376,9 +2494,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        items: components["schemas"]["TuitionRequest"][];
-                    };
+                    "application/json": components["schemas"]["RequestList"];
                 };
             };
             /** @description Validation */
@@ -2453,6 +2569,8 @@ export interface operations {
                 "X-CSRF-Token": string;
                 /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
                 "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
             };
             path?: never;
             cookie?: never;
@@ -2554,7 +2672,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["TuitionRequestDetails"];
                 };
             };
             /** @description Validation */

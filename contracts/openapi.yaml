@@ -209,7 +209,46 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Resource"
+                  "$ref": "#/components/schemas/Catalog"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "city": "Raipur",
+                      "subjects": [
+                        "Maths",
+                        "Science"
+                      ],
+                      "boards": [
+                        "CBSE",
+                        "CGBSE"
+                      ],
+                      "grades": [
+                        6,
+                        7,
+                        8,
+                        9,
+                        10
+                      ],
+                      "languages": [
+                        "English",
+                        "Hindi"
+                      ],
+                      "modes": [
+                        "ONLINE",
+                        "HOME"
+                      ],
+                      "localities": [
+                        "Shankar Nagar",
+                        "Avanti Vihar",
+                        "Telibandha",
+                        "Civil Lines",
+                        "Mowa"
+                      ],
+                      "timezone": "Asia/Kolkata"
+                    }
+                  }
                 }
               }
             }
@@ -220,6 +259,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -230,6 +278,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -240,6 +297,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -250,6 +316,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -260,6 +335,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -270,6 +354,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -280,6 +373,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -321,6 +423,168 @@
                     "nextCursor"
                   ],
                   "additionalProperties": false
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "items": [
+                        {
+                          "name": "Ananya Sharma",
+                          "slug": "ananya-sharma",
+                          "headline": "Making maths feel like a discovery.",
+                          "bio": "Patient, practical lessons that build confidence one concept at a time. I use everyday examples, guided practice and a short recap so families know what we covered.",
+                          "subjects": [
+                            "Maths"
+                          ],
+                          "experience": 8,
+                          "monthlyPaise": 300000,
+                          "languages": [
+                            "English",
+                            "Hindi"
+                          ],
+                          "modes": [
+                            "HOME",
+                            "ONLINE"
+                          ],
+                          "localities": [
+                            "Shankar Nagar",
+                            "Avanti Vihar",
+                            "Telibandha"
+                          ],
+                          "avatarColor": "#e6ead5",
+                          "id": "30000000-0000-4000-8000-000000000001",
+                          "boards": [
+                            "CBSE",
+                            "CGBSE"
+                          ],
+                          "grades": [
+                            6,
+                            7,
+                            8,
+                            9,
+                            10
+                          ],
+                          "capabilityLabel": "Reviewed subject coverage",
+                          "consultationOptIn": true
+                        },
+                        {
+                          "name": "Rohan Verma",
+                          "slug": "rohan-verma",
+                          "headline": "A little curiosity. A lot of science.",
+                          "bio": "From chemical reactions to the world around us, we explore the why before memorising the what. Structured revision and problem solving for middle and high school.",
+                          "subjects": [
+                            "Science",
+                            "Maths"
+                          ],
+                          "experience": 6,
+                          "monthlyPaise": 350000,
+                          "languages": [
+                            "English",
+                            "Hindi"
+                          ],
+                          "modes": [
+                            "ONLINE",
+                            "HOME"
+                          ],
+                          "localities": [
+                            "Civil Lines",
+                            "Mowa",
+                            "Shankar Nagar"
+                          ],
+                          "avatarColor": "#eadbce",
+                          "id": "30000000-0000-4000-8000-000000000002",
+                          "boards": [
+                            "CBSE",
+                            "CGBSE"
+                          ],
+                          "grades": [
+                            6,
+                            7,
+                            8,
+                            9,
+                            10
+                          ],
+                          "capabilityLabel": "Reviewed subject coverage",
+                          "consultationOptIn": true
+                        },
+                        {
+                          "name": "Meera Sahu",
+                          "slug": "meera-sahu",
+                          "headline": "Clear concepts, at your own pace.",
+                          "bio": "Friendly bilingual support for students who want a stronger foundation. Lessons include space to ask questions and work through difficult topics together.",
+                          "subjects": [
+                            "Maths",
+                            "Science"
+                          ],
+                          "experience": 11,
+                          "monthlyPaise": 250000,
+                          "languages": [
+                            "Hindi",
+                            "English"
+                          ],
+                          "modes": [
+                            "HOME",
+                            "ONLINE"
+                          ],
+                          "localities": [
+                            "Avanti Vihar",
+                            "Telibandha",
+                            "Mowa"
+                          ],
+                          "avatarColor": "#d6e7e9",
+                          "id": "30000000-0000-4000-8000-000000000003",
+                          "boards": [
+                            "CBSE",
+                            "CGBSE"
+                          ],
+                          "grades": [
+                            6,
+                            7,
+                            8,
+                            9,
+                            10
+                          ],
+                          "capabilityLabel": "Reviewed subject coverage",
+                          "consultationOptIn": true
+                        },
+                        {
+                          "name": "Arjun Deshmukh",
+                          "slug": "arjun-deshmukh",
+                          "headline": "Turn \u201cI don\u2019t get it\u201d into \u201cI can do this.\u201d",
+                          "bio": "Focused online science lessons with visual explanations and practical questions. Revision sessions cover a clear topic, with a recap and next steps.",
+                          "subjects": [
+                            "Science"
+                          ],
+                          "experience": 5,
+                          "monthlyPaise": 280000,
+                          "languages": [
+                            "English"
+                          ],
+                          "modes": [
+                            "ONLINE"
+                          ],
+                          "localities": [],
+                          "avatarColor": "#e9ddeb",
+                          "id": "30000000-0000-4000-8000-000000000004",
+                          "boards": [
+                            "CBSE",
+                            "CGBSE"
+                          ],
+                          "grades": [
+                            6,
+                            7,
+                            8,
+                            9,
+                            10
+                          ],
+                          "capabilityLabel": "Reviewed subject coverage",
+                          "consultationOptIn": true
+                        }
+                      ],
+                      "nextCursor": null
+                    }
+                  }
                 }
               }
             }
@@ -331,6 +595,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -341,6 +614,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -351,6 +633,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -361,6 +652,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -371,6 +671,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -381,6 +690,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -391,11 +709,43 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subject",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     },
     "/teachers/{slug}": {
@@ -413,6 +763,50 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Teacher"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "name": "Ananya Sharma",
+                      "slug": "ananya-sharma",
+                      "headline": "Making maths feel like a discovery.",
+                      "bio": "Patient, practical lessons that build confidence one concept at a time. I use everyday examples, guided practice and a short recap so families know what we covered.",
+                      "subjects": [
+                        "Maths"
+                      ],
+                      "experience": 8,
+                      "monthlyPaise": 300000,
+                      "languages": [
+                        "English",
+                        "Hindi"
+                      ],
+                      "modes": [
+                        "HOME",
+                        "ONLINE"
+                      ],
+                      "localities": [
+                        "Shankar Nagar",
+                        "Avanti Vihar",
+                        "Telibandha"
+                      ],
+                      "avatarColor": "#e6ead5",
+                      "id": "30000000-0000-4000-8000-000000000001",
+                      "boards": [
+                        "CBSE",
+                        "CGBSE"
+                      ],
+                      "grades": [
+                        6,
+                        7,
+                        8,
+                        9,
+                        10
+                      ],
+                      "capabilityLabel": "Reviewed subject coverage",
+                      "consultationOptIn": true
+                    }
+                  }
                 }
               }
             }
@@ -423,6 +817,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -433,6 +836,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -443,6 +855,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -453,6 +874,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -463,6 +893,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -473,6 +912,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -483,6 +931,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -514,7 +971,26 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Resource"
+                  "$ref": "#/components/schemas/AccountList"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": [
+                      {
+                        "id": "10000000-0000-4000-8000-000000000001",
+                        "name": "Kavita Sharma",
+                        "role": "GUARDIAN",
+                        "verified": true
+                      },
+                      {
+                        "id": "10000000-0000-4000-8000-000000000002",
+                        "name": "Other synthetic guardian",
+                        "role": "GUARDIAN",
+                        "verified": true
+                      }
+                    ]
+                  }
                 }
               }
             }
@@ -525,6 +1001,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -535,6 +1020,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -545,6 +1039,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -555,6 +1058,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -565,6 +1077,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -575,6 +1096,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -585,6 +1115,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -602,12 +1141,45 @@
         "summary": "dev \u00b7 session",
         "security": [],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "account": {
+                        "id": "10000000-0000-4000-8000-000000000001",
+                        "name": "Kavita Sharma",
+                        "role": "GUARDIAN",
+                        "verified": true
+                      },
+                      "csrfToken": "synthetic-mock-csrf"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -618,6 +1190,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -628,6 +1209,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -638,6 +1228,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -648,6 +1247,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -658,6 +1266,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -668,23 +1285,33 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Session"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
           }
         },
         "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -717,12 +1344,41 @@
         "summary": "auth \u00b7 otp \u00b7 request",
         "security": [],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpSandbox"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "status": "SANDBOX",
+                      "developmentCode": "123456",
+                      "expiresIn": 300
+                    }
+                  }
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -733,6 +1389,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -743,6 +1408,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -753,6 +1427,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -763,6 +1446,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -773,6 +1465,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -783,39 +1484,39 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
           }
         },
         "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "phone": {
-                    "type": "string",
-                    "pattern": "^\\+91[6-9]\\d{9}$"
-                  }
-                },
-                "required": [
-                  "phone"
-                ],
-                "additionalProperties": false
+                "$ref": "#/components/schemas/OtpRequest"
               }
             }
           }
@@ -831,12 +1532,45 @@
         "summary": "auth \u00b7 otp \u00b7 verify",
         "security": [],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "account": {
+                        "id": "10000000-0000-4000-8000-000000000001",
+                        "name": "Kavita Sharma",
+                        "role": "GUARDIAN",
+                        "verified": true
+                      },
+                      "csrfToken": "synthetic-mock-csrf"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -847,6 +1581,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -857,6 +1600,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -867,6 +1619,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -877,6 +1638,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -887,6 +1657,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -897,47 +1676,39 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Session"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
           }
         },
         "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "phone": {
-                    "type": "string"
-                  },
-                  "code": {
-                    "type": "string",
-                    "pattern": "^\\d{6}$"
-                  },
-                  "name": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "phone",
-                  "code",
-                  "name"
-                ],
-                "additionalProperties": false
+                "$ref": "#/components/schemas/OtpVerify"
               }
             }
           }
@@ -963,6 +1734,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Session"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "account": {
+                        "id": "10000000-0000-4000-8000-000000000001",
+                        "name": "Kavita Sharma",
+                        "role": "GUARDIAN",
+                        "verified": true
+                      },
+                      "csrfToken": "synthetic-mock-csrf"
+                    }
+                  }
                 }
               }
             }
@@ -973,6 +1758,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -983,6 +1777,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -993,6 +1796,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1003,6 +1815,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1013,6 +1834,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1023,6 +1853,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1033,6 +1872,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1053,12 +1901,45 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "account": {
+                        "id": "10000000-0000-4000-8000-000000000001",
+                        "name": "Kavita Sharma",
+                        "role": "GUARDIAN",
+                        "verified": true
+                      },
+                      "csrfToken": "synthetic-mock-csrf"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1069,6 +1950,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1079,6 +1969,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1089,6 +1988,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1099,6 +2007,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1109,6 +2026,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1119,16 +2045,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Session"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1143,6 +2068,16 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
           }
         ]
       }
@@ -1160,12 +2095,39 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Logout"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "status": "SIGNED_OUT"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1176,6 +2138,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1186,6 +2157,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1196,6 +2176,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1206,6 +2195,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1216,6 +2214,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1226,16 +2233,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1250,6 +2256,16 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
           }
         ]
       }
@@ -1267,12 +2283,44 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Consent"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "id": "70000000-0000-4000-8000-000000000001",
+                      "guardianId": "10000000-0000-4000-8000-000000000001",
+                      "purpose": "tuition-and-learning-records",
+                      "policyVersion": "development-v1",
+                      "grantedAt": "2026-10-11T10:00:00.000Z",
+                      "withdrawnAt": null
+                    }
+                  }
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1283,6 +2331,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1293,6 +2350,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1303,6 +2369,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1313,6 +2388,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1323,6 +2407,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1333,16 +2426,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1357,6 +2449,16 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
           }
         ],
         "requestBody": {
@@ -1404,12 +2506,39 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Withdrawal"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "status": "WITHDRAWN"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1420,6 +2549,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1430,6 +2568,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1440,6 +2587,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1450,6 +2606,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1460,6 +2625,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1470,16 +2644,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1494,6 +2667,16 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
           }
         ]
       }
@@ -1516,7 +2699,24 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Resource"
+                  "$ref": "#/components/schemas/Children"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "items": [
+                        {
+                          "id": "20000000-0000-4000-8000-000000000001",
+                          "guardianId": "10000000-0000-4000-8000-000000000001",
+                          "alias": "Aarav",
+                          "grade": 8,
+                          "board": "CBSE",
+                          "studentAccountId": "10000000-0000-4000-8000-000000000003"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -1527,6 +2727,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1537,6 +2746,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1547,6 +2765,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1557,6 +2784,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1567,6 +2803,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1577,6 +2822,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1587,6 +2841,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1607,12 +2870,50 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TuitionRequest"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "id": "40000000-0000-4000-8000-000000000001",
+                      "guardianId": "10000000-0000-4000-8000-000000000001",
+                      "childId": "20000000-0000-4000-8000-000000000001",
+                      "subject": "Maths",
+                      "mode": "HOME",
+                      "language": "English",
+                      "locality": "Shankar Nagar",
+                      "budgetPaise": 400000,
+                      "schedule": "Tuesday after 5pm",
+                      "status": "OPEN",
+                      "version": 1,
+                      "createdAt": "2026-10-11T10:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1623,6 +2924,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1633,6 +2943,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1643,6 +2962,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1653,6 +2981,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1663,6 +3000,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1673,16 +3019,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TuitionRequest"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1708,6 +3053,16 @@
               "maxLength": 128
             },
             "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
           }
         ],
         "requestBody": {
@@ -1738,19 +3093,30 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "items": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/TuitionRequest"
-                      }
+                  "$ref": "#/components/schemas/RequestList"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "items": [
+                        {
+                          "id": "40000000-0000-4000-8000-000000000001",
+                          "guardianId": "10000000-0000-4000-8000-000000000001",
+                          "childId": "20000000-0000-4000-8000-000000000001",
+                          "subject": "Maths",
+                          "mode": "HOME",
+                          "language": "English",
+                          "locality": "Shankar Nagar",
+                          "budgetPaise": 400000,
+                          "schedule": "Tuesday after 5pm",
+                          "status": "OPEN",
+                          "version": 1,
+                          "createdAt": "2026-10-11T10:00:00.000Z"
+                        }
+                      ]
                     }
-                  },
-                  "required": [
-                    "items"
-                  ],
-                  "additionalProperties": false
+                  }
                 }
               }
             }
@@ -1761,6 +3127,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1771,6 +3146,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1781,6 +3165,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1791,6 +3184,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1801,6 +3203,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1811,6 +3222,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1821,6 +3241,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1846,7 +3275,27 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Resource"
+                  "$ref": "#/components/schemas/TuitionRequestDetails"
+                },
+                "examples": {
+                  "synthetic": {
+                    "summary": "Synthetic mock; no authentication, persistence or service fulfilment",
+                    "value": {
+                      "id": "40000000-0000-4000-8000-000000000001",
+                      "guardianId": "10000000-0000-4000-8000-000000000001",
+                      "childId": "20000000-0000-4000-8000-000000000001",
+                      "subject": "Maths",
+                      "mode": "HOME",
+                      "language": "English",
+                      "locality": "Shankar Nagar",
+                      "budgetPaise": 400000,
+                      "schedule": "Tuesday after 5pm",
+                      "status": "OPEN",
+                      "version": 1,
+                      "createdAt": "2026-10-11T10:00:00.000Z",
+                      "candidates": []
+                    }
+                  }
                 }
               }
             }
@@ -1857,6 +3306,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1867,6 +3325,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1877,6 +3344,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1887,6 +3363,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1897,6 +3382,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1907,6 +3401,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1917,6 +3420,15 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
                 }
               }
             }
@@ -1948,6 +3460,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -2014,16 +3536,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -2084,6 +3596,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -2150,16 +3672,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -2384,6 +3896,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -2450,16 +3972,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -2532,6 +4044,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reservation"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -2598,16 +4120,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Reservation"
                 }
               }
             }
@@ -2690,6 +4202,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -2756,16 +4278,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -2825,6 +4337,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -2891,16 +4413,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -2981,6 +4493,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -3047,16 +4569,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -3131,6 +4643,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -3197,16 +4719,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -3274,6 +4786,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -3340,16 +4862,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -3413,6 +4925,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -3479,16 +5001,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -3567,6 +5079,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -3633,16 +5155,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -3726,6 +5238,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -3792,16 +5314,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -3861,6 +5373,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -3927,16 +5449,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -4099,6 +5611,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -4165,16 +5687,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -4242,6 +5754,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -4308,16 +5830,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -4393,6 +5905,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -4459,16 +5981,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -4509,6 +6021,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -4575,16 +6097,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -4635,6 +6147,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -4701,16 +6223,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -4778,6 +6290,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -4844,16 +6366,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -4913,6 +6425,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -4979,16 +6501,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -5160,6 +6672,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -5226,16 +6748,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
                 }
               }
             }
@@ -5307,6 +6819,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -5373,16 +6895,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Demo"
                 }
               }
             }
@@ -5541,6 +7053,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -5607,16 +7129,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Demo"
                 }
               }
             }
@@ -5678,6 +7190,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -5744,16 +7266,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Demo"
                 }
               }
             }
@@ -5815,6 +7327,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -5881,16 +7403,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Demo"
                 }
               }
             }
@@ -5952,6 +7464,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -6018,16 +7540,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Demo"
                 }
               }
             }
@@ -6089,6 +7601,16 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation",
             "content": {
@@ -6155,16 +7677,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Demo"
                 }
               }
             }
@@ -6398,7 +7910,9 @@
             "type": "string"
           },
           "budgetPaise": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 50000,
+            "maximum": 2000000
           },
           "schedule": {
             "type": "string"
@@ -6407,7 +7921,8 @@
             "type": "string"
           },
           "version": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 1
           },
           "createdAt": {
             "type": "string",
@@ -6476,7 +7991,9 @@
             ]
           },
           "locality": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
           },
           "budgetPaise": {
             "type": "integer",
@@ -6852,6 +8369,421 @@
           "version",
           "createdAt",
           "reservation"
+        ],
+        "additionalProperties": false
+      },
+      "Catalog": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "const": "Raipur"
+          },
+          "subjects": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Maths",
+                "Science"
+              ]
+            }
+          },
+          "boards": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CBSE",
+                "CGBSE"
+              ]
+            }
+          },
+          "grades": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 6,
+              "maximum": 10
+            }
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "English",
+                "Hindi"
+              ]
+            }
+          },
+          "modes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ONLINE",
+                "HOME"
+              ]
+            }
+          },
+          "localities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Kolkata"
+          }
+        },
+        "required": [
+          "city",
+          "subjects",
+          "boards",
+          "grades",
+          "languages",
+          "modes",
+          "localities",
+          "timezone"
+        ],
+        "additionalProperties": false
+      },
+      "OtpRequest": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "pattern": "^\\+91[6-9]\\d{9}$"
+          }
+        },
+        "required": [
+          "phone"
+        ],
+        "additionalProperties": false
+      },
+      "OtpVerify": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "pattern": "^\\+91[6-9]\\d{9}$"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "phone",
+          "code",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "OtpSandbox": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "SANDBOX"
+          },
+          "developmentCode": {
+            "type": "string",
+            "pattern": "^\\d{6}$"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "const": 300
+          }
+        },
+        "required": [
+          "status",
+          "developmentCode",
+          "expiresIn"
+        ],
+        "additionalProperties": false
+      },
+      "Consent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "guardianId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "purpose": {
+            "type": "string",
+            "const": "tuition-and-learning-records"
+          },
+          "policyVersion": {
+            "type": "string",
+            "const": "development-v1"
+          },
+          "grantedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "withdrawnAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "guardianId",
+          "purpose",
+          "policyVersion",
+          "grantedAt",
+          "withdrawnAt"
+        ],
+        "additionalProperties": false
+      },
+      "Candidate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teacherId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "score": {
+            "type": "integer"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rankerVersion": {
+            "type": "string"
+          },
+          "response": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "DECLINED"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "requestId",
+          "teacherId",
+          "score",
+          "reasons",
+          "rankerVersion",
+          "response"
+        ],
+        "additionalProperties": false
+      },
+      "TuitionRequestDetails": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "guardianId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "childId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subject": {
+            "type": "string",
+            "enum": [
+              "Maths",
+              "Science"
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "ONLINE",
+              "HOME"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "English",
+              "Hindi"
+            ]
+          },
+          "locality": {
+            "type": "string"
+          },
+          "budgetPaise": {
+            "type": "integer",
+            "minimum": 50000,
+            "maximum": 2000000
+          },
+          "schedule": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Candidate"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "guardianId",
+          "childId",
+          "subject",
+          "mode",
+          "language",
+          "locality",
+          "budgetPaise",
+          "schedule",
+          "status",
+          "version",
+          "createdAt",
+          "candidates"
+        ],
+        "additionalProperties": false
+      },
+      "RequestList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TuitionRequest"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "Child": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "guardianId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "alias": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "grade": {
+            "type": "integer",
+            "minimum": 6,
+            "maximum": 10
+          },
+          "board": {
+            "type": "string",
+            "enum": [
+              "CBSE",
+              "CGBSE"
+            ]
+          },
+          "studentAccountId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "guardianId",
+          "alias",
+          "grade",
+          "board",
+          "studentAccountId"
+        ],
+        "additionalProperties": false
+      },
+      "Children": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Child"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "AccountList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Account"
+        }
+      },
+      "Withdrawal": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "WITHDRAWN"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "Logout": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "SIGNED_OUT"
+          }
+        },
+        "required": [
+          "status"
         ],
         "additionalProperties": false
       }
