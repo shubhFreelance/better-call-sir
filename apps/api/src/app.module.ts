@@ -1,0 +1,15 @@
+import {Module} from '@nestjs/common';
+import {CatalogModule} from './modules/catalog/catalog.module';
+import {IdentityModule} from './modules/identity/identity.module';
+import {RequestsModule} from './modules/requests/requests.module';
+import {MatchingModule} from './modules/matching/matching.module';
+import {TeachersModule} from './modules/teachers/teachers.module';
+import {RevisionModule} from './modules/revision/revision.module';
+import {PlacementsModule} from './modules/placements/placements.module';
+import {LearningRecordsModule} from './modules/learning-records/learning-records.module';
+import {NotesModule} from './modules/notes/notes.module';
+import {SupportModule} from './modules/support/support.module';
+import {MembershipsModule} from './modules/memberships/memberships.module';
+import {AdministrationModule} from './modules/administration/administration.module';
+@Module({imports:[CatalogModule,IdentityModule,RequestsModule,MatchingModule,TeachersModule,RevisionModule,PlacementsModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
+export class AppModule {}

@@ -1,0 +1,17 @@
+name: better-call-sir-dev
+services:
+  db:
+    image: postgres:17.11-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
+    environment:
+      POSTGRES_USER: bcs_dev
+      POSTGRES_PASSWORD: bcs_dev_local
+      POSTGRES_DB: bcs_dev
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: ["bcs-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bcs_dev -d bcs_dev"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  bcs-data:

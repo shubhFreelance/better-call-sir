@@ -1,0 +1,18 @@
+# Initial threat model
+
+Synthetic development only; review required before pilot.
+
+| Boundary | Threat | Current control / remaining work |
+| --- | --- | --- |
+| Browser → API | Forged roles, cross-family IDs, cookie CSRF | Strict input allowlists, server session roles, resource ownership, exact Origin plus CSRF, no-store private responses; explicit endpoint probes |
+| Session rotation | Refresh replay, student inherits parent | Hashed opaque credentials; 10-minute access; 30-day family; replay revokes family; separate student principal, guardian consent recheck; live MFA/provider review pending |
+| Child processing | Unverified parent, withdrawn consent, inappropriate collection | Adult fixture verification plus versioned consent required; minimized alias/class/board; withdrawal serializes with child writes and revokes student access; legal purpose/retention review pending |
+| Booking calendar | Double holds and non-equal overlapping intervals | PostgreSQL half-open exclusion across active reservations; held-slot expiration; late capture cannot displace newer reservation; real concurrent tests |
+| Money | Forged browser success, duplicate capture, improper refund/payout | Development-only exact-amount capture, uniqueness/idempotency, separate pending refund records; real checkout/webhook signatures and reconciliation not implemented; production blocked |
+| Parent notes | All-candidate access, HTML/script injection | Text rendering; sharing restricted to explicit active teacher; revocation and withdrawal; no AI processing/export |
+| Pro consultations | Unrelated teacher, overspent allowance, failed call charges | Active assignment/teacher/consent/entitlement checks; serialized allowance reservation, shared calendar, replay-safe synthetic outcomes; actual provider evidence and lifecycle pending |
+| Console | Self-approval, audit deletion, unsafe overrides | Role gate, screening prerequisite, reason and confirmation for flags, immutable audit trigger; production MFA, dual approval and delegated region permissions pending |
+| Worker | Duplicate delivery or crash acknowledges unfinished money jobs | Committed outbox with row locks and SKIP LOCKED; transaction-bound synthetic delivery; refund jobs remain pending; actual external delivery needs provider idempotency/reconciliation |
+| Supply chain | Compromised packages/binary trust | Exact lockfile, checksum-verified Prisma engines, pinned PostgreSQL image, production dependency audit; full SAST/secrets/SBOM/container/DAST review pending |
+
+Trust decisions belong to the backend. Public screening labels are limited descriptions, not safety or learning guarantees. No real child data is accepted for a live cohort until all required reviews and release gates pass.

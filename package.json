@@ -1,0 +1,70 @@
+{
+  "name": "better-call-sir",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web,worker -c cyan,green,yellow \"npm run dev -w @bcs/api\" \"npm run dev -w @bcs/web\" \"npm run dev -w @bcs/worker\"",
+    "build": "npm run generate && npm run build -w @bcs/api && npm run build -w @bcs/worker && npm run build -w @bcs/web",
+    "typecheck": "tsc --noEmit -p apps/api/tsconfig.json && tsc --noEmit -p apps/worker/tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json",
+    "generate": "prisma generate && npm run contract:generate",
+    "contract:generate": "openapi-typescript contracts/openapi.yaml -o packages/api-client/src/generated.ts",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "npm run test:unit && npm run test:integration && npm run test:contract",
+    "test:unit": "tsx --test tests/policies.test.ts",
+    "test:integration": "tsx --test --test-concurrency=1 tests/api.test.ts",
+    "test:contract": "tsx --test tests/contract.test.ts",
+    "test:e2e": "playwright test",
+    "security:dependencies": "npm audit --omit=dev",
+    "release:verify": "node scripts/release-verify.mjs"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "5.2.2",
+    "@nestjs/common": "12.1.2",
+    "@nestjs/core": "12.1.2",
+    "@nestjs/platform-express": "12.1.2",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "@tanstack/react-query": "5.90.21",
+    "cookie-parser": "1.4.7",
+    "helmet": "8.1.0",
+    "lucide-react": "0.577.0",
+    "next": "16.4.0",
+    "pg": "8.23.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hook-form": "7.71.2",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.11.1",
+    "@playwright/test": "1.58.2",
+    "@sparticuz/chromium": "153.0.0",
+    "@types/cookie-parser": "1.4.10",
+    "@types/express": "5.0.6",
+    "@types/node": "24.12.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "ajv": "8.18.0",
+    "ajv-formats": "3.0.1",
+    "concurrently": "9.2.1",
+    "openapi-typescript": "7.13.0",
+    "prisma": "7.10.0",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "@types/pg": "8.15.6"
+  },
+  "overrides": {
+    "mysql2": "3.24.5",
+    "deepmerge-ts": "8.0.2"
+  }
+}

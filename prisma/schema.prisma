@@ -1,0 +1,264 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "client"
+}
+datasource db {
+  provider = "postgresql"
+}
+model Account {
+  id String @id @default(uuid()) @db.Uuid
+  phone String @unique
+  name String
+  role String @default("GUARDIAN")
+  verified Boolean @default(false)
+  disabled Boolean @default(false)
+  region String @default("Raipur")
+  createdAt DateTime @default(now())
+}
+model Otp {
+  id String @id @default(uuid()) @db.Uuid
+  phone String @unique
+  hash String
+  expiresAt DateTime
+  attempts Int @default(0)
+}
+model Session {
+  id String @id @default(uuid()) @db.Uuid
+  accountId String @db.Uuid
+  familyId String @db.Uuid
+  accessHash String @unique
+  refreshHash String @unique
+  csrf String
+  accessExpiresAt DateTime
+  expiresAt DateTime
+  revoked Boolean @default(false)
+  rotated Boolean @default(false)
+  @@index([accountId])
+}
+model Consent {
+  id String @id @default(uuid()) @db.Uuid
+  guardianId String @unique @db.Uuid
+  purpose String @default("tuition-and-learning-records")
+  policyVersion String @default("development-v1")
+  grantedAt DateTime @default(now())
+  withdrawnAt DateTime?
+}
+model Child {
+  id String @id @default(uuid()) @db.Uuid
+  guardianId String @db.Uuid
+  alias String
+  grade Int
+  board String
+  studentAccountId String? @unique @db.Uuid
+  @@index([guardianId])
+}
+model Invitation {
+  id String @id @default(uuid()) @db.Uuid
+  childId String @db.Uuid
+  guardianId String @db.Uuid
+  tokenHash String @unique
+  expiresAt DateTime
+  usedAt DateTime?
+}
+model Teacher {
+  id String @id @default(uuid()) @db.Uuid
+  accountId String @unique @db.Uuid
+  slug String @unique
+  name String
+  headline String
+  bio String
+  subjects String[]
+  boards String[]
+  grades Int[]
+  languages String[]
+  modes String[]
+  localities String[]
+  monthlyPaise Int
+  experience Int @default(0)
+  status String @default("SUBMITTED")
+  screeningComplete Boolean @default(false)
+  consultationOptIn Boolean @default(false)
+  version Int @default(1)
+  avatarColor String @default("#e4eee5")
+  @@index([status])
+}
+model TuitionRequest {
+  id String @id @default(uuid()) @db.Uuid
+  guardianId String @db.Uuid
+  childId String @db.Uuid
+  subject String
+  mode String
+  language String
+  locality String
+  budgetPaise Int
+  schedule String
+  status String @default("OPEN")
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  @@index([guardianId, status])
+}
+model Recommendation {
+  id String @id @default(uuid()) @db.Uuid
+  requestId String @db.Uuid
+  teacherId String @db.Uuid
+  score Int
+  reasons String[]
+  rankerVersion String @default("rules-v1")
+  response String @default("PENDING")
+  @@unique([requestId, teacherId])
+}
+model Reservation {
+  id String @id @default(uuid()) @db.Uuid
+  teacherId String @db.Uuid
+  guardianId String @db.Uuid
+  kind String
+  startsAt DateTime
+  endsAt DateTime
+  status String @default("HOLD")
+  expiresAt DateTime?
+  version Int @default(1)
+  topic String @default("")
+  scopeAccepted Boolean @default(false)
+  amountPaise Int @default(0)
+  createdAt DateTime @default(now())
+  @@index([guardianId])
+  @@index([teacherId, startsAt])
+  @@index([status, expiresAt])
+}
+model Placement {
+  id String @id @default(uuid()) @db.Uuid
+  guardianId String @db.Uuid
+  teacherId String @db.Uuid
+  childId String @db.Uuid
+  requestId String @unique @db.Uuid
+  monthlyPaise Int
+  policyVersion String @default("pilot-v1")
+  guardianAccepted Boolean @default(false)
+  teacherAccepted Boolean @default(false)
+  guardianStarted Boolean @default(false)
+  teacherReceiptConfirmed Boolean @default(false)
+  status String @default("TERMS_PENDING")
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  @@index([guardianId, status])
+}
+model Invoice {
+  id String @id @default(uuid()) @db.Uuid
+  placementId String @unique @db.Uuid
+  payerId String @db.Uuid
+  amountPaise Int
+  currency String @default("INR")
+  policyVersion String
+  status String @default("DUE")
+}
+model Payment {
+  id String @id @default(uuid()) @db.Uuid
+  reservationId String @unique @db.Uuid
+  providerEventId String @unique
+  amountPaise Int
+  currency String @default("INR")
+  status String @default("CAPTURED")
+  createdAt DateTime @default(now())
+}
+model Refund {
+  id String @id @default(uuid()) @db.Uuid
+  paymentId String @unique @db.Uuid
+  amountPaise Int
+  status String @default("PENDING")
+  reason String
+  createdAt DateTime @default(now())
+}
+model Lesson {
+  id String @id @default(uuid()) @db.Uuid
+  placementId String? @db.Uuid
+  reservationId String? @unique @db.Uuid
+  teacherId String @db.Uuid
+  childId String @db.Uuid
+  kind String
+  subject String
+  startsAt DateTime
+  endsAt DateTime
+  status String @default("SCHEDULED")
+  attendance String @default("PENDING")
+  disputed Boolean @default(false)
+  version Int @default(1)
+  @@index([childId, startsAt])
+  @@index([teacherId, startsAt])
+}
+model Note {
+  id String @id @default(uuid()) @db.Uuid
+  guardianId String @db.Uuid
+  childId String @db.Uuid
+  text String
+  sharedTeacherId String? @db.Uuid
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  @@index([guardianId])
+}
+model SupportCase {
+  id String @id @default(uuid()) @db.Uuid
+  accountId String @db.Uuid
+  category String
+  description String
+  status String @default("OPEN")
+  createdAt DateTime @default(now())
+}
+model Membership {
+  id String @id @default(uuid()) @db.Uuid
+  guardianId String @unique @db.Uuid
+  status String @default("ACTIVE")
+  periodStart DateTime
+  periodEnd DateTime
+  allowance Int @default(4)
+  used Int @default(0)
+  reserved Int @default(0)
+  version Int @default(1)
+}
+model Consultation {
+  id String @id @default(uuid()) @db.Uuid
+  guardianId String @db.Uuid
+  teacherId String @db.Uuid
+  placementId String @db.Uuid
+  startsAt DateTime
+  status String @default("REQUESTED")
+  outcome String?
+  version Int @default(1)
+  @@index([guardianId])
+}
+model FeatureFlag {
+  name String @id
+  enabled Boolean @default(false)
+  version Int @default(1)
+}
+model Idempotency {
+  id String @id @default(uuid()) @db.Uuid
+  accountId String @db.Uuid
+  operation String
+  key String
+  hash String
+  result Json
+  createdAt DateTime @default(now())
+  @@unique([accountId, operation, key])
+}
+model Outbox {
+  id String @id @default(uuid()) @db.Uuid
+  type String
+  aggregateId String @db.Uuid
+  payload Json
+  createdAt DateTime @default(now())
+  processedAt DateTime?
+  attempts Int @default(0)
+  @@index([processedAt, createdAt])
+}
+model Audit {
+  id String @id @default(uuid()) @db.Uuid
+  actorId String @db.Uuid
+  action String
+  aggregateId String
+  reason String
+  before Json?
+  after Json?
+  requestId String
+  createdAt DateTime @default(now())
+  @@index([aggregateId, createdAt])
+}

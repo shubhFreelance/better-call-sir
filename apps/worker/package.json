@@ -1,0 +1,1 @@
+{"name":"@bcs/worker","private":true,"scripts":{"dev":"node --env-file=../../.env --import tsx src/main.ts","build":"tsc -p tsconfig.json","start":"node --env-file=../../.env dist/main.js"}}

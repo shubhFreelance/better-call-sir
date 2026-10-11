@@ -1,0 +1,102 @@
+import 'reflect-metadata';
+import {NestFactory} from '@nestjs/core';
+import {Module, Controller, Get, Post, Param, Query, Body, Req, Res, Injectable, Inject, HttpException, Catch, ExceptionFilter, ArgumentsHost, Global} from '@nestjs/common';
+import {Prisma, PrismaClient, Account} from '@prisma/client';
+import {PrismaPg} from '@prisma/adapter-pg';
+import {randomBytes, randomUUID, createHash, timingSafeEqual} from 'node:crypto';
+import {Request, Response} from 'express';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import {z} from 'zod';
+import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} from './policies';
+
+export const hash = (value: string) => createHash('sha256').update(value).digest('hex');
+export const token = () => randomBytes(32).toString('base64url');
+export const uuid = z.string().uuid();
+export const version = z.number().int().positive();
+export const text = (max = 200) => z.string().trim().min(1).max(max);
+export function fail(status: number, code: string, message: string): never {throw new HttpException({code, message}, status);}
+export const parse = <T>(schema: z.ZodType<T>, body: unknown): T => {
+  const result = schema.safeParse(body);
+  if (!result.success) throw new HttpException({code:'VALIDATION',message:'Please check the highlighted fields.',fieldErrors:result.error.flatten().fieldErrors},400);
+  return result.data;
+};
+export const same = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a),Buffer.from(b));
+export const development = () => process.env.APP_MODE === 'development' && process.env.NODE_ENV !== 'production';
+export type HttpRequest = Request & {requestId?: string};
+export type DB = Prisma.TransactionClient;
+
+@Injectable()
+export class AppService {
+  db = new PrismaClient({adapter:new PrismaPg({connectionString:process.env.DATABASE_URL})});
+  rate = new Map<string,{count: number; reset: number}>();
+  limit(key: string, max = 5) {
+    const now = Date.now(); let entry = this.rate.get(key);
+    if (!entry || entry.reset < now) {entry = {count:0, reset:now + 60_000}; this.rate.set(key,entry);}
+    if (++entry.count > max) fail(429,'RATE_LIMIT','Too many attempts. Try again in a minute.');
+    if (this.rate.size > 10_000) for (const [k,v] of this.rate) if (v.reset < now) this.rate.delete(k);
+  }
+  async actor(req: Request, roles?: string[]): Promise<Account> {
+    const secret = req.cookies?.bcs_access;
+    if (typeof secret !== 'string') fail(401,'SESSION_REQUIRED','Sign in to continue.');
+    const session = await this.db.session.findUnique({where:{accessHash:hash(secret)}});
+    if (!session || session.revoked || session.rotated || session.accessExpiresAt < new Date() || session.expiresAt < new Date()) fail(401,'SESSION_EXPIRED','Your session has expired. Sign in again.');
+    const account = await this.db.account.findUnique({where:{id:session.accountId}});
+    if (!account || account.disabled) fail(401,'SESSION_REVOKED','This account is unavailable.');
+    if (!['GET','HEAD','OPTIONS'].includes(req.method) && !same(req.get('X-CSRF-Token') || '',session.csrf)) fail(403,'CSRF','Refresh this page before continuing.');
+    if (account.role === 'STUDENT') {
+      const child=await this.db.child.findUnique({where:{studentAccountId:account.id}});
+      const consent=child?await this.db.consent.findUnique({where:{guardianId:child.guardianId}}):null;
+      if (!child || !consent || consent.withdrawnAt) fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
+    }
+    if (roles && !roles.includes(account.role)) fail(403,'FORBIDDEN','Your role cannot perform this action.');
+    return account;
+  }
+  async guardian(db: DB, id: string) {
+    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
+    const account = await db.account.findUnique({where:{id}});
+    const consent = await db.consent.findUnique({where:{guardianId:id}});
+    if (!account?.verified || !consent || consent.withdrawnAt) fail(403,'CONSENT_REQUIRED','Adult verification and active guardian consent are required.');
+  }
+  async child(db: DB, account: Account, id: string) {
+    const child = await db.child.findUnique({where:{id}});
+    if (!child || (account.role === 'GUARDIAN' && child.guardianId !== account.id) || (account.role === 'STUDENT' && child.studentAccountId !== account.id)) fail(404,'NOT_FOUND','Student not found.');
+    return child;
+  }
+  async audit(db: DB, actor: Account, req: HttpRequest, action: string, id: string, reason: string, before?: Prisma.InputJsonValue, after?: Prisma.InputJsonValue) {
+    return db.audit.create({data:{actorId:actor.id,action,aggregateId:id,reason,requestId:req.requestId || randomUUID(),before,after}});
+  }
+  async event(db: DB,type: string,id: string) {return db.outbox.create({data:{type,aggregateId:id,payload:{version:1}}});}
+  async once<T>(req: Request, actor: Account, operation: string, body: unknown, fn: (db: DB) => Promise<T>): Promise<T> {
+    operation += ':' + req.path;
+    const key = req.get('Idempotency-Key');
+    if (!key || key.length > 128) fail(400,'IDEMPOTENCY_REQUIRED','A valid Idempotency-Key is required.');
+    const digest = hash(JSON.stringify(body));
+    return this.db.$transaction(async db => {
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id + operation + key},0))`;
+      const prior = await db.idempotency.findUnique({where:{accountId_operation_key:{accountId:actor.id,operation,key}}});
+      if (prior) {if (prior.hash !== digest) fail(409,'IDEMPOTENCY_CONFLICT','This retry key was used for a different request.'); return prior.result as T;}
+      const result = await fn(db);
+      await db.idempotency.create({data:{accountId:actor.id,operation,key,hash:digest,result:JSON.parse(JSON.stringify(result))}});
+      return result;
+    });
+  }
+  async session(account: Account, res: Response, familyId: string = randomUUID()) {
+    const access = token(), refresh = token(), csrf = token();
+    await this.db.session.create({data:{accountId:account.id,familyId,accessHash:hash(access),refreshHash:hash(refresh),csrf,accessExpiresAt:new Date(Date.now()+600_000),expiresAt:new Date(Date.now()+30*86_400_000)}});
+    const cookie = {httpOnly:true,secure:!development(),sameSite:'lax' as const,path:'/api/v1'};
+    res.cookie('bcs_access',access,{...cookie,maxAge:600_000});
+    res.cookie('bcs_refresh',refresh,{...cookie,maxAge:30*86_400_000});
+    res.setHeader('Cache-Control','no-store');
+    return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified},csrfToken:csrf};
+  }
+  async publicTeachers() {
+    const teachers = await this.db.teacher.findMany({where:{status:'APPROVED',screeningComplete:true},orderBy:{name:'asc'},take:50});
+    return teachers.map(t => ({id:t.id,slug:t.slug,name:t.name,headline:t.headline,bio:t.bio,subjects:t.subjects,boards:t.boards,grades:t.grades,languages:t.languages,modes:t.modes,localities:t.localities,monthlyPaise:t.monthlyPaise,experience:t.experience,avatarColor:t.avatarColor,capabilityLabel:'Reviewed subject coverage',consultationOptIn:t.consultationOptIn}));
+  }
+}
+
+
+@Global()
+@Module({providers:[AppService],exports:[AppService]})
+export class PersistenceModule {}
