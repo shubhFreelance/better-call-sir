@@ -38,7 +38,7 @@ This initial implementation also contains early development slices from later ph
 | S1-04 | PostgreSQL migrations, account/session/consent/request and later-flow schema, isolated real-DB tests | Full foreign-key ownership model and operational schema evolution/restore rehearsal |
 | S1-05 | Development OTP expiry/rate limiting, hashed session rotation/replay, CSRF/Origin, consent gates | Live OTP, independently reviewed adult verification, production MFA, distributed rate limiter |
 | S1-06 | Guardian intake against the separate API; ownership, validation and retry protection | Saved onboarding drafts and step-by-step resume; complete bilingual notices |
-| S1-07 | Unit, real-DB API, contract and browser tasks; dependency audit; CI configuration | Complete secrets/SAST/container/DAST scans and coverage evidence |
+| S1-07 | Unit, real-DB API, contract, mock and browser tasks; secrets/runtime/tooling scans; per-commit CI evidence and JUnit artifacts | Verify updated hosted CI; SAST/container/DAST, coverage and independent security qualification belong to Phase 6 |
 | S1-08 | Integrated discovery/intake/dashboard demonstration; withdrawal and ownership tests | All production provider contracts and signed release evidence |
 
 ## Story coverage — development only
@@ -89,3 +89,9 @@ Validated through a real browser/API journey: guardian proposal and acceptance; 
 Added pinned Prism and Redocly tooling, explicit discovery/OTP/consent/intake schemas, named synthetic success/error examples, mock HTTP tests and validation against the real foundation API. Fixed over-escaped phone and OTP patterns in the contract. The gateway binds loopback, rejects production startup and marks responses as synthetic; it does not implement authentication, ownership or persistence. Existing real-DB acceptance remains authoritative for those controls.
 
 Validation for this increment: 26 real-DB API tests, seven contract tests, four mock HTTP/startup tests and two mock-backed guardian browser cases pass. Type checks and OpenAPI structural lint pass (one unused generic component warning). The mock browser tests cover saved and denied-consent states; they do not establish live authentication or provider acceptance.
+
+## Phase 1 increment — S1-07 security scans and CI evidence
+
+Added Secretlint's pinned recommended rules, a tracked/nonignored source scan and a report that excludes source content and secret values. Only the exact documented synthetic loopback database URI is allowed; the same credential at a remote host fails the self-test. Synthetic-token detection, safe reporting, missing-input failure and exact-commit evidence are tested. CI now preserves separate JUnit reports, structural lint, generated-client drift, redacted secrets scan and both runtime/tooling audit outputs, with explicit failed/skipped outcomes.
+
+The tooling audit identified vulnerable transitive packages. Removed the affected mock dependency, retained contract-derived routes/examples using the existing AJV validator, and updated the development runner and TypeScript launcher. The complete runtime plus development dependency audit reports zero known advisories at this run. The four mock tests and two mock-backed browser tests still pass; five scanner/evidence tests pass.

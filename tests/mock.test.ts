@@ -22,7 +22,7 @@ async function call(path: string, body?: unknown, prefer?: string) {
 before(
   async () => {
     server = spawn(process.execPath, ["scripts/mock-server.mjs"], {
-      env: { ...process.env, MOCK_PORT: "4111", PRISM_PORT: "4112" },
+      env: { ...process.env, MOCK_PORT: "4111" },
       stdio: "pipe",
     });
     let log = "";

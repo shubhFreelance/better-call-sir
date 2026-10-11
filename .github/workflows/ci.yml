@@ -30,23 +30,51 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - name: Synthetic configuration
-        run: cp .env.example .env
+        run: |
+          cp .env.example .env
+          mkdir -p test-results
       - run: npm ci
       - run: npm run generate
+      - id: contract-lint
+        run: npm run contract:lint > test-results/contract-lint.txt 2>&1
+      - id: generated-client
+        run: git diff --exit-code -- packages/api-client/src/generated.ts
       - run: npm run db:migrate
       - run: npm run db:seed
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run test:release-gate
-      - run: npm run test:e2e
-      - run: npm run build
-      - name: Production dependency audit
-        run: npm run security:dependencies
-      - name: Record source version
+      - id: typecheck
+        run: npm run typecheck > test-results/typecheck.txt 2>&1
+      - id: unit
+        run: npm exec -- tsx --test --test-reporter=junit tests/policies.test.ts > test-results/unit.xml
+      - id: integration
+        run: npm exec -- tsx --test --test-concurrency=1 --test-reporter=junit tests/api.test.ts > test-results/integration.xml
+      - id: contract
+        run: npm exec -- tsx --test --test-reporter=junit tests/contract.test.ts > test-results/contract.xml
+      - id: mock
+        run: npm exec -- tsx --test --test-reporter=junit tests/mock.test.ts > test-results/mock.xml
+      - id: security-tests
+        run: npm exec -- tsx --test --test-reporter=junit tests/security.test.ts tests/ci-evidence.test.ts > test-results/security-tests.xml
+      - id: release-gate
+        run: npm exec -- tsx --test --test-reporter=junit tests/release.test.ts > test-results/release-gate.xml
+      - id: browser
+        run: npm run test:e2e > test-results/browser.txt 2>&1
+      - id: build
+        run: npm run build > test-results/build.txt 2>&1
+      - name: Secrets scan (source content is excluded from the report)
+        id: secrets
+        run: npm run --silent security:secrets > test-results/secrets.json
+      - name: Runtime dependency audit
+        id: runtime-audit
+        run: npm audit --omit=dev --json > test-results/runtime-audit.json
+      - name: Development tooling dependency audit
+        id: tooling-audit
+        run: npm audit --json > test-results/tooling-audit.json
+      - name: Record exact source and check outcomes
         if: always()
-        run: |
-          mkdir -p test-results
-          git rev-parse HEAD > test-results/commit.txt
+        env:
+          BCS_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BCS_CHECK_RESULTS: >-
+            {"contractLint":"${{ steps.contract-lint.outcome }}","generatedClient":"${{ steps.generated-client.outcome }}","typecheck":"${{ steps.typecheck.outcome }}","unit":"${{ steps.unit.outcome }}","integration":"${{ steps.integration.outcome }}","contract":"${{ steps.contract.outcome }}","mock":"${{ steps.mock.outcome }}","securityTests":"${{ steps.security-tests.outcome }}","releaseGate":"${{ steps.release-gate.outcome }}","browser":"${{ steps.browser.outcome }}","build":"${{ steps.build.outcome }}","secrets":"${{ steps.secrets.outcome }}","runtimeAudit":"${{ steps.runtime-audit.outcome }}","toolingAudit":"${{ steps.tooling-audit.outcome }}"}
+        run: node scripts/ci-evidence.mjs
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:

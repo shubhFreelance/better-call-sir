@@ -3,7 +3,7 @@ import { spawn, ChildProcess } from "node:child_process";
 let server: ChildProcess;
 test.beforeAll(async () => {
   server = spawn(process.execPath, ["scripts/mock-server.mjs"], {
-    env: { ...process.env, MOCK_PORT: "4120", PRISM_PORT: "4122" },
+    env: { ...process.env, MOCK_PORT: "4120" },
     stdio: "pipe",
   });
   for (let i = 0; i < 100; i++) {

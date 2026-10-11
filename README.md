@@ -42,6 +42,8 @@ npm test
 npm run test:e2e
 npm run build
 npm run security:dependencies
+npm run security:tooling
+npm run security:secrets
 ```
 
 Integration tests create and drop their own `bcs_test_<random>` database on the local PostgreSQL service and launch the compiled API on port 4100. They never truncate the development database. Local test credentials need database-creation rights; do not run them against a live database. Browser journeys use the actual web/API and synthetic development records; they may add a synthetic tuition request. The pinned headless Chromium test package is distributed through npm with lockfile integrity verification. Browser security remains enabled for Origin/CSRF checks.
