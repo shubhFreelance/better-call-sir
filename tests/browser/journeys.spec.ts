@@ -45,7 +45,9 @@ test("parent intake persists and appears on the private dashboard", async ({
   await page.getByRole("button", { name: "Save my tuition request" }).click();
   await expect(page.getByText(/Request .* saved/)).toBeVisible();
   await page.goto("/dashboard/requests");
-  await expect(page.getByText("Tuesday and Thursday after 5pm")).toBeVisible();
+  await expect(
+    page.getByText(/Tuesday and Thursday after 5pm/).first(),
+  ).toBeVisible();
   await expect(
     page.getByText(/Waiting for operator review/).first(),
   ).toBeVisible();

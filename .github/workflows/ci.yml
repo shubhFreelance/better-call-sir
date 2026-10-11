@@ -1,0 +1,57 @@
+name: Sprint acceptance
+on:
+  push:
+    branches: [main, "feat/**", "fix/**"]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: acceptance-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  development-acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17.11-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
+        env:
+          POSTGRES_USER: bcs_dev
+          POSTGRES_PASSWORD: bcs_dev_local
+          POSTGRES_DB: bcs_dev
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U bcs_dev -d bcs_dev"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Synthetic configuration
+        run: cp .env.example .env
+      - run: npm ci
+      - run: npm run generate
+      - run: npm run db:migrate
+      - run: npm run db:seed
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:release-gate
+      - run: npm run test:e2e
+      - run: npm run build
+      - name: Production dependency audit
+        run: npm run security:dependencies
+      - name: Record source version
+        if: always()
+        run: |
+          mkdir -p test-results
+          git rev-parse HEAD > test-results/commit.txt
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        if: always()
+        with:
+          name: sprint-acceptance-${{ github.sha }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14

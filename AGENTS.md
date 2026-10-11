@@ -30,3 +30,7 @@ Take the first option that fully works:
 Never cut: validation at trust boundaries, error handling that prevents data loss, security, accessibility, the calibration real hardware needs, anything the user asked for.
 
 (Yes, this file also applies to agents working on the ponytail repo itself. Especially to them.)
+
+## Better Call Sir delivery agreement
+
+Use the owner's `docs/BetterCallSir_MVP_PRD.docx` (Version 3) as the product requirements, and update `docs/SPRINTS.md` as work progresses. Work in sprint-sized, story-linked increments. After each completed feature or API, run its relevant acceptance checks, commit it separately, and push the current implementation branch to GitHub. This push cadence is explicitly authorized by the owner. Preserve incomplete acceptance criteria in the board; do not claim synthetic adapters or frontend success states complete live P0 requirements. Merging and deployment remain separate actions. Each cloud task is already isolated: use the existing checkout and do not create a worktree unless explicitly requested.

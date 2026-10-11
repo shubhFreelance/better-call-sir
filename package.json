@@ -23,7 +23,8 @@
     "test:contract": "tsx --test tests/contract.test.ts",
     "test:e2e": "playwright test",
     "security:dependencies": "npm audit --omit=dev",
-    "release:verify": "node scripts/release-verify.mjs"
+    "release:verify": "node scripts/release-verify.mjs",
+    "test:release-gate": "tsx --test tests/release.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "5.2.2",
@@ -52,16 +53,17 @@
     "@types/cookie-parser": "1.4.10",
     "@types/express": "5.0.6",
     "@types/node": "24.12.0",
+    "@types/pg": "8.15.6",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "ajv": "8.18.0",
     "ajv-formats": "3.0.1",
     "concurrently": "9.2.1",
     "openapi-typescript": "7.13.0",
+    "prettier": "3.6.2",
     "prisma": "7.10.0",
     "tsx": "4.21.0",
-    "typescript": "5.9.3",
-    "@types/pg": "8.15.6"
+    "typescript": "5.9.3"
   },
   "overrides": {
     "mysql2": "3.24.5",
