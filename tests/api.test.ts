@@ -1,7 +1,7 @@
 import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
-import {spawn,execFileSync,ChildProcess} from 'node:child_process';
-import {randomUUID} from 'node:crypto';
+import {spawn,spawnSync,execFileSync,ChildProcess} from 'node:child_process';
+import {randomUUID,createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {parseEnv} from 'node:util';
 import {Pool} from 'pg';
@@ -73,7 +73,57 @@ test('concurrent consultation acceptance cannot overspend; a failed connection r
 });
 test('privileged feature edits require reason/confirmation and audit is append-only',async()=>{assert.equal((await parent.call('/admin/flags/revision',{enabled:false,expectedVersion:1,reason:'test',confirmed:true})).status,403);const flag=await db.featureFlag.findUniqueOrThrow({where:{name:'revision'}});assert.equal((await operator.call('/admin/flags/revision',{enabled:false,expectedVersion:flag.version,reason:'Contain outage',confirmed:true})).status,201);assert.equal((await parent.call('/revision/holds',{teacherId:ids.teacher,startsAt:future(24),duration:20,topic:'Fractions'})).status,503);const audit=await db.audit.findFirstOrThrow({where:{action:'FEATURE_FLAG_CHANGED'}});await assert.rejects(db.audit.update({where:{id:audit.id},data:{reason:'Rewritten'}}));await db.featureFlag.update({where:{name:'revision'},data:{enabled:true}});});
 test('teacher suspension removes discovery and new reservations',async()=>{const t=await db.teacher.findUniqueOrThrow({where:{id:ids.teacher}});const r=await operator.call(`/admin/teachers/${t.id}/reviews`,{expectedVersion:t.version,status:'SUSPENDED',reason:'Pending review'});assert.equal(r.status,201);assert.equal((await new Client().call('/teachers/ananya-sharma')).status,404);assert.equal((await parent.call('/revision/holds',{teacherId:t.id,startsAt:future(25),duration:20,topic:'Fractions'})).status,409);await db.teacher.update({where:{id:t.id},data:{status:'APPROVED'}});});
-test('refresh replay revokes the full session family, including new access',async()=>{const c=await login(ids.otherGuardian);const old=c.cookies;const refreshed=await c.call('/auth/refresh',{});assert.equal(refreshed.status,201);const active=c.cookies;c.cookies=old;assert.equal((await c.call('/auth/refresh',{})).status,401);c.cookies=active;assert.equal((await c.call('/dashboard')).status,401);});
+test('refresh replay revokes the full session family, including new access',async()=>{const c=await login(ids.otherGuardian);const old=c.cookies,oldCsrf=c.csrf;const refreshed=await c.call('/auth/refresh',{});assert.equal(refreshed.status,201);const active=c.cookies;c.cookies=old;c.csrf=oldCsrf;assert.equal((await c.call('/auth/refresh',{})).status,401);c.cookies=active;assert.equal((await c.call('/dashboard')).status,401);});
+test('concurrent refresh replay revokes every replacement session in the same family',async()=>{
+ const first=await login(ids.otherGuardian),second=new Client();second.cookies=first.cookies;second.csrf=first.csrf;
+ const old=await db.session.findUniqueOrThrow({where:{accessHash:createHash('sha256').update(first.cookies.split('bcs_access=')[1].split(';')[0]).digest('hex')}});
+ assert.match(old.familyId,/^[0-9a-f-]{36}$/);
+ const barrierPool=new Pool({connectionString:base.href}),barrier=await barrierPool.connect();const barrierKey=81234567;
+ // Delay only this test's replacement insertion to make the replay/issuance race deterministic.
+ await db.$executeRawUnsafe(`CREATE FUNCTION refresh_insert_barrier() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW."familyId"='${old.familyId}'::uuid THEN PERFORM pg_advisory_xact_lock(${barrierKey}::bigint); END IF; RETURN NEW; END $$`);
+ await db.$executeRawUnsafe('CREATE TRIGGER refresh_insert_barrier BEFORE INSERT ON "Session" FOR EACH ROW EXECUTE FUNCTION refresh_insert_barrier()');
+ let pending:Promise<any>[]=[];
+ try{
+  await barrier.query('SELECT pg_advisory_lock($1::bigint)',[barrierKey]);
+  pending.push(first.call('/auth/refresh',{}));
+  let blocked=false;
+  for(let i=0;i<100;i++){const locks=await barrier.query('SELECT 1 FROM pg_locks WHERE locktype=\'advisory\' AND objid=$1 AND NOT granted',[barrierKey]);if(locks.rowCount){blocked=true;break;}await new Promise(r=>setTimeout(r,20));}
+  assert(blocked,'Replacement insertion must reach the barrier.');
+  let replayFinished=false;pending.push(second.call('/auth/refresh',{}).then(r=>{replayFinished=true;return r;}));
+  for(let i=0;i<100;i++){const locks=await barrier.query('SELECT count(*) AS count FROM pg_locks WHERE locktype=\'advisory\' AND NOT granted');if(replayFinished||Number(locks.rows[0].count)>=2)break;await new Promise(r=>setTimeout(r,20));}
+  await barrier.query('SELECT pg_advisory_unlock($1::bigint)',[barrierKey]);
+  const results=await Promise.all(pending);assert.deepEqual(results.map(r=>r.status).sort(),[201,401]);
+  const family=await db.session.findMany({where:{familyId:old.familyId}});assert.equal(family.length,2);assert(family.every(s=>s.revoked),'Replay must revoke the replacement, even if issuance overlaps the replay.');
+  const active=results[0].status===201?first:second;assert.equal((await active.call('/dashboard')).status,401);
+ }finally{
+  await barrier.query('SELECT pg_advisory_unlock($1::bigint)',[barrierKey]);await Promise.allSettled(pending);
+  await db.$executeRawUnsafe('DROP TRIGGER refresh_insert_barrier ON "Session"');await db.$executeRawUnsafe('DROP FUNCTION refresh_insert_barrier()');barrier.release();await barrierPool.end();
+ }
+});
+test('refresh preserves the absolute family expiry and invalid CSRF cannot revoke the replacement',async()=>{
+ const c=await login(ids.otherGuardian),oldCookie=c.cookies,oldCsrf=c.csrf;
+ const access=oldCookie.split('bcs_access=')[1].split(';')[0];const original=await db.session.findUniqueOrThrow({where:{accessHash:createHash('sha256').update(access).digest('hex')}});
+ const refreshed=await c.call('/auth/refresh',{});assert.equal(refreshed.status,201);
+ const family=await db.session.findMany({where:{familyId:original.familyId}});assert.equal(family.length,2);assert(family.every(s=>s.expiresAt.getTime()===original.expiresAt.getTime()));
+ const activeCookie=c.cookies;c.cookies=oldCookie;c.csrf='wrong';assert.equal((await c.call('/auth/refresh',{})).status,403);
+ c.cookies=activeCookie;c.csrf=refreshed.data.csrfToken;assert.equal((await c.call('/dashboard')).status,200);
+ c.cookies=oldCookie;c.csrf=oldCsrf;assert.equal((await c.call('/auth/refresh',{})).status,401);
+ const malformed=new Client();malformed.cookies='bcs_refresh=j:%7B%7D';assert.equal((await malformed.call('/auth/refresh',{})).status,401);
+});
+test('production authentication and worker startup stay blocked before provider and MFA qualification',()=>{
+ for(const env of [{APP_MODE:'production',NODE_ENV:'development'},{APP_MODE:'development',NODE_ENV:'production'}]){
+  const result=spawnSync(process.execPath,['apps/api/dist/main.js'],{env:{...process.env,...local,...env,PORT:'4199'},encoding:'utf8'});assert.equal(result.status,1);assert.match(result.stderr,/Live mode is blocked/);
+  const worker=spawnSync(process.execPath,['--import','tsx','apps/worker/src/main.ts'],{env:{...process.env,...local,...env},encoding:'utf8'});assert.equal(worker.status,1);assert.match(worker.stderr,/No live delivery adapters configured/);
+ }
+});
+test('valid sandbox OTP creates only an unverified guardian, is single-use and stores hashed session credentials',async()=>{
+ const client=new Client(),phone='+919999999993';const requested=await client.call('/auth/otp/request',{phone});assert.equal(requested.status,201);
+ const body={phone,code:requested.data.developmentCode,name:'Synthetic OTP guardian'};
+ const verified=await client.call('/auth/otp/verify',body);assert.equal(verified.status,201);assert.equal(verified.data.account.role,'GUARDIAN');assert.equal(verified.data.account.verified,false);
+ for(const cookie of verified.headers.getSetCookie()){assert.match(cookie,/HttpOnly/i);assert.match(cookie,/SameSite=Lax/i);}
+ const access=client.cookies.split('bcs_access=')[1].split(';')[0];const persisted=await db.session.findUniqueOrThrow({where:{accessHash:createHash('sha256').update(access).digest('hex')}});assert.notEqual(persisted.accessHash,access);
+ assert.equal((await client.call('/auth/otp/verify',body)).status,401);assert.equal((await client.call('/consents',{purpose:'tuition-and-learning-records',policyVersion:'development-v1',accepted:true})).status,403);assert.equal((await client.call('/requests',intake())).status,403);
+});
 test('OTP expiry and wrong-code attempt limits fail; OTP cannot assign a role',async()=>{const c=new Client(),phone='+919999999991';const otp=await c.call('/auth/otp/request',{phone});assert.equal(otp.status,201);await db.otp.update({where:{phone},data:{expiresAt:new Date(0)}});assert.equal((await c.call('/auth/otp/verify',{phone,code:otp.data.developmentCode,name:'Synthetic'})).status,401);const phone2='+919999999992';const valid=await c.call('/auth/otp/request',{phone:phone2});for(let i=0;i<5;i++)assert.equal((await c.call('/auth/otp/verify',{phone:phone2,code:valid.data.developmentCode==='000000'?'111111':'000000',name:'Synthetic'})).status,401);assert.equal((await c.call('/auth/otp/verify',{phone:phone2,code:valid.data.developmentCode,name:'Synthetic'})).status,401);});
 test('invitation is guardian-bound, single-use and does not inherit parent privileges',async()=>{const child=await db.child.create({data:{guardianId:ids.guardian,alias:'New learner',grade:7,board:'CBSE'}});const invite=await parent.call(`/children/${child.id}/invitations`,{});assert.equal(invite.status,201);assert.equal((await other.call('/invitations/activate',{token:invite.data.token})).status,409);const c=await login(ids.guardian);const activated=await c.call('/invitations/activate',{token:invite.data.token});assert.equal(activated.status,201);assert.equal(activated.data.account.role,'STUDENT');assert.equal((await c.call('/notes')).status,403);assert.equal((await parent.call('/invitations/activate',{token:invite.data.token})).status,409);});
 async function demoRequest() {
@@ -157,4 +207,4 @@ test('real foundation responses match the discovery, identity and intake contrac
  check('/consents','post',201,await parent.call('/consents',{purpose:'tuition-and-learning-records',policyVersion:'development-v1',accepted:true}));
 });
 
-test('consent withdrawal blocks new intake, note sharing and student sessions',async()=>{assert.equal((await parent.call('/consents/withdraw',{})).status,201);assert.equal((await parent.call('/requests',intake())).status,403);assert.equal((await student.call('/dashboard')).status,401);assert.equal((await teacher.call('/notes')).data.items.length,0);});
+test('consent withdrawal blocks new intake, note sharing and student sessions',async()=>{assert.equal((await parent.call('/consents/withdraw',{})).status,201);assert.equal((await parent.call('/requests',intake())).status,403);assert.equal((await student.call('/dashboard')).status,401);assert.equal((await student.call('/auth/refresh',{})).status,401);assert.equal((await teacher.call('/notes')).data.items.length,0);});

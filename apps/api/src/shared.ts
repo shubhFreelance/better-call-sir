@@ -81,14 +81,21 @@ export class AppService {
       return result;
     });
   }
-  async session(account: Account, res: Response, familyId: string = randomUUID()) {
-    const access = token(), refresh = token(), csrf = token();
-    await this.db.session.create({data:{accountId:account.id,familyId,accessHash:hash(access),refreshHash:hash(refresh),csrf,accessExpiresAt:new Date(Date.now()+600_000),expiresAt:new Date(Date.now()+30*86_400_000)}});
-    const cookie = {httpOnly:true,secure:!development(),sameSite:'lax' as const,path:'/api/v1'};
-    res.cookie('bcs_access',access,{...cookie,maxAge:600_000});
-    res.cookie('bcs_refresh',refresh,{...cookie,maxAge:30*86_400_000});
+  async issueSession(account: Account, familyId: string, db: Pick<DB,'session'> = this.db, expiresAt = new Date(Date.now()+30*86_400_000)) {
+    const access=token(),refresh=token(),csrf=token();
+    await db.session.create({data:{accountId:account.id,familyId,accessHash:hash(access),refreshHash:hash(refresh),csrf,accessExpiresAt:new Date(Math.min(Date.now()+600_000,expiresAt.getTime())),expiresAt}});
+    return {access,refresh,csrf,expiresAt};
+  }
+  sessionResponse(account: Account, state: {access:string;refresh:string;csrf:string;expiresAt:Date}, res: Response) {
+    const cookie={httpOnly:true,secure:!development(),sameSite:'lax' as const,path:'/api/v1'};
+    const remaining=Math.max(0,state.expiresAt.getTime()-Date.now());
+    res.cookie('bcs_access',state.access,{...cookie,maxAge:Math.min(600_000,remaining)});
+    res.cookie('bcs_refresh',state.refresh,{...cookie,maxAge:remaining});
     res.setHeader('Cache-Control','no-store');
-    return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified},csrfToken:csrf};
+    return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified},csrfToken:state.csrf};
+  }
+  async session(account: Account, res: Response, familyId: string = randomUUID()) {
+    return this.sessionResponse(account,await this.issueSession(account,familyId),res);
   }
   async publicTeachers() {
     const teachers = await this.db.teacher.findMany({where:{status:'APPROVED',screeningComplete:true},orderBy:{name:'asc'},take:50});

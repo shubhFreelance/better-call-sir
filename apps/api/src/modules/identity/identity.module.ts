@@ -62,26 +62,40 @@ class IdentityController {
 
   @Post('auth/refresh') async refresh(@Req() req: Request,@Res({passthrough:true}) res: Response) {
     const value=req.cookies?.bcs_refresh;
-    if (!value) fail(401,'SESSION_REQUIRED','Sign in again.');
-    const result = await this.db.$transaction(async db=>{
-      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${hash(value)},0))`;
-      const session=await db.session.findUnique({where:{refreshHash:hash(value)}});
-      if (!session || session.revoked || session.expiresAt < new Date()) return {error:true} as const;
-      if (session.rotated) {await db.session.updateMany({where:{familyId:session.familyId},data:{revoked:true}});return {error:true} as const;}
-      if (!same(req.get('X-CSRF-Token') || '',session.csrf)) fail(403,'CSRF','Refresh token validation failed.');
+    if (typeof value!=='string' || !value || value.length>256) fail(401,'SESSION_REQUIRED','Sign in again.');
+    const result=await this.db.$transaction(async db=>{
+      const original=await db.session.findUnique({where:{refreshHash:hash(value)}});
+      if(!original) return {error:true} as const;
+      const account=await db.account.findUniqueOrThrow({where:{id:original.accountId}});
+      if(account.disabled) return {error:true} as const;
+      if(account.role==='STUDENT') {
+        const child=await db.child.findUnique({where:{studentAccountId:account.id}});
+        if(!child) return {error:true} as const;
+        await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${child.guardianId},0))`;
+        const consent=await db.consent.findUnique({where:{guardianId:child.guardianId}});
+        if(!consent || consent.withdrawnAt) return {error:true} as const;
+      }
+      // Family lock serializes every generation, replay and logout with replacement insertion.
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${original.familyId},0))`;
+      const session=await db.session.findUniqueOrThrow({where:{id:original.id}});
+      if(session.revoked || session.expiresAt<=new Date()) return {error:true} as const;
+      if(!same(req.get('X-CSRF-Token')||'',session.csrf)) fail(403,'CSRF','Refresh token validation failed.');
+      if(session.rotated) {await db.session.updateMany({where:{familyId:session.familyId},data:{revoked:true}});return {error:true} as const;}
       await db.session.update({where:{id:session.id},data:{rotated:true}});
-      const account=await db.account.findUniqueOrThrow({where:{id:session.accountId}});
-      if (account.disabled) return {error:true} as const;
-      return {account,familyId:session.familyId};
+      const state=await this.service.issueSession(account,session.familyId,db,session.expiresAt);
+      return {account,state};
     });
-    if ('error' in result) fail(401,'REFRESH_REPLAY','Session expired or refresh replay detected. Sign in again.');
-    return this.service.session(result.account,res,result.familyId);
+    if('error' in result) fail(401,'REFRESH_REPLAY','Session expired or refresh replay detected. Sign in again.');
+    return this.service.sessionResponse(result.account,result.state,res);
   }
 
   @Post('auth/logout') async logout(@Req() req: Request,@Res({passthrough:true}) res: Response) {
     await this.service.actor(req);
     const session=await this.db.session.findUniqueOrThrow({where:{accessHash:hash(req.cookies.bcs_access)}});
-    await this.db.session.updateMany({where:{familyId:session.familyId},data:{revoked:true}});
+    await this.db.$transaction(async db=>{
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${session.familyId},0))`;
+      await db.session.updateMany({where:{familyId:session.familyId},data:{revoked:true}});
+    });
     res.clearCookie('bcs_access',{path:'/api/v1'});res.clearCookie('bcs_refresh',{path:'/api/v1'});return {status:'SIGNED_OUT'};
   }
 
