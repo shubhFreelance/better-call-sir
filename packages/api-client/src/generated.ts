@@ -773,6 +773,127 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/demos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Authorized demo calendar */
+        get: operations["getDemos"];
+        put?: never;
+        /**
+         * DemoProposal
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["postDemoProposal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/demos/{id}/acceptances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * DemoAcceptance
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["postDemoAcceptance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/demos/{id}/reschedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * DemoReschedule
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["postDemoReschedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/demos/{id}/outcomes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * DemoOutcome
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["postDemoOutcome"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/demos/{id}/cancellations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * DemoCancellation
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["postDemoCancellation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/demos/{id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * DemoReview
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["postDemoReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -881,6 +1002,65 @@ export interface components {
             amountPaise: number;
             /** Format: date-time */
             createdAt: string;
+        };
+        DemoProposal: {
+            /** Format: uuid */
+            requestId: string;
+            /** Format: uuid */
+            teacherId: string;
+            /** Format: date-time */
+            startsAt: string;
+            duration: number;
+        };
+        DemoAcceptance: {
+            expectedVersion: number;
+        };
+        DemoReschedule: {
+            expectedVersion: number;
+            /** Format: date-time */
+            startsAt: string;
+            duration: number;
+            reason: string;
+        };
+        DemoOutcome: {
+            expectedVersion: number;
+            /** @enum {string} */
+            outcome: "COMPLETED" | "NO_SHOW" | "DISPUTED";
+            reason: string;
+        };
+        DemoReview: {
+            expectedVersion: number;
+            /** @enum {string} */
+            resolution: "COMPLETED" | "NOT_COMPLETED";
+            reason: string;
+        };
+        DemoCancellation: {
+            expectedVersion: number;
+            reason: string;
+        };
+        Demo: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            requestId: string;
+            /** Format: uuid */
+            teacherId: string;
+            /** Format: uuid */
+            guardianId: string;
+            /** Format: uuid */
+            reservationId: string;
+            /** @enum {string} */
+            status: "PROPOSED" | "CONFIRMED" | "COMPLETED" | "DISPUTED" | "NOT_COMPLETED" | "CANCELLED";
+            guardianAccepted: boolean;
+            teacherAccepted: boolean;
+            guardianOutcome: string | null;
+            teacherOutcome: string | null;
+            /** Format: uuid */
+            supportCaseId: string | null;
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            reservation: components["schemas"]["Reservation"];
         };
     };
     responses: never;
@@ -4628,6 +4808,647 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Resource"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getDemos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Demo"][];
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    postDemoProposal: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DemoProposal"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Demo"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    postDemoAcceptance: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DemoAcceptance"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Demo"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    postDemoReschedule: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DemoReschedule"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Demo"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    postDemoOutcome: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DemoOutcome"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Demo"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    postDemoCancellation: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DemoCancellation"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Demo"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    postDemoReview: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DemoReview"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Demo"];
                 };
             };
             /** @description Validation */

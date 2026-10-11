@@ -262,3 +262,22 @@ model Audit {
   createdAt DateTime @default(now())
   @@index([aggregateId, createdAt])
 }
+
+model Demo {
+  id String @id @default(uuid()) @db.Uuid
+  requestId String @db.Uuid
+  teacherId String @db.Uuid
+  guardianId String @db.Uuid
+  reservationId String @unique @db.Uuid
+  status String @default("PROPOSED")
+  guardianAccepted Boolean @default(false)
+  teacherAccepted Boolean @default(false)
+  guardianOutcome String?
+  teacherOutcome String?
+  supportCaseId String? @db.Uuid
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  @@index([guardianId])
+  @@index([teacherId])
+  @@index([requestId, teacherId, status])
+}

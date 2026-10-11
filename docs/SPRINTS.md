@@ -34,8 +34,8 @@ This initial implementation also contains early development slices from later ph
 | US03–04 | Pending teacher application, server-only approval with screening gate, suspension | Private evidence store, quarantine/scanner, capability check workflow and material-change review |
 | US05 | Allowlisted approved profiles, filters, SSR and suspension hiding | Cursor pagination, real supply and availability |
 | US06 | Hard eligibility filters, fit reasons, operator shortlist, teacher response | Capacity/schedule eligibility, ranking evidence snapshots, exposure tracking |
-| US07 | Shared calendar exclusion protects overlapping intervals | Demo creation, dual acceptance, rescheduling and dispute journey |
-| US08 | Tuition terms/start acknowledgement and unique capped invoice | Mandatory demo prerequisite, recurring schedule acceptance and rolling 60-day materialization |
+| US07 | Demo API: proposal, versioned dual acceptance, shared-calendar conflict protection, reschedule reset, outcome confirmations, no-show support case and operator review | Guardian/teacher/operator screens; staging notification and meeting qualification |
+| US08 | Completed-demo prerequisite, tuition terms/start acknowledgement and unique capped invoice | Recurring schedule acceptance and rolling 60-day materialization |
 | US09 | Invoice records; payment integrity examples for revision sandbox | Teacher invoice checkout, signed raw-body provider webhooks, reconciliation |
 | US10 | Revision hold, expert scope acceptance, exact synthetic capture, late-slot refund intent | Advertised expert slots, reviewed quote/payout policies, child lesson linkage, private meetings, recap, settlement |
 | US11 | Support case records; early revision cancellation intent | Operational rematch and all approved replacement/cancellation policies |
@@ -53,3 +53,9 @@ This initial implementation also contains early development slices from later ph
 Complete US03–US07 in focused increments: private-evidence adapter and capability-review records; public availability contract; schedule/capacity-aware matching evidence; demo proposal and dual acceptance with shared-calendar tests. Then extend terms and recurring schedules (US08), followed by transactions and actual provider sandbox integration (US09/US10/US18).
 
 The remaining PRD phases stay required: frontend completion, transaction qualification, service operations, security/recovery/load evidence, and the final VPS pilot. Production release is blocked until all P0 stories and Sections 14–16 gates pass. The owner's 440–720 hour estimate is planning context, not work already completed.
+
+## Sprint 2 — US07 demo API increment
+
+Implemented `GET/POST /demos`, versioned acceptance/reschedule/outcome/cancellation endpoints and restricted operator dispute review. Every mutation uses principal/resource-scoped retry keys, active guardian consent and an audit/outbox transaction. Proposals expire after 24 hours or at the proposed start, whichever comes first; demos last 20–60 minutes in this development increment. This is scheduling metadata, not a delivered video service.
+
+Acceptance checks: isolated fresh-database migrations; cross-family/student denial; retry replay and payload mismatch; concurrent demo-versus-revision exclusion and adjacent slots; stale versions; reset of both acceptances on reschedule; premature outcome rejection; independent completed outcomes before tuition terms; no-show support case and authorized review; expired acceptance denial and calendar release on cancellation. The existing unit/API/contract suite passes with these cases. No recurring invoice is created by demo completion itself.

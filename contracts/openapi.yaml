@@ -5293,6 +5293,925 @@
           }
         }
       }
+    },
+    "/demos": {
+      "post": {
+        "operationId": "postDemoProposal",
+        "tags": [
+          "demos"
+        ],
+        "summary": "DemoProposal",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoProposal"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "getDemos",
+        "tags": [
+          "dashboard"
+        ],
+        "summary": "Authorized demo calendar",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Demo"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/demos/{id}/acceptances": {
+      "post": {
+        "operationId": "postDemoAcceptance",
+        "tags": [
+          "demos"
+        ],
+        "summary": "DemoAcceptance",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoAcceptance"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/demos/{id}/reschedules": {
+      "post": {
+        "operationId": "postDemoReschedule",
+        "tags": [
+          "demos"
+        ],
+        "summary": "DemoReschedule",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoReschedule"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/demos/{id}/outcomes": {
+      "post": {
+        "operationId": "postDemoOutcome",
+        "tags": [
+          "demos"
+        ],
+        "summary": "DemoOutcome",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoOutcome"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/demos/{id}/cancellations": {
+      "post": {
+        "operationId": "postDemoCancellation",
+        "tags": [
+          "demos"
+        ],
+        "summary": "DemoCancellation",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoCancellation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/demos/{id}/reviews": {
+      "post": {
+        "operationId": "postDemoReview",
+        "tags": [
+          "demos"
+        ],
+        "summary": "DemoReview",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Demo"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoReview"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -5698,6 +6617,241 @@
           "scopeAccepted",
           "amountPaise",
           "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "DemoProposal": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teacherId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 60
+          }
+        },
+        "required": [
+          "requestId",
+          "teacherId",
+          "startsAt",
+          "duration"
+        ],
+        "additionalProperties": false
+      },
+      "DemoAcceptance": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "expectedVersion"
+        ],
+        "additionalProperties": false
+      },
+      "DemoReschedule": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 60
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "startsAt",
+          "duration",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "DemoOutcome": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "COMPLETED",
+              "NO_SHOW",
+              "DISPUTED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "outcome",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "DemoReview": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "COMPLETED",
+              "NOT_COMPLETED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "resolution",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "DemoCancellation": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "Demo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teacherId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "guardianId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reservationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PROPOSED",
+              "CONFIRMED",
+              "COMPLETED",
+              "DISPUTED",
+              "NOT_COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "guardianAccepted": {
+            "type": "boolean"
+          },
+          "teacherAccepted": {
+            "type": "boolean"
+          },
+          "guardianOutcome": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "teacherOutcome": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "supportCaseId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reservation": {
+            "$ref": "#/components/schemas/Reservation"
+          }
+        },
+        "required": [
+          "id",
+          "requestId",
+          "teacherId",
+          "guardianId",
+          "reservationId",
+          "status",
+          "guardianAccepted",
+          "teacherAccepted",
+          "guardianOutcome",
+          "teacherOutcome",
+          "supportCaseId",
+          "version",
+          "createdAt",
+          "reservation"
         ],
         "additionalProperties": false
       }

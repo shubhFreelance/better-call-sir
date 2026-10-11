@@ -1,0 +1,500 @@
+import {
+  Module,
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  Req,
+  Inject,
+} from "@nestjs/common";
+import { Account, Demo } from "@prisma/client";
+import { z } from "zod";
+import { eligible } from "../../policies";
+import {
+  AppService,
+  PersistenceModule,
+  uuid,
+  version,
+  text,
+  fail,
+  parse,
+  HttpRequest,
+  DB,
+} from "../../shared";
+
+const slot = z.object({
+  startsAt: z.iso.datetime({ offset: true }),
+  duration: z.number().int().min(20).max(60),
+});
+function interval(data: z.infer<typeof slot>) {
+  const startsAt = new Date(data.startsAt),
+    endsAt = new Date(startsAt.getTime() + data.duration * 60_000);
+  if (
+    startsAt.getTime() < Date.now() + 3_600_000 ||
+    endsAt.getTime() > Date.now() + 60 * 86_400_000
+  )
+    fail(
+      400,
+      "INVALID_TIME",
+      "Choose a demo between one hour and 60 days from now.",
+    );
+  return {
+    startsAt,
+    endsAt,
+    expiresAt: new Date(Math.min(Date.now() + 86_400_000, startsAt.getTime())),
+  };
+}
+@Controller("api/v1")
+class DemosController {
+  constructor(@Inject(AppService) private readonly service: AppService) {}
+  async owned(db: DB, actor: Account, id: string, review = false) {
+    const demo = await db.demo.findUnique({ where: { id } });
+    const teacher =
+      actor.role === "TEACHER"
+        ? await db.teacher.findUnique({ where: { accountId: actor.id } })
+        : null;
+    if (
+      !demo ||
+      (!review &&
+        (actor.role === "GUARDIAN"
+          ? demo.guardianId !== actor.id
+          : demo.teacherId !== teacher?.id))
+    )
+      fail(404, "NOT_FOUND", "Demo not found.");
+    await this.service.guardian(db, demo.guardianId);
+    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
+    return db.demo.findUniqueOrThrow({ where: { id } });
+  }
+  async eligible(db: DB, demo: Pick<Demo, "requestId" | "teacherId">) {
+    const request = await db.tuitionRequest.findUniqueOrThrow({
+      where: { id: demo.requestId },
+    });
+    const child = await db.child.findUniqueOrThrow({
+      where: { id: request.childId },
+    });
+    const teacher = await db.teacher.findUniqueOrThrow({
+      where: { id: demo.teacherId },
+    });
+    const candidate = await db.recommendation.findUnique({
+      where: {
+        requestId_teacherId: {
+          requestId: demo.requestId,
+          teacherId: demo.teacherId,
+        },
+      },
+    });
+    if (
+      request.status !== "OPEN" ||
+      !candidate ||
+      candidate.response !== "ACCEPTED" ||
+      !eligible(request, child, teacher)
+    )
+      fail(
+        409,
+        "INELIGIBLE",
+        "An eligible, accepted recommendation is required.",
+      );
+  }
+  async result(db: DB, demo: Demo) {
+    return {
+      ...demo,
+      reservation: await db.reservation.findUniqueOrThrow({
+        where: { id: demo.reservationId },
+      }),
+    };
+  }
+  @Get("demos") async list(@Req() req: HttpRequest) {
+    const actor = await this.service.actor(req, [
+      "GUARDIAN",
+      "TEACHER",
+      "ADMIN",
+      "OPERATOR",
+    ]);
+    const teacher =
+      actor.role === "TEACHER"
+        ? await this.service.db.teacher.findUnique({
+            where: { accountId: actor.id },
+          })
+        : null;
+    if (actor.role === "TEACHER" && !teacher) return { items: [] };
+    const demos = await this.service.db.demo.findMany({
+      where:
+        actor.role === "GUARDIAN"
+          ? { guardianId: actor.id }
+          : actor.role === "TEACHER"
+            ? { teacherId: teacher!.id }
+            : {},
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+    const items = [];
+    for (const demo of demos) {
+      const consent = await this.service.db.consent.findUnique({
+        where: { guardianId: demo.guardianId },
+      });
+      if (consent && !consent.withdrawnAt)
+        items.push(await this.result(this.service.db, demo));
+    }
+    return { items };
+  }
+  @Post("demos") async propose(@Req() req: HttpRequest, @Body() body: unknown) {
+    const actor = await this.service.actor(req, ["GUARDIAN"]);
+    const data = parse(
+      slot.extend({ requestId: uuid, teacherId: uuid }).strict(),
+      body,
+    );
+    return this.service.once(req, actor, "demo.propose", data, async (db) => {
+      await this.service.guardian(db, actor.id);
+      const request = await db.tuitionRequest.findUnique({
+        where: { id: data.requestId },
+      });
+      if (!request || request.guardianId !== actor.id)
+        fail(404, "NOT_FOUND", "Request not found.");
+      await this.eligible(db, {
+        requestId: data.requestId,
+        teacherId: data.teacherId,
+      });
+      await db.reservation.updateMany({
+        where: { status: "HOLD", expiresAt: { lt: new Date() } },
+        data: { status: "EXPIRED", version: { increment: 1 } },
+      });
+      const reservation = await db.reservation.create({
+        data: {
+          teacherId: data.teacherId,
+          guardianId: actor.id,
+          kind: "DEMO",
+          ...interval(data),
+        },
+      });
+      const demo = await db.demo.create({
+        data: {
+          requestId: data.requestId,
+          teacherId: data.teacherId,
+          guardianId: actor.id,
+          reservationId: reservation.id,
+        },
+      });
+      await this.service.audit(
+        db,
+        actor,
+        req,
+        "DEMO_PROPOSED",
+        demo.id,
+        "Guardian proposed demo",
+      );
+      await this.service.event(db, "demo.proposed", demo.id);
+      return this.result(db, demo);
+    });
+  }
+  @Post("demos/:id/acceptances") async accept(
+    @Req() req: HttpRequest,
+    @Param("id") id: string,
+    @Body() body: unknown,
+  ) {
+    parse(uuid, id);
+    const actor = await this.service.actor(req, ["GUARDIAN", "TEACHER"]);
+    const data = parse(z.object({ expectedVersion: version }).strict(), body);
+    return this.service.once(req, actor, "demo.accept", data, async (db) => {
+      const demo = await this.owned(db, actor, id);
+      await this.eligible(db, demo);
+      const r = await db.reservation.findUniqueOrThrow({
+        where: { id: demo.reservationId },
+      });
+      if (
+        demo.version !== data.expectedVersion ||
+        demo.status !== "PROPOSED" ||
+        r.status !== "HOLD" ||
+        !r.expiresAt ||
+        r.expiresAt <= new Date()
+      )
+        fail(409, "CONFLICT", "The demo proposal changed or expired.");
+      const updated = await db.demo.update({
+        where: { id },
+        data: {
+          ...(actor.role === "GUARDIAN"
+            ? { guardianAccepted: true }
+            : { teacherAccepted: true }),
+          version: { increment: 1 },
+        },
+      });
+      if (updated.guardianAccepted && updated.teacherAccepted) {
+        updated.status = "CONFIRMED";
+        await db.demo.update({ where: { id }, data: { status: "CONFIRMED" } });
+        const confirmed = await db.reservation.updateMany({
+          where: { id: r.id, status: "HOLD", expiresAt: { gt: new Date() } },
+          data: {
+            status: "CONFIRMED",
+            expiresAt: null,
+            version: { increment: 1 },
+          },
+        });
+        if (!confirmed.count)
+          fail(409, "CONFLICT", "The demo hold expired. Propose a new time.");
+      }
+      await this.service.audit(
+        db,
+        actor,
+        req,
+        "DEMO_ACCEPTED",
+        id,
+        "Accepted current demo time",
+        undefined,
+        { version: updated.version, status: updated.status },
+      );
+      await this.service.event(db, "demo.accepted", id);
+      return this.result(db, updated);
+    });
+  }
+  @Post("demos/:id/reschedules") async reschedule(
+    @Req() req: HttpRequest,
+    @Param("id") id: string,
+    @Body() body: unknown,
+  ) {
+    parse(uuid, id);
+    const actor = await this.service.actor(req, ["GUARDIAN", "TEACHER"]);
+    const data = parse(
+      slot.extend({ expectedVersion: version, reason: text(300) }).strict(),
+      body,
+    );
+    return this.service.once(
+      req,
+      actor,
+      "demo.reschedule",
+      data,
+      async (db) => {
+        const demo = await this.owned(db, actor, id);
+        await this.eligible(db, demo);
+        const r = await db.reservation.findUniqueOrThrow({
+          where: { id: demo.reservationId },
+        });
+        if (
+          demo.version !== data.expectedVersion ||
+          !["PROPOSED", "CONFIRMED"].includes(demo.status) ||
+          r.startsAt <= new Date()
+        )
+          fail(409, "CONFLICT", "This demo cannot be rescheduled.");
+        await db.reservation.updateMany({
+          where: { status: "HOLD", expiresAt: { lt: new Date() } },
+          data: { status: "EXPIRED", version: { increment: 1 } },
+        });
+        await db.reservation.update({
+          where: { id: r.id },
+          data: {
+            ...interval(data),
+            status: "HOLD",
+            version: { increment: 1 },
+          },
+        });
+        const updated = await db.demo.update({
+          where: { id },
+          data: {
+            status: "PROPOSED",
+            guardianAccepted: false,
+            teacherAccepted: false,
+            version: { increment: 1 },
+          },
+        });
+        await this.service.audit(
+          db,
+          actor,
+          req,
+          "DEMO_RESCHEDULED",
+          id,
+          data.reason,
+          {
+            startsAt: r.startsAt.toISOString(),
+            endsAt: r.endsAt.toISOString(),
+          },
+          { startsAt: data.startsAt, version: updated.version },
+        );
+        await this.service.event(db, "demo.rescheduled", id);
+        return this.result(db, updated);
+      },
+    );
+  }
+  @Post("demos/:id/outcomes") async outcome(
+    @Req() req: HttpRequest,
+    @Param("id") id: string,
+    @Body() body: unknown,
+  ) {
+    parse(uuid, id);
+    const actor = await this.service.actor(req, ["GUARDIAN", "TEACHER"]);
+    const data = parse(
+      z
+        .object({
+          expectedVersion: version,
+          outcome: z.enum(["COMPLETED", "NO_SHOW", "DISPUTED"]),
+          reason: text(1000),
+        })
+        .strict(),
+      body,
+    );
+    return this.service.once(req, actor, "demo.outcome", data, async (db) => {
+      const demo = await this.owned(db, actor, id);
+      const r = await db.reservation.findUniqueOrThrow({
+        where: { id: demo.reservationId },
+      });
+      if (
+        demo.version !== data.expectedVersion ||
+        !["CONFIRMED", "COMPLETED"].includes(demo.status) ||
+        r.endsAt > new Date()
+      )
+        fail(
+          409,
+          "CONFLICT",
+          "Report an outcome after the confirmed demo ends.",
+        );
+      if (
+        actor.role === "GUARDIAN"
+          ? demo.guardianOutcome !== null
+          : demo.teacherOutcome !== null
+      )
+        fail(
+          409,
+          "CONFLICT",
+          "Your outcome has already been recorded. Contact support for corrections.",
+        );
+      const updated = await db.demo.update({
+        where: { id },
+        data: {
+          ...(actor.role === "GUARDIAN"
+            ? { guardianOutcome: data.outcome }
+            : { teacherOutcome: data.outcome }),
+          version: { increment: 1 },
+        },
+      });
+      if (data.outcome !== "COMPLETED") {
+        const support = await db.supportCase.create({
+          data: {
+            accountId: actor.id,
+            category: "DEMO_DISPUTE",
+            description: `Demo ${id}: ${data.outcome}. ${data.reason}`,
+          },
+        });
+        updated.status = "DISPUTED";
+        updated.supportCaseId = support.id;
+      } else if (
+        updated.guardianOutcome === "COMPLETED" &&
+        updated.teacherOutcome === "COMPLETED"
+      )
+        updated.status = "COMPLETED";
+      await db.demo.update({
+        where: { id },
+        data: { status: updated.status, supportCaseId: updated.supportCaseId },
+      });
+      if (updated.status !== "CONFIRMED")
+        await db.reservation.update({
+          where: { id: r.id },
+          data: { status: "COMPLETED", version: { increment: 1 } },
+        });
+      await this.service.audit(
+        db,
+        actor,
+        req,
+        "DEMO_OUTCOME_RECORDED",
+        id,
+        data.reason,
+        undefined,
+        { outcome: data.outcome, status: updated.status },
+      );
+      await this.service.event(db, "demo.outcome_recorded", id);
+      return this.result(db, updated);
+    });
+  }
+  @Post("admin/demos/:id/reviews") async review(
+    @Req() req: HttpRequest,
+    @Param("id") id: string,
+    @Body() body: unknown,
+  ) {
+    parse(uuid, id);
+    const actor = await this.service.actor(req, ["ADMIN", "OPERATOR"]);
+    const data = parse(
+      z
+        .object({
+          expectedVersion: version,
+          resolution: z.enum(["COMPLETED", "NOT_COMPLETED"]),
+          reason: text(1000),
+        })
+        .strict(),
+      body,
+    );
+    return this.service.once(req, actor, "demo.review", data, async (db) => {
+      const demo = await this.owned(db, actor, id, true);
+      if (
+        demo.version !== data.expectedVersion ||
+        demo.status !== "DISPUTED" ||
+        !demo.supportCaseId
+      )
+        fail(
+          409,
+          "CONFLICT",
+          "This dispute has changed or is not awaiting review.",
+        );
+      const updated = await db.demo.update({
+        where: { id },
+        data: { status: data.resolution, version: { increment: 1 } },
+      });
+      await db.supportCase.update({
+        where: { id: demo.supportCaseId },
+        data: { status: "RESOLVED" },
+      });
+      await this.service.audit(
+        db,
+        actor,
+        req,
+        "DEMO_DISPUTE_REVIEWED",
+        id,
+        data.reason,
+        { status: demo.status },
+        { status: updated.status },
+      );
+      await this.service.event(db, "demo.reviewed", id);
+      return this.result(db, updated);
+    });
+  }
+  @Post("demos/:id/cancellations") async cancel(
+    @Req() req: HttpRequest,
+    @Param("id") id: string,
+    @Body() body: unknown,
+  ) {
+    parse(uuid, id);
+    const actor = await this.service.actor(req, ["GUARDIAN", "TEACHER"]);
+    const data = parse(
+      z.object({ expectedVersion: version, reason: text(300) }).strict(),
+      body,
+    );
+    return this.service.once(req, actor, "demo.cancel", data, async (db) => {
+      const demo = await this.owned(db, actor, id);
+      const r = await db.reservation.findUniqueOrThrow({
+        where: { id: demo.reservationId },
+      });
+      if (
+        demo.version !== data.expectedVersion ||
+        !["PROPOSED", "CONFIRMED"].includes(demo.status) ||
+        r.startsAt <= new Date()
+      )
+        fail(409, "CONFLICT", "This demo cannot be cancelled.");
+      const updated = await db.demo.update({
+        where: { id },
+        data: { status: "CANCELLED", version: { increment: 1 } },
+      });
+      await db.reservation.update({
+        where: { id: r.id },
+        data: { status: "CANCELLED", version: { increment: 1 } },
+      });
+      await this.service.audit(
+        db,
+        actor,
+        req,
+        "DEMO_CANCELLED",
+        id,
+        data.reason,
+      );
+      await this.service.event(db, "demo.cancelled", id);
+      return this.result(db, updated);
+    });
+  }
+}
+@Module({ imports: [PersistenceModule], controllers: [DemosController] })
+export class DemosModule {}

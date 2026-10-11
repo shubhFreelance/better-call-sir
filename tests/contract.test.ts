@@ -30,7 +30,7 @@ test("every implemented API operation has a versioned contract and documented fa
   const source = files("apps/api/src/modules")
     .map((f) => readFileSync(f, "utf8"))
     .join("\n");
-  const operations = [...source.matchAll(/@(Get|Post)\('([^']+)'\)/g)];
+  const operations = [...source.matchAll(/@(Get|Post)\(["']([^"']+)["']\)/g)];
   assert(operations.length >= 40);
   for (const [, method, route] of operations) {
     const p = "/" + route.replace(/:(\w+)/g, "{$1}");
@@ -93,4 +93,33 @@ test("generated client contains all operation identifiers and stays separate fro
   assert(!web.includes("@prisma/client"));
   assert(!web.includes("apps/api"));
   assert(!web.includes("DATABASE_URL"));
+});
+
+test("demo contract validates time, version and outcome boundaries", () => {
+  const proposal = validator("DemoProposal");
+  const body = {
+    requestId: ids.child,
+    teacherId: ids.teacher,
+    startsAt: new Date().toISOString(),
+    duration: 30,
+  };
+  assert(proposal(body));
+  for (const patch of [
+    { duration: 0 },
+    { duration: 30.5 },
+    { startsAt: "tomorrow" },
+    { guardianAccepted: true },
+  ])
+    assert.equal(proposal({ ...body, ...patch }), false);
+  const acceptance = validator("DemoAcceptance");
+  assert(acceptance({ expectedVersion: 1 }));
+  assert.equal(acceptance({ expectedVersion: 0 }), false);
+  assert.equal(
+    validator("DemoOutcome")({
+      expectedVersion: 1,
+      outcome: "PAID",
+      reason: "Invalid",
+    }),
+    false,
+  );
 });

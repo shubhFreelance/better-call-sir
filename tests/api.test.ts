@@ -75,4 +75,78 @@ test('teacher suspension removes discovery and new reservations',async()=>{const
 test('refresh replay revokes the full session family, including new access',async()=>{const c=await login(ids.otherGuardian);const old=c.cookies;const refreshed=await c.call('/auth/refresh',{});assert.equal(refreshed.status,201);const active=c.cookies;c.cookies=old;assert.equal((await c.call('/auth/refresh',{})).status,401);c.cookies=active;assert.equal((await c.call('/dashboard')).status,401);});
 test('OTP expiry and wrong-code attempt limits fail; OTP cannot assign a role',async()=>{const c=new Client(),phone='+919999999991';const otp=await c.call('/auth/otp/request',{phone});assert.equal(otp.status,201);await db.otp.update({where:{phone},data:{expiresAt:new Date(0)}});assert.equal((await c.call('/auth/otp/verify',{phone,code:otp.data.developmentCode,name:'Synthetic'})).status,401);const phone2='+919999999992';const valid=await c.call('/auth/otp/request',{phone:phone2});for(let i=0;i<5;i++)assert.equal((await c.call('/auth/otp/verify',{phone:phone2,code:valid.data.developmentCode==='000000'?'111111':'000000',name:'Synthetic'})).status,401);assert.equal((await c.call('/auth/otp/verify',{phone:phone2,code:valid.data.developmentCode,name:'Synthetic'})).status,401);});
 test('invitation is guardian-bound, single-use and does not inherit parent privileges',async()=>{const child=await db.child.create({data:{guardianId:ids.guardian,alias:'New learner',grade:7,board:'CBSE'}});const invite=await parent.call(`/children/${child.id}/invitations`,{});assert.equal(invite.status,201);assert.equal((await other.call('/invitations/activate',{token:invite.data.token})).status,409);const c=await login(ids.guardian);const activated=await c.call('/invitations/activate',{token:invite.data.token});assert.equal(activated.status,201);assert.equal(activated.data.account.role,'STUDENT');assert.equal((await c.call('/notes')).status,403);assert.equal((await parent.call('/invitations/activate',{token:invite.data.token})).status,409);});
+async function demoRequest() {
+ const request=await parent.call('/requests',intake());assert.equal(request.status,201);
+ const rec=await operator.call(`/admin/requests/${request.data.id}/recommendations`,{expectedVersion:1});assert.equal(rec.status,201);
+ const candidate=rec.data.items.find((c:{teacherId:string})=>c.teacherId===ids.teacher);assert(candidate);
+ assert.equal((await teacher.call(`/candidates/${candidate.id}/responses`,{response:'ACCEPTED'})).status,201);
+ return request.data.id as string;
+}
+async function confirmDemo(demo:any) {
+ const a=await parent.call(`/demos/${demo.id}/acceptances`,{expectedVersion:demo.version});assert.equal(a.status,201,JSON.stringify(a.data));
+ const b=await teacher.call(`/demos/${demo.id}/acceptances`,{expectedVersion:a.data.version});assert.equal(b.status,201,JSON.stringify(b.data));assert.equal(b.data.status,'CONFIRMED');return b.data;
+}
+async function endDemo(demo:any) {
+ await db.reservation.update({where:{id:demo.reservationId},data:{startsAt:new Date(Date.now()-3600000),endsAt:new Date(Date.now()-1800000)}});
+}
+test('demo proposal is private, validated and retry-safe; tuition cannot skip the demo',async()=>{
+ const requestId=await demoRequest(),body={requestId,teacherId:ids.teacher,startsAt:future(30),duration:30},key=randomUUID();
+ assert.equal((await parent.call('/placements',{requestId,teacherId:ids.teacher})).data.code,'DEMO_REQUIRED');
+ assert.equal((await other.call('/demos',body)).status,404);assert.equal((await student.call('/demos',body)).status,403);
+ assert.equal((await parent.call('/demos',{...body,duration:0})).status,400);
+ assert.equal((await parent.call('/demos',{...body,startsAt:new Date().toISOString()})).status,400);
+ const proposed=await parent.call('/demos',body,{key});assert.equal(proposed.status,201,JSON.stringify(proposed.data));
+ assert.equal((await parent.call('/demos',body,{key})).data.id,proposed.data.id);
+ assert.equal((await parent.call('/demos',{...body,duration:40},{key})).status,409);
+ assert.equal((await other.call(`/demos/${proposed.data.id}/acceptances`,{expectedVersion:1})).status,404);
+ assert.equal((await teacher.call(`/reservations/${proposed.data.reservationId}/scope`,{expectedVersion:1})).status,409);
+ assert.equal((await parent.call(`/reservations/${proposed.data.reservationId}/cancel`,{expectedVersion:1,reason:'Bypass'})).status,404);
+ assert.equal((await other.call('/demos')).data.items.some((d:any)=>d.id===proposed.data.id),false);
+});
+test('concurrent demo and revision proposals share one calendar; adjacent slots remain available',async()=>{
+ const requestId=await demoRequest(),startsAt=future(31);
+ const results=await Promise.all([parent.call('/demos',{requestId,teacherId:ids.teacher,startsAt,duration:30}),other.call('/revision/holds',{teacherId:ids.teacher,startsAt:new Date(new Date(startsAt).getTime()+10*60000).toISOString(),duration:40,topic:'Fractions'})]);
+ assert.deepEqual(results.map(r=>r.status).sort(),[201,409],JSON.stringify(results));
+ const winner=results.find(r=>r.status===201)!;const end=winner.data.reservation?.endsAt||winner.data.endsAt;
+ assert.equal((await parent.call('/revision/holds',{teacherId:ids.teacher,startsAt:end,duration:20,topic:'Adjacent'})).status,201);
+});
+test('rescheduling resets both acceptances, stale versions fail, and two outcomes unlock tuition',async()=>{
+ const requestId=await demoRequest();const proposed=await parent.call('/demos',{requestId,teacherId:ids.teacher,startsAt:future(32),duration:30});assert.equal(proposed.status,201);
+ let demo=await confirmDemo(proposed.data);
+ assert.equal((await teacher.call(`/demos/${demo.id}/outcomes`,{expectedVersion:demo.version,outcome:'COMPLETED',reason:'Too early'})).status,409);
+ const rescheduled=await teacher.call(`/demos/${demo.id}/reschedules`,{expectedVersion:demo.version,startsAt:future(33),duration:40,reason:'Schedule adjustment'});assert.equal(rescheduled.status,201,JSON.stringify(rescheduled.data));
+ assert.equal(rescheduled.data.guardianAccepted,false);assert.equal(rescheduled.data.teacherAccepted,false);assert.equal(rescheduled.data.reservation.status,'HOLD');
+ assert.equal((await parent.call(`/demos/${demo.id}/acceptances`,{expectedVersion:demo.version})).status,409);
+ assert.equal((await parent.call('/placements',{requestId,teacherId:ids.teacher})).status,409);
+ demo=await confirmDemo(rescheduled.data);await endDemo(demo);
+ const a=await parent.call(`/demos/${demo.id}/outcomes`,{expectedVersion:demo.version,outcome:'COMPLETED',reason:'Attended demo'});assert.equal(a.status,201);assert.equal(a.data.status,'CONFIRMED');
+ assert.equal((await parent.call('/placements',{requestId,teacherId:ids.teacher})).status,409);
+ const b=await teacher.call(`/demos/${demo.id}/outcomes`,{expectedVersion:a.data.version,outcome:'COMPLETED',reason:'Attended demo'});assert.equal(b.status,201);assert.equal(b.data.status,'COMPLETED');
+ const key=randomUUID();const placement=await parent.call('/placements',{requestId,teacherId:ids.teacher},{key});assert.equal(placement.status,201,JSON.stringify(placement.data));
+ assert.equal((await parent.call('/placements',{requestId,teacherId:ids.teacher},{key})).data.id,placement.data.id);
+ assert.equal(await db.invoice.count({where:{placementId:placement.data.id}}),0);
+});
+test('no-show dispute blocks placement until an authorized, versioned review closes its support case',async()=>{
+ const requestId=await demoRequest();const proposed=await parent.call('/demos',{requestId,teacherId:ids.teacher,startsAt:future(34),duration:30});assert.equal(proposed.status,201);
+ const demo=await confirmDemo(proposed.data);await endDemo(demo);
+ const body={expectedVersion:demo.version,outcome:'NO_SHOW',reason:'Teacher did not attend'},key=randomUUID();
+ const disputed=await parent.call(`/demos/${demo.id}/outcomes`,body,{key});assert.equal(disputed.status,201,JSON.stringify(disputed.data));assert.equal(disputed.data.status,'DISPUTED');
+ assert.equal((await parent.call(`/demos/${demo.id}/outcomes`,body,{key})).data.supportCaseId,disputed.data.supportCaseId);
+ assert.equal((await parent.call('/placements',{requestId,teacherId:ids.teacher})).status,409);
+ const review={expectedVersion:disputed.data.version,resolution:'NOT_COMPLETED',reason:'Reviewed both statements; demo did not take place'};
+ assert.equal((await teacher.call(`/admin/demos/${demo.id}/reviews`,review)).status,403);
+ assert.equal((await operator.call(`/admin/demos/${demo.id}/reviews`,{...review,expectedVersion:1})).status,409);
+ const reviewed=await operator.call(`/admin/demos/${demo.id}/reviews`,review);assert.equal(reviewed.status,201,JSON.stringify(reviewed.data));assert.equal(reviewed.data.status,'NOT_COMPLETED');
+ assert.equal((await db.supportCase.findUniqueOrThrow({where:{id:disputed.data.supportCaseId}})).status,'RESOLVED');
+ assert.equal((await parent.call('/placements',{requestId,teacherId:ids.teacher})).status,409);
+ assert.equal(await db.audit.count({where:{aggregateId:demo.id,action:'DEMO_DISPUTE_REVIEWED'}}),1);
+});
+test('expired demo cannot be accepted; cancellation releases its calendar slot',async()=>{
+ const requestId=await demoRequest();const proposed=await parent.call('/demos',{requestId,teacherId:ids.teacher,startsAt:future(35),duration:30});assert.equal(proposed.status,201);
+ await db.reservation.update({where:{id:proposed.data.reservationId},data:{expiresAt:new Date(0)}});
+ assert.equal((await teacher.call(`/demos/${proposed.data.id}/acceptances`,{expectedVersion:1})).status,409);
+ const cancelled=await parent.call(`/demos/${proposed.data.id}/cancellations`,{expectedVersion:1,reason:'Choose another time'});assert.equal(cancelled.status,201);
+ assert.equal((await parent.call('/revision/holds',{teacherId:ids.teacher,startsAt:future(35),duration:20,topic:'Released slot'})).status,201);
+});
+
 test('consent withdrawal blocks new intake, note sharing and student sessions',async()=>{assert.equal((await parent.call('/consents/withdraw',{})).status,201);assert.equal((await parent.call('/requests',intake())).status,403);assert.equal((await student.call('/dashboard')).status,401);assert.equal((await teacher.call('/notes')).data.items.length,0);});

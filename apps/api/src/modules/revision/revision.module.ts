@@ -38,7 +38,7 @@ class RevisionController {
   @Post('reservations/:id/scope') async scope(@Req() req: HttpRequest,@Param('id') id: string,@Body() body: unknown) {
     parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']);const {expectedVersion}=parse(z.object({expectedVersion:version}).strict(),body);
     const teacher=await this.db.teacher.findUniqueOrThrow({where:{accountId:actor.id}});
-    const changed=await this.db.reservation.updateMany({where:{id,teacherId:teacher.id,status:'HOLD',expiresAt:{gt:new Date()},version:expectedVersion},data:{scopeAccepted:true,version:{increment:1}}});
+    const changed=await this.db.reservation.updateMany({where:{id,kind:'REVISION',teacherId:teacher.id,status:'HOLD',expiresAt:{gt:new Date()},version:expectedVersion},data:{scopeAccepted:true,version:{increment:1}}});
     if (!changed.count) fail(409,'CONFLICT','The hold changed or expired.');return this.db.reservation.findUniqueOrThrow({where:{id}});
   }
 
@@ -48,7 +48,7 @@ class RevisionController {
     return this.service.once(req,actor,'sandbox.capture',data,async db=>{
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
       const r=await db.reservation.findUnique({where:{id}});
-      if (!r || r.guardianId!==actor.id) fail(404,'NOT_FOUND','Booking not found.');
+      if (!r || r.kind!=='REVISION' || r.guardianId!==actor.id) fail(404,'NOT_FOUND','Booking not found.');
       await this.service.guardian(db,actor.id);
       const existing=await db.payment.findUnique({where:{reservationId:id}});
       if (existing) return {payment:existing,reservation:r};
@@ -71,7 +71,7 @@ class RevisionController {
     parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({expectedVersion:version,reason:text(300)}).strict(),body);
     return this.service.once(req,actor,'reservation.cancel',data,async db=>{
       const r=await db.reservation.findUnique({where:{id}});
-      if (!r || r.guardianId!==actor.id) fail(404,'NOT_FOUND','Booking not found.');
+      if (!r || r.kind!=='REVISION' || r.guardianId!==actor.id) fail(404,'NOT_FOUND','Booking not found.');
       if (!['HOLD','CONFIRMED'].includes(r.status) || r.version!==data.expectedVersion) fail(409,'CONFLICT','Booking has changed.');
       const payment=await db.payment.findUnique({where:{reservationId:id}});
       if (payment && !revisionRefund(r.startsAt,new Date(),'GUARDIAN_CANCELLED')) fail(409,'POLICY_REVIEW','Late-cancellation policy is unapproved. Contact support; no automated charge or refund decision was made.');
