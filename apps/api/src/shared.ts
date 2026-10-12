@@ -56,6 +56,7 @@ export class AppService {
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
     const account = await db.account.findUnique({where:{id}});
     const consent = await db.consent.findUnique({where:{guardianId:id}});
+    if(await db.privacyRequest.findFirst({where:{accountId:id,kind:'DELETION',scope:{in:['ACCOUNT','CHILD']},status:'PENDING'}}))fail(403,'PRIVACY_PENDING','Processing is paused while the deletion request is reviewed.');
     if (!account?.verified || account.disabled || !consent || consent.withdrawnAt) fail(403,'CONSENT_REQUIRED','Adult verification and active guardian consent are required.');
   }
   async child(db: DB, account: Account, id: string) {

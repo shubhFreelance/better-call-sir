@@ -169,6 +169,12 @@ The owner changed delivery order on 12 October 2026: complete missing backend wo
 
 ### B4 / US11, US20 — support operations and replacement
 
+### B4 / US13 — privacy correction, deletion and restore replay
+
+Added guardian/teacher owner-scoped privacy requests for owned account, learner alias or private note content; students cannot authorize deletion. Account/learner deletion immediately withdraws guardian consent, revokes student access and stops matching/new processing while review is pending; note deletion immediately revokes sharing. Administrators fulfil corrections or apply deletion under an explicitly recorded policy and approved retention exception. Deletion scrubs personal profile/learner/note/draft content, revokes access and retains financial, learning, safety and immutable audit evidence as the stated exception. Teacher evidence removal is queued with immediate download denial and retryable physical-file removal.
+
+An immutable deletion ledger supports restricted, audited cursor export and idempotent deletion replay after a restored database. It is an application-level replay facility; external backup inventories, current backup retention, reviewed legal schedules and a real restore drill remain release work. All 52 API and eight contract checks pass, including foreign-resource rejection, admin-only review, missing retention rejection, processing pause, content scrubbing, immutable ledger and replay without duplicate audit.
+
 Added owner-only case queues/details, private staff notes, public replies, current-version assignment/status changes, regional operator access and append-only case history. Case resource links are checked against the reporting participant in both the API and PostgreSQL. Safety support remains available without Parent Pro. Resolution records a reason; closure retains the case and its evidence.
 
 Guardian placement closure cancels future scheduled lessons and consultations, supersedes the accepted timetable and revokes the old teacher's shared notes. Completed lessons, invoices and payment evidence are preserved. Rematch atomically closes the former assignment, creates a linked assisted request with fresh confirmed criteria, excludes the old teacher and opens a replacement case. It retains the standard eligibility, reviewed shortlist, demo and agreement workflow; no replacement is silently assigned. All 51 isolated API scenarios and eight contract scenarios pass, including stale/retry/cross-family/region and private staff-note denial.

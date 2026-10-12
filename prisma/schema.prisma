@@ -558,3 +558,30 @@ model RecurringSchedule {
  createdAt DateTime @default(now())
  @@index([placementId,status])
 }
+
+model PrivacyRequest {
+ id String @id @default(uuid()) @db.Uuid
+ accountId String @db.Uuid
+ kind String
+ scope String
+ resourceId String @db.Uuid
+ reason String
+ correction String?
+ status String @default("PENDING")
+ resolution String?
+ policyVersion String?
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([accountId,status])
+}
+model DeletionRecord {
+ id String @id @default(uuid()) @db.Uuid
+ privacyRequestId String @unique @db.Uuid
+ accountId String @db.Uuid
+ scope String
+ resourceId String @db.Uuid
+ policyVersion String
+ retentionReason String
+ createdAt DateTime @default(now())
+}

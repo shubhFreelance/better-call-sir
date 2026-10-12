@@ -57,6 +57,9 @@ async function tick() {
   return db.$transaction(async tx=>{
     const jobs=await tx.$queryRaw<{id:string;type:string;aggregateId:string;payload:{version:number}}[]>`SELECT id,type,"aggregateId",payload FROM "Outbox" WHERE "processedAt" IS NULL AND attempts < 5 ORDER BY CASE WHEN type='evidence.scan_requested' THEN 0 ELSE 1 END,"createdAt" LIMIT 1 FOR UPDATE SKIP LOCKED`;
     for (const job of jobs) {
+      if(job.type==='privacy.evidence_delete_requested'){
+        try{files.remove(job.aggregateId);await tx.evidence.updateMany({where:{id:job.aggregateId},data:{status:'DELETED',version:{increment:1}}});await tx.outbox.update({where:{id:job.id},data:{processedAt:new Date(),attempts:{increment:1}}});}catch{await tx.outbox.update({where:{id:job.id},data:{attempts:{increment:1}}});}continue;
+      }
       if(job.type==='evidence.scan_requested') {
         const evidence=await tx.evidence.findUnique({where:{id:job.aggregateId}});
         if(evidence?.status==='QUARANTINED'&&evidence.version===job.payload.version) {
