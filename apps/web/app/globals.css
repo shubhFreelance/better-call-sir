@@ -3259,3 +3259,78 @@ footer {
     text-align: left;
   }
 }
+
+.teacher-choice-group legend {
+  font-weight: 650;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.teacher-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.teacher-choice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.teacher-choice:has(input:checked) {
+  background: var(--green);
+  border-color: var(--primary);
+}
+.teacher-choices .teacher-choice input {
+  width: 17px;
+  height: 17px;
+  min-height: 0;
+  margin: 0;
+  accent-color: var(--primary);
+}
+.teacher-review-detail {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.teacher-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+.teacher-upload {
+  margin: 24px 0;
+}
+.teacher-upload [type="file"] {
+  height: auto;
+  max-width: 100%;
+  padding: 10px;
+}
+.teacher-evidence-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.teacher-evidence-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+.teacher-evidence-list strong {
+  text-transform: capitalize;
+}
+.teacher-evidence-list p {
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+.teacher-evidence-list a {
+  display: block;
+  margin-top: 8px;
+}

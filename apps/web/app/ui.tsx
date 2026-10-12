@@ -17,6 +17,7 @@ import {
   TabsContent,
 } from "../components/ui/tabs";
 import { GuardianOnboarding } from "./guardian-onboarding";
+import { TeacherSetup } from "./teacher-onboarding";
 import { EmailLogin } from "./email-login";
 import { DemoChoice, DemoJourney } from "./demo-journey";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -1128,140 +1129,23 @@ function LoginPrompt() {
   );
 }
 function TeacherOnboarding() {
-  const { session } = useAuth();
-  const [error, setError] = useState(""),
-    [saved, setSaved] = useState(""),
-    [busy, setBusy] = useState(false);
+  const { session, setSession, loading } = useAuth();
+  if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError("");
-    setBusy(true);
-    const f = new FormData(e.currentTarget);
-    try {
-      const t = await api<Teacher>("/teacher-applications", {
-        method: "POST",
-        csrf: session?.csrfToken,
-        key: crypto.randomUUID(),
-        body: {
-          name: f.get("name"),
-          headline: f.get("headline"),
-          bio: f.get("bio"),
-          subjects: [f.get("subject")],
-          boards: ["CBSE", "CGBSE"],
-          grades: [6, 7, 8, 9, 10],
-          languages: ["English", "Hindi"],
-          modes: [f.get("mode")],
-          localities: [f.get("locality")],
-          monthlyPaise: Number(f.get("price")) * 100,
-          experience: Number(f.get("experience")),
-          consultationOptIn: f.get("consultation") === "on",
-          feeTermsAccepted: f.get("terms") === "on",
-        },
-      });
-      setSaved(
-        `${t.name}: application submitted for review. Screening and private evidence remain required; your profile is not public.`,
-      );
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <main className="container narrow section">
-      <PageTitle
-        eyebrow="TEACHER ONBOARDING"
-        title="Bring your kind of teaching."
-        subtitle="Tell us your coverage. Approval requires private evidence and capability checks."
-      />
-      <form className="panel form-panel" onSubmit={submit}>
-        <Badge>Step 1 · Profile & teaching preferences</Badge>
-        <Field label="Your name">
-          <input name="name" required maxLength={80} />
-        </Field>
-        <Field label="A short teaching headline">
-          <input name="headline" required maxLength={120} />
-        </Field>
-        <Field label="About your teaching">
-          <textarea name="bio" required maxLength={1500} rows={4} />
-        </Field>
-        <div className="form-row">
-          <Field label="Subject">
-            <select name="subject">
-              <option>Maths</option>
-              <option>Science</option>
-            </select>
-          </Field>
-          <Field label="Lesson format">
-            <select name="mode">
-              <option value="HOME">At home</option>
-              <option value="ONLINE">Online</option>
-            </select>
-          </Field>
-        </div>
-        <div className="form-row">
-          <Field label="Years teaching">
-            <input
-              name="experience"
-              type="number"
-              required
-              min={0}
-              max={60}
-              defaultValue={0}
-            />
-          </Field>
-          <Field label="Monthly tuition (₹)">
-            <input
-              name="price"
-              type="number"
-              min={500}
-              max={20000}
-              required
-              defaultValue={3000}
-            />
-          </Field>
-        </div>
-        <Field label="Locality">
-          <select name="locality">
-            {[
-              "Shankar Nagar",
-              "Avanti Vihar",
-              "Telibandha",
-              "Civil Lines",
-              "Mowa",
-            ].map((l) => (
-              <option key={l}>{l}</option>
-            ))}
-          </select>
-        </Field>
-        <label className="checkbox-field">
-          <input type="checkbox" name="consultation" />
-          <span>
-            I’m interested in Parent Pro consultations during accepted windows.
-          </span>
-        </label>
-        <label className="checkbox-field">
-          <input name="terms" type="checkbox" required />
-          <span>
-            I acknowledge the proposed pilot placement fee: 25% of the first
-            monthly tuition, capped at ₹1,500, after independently confirmed
-            start and receipt. Final terms require review.
-          </span>
-        </label>
-        <Notice>
-          Private evidence upload and screening providers are not configured.
-          Submission saves a pending application and cannot self-approve.
-        </Notice>
-        {error && <Notice error>{error}</Notice>}
-        {saved && <Notice>{saved}</Notice>}
-        <Button type="submit" disabled={busy}>
-          {busy ? "Submitting…" : "Submit for review"}
-          <ArrowRight size={18} />
-        </Button>
-      </form>
-    </main>
-  );
+  if (!["GUARDIAN", "TEACHER"].includes(session.account.role))
+    return (
+      <main className="container narrow section">
+        <h1>A teacher account is required.</h1>
+        <p>
+          Sign in with your own adult account to apply. Student accounts cannot
+          submit teacher applications.
+        </p>
+        <Link className="button" href="/dashboard">
+          Return to dashboard
+        </Link>
+      </main>
+    );
+  return <TeacherSetup session={session} onSessionChange={setSession} />;
 }
 function StudentOnboarding() {
   const { session, setSession } = useAuth(),
