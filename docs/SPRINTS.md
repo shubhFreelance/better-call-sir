@@ -45,24 +45,24 @@ This initial implementation also contains early development slices from later ph
 
 | Story | Current implementation | Remaining work before story acceptance |
 | --- | --- | --- |
-| US01 | OTP sandbox, session replay/logout, consent and family isolation | Real adult verification, reviewed consent, provider abuse handling |
-| US02 | Validated supported intake, region-scoped access, normalized structured schedules, child-grade/board consistency, unsupported-scope waitlist and idempotency | Persisted frontend draft resume: Phase 3; staging/live guardian qualification remains open |
+| US01 | Email OTP/Resend boundary, session replay/logout, consent and family isolation | Live adult verification, MFA and reviewed privacy/provider abuse controls |
+| US02 | Supported intake, persisted drafts, direct/assisted discovery identity, structured schedules, region ownership and waitlist | Full frontend forms and live guardian qualification |
 | US03–04 | Private content-checked evidence, fail-closed ClamAV worker, revision-bound reviewer checks, fee acceptance snapshot, material-change re-review, suspension | Staging/private-store and current-signature qualification; full Phase 3 reviewer/upload UI |
 | US05 | Allowlisted current-screening profiles, bounded cursor pagination, weekly IST availability, leave exceptions, capacity/travel settings and suspension hiding | Real supply and Phase 3 discovery/availability UI qualification |
 | US06 | Capacity/schedule/travel/current-screening hard filters; immutable rules-v2 runs, reviewed publication, explicit shown/selection evidence, versioned teacher responses | Full Phase 3 publication/exposure UI and live cohort qualification; no ML training/export enabled |
 | US07 | Demo API and guardian/teacher/operator screens: proposal, versioned dual acceptance, shared-calendar conflict protection, reschedule reset, outcome confirmations, no-show support case and operator review | Staging notification and private meeting qualification; reviewed pilot evidence |
-| US08 | Completed-demo prerequisite, tuition terms/start acknowledgement and unique capped invoice | Recurring schedule acceptance and rolling 60-day materialization |
-| US09 | Invoice records; payment integrity examples for revision sandbox | Teacher invoice checkout, signed raw-body provider webhooks, reconciliation |
-| US10 | Revision hold, expert scope acceptance, exact synthetic capture, late-slot refund intent | Advertised expert slots, reviewed quote/payout policies, child lesson linkage, private meetings, recap, settlement |
-| US11 | Support case records; early revision cancellation intent | Operational rematch and all approved replacement/cancellation policies |
-| US12 | Private notes, named active teacher sharing/revocation | Sharing acknowledgement and complete replacement workflow |
-| US13 | Consent withdrawal stops writes/matching and student access; privacy case intake | Approved deletion/retention jobs, backup deletion replay, correction fulfillment |
-| US14 | Operational counts with explicit recorded metric semantics | Funnel/continuation cohorts and reconciled cash reporting |
+| US08 | Demo prerequisite, versioned terms/start acknowledgement, agreed recurring schedule and rolling 60-day lessons, unique capped invoice | Live first-paid-lesson/receipt evidence and commercial acceptance |
+| US09 | Exact invoice checkout, signed raw capture, replay/ownership constraints and provider query boundary | Refund/payout/partial-payment accounting, periodic reconciliation and real provider sandbox acceptance |
+| US10 | Advertised holds, learner/subject checks, scope/price snapshot, signed capture, one revision lesson, recap, private meeting and held teacher payable | Approved prices/tax/payout/refund terms and provider settlement; live meeting OAuth qualification |
+| US11 | Owner cases, regional triage/replies, guardian closure/rematch, past-evidence preservation and cancellation refund intent | Approved replacement/cancellation policies and finance fulfilment |
+| US12 | Private notes, named active-teacher sharing, exact-version acknowledgement, revocation and replacement removal | Complete frontend notice/sharing forms and privacy acceptance |
+| US13 | Scoped owner correction/deletion, processing pause, reviewed application scrubbing, retained-evidence ledger and backup replay API | Approved legal retention schedule, external backup lifecycle and restore drill |
+| US14 | Region-scoped manual/assisted funnel and immutable mature continuation observations; captured funds separate from obligations | Provider-reconciled settlement and real cohort acceptance |
 | US15–16 | Live assisted purchase and AI remain disabled | Later scope per PRD |
-| US17 | Separate dashboards, attendance correction history, disputes, verified totals | Parent/student confirmations, complete lesson identities, date filters, feedback and revised metrics |
-| US18 | Synthetic prepaid entitlement, consultation request/acceptance, atomic allowance, failed-connection release | Approved masked-audio provider, subscription billing, cancellation/renewals, timeouts, teacher compensation |
-| US19 | Separate routes, guardian-bound hashed single-use invitations and student principal | Draft resume, device revocation UI, reviewed activation/privacy notices, private teacher uploads |
-| US20 | Development console, explicit review/flag reason, audit history and kill switches | Live MFA, region-scoped delegation, dual approval, finance/refund/retry controls, full configuration rollback |
+| US17 | Private role/date-filtered lesson records, guardian/student confirmation, disputes, feedback and recorded attendance metrics | Complete dashboards, boundary/metric UI and staging qualification |
+| US18 | Prepaid entitlement overview/cancellation, protected consultation reservation/cancellation/timeout accounting | Calling deferred by owner; sale/renewal periods, masked provider evidence and approved compensation remain open |
+| US19 | Saved onboarding, guardian-bound invitation/device grant, revocation, private teacher evidence and separate student principal | Full responsive onboarding/device UI and reviewed notices |
+| US20 | Scoped review/support/report controls, media retry recovery, audit and provider kill switches | Production MFA/recent-auth, dual approvals, finance/refund controls and configuration history/rollback |
 
 ## Phase 2 backend core delivery
 
@@ -156,78 +156,54 @@ Reviewed implementation: `2e241a95022c2fd1b82b117384809dedcb7d9a1f`. Hosted [run
 
 ## Owner-directed backend completion before frontend
 
-Owner discovery direction: the frontend will have **Search** and **Let us search for you** tabs. Direct discovery uses the public teacher catalog with board, grade, subject, mode, language, locality and price filters. Guardian requests snapshot MANUAL plus a chosen teacher or ASSISTED with no preselected teacher; matching respects this boundary and still applies all eligibility checks. Both flows retain teacher agreement, demo and guardian booking permissions. Students browse public profiles; guardians submit learner criteria. Assisted discovery uses rules-v2 and operator review/adjustments; future ranking can replace the existing ranker without changing these request identities.
+The owner requested backend completion before the remaining frontend, with a tested commit and push after each feature. This overrides the original implementation phase order; it does not accept the live MVP or waive release/provider gates. Active branch: `feat/backend-completion`.
 
-The owner changed delivery order on 12 October 2026: complete missing backend workflows before the remaining frontend. This overrides the earlier phase-order working agreement for implementation sequence; it does not waive provider/security/release gates or mark Phases 4–6 accepted. Continue feature-sized tested commits and pushes on `feat/backend-completion`.
+Provider direction: Razorpay payments, email OTP (provisional Resend), Google Meet with a 40-minute limit, and masked calls disabled. Credentials remain in environment secrets.
 
-| Sprint | Scope | Status |
-| --- | --- | --- |
-| B1 / US01, US19 | Persist onboarding drafts/status, prevent premature child capture, parent-managed returning student sessions and device revocation | Implemented in development; adult verification/provider qualification remains |
-| B2 / US08, US17 | Accepted recurring schedule/version, rolling lesson reservations, learning-record queries, confirmation and dispute resolution | Implemented in development |
-| B3 / US09, US10, US18 | Checkout/webhook/reconciliation, revision lesson lifecycle, Pro periods/cancellation/timeouts and teacher payable records | Revision capture/fulfilment, held payables, meeting delivery and prepaid lifecycle implemented; refund/payout settlement and Pro purchase/renewal await qualification/approved terms |
-| B4 / US11–14, US20 | Support queue/status, replacement/rematch, sharing acknowledgement, privacy requests/retention boundary and operational reports | Support/rematch, acknowledgement, privacy application replay and aggregate reports implemented; independent legal/recovery, privileged access and finance acceptance remain |
+### Discovery: Search and Let us search for you
 
-### B3 / US18 and B4 / US12 — acknowledgement and entitlement cleanup
+The future frontend has two tabs. Search uses public teacher filters for board, grade, subject, language, mode, locality and budget. A guardian's MANUAL request snapshots the chosen teacher; an ASSISTED request considers the eligible pool. Both retain the eligibility, teacher response, reviewed presentation, demo and agreement workflow. Students browse profiles; guardians submit learner criteria and book. Assisted discovery uses rules-v2 with operator publication and adjustments. The existing ranker boundary can accept a future algorithm. Implemented and pushed in `3d91bdb`.
+
+### B1 / US01, US19 — identity, onboarding and returning student devices
+
+Persisted owner-only drafts/status with versioning, atomic completion and no duplicate resources. Adult verification/consent precedes child fields; teacher submission cannot self-approve. Hashed guardian invitations and returning-device grants create a separate student principal; family/device revocation and consent withdrawal block access and refresh. Email OTP normalizes addresses, limits expiry/attempts/replay and uses an explicit Resend transport boundary. Live adult verification, privileged MFA and verified email-domain/provider acceptance remain open.
+
+### B2 / US08, US17 — recurring commitments and learning records
+
+Both parties accept a timetable version before rolling 60-day reservations and lessons are materialized. Collision rollback preserves old commitments; successful reschedule cancels future unstarted lessons. The worker extends timetables and opens a support review on failure. Role-scoped/date-filtered lesson history, immutable family confirmation/feedback, attendance correction and regional dispute review are implemented. Recorded activity metrics exclude disputed/absent lessons.
+
+### B3 / US09, US10 — checkout, private meetings and revision fulfilment
+
+Exact invoice/revision checkout and raw signed Razorpay capture are persisted, replay-safe and bounded by ownership/exact money. Successful revision capture creates one learner-linked lesson and one snapshotted payable. Lost allocation creates a pending refund without displacing another booking. Capture now also checks current guardian verification, consent and privacy restrictions. Delivered revision requires an expert recap; confirmed absence cannot make a payable eligible. Accepted payable terms are immutable in PostgreSQL; financial corrections require separate records.
+
+Private meeting records, participant authorization/time-gated links, restricted Google Meet creation, worker retries and support escalation are implemented. Sandbox links are non-routable. Live OAuth/Workspace policy and provider evidence remain open. The current zero-platform-fee revision policy is explicitly development-only; approved pricing/tax, automated refund/payout settlement, periodic financial reconciliation and accounting acceptance are still required.
+
+### B3 / US18 — prepaid membership lifecycle
+
+Guardian membership overview distinguishes a prepaid pass from automatic renewal. Cancellation preserves purchased access until period end; expiry, call cancellation, failed connection and worker timeout release reserved allowance once. Outcome/cancellation use shared locks. Masked calling and Pro selling/renewal remain disabled or pending the owner's deferred calling scope, approved commercial terms and provider usage/compensation evidence.
+
+### B4 / US11, US12, US20 — support, replacement, sharing and recovery
+
+Cases have owner queues/details, private staff updates, public replies, current-version regional assignment/status changes and append-only update evidence. Safety support is free. Guardian closure/rematch cancels future scheduled commitments, revokes old note access and preserves completed/financial evidence. Rematch creates a linked assisted request with fresh criteria and excludes the old teacher; a replacement still requires the ordinary reviewed agreement workflow. Support/rematching was pushed in `5033ffd`.
+
+Named active teachers can acknowledge a shared note version. Sharing/correction invalidates acknowledgement; revocation blocks new access. Teacher retry responses omit note text. Prepaid cleanup and acknowledgement were pushed in `dd066a1`.
+
+The administrator recovery queue omits payloads. Exhausted scan/deletion work can be retried only against the current eligible resource state, with confirmation, retry key and audit; finance jobs require their dedicated workflow. Pending refunds are excluded from synthetic worker selection, and privacy file removal receives priority so money jobs cannot starve deletion.
+
+### B4 / US13 — correction, application deletion and backup replay
+
+Guardians/teachers submit privacy requests for their owned account, learner alias or private note. Students cannot authorize deletion. Account/learner requests pause processing and student access; note deletion immediately revokes sharing. Administrator fulfilment records a policy and approved retention exception, scrubs personal profile/learner/note/draft content, revokes sessions and retains the stated financial, learning, safety and audit evidence. Teacher evidence download is denied immediately and physical removal is queued/retryable.
+
+The immutable deletion ledger supports restricted/audited pagination and idempotent deletion replay after restore. This is application-level replay; legal retention schedules, external backups and a real restore drill remain open. Pushed in `fa83666`.
 
 ### B4 / US14 — operational and finance reporting
 
-Added aggregate date-bound reports with explicit UTC bounds/IST display and a versioned metric definition. The service funnel separates MANUAL and ASSISTED requests, counts distinct requests at publication/show/teacher acceptance/demo/start, and returns conversion numerators and denominators. Operators see their own region; finance reports are restricted to finance/admin and contain no learner/guardian identities.
+Date-bound/versioned reports separate direct and assisted requests, count distinct requests at publication/show/teacher acceptance/demo/start, and display conversion numerators/denominators. Regional operators see their own region. Start/closure dates are recorded when events happen; legacy start dates are not invented. Worker continuation observations mature after 30 days, remain immutable and report missed observations as unknown. Unknown and immature records do not enter the continuation-rate denominator.
 
-Start and closure timestamps are now recorded when the underlying events happen. Worker continuation observations are immutable: records mature after 30 days, timely observations or documented early closure determine outcome, and missed observations stay unknown. Reports exclude unknown/immature records from the rate and show missing historical start evidence instead of inventing dates. Finance separately reports captured funds, pending refunds, current outstanding invoices and teacher payable statuses; provider settlement is explicitly unverified. All 55 API and eight contract checks pass, including regional denial, empty cohorts, maturity, missed observations, immutable outcome and real-response validation. Refund intents remain pending for the finance integration and are excluded from synthetic worker selection so they cannot starve media/privacy jobs.
+Finance/admin reporting separates captured payments, pending refunds, all-time outstanding invoices and payable statuses, with provider settlement explicitly unverified and no learner/family identity. Pushed in `6037b8d`.
 
-Named active teachers can acknowledge the exact version of a deliberately shared note. Acknowledgement is audited and retry-safe; sharing edits/corrections invalidate it, and revocation removes further access. The replay response contains acknowledgement metadata without retaining private note text for the teacher.
+### Remaining backend acceptance
 
-Added a guardian-owned prepaid membership overview and cancellation at period end, plus guardian/assigned-teacher consultation cancellation. Paid-period access survives cancellation until expiry; no automatic renewal is claimed. Cancelled/failed/timed-out calls release reserved allowance once. Worker timeout handles expired requests, accepted calls without verified connection and expired membership commitments. Outcome and cancellation share teacher/guardian locks to avoid charging twice or decrementing allowance twice. Calling remains disabled. Selling or renewing Pro, live provider usage evidence, distinct renewal periods and approved pricing/compensation remain pending the owner's deferred calling scope. All 54 API and eight contract cases pass, including acknowledgement/revocation, retry, cancellation, one-time timeout release and expiry.
+Refund/payout settlement, partial-payment/refund adjustment records and periodic financial reconciliation remain implementation/qualification work. Approved tax/fee/refund policies are required before live money workflows. Production adult-verification, privileged MFA/recent-auth, dual approval for sensitive actions, configuration version history/rollback, actual notification delivery and provider qualification remain open. Pro sale/renewal/calling is deferred while masked calls are disabled. Frontend completion follows the owner's backend review; independent load/security/recovery and VPS rollout remain later gates.
 
-### B4 / US11, US20 — support operations and replacement
-
-### B4 / US13 — privacy correction, deletion and restore replay
-
-Added guardian/teacher owner-scoped privacy requests for owned account, learner alias or private note content; students cannot authorize deletion. Account/learner deletion immediately withdraws guardian consent, revokes student access and stops matching/new processing while review is pending; note deletion immediately revokes sharing. Administrators fulfil corrections or apply deletion under an explicitly recorded policy and approved retention exception. Deletion scrubs personal profile/learner/note/draft content, revokes access and retains financial, learning, safety and immutable audit evidence as the stated exception. Teacher evidence removal is queued with immediate download denial and retryable physical-file removal.
-
-An immutable deletion ledger supports restricted, audited cursor export and idempotent deletion replay after a restored database. It is an application-level replay facility; external backup inventories, current backup retention, reviewed legal schedules and a real restore drill remain release work. All 52 API and eight contract checks pass, including foreign-resource rejection, admin-only review, missing retention rejection, processing pause, content scrubbing, immutable ledger and replay without duplicate audit.
-
-Added owner-only case queues/details, private staff notes, public replies, current-version assignment/status changes, regional operator access and append-only case history. Case resource links are checked against the reporting participant in both the API and PostgreSQL. Safety support remains available without Parent Pro. Resolution records a reason; closure retains the case and its evidence.
-
-Guardian placement closure cancels future scheduled lessons and consultations, supersedes the accepted timetable and revokes the old teacher's shared notes. Completed lessons, invoices and payment evidence are preserved. Rematch atomically closes the former assignment, creates a linked assisted request with fresh confirmed criteria, excludes the old teacher and opens a replacement case. It retains the standard eligibility, reviewed shortlist, demo and agreement workflow; no replacement is silently assigned. All 51 isolated API scenarios and eight contract scenarios pass, including stale/retry/cross-family/region and private staff-note denial.
-| Provider qualification | Live OTP/adult verification/MFA, payment/refund, private meetings, masked audio, notifications, current scanner signatures/private storage | Provider selection/credentials and external review pending; never label simulated delivery complete |
-
-### B3 / US10 — revision fulfilment, recap and teacher payable
-
-Successful sandbox or signed Razorpay capture now creates one learner-linked revision lesson and one separately tracked teacher payable. The reservation snapshots subject, language, price, payable and the explicit development policy version; current unapproved commercial terms use a zero-platform-fee pass-through policy. Teacher eligibility is rechecked against the learner's grade/board and selected subject/language before the hold is created.
-
-Delivered revision attendance requires an expert recap. A guardian confirmation makes the payable eligible, a learner confirmation records service evidence without authorizing finance, a dispute holds the payable, and operator resolution records eligibility or manual review. Eligible cancellation cancels the scheduled lesson and moves its payable to refund-pending. Teachers can list only their own payable projection; finance/admin can operate the bounded queue. PostgreSQL binds the payment, revision reservation, lesson and teacher and rejects payables above captured funds. No provider payout is represented as sent; live fee/tax terms, payout settlement and accounting acceptance remain open.
-
-### B2 / US08 — mutually accepted recurring tuition calendar
-
-Added versioned weekly Asia/Kolkata schedules owned by a placement. A guardian or assigned teacher proposes 20–120 minute windows; online windows are capped at the owner's selected 40-minute meeting limit. Both parties must accept the same version before the backend materializes confirmed reservations and lessons through the rolling 60-day horizon. Tuition cannot enter the started state until terms and a recurring schedule are accepted.
-
-Materialization uses the shared expert calendar, declared recurring availability, leave exceptions, current screening/account/consent and PostgreSQL overlap protection. Retry-safe unique keys prevent duplicate lessons. A conflicting replacement rolls back and preserves the old accepted timetable; a successful replacement cancels only future unstarted commitments. The worker extends accepted schedules and opens one support case with retry time when extension fails, preserving existing lessons. Real-DB tests cover roles, stale acceptance, idempotency, conflict rollback, replacement, revision collision, owner constraints, extension and failure escalation. All 44 API, 11 domain and eight contract tests pass.
-
-### B2 / US17 — learning records, confirmation and feedback
-
-Added bounded date-range lesson history for guardians, students and teachers with family/assignment filtering, stable cursors, learner alias/class/board, assigned public teacher identity and confirmation state. Private finance, guardian identity and notes are excluded from the learning projection. Teacher attendance remains versioned and retry-safe.
-
-Guardians and linked students can append an immutable attendance confirmation or dispute against the current completed lesson version. A dispute opens a support case and excludes the record from verified totals. Same-region operators or administrators resolve an open dispute with an audited correction; stale resolution fails. Guardians can record one private, retry-safe rating/comment only after confirming non-disputed attendance. Database triggers enforce family ownership and append-only confirmation/feedback evidence. Tests cover wrong family/role, stale state, replay, feedback prerequisites, regional resolution, projection privacy and direct SQL ownership/mutation rejection. All 45 real-DB API, eight contract and application type checks pass.
-
-### B3 / US09–10 — Razorpay checkout and signed capture
-
-Added owner-bound exact-INR checkout orders for teacher placement invoices and guardian revision reservations. Sandbox order IDs are explicitly synthetic. The live Razorpay transport has fixed-origin HTTPS calls, server-only credentials, timeout and strict response checks. The API preserves raw webhook bytes, requires HMAC signature and provider event ID, deduplicates replay, serializes payment by payer, and rechecks order, amount and currency. Invoice capture marks the unique invoice paid; revision capture rechecks screening/account/calendar and either confirms the reservation or records paid-unallocated plus a pending full refund instruction without displacing another booking.
-
-Amount mismatch and reconciliation mismatch open payment support cases and never confirm payment. Finance/admin reconciliation is versioned and retry-safe; sandbox reports local-only state rather than pretending provider settlement. PostgreSQL constrains checkout ownership/exact amount and unique payment subjects. Tests cover wrong payer, stale state, invalid signature, replay under same/different events, exact capture, amount mismatch, direct SQL ownership and revision final eligibility. Actual Razorpay credentials, provider sandbox run, automated refund API and finance approval remain open; checkout stays feature-gated.
-
-Acceptance uses real persisted state, schema/ownership constraints, contract generation and unauthorized/stale/retry/dependency-failure checks. Endpoint existence alone is not full workflow acceptance. Independent student signup is intentionally excluded by PRD Section 20; returning access is guardian-approved and needs no child phone.
-
-### B1 / US19 — persisted onboarding and guardian-managed student devices
-
-Added owner-only parent/teacher/student progress and strict, versioned, retry-safe draft saves. Parent child fields require current adult verification and consent; linked child references require ownership. Atomic completion reuses authoritative request/application creation, clears the submitted draft and stores a DB-constrained owner resource link. Retries cannot duplicate children, requests or teacher applications; teacher completion remains SUBMITTED pending screening. Existing profile revisions remain the only way to revise a submitted application.
-
-A guardian can authorize a returning student device without a child phone, list active student session families without credentials, revoke one family or all access, and explicitly authorize access again. Revocation blocks both access and refresh; consent withdrawal still blocks new grants. Authorizing a student device switches that browser to the separate student principal. Credentials remain hashed in the DB; session issuance is versioned rather than saving plaintext credentials in idempotency history. Tests cover owner/role isolation, stale/replayed completion, prohibited child capture, self-approval fields, device refresh after revocation and no duplicate resource creation. All 43 real-DB API tests, contract/type checks and source scan pass.
-
-Provider direction supplied by owner: Razorpay payments; email OTP instead of SMS; Google Meet with a 40-minute booking limit; masked calls disabled for now with an integration boundary retained. This explicitly overrides the PRD's mandatory live masked-call delivery for current implementation scope; no audio delivery acceptance is claimed. Email sender choice is being confirmed; credentials belong in environment secrets.
-
-### B1 / US01 — email OTP and Resend transport boundary
-
-Replaced the unreleased phone-OTP contract with normalized email request/verify inputs; no SMS delivery is used. Existing synthetic accounts are preserved; new adults have nullable phone and unique normalized email. Existing phone challenges are expired by additive migration. Codes use unbiased cryptographic generation, hash storage, expiry, attempt limits and single-use verification. Email possession does not establish adult/guardian verification or grant privileged roles.
-
-Sandbox delivery stays explicitly labelled. The provisional Resend transport uses server-only configuration, a fixed HTTPS origin, timeout and delivery idempotency key; SENT responses omit the code. Missing configuration, transport failure or malformed success leaves no valid matching challenge and returns a generic 503 without provider details. The sender choice can be replaced by SMTP if requested; no real email is sent or claimed qualified without credentials/verified domain. Updated contract, generated client, mocks and tests are the explicit development v1 migration. All 43 real-DB API tests, ten unit tests, eight contract and four mock tests, type checks, lint and source scan pass; a controlled transport test exercises success/failure without external delivery.
+Development test success does not close these remaining items. No merge or deployment is authorized by the feature-push agreement.
