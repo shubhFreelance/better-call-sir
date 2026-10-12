@@ -17,6 +17,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from "../components/ui/tabs";
+import { EmailLogin } from "./email-login";
 import { DemoChoice, DemoJourney } from "./demo-journey";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -990,9 +991,22 @@ function Login() {
   const query = useQuery({
     queryKey: ["dev-accounts"],
     queryFn: () => api<Account[]>("/dev/accounts"),
+    retry: false,
   });
   const [busy, setBusy] = useState(""),
     [error, setError] = useState("");
+  function signedIn(session: Session) {
+    client.clear();
+    setSession(session);
+    const next = searchParams.get("next");
+    router.push(
+      next && /^\/onboarding\/(parent|teacher|student)(?:\?|$)/.test(next)
+        ? next
+        : session.account.role === "GUARDIAN" && !session.account.verified
+          ? "/onboarding/parent"
+          : "/dashboard",
+    );
+  }
   async function login(id: string) {
     setBusy(id);
     setError("");
@@ -1001,14 +1015,7 @@ function Login() {
         method: "POST",
         body: { accountId: id },
       });
-      client.clear();
-      setSession(session);
-      const next = searchParams.get("next");
-      router.push(
-        next && /^\/onboarding\/(parent|teacher|student)(?:\?|$)/.test(next)
-          ? next
-          : "/dashboard",
-      );
+      signedIn(session);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -1016,55 +1023,54 @@ function Login() {
     }
   }
   return (
-    <main className="container narrow section">
-      <PageTitle
-        eyebrow="COME ON IN"
-        title="See learning from every side."
-        subtitle="Choose a synthetic account to explore the working development journeys."
-      />
-      <Notice>
-        No real family data. These shortcuts are disabled in live mode. New
-        parent authentication requires a reviewed adult-verification provider
-        before child intake.
-      </Notice>
-      {error && <Notice error>{error}</Notice>}
-      <State loading={query.isPending} error={query.error} />
-      <div className="account-list">
-        {query.data?.map((a) => (
-          <button
-            className="account-choice"
-            key={a.id}
-            onClick={() => login(a.id)}
-            disabled={!!busy}
-          >
-            <span className="account-icon">
-              {a.role === "STUDENT" ? (
-                <GraduationCap />
-              ) : a.role === "TEACHER" ? (
-                <BookOpen />
-              ) : a.role === "ADMIN" ? (
-                <Settings />
-              ) : (
-                <Users />
-              )}
-            </span>
-            <span>
-              <strong>{a.name}</strong>
-              <small>
-                {pretty(a.role)}
-                {a.role === "GUARDIAN" && !a.verified
-                  ? " · verification pending"
-                  : ""}
-              </small>
-            </span>
-            {busy === a.id ? (
-              <LoaderCircle className="spin" />
-            ) : (
-              <ArrowRight size={20} />
-            )}
-          </button>
-        ))}
-      </div>
+    <main className="container auth-section">
+      <EmailLogin onSignedIn={signedIn} />
+      {!!query.data?.length && (
+        <details className="auth-demo-accounts">
+          <summary>Development accounts</summary>
+          <p>
+            Explore the preview with synthetic accounts. These shortcuts are
+            unavailable in live mode.
+          </p>
+          {error && <Notice error>{error}</Notice>}
+          <div className="account-list">
+            {query.data?.map((a) => (
+              <button
+                className="account-choice"
+                key={a.id}
+                onClick={() => login(a.id)}
+                disabled={!!busy}
+              >
+                <span className="account-icon">
+                  {a.role === "STUDENT" ? (
+                    <GraduationCap />
+                  ) : a.role === "TEACHER" ? (
+                    <BookOpen />
+                  ) : a.role === "ADMIN" ? (
+                    <Settings />
+                  ) : (
+                    <Users />
+                  )}
+                </span>
+                <span>
+                  <strong>{a.name}</strong>
+                  <small>
+                    {pretty(a.role)}
+                    {a.role === "GUARDIAN" && !a.verified
+                      ? " · verification pending"
+                      : ""}
+                  </small>
+                </span>
+                {busy === a.id ? (
+                  <LoaderCircle className="spin" />
+                ) : (
+                  <ArrowRight size={20} />
+                )}
+              </button>
+            ))}
+          </div>
+        </details>
+      )}
     </main>
   );
 }
@@ -1434,7 +1440,7 @@ function LoginPrompt() {
         subtitle="Private learning journeys are available only to the right account."
       />
       <Link className="button" href={`/login?next=${encodeURIComponent(next)}`}>
-        Choose a demo account <ArrowRight size={18} />
+        Sign in with email <ArrowRight size={18} />
       </Link>
     </main>
   );

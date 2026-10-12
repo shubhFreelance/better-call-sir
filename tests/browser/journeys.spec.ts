@@ -3,6 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { ids } from "../../packages/test-fixtures/src";
 async function login(page: import("@playwright/test").Page, name: string) {
   await page.goto("/login");
+  await page.getByText("Development accounts", { exact: true }).click();
   await page.getByRole("button", { name: new RegExp(name) }).click();
   await expect(
     page.getByRole("heading", {
@@ -85,7 +86,8 @@ test("discovery tabs support keyboard navigation and preserve manual teacher cho
   await expect(page).toHaveURL(/\/onboarding\/parent\?teacher=/);
   const teacherId = new URL(page.url()).searchParams.get("teacher");
   expect(teacherId).toBeTruthy();
-  await page.getByRole("link", { name: "Choose a demo account" }).click();
+  await page.getByRole("link", { name: "Sign in with email" }).click();
+  await page.getByText("Development accounts", { exact: true }).click();
   await page.getByRole("button", { name: /Kavita/ }).click();
   await expect(
     page.getByText("You chose a teacher", { exact: true }),
