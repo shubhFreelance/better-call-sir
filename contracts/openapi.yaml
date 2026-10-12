@@ -19070,6 +19070,18 @@
               },
               "preferences": {
                 "$ref": "#/components/schemas/SchedulePreferences"
+              },
+              "discoveryMethod": {
+                "type": "string",
+                "enum": [
+                  "MANUAL",
+                  "ASSISTED"
+                ],
+                "default": "ASSISTED"
+              },
+              "preferredTeacherId": {
+                "type": "string",
+                "format": "uuid"
               }
             },
             "required": [],

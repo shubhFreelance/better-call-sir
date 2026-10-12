@@ -498,10 +498,10 @@ test('onboarding drafts resume safely and atomically complete once without dupli
  const safe=await unverified.call('/onboarding/parent/drafts',{expectedVersion:0,draft:{subject:'Maths'}});assert.equal(safe.status,201);
  assert.equal((await parent.call('/onboarding/parent/drafts',{expectedVersion:0,draft:{role:'ADMIN'}})).status,400);
  const children=await db.child.count({where:{guardianId:ids.guardian}}),requests=await db.tuitionRequest.count({where:{guardianId:ids.guardian}});
- const draft=intake({childId:ids.child}),key=randomUUID();
+ const draft=intake({childId:ids.child,discoveryMethod:'ASSISTED'}),key=randomUUID();
  const saved=await parent.call('/onboarding/parent/drafts',{expectedVersion:0,draft},{key});assert.equal(saved.status,201,JSON.stringify(saved.data));
  assert.equal((await parent.call('/onboarding/parent/drafts',{expectedVersion:0,draft},{key})).data.version,1);
- assert.equal((await parent.call('/onboarding/parent')).data.draft.childId,ids.child);
+ const resumed=await parent.call('/onboarding/parent');assert.equal(resumed.data.draft.childId,ids.child);assert.equal(resumed.data.draft.discoveryMethod,'ASSISTED');const draftContract=operationValidator('/onboarding/{kind}','get','200');assert(draftContract(resumed.data),JSON.stringify(draftContract.errors));
  assert.deepEqual((await other.call('/onboarding/parent')).data.draft,{});
  assert.equal((await parent.call('/onboarding/parent/drafts',{expectedVersion:0,draft})).status,409);
  const completeKey=randomUUID(),completed=await parent.call('/onboarding/parent/completions',{expectedVersion:1},{key:completeKey});assert.equal(completed.status,201);assert.equal(completed.data.state,'READY');

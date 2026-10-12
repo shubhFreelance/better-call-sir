@@ -207,3 +207,14 @@ Finance/admin reporting separates captured payments, pending refunds, all-time o
 Refund/payout settlement, partial-payment/refund adjustment records and periodic financial reconciliation remain implementation/qualification work. Approved tax/fee/refund policies are required before live money workflows. Production adult-verification, privileged MFA/recent-auth, dual approval for sensitive actions, configuration version history/rollback, actual notification delivery and provider qualification remain open. Pro sale/renewal/calling is deferred while masked calls are disabled. Frontend completion follows the owner's backend review; independent load/security/recovery and VPS rollout remain later gates.
 
 Development test success does not close these remaining items. No merge or deployment is authorized by the feature-push agreement.
+
+
+## Backend/frontend branch separation
+
+At the owner's request, published frontend increments were reverted on `feat/backend-completion` without rewriting history. They were reapplied on `feat/frontend-implementation`, which owns further UI work. The backend branch retains the backend implementation and original web foundation.
+
+### US02 / US19 — saved discovery draft contract correction
+
+Frontend contract checks found that saved parent drafts accepted discoveryMethod/preferredTeacherId in the API but omitted them from OpenAPI's partial onboarding schema. Both fields now match Intake and the generated client. The real-database onboarding regression validates the saved/resumed discovery draft against its response contract. Runtime behavior and permissions are unchanged.
+
+Validation: all 57 real-database API and eight contract tests pass, including the saved-draft response check. The fix is isolated on the backend branch; frontend integration consumes its generated schema.
