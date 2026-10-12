@@ -49,6 +49,7 @@ class RecurringController{
     const old=await db.recurringSchedule.findMany({where:{placementId:p.id,status:'ACCEPTED'},select:{id:true}});
     const lessons=await db.lesson.findMany({where:{recurringScheduleId:{in:old.map(s=>s.id)},status:'SCHEDULED',startsAt:{gte:new Date(Date.now()+3600000)}},select:{id:true,reservationId:true}});
     await db.reservation.updateMany({where:{id:{in:lessons.flatMap(l=>l.reservationId?[l.reservationId]:[])},status:'CONFIRMED'},data:{status:'CANCELLED',version:{increment:1}}});
+    await db.meeting.updateMany({where:{reservationId:{in:lessons.flatMap(l=>l.reservationId?[l.reservationId]:[])}},data:{status:'CANCELLED',joinUrl:null,version:{increment:1}}});
     await db.lesson.updateMany({where:{id:{in:lessons.map(l=>l.id)}},data:{status:'CANCELLED',version:{increment:1}}});
     await db.recurringSchedule.updateMany({where:{id:{in:old.map(s=>s.id)}},data:{status:'SUPERSEDED',version:{increment:1}}});
     await db.recurringSchedule.update({where:{id},data:{status:'ACCEPTED'}});updated.status='ACCEPTED';

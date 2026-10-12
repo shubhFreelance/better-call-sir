@@ -46,7 +46,7 @@ jobs:
       - id: typecheck
         run: npm run typecheck > test-results/typecheck.txt 2>&1
       - id: unit
-        run: npm exec -- tsx --test --test-reporter=junit tests/policies.test.ts tests/calendar.test.ts tests/ranking.test.ts tests/email-otp.test.ts tests/recurring.test.ts tests/payments.test.ts > test-results/unit.xml
+        run: npm exec -- tsx --test --test-reporter=junit tests/policies.test.ts tests/calendar.test.ts tests/ranking.test.ts tests/email-otp.test.ts tests/recurring.test.ts tests/payments.test.ts tests/meetings.test.ts > test-results/unit.xml
       - id: integration
         run: npm exec -- tsx --test --test-concurrency=1 --test-reporter=junit tests/api.test.ts > test-results/integration.xml
       - id: contract

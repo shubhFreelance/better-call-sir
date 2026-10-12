@@ -3,6 +3,7 @@ import {z} from 'zod';
 import {AppService,PersistenceModule,HttpRequest,uuid,version,text,parse,fail,development} from '../../shared';
 import {available} from '../scheduling/calendar';
 import {createRazorpayOrder,fetchRazorpayOrder,paymentMode,verifyWebhook} from './razorpay';
+import {mode as meetingMode} from '@bcs/meetings';
 
 @Controller('api/v1')
 class PaymentsController{
@@ -49,7 +50,7 @@ class PaymentsController{
         const payment=await db.payment.create({data:{reservationId:reservation.id,checkoutOrderId:order.id,providerEventId:entity.id,amountPaise:entity.amount}});
         if(teacher.status!=='APPROVED'||!teacher.screeningComplete||!teacher.screeningValidUntil||teacher.screeningValidUntil<=new Date()||account.disabled||collision||!await available(db,teacher.id,'REVISION',reservation.startsAt,reservation.endsAt,reservation.id,0)||reservation.status==='CANCELLED'||reservation.startsAt<=new Date()){
           await db.reservation.update({where:{id:reservation.id},data:{status:'PAID_UNALLOCATED',version:{increment:1}}});await db.refund.create({data:{paymentId:payment.id,amountPaise:payment.amountPaise,reason:'SLOT_UNAVAILABLE'}});await this.service.event(db,'refund.requested',payment.id);result='PAID_UNALLOCATED';
-        }else await db.reservation.update({where:{id:reservation.id},data:{status:'CONFIRMED',expiresAt:null,version:{increment:1}}});
+        }else {await db.reservation.update({where:{id:reservation.id},data:{status:'CONFIRMED',expiresAt:null,version:{increment:1}}});const meeting=await db.meeting.upsert({where:{reservationId:reservation.id},create:{reservationId:reservation.id,providerMode:meetingMode()},update:{status:'PENDING',joinUrl:null,providerSpaceId:null,failureCode:null,retryAt:null,attempts:0,providerMode:meetingMode(),version:{increment:1}}});await this.service.event(db,'meeting.create_requested',meeting.id,meeting.version);}
       }
       await db.checkoutOrder.update({where:{id:order.id},data:{status:'PAID',version:{increment:1}}});await db.billingEvent.create({data:{id:eventId,provider:'RAZORPAY',type:event.event,checkoutOrderId:order.id,result,processedAt:new Date()}});await this.service.event(db,'payment.captured',order.id);return {status:result};
     });

@@ -93,6 +93,7 @@ test("demo contract validates time, version and outcome boundaries", () => {
   assert(proposal(body));
   for (const patch of [
     { duration: 0 },
+    { duration: 60 },
     { duration: 30.5 },
     { startsAt: "tomorrow" },
     { guardianAccepted: true },

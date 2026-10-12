@@ -12,6 +12,7 @@ import { Account, Demo } from "@prisma/client";
 import { z } from "zod";
 import { matched } from "../matching/eligibility";
 import { available } from "../scheduling/calendar";
+import { mode as meetingMode } from "@bcs/meetings";
 import {
   AppService,
   PersistenceModule,
@@ -26,7 +27,7 @@ import {
 
 const slot = z.object({
   startsAt: z.iso.datetime({ offset: true }),
-  duration: z.number().int().min(20).max(60),
+  duration: z.number().int().min(20).max(40),
 });
 function interval(data: z.infer<typeof slot>) {
   const startsAt = new Date(data.startsAt),
@@ -173,6 +174,7 @@ class DemosController {
         data: {
           teacherId: data.teacherId,
           guardianId: actor.id,
+          childId: request.childId,
           kind: "DEMO",
           source:"ADVERTISED",sourceId:pattern.id,
           ...time,
@@ -245,6 +247,8 @@ class DemosController {
         });
         if (!confirmed.count)
           fail(409, "CONFLICT", "The demo hold expired. Propose a new time.");
+        const meeting=await db.meeting.upsert({where:{reservationId:r.id},create:{reservationId:r.id,providerMode:meetingMode()},update:{status:"PENDING",joinUrl:null,providerSpaceId:null,failureCode:null,retryAt:null,providerMode:meetingMode(),version:{increment:1}}});
+        await this.service.event(db,"meeting.create_requested",meeting.id,meeting.version);
       }
       await this.service.audit(
         db,
@@ -304,6 +308,7 @@ class DemosController {
             version: { increment: 1 },
           },
         });
+        await db.meeting.updateMany({where:{reservationId:r.id},data:{status:"CANCELLED",joinUrl:null,version:{increment:1}}});
         const updated = await db.demo.update({
           where: { id },
           data: {
@@ -501,6 +506,7 @@ class DemosController {
         where: { id: r.id },
         data: { status: "CANCELLED", version: { increment: 1 } },
       });
+      await db.meeting.updateMany({where:{reservationId:r.id},data:{status:"CANCELLED",joinUrl:null,version:{increment:1}}});
       await this.service.audit(
         db,
         actor,

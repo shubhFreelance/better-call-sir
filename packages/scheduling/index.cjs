@@ -1,4 +1,5 @@
 const offset=330*60000;
+const meetings=require('@bcs/meetings');
 function intervals(schedule,now=new Date()){
  const horizon=new Date(now.getTime()+60*86400000),local=new Date(now.getTime()+offset),first=Date.UTC(local.getUTCFullYear(),local.getUTCMonth(),local.getUTCDate()),items=[];
  for(let day=first;day<=schedule.validUntil.getTime()&&day<horizon.getTime()+offset;day+=86400000){
@@ -31,8 +32,9 @@ async function materialize(db,schedule,now=new Date()){
   const local=new Date(slot.startsAt.getTime()+offset),day=Date.UTC(local.getUTCFullYear(),local.getUTCMonth(),local.getUTCDate()),minute=local.getUTCHours()*60+local.getUTCMinutes();
   const pattern=patterns.find(p=>p.weekday===local.getUTCDay()&&p.validFrom.getTime()<=day&&p.validUntil.getTime()>=day&&p.startMinute<=minute&&p.endMinute>=minute+(slot.endsAt-slot.startsAt)/60000);
   if(!pattern||blocks.some(b=>b.startsAt<slot.endsAt&&b.endsAt>slot.startsAt))throw new Error('SCHEDULE_COLLISION');
-  const reservation=await db.reservation.create({data:{teacherId:schedule.teacherId,guardianId:schedule.guardianId,kind:'RECURRING',...slot,status:'CONFIRMED',source:'ADVERTISED',sourceId:pattern.id}});
+  const reservation=await db.reservation.create({data:{teacherId:schedule.teacherId,guardianId:schedule.guardianId,childId:schedule.childId,kind:'RECURRING',...slot,status:'CONFIRMED',source:'ADVERTISED',sourceId:pattern.id}});
   await db.lesson.create({data:{placementId:schedule.placementId,recurringScheduleId:schedule.id,reservationId:reservation.id,teacherId:schedule.teacherId,childId:schedule.childId,kind:'RECURRING',subject:request.subject,...slot}});
+  if(request.mode==='ONLINE') {const meeting=await db.meeting.create({data:{reservationId:reservation.id,providerMode:meetings.mode()}});await db.outbox.create({data:{type:'meeting.create_requested',aggregateId:meeting.id,payload:{version:meeting.version}}});}
   blocks.push(slot);created++;
  }
  await db.recurringSchedule.update({where:{id:schedule.id},data:{materializedUntil:end}});

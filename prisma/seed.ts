@@ -35,7 +35,7 @@ async function seed() {
     if(i>=6) await db.reservation.upsert({where:{id},create:{id,teacherId:ids.teacher,guardianId:ids.guardian,kind:'RECURRING',startsAt:start,endsAt:new Date(start.getTime()+3600000),status:'CONFIRMED'},update:{}});
     await db.lesson.upsert({where:{id},create:{id,placementId:ids.placement,teacherId:ids.teacher,childId:ids.child,kind:'RECURRING',subject:'Maths',startsAt:start,endsAt:new Date(start.getTime()+3600000),status:i<6?'COMPLETED':'SCHEDULED',attendance:i===4?'ABSENT':i<6?'PRESENT':'PENDING'},update:{}});
   }
-  for (const [name,enabled] of [['revision',true],['proCalls',true],['checkout',false],['ai',false]] as const) await db.featureFlag.upsert({where:{name},create:{name,enabled},update:{}});
+  for (const [name,enabled] of [['revision',true],['proCalls',false],['checkout',false],['ai',false]] as const) await db.featureFlag.upsert({where:{name},create:{name,enabled},update:{enabled}});
   console.log('Synthetic accounts, four teacher profiles, one family journey and lessons seeded.');
 }
 seed().finally(()=>db.$disconnect());
