@@ -1,4 +1,10 @@
 import { test, expect } from "@playwright/test";
+import {
+  beginGuardian,
+  existingLearner,
+  reviewGuardian,
+  submitGuardian,
+} from "./guardian-journey";
 import AxeBuilder from "@axe-core/playwright";
 import { ids } from "../../packages/test-fixtures/src";
 async function login(page: import("@playwright/test").Page, name: string) {
@@ -37,20 +43,12 @@ test("parent intake persists and appears on the private dashboard", async ({
 }) => {
   await login(page, "Kavita");
   await page.goto("/onboarding/parent");
-  await page
-    .getByLabel("Link an existing learner")
-    .selectOption({ label: "Aarav · Class 8" });
-  await page
-    .getByLabel("When do lessons work for your family?")
-    .fill("Tuesday and Thursday after 5pm");
-  await page.getByRole("checkbox").check();
-  const submitted = page.waitForRequest(
-    (request) =>
-      request.method() === "POST" && request.url().endsWith("/api/v1/requests"),
-  );
-  await page.getByRole("button", { name: "Save my tuition request" }).click();
-  await expect(page.getByText(/Request .* saved/)).toBeVisible();
-  expect((await submitted).postDataJSON().discoveryMethod).toBe("ASSISTED");
+  await beginGuardian(page);
+  await existingLearner(page);
+  await reviewGuardian(page);
+  const id = await submitGuardian(page);
+  const request = await page.request.get(`/api/v1/requests/${id}`);
+  expect((await request.json()).discoveryMethod).toBe("ASSISTED");
   await page.goto("/dashboard/requests");
   await expect(
     page.getByText(/Tuesday and Thursday after 5pm/).first(),
@@ -90,22 +88,14 @@ test("discovery tabs support keyboard navigation and preserve manual teacher cho
   await page.getByText("Development accounts", { exact: true }).click();
   await page.getByRole("button", { name: /Kavita/ }).click();
   await expect(
-    page.getByText("You chose a teacher", { exact: true }),
+    page.getByText("Your chosen teacher", { exact: true }),
   ).toBeVisible();
-  await page
-    .getByLabel("Link an existing learner")
-    .selectOption({ label: "Aarav · Class 8" });
-  await page
-    .getByLabel("When do lessons work for your family?")
-    .fill("Monday and Wednesday after 5pm");
-  await page.getByRole("checkbox").check();
-  const submitted = page.waitForRequest(
-    (request) =>
-      request.method() === "POST" && request.url().endsWith("/api/v1/requests"),
-  );
-  await page.getByRole("button", { name: "Save my tuition request" }).click();
-  await expect(page.getByText(/Request .* saved/)).toBeVisible();
-  expect((await submitted).postDataJSON()).toMatchObject({
+  await beginGuardian(page);
+  await existingLearner(page);
+  await reviewGuardian(page, "Monday and Wednesday after 5pm");
+  const id = await submitGuardian(page);
+  const request = await page.request.get(`/api/v1/requests/${id}`);
+  expect(await request.json()).toMatchObject({
     discoveryMethod: "MANUAL",
     preferredTeacherId: teacherId,
     budgetPaise: 300000,
@@ -117,6 +107,8 @@ test("chosen teacher capabilities prefill the guardian request", async ({
   await login(page, "Kavita");
   await page.goto("/teachers/arjun-deshmukh");
   await page.getByRole("link", { name: "Find a recurring teacher" }).click();
+  await beginGuardian(page);
+  await existingLearner(page);
   await expect(
     page.getByRole("combobox", { name: "Subject", exact: true }),
   ).toHaveValue("Science");
@@ -194,6 +186,7 @@ test("360px layout has no overflow and labelled keyboard-accessible forms", asyn
   ).toBe(true);
   await login(page, "Kavita");
   await page.goto("/onboarding/parent");
+  await beginGuardian(page);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,

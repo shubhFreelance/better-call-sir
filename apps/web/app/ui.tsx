@@ -9,7 +9,6 @@ import {
 import Link from "next/link";
 import { Button as UiButton } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Textarea } from "../components/ui/textarea";
 import { Alert } from "../components/ui/alert";
 import {
   Tabs,
@@ -17,6 +16,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from "../components/ui/tabs";
+import { GuardianOnboarding } from "./guardian-onboarding";
 import { EmailLogin } from "./email-login";
 import { DemoChoice, DemoJourney } from "./demo-journey";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -26,9 +26,6 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import {
   ArrowUpRight,
   ArrowRight,
@@ -1074,23 +1071,6 @@ function Login() {
     </main>
   );
 }
-const intakeSchema = z.object({
-  alias: z.string().trim().min(1, "Enter a learner alias.").max(40),
-  grade: z.string(),
-  board: z.enum(["CBSE", "CGBSE"]),
-  subject: z.enum(["Maths", "Science"]),
-  mode: z.enum(["ONLINE", "HOME"]),
-  language: z.enum(["English", "Hindi"]),
-  locality: z.string().min(1),
-  budget: z
-    .string()
-    .refine(
-      (v) => Number(v) >= 500 && Number(v) <= 20000,
-      "Choose a monthly budget between ₹500 and ₹20,000.",
-    ),
-  schedule: z.string().trim().min(3, "Tell us which times work.").max(300),
-});
-type Intake = z.infer<typeof intakeSchema>;
 function Field({
   label,
   error,
@@ -1109,324 +1089,26 @@ function Field({
   );
 }
 function IntakeForm() {
-  const searchParams = useSearchParams();
-  const { session } = useAuth(),
-    router = useRouter(),
-    client = useQueryClient();
-  const [status, setStatus] = useState(""),
-    [error, setError] = useState(""),
-    [accepted, setAccepted] = useState(false);
-  const preferredTeacherId = searchParams.get("teacher") || "";
-  const discovery = preferredTeacherId ? "MANUAL" : "ASSISTED";
-  const profile = searchParams.get("profile");
-  const chosenTeacher = useQuery({
-    queryKey: ["teacher", profile],
-    queryFn: ({ signal }) =>
-      api<Teacher>(`/teachers/${encodeURIComponent(profile!)}`, { signal }),
-    enabled: !!preferredTeacherId && !!profile,
-  });
-  const [key, setKey] = useState(() => crypto.randomUUID());
-  const form = useForm<Intake>({
-    resolver: zodResolver(intakeSchema),
-    defaultValues: {
-      alias: "",
-      grade: "8",
-      board: "CBSE",
-      subject: "Maths",
-      mode: "HOME",
-      language: "English",
-      locality: "Shankar Nagar",
-      budget: "4000",
-      schedule: "",
-    },
-  });
-  useEffect(() => {
-    const teacher = chosenTeacher.data;
-    if (!teacher || teacher.id !== preferredTeacherId) return;
-    const defaults: Partial<Intake> = {
-      subject: teacher.subjects[0] as Intake["subject"],
-      mode: teacher.modes[0] as Intake["mode"],
-      language: teacher.languages[0] as Intake["language"],
-      locality: teacher.localities[0] || "Shankar Nagar",
-      budget: String(teacher.monthlyPaise / 100),
-    };
-    for (const [name, value] of Object.entries(defaults)) {
-      const field = name as keyof Intake;
-      if (value && !form.getFieldState(field).isDirty)
-        form.setValue(field, value);
-    }
-  }, [chosenTeacher.data, preferredTeacherId, form]);
-  const children = useQuery({
-    queryKey: ["children", session?.account.id],
-    queryFn: () => api<{ items: Child[] }>("/children"),
-    enabled: session?.account.role === "GUARDIAN",
-  });
-  const [childId, setChildId] = useState("");
+  const { session, setSession, loading } = useAuth();
+  if (loading)
+    return (
+      <main className="container section">
+        <p role="status">Loading your account…</p>
+      </main>
+    );
   if (!session) return <LoginPrompt />;
   if (session.account.role !== "GUARDIAN")
     return (
-      <Notice error>Use a guardian account to create a tuition request.</Notice>
+      <main className="container narrow section">
+        <Notice error>
+          Use a guardian account to create a tuition request.
+        </Notice>
+        <Link className="button secondary" href="/teachers">
+          Browse teachers
+        </Link>
+      </main>
     );
-  async function submit(data: Intake) {
-    setError("");
-    setStatus("");
-    try {
-      if (!session?.account.verified)
-        throw new Error(
-          "Adult verification is pending. Child-data intake is blocked.",
-        );
-      if (!accepted)
-        throw new Error(
-          "Please read and accept the purpose-specific guardian consent.",
-        );
-      await api("/consents", {
-        method: "POST",
-        csrf: session?.csrfToken,
-        body: {
-          purpose: "tuition-and-learning-records",
-          policyVersion: "development-v1",
-          accepted: true,
-        },
-      });
-      const result = await api<TuitionRequest>("/requests", {
-        method: "POST",
-        csrf: session?.csrfToken,
-        key,
-        body: {
-          ...data,
-          childId: childId || undefined,
-          discoveryMethod: discovery,
-          preferredTeacherId:
-            discovery === "MANUAL" ? preferredTeacherId : undefined,
-          grade: Number(data.grade),
-          budget: undefined,
-          budgetPaise: Number(data.budget) * 100,
-        },
-      });
-      setStatus(
-        `Request ${result.id.slice(0, 8)} saved. An operator will review fit and availability; no teacher is assigned yet.`,
-      );
-      setKey(crypto.randomUUID());
-      client.invalidateQueries({ queryKey: ["dashboard"] });
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  }
-  return (
-    <main className="container section">
-      <PageTitle
-        eyebrow="PARENT ONBOARDING"
-        title="Tell us about your kind of learner."
-        subtitle="A few thoughtful details. A more suitable match."
-      />
-      <div className="form-layout">
-        <aside className="form-aside">
-          <ol className="progress-list">
-            <li className="done">
-              <CheckCircle2 /> Adult authentication
-            </li>
-            <li className={session.account.verified ? "done" : "active"}>
-              <ShieldCheck /> Adult verification
-            </li>
-            <li className="active">
-              <Heart /> Guardian consent & need
-            </li>
-            <li>
-              <Users /> Operator review & shortlist
-            </li>
-          </ol>
-          <h3>Less data. More care.</h3>
-          <p>
-            We ask for a learner alias, class and tuition need. No child phone,
-            photograph, school location or date of birth.
-          </p>
-          <Notice>
-            Your teacher is never assigned automatically. You decide after the
-            shortlist and a conversation.
-          </Notice>
-        </aside>
-        <form className="panel form-panel" onSubmit={form.handleSubmit(submit)}>
-          <div className="discovery-choice">
-            <strong>
-              {discovery === "MANUAL"
-                ? "You chose a teacher"
-                : "We’ll help find a suitable teacher"}
-            </strong>
-            {chosenTeacher.data?.id === preferredTeacherId && (
-              <span>
-                {chosenTeacher.data.name} ·{" "}
-                {rupees(chosenTeacher.data.monthlyPaise)} per month
-              </span>
-            )}
-            <p>
-              {discovery === "MANUAL"
-                ? "Your request will be reviewed for this teacher’s availability and fit."
-                : "Your criteria will be reviewed against the eligible teacher pool."}
-            </p>
-            <Link className="text-button" href="/teachers">
-              Change discovery option
-            </Link>
-          </div>
-          <div className="form-section-heading">
-            <span>01</span>
-            <h3>Your learner</h3>
-          </div>
-          {!session.account.verified && (
-            <Notice error>
-              Verification pending. You can explore the catalog, but child
-              intake remains blocked.
-            </Notice>
-          )}
-          <fieldset
-            disabled={!session.account.verified || form.formState.isSubmitting}
-          >
-            {!!children.data?.items.length && (
-              <Field label="Link an existing learner">
-                <select
-                  value={childId}
-                  onChange={(e) => {
-                    setChildId(e.target.value);
-                    const c = children.data?.items.find(
-                      (c) => c.id === e.target.value,
-                    );
-                    if (c) {
-                      form.setValue("alias", c.alias);
-                      form.setValue("grade", String(c.grade));
-                      form.setValue("board", c.board as Intake["board"]);
-                    }
-                  }}
-                >
-                  <option value="">Add another learner</option>
-                  {children.data.items.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.alias} · Class {c.grade}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            )}
-            <Field
-              label="Learner alias"
-              error={form.formState.errors.alias?.message}
-            >
-              <input
-                {...form.register("alias")}
-                placeholder="A name they like to go by"
-              />
-            </Field>
-            <div className="form-row">
-              <Field label="Class">
-                <select {...form.register("grade")}>
-                  {[6, 7, 8, 9, 10].map((g) => (
-                    <option key={g} value={g}>
-                      Class {g}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Board">
-                <select {...form.register("board")}>
-                  <option>CBSE</option>
-                  <option>CGBSE</option>
-                </select>
-              </Field>
-            </div>
-            <div className="form-section-heading">
-              <span>02</span>
-              <h3>What would help?</h3>
-            </div>
-            <div className="form-row">
-              <Field label="Subject">
-                <select {...form.register("subject")}>
-                  <option>Maths</option>
-                  <option>Science</option>
-                </select>
-              </Field>
-              <Field label="Lesson format">
-                <select {...form.register("mode")}>
-                  <option value="HOME">At home</option>
-                  <option value="ONLINE">Online</option>
-                </select>
-              </Field>
-            </div>
-            <div className="form-row">
-              <Field label="Language">
-                <select {...form.register("language")}>
-                  <option>English</option>
-                  <option>Hindi</option>
-                </select>
-              </Field>
-              <Field label="Locality">
-                <select {...form.register("locality")}>
-                  {[
-                    "Shankar Nagar",
-                    "Avanti Vihar",
-                    "Telibandha",
-                    "Civil Lines",
-                    "Mowa",
-                  ].map((l) => (
-                    <option key={l}>{l}</option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-            <Field
-              label="Monthly tuition budget (₹)"
-              error={form.formState.errors.budget?.message}
-            >
-              <input
-                {...form.register("budget")}
-                type="number"
-                min="500"
-                max="20000"
-              />
-            </Field>
-            <Field
-              label="When do lessons work for your family?"
-              error={form.formState.errors.schedule?.message}
-            >
-              <Textarea
-                {...form.register("schedule")}
-                placeholder="For example: Monday and Wednesday, after 5pm"
-                rows={3}
-              />
-            </Field>
-            <label className="checkbox-field">
-              <input
-                type="checkbox"
-                checked={accepted}
-                onChange={(e) => setAccepted(e.target.checked)}
-              />
-              <span>
-                I am this child’s parent or lawful guardian. I consent to using
-                this alias, grade and need for tuition matching and learning
-                records under the development-v1 notice. I can withdraw consent
-                in my dashboard. This does not authorize AI training.
-              </span>
-            </label>
-          </fieldset>
-          {error && <Notice error>{error}</Notice>}
-          {status && (
-            <Notice>
-              {status}{" "}
-              <Link href="/dashboard" className="inline-link">
-                View dashboard →
-              </Link>
-            </Notice>
-          )}
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting || !session.account.verified}
-          >
-            {form.formState.isSubmitting
-              ? "Saving…"
-              : "Save my tuition request"}
-            <ArrowRight size={18} />
-          </Button>
-        </form>
-      </div>
-    </main>
-  );
+  return <GuardianOnboarding session={session} onSessionChange={setSession} />;
 }
 function LoginPrompt() {
   const path = usePathname();

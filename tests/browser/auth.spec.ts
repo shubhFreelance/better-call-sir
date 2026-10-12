@@ -48,15 +48,12 @@ test("real email OTP preserves teacher onboarding and keeps new adults unverifie
   expect(new URL(page.url()).searchParams.get("teacher")).toBe(
     "30000000-0000-4000-8000-000000000001",
   );
-  await expect(
-    page.getByText("You chose a teacher", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Save my tuition request" }),
-  ).toBeDisabled();
+  await expect(page.getByLabel("Learner alias", { exact: true })).toHaveCount(
+    0,
+  );
   await page.reload();
   await expect(
-    page.getByText("Verification pending.", { exact: false }),
+    page.getByRole("heading", { name: "Guardian verification is pending." }),
   ).toBeVisible();
 });
 
