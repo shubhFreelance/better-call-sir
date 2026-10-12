@@ -172,6 +172,12 @@ Added versioned weekly Asia/Kolkata schedules owned by a placement. A guardian o
 
 Materialization uses the shared expert calendar, declared recurring availability, leave exceptions, current screening/account/consent and PostgreSQL overlap protection. Retry-safe unique keys prevent duplicate lessons. A conflicting replacement rolls back and preserves the old accepted timetable; a successful replacement cancels only future unstarted commitments. The worker extends accepted schedules and opens one support case with retry time when extension fails, preserving existing lessons. Real-DB tests cover roles, stale acceptance, idempotency, conflict rollback, replacement, revision collision, owner constraints, extension and failure escalation. All 44 API, 11 domain and eight contract tests pass.
 
+### B2 / US17 — learning records, confirmation and feedback
+
+Added bounded date-range lesson history for guardians, students and teachers with family/assignment filtering, stable cursors, learner alias/class/board, assigned public teacher identity and confirmation state. Private finance, guardian identity and notes are excluded from the learning projection. Teacher attendance remains versioned and retry-safe.
+
+Guardians and linked students can append an immutable attendance confirmation or dispute against the current completed lesson version. A dispute opens a support case and excludes the record from verified totals. Same-region operators or administrators resolve an open dispute with an audited correction; stale resolution fails. Guardians can record one private, retry-safe rating/comment only after confirming non-disputed attendance. Database triggers enforce family ownership and append-only confirmation/feedback evidence. Tests cover wrong family/role, stale state, replay, feedback prerequisites, regional resolution, projection privacy and direct SQL ownership/mutation rejection. All 45 real-DB API, eight contract and application type checks pass.
+
 Acceptance uses real persisted state, schema/ownership constraints, contract generation and unauthorized/stale/retry/dependency-failure checks. Endpoint existence alone is not full workflow acceptance. Independent student signup is intentionally excluded by PRD Section 20; returning access is guardian-approved and needs no child phone.
 
 ### B1 / US19 — persisted onboarding and guardian-managed student devices

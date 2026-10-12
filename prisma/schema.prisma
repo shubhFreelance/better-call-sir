@@ -210,6 +210,26 @@ model Lesson {
   @@index([childId, startsAt])
   @@index([teacherId, startsAt])
 }
+model LessonConfirmation {
+  id String @id @default(uuid()) @db.Uuid
+  lessonId String @db.Uuid
+  actorId String @db.Uuid
+  action String
+  reason String
+  lessonVersion Int
+  createdAt DateTime @default(now())
+  @@unique([lessonId, actorId])
+  @@index([lessonId, createdAt])
+}
+model LessonFeedback {
+  id String @id @default(uuid()) @db.Uuid
+  lessonId String @db.Uuid
+  guardianId String @db.Uuid
+  rating Int
+  comment String
+  createdAt DateTime @default(now())
+  @@unique([lessonId, guardianId])
+}
 model Note {
   id String @id @default(uuid()) @db.Uuid
   guardianId String @db.Uuid

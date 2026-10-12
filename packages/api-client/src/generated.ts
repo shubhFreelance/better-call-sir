@@ -1409,6 +1409,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/lessons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List role-scoped learning records */
+        get: operations["get_lessons"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lessons/{id}/confirmations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm or dispute attendance */
+        post: operations["post_lessons__id__confirmations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/lessons/{id}/dispute-resolutions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve a scoped attendance dispute */
+        post: operations["post_admin_lessons__id__dispute_resolutions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lessons/{id}/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record private guardian feedback */
+        post: operations["post_lessons__id__feedback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2236,6 +2304,118 @@ export interface components {
             created: number;
             /** @constant */
             horizonDays: 60;
+        };
+        LessonConfirmation: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            lessonId: string;
+            /** Format: uuid */
+            actorId: string;
+            /** @enum {string} */
+            action: "CONFIRMED" | "DISPUTED";
+            reason: string;
+            lessonVersion: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        LessonConfirmationInput: {
+            expectedVersion: number;
+            /** @enum {string} */
+            action: "CONFIRMED" | "DISPUTED";
+            reason: string;
+        };
+        LessonDisputeResolution: {
+            expectedVersion: number;
+            /** @enum {string} */
+            attendance: "PRESENT" | "LATE" | "ABSENT";
+            reason: string;
+        };
+        LessonFeedbackInput: {
+            rating: number;
+            comment: string;
+        };
+        LessonFeedback: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            lessonId: string;
+            /** Format: uuid */
+            guardianId: string;
+            rating: number;
+            comment: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        Lesson: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            placementId: string | null;
+            /** Format: uuid */
+            recurringScheduleId: string | null;
+            /** Format: uuid */
+            reservationId: string | null;
+            /** Format: uuid */
+            teacherId: string;
+            /** Format: uuid */
+            childId: string;
+            kind: string;
+            subject: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            status: string;
+            /** @enum {string} */
+            attendance: "PENDING" | "PRESENT" | "LATE" | "ABSENT";
+            disputed: boolean;
+            version: number;
+        };
+        LessonRecords: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                placementId: string | null;
+                /** Format: uuid */
+                recurringScheduleId: string | null;
+                /** Format: uuid */
+                reservationId: string | null;
+                /** Format: uuid */
+                teacherId: string;
+                /** Format: uuid */
+                childId: string;
+                kind: string;
+                subject: string;
+                /** Format: date-time */
+                startsAt: string;
+                /** Format: date-time */
+                endsAt: string;
+                status: string;
+                /** @enum {string} */
+                attendance: "PENDING" | "PRESENT" | "LATE" | "ABSENT";
+                disputed: boolean;
+                version: number;
+                learner: {
+                    alias: string;
+                    grade: number;
+                    board: string;
+                };
+                teacher: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                };
+                confirmations: {
+                    /** @enum {string} */
+                    action: "CONFIRMED" | "DISPUTED";
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
+            }[];
+            /** Format: uuid */
+            nextCursor: string | null;
         };
     };
     responses: never;
@@ -9531,6 +9711,289 @@ export interface operations {
             };
             /** @description Provider unavailable or feature paused */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_lessons: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonRecords"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    post_lessons__id__confirmations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LessonConfirmationInput"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonConfirmation"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    post_admin_lessons__id__dispute_resolutions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LessonDisputeResolution"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Lesson"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    post_lessons__id__feedback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LessonFeedbackInput"];
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonFeedback"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -17,7 +17,7 @@
         "tags": [
           "health"
         ],
-        "summary": "health \u00b7 live",
+        "summary": "health · live",
         "security": [],
         "responses": {
           "200": {
@@ -109,7 +109,7 @@
         "tags": [
           "health"
         ],
-        "summary": "health \u00b7 ready",
+        "summary": "health · ready",
         "security": [],
         "responses": {
           "200": {
@@ -551,7 +551,7 @@
                         {
                           "name": "Arjun Deshmukh",
                           "slug": "arjun-deshmukh",
-                          "headline": "Turn \u201cI don\u2019t get it\u201d into \u201cI can do this.\u201d",
+                          "headline": "Turn “I don’t get it” into “I can do this.”",
                           "bio": "Focused online science lessons with visual explanations and practical questions. Revision sessions cover a clear topic, with a recap and next steps.",
                           "subjects": [
                             "Science"
@@ -789,7 +789,7 @@
         "tags": [
           "teachers"
         ],
-        "summary": "teachers \u00b7 :slug",
+        "summary": "teachers · :slug",
         "security": [],
         "responses": {
           "200": {
@@ -998,7 +998,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev \u00b7 accounts",
+        "summary": "dev · accounts",
         "security": [],
         "responses": {
           "200": {
@@ -1173,7 +1173,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev \u00b7 session",
+        "summary": "dev · session",
         "security": [],
         "responses": {
           "201": {
@@ -1756,7 +1756,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth \u00b7 session",
+        "summary": "auth · session",
         "security": [
           {
             "cookieSession": []
@@ -1929,7 +1929,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth \u00b7 refresh",
+        "summary": "auth · refresh",
         "security": [
           {
             "cookieSession": []
@@ -2123,7 +2123,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth \u00b7 logout",
+        "summary": "auth · logout",
         "security": [
           {
             "cookieSession": []
@@ -2534,7 +2534,7 @@
         "tags": [
           "consents"
         ],
-        "summary": "consents \u00b7 withdraw",
+        "summary": "consents · withdraw",
         "security": [
           {
             "cookieSession": []
@@ -3298,7 +3298,7 @@
         "tags": [
           "requests"
         ],
-        "summary": "requests \u00b7 :id",
+        "summary": "requests · :id",
         "security": [
           {
             "cookieSession": []
@@ -3838,7 +3838,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin \u00b7 teachers",
+        "summary": "admin · teachers",
         "security": [
           {
             "cookieSession": []
@@ -3934,7 +3934,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin \u00b7 teachers \u00b7 :id \u00b7 reviews",
+        "summary": "admin · teachers · :id · reviews",
         "security": [
           {
             "cookieSession": []
@@ -4082,7 +4082,7 @@
         "tags": [
           "revision"
         ],
-        "summary": "revision \u00b7 holds",
+        "summary": "revision · holds",
         "security": [
           {
             "cookieSession": []
@@ -4240,7 +4240,7 @@
         "tags": [
           "reservations"
         ],
-        "summary": "reservations \u00b7 :id \u00b7 scope",
+        "summary": "reservations · :id · scope",
         "security": [
           {
             "cookieSession": []
@@ -4375,7 +4375,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev \u00b7 reservations \u00b7 :id \u00b7 capture",
+        "summary": "dev · reservations · :id · capture",
         "security": [
           {
             "cookieSession": []
@@ -4531,7 +4531,7 @@
         "tags": [
           "reservations"
         ],
-        "summary": "reservations \u00b7 :id \u00b7 cancel",
+        "summary": "reservations · :id · cancel",
         "security": [
           {
             "cookieSession": []
@@ -4970,7 +4970,7 @@
         "tags": [
           "placements"
         ],
-        "summary": "placements \u00b7 :id \u00b7 acceptances",
+        "summary": "placements · :id · acceptances",
         "security": [
           {
             "cookieSession": []
@@ -5124,7 +5124,7 @@
         "tags": [
           "lessons"
         ],
-        "summary": "lessons \u00b7 :id \u00b7 attendance",
+        "summary": "lessons · :id · attendance",
         "security": [
           {
             "cookieSession": []
@@ -5283,7 +5283,7 @@
         "tags": [
           "lessons"
         ],
-        "summary": "lessons \u00b7 :id \u00b7 disputes",
+        "summary": "lessons · :id · disputes",
         "security": [
           {
             "cookieSession": []
@@ -5656,7 +5656,7 @@
         "tags": [
           "notes"
         ],
-        "summary": "notes \u00b7 :id \u00b7 shares",
+        "summary": "notes · :id · shares",
         "security": [
           {
             "cookieSession": []
@@ -5950,7 +5950,7 @@
         "tags": [
           "children"
         ],
-        "summary": "children \u00b7 :id \u00b7 invitations",
+        "summary": "children · :id · invitations",
         "security": [
           {
             "cookieSession": []
@@ -6066,7 +6066,7 @@
         "tags": [
           "invitations"
         ],
-        "summary": "invitations \u00b7 activate",
+        "summary": "invitations · activate",
         "security": [
           {
             "cookieSession": []
@@ -6192,7 +6192,7 @@
         "tags": [
           "pro"
         ],
-        "summary": "pro \u00b7 calls",
+        "summary": "pro · calls",
         "security": [
           {
             "cookieSession": []
@@ -6335,7 +6335,7 @@
         "tags": [
           "pro"
         ],
-        "summary": "pro \u00b7 calls \u00b7 :id \u00b7 accept",
+        "summary": "pro · calls · :id · accept",
         "security": [
           {
             "cookieSession": []
@@ -6470,7 +6470,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev \u00b7 pro \u00b7 calls \u00b7 :id \u00b7 outcome",
+        "summary": "dev · pro · calls · :id · outcome",
         "security": [
           {
             "cookieSession": []
@@ -6717,7 +6717,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin \u00b7 flags \u00b7 :name",
+        "summary": "admin · flags · :name",
         "security": [
           {
             "cookieSession": []
@@ -7850,6 +7850,16 @@
               }
             }
           },
+          "413": {
+            "description": "Upload body exceeds the transport size limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "429": {
             "description": "Rate limit",
             "content": {
@@ -7862,16 +7872,6 @@
           },
           "503": {
             "description": "Provider unavailable or feature paused",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "Upload body exceeds the transport size limit",
             "content": {
               "application/json": {
                 "schema": {
@@ -12094,6 +12094,379 @@
           }
         }
       }
+    },
+    "/lessons": {
+      "get": {
+        "operationId": "get_lessons",
+        "summary": "List role-scoped learning records",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonRecords"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/lessons/{id}/confirmations": {
+      "post": {
+        "operationId": "post_lessons__id__confirmations",
+        "summary": "Confirm or dispute attendance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonConfirmation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LessonConfirmationInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/lessons/{id}/dispute-resolutions": {
+      "post": {
+        "operationId": "post_admin_lessons__id__dispute_resolutions",
+        "summary": "Resolve a scoped attendance dispute",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lesson"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LessonDisputeResolution"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/lessons/{id}/feedback": {
+      "post": {
+        "operationId": "post_lessons__id__feedback",
+        "summary": "Record private guardian feedback",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonFeedback"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LessonFeedbackInput"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -15413,6 +15786,424 @@
         "required": [
           "created",
           "horizonDays"
+        ],
+        "additionalProperties": false
+      },
+      "LessonConfirmation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lessonId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "CONFIRMED",
+              "DISPUTED"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "lessonVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "lessonId",
+          "actorId",
+          "action",
+          "reason",
+          "lessonVersion",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "LessonConfirmationInput": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "CONFIRMED",
+              "DISPUTED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "action",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "LessonDisputeResolution": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "attendance": {
+            "type": "string",
+            "enum": [
+              "PRESENT",
+              "LATE",
+              "ABSENT"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "attendance",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "LessonFeedbackInput": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "rating",
+          "comment"
+        ],
+        "additionalProperties": false
+      },
+      "LessonFeedback": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lessonId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "guardianId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "comment": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "lessonId",
+          "guardianId",
+          "rating",
+          "comment",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "Lesson": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "placementId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "recurringScheduleId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "reservationId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "teacherId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "childId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "attendance": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PRESENT",
+              "LATE",
+              "ABSENT"
+            ]
+          },
+          "disputed": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "id",
+          "placementId",
+          "recurringScheduleId",
+          "reservationId",
+          "teacherId",
+          "childId",
+          "kind",
+          "subject",
+          "startsAt",
+          "endsAt",
+          "status",
+          "attendance",
+          "disputed",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "LessonRecords": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "placementId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid"
+                },
+                "recurringScheduleId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid"
+                },
+                "reservationId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid"
+                },
+                "teacherId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "childId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "subject": {
+                  "type": "string"
+                },
+                "startsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "endsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "attendance": {
+                  "type": "string",
+                  "enum": [
+                    "PENDING",
+                    "PRESENT",
+                    "LATE",
+                    "ABSENT"
+                  ]
+                },
+                "disputed": {
+                  "type": "boolean"
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "learner": {
+                  "type": "object",
+                  "properties": {
+                    "alias": {
+                      "type": "string"
+                    },
+                    "grade": {
+                      "type": "integer"
+                    },
+                    "board": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "alias",
+                    "grade",
+                    "board"
+                  ],
+                  "additionalProperties": false
+                },
+                "teacher": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "confirmations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "CONFIRMED",
+                          "DISPUTED"
+                        ]
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    },
+                    "required": [
+                      "action",
+                      "createdAt"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "placementId",
+                "recurringScheduleId",
+                "reservationId",
+                "teacherId",
+                "childId",
+                "kind",
+                "subject",
+                "startsAt",
+                "endsAt",
+                "status",
+                "attendance",
+                "disputed",
+                "version",
+                "learner",
+                "teacher",
+                "confirmations"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
         ],
         "additionalProperties": false
       }

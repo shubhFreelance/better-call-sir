@@ -408,6 +408,26 @@ test('mutually accepted recurring schedules materialize real shared reservations
  await db.teacher.update({where:{id:p.teacherId},data:{status:teacherBefore.status}});
  await assert.rejects(db.lesson.create({data:{recurringScheduleId:schedule.id,placementId:p.id,childId:ids.otherChild,teacherId:p.teacherId,kind:'RECURRING',subject:'Maths',startsAt:new Date(future(55)),endsAt:new Date(future(55,7))}}));
 });
+test('role-scoped learning records support family confirmation, private feedback and regional dispute resolution',async()=>{
+ const yesterday=new Date(Date.now()-86400000),pastEnd=new Date(yesterday.getTime()+3600000);
+ const lesson=await db.lesson.create({data:{placementId:ids.placement,teacherId:ids.teacher,childId:ids.child,kind:'RECURRING',subject:'Maths',startsAt:yesterday,endsAt:pastEnd}});
+ assert.equal((await other.call(`/lessons/${lesson.id}/confirmations`,{expectedVersion:1,action:'CONFIRMED',reason:'Wrong family'})).status,404);
+ assert.equal((await parent.call(`/lessons/${lesson.id}/feedback`,{rating:5,comment:'Too early'})).status,409);
+ const marked=await teacher.call(`/lessons/${lesson.id}/attendance`,{expectedVersion:1,attendance:'PRESENT',reason:'Lesson completed'});assert.equal(marked.status,201);
+ const from=new Date(Date.now()-2*86400000).toISOString(),to=new Date(Date.now()+86400000).toISOString(),query=`/lessons?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&limit=50`;
+ const family=await parent.call(query),familyLesson=family.data.items.find((x:any)=>x.id===lesson.id);assert.equal(family.status,200);assert(familyLesson);assert.equal(familyLesson.learner.alias,'Aarav');assert(!('guardianId' in familyLesson.learner));
+ assert((await student.call(query)).data.items.some((x:any)=>x.id===lesson.id));assert.equal((await other.call(query)).data.items.some((x:any)=>x.id===lesson.id),false);assert((await teacher.call(query)).data.items.some((x:any)=>x.id===lesson.id&&x.teacher.id===ids.teacher));
+ const key=randomUUID(),confirmed=await parent.call(`/lessons/${lesson.id}/confirmations`,{expectedVersion:2,action:'CONFIRMED',reason:'Attendance is correct'},{key});assert.equal(confirmed.status,201);assert.equal((await parent.call(`/lessons/${lesson.id}/confirmations`,{expectedVersion:2,action:'CONFIRMED',reason:'Attendance is correct'},{key})).data.id,confirmed.data.id);
+ const feedbackKey=randomUUID(),feedback=await parent.call(`/lessons/${lesson.id}/feedback`,{rating:5,comment:'Clear explanation'},{key:feedbackKey});assert.equal(feedback.status,201);assert.equal((await parent.call(`/lessons/${lesson.id}/feedback`,{rating:5,comment:'Clear explanation'},{key:feedbackKey})).data.id,feedback.data.id);assert.equal(await db.lessonFeedback.count({where:{lessonId:lesson.id}}),1);
+ const disputedLesson=await db.lesson.create({data:{placementId:ids.placement,teacherId:ids.teacher,childId:ids.child,kind:'RECURRING',subject:'Maths',startsAt:new Date(yesterday.getTime()-7200000),endsAt:new Date(yesterday.getTime()-3600000)}});
+ await teacher.call(`/lessons/${disputedLesson.id}/attendance`,{expectedVersion:1,attendance:'ABSENT',reason:'Marked absent'});
+ const disputed=await student.call(`/lessons/${disputedLesson.id}/confirmations`,{expectedVersion:2,action:'DISPUTED',reason:'I attended'});assert.equal(disputed.status,201);
+ assert.equal((await operator.call(`/admin/lessons/${disputedLesson.id}/dispute-resolutions`,{expectedVersion:2,attendance:'PRESENT',reason:'Stale operator view'})).status,409);
+ const resolved=await operator.call(`/admin/lessons/${disputedLesson.id}/dispute-resolutions`,{expectedVersion:3,attendance:'PRESENT',reason:'Attendance evidence reviewed'});assert.equal(resolved.status,201);assert.equal(resolved.data.disputed,false);assert.equal(resolved.data.attendance,'PRESENT');
+ const validate=operationValidator('/lessons/{id}/confirmations','post','201');assert(validate(confirmed.data),JSON.stringify(validate.errors));
+ await assert.rejects(db.lessonConfirmation.update({where:{id:confirmed.data.id},data:{reason:'Mutated'}}));
+ await assert.rejects(db.lessonFeedback.create({data:{lessonId:lesson.id,guardianId:ids.otherGuardian,rating:1,comment:'Foreign'}}));
+});
 test('onboarding drafts resume safely and atomically complete once without duplicate child/request records',async()=>{
  assert.equal((await unverified.call('/onboarding/parent')).data.state,'VERIFICATION_PENDING');
  assert.equal((await unverified.call('/onboarding/parent/drafts',{expectedVersion:0,draft:{alias:'Premature child'}})).status,403);
