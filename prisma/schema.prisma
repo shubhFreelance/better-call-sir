@@ -44,6 +44,8 @@ model Consent {
   withdrawnAt DateTime?
 }
 model Child {
+  version Int @default(1)
+  studentAccessRevokedAt DateTime?
   id String @id @default(uuid()) @db.Uuid
   guardianId String @db.Uuid
   alias String
@@ -413,4 +415,15 @@ model CandidateDecision {
   candidateVersion Int
   createdAt DateTime @default(now())
   @@index([candidateId])
+}
+
+model OnboardingProgress {
+  id String @id @default(uuid()) @db.Uuid
+  accountId String @db.Uuid
+  kind String
+  draft Json @default("{}")
+  completedResourceId String? @db.Uuid
+  version Int @default(1)
+  updatedAt DateTime @updatedAt
+  @@unique([accountId, kind])
 }

@@ -73,7 +73,8 @@ class IdentityController {
         if(!child) return {error:true} as const;
         await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${child.guardianId},0))`;
         const consent=await db.consent.findUnique({where:{guardianId:child.guardianId}});
-        if(!consent || consent.withdrawnAt) return {error:true} as const;
+        const freshChild=await db.child.findUniqueOrThrow({where:{id:child.id}});
+        if(freshChild.studentAccessRevokedAt || !consent || consent.withdrawnAt) return {error:true} as const;
       }
       // Family lock serializes every generation, replay and logout with replacement insertion.
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${original.familyId},0))`;
@@ -145,7 +146,7 @@ class IdentityController {
       const child=await db.child.findUniqueOrThrow({where:{id:invite.childId}});
       if (child.studentAccountId) fail(409,'ALREADY_LINKED','Student access is already active.');
       const account=await db.account.create({data:{phone:`student:${child.id}`,name:child.alias,role:'STUDENT'}});
-      await db.child.update({where:{id:child.id},data:{studentAccountId:account.id}});return account;
+      await db.child.update({where:{id:child.id},data:{studentAccountId:account.id,version:{increment:1}}});return account;
     });
     return this.service.session(account,res);
   }

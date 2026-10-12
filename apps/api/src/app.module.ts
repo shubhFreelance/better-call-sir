@@ -1,3 +1,5 @@
+import {StudentAccessModule} from './modules/identity/student-access.module';
+import {OnboardingModule} from './modules/onboarding/onboarding.module';
 import {SchedulingModule} from './modules/scheduling/scheduling.module';
 import {VerificationModule} from './modules/verification/verification.module';
 import {DemosModule} from './modules/demos/demos.module';
@@ -14,5 +16,5 @@ import {NotesModule} from './modules/notes/notes.module';
 import {SupportModule} from './modules/support/support.module';
 import {MembershipsModule} from './modules/memberships/memberships.module';
 import {AdministrationModule} from './modules/administration/administration.module';
-@Module({imports:[SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,TeachersModule,RevisionModule,PlacementsModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
+@Module({imports:[StudentAccessModule,OnboardingModule,SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,TeachersModule,RevisionModule,PlacementsModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
 export class AppModule {}

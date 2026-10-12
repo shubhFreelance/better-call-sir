@@ -14,22 +14,27 @@ import {matched} from '../matching/eligibility';
 import {preferenceSchema,normalizedPreferences} from './request-schedule';
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
 
+export const intakeSchema=z.object({childId:uuid.optional(),alias:text(40),grade:z.number().int().min(6).max(10),board:z.enum(['CBSE','CGBSE']),subject:z.enum(['Maths','Science']),mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000),schedule:text(300),preferences:preferenceSchema.optional()}).strict();
+export async function createIntake(db:DB,service:AppService,account:Account,req:HttpRequest,data:z.infer<typeof intakeSchema>) {
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${account.id},0))`;
+      await service.guardian(db,account.id);
+      const region=await db.region.findUnique({where:{id:account.region}});if(!region?.enabled)fail(409,'UNSUPPORTED_REGION','This city is not enabled; use the unsupported-scope waitlist.');
+      const preferences=data.preferences?normalizedPreferences(data.preferences):null;if(data.preferences&&!preferences)fail(400,'INVALID_SCHEDULE','Preferences must be nonoverlapping 20–120 minute windows between one hour and 60 days ahead.');
+      const child=data.childId?await service.child(db,account,data.childId):await db.child.create({data:{guardianId:account.id,alias:data.alias,grade:data.grade,board:data.board}});
+      if(child.grade!==data.grade||child.board!==data.board)fail(409,"CHILD_CHANGED","The linked learner grade or board differs from this request.");
+      const request=await db.tuitionRequest.create({data:{region:account.region,...(preferences?{schedulePreferences:preferences,scheduleStatus:'CONFIRMED'}:{}),guardianId:account.id,childId:child.id,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,schedule:data.schedule}});
+      await service.audit(db,account,req,'REQUEST_CREATED',request.id,'Guardian submitted supported tuition need',undefined,{region:request.region,scheduleStatus:request.scheduleStatus});await service.event(db,'request.created',request.id);return request;
+}
+
 @Controller('api/v1')
 class RequestsController {
   constructor(@Inject(AppService) private readonly service: AppService) {}
   get db() {return this.service.db;}
   @Post('requests') async createRequest(@Req() req: HttpRequest,@Body() body: unknown) {
     const account=await this.service.actor(req,['GUARDIAN']);
-    const data=parse(z.object({childId:uuid.optional(),alias:text(40),grade:z.number().int().min(6).max(10),board:z.enum(['CBSE','CGBSE']),subject:z.enum(['Maths','Science']),mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000),schedule:text(300),preferences:preferenceSchema.optional()}).strict(),body);
+    const data=parse(intakeSchema,body);
     return this.service.once(req,account,'request.create',data,async db=>{
-      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${account.id},0))`;
-      await this.service.guardian(db,account.id);
-      const region=await db.region.findUnique({where:{id:account.region}});if(!region?.enabled)fail(409,'UNSUPPORTED_REGION','This city is not enabled; use the unsupported-scope waitlist.');
-      const preferences=data.preferences?normalizedPreferences(data.preferences):null;if(data.preferences&&!preferences)fail(400,'INVALID_SCHEDULE','Preferences must be nonoverlapping 20–120 minute windows between one hour and 60 days ahead.');
-      const child=data.childId?await this.service.child(db,account,data.childId):await db.child.create({data:{guardianId:account.id,alias:data.alias,grade:data.grade,board:data.board}});
-      if(child.grade!==data.grade||child.board!==data.board)fail(409,"CHILD_CHANGED","The linked learner grade or board differs from this request.");
-      const request=await db.tuitionRequest.create({data:{region:account.region,...(preferences?{schedulePreferences:preferences,scheduleStatus:'CONFIRMED'}:{}),guardianId:account.id,childId:child.id,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,schedule:data.schedule}});
-      await this.service.audit(db,account,req,'REQUEST_CREATED',request.id,'Guardian submitted supported tuition need',undefined,{region:request.region,scheduleStatus:request.scheduleStatus});await this.service.event(db,'request.created',request.id);return request;
+      return createIntake(db,this.service,account,req,data);
     });
   }
 

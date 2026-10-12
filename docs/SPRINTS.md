@@ -12,7 +12,7 @@ Source: **BetterCallSir_MVP_PRD.docx, Version 3.0, 11 October 2026**, supplied b
 
 ## Phase sequence — PRD Section 10
 
-**Phase 2 backend core implementation and development acceptance complete. Next phase: 3 — Frontend, not started by this completion task.** The initial implementation contains later-phase slices; they do not close those phases. The demo increments belong to Phase 4, even though they were developed earlier. See `docs/PHASE_1_ACCEPTANCE.md` for the foundation review and `docs/VALIDATION.md` for source-linked checks. The owner authorized Phase 2 completion on 12 October 2026.
+**Phase 2 development acceptance remains complete. Active work: backend completion before the remaining frontend, explicitly requested by the owner on 12 October 2026.** The initial implementation contains later-phase slices; they do not close those phases. The demo increments belong to Phase 4, even though they were developed earlier. See `docs/PHASE_1_ACCEPTANCE.md` for the foundation review and `docs/VALIDATION.md` for source-linked checks. The owner authorized Phase 2 completion on 12 October 2026.
 
 | Phase | PRD deliverables | Exit evidence | Current status |
 | --- | --- | --- | --- |
@@ -153,3 +153,25 @@ Suspension now creates an open support review and audit/outbox evidence when an 
 Reviewed implementation: `2e241a95022c2fd1b82b117384809dedcb7d9a1f`. Hosted [run 38216194096](https://github.com/shubhFreelance/better-call-sir/actions/runs/38216194096) completed successfully and its commit link matches that source. Local validation passes: nine domain/calendar/ranking, 40 isolated real-DB API, eight contract, four mock, five scanner/evidence, two release-boundary and 11 browser tests (**79 total**, no failures/skips); all builds/type checks and contract lint pass, source scan has no findings and full dependency audit has zero known advisories at this run.
 
 [Phase 2 acceptance](PHASE_2_ACCEPTANCE.md) records the implementation review, real-API demonstration, permission matrix, additive constraints, workflow migration and limits. Every completed feature/API increment was separately committed and pushed. The initial discovery-filter failure was reproduced and fixed; superseded CI runs cancelled by branch concurrency are not claimed successful. Raw private CI artifacts and independent production/provider review remain uninspected. Phase 3 has not started; no merge or deployment occurred.
+
+## Owner-directed backend completion before frontend
+
+The owner changed delivery order on 12 October 2026: complete missing backend workflows before the remaining frontend. This overrides the earlier phase-order working agreement for implementation sequence; it does not waive provider/security/release gates or mark Phases 4–6 accepted. Continue feature-sized tested commits and pushes on `feat/backend-completion`.
+
+| Sprint | Scope | Status |
+| --- | --- | --- |
+| B1 / US01, US19 | Persist onboarding drafts/status, prevent premature child capture, parent-managed returning student sessions and device revocation | In progress |
+| B2 / US08, US17 | Accepted recurring schedule/version, rolling lesson reservations, learning-record queries, confirmation and dispute resolution | Pending |
+| B3 / US09, US10, US18 | Checkout/webhook/reconciliation, revision lesson lifecycle, Pro periods/cancellation/timeouts and teacher payable records | Pending; provider/commercial decisions needed |
+| B4 / US11–14, US20 | Support queue/status, replacement/rematch, sharing acknowledgement, privacy requests/retention boundary and operational reports | Pending |
+| Provider qualification | Live OTP/adult verification/MFA, payment/refund, private meetings, masked audio, notifications, current scanner signatures/private storage | Provider selection/credentials and external review pending; never label simulated delivery complete |
+
+Acceptance uses real persisted state, schema/ownership constraints, contract generation and unauthorized/stale/retry/dependency-failure checks. Endpoint existence alone is not full workflow acceptance. Independent student signup is intentionally excluded by PRD Section 20; returning access is guardian-approved and needs no child phone.
+
+### B1 / US19 — persisted onboarding and guardian-managed student devices
+
+Added owner-only parent/teacher/student progress and strict, versioned, retry-safe draft saves. Parent child fields require current adult verification and consent; linked child references require ownership. Atomic completion reuses authoritative request/application creation, clears the submitted draft and stores a DB-constrained owner resource link. Retries cannot duplicate children, requests or teacher applications; teacher completion remains SUBMITTED pending screening. Existing profile revisions remain the only way to revise a submitted application.
+
+A guardian can authorize a returning student device without a child phone, list active student session families without credentials, revoke one family or all access, and explicitly authorize access again. Revocation blocks both access and refresh; consent withdrawal still blocks new grants. Authorizing a student device switches that browser to the separate student principal. Credentials remain hashed in the DB; session issuance is versioned rather than saving plaintext credentials in idempotency history. Tests cover owner/role isolation, stale/replayed completion, prohibited child capture, self-approval fields, device refresh after revocation and no duplicate resource creation. All 43 real-DB API tests, contract/type checks and source scan pass.
+
+Provider direction supplied by owner: Razorpay payments; email OTP instead of SMS; Google Meet with a 40-minute booking limit; masked calls disabled for now with an integration boundary retained. This explicitly overrides the PRD's mandatory live masked-call delivery for current implementation scope; no audio delivery acceptance is claimed. Email sender choice is being confirmed; credentials belong in environment secrets.

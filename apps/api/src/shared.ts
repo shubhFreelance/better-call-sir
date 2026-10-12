@@ -47,7 +47,7 @@ export class AppService {
     if (account.role === 'STUDENT') {
       const child=await this.db.child.findUnique({where:{studentAccountId:account.id}});
       const consent=child?await this.db.consent.findUnique({where:{guardianId:child.guardianId}}):null;
-      if (!child || !consent || consent.withdrawnAt) fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
+      if (!child || child.studentAccessRevokedAt || !consent || consent.withdrawnAt) fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
     }
     if (roles && !roles.includes(account.role)) fail(403,'FORBIDDEN','Your role cannot perform this action.');
     return account;
@@ -84,7 +84,7 @@ export class AppService {
   async issueSession(account: Account, familyId: string, db: Pick<DB,'session'> = this.db, expiresAt = new Date(Date.now()+30*86_400_000)) {
     const access=token(),refresh=token(),csrf=token();
     await db.session.create({data:{accountId:account.id,familyId,accessHash:hash(access),refreshHash:hash(refresh),csrf,accessExpiresAt:new Date(Math.min(Date.now()+600_000,expiresAt.getTime())),expiresAt}});
-    return {access,refresh,csrf,expiresAt};
+    return {access,refresh,csrf,expiresAt,familyId};
   }
   sessionResponse(account: Account, state: {access:string;refresh:string;csrf:string;expiresAt:Date}, res: Response) {
     const cookie={httpOnly:true,secure:!development(),sameSite:'lax' as const,path:'/api/v1'};
