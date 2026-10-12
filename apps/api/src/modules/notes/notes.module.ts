@@ -23,7 +23,7 @@ class NotesController {
 
   @Post('notes/:id/shares') async share(@Req() req: HttpRequest,@Param('id') id: string,@Body() body: unknown) {
     parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({teacherId:uuid.nullable(),expectedVersion:version}).strict(),body);
-    return this.db.$transaction(async db=>{
+    return this.service.once(req,actor,'note.share',data,async db=>{
       await this.service.guardian(db,actor.id);const note=await db.note.findUnique({where:{id}});
       if (!note || note.guardianId!==actor.id) fail(404,'NOT_FOUND','Note not found.');
       if (data.teacherId) {
@@ -31,10 +31,15 @@ class NotesController {
         const teacher=await db.teacher.findUnique({where:{id:data.teacherId}});
         if (!p || teacher?.status!=='APPROVED') fail(403,'SHARING_FORBIDDEN','Sharing requires an active placement with this teacher.');
       }
-      const changed=await db.note.updateMany({where:{id,version:data.expectedVersion},data:{sharedTeacherId:data.teacherId,version:{increment:1}}});
+      const changed=await db.note.updateMany({where:{id,version:data.expectedVersion},data:{sharedTeacherId:data.teacherId,acknowledgedAt:null,version:{increment:1}}});
       if (!changed.count) fail(409,'CONFLICT','Note has changed.');
       await this.service.audit(db,actor,req,data.teacherId?'NOTE_SHARED':'NOTE_REVOKED',id,'Guardian sharing decision');return db.note.findUniqueOrThrow({where:{id}});
     });
+  }
+
+  @Post('notes/:id/acknowledgements') async acknowledge(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+    parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']),data=parse(z.object({expectedVersion:version}).strict(),body);
+    return this.service.once(req,actor,'note.acknowledge',data,async db=>{const teacher=await db.teacher.findUniqueOrThrow({where:{accountId:actor.id}}),note=await db.note.findUnique({where:{id}});if(!note||note.sharedTeacherId!==teacher.id||teacher.status!=='APPROVED')fail(404,'NOT_FOUND','Shared note not found.');await this.service.guardian(db,note.guardianId);if(!await db.placement.findFirst({where:{guardianId:note.guardianId,childId:note.childId,teacherId:teacher.id,status:'ACTIVE'}}))fail(404,'NOT_FOUND','Shared note not found.');const changed=await db.note.updateMany({where:{id,version:data.expectedVersion,acknowledgedAt:null},data:{acknowledgedAt:new Date(),version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Sharing changed or was acknowledged.');await this.service.audit(db,actor,req,'NOTE_SHARING_ACKNOWLEDGED',id,'Named teacher acknowledged the current shared note');return db.note.findUniqueOrThrow({where:{id},select:{id:true,acknowledgedAt:true,version:true}});});
   }
 
   @Get('notes') async notes(@Req() req: Request) {

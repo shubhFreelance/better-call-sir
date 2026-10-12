@@ -167,6 +167,12 @@ The owner changed delivery order on 12 October 2026: complete missing backend wo
 | B3 / US09, US10, US18 | Checkout/webhook/reconciliation, revision lesson lifecycle, Pro periods/cancellation/timeouts and teacher payable records | Pending; provider/commercial decisions needed |
 | B4 / US11–14, US20 | Support queue/status, replacement/rematch, sharing acknowledgement, privacy requests/retention boundary and operational reports | Pending |
 
+### B3 / US18 and B4 / US12 — acknowledgement and entitlement cleanup
+
+Named active teachers can acknowledge the exact version of a deliberately shared note. Acknowledgement is audited and retry-safe; sharing edits/corrections invalidate it, and revocation removes further access. The replay response contains acknowledgement metadata without retaining private note text for the teacher.
+
+Added a guardian-owned prepaid membership overview and cancellation at period end, plus guardian/assigned-teacher consultation cancellation. Paid-period access survives cancellation until expiry; no automatic renewal is claimed. Cancelled/failed/timed-out calls release reserved allowance once. Worker timeout handles expired requests, accepted calls without verified connection and expired membership commitments. Outcome and cancellation share teacher/guardian locks to avoid charging twice or decrementing allowance twice. Calling remains disabled. Selling or renewing Pro, live provider usage evidence, distinct renewal periods and approved pricing/compensation remain pending the owner's deferred calling scope. All 54 API and eight contract cases pass, including acknowledgement/revocation, retry, cancellation, one-time timeout release and expiry.
+
 ### B4 / US11, US20 — support operations and replacement
 
 ### B4 / US13 — privacy correction, deletion and restore replay

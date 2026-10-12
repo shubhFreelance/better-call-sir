@@ -301,6 +301,7 @@ model LessonFeedback {
   @@unique([lessonId, guardianId])
 }
 model Note {
+  acknowledgedAt DateTime?
   id String @id @default(uuid()) @db.Uuid
   guardianId String @db.Uuid
   childId String @db.Uuid
@@ -336,6 +337,7 @@ model CaseUpdate {
   @@index([caseId, createdAt])
 }
 model Membership {
+  cancelAtPeriodEnd Boolean @default(false)
   id String @id @default(uuid()) @db.Uuid
   guardianId String @unique @db.Uuid
   status String @default("ACTIVE")

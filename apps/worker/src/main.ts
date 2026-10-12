@@ -51,6 +51,16 @@ async function extendRecurring(){
  }
 }
 async function tick() {
+  const expiredMemberships=await db.membership.findMany({where:{periodEnd:{lte:new Date()}},select:{guardianId:true}});
+  const overdue=await db.consultation.findFirst({where:{OR:[{status:'REQUESTED',startsAt:{lt:new Date()}},{status:'ACCEPTED',startsAt:{lt:new Date(Date.now()-15*60000)}},{status:{in:['REQUESTED','ACCEPTED']},guardianId:{in:expiredMemberships.map(m=>m.guardianId)}}]},orderBy:{startsAt:'asc'}});
+  if(overdue)await db.$transaction(async tx=>{
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${overdue.teacherId},0))`;await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${overdue.guardianId},0))`;
+    const call=await tx.consultation.findUniqueOrThrow({where:{id:overdue.id}});if(!['REQUESTED','ACCEPTED'].includes(call.status))return;
+    if(call.status==='ACCEPTED')await tx.membership.update({where:{guardianId:call.guardianId},data:{reserved:{decrement:1},version:{increment:1}}});
+    await tx.consultation.update({where:{id:call.id},data:{status:'TIMED_OUT',outcome:'NO_VERIFIED_CONNECTION',version:{increment:1}}});await tx.reservation.updateMany({where:{kind:'CONSULTATION',topic:call.id,status:'CONFIRMED'},data:{status:'CANCELLED',version:{increment:1}}});await tx.audit.create({data:{actorId:call.guardianId,action:'CONSULTATION_TIMED_OUT_SYSTEM',aggregateId:call.id,reason:'No verified connection before timeout; reserved allowance released',requestId:randomUUID()}});
+  });
+  await db.membership.updateMany({where:{status:'ACTIVE',cancelAtPeriodEnd:false,periodEnd:{lte:new Date()}},data:{status:'EXPIRED',version:{increment:1}}});
+  await db.membership.updateMany({where:{status:'ACTIVE',cancelAtPeriodEnd:true,periodEnd:{lte:new Date()}},data:{status:'CANCELLED',version:{increment:1}}});
   await deliverDueMeeting();
   await extendRecurring();
   await db.reservation.updateMany({where:{status:'HOLD',expiresAt:{lt:new Date()}},data:{status:'EXPIRED',version:{increment:1}}});

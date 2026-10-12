@@ -559,6 +559,22 @@ test('guardian rematching closes the old placement, revokes notes and preserves 
  const closeBody={expectedVersion:1,reason:'End remaining terms'},closedPlacement=await db.placement.create({data:{guardianId:ids.otherGuardian,childId:ids.otherChild,teacherId:ids.teacher,requestId:result.data.request.id,monthlyPaise:300000}});assert.equal((await other.call(`/placements/${closedPlacement.id}/closures`,closeBody)).status,201);assert.equal((await other.call(`/placements/${closedPlacement.id}/closures`,closeBody)).status,409);
 });
 
+test('named teacher acknowledgement is versioned, retry-safe and loses access after revocation',async()=>{
+ const note=await parent.call('/notes',{childId:ids.child,text:'Synthetic note requiring acknowledgement'});assert.equal(note.status,201);const shared=await parent.call(`/notes/${note.data.id}/shares`,{teacherId:ids.teacher,expectedVersion:1});assert.equal(shared.status,201);
+ assert.equal((await other.call(`/notes/${note.data.id}/acknowledgements`,{expectedVersion:2})).status,403);
+ const key=randomUUID(),acked=await teacher.call(`/notes/${note.data.id}/acknowledgements`,{expectedVersion:2},{key});assert.equal(acked.status,201);assert(acked.data.acknowledgedAt);assert.equal('text' in acked.data,false);assert.equal((await teacher.call(`/notes/${note.data.id}/acknowledgements`,{expectedVersion:2},{key})).data.version,3);
+ assert.equal((await parent.call(`/notes/${note.data.id}/shares`,{teacherId:null,expectedVersion:3})).status,201);assert.equal((await teacher.call(`/notes/${note.data.id}/acknowledgements`,{expectedVersion:4})).status,404);
+});
+test('prepaid membership cancellation preserves its period and worker timeouts release allowance once',async()=>{
+ const current=await parent.call('/pro/membership');assert.equal(current.status,200);assert.equal(current.data.automaticRenewal,false);assert.equal(current.data.callsEnabled,false);
+ const membership=await db.membership.findUniqueOrThrow({where:{guardianId:ids.guardian}}),key=randomUUID(),body={expectedVersion:membership.version,reason:'No next period'};
+ const cancel=await parent.call('/pro/membership/cancellations',body,{key});assert.equal(cancel.status,201);assert.equal(cancel.data.status,'ACTIVE');assert.equal(cancel.data.cancelAtPeriodEnd,true);assert.equal((await parent.call('/pro/membership/cancellations',body,{key})).data.version,cancel.data.version);
+ const calls=await db.consultation.findMany({where:{guardianId:ids.guardian,status:'ACCEPTED'}});assert(calls.length>=2);
+ const cancelled=await parent.call(`/pro/calls/${calls[0].id}/cancellations`,{expectedVersion:calls[0].version,reason:'No longer needed'});assert.equal(cancelled.status,201);assert.equal(cancelled.data.status,'CANCELLED');
+ await db.consultation.update({where:{id:calls[1].id},data:{startsAt:new Date(Date.now()-3600000)}});const before=await db.membership.findUniqueOrThrow({where:{id:membership.id}});runEvidenceWorker();runEvidenceWorker();const after=await db.membership.findUniqueOrThrow({where:{id:membership.id}});assert.equal(after.reserved,before.reserved-1);assert.equal(after.used,before.used);assert.equal((await db.consultation.findUniqueOrThrow({where:{id:calls[1].id}})).status,'TIMED_OUT');assert.equal(await db.audit.count({where:{action:'CONSULTATION_TIMED_OUT_SYSTEM',aggregateId:calls[1].id}}),1);
+ await db.membership.update({where:{id:membership.id},data:{periodEnd:new Date(Date.now()-1000)}});runEvidenceWorker();assert.equal((await db.membership.findUniqueOrThrow({where:{id:membership.id}})).status,'CANCELLED');assert.equal((await parent.call('/pro/membership')).data.active,false);
+});
+
 test('privacy correction and deletion require owner scope, reviewed retention and replay evidence',async()=>{
  const note=await db.note.create({data:{guardianId:ids.otherGuardian,childId:ids.otherChild,text:'Private synthetic note'}});
  assert.equal((await parent.call('/privacy-requests',{kind:'DELETION',scope:'NOTE',resourceId:note.id,reason:'Wrong family'})).status,404);
