@@ -10,6 +10,7 @@ import helmet from 'helmet';
 import {z} from 'zod';
 import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} from '../../policies';
 
+import {preferenceSchema,normalizedPreferences} from './request-schedule';
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
 
 @Controller('api/v1')
@@ -18,25 +19,38 @@ class RequestsController {
   get db() {return this.service.db;}
   @Post('requests') async createRequest(@Req() req: HttpRequest,@Body() body: unknown) {
     const account=await this.service.actor(req,['GUARDIAN']);
-    const data=parse(z.object({childId:uuid.optional(),alias:text(40),grade:z.number().int().min(6).max(10),board:z.enum(['CBSE','CGBSE']),subject:z.enum(['Maths','Science']),mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000),schedule:text(300)}).strict(),body);
+    const data=parse(z.object({childId:uuid.optional(),alias:text(40),grade:z.number().int().min(6).max(10),board:z.enum(['CBSE','CGBSE']),subject:z.enum(['Maths','Science']),mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000),schedule:text(300),preferences:preferenceSchema.optional()}).strict(),body);
     return this.service.once(req,account,'request.create',data,async db=>{
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${account.id},0))`;
       await this.service.guardian(db,account.id);
+      const region=await db.region.findUnique({where:{id:account.region}});if(!region?.enabled)fail(409,'UNSUPPORTED_REGION','This city is not enabled; use the unsupported-scope waitlist.');
+      const preferences=data.preferences?normalizedPreferences(data.preferences):null;if(data.preferences&&!preferences)fail(400,'INVALID_SCHEDULE','Preferences must be nonoverlapping 20–120 minute windows between one hour and 60 days ahead.');
       const child=data.childId?await this.service.child(db,account,data.childId):await db.child.create({data:{guardianId:account.id,alias:data.alias,grade:data.grade,board:data.board}});
-      const request=await db.tuitionRequest.create({data:{guardianId:account.id,childId:child.id,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,schedule:data.schedule}});
-      await this.service.event(db,'request.created',request.id);return request;
+      if(child.grade!==data.grade||child.board!==data.board)fail(409,"CHILD_CHANGED","The linked learner grade or board differs from this request.");
+      const request=await db.tuitionRequest.create({data:{region:account.region,...(preferences?{schedulePreferences:preferences,scheduleStatus:'CONFIRMED'}:{}),guardianId:account.id,childId:child.id,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,schedule:data.schedule}});
+      await this.service.audit(db,account,req,'REQUEST_CREATED',request.id,'Guardian submitted supported tuition need',undefined,{region:request.region,scheduleStatus:request.scheduleStatus});await this.service.event(db,'request.created',request.id);return request;
     });
   }
 
+  @Post('requests/:id/schedules') async schedule(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(preferenceSchema.extend({expectedVersion:version}).strict(),body);const preferences=normalizedPreferences(data);if(!preferences)fail(400,'INVALID_SCHEDULE','Use nonoverlapping 20–120 minute UTC windows between one hour and 60 days ahead.');
+    return this.service.once(req,actor,'request.schedule',data,async db=>{await this.service.guardian(db,actor.id);const request=await db.tuitionRequest.findUnique({where:{id}});if(!request||request.guardianId!==actor.id)fail(404,'NOT_FOUND','Request not found.');const changed=await db.tuitionRequest.updateMany({where:{id,version:data.expectedVersion,status:'OPEN'},data:{schedulePreferences:preferences,scheduleStatus:'CONFIRMED',matchStatus:'PENDING',version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Request changed or is not open.');await this.service.audit(db,actor,req,'REQUEST_SCHEDULE_CONFIRMED',id,'Guardian confirmed structured schedule',undefined,{timezone:preferences.timezone,windows:preferences.slots.length});await this.service.event(db,'request.schedule_confirmed',id,data.expectedVersion+1);return db.tuitionRequest.findUniqueOrThrow({where:{id}});});
+  }
+  @Post('waitlist') async waitlist(@Req() req:HttpRequest,@Body() body:unknown){
+    const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({grade:z.number().int().min(1).max(12),board:text(30),subject:text(40),language:text(30),mode:z.enum(['HOME','ONLINE']),region:text(80)}).strict(),body);
+    return this.service.once(req,actor,'waitlist.create',data,async db=>{await this.service.guardian(db,actor.id);const region=await db.region.findUnique({where:{id:data.region}});if(region?.enabled&&data.grade>=6&&data.grade<=10&&['CBSE','CGBSE'].includes(data.board)&&['Maths','Science'].includes(data.subject)&&['English','Hindi'].includes(data.language))fail(409,'SUPPORTED_SCOPE','Use ordinary free tuition intake for supported scope.');const entry=await db.waitlist.create({data:{...data,guardianId:actor.id}});await this.service.audit(db,actor,req,'WAITLIST_CREATED',entry.id,'Guardian requested unsupported scope without a child record');return entry;});
+  }
+  @Get('waitlist') async listWaitlist(@Req() req:HttpRequest){const actor=await this.service.actor(req,['GUARDIAN']);return {items:await this.service.db.waitlist.findMany({where:{guardianId:actor.id},orderBy:{createdAt:'desc'},take:50})};}
+
   @Get('requests') async requests(@Req() req: Request) {
     const account=await this.service.actor(req,['GUARDIAN','ADMIN','OPERATOR']);
-    return {items:await this.db.tuitionRequest.findMany({where:account.role==='GUARDIAN'?{guardianId:account.id}:{},orderBy:{createdAt:'desc'},take:50})};
+    return {items:await this.db.tuitionRequest.findMany({where:account.role==='GUARDIAN'?{guardianId:account.id}:account.role==='OPERATOR'?{region:account.region}:{},orderBy:{createdAt:'desc'},take:50})};
   }
 
   @Get('requests/:id') async request(@Req() req: Request,@Param('id') id: string) {
     parse(uuid,id);const account=await this.service.actor(req,['GUARDIAN','ADMIN','OPERATOR']);
     const request=await this.db.tuitionRequest.findUnique({where:{id}});
-    if (!request || (account.role==='GUARDIAN' && request.guardianId!==account.id)) fail(404,'NOT_FOUND','Request not found.');
+    if (!request || (account.role==='GUARDIAN' && request.guardianId!==account.id) || (account.role==='OPERATOR'&&request?.region!==account.region)) fail(404,'NOT_FOUND','Request not found.');
     return {...request,candidates:await this.db.recommendation.findMany({where:{requestId:id}})};
   }
 

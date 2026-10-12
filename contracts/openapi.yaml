@@ -741,9 +741,11 @@
               "type": "string",
               "enum": [
                 "Maths",
-                "Science"
+                "Science",
+                ""
               ]
-            }
+            },
+            "description": "Empty value is treated as no filter for compatibility with existing v1 callers."
           },
           {
             "name": "mode",
@@ -753,9 +755,11 @@
               "type": "string",
               "enum": [
                 "HOME",
-                "ONLINE"
+                "ONLINE",
+                ""
               ]
-            }
+            },
+            "description": "Empty value is treated as no filter for compatibility with existing v1 callers."
           },
           {
             "name": "limit",
@@ -9671,6 +9675,385 @@
           }
         }
       }
+    },
+    "/requests/{id}/schedules": {
+      "post": {
+        "operationId": "confirmRequestSchedule",
+        "tags": [
+          "backend-core"
+        ],
+        "summary": "confirmRequestSchedule",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TuitionRequest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestScheduleInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/waitlist": {
+      "post": {
+        "operationId": "createUnsupportedScopeWaitlist",
+        "tags": [
+          "backend-core"
+        ],
+        "summary": "createUnsupportedScopeWaitlist",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Waitlist"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WaitlistInput"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listOwnWaitlist",
+        "tags": [
+          "backend-core"
+        ],
+        "summary": "listOwnWaitlist",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WaitlistEntries"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.",
+        "parameters": []
+      }
     }
   },
   "components": {
@@ -9874,6 +10257,29 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "region": {
+            "type": "string"
+          },
+          "schedulePreferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SchedulePreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduleStatus": {
+            "type": "string",
+            "enum": [
+              "UNCONFIRMED",
+              "CONFIRMED"
+            ]
+          },
+          "matchStatus": {
+            "type": "string"
           }
         },
         "required": [
@@ -9951,6 +10357,9 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 300
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/SchedulePreferences"
           }
         },
         "required": [
@@ -10608,6 +11017,29 @@
             "items": {
               "$ref": "#/components/schemas/Candidate"
             }
+          },
+          "region": {
+            "type": "string"
+          },
+          "schedulePreferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SchedulePreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scheduleStatus": {
+            "type": "string",
+            "enum": [
+              "UNCONFIRMED",
+              "CONFIRMED"
+            ]
+          },
+          "matchStatus": {
+            "type": "string"
           }
         },
         "required": [
@@ -11664,6 +12096,212 @@
           "nextCursor",
           "horizonDays",
           "timezone"
+        ],
+        "additionalProperties": false
+      },
+      "SchedulePreferences": {
+        "type": "object",
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Kolkata"
+          },
+          "slots": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "properties": {
+                "startsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "endsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "startsAt",
+                "endsAt"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "timezone",
+          "slots"
+        ],
+        "additionalProperties": false
+      },
+      "RequestScheduleInput": {
+        "type": "object",
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Kolkata"
+          },
+          "slots": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "properties": {
+                "startsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "endsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "startsAt",
+                "endsAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "timezone",
+          "slots",
+          "expectedVersion"
+        ],
+        "additionalProperties": false
+      },
+      "WaitlistInput": {
+        "type": "object",
+        "properties": {
+          "grade": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "board": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "language": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "HOME",
+              "ONLINE"
+            ]
+          },
+          "region": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "grade",
+          "board",
+          "subject",
+          "language",
+          "mode",
+          "region"
+        ],
+        "additionalProperties": false
+      },
+      "Waitlist": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "guardianId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "grade": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "board": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "language": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "HOME",
+              "ONLINE"
+            ]
+          },
+          "region": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "status": {
+            "type": "string",
+            "const": "PENDING"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "guardianId",
+          "grade",
+          "board",
+          "subject",
+          "language",
+          "mode",
+          "region",
+          "status",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "WaitlistEntries": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Waitlist"
+            }
+          }
+        },
+        "required": [
+          "items"
         ],
         "additionalProperties": false
       }

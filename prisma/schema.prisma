@@ -99,6 +99,10 @@ model TuitionRequest {
   locality String
   budgetPaise Int
   schedule String
+  region String @default("Raipur")
+  schedulePreferences Json?
+  scheduleStatus String @default("UNCONFIRMED")
+  matchStatus String @default("PENDING")
   status String @default("OPEN")
   version Int @default(1)
   createdAt DateTime @default(now())
@@ -342,4 +346,26 @@ model AvailabilityException {
   active Boolean @default(true)
   version Int @default(1)
   @@index([teacherId, startsAt])
+}
+
+model Region {
+  id String @id
+  countryCode String
+  stateCode String
+  cityName String
+  enabled Boolean @default(false)
+  @@unique([countryCode, stateCode, cityName])
+}
+model Waitlist {
+  id String @id @default(uuid()) @db.Uuid
+  guardianId String @db.Uuid
+  grade Int
+  board String
+  subject String
+  language String
+  mode String
+  region String
+  status String @default("PENDING")
+  createdAt DateTime @default(now())
+  @@index([guardianId, status])
 }

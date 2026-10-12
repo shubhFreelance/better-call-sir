@@ -46,7 +46,7 @@ This initial implementation also contains early development slices from later ph
 | Story | Current implementation | Remaining work before story acceptance |
 | --- | --- | --- |
 | US01 | OTP sandbox, session replay/logout, consent and family isolation | Real adult verification, reviewed consent, provider abuse handling |
-| US02 | Validated supported intake, child linkage and idempotency | Unsupported-scope waitlist, persisted draft resume and schedule validation |
+| US02 | Validated supported intake, region-scoped access, normalized structured schedules, child-grade/board consistency, unsupported-scope waitlist and idempotency | Persisted frontend draft resume: Phase 3; staging/live guardian qualification remains open |
 | US03–04 | Private content-checked evidence, fail-closed ClamAV worker, revision-bound reviewer checks, fee acceptance snapshot, material-change re-review, suspension | Staging/private-store and current-signature qualification; full Phase 3 reviewer/upload UI |
 | US05 | Allowlisted current-screening profiles, bounded cursor pagination, weekly IST availability, leave exceptions, capacity/travel settings and suspension hiding | Real supply and Phase 3 discovery/availability UI qualification |
 | US06 | Hard eligibility filters, fit reasons, operator shortlist, teacher response | Capacity/schedule eligibility, ranking evidence snapshots, exposure tracking |
@@ -123,3 +123,9 @@ Added teacher-owned weekly declarations in the launch IANA timezone (Asia/Kolkat
 Validation: 33 API and seven domain/calendar tests pass, plus contract/type checks. Cases include wrong owner/role, retry and stale edits, private-free projections, overlapping declarations, adjacent occupancy, occupied leave, capacity below committed students and pattern changes preserving accepted reservations. Pattern materialization describes available windows; accepted recurring-lesson commitments remain Phase 4.
 
 Availability CI correction: hosted run `38208765381` failed the existing discovery browser journey because blank optional filters were rejected by the new enum validation. The backend now treats empty subject/mode values as unset, preserving the original v1 caller behavior. The same browser case reproduced the failure locally and passes after the fix; the application build itself passed. No test was weakened or skipped.
+
+### Phase 2 increment — US02 structured requests and waitlist
+
+Requests accept optional structured UTC windows in Asia/Kolkata, validate 20–120 minute durations, nonoverlap and the 60-day horizon, and store CONFIRMED versus UNCONFIRMED schedule state. A guardian can version/retry a schedule confirmation; stale, foreign and student writes fail. Linked-child grade/board mismatches fail rather than silently changing eligibility. Enabled launch-region records carry country/state/city identifiers; request and operator access are region-bound. Unsupported scope has a separate minimal waitlist with no child alias/record, booking, payment or fulfilment claim.
+
+Validation: 35 real-DB API tests pass, including schedule invalidity/ownership/replay and waitlist privacy, retry mismatch, supported-scope routing and rejection of unnecessary child fields. Contract and type checks pass. Draft-resume and complete waitlist UI remain Phase 3.

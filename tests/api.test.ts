@@ -283,4 +283,23 @@ test('weekly IST availability, leave and shared-calendar occupancy produce priva
  await db.teacher.update({where:{id:ids.teacher},data:{maxActiveStudents:t.maxActiveStudents}});
 });
 
+test('structured schedule preferences validate time and ownership while legacy text remains unconfirmed',async()=>{
+ const legacy=await parent.call('/requests',intake());assert.equal(legacy.status,201);assert.equal(legacy.data.scheduleStatus,'UNCONFIRMED');
+ const startsAt=future(45),endsAt=new Date(new Date(startsAt).getTime()+3600000).toISOString(),body={expectedVersion:1,timezone:'Asia/Kolkata',slots:[{startsAt,endsAt}]};
+ assert.equal((await other.call(`/requests/${legacy.data.id}/schedules`,body)).status,404);assert.equal((await student.call(`/requests/${legacy.data.id}/schedules`,body)).status,403);
+ assert.equal((await parent.call(`/requests/${legacy.data.id}/schedules`,{...body,slots:[{startsAt,endsAt:startsAt}]})).status,400);
+ assert.equal((await parent.call(`/requests/${legacy.data.id}/schedules`,{...body,slots:[{startsAt,endsAt},{startsAt,endsAt}]})).status,400);
+ const key=randomUUID(),confirmed=await parent.call(`/requests/${legacy.data.id}/schedules`,body,{key});assert.equal(confirmed.status,201);assert.equal(confirmed.data.scheduleStatus,'CONFIRMED');assert.equal(confirmed.data.version,2);assert.equal((await parent.call(`/requests/${legacy.data.id}/schedules`,body,{key})).data.version,2);
+ assert.equal((await parent.call(`/requests/${legacy.data.id}/schedules`,body)).status,409);
+ const direct=await parent.call('/requests',intake({preferences:{timezone:'Asia/Kolkata',slots:body.slots}}));assert.equal(direct.status,201);assert.equal(direct.data.scheduleStatus,'CONFIRMED');
+ assert.equal((await parent.call('/requests',intake({childId:ids.child,grade:9}))).status,409);
+ const account=await db.account.create({data:{phone:'+910000008803',name:'Synthetic regional operator',role:'OPERATOR',region:'Delhi'}}),regional=await login(account.id);assert.equal((await regional.call(`/requests/${legacy.data.id}`)).status,404);assert.equal((await regional.call('/requests')).data.items.length,0);
+});
+test('unsupported scope waitlist is retry-safe, private and does not create a child or a booking',async()=>{
+ const children=await db.child.count({where:{guardianId:ids.guardian}}),body={grade:11,board:'CBSE',subject:'Physics',language:'English',mode:'ONLINE',region:'Raipur'},key=randomUUID();
+ assert.equal((await student.call('/waitlist',body)).status,403);const created=await parent.call('/waitlist',body,{key});assert.equal(created.status,201);const validate=operationValidator('/waitlist','post','201');assert(validate(created.data),JSON.stringify(validate.errors));assert.equal(created.data.status,'PENDING');assert.equal((await parent.call('/waitlist',body,{key})).data.id,created.data.id);assert.equal((await parent.call('/waitlist',{...body,subject:'Chemistry'},{key})).status,409);assert.equal(await db.child.count({where:{guardianId:ids.guardian}}),children);assert.equal((await other.call('/waitlist')).data.items.some((x:any)=>x.id===created.data.id),false);
+ assert.equal((await parent.call('/waitlist',{...body,grade:8,subject:'Maths'})).status,409);
+ assert.equal((await parent.call('/waitlist',{...body,alias:'Unnecessary child data'})).status,400);
+});
+
 test('consent withdrawal blocks new intake, note sharing and student sessions',async()=>{assert.equal((await parent.call('/consents/withdraw',{})).status,201);assert.equal((await parent.call('/requests',intake())).status,403);assert.equal((await student.call('/dashboard')).status,401);assert.equal((await student.call('/auth/refresh',{})).status,401);assert.equal((await teacher.call('/notes')).data.items.length,0);});
