@@ -1549,7 +1549,7 @@ footer {
   padding: 12px 10px;
   font-size: 11px;
   border-radius: 6px;
-  color: #6d7a68;
+  color: var(--muted);
 }
 .dashboard-sidebar nav a.active {
   background: #e9eddc;
@@ -3421,4 +3421,225 @@ footer {
     padding: 12px 6px;
     font-size: 12px;
   }
+}
+
+.family-overview,
+.family-access {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.family-intro {
+  display: flex;
+  gap: 20px;
+  align-items: start;
+  padding: 26px;
+  background: var(--soft);
+  border-radius: 14px;
+}
+.family-intro > svg,
+.family-control > svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.family-intro h2,
+.family-control h2 {
+  font-size: 23px;
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
+}
+.family-intro p,
+.family-control p {
+  margin: 0;
+  max-width: 65ch;
+}
+.family-activity {
+  padding: 0 4px;
+}
+.family-activity h3 {
+  margin: 0;
+  font-size: 17px;
+}
+.family-activity > div p {
+  font-size: 12px;
+  margin: 8px 0;
+}
+.family-activity dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+.family-activity dl > div {
+  border-left: 2px solid var(--line);
+  padding-left: 16px;
+}
+.family-activity dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.family-activity dd {
+  font-weight: 700;
+  font-size: 30px;
+  margin: 8px 0 0;
+}
+.family-overview .panel h2,
+.family-access .panel h2 {
+  font-size: 21px;
+  margin: 0 0 14px;
+  letter-spacing: -0.4px;
+}
+.family-overview .panel-title h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+.family-learners ul,
+.family-team,
+.family-lessons,
+.family-session-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.family-learners li,
+.family-session-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding: 18px 0;
+}
+.family-learners li > div,
+.family-session-list li > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.family-learners li p,
+.family-session-list li p {
+  font-size: 13px;
+  margin: 6px 0 0;
+}
+.family-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.family-team li,
+.family-lessons li {
+  border-top: 1px solid var(--line);
+  padding: 18px 0;
+}
+.family-team p,
+.family-lessons p {
+  margin: 8px 0;
+  font-size: 13px;
+}
+.family-lessons small {
+  color: var(--muted);
+}
+.family-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: start;
+  border-top: 1px solid var(--line);
+  padding: 24px 0;
+}
+.family-control > div {
+  flex: 1;
+  min-width: 200px;
+}
+.family-confirm,
+.family-invitation {
+  padding: 22px;
+  margin: 24px 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.family-confirm h3,
+.family-invitation h3 {
+  font-size: 18px;
+  margin-top: 0;
+}
+.family-invitation input {
+  font-family: var(--font-family);
+}
+.family-access .field select {
+  width: 100%;
+}
+.family-access [data-slot="alert"] {
+  margin: 18px 0;
+}
+.family-access .wizard-fields .field {
+  margin: 0;
+}
+@media (max-width: 720px) {
+  .family-columns {
+    grid-template-columns: 1fr;
+  }
+  .family-activity dl {
+    gap: 8px;
+  }
+  .family-activity dl > div {
+    padding-left: 10px;
+  }
+  .family-intro {
+    padding: 22px;
+  }
+  .family-intro > svg {
+    display: none;
+  }
+  .family-activity dd {
+    font-size: 27px;
+  }
+}
+
+.dashboard-sidebar,
+.dashboard-content {
+  min-width: 0;
+}
+.family-overview .panel-title,
+.family-access .panel-title {
+  flex-wrap: wrap;
+  align-items: start;
+}
+.family-overview .panel-title .inline-link {
+  white-space: normal;
+  font-size: 13px;
+}
+.family-learners .button,
+.family-access .button {
+  white-space: normal;
+  height: auto;
+  max-width: 100%;
+  text-align: center;
+}
+.family-learners li > div {
+  max-width: 100%;
+}
+@media (max-width: 720px) {
+  .dashboard-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.family-access fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.family-student-access .badge {
+  background: var(--soft);
+  color: var(--primary);
+  border-color: var(--line);
+}
+.dashboard-sidebar nav a.active {
+  background: var(--green);
+  color: var(--primary);
 }

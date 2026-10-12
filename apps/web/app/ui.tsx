@@ -18,6 +18,8 @@ import {
 } from "../components/ui/tabs";
 import { GuardianOnboarding } from "./guardian-onboarding";
 import { TeacherSetup } from "./teacher-onboarding";
+import { FamilyOverview } from "./family-overview";
+import { FamilyAccess, StudentActivation } from "./student-access";
 import { EmailLogin } from "./email-login";
 import { DemoChoice, DemoJourney } from "./demo-journey";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -81,12 +83,16 @@ const Auth = createContext<{
   session: Session | null;
   loading: boolean;
   setSession: (s: Session | null) => void;
+  beginStudentSwitch: (studentId?: string) => void;
+  failStudentSwitch: (message: string, uncertain: boolean) => void;
   hindi: boolean;
   setHindi: (v: boolean) => void;
 }>({
   session: null,
   loading: true,
   setSession: () => {},
+  beginStudentSwitch: () => {},
+  failStudentSwitch: () => {},
   hindi: false,
   setHindi: () => {},
 });
@@ -201,7 +207,7 @@ function PageTitle({
   return (
     <div className="page-title">
       <div>
-        <span className="eyebrow">{eyebrow}</span>
+        {eyebrow && <span className="eyebrow">{eyebrow}</span>}
         <h1>{title}</h1>
         <p>{subtitle}</p>
       </div>
@@ -1148,57 +1154,35 @@ function TeacherOnboarding() {
   return <TeacherSetup session={session} onSessionChange={setSession} />;
 }
 function StudentOnboarding() {
-  const { session, setSession } = useAuth(),
-    client = useQueryClient(),
-    router = useRouter();
-  const [error, setError] = useState("");
+  const {
+    session,
+    setSession,
+    loading,
+    beginStudentSwitch,
+    failStudentSwitch,
+  } = useAuth();
+  if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
-  async function activate(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    try {
-      const session = await api<Session>("/invitations/activate", {
-        method: "POST",
-        csrf: useToken,
-        body: { token: new FormData(e.currentTarget).get("token") },
-      });
-      client.clear();
-      setSession(session);
-      router.push("/dashboard");
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  }
-  const useToken = session.csrfToken;
+  if (session.account.role !== "GUARDIAN")
+    return (
+      <main className="container narrow section">
+        <h1>
+          {session.account.role === "STUDENT"
+            ? "Your student space is ready."
+            : "A guardian must authorize student access."}
+        </h1>
+        <Link href="/dashboard" className="button">
+          Open dashboard
+        </Link>
+      </main>
+    );
   return (
-    <main className="container narrow section">
-      <PageTitle
-        eyebrow="STUDENT ONBOARDING"
-        title="Your learning, in your own space."
-        subtitle="A parent or guardian authorizes this device. No child phone number required."
-      />
-      <form onSubmit={activate} className="panel form-panel">
-        <Notice>
-          Your student space shows your teacher, classes and attendance.
-          Purchases and private parent notes stay with your guardian.
-        </Notice>
-        <Field label="Guardian invitation token">
-          <input
-            name="token"
-            required
-            autoComplete="off"
-            placeholder="Paste the single-use invitation"
-          />
-        </Field>
-        {error && <Notice error>{error}</Notice>}
-        <Button type="submit" disabled={session.account.role !== "GUARDIAN"}>
-          Authorize student access <ArrowRight size={17} />
-        </Button>
-        <p className="muted">
-          This action requires the inviting guardian’s account and switches this
-          browser to a restricted student session.
-        </p>
-      </form>
-    </main>
+    <StudentActivation
+      session={session}
+      onSessionChange={setSession}
+      onSwitchStart={beginStudentSwitch}
+      onSwitchFailure={failStudentSwitch}
+    />
   );
 }
 function Revision() {
@@ -1350,6 +1334,7 @@ function DashboardShell({
           ["/dashboard/bookings", "Revision bookings", Clock],
           ["/dashboard/pro", "Parent Pro", Phone],
           ["/dashboard/notes", "Private notes", NotebookPen],
+          ["/dashboard/family", "Learners & access", ShieldCheck],
         ] as [string, string, LucideIcon][])
       : role === "TEACHER"
         ? ([
@@ -1404,7 +1389,13 @@ function DashboardShell({
   );
 }
 function DashboardPage({ tab }: { tab: string }) {
-  const { session, loading } = useAuth(),
+  const {
+      session,
+      setSession,
+      loading,
+      beginStudentSwitch,
+      failStudentSwitch,
+    } = useAuth(),
     client = useQueryClient();
   const query = useQuery({
     queryKey: ["dashboard", session?.account.id],
@@ -1451,7 +1442,9 @@ function DashboardPage({ tab }: { tab: string }) {
             eyebrow={
               session.account.role === "ADMIN"
                 ? "OPERATIONS"
-                : "A LITTLE PROGRESS, EVERY DAY"
+                : ["GUARDIAN", "STUDENT"].includes(session.account.role)
+                  ? ""
+                  : "A LITTLE PROGRESS, EVERY DAY"
             }
             title={
               tab === "/dashboard"
@@ -1460,217 +1453,189 @@ function DashboardPage({ tab }: { tab: string }) {
                   ? "Every class, accounted for."
                   : tab.endsWith("requests")
                     ? "Your path to a good fit."
-                    : tab.endsWith("bookings")
-                      ? "A little clarity, on the calendar."
-                      : tab.endsWith("pro")
-                        ? "A conversation can help."
-                        : tab.endsWith("notes")
-                          ? "Your thoughts, kept private."
-                          : "A thoughtful control room."
+                    : tab.endsWith("family")
+                      ? "Your learners, your control."
+                      : tab.endsWith("bookings")
+                        ? "A little clarity, on the calendar."
+                        : tab.endsWith("pro")
+                          ? "A conversation can help."
+                          : tab.endsWith("notes")
+                            ? "Your thoughts, kept private."
+                            : "A thoughtful control room."
             }
             subtitle={
               tab === "/dashboard"
                 ? `Here’s your learning picture · ${date(d.window.start, false)}–${date(d.window.end, false)} · IST`
-                : "All changes are confirmed by the backend."
+                : tab.endsWith("family")
+                  ? "Manage student devices and the permissions you grant."
+                  : "All changes are confirmed by the backend."
             }
           />
           {error && <Notice error>{error}</Notice>}
           {message && <Notice>{message}</Notice>}
-          {tab === "/dashboard" && (
-            <>
-              <div className="stats-grid">
-                {(d.role === "ADMIN"
-                  ? [
-                      ["Open requests", d.metrics.requests],
-                      ["Pending teachers", d.metrics.pendingTeachers],
-                      ["Active placements", d.metrics.activePlacements],
-                      ["Open support cases", d.metrics.openCases],
-                    ]
-                  : d.role === "TEACHER"
+          {tab === "/dashboard" &&
+            (["GUARDIAN", "STUDENT"].includes(session.account.role) ? (
+              <FamilyOverview dashboard={d} session={session} />
+            ) : (
+              <>
+                <div className="stats-grid">
+                  {(d.role === "ADMIN"
                     ? [
-                        ["Completed lessons", d.metrics.completedLessons],
-                        ["Students taught", d.metrics.uniqueStudentsTaught],
-                        ["Active students", d.metrics.activeStudents],
-                        ["Attendance pending", d.metrics.pendingAttendance],
+                        ["Open requests", d.metrics.requests],
+                        ["Pending teachers", d.metrics.pendingTeachers],
+                        ["Active placements", d.metrics.activePlacements],
+                        ["Open support cases", d.metrics.openCases],
                       ]
-                    : [
-                        ["Classes taken", d.metrics.classesTaken],
-                        ["Completed lessons", d.metrics.completedLessons],
-                        ["Disputed records", d.metrics.disputed],
-                        ["Attendance pending", d.metrics.pendingAttendance],
-                      ]
-                ).map(([label, value], i) => (
-                  <div className="stat" key={label}>
-                    <span>{label}</span>
-                    <strong>{value}</strong>
-                    <small>
-                      {i === 0 ? "Rolling 30 days" : "Recorded activity"}
-                    </small>
-                  </div>
-                ))}
-              </div>
-              {d.role === "ADMIN" ? (
-                <AdminPanel dashboard={d} act={act} />
-              ) : (
-                <>
-                  <div className="dashboard-banner">
-                    <div>
-                      <Badge>
-                        <Sparkles size={13} /> A little support goes a long way
-                      </Badge>
-                      <h2>
-                        {d.role === "TEACHER"
-                          ? "There’s a learner on the other side."
-                          : "Keep their curiosity moving."}
-                      </h2>
-                      <p>
-                        {d.role === "STUDENT"
-                          ? "Your next class and your recorded progress are right here."
-                          : "Your teachers, upcoming classes and next steps, all in one place."}
-                      </p>
+                    : d.role === "TEACHER"
+                      ? [
+                          ["Completed lessons", d.metrics.completedLessons],
+                          ["Students taught", d.metrics.uniqueStudentsTaught],
+                          ["Active students", d.metrics.activeStudents],
+                          ["Attendance pending", d.metrics.pendingAttendance],
+                        ]
+                      : [
+                          ["Classes taken", d.metrics.classesTaken],
+                          ["Completed lessons", d.metrics.completedLessons],
+                          ["Disputed records", d.metrics.disputed],
+                          ["Attendance pending", d.metrics.pendingAttendance],
+                        ]
+                  ).map(([label, value], i) => (
+                    <div className="stat" key={label}>
+                      <span>{label}</span>
+                      <strong>{value}</strong>
+                      <small>
+                        {i === 0 ? "Rolling 30 days" : "Recorded activity"}
+                      </small>
                     </div>
-                    <BookOpen size={64} strokeWidth={1} />
-                  </div>
-                  <div className="dashboard-columns">
-                    <div className="panel">
-                      <div className="panel-title">
-                        <h3>Coming up next</h3>
-                        <Link href="/dashboard/lessons" className="inline-link">
-                          View all <ArrowUpRight size={15} />
-                        </Link>
-                      </div>
-                      <LessonList
-                        lessons={
-                          d.lessons
-                            ?.filter((l) => l.status === "SCHEDULED")
-                            .sort((a, b) =>
-                              a.startsAt.localeCompare(b.startsAt),
-                            )
-                            .slice(0, 3) || []
-                        }
-                        children={d.children}
-                      />
-                    </div>
-                    <div className="panel">
-                      <h3>
-                        {d.role === "TEACHER"
-                          ? "Your teaching profile"
-                          : "Your learning team"}
-                      </h3>
-                      {d.profile ? (
-                        <>
-                          <div className="team-member">
-                            <div
-                              className="avatar"
-                              style={{ background: d.profile.avatarColor }}
-                            >
-                              {initials(d.profile.name)}
-                            </div>
-                            <div>
-                              <strong>{d.profile.name}</strong>
-                              <small>
-                                {pretty(d.profile.status || "pending")}
-                              </small>
-                            </div>
-                          </div>
-                          <p>
-                            Approval requires completed capability checks;
-                            material changes must reopen review.
-                          </p>
-                        </>
-                      ) : d.teachers?.length ? (
-                        d.teachers.map((t) => (
-                          <div className="team-member" key={t.id}>
-                            <div
-                              className="avatar"
-                              style={{ background: t.avatarColor }}
-                            >
-                              {initials(t.name)}
-                            </div>
-                            <div>
-                              <strong>{t.name}</strong>
-                              <small>{t.subjects.join(" & ")}</small>
-                              <Link
-                                href={`/teachers/${t.slug}`}
-                                className="inline-link"
-                              >
-                                View profile →
-                              </Link>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <Empty>
-                          No active teacher yet. Your shortlist is the next
-                          step.
-                        </Empty>
-                      )}
-                    </div>
-                  </div>
-                  {d.role === "GUARDIAN" && (
-                    <div className="panel privacy-panel">
-                      <LockKeyhole size={24} />
+                  ))}
+                </div>
+                {d.role === "ADMIN" ? (
+                  <AdminPanel dashboard={d} act={act} />
+                ) : (
+                  <>
+                    <div className="dashboard-banner">
                       <div>
-                        <h3>Your family stays in control.</h3>
+                        <Badge>
+                          <Sparkles size={13} /> A little support goes a long
+                          way
+                        </Badge>
+                        <h2>
+                          {d.role === "TEACHER"
+                            ? "There’s a learner on the other side."
+                            : "Keep their curiosity moving."}
+                        </h2>
                         <p>
-                          Consent is{" "}
-                          {d.consent && !d.consent.withdrawnAt
-                            ? "active"
-                            : "pending or withdrawn"}
-                          . Withdrawal stops new matching and child-data writes
-                          and revokes student sessions.
+                          {d.role === "STUDENT"
+                            ? "Your next class and your recorded progress are right here."
+                            : "Your teachers, upcoming classes and next steps, all in one place."}
                         </p>
                       </div>
-                      <Button
-                        secondary
-                        onClick={() => {
-                          if (
-                            confirm(
-                              "Withdraw consent and stop new matching and student access?",
-                            )
-                          )
-                            void act("/consents/withdraw", {}, false);
-                        }}
-                      >
-                        Withdraw consent
-                      </Button>
+                      <BookOpen size={64} strokeWidth={1} />
                     </div>
-                  )}
-                  {d.role === "GUARDIAN" && !!d.children?.length && (
-                    <div className="panel">
-                      <h3>Guardian-managed student access</h3>
-                      <p>
-                        Create a single-use, 24-hour invitation to authorize a
-                        student device.
-                      </p>
-                      {d.children.map((c) => (
-                        <Button
-                          secondary
-                          key={c.id}
-                          onClick={async () => {
-                            const result = (await act(
-                              `/children/${c.id}/invitations`,
-                              {},
-                              false,
-                            )) as { token: string } | undefined;
-                            if (result)
-                              setMessage(
-                                `Invitation for ${c.alias}: ${result.token}. Open Student onboarding on the intended device while signed in as the inviting guardian.`,
-                              );
-                          }}
-                        >
-                          Invite {c.alias} <ArrowRight size={16} />
-                        </Button>
-                      ))}
-                      <Link href="/onboarding/student" className="inline-link">
-                        Student onboarding →
-                      </Link>
+                    <div className="dashboard-columns">
+                      <div className="panel">
+                        <div className="panel-title">
+                          <h3>Coming up next</h3>
+                          <Link
+                            href="/dashboard/lessons"
+                            className="inline-link"
+                          >
+                            View all <ArrowUpRight size={15} />
+                          </Link>
+                        </div>
+                        <LessonList
+                          lessons={
+                            d.lessons
+                              ?.filter((l) => l.status === "SCHEDULED")
+                              .sort((a, b) =>
+                                a.startsAt.localeCompare(b.startsAt),
+                              )
+                              .slice(0, 3) || []
+                          }
+                          children={d.children}
+                        />
+                      </div>
+                      <div className="panel">
+                        <h3>
+                          {d.role === "TEACHER"
+                            ? "Your teaching profile"
+                            : "Your learning team"}
+                        </h3>
+                        {d.profile ? (
+                          <>
+                            <div className="team-member">
+                              <div
+                                className="avatar"
+                                style={{ background: d.profile.avatarColor }}
+                              >
+                                {initials(d.profile.name)}
+                              </div>
+                              <div>
+                                <strong>{d.profile.name}</strong>
+                                <small>
+                                  {pretty(d.profile.status || "pending")}
+                                </small>
+                              </div>
+                            </div>
+                            <p>
+                              Approval requires completed capability checks;
+                              material changes must reopen review.
+                            </p>
+                          </>
+                        ) : d.teachers?.length ? (
+                          d.teachers.map((t) => (
+                            <div className="team-member" key={t.id}>
+                              <div
+                                className="avatar"
+                                style={{ background: t.avatarColor }}
+                              >
+                                {initials(t.name)}
+                              </div>
+                              <div>
+                                <strong>{t.name}</strong>
+                                <small>{t.subjects.join(" & ")}</small>
+                                <Link
+                                  href={`/teachers/${t.slug}`}
+                                  className="inline-link"
+                                >
+                                  View profile →
+                                </Link>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <Empty>
+                            No active teacher yet. Your shortlist is the next
+                            step.
+                          </Empty>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </>
-              )}
-            </>
-          )}
+                  </>
+                )}
+              </>
+            ))}
+          {tab.endsWith("family") &&
+            (session.account.role === "GUARDIAN" ? (
+              <FamilyAccess
+                session={session}
+                consentActive={!!d.consent && !d.consent.withdrawnAt}
+                onSessionChange={setSession}
+                onSwitchStart={beginStudentSwitch}
+                onSwitchFailure={failStudentSwitch}
+              />
+            ) : (
+              <section className="panel">
+                <h2>These controls belong to your guardian.</h2>
+                <p>
+                  Only your guardian can manage learner consent and student
+                  access.
+                </p>
+                <Link href="/dashboard" className="inline-link">
+                  Return to your learning space
+                </Link>
+              </section>
+            ))}
           {tab.endsWith("lessons") && (
             <div className="panel">
               <div className="panel-title">
@@ -2583,6 +2548,78 @@ function AppContent() {
   const [session, setSession] = useState<Session | null>(null),
     [loading, setLoading] = useState(true),
     [hindi, setHindi] = useState(false);
+  const [transition, setTransition] = useState<{
+    guardianId: string;
+    studentId?: string;
+    busy: boolean;
+    message: string;
+  } | null>(null);
+  const [switchMessage, setSwitchMessage] = useState("");
+  const client = useQueryClient(),
+    router = useRouter(),
+    path = usePathname();
+  function changeSession(next: Session | null) {
+    setSession(next);
+    setTransition(null);
+    setSwitchMessage("");
+  }
+  function beginStudentSwitch(studentId?: string) {
+    if (!session) return;
+    void client.cancelQueries();
+    client.clear();
+    setSwitchMessage("");
+    setTransition({
+      guardianId: session.account.id,
+      studentId,
+      busy: true,
+      message: "",
+    });
+  }
+  function failStudentSwitch(message: string, uncertain: boolean) {
+    if (uncertain)
+      setTransition((current) =>
+        current ? { ...current, busy: false, message } : null,
+      );
+    else {
+      setTransition(null);
+      if (path !== "/onboarding/student") setSwitchMessage(message);
+    }
+  }
+  async function checkStudentSwitch() {
+    if (!transition) return;
+    const expected = transition;
+    setTransition({ ...expected, busy: true });
+    try {
+      const next = await api<Session>("/auth/session", {
+        signal: AbortSignal.timeout(12000),
+      });
+      if (
+        next.account.role === "STUDENT" &&
+        (!expected.studentId || next.account.id === expected.studentId)
+      ) {
+        client.clear();
+        changeSession(next);
+      } else if (
+        next.account.role === "GUARDIAN" &&
+        next.account.id === expected.guardianId
+      ) {
+        client.clear();
+        changeSession(next);
+        setSwitchMessage(
+          "This browser is still signed in as the guardian. Review learner access before authorizing this device again.",
+        );
+      } else
+        throw new Error(
+          "A different account is active. Return to sign-in before continuing.",
+        );
+    } catch (error) {
+      setTransition({
+        ...expected,
+        busy: false,
+        message: (error as Error).message,
+      });
+    }
+  }
   useEffect(() => {
     let active = true;
     api<Session>("/auth/session")
@@ -2598,15 +2635,66 @@ function AppContent() {
     };
   }, []);
   return (
-    <Auth.Provider value={{ session, loading, setSession, hindi, setHindi }}>
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <Header />
-      <div id="main" tabIndex={-1}>
-        <Routes />
+    <Auth.Provider
+      value={{
+        session,
+        loading,
+        setSession: changeSession,
+        hindi,
+        setHindi,
+        beginStudentSwitch,
+        failStudentSwitch,
+      }}
+    >
+      {transition && (
+        <main className="container narrow section wizard-verification">
+          <h1>Switching to student access.</h1>
+          <p>
+            Guardian screens are hidden while we confirm which account this
+            browser is using.
+          </p>
+          {transition.busy ? (
+            <p role="status">Checking student access…</p>
+          ) : (
+            <>
+              <Alert variant="destructive" role="alert">
+                {transition.message}
+              </Alert>
+              <div className="wizard-actions">
+                <UiButton className="button" onClick={checkStudentSwitch}>
+                  Check device access
+                </UiButton>
+                <UiButton
+                  variant="outline"
+                  className="button secondary"
+                  onClick={() => {
+                    client.clear();
+                    changeSession(null);
+                    router.push("/login");
+                  }}
+                >
+                  Return to sign-in
+                </UiButton>
+              </div>
+            </>
+          )}
+        </main>
+      )}
+      <div hidden={!!transition}>
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        <Header />
+        {switchMessage && (
+          <div className="container">
+            <Alert role="status">{switchMessage}</Alert>
+          </div>
+        )}
+        <div id="main" tabIndex={-1}>
+          <Routes />
+        </div>
+        <Footer />
       </div>
-      <Footer />
     </Auth.Provider>
   );
 }
