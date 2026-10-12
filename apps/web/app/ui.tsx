@@ -7,8 +7,18 @@ import {
   ReactNode,
 } from "react";
 import Link from "next/link";
+import { Button as UiButton } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
+import { Alert } from "../components/ui/alert";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "../components/ui/tabs";
 import { DemoChoice, DemoJourney } from "./demo-journey";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   QueryClient,
   QueryClientProvider,
@@ -110,14 +120,15 @@ function Button({
   disabled?: boolean;
 }) {
   return (
-    <button
+    <UiButton
       type={type}
+      variant={secondary ? "outline" : "default"}
       className={`button ${secondary ? "secondary" : ""}`}
       onClick={onClick}
       disabled={disabled}
     >
       {children}
-    </button>
+    </UiButton>
   );
 }
 function Notice({
@@ -128,13 +139,14 @@ function Notice({
   error?: boolean;
 }) {
   return (
-    <div
+    <Alert
+      variant={error ? "destructive" : "default"}
       className={`notice ${error ? "error" : ""}`}
       role={error ? "alert" : "status"}
     >
       <AlertCircle size={18} />
       <span>{children}</span>
-    </div>
+    </Alert>
   );
 }
 function State({
@@ -645,15 +657,27 @@ function Home() {
 function Teachers() {
   const [q, setQ] = useState(""),
     [subject, setSubject] = useState(""),
-    [mode, setMode] = useState("");
+    [mode, setMode] = useState(""),
+    [board, setBoard] = useState(""),
+    [grade, setGrade] = useState(""),
+    [language, setLanguage] = useState(""),
+    [locality, setLocality] = useState(""),
+    [maxMonthly, setMaxMonthly] = useState(""),
+    [tab, setTab] = useState<"manual" | "assisted">("manual");
+  const params = new URLSearchParams();
+  if (q.trim()) params.set("q", q.trim());
+  if (subject) params.set("subject", subject);
+  if (mode) params.set("mode", mode);
+  if (board) params.set("board", board);
+  if (grade) params.set("grade", grade);
+  if (language) params.set("language", language);
+  if (locality) params.set("locality", locality);
+  if (maxMonthly)
+    params.set("maxMonthlyPaise", String(Number(maxMonthly) * 100));
   const query = useQuery({
-    queryKey:
-      q || subject || mode ? ["teachers", q, subject, mode] : ["teachers"],
+    queryKey: params.size ? ["teachers", params.toString()] : ["teachers"],
     queryFn: ({ signal }) =>
-      api<{ items: Teacher[] }>(
-        `/teachers?q=${encodeURIComponent(q)}&subject=${subject}&mode=${mode}`,
-        { signal },
-      ),
+      api<{ items: Teacher[] }>(`/teachers?${params}`, { signal }),
   });
   return (
     <main className="container section">
@@ -662,65 +686,202 @@ function Teachers() {
         title="Good learning starts with a good fit."
         subtitle="Maths & Science · Classes 6–10 · CBSE & CGBSE · Raipur"
       />
-      <div className="filter-bar">
-        <label className="search-input">
-          <Search size={19} />
-          <input
-            aria-label="Search teachers"
-            placeholder="Search a teacher or subject"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setTab(value as "manual" | "assisted")}
+      >
+        <TabsList
+          className="discovery-tabs"
+          aria-label="How would you like to find a teacher?"
+        >
+          <TabsTrigger value="manual">
+            <Search size={18} /> Search
+            <small>Browse and choose a teacher</small>
+          </TabsTrigger>
+          <TabsTrigger value="assisted">
+            <Sparkles size={18} /> Let us search for you
+            <small>Share your criteria for a reviewed shortlist</small>
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="assisted">
+          <section className="assisted-search panel">
+            <div>
+              <span className="eyebrow">PERSONALIZED HELP</span>
+              <h2>Tell us what would work for your family.</h2>
+              <p>
+                Share your learner’s class, subject, schedule and budget. We’ll
+                review suitable teachers and prepare options for your guardian
+                account.
+              </p>
+            </div>
+            <Link
+              className="button"
+              href="/onboarding/parent?discovery=ASSISTED"
+            >
+              Share your criteria <ArrowRight size={18} />
+            </Link>
+          </section>
+        </TabsContent>
+        <TabsContent value="manual">
+          <div className="filter-bar catalog-filters">
+            <label className="search-input">
+              <Search size={19} />
+              <Input
+                aria-label="Search teachers"
+                placeholder="Search a teacher or subject"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+            </label>
+            <label className="filter-select">
+              <span className="filter-label">Subject</span>
+              <select
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+              >
+                <option value="">All subjects</option>
+                <option>Maths</option>
+                <option>Science</option>
+              </select>
+            </label>
+            <label className="filter-select">
+              <span className="filter-label">Lesson mode</span>
+              <select value={mode} onChange={(e) => setMode(e.target.value)}>
+                <option value="">At home & online</option>
+                <option value="HOME">At home</option>
+                <option value="ONLINE">Online</option>
+              </select>
+            </label>
+            <label className="filter-select">
+              <span className="filter-label">Board</span>
+              <select
+                aria-label="Board"
+                value={board}
+                onChange={(e) => setBoard(e.target.value)}
+              >
+                <option value="">All boards</option>
+                <option>CBSE</option>
+                <option>CGBSE</option>
+              </select>
+            </label>
+            <label className="filter-select">
+              <span className="filter-label">Class</span>
+              <select
+                aria-label="Class"
+                value={grade}
+                onChange={(e) => setGrade(e.target.value)}
+              >
+                <option value="">All classes</option>
+                {[6, 7, 8, 9, 10].map((n) => (
+                  <option key={n} value={n}>
+                    Class {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="filter-select">
+              <span className="filter-label">Language</span>
+              <select
+                aria-label="Language"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+              >
+                <option value="">Any language</option>
+                <option>English</option>
+                <option>Hindi</option>
+              </select>
+            </label>
+            <label className="filter-select">
+              <span className="filter-label">Locality</span>
+              <select
+                aria-label="Locality"
+                value={locality}
+                onChange={(e) => setLocality(e.target.value)}
+              >
+                <option value="">Any locality</option>
+                {[
+                  "Shankar Nagar",
+                  "Avanti Vihar",
+                  "Telibandha",
+                  "Civil Lines",
+                  "Mowa",
+                ].map((l) => (
+                  <option key={l}>{l}</option>
+                ))}
+              </select>
+            </label>
+            <label className="filter-select budget-filter">
+              <span className="filter-label">Maximum monthly tuition</span>
+              <select
+                aria-label="Maximum monthly tuition"
+                value={maxMonthly}
+                onChange={(e) => setMaxMonthly(e.target.value)}
+              >
+                <option value="">Any budget</option>
+                <option value="3000">Up to ₹3,000</option>
+                <option value="5000">Up to ₹5,000</option>
+                <option value="8000">Up to ₹8,000</option>
+                <option value="12000">Up to ₹12,000</option>
+              </select>
+            </label>
+            <UiButton
+              type="button"
+              variant="outline"
+              className="reset-filters"
+              onClick={() => {
+                setQ("");
+                setSubject("");
+                setMode("");
+                setBoard("");
+                setGrade("");
+                setLanguage("");
+                setLocality("");
+                setMaxMonthly("");
+              }}
+            >
+              Reset filters
+            </UiButton>
+          </div>
+          <div className="results-heading">
+            <span role="status">
+              {query.isPending
+                ? "Searching for teachers…"
+                : query.error
+                  ? "Search unavailable"
+                  : `${query.data?.items.length || 0} teachers to get to know`}
+            </span>
+            <small>Synthetic profiles · prices are monthly tuition</small>
+          </div>
+          <State
+            loading={query.isPending}
+            error={query.error}
+            retry={() => query.refetch()}
           />
-        </label>
-        <label className="filter-select">
-          <span className="sr-only">Subject</span>
-          <select value={subject} onChange={(e) => setSubject(e.target.value)}>
-            <option value="">All subjects</option>
-            <option>Maths</option>
-            <option>Science</option>
-          </select>
-        </label>
-        <label className="filter-select">
-          <span className="sr-only">Lesson mode</span>
-          <select value={mode} onChange={(e) => setMode(e.target.value)}>
-            <option value="">At home & online</option>
-            <option value="HOME">At home</option>
-            <option value="ONLINE">Online</option>
-          </select>
-        </label>
-        <SlidersHorizontal size={20} />
-      </div>
-      <div className="results-heading">
-        <span>{query.data?.items.length || 0} teachers to get to know</span>
-        <small>Synthetic profiles · prices are monthly tuition</small>
-      </div>
-      <State
-        loading={query.isPending}
-        error={query.error}
-        retry={() => query.refetch()}
-      />
-      <div className="teacher-grid">
-        {query.data?.items.map((t) => (
-          <TeacherCard key={t.id} teacher={t} />
-        ))}
-      </div>
-      {query.data?.items.length === 0 && (
-        <Empty>
-          No teachers match these filters. Try another subject or ask us to
-          help.
-        </Empty>
-      )}
-      <div className="help-card">
-        <div>
-          <h3>Not sure who to choose?</h3>
-          <p>
-            Tell us what your child needs. We’ll help you find suitable options.
-          </p>
-        </div>
-        <Link href="/onboarding/parent" className="button secondary">
-          Help me choose <ArrowRight size={17} />
-        </Link>
-      </div>
+          <div className="teacher-grid">
+            {query.data?.items.map((t) => (
+              <TeacherCard key={t.id} teacher={t} />
+            ))}
+          </div>
+          {query.data?.items.length === 0 && (
+            <Empty>
+              No teachers match these filters. Try another subject or ask us to
+              help.
+            </Empty>
+          )}
+          <div className="help-card">
+            <div>
+              <h3>Not sure who to choose?</h3>
+              <p>
+                Tell us what your child needs. We’ll help you find suitable
+                options.
+              </p>
+            </div>
+            <Link href="/onboarding/parent" className="button secondary">
+              Help me choose <ArrowRight size={17} />
+            </Link>
+          </div>
+        </TabsContent>
+      </Tabs>
     </main>
   );
 }
@@ -802,7 +963,7 @@ function Profile({ slug }: { slug: string }) {
             </p>
             <Link
               className="button"
-              href={`/onboarding/parent?teacher=${t.id}`}
+              href={`/onboarding/parent?teacher=${t.id}&profile=${encodeURIComponent(t.slug)}`}
             >
               Find a recurring teacher <ArrowUpRight size={18} />
             </Link>
@@ -822,6 +983,7 @@ function Profile({ slug }: { slug: string }) {
   );
 }
 function Login() {
+  const searchParams = useSearchParams();
   const { setSession } = useAuth(),
     router = useRouter(),
     client = useQueryClient();
@@ -841,7 +1003,12 @@ function Login() {
       });
       client.clear();
       setSession(session);
-      router.push("/dashboard");
+      const next = searchParams.get("next");
+      router.push(
+        next && /^\/onboarding\/(parent|teacher|student)(?:\?|$)/.test(next)
+          ? next
+          : "/dashboard",
+      );
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -936,12 +1103,22 @@ function Field({
   );
 }
 function IntakeForm() {
+  const searchParams = useSearchParams();
   const { session } = useAuth(),
     router = useRouter(),
     client = useQueryClient();
   const [status, setStatus] = useState(""),
     [error, setError] = useState(""),
     [accepted, setAccepted] = useState(false);
+  const preferredTeacherId = searchParams.get("teacher") || "";
+  const discovery = preferredTeacherId ? "MANUAL" : "ASSISTED";
+  const profile = searchParams.get("profile");
+  const chosenTeacher = useQuery({
+    queryKey: ["teacher", profile],
+    queryFn: ({ signal }) =>
+      api<Teacher>(`/teachers/${encodeURIComponent(profile!)}`, { signal }),
+    enabled: !!preferredTeacherId && !!profile,
+  });
   const [key, setKey] = useState(() => crypto.randomUUID());
   const form = useForm<Intake>({
     resolver: zodResolver(intakeSchema),
@@ -957,6 +1134,22 @@ function IntakeForm() {
       schedule: "",
     },
   });
+  useEffect(() => {
+    const teacher = chosenTeacher.data;
+    if (!teacher || teacher.id !== preferredTeacherId) return;
+    const defaults: Partial<Intake> = {
+      subject: teacher.subjects[0] as Intake["subject"],
+      mode: teacher.modes[0] as Intake["mode"],
+      language: teacher.languages[0] as Intake["language"],
+      locality: teacher.localities[0] || "Shankar Nagar",
+      budget: String(teacher.monthlyPaise / 100),
+    };
+    for (const [name, value] of Object.entries(defaults)) {
+      const field = name as keyof Intake;
+      if (value && !form.getFieldState(field).isDirty)
+        form.setValue(field, value);
+    }
+  }, [chosenTeacher.data, preferredTeacherId, form]);
   const children = useQuery({
     queryKey: ["children", session?.account.id],
     queryFn: () => api<{ items: Child[] }>("/children"),
@@ -996,6 +1189,9 @@ function IntakeForm() {
         body: {
           ...data,
           childId: childId || undefined,
+          discoveryMethod: discovery,
+          preferredTeacherId:
+            discovery === "MANUAL" ? preferredTeacherId : undefined,
           grade: Number(data.grade),
           budget: undefined,
           budgetPaise: Number(data.budget) * 100,
@@ -1044,6 +1240,27 @@ function IntakeForm() {
           </Notice>
         </aside>
         <form className="panel form-panel" onSubmit={form.handleSubmit(submit)}>
+          <div className="discovery-choice">
+            <strong>
+              {discovery === "MANUAL"
+                ? "You chose a teacher"
+                : "We’ll help find a suitable teacher"}
+            </strong>
+            {chosenTeacher.data?.id === preferredTeacherId && (
+              <span>
+                {chosenTeacher.data.name} ·{" "}
+                {rupees(chosenTeacher.data.monthlyPaise)} per month
+              </span>
+            )}
+            <p>
+              {discovery === "MANUAL"
+                ? "Your request will be reviewed for this teacher’s availability and fit."
+                : "Your criteria will be reviewed against the eligible teacher pool."}
+            </p>
+            <Link className="text-button" href="/teachers">
+              Change discovery option
+            </Link>
+          </div>
           <div className="form-section-heading">
             <span>01</span>
             <h3>Your learner</h3>
@@ -1162,7 +1379,7 @@ function IntakeForm() {
               label="When do lessons work for your family?"
               error={form.formState.errors.schedule?.message}
             >
-              <textarea
+              <Textarea
                 {...form.register("schedule")}
                 placeholder="For example: Monday and Wednesday, after 5pm"
                 rows={3}
@@ -1206,6 +1423,9 @@ function IntakeForm() {
   );
 }
 function LoginPrompt() {
+  const path = usePathname();
+  const searchParams = useSearchParams();
+  const next = path + (searchParams.size ? `?${searchParams}` : "");
   return (
     <main className="container narrow section">
       <PageTitle
@@ -1213,7 +1433,7 @@ function LoginPrompt() {
         title="Sign in to continue."
         subtitle="Private learning journeys are available only to the right account."
       />
-      <Link className="button" href="/login">
+      <Link className="button" href={`/login?next=${encodeURIComponent(next)}`}>
         Choose a demo account <ArrowRight size={18} />
       </Link>
     </main>
