@@ -5,7 +5,7 @@ export interface Teacher {id:string;slug:string;name:string;headline:string;bio:
 export interface Child {id:string;alias:string;grade:number;board:string}
 export interface Lesson {id:string;childId:string;subject:string;kind:string;startsAt:string;endsAt:string;status:string;attendance:string;disputed:boolean;version:number}
 export interface TuitionRequest {id:string;childId:string;subject:string;mode:string;language:string;locality:string;budgetPaise:number;schedule:string;status:string;version:number;createdAt:string}
-export interface Candidate {id:string;teacherId:string;score:number;reasons:string[];response:string}
+export interface Candidate {id:string;teacherId:string;score:number;reasons:string[];response:string;version:number;runId:string|null;expiresAt:string|null;presentedAt:string|null}
 export interface Placement {id:string;teacherId:string;childId:string;monthlyPaise:number;status:string;version:number;guardianAccepted:boolean;teacherAccepted:boolean;guardianStarted:boolean;teacherReceiptConfirmed:boolean}
 export interface Reservation {id:string;teacherId:string;kind:string;startsAt:string;endsAt:string;status:string;version:number;topic:string;scopeAccepted:boolean;amountPaise:number;expiresAt:string|null}
 export interface Note {id:string;childId:string;text:string;sharedTeacherId:string|null;version:number;createdAt:string}

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import {ids} from "../../packages/test-fixtures/src";
+import { ids } from "../../packages/test-fixtures/src";
 async function login(page: import("@playwright/test").Page, name: string) {
   await page.goto("/login");
   await page.getByRole("button", { name: new RegExp(name) }).click();
@@ -199,6 +199,9 @@ test("guardian arranges and reschedules a demo; no-show reaches operator review"
       await page.request.get("/api/v1/auth/session")
     ).json();
     const schedule = "Browser demo " + randomUUID();
+    const preferenceStart = new Date();
+    preferenceStart.setUTCDate(preferenceStart.getUTCDate() + 44);
+    preferenceStart.setUTCHours(6, 0, 0, 0);
     const request = await post(
       page.request,
       "/requests",
@@ -213,6 +216,17 @@ test("guardian arranges and reschedules a demo; no-show reaches operator review"
         locality: "Shankar Nagar",
         budgetPaise: 400000,
         schedule,
+        preferences: {
+          timezone: "Asia/Kolkata",
+          slots: [
+            {
+              startsAt: preferenceStart.toISOString(),
+              endsAt: new Date(
+                Date.now() + 44 * 86400000 + 3600000,
+              ).toISOString(),
+            },
+          ],
+        },
       },
       session.csrfToken,
     );
@@ -228,8 +242,19 @@ test("guardian arranges and reschedules a demo; no-show reaches operator review"
     await post(
       teacher,
       `/candidates/${candidate.id}/responses`,
-      { response: "ACCEPTED" },
+      { response: "ACCEPTED", expectedVersion: candidate.version },
       t.csrfToken,
+    );
+    await post(
+      operator,
+      `/admin/requests/${request.id}/presentations`,
+      {
+        expectedVersion: recommendations.requestVersion,
+        runId: recommendations.runId,
+        candidateIds: [candidate.id],
+        reason: "Synthetic operator shortlist review",
+      },
+      op.csrfToken,
     );
     await page.goto("/dashboard/requests");
     const panel = page.locator(".panel").filter({ hasText: schedule });

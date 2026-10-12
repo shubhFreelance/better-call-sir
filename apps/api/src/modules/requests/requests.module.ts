@@ -10,6 +10,7 @@ import helmet from 'helmet';
 import {z} from 'zod';
 import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} from '../../policies';
 
+import {matched} from '../matching/eligibility';
 import {preferenceSchema,normalizedPreferences} from './request-schedule';
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
 
@@ -34,7 +35,7 @@ class RequestsController {
 
   @Post('requests/:id/schedules') async schedule(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
     parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(preferenceSchema.extend({expectedVersion:version}).strict(),body);const preferences=normalizedPreferences(data);if(!preferences)fail(400,'INVALID_SCHEDULE','Use nonoverlapping 20–120 minute UTC windows between one hour and 60 days ahead.');
-    return this.service.once(req,actor,'request.schedule',data,async db=>{await this.service.guardian(db,actor.id);const request=await db.tuitionRequest.findUnique({where:{id}});if(!request||request.guardianId!==actor.id)fail(404,'NOT_FOUND','Request not found.');const changed=await db.tuitionRequest.updateMany({where:{id,version:data.expectedVersion,status:'OPEN'},data:{schedulePreferences:preferences,scheduleStatus:'CONFIRMED',matchStatus:'PENDING',version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Request changed or is not open.');await this.service.audit(db,actor,req,'REQUEST_SCHEDULE_CONFIRMED',id,'Guardian confirmed structured schedule',undefined,{timezone:preferences.timezone,windows:preferences.slots.length});await this.service.event(db,'request.schedule_confirmed',id,data.expectedVersion+1);return db.tuitionRequest.findUniqueOrThrow({where:{id}});});
+    return this.service.once(req,actor,'request.schedule',data,async db=>{await this.service.guardian(db,actor.id);const request=await db.tuitionRequest.findUnique({where:{id}});if(!request||request.guardianId!==actor.id)fail(404,'NOT_FOUND','Request not found.');const changed=await db.tuitionRequest.updateMany({where:{id,version:data.expectedVersion,status:'OPEN'},data:{schedulePreferences:preferences,scheduleStatus:'CONFIRMED',matchStatus:'PENDING',selectedCandidateId:null,version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Request changed or is not open.');await db.recommendation.updateMany({where:{requestId:id},data:{presentedAt:null,expiresAt:new Date(),version:{increment:1}}});await this.service.audit(db,actor,req,'REQUEST_SCHEDULE_CONFIRMED',id,'Guardian confirmed structured schedule',undefined,{timezone:preferences.timezone,windows:preferences.slots.length});await this.service.event(db,'request.schedule_confirmed',id,data.expectedVersion+1);return db.tuitionRequest.findUniqueOrThrow({where:{id}});});
   }
   @Post('waitlist') async waitlist(@Req() req:HttpRequest,@Body() body:unknown){
     const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({grade:z.number().int().min(1).max(12),board:text(30),subject:text(40),language:text(30),mode:z.enum(['HOME','ONLINE']),region:text(80)}).strict(),body);
@@ -51,7 +52,10 @@ class RequestsController {
     parse(uuid,id);const account=await this.service.actor(req,['GUARDIAN','ADMIN','OPERATOR']);
     const request=await this.db.tuitionRequest.findUnique({where:{id}});
     if (!request || (account.role==='GUARDIAN' && request.guardianId!==account.id) || (account.role==='OPERATOR'&&request?.region!==account.region)) fail(404,'NOT_FOUND','Request not found.');
-    return {...request,candidates:await this.db.recommendation.findMany({where:{requestId:id}})};
+    const child=await this.db.child.findUniqueOrThrow({where:{id:request.childId}}),candidates=[];
+    const consent=await this.db.consent.findUnique({where:{guardianId:request.guardianId}});
+    if(request.status==='OPEN'&&consent&&!consent.withdrawnAt)for(const candidate of await this.db.recommendation.findMany({where:{requestId:id,presentedAt:{not:null},expiresAt:{gt:new Date()}},orderBy:{position:'asc'}})){const teacher=await this.db.teacher.findUniqueOrThrow({where:{id:candidate.teacherId}});if(await matched(this.db,request,child,teacher))candidates.push(candidate);}
+    return {...request,candidates};
   }
 
 }

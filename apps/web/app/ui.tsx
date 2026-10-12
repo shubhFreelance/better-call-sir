@@ -2014,8 +2014,11 @@ function DashboardPage({ tab }: { tab: string }) {
                               onClick={() =>
                                 void act(
                                   `/candidates/${c.id}/responses`,
-                                  { response: "ACCEPTED" },
-                                  false,
+                                  {
+                                    response: "ACCEPTED",
+                                    expectedVersion: c.version,
+                                  },
+                                  true,
                                 )
                               }
                             >
@@ -2026,8 +2029,11 @@ function DashboardPage({ tab }: { tab: string }) {
                               onClick={() =>
                                 void act(
                                   `/candidates/${c.id}/responses`,
-                                  { response: "DECLINED" },
-                                  false,
+                                  {
+                                    response: "DECLINED",
+                                    expectedVersion: c.version,
+                                  },
+                                  true,
                                 )
                               }
                             >
@@ -2613,7 +2619,7 @@ function AdminPanel({ dashboard: d, act }: { dashboard: Dashboard; act: Act }) {
                   void act(
                     `/admin/requests/${r.id}/recommendations`,
                     { expectedVersion: r.version },
-                    false,
+                    true,
                   )
                 }
               >

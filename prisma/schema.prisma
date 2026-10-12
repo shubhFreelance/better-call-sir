@@ -103,6 +103,7 @@ model TuitionRequest {
   schedulePreferences Json?
   scheduleStatus String @default("UNCONFIRMED")
   matchStatus String @default("PENDING")
+  selectedCandidateId String? @db.Uuid
   status String @default("OPEN")
   version Int @default(1)
   createdAt DateTime @default(now())
@@ -116,6 +117,11 @@ model Recommendation {
   reasons String[]
   rankerVersion String @default("rules-v1")
   response String @default("PENDING")
+  version Int @default(1)
+  runId String? @db.Uuid
+  expiresAt DateTime?
+  presentedAt DateTime?
+  position Int?
   @@unique([requestId, teacherId])
 }
 model Reservation {
@@ -368,4 +374,40 @@ model Waitlist {
   status String @default("PENDING")
   createdAt DateTime @default(now())
   @@index([guardianId, status])
+}
+
+model RecommendationRun {
+  id String @id @default(uuid()) @db.Uuid
+  requestId String @db.Uuid
+  requestVersion Int
+  operatorId String @db.Uuid
+  rankerVersion String
+  featureVersion String
+  requestFeatures Json @default("{}")
+  eligiblePool Json
+  rankedCandidates Json
+  result String
+  createdAt DateTime @default(now())
+  @@index([requestId, createdAt])
+}
+model RecommendationPresentation {
+  id String @id @default(uuid()) @db.Uuid
+  runId String @db.Uuid
+  requestId String @db.Uuid
+  actorId String @db.Uuid
+  candidateIds String[] @db.Uuid
+  kind String
+  reason String
+  createdAt DateTime @default(now())
+  @@index([requestId, createdAt])
+}
+model CandidateDecision {
+  id String @id @default(uuid()) @db.Uuid
+  candidateId String @db.Uuid
+  runId String @db.Uuid
+  actorId String @db.Uuid
+  action String
+  candidateVersion Int
+  createdAt DateTime @default(now())
+  @@index([candidateId])
 }

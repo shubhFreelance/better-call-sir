@@ -56,7 +56,7 @@ export class AppService {
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
     const account = await db.account.findUnique({where:{id}});
     const consent = await db.consent.findUnique({where:{guardianId:id}});
-    if (!account?.verified || !consent || consent.withdrawnAt) fail(403,'CONSENT_REQUIRED','Adult verification and active guardian consent are required.');
+    if (!account?.verified || account.disabled || !consent || consent.withdrawnAt) fail(403,'CONSENT_REQUIRED','Adult verification and active guardian consent are required.');
   }
   async child(db: DB, account: Account, id: string) {
     const child = await db.child.findUnique({where:{id}});
@@ -98,7 +98,8 @@ export class AppService {
     return this.sessionResponse(account,await this.issueSession(account,familyId),res);
   }
   async publicTeachers(where:Prisma.TeacherWhereInput={},limit=50,cursor?:string) {
-    const teachers=await this.db.teacher.findMany({where:{AND:[where,{status:'APPROVED',screeningComplete:true,screeningValidUntil:{gt:new Date()}}]},orderBy:[{name:'asc'},{id:'asc'}],take:limit,...(cursor?{cursor:{id:cursor},skip:1}:{})});
+    const active=await this.db.account.findMany({where:{disabled:false,role:'TEACHER'},select:{id:true}});
+    const teachers=await this.db.teacher.findMany({where:{AND:[where,{accountId:{in:active.map(a=>a.id)},status:'APPROVED',screeningComplete:true,screeningValidUntil:{gt:new Date()}}]},orderBy:[{name:'asc'},{id:'asc'}],take:limit,...(cursor?{cursor:{id:cursor},skip:1}:{})});
     return teachers.map(t=>this.publicProjection(t));
   }
   publicProjection(t:Teacher) {return {id:t.id,slug:t.slug,name:t.name,headline:t.headline,bio:t.bio,subjects:t.subjects,boards:t.boards,grades:t.grades,languages:t.languages,modes:t.modes,localities:t.localities,monthlyPaise:t.monthlyPaise,experience:t.experience,avatarColor:t.avatarColor,capabilityLabel:'Reviewed subject coverage',consultationOptIn:t.consultationOptIn};}
