@@ -1,4 +1,4 @@
-# Development validation — 11 October 2026
+# Development validation — 12 October 2026
 
 The table records current-instance development evidence; source-linked hosted CI status is recorded below. Neither establishes production qualification.
 
@@ -8,9 +8,9 @@ The table records current-instance development evidence; source-linked hosted CI
 | Prisma generation, migration deploy, repeatable seed | Passed against PostgreSQL 17.11                                                           |
 | API, worker and Next.js independent builds           | Passed                                                                                    |
 | TypeScript checks across three applications          | Passed                                                                                    |
-| Domain policy tests                                  | 5 passed; none failed/skipped                                                             |
-| Isolated real-PostgreSQL API integration tests       | 30 passed; none failed/skipped                                                            |
-| API operation/schema/client contract checks          | 7 passed; none failed/skipped                                                             |
+| Domain policy/calendar/ranking tests                  | 9 passed; none failed/skipped                                                             |
+| Isolated real-PostgreSQL API integration tests       | 40 passed; none failed/skipped                                                            |
+| API operation/schema/client contract checks          | 8 passed; none failed/skipped                                                             |
 | Contract-generated mock HTTP/startup tests           | 4 passed; none failed/skipped                                                             |
 | Secrets scanner and CI evidence tests                 | 5 passed; none failed/skipped                                                             |
 | Release verifier behavior tests                      | 2 passed; missing/stale pilot evidence correctly blocked                                  |
@@ -20,9 +20,9 @@ The table records current-instance development evidence; source-linked hosted CI
 | Production dependency audit                          | 0 known vulnerabilities across runtime and development tooling at this run                        |
 | Running worker                                       | Synthetic request outbox events processed; live refund reconciliation remains unavailable |
 
-Total automated tests: **64 passed**. Nine browser journeys used the actual development API; two additional guardian intake journeys used the contract mock. Integration tests created and dropped their own synthetic databases. Reservation conflicts were tested with simultaneous overlapping intervals; session replay, foreign ownership, child consent withdrawal, late capture, refund intent, note revocation, stale attendance and consultation overspend were exercised.
+Total automated tests: **79 passed**. Nine browser journeys used the actual development API; two additional guardian intake journeys used the contract mock. Integration tests created and dropped their own synthetic databases. Reservation conflicts were tested with simultaneous overlapping intervals; session replay, foreign ownership, child consent withdrawal, late capture, refund intent, note revocation, stale attendance and consultation overspend were exercised.
 
-This does not establish all P0 story acceptance, 90% policy/80% backend coverage, ASVS compliance, full-site accessibility, provider sandbox contracts, production latency targets, penetration testing, private-media scanning, live MFA, off-host backup restoration, immutable application-container qualification or VPS deployment. Hosted CI passed for the source commits listed below; raw private artifact contents have not been inspected here. Remaining work stays in `docs/SPRINTS.md`.
+This does not establish all P0 story acceptance, 90% policy/80% backend coverage, ASVS compliance, full-site accessibility, provider sandbox contracts, production latency targets, penetration testing, production private-media qualification, live MFA, off-host backup restoration, immutable application-container qualification or VPS deployment. Hosted CI passed for the source commits listed below; raw private artifact contents have not been inspected here. Remaining work stays in `docs/SPRINTS.md`.
 
 ## US07 scheduling increment — 11 October 2026
 
@@ -43,3 +43,18 @@ Hosted GitHub run pages report successful workflows for:
 The final run page's commit link matches the reviewed source exactly. Workflow configuration preserves JUnit, browser, build, contract, secrets and dependency reports and an exact-commit check-outcome record. Public run pages were used because the GitHub API CONNECT request was blocked; private artifact payloads have not been downloaded or claimed reviewed. The final acceptance documentation is a subsequent documentation-only commit.
 
 See [Phase 1 acceptance and boundaries](PHASE_1_ACCEPTANCE.md). This establishes the synthetic development foundation and its implementation review. Live guardian verification, provider integrations, MFA and independent release/security/recovery review remain open; neither the evidence generator nor this record enables production.
+
+## Phase 2 backend core completion evidence
+
+Reviewed implementation: `2e241a95022c2fd1b82b117384809dedcb7d9a1f`. Local checks pass with **79 tests**: nine policy/calendar/ranking, 40 fresh-PostgreSQL API, eight contract, four mock, five security/evidence, two release-boundary and 11 browser journeys. API/worker/Next.js builds, TypeScript checks, generated client and structural lint pass. Source scan has no findings; runtime and development tooling audit has zero known advisories at this run. Existing development migrations apply without resetting the persistent fixture database.
+
+| Implementation increment | Successful hosted evidence |
+| --- | --- |
+| `c3a9e4f` — screening/quarantine | [38207929283](https://github.com/shubhFreelance/better-call-sir/actions/runs/38207929283) |
+| `4aa2347` — intake plus optional-filter compatibility | [38209843258](https://github.com/shubhFreelance/better-call-sir/actions/runs/38209843258) |
+| `a0abcca` — current matching and immutable evidence | [38211939892](https://github.com/shubhFreelance/better-call-sir/actions/runs/38211939892) |
+| `2e241a95022c2fd1b82b117384809dedcb7d9a1f` — final ownership/reservation/suspension source | [38216194096](https://github.com/shubhFreelance/better-call-sir/actions/runs/38216194096) |
+
+The final run reports success and its commit link matches the reviewed source exactly. The final acceptance documentation is a subsequent documentation-only commit. Public run pages were inspected; authenticated raw artifacts were not downloaded. The original availability run failed its blank-filter browser case and was fixed without relaxing validation; superseded runs were cancelled by configured branch concurrency. The final browser fixture uses its chosen preference start for both ends, avoiding time-of-day-dependent invalid durations.
+
+Real ClamAV engine checks include clean and EICAR-infected content plus unavailable-provider quarantine. The deterministic scanner has EICAR-only definitions and proves no current production signature coverage. API and worker have been restarted with Phase 2 code; worker notifications remain synthetic and refund jobs stay pending. See [Phase 2 acceptance and remaining boundaries](PHASE_2_ACCEPTANCE.md).

@@ -12,12 +12,12 @@ Source: **BetterCallSir_MVP_PRD.docx, Version 3.0, 11 October 2026**, supplied b
 
 ## Phase sequence — PRD Section 10
 
-**Active phase: 2 — Backend core implementation in progress.** The initial implementation contains later-phase slices; they do not close those phases. The demo increments belong to Phase 4, even though they were developed earlier. See `docs/PHASE_1_ACCEPTANCE.md` for the foundation review and `docs/VALIDATION.md` for source-linked checks. The owner authorized Phase 2 completion on 12 October 2026.
+**Phase 2 backend core implementation and development acceptance complete. Next phase: 3 — Frontend, not started by this completion task.** The initial implementation contains later-phase slices; they do not close those phases. The demo increments belong to Phase 4, even though they were developed earlier. See `docs/PHASE_1_ACCEPTANCE.md` for the foundation review and `docs/VALIDATION.md` for source-linked checks. The owner authorized Phase 2 completion on 12 October 2026.
 
 | Phase | PRD deliverables | Exit evidence | Current status |
 | --- | --- | --- | --- |
 | 1 Foundation | Threat model, modules, schema draft, OpenAPI, CI, auth/consent skeleton | Contract/ownership tests and reviewed foundation evidence; integrated guardian demonstration | Foundation implementation/review recorded; 64 tests, builds, scans and hosted CI pass |
-| 2 Backend core | Teacher screening, public projection, intake, eligible matching, reservations, audit | Real-database constraints and authorization checks | Early slices present; phase not accepted |
+| 2 Backend core | Teacher screening, public projection, intake, eligible matching, reservations, audit | Real-database constraints and authorization checks | Development acceptance recorded; 79 tests, builds/scans and exact-source hosted CI pass |
 | 3 Frontend | Independent web screens against mocks and the real Phase 2 API | Mobile/accessibility and integrated discovery tests | Early screens present; phase not accepted |
 | 4 Transactions | Demos, terms, placement invoices, revision holds, checkout, reconciliation | Payment replay, concurrency and actual provider sandbox evidence | Development demo/booking slices present; phase not accepted |
 | 5 Service operations | Notes, cases, rematches, follow-ups, deletion, outbox, reports | Privacy/retry tests and operator drills | Early slices present; phase not accepted |
@@ -64,11 +64,11 @@ This initial implementation also contains early development slices from later ph
 | US19 | Separate routes, guardian-bound hashed single-use invitations and student principal | Draft resume, device revocation UI, reviewed activation/privacy notices, private teacher uploads |
 | US20 | Development console, explicit review/flag reason, audit history and kill switches | Live MFA, region-scoped delegation, dual approval, finance/refund/retry controls, full configuration rollback |
 
-## Next planned phase — Phase 2 backend core
+## Phase 2 backend core delivery
 
 Phase 1's implementation review and evidence are recorded in `docs/PHASE_1_ACCEPTANCE.md` and `docs/VALIDATION.md`. Hosted acceptance passed for the reviewed source commit. Live provider stubs remain explicitly open, as permitted by the foundation definition of done.
 
-Phase 2 has not started. Its next sprint covers private teacher evidence/quarantine, capability-review records, public availability, schedule/capacity-aware eligibility and the remaining core relational/authorization checks. Full frontend completion follows in Phase 3. Qualify the existing demo slice and extend recurring schedules, invoice checkout and reconciliation in Phase 4. Parent Pro calling remains required under Version 3 and its release gates.
+Phase 2 now covers private teacher evidence/quarantine, capability-review records, public availability, schedule/capacity-aware eligibility and core relational/authorization checks. Its completed development evidence is in `docs/PHASE_2_ACCEPTANCE.md`. Full frontend completion follows in Phase 3. Qualify the existing demo slice and extend recurring schedules, invoice checkout and reconciliation in Phase 4. Parent Pro calling remains required under Version 3 and its release gates.
 
 The remaining PRD phases stay required: frontend completion, transaction qualification, service operations, security/recovery/load evidence, and the final VPS pilot. Production release is blocked until all P0 stories and Sections 14–16 gates pass. The owner's 440–720 hour estimate is planning context, not work already completed.
 
@@ -147,3 +147,9 @@ Additive PostgreSQL migration enforces family ownership for request/child, invit
 ### Phase 2 increment — US04 paid-booking suspension review
 
 Suspension now creates an open support review and audit/outbox evidence when an expert has paid future confirmed reservations. It preserves the accepted bookings and makes no automatic cancellation, charge or settled-refund claim. The real-DB regression verifies both the support flag and unchanged booking/payment state. All 40 API tests and type checks pass.
+
+## Phase 2 completion record
+
+Reviewed implementation: `2e241a95022c2fd1b82b117384809dedcb7d9a1f`. Hosted [run 38216194096](https://github.com/shubhFreelance/better-call-sir/actions/runs/38216194096) completed successfully and its commit link matches that source. Local validation passes: nine domain/calendar/ranking, 40 isolated real-DB API, eight contract, four mock, five scanner/evidence, two release-boundary and 11 browser tests (**79 total**, no failures/skips); all builds/type checks and contract lint pass, source scan has no findings and full dependency audit has zero known advisories at this run.
+
+[Phase 2 acceptance](PHASE_2_ACCEPTANCE.md) records the implementation review, real-API demonstration, permission matrix, additive constraints, workflow migration and limits. Every completed feature/API increment was separately committed and pushed. The initial discovery-filter failure was reproduced and fixed; superseded CI runs cancelled by branch concurrency are not claimed successful. Raw private CI artifacts and independent production/provider review remain uninspected. Phase 3 has not started; no merge or deployment occurred.
