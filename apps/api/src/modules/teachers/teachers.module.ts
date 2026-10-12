@@ -58,7 +58,16 @@ class TeachersController {
       if (data.status==='APPROVED' && (!validUntil || !before.feeTermsAcceptedAt)) fail(409,'SCREENING_REQUIRED','Current identity, qualification, capability and reference checks with clean evidence and accepted fee terms are required.');
       const changed=await db.teacher.updateMany({where:{id,version:data.expectedVersion},data:{status:data.status,screeningComplete:data.status==='APPROVED',screeningValidUntil:validUntil,version:{increment:1}}});
       if (!changed.count) fail(409,'CONFLICT','The application has changed.');
-      if (data.status==='SUSPENDED') await db.note.updateMany({where:{sharedTeacherId:id},data:{sharedTeacherId:null}});
+      if (data.status==='SUSPENDED') {
+        await db.note.updateMany({where:{sharedTeacherId:id},data:{sharedTeacherId:null}});
+        const bookings=await db.reservation.findMany({where:{teacherId:id,status:'CONFIRMED',endsAt:{gt:new Date()}},select:{id:true}});
+        const paid=await db.payment.findMany({where:{reservationId:{in:bookings.map(b=>b.id)}},select:{reservationId:true}});
+        if (paid.length) {
+          const support=await db.supportCase.create({data:{accountId:actor.id,category:'PAID_BOOKING_REVIEW',description:`Suspended teacher ${id}; ${paid.length} paid confirmed bookings require review. First 50 booking IDs: ${paid.slice(0,50).map(p=>p.reservationId).join(',')}`}});
+          await this.service.audit(db,actor,req,'SUSPENDED_TEACHER_BOOKINGS_FLAGGED',support.id,data.reason,undefined,{teacherId:id,bookingCount:paid.length});
+          await this.service.event(db,'support.booking_review_requested',support.id);
+        }
+      }
       await this.service.audit(db,actor,req,'TEACHER_REVIEW',id,data.reason,{status:before.status},{status:data.status});return db.teacher.findUniqueOrThrow({where:{id}});
     });
   }

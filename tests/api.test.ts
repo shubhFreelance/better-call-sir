@@ -332,6 +332,17 @@ test('matching rechecks capacity, travel, calendar and suspension before present
  await db.recommendation.update({where:{id:candidate.id},data:{expiresAt:new Date(0)}});assert.equal((await teacher.call(`/candidates/${candidate.id}/responses`,{expectedVersion:published.data.items[0].version,response:'ACCEPTED'})).status,409);
 });
 
+test('suspending an expert flags paid future bookings without cancelling or fabricating a refund',async()=>{
+ const t=await db.teacher.findUniqueOrThrow({where:{id:ids.teacher}});
+ const hold=await parent.call('/revision/holds',{teacherId:t.id,startsAt:future(48),duration:20,topic:'Maths'});assert.equal(hold.status,201);
+ await teacher.call(`/reservations/${hold.data.id}/scope`,{expectedVersion:1});
+ const capture=await parent.call(`/dev/reservations/${hold.data.id}/capture`,{providerEventId:randomUUID(),amountPaise:30000,currency:'INR'});assert.equal(capture.data.reservation.status,'CONFIRMED');
+ const review=await operator.call(`/admin/teachers/${t.id}/reviews`,{expectedVersion:t.version,status:'SUSPENDED',reason:'Screening issue requires review'});assert.equal(review.status,201);
+ const support=await db.supportCase.findFirstOrThrow({where:{category:'PAID_BOOKING_REVIEW',description:{contains:hold.data.id}}});assert.equal(support.status,'OPEN');
+ assert.equal((await db.reservation.findUniqueOrThrow({where:{id:hold.data.id}})).status,'CONFIRMED');
+ assert.equal(await db.refund.count({where:{paymentId:capture.data.payment.id}}),0);
+ await db.teacher.update({where:{id:t.id},data:{status:t.status,screeningComplete:t.screeningComplete,screeningValidUntil:t.screeningValidUntil}});
+});
 test('database ownership constraints reject cross-family learning and financial links',async()=>{
  const req=await parent.call('/requests',intake());assert.equal(req.status,201);
  await assert.rejects(db.tuitionRequest.update({where:{id:req.data.id},data:{childId:ids.otherChild}}));
