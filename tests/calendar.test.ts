@@ -11,3 +11,10 @@ test('half-open occupancy leaves adjacent slots available and blocks shifted ove
  const snapshot={patterns:[pattern],blocks:[{startsAt:new Date('2026-10-12T03:50:00Z'),endsAt:new Date('2026-10-12T04:10:00Z')}]},now=new Date('2026-10-12T00:00:00Z');
  assert(availableIn(snapshot,new Date('2026-10-12T03:30:00Z'),new Date('2026-10-12T03:50:00Z'),now));assert.equal(availableIn(snapshot,new Date('2026-10-12T03:40:00Z'),new Date('2026-10-12T04:00:00Z'),now),null);assert(availableIn(snapshot,new Date('2026-10-12T04:10:00Z'),new Date('2026-10-12T04:30:00Z'),now));
 });
+
+test('existing holds can confirm inside the initial lead time without bypassing occupancy',()=>{
+ const now=new Date('2026-10-12T03:00:00Z'),start=new Date('2026-10-12T03:30:00Z'),end=new Date('2026-10-12T03:50:00Z');
+ assert.equal(availableIn({patterns:[pattern],blocks:[]},start,end,now),null);
+ assert.equal(availableIn({patterns:[pattern],blocks:[]},start,end,now,0)?.id,pattern.id);
+ assert.equal(availableIn({patterns:[pattern],blocks:[{startsAt:start,endsAt:end}]},start,end,now,0),null);
+});

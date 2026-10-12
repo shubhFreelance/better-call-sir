@@ -365,6 +365,8 @@ class SchedulingController {
       teacher.screeningValidUntil <= new Date()
     )
       fail(404, "NOT_FOUND", "Teacher unavailable.");
+    const account=await this.service.db.account.findUnique({where:{id:teacher.accountId}});
+    if (!account || account.disabled || account.role!=="TEACHER") fail(404,"NOT_FOUND","Teacher unavailable.");
     const cursor = data.cursor ? new Date(data.cursor) : null;
     if (cursor && (cursor < startsAt || cursor > endsAt))
       fail(400, "INVALID_CURSOR", "Cursor must belong to this query range.");

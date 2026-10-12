@@ -11044,6 +11044,26 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "INTERNAL"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "INTERNAL",
+              "ADVERTISED"
+            ]
+          },
+          "sourceId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
           }
         },
         "required": [

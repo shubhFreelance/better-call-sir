@@ -12,6 +12,8 @@ import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} fr
 
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
 
+import {available} from '../scheduling/calendar';
+
 @Controller('api/v1')
 class MembershipsController {
   constructor(@Inject(AppService) private readonly service: AppService) {}
@@ -26,20 +28,27 @@ class MembershipsController {
       if (membership.used+membership.reserved>=membership.allowance) fail(409,'ALLOWANCE_EXHAUSTED','Your consultation allowance is fully reserved or used.');
       const p=await db.placement.findUnique({where:{id:data.placementId}});
       if (!p || p.guardianId!==actor.id || p.status!=='ACTIVE') fail(404,'NOT_FOUND','Active teacher assignment not found.');
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${p.teacherId},0))`;
       const teacher=await db.teacher.findUniqueOrThrow({where:{id:p.teacherId}});
-      if (teacher.status!=='APPROVED' || !teacher.consultationOptIn) fail(409,'UNAVAILABLE','This teacher is not accepting consultations.');
+      if (teacher.status!=='APPROVED' || !teacher.screeningComplete || !teacher.screeningValidUntil || teacher.screeningValidUntil<=new Date() || !teacher.consultationOptIn) fail(409,'UNAVAILABLE','This teacher is not accepting consultations.');
       const startsAt=new Date(data.startsAt);if (startsAt<new Date() || startsAt>membership.periodEnd) fail(400,'INVALID_SLOT','Select a future slot within your membership period.');
+      const account=await db.account.findUnique({where:{id:teacher.accountId}});
+      if (!account || account.disabled || !await available(db,teacher.id,'CALL',startsAt,new Date(startsAt.getTime()+600_000))) fail(409,'SLOT_UNAVAILABLE','Choose a currently advertised free consultation slot.');
       return db.consultation.create({data:{guardianId:actor.id,teacherId:p.teacherId,placementId:p.id,startsAt}});
     });
   }
 
   @Post('pro/calls/:id/accept') async acceptCall(@Req() req: HttpRequest,@Param('id') id: string,@Body() body: unknown) {
     parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']);const {expectedVersion}=parse(z.object({expectedVersion:version}).strict(),body);
-    return this.db.$transaction(async db=>{
-      const t=await db.teacher.findUniqueOrThrow({where:{accountId:actor.id}}),call=await db.consultation.findUnique({where:{id}});
+    return this.service.once(req,actor,'call.accept',{id,expectedVersion},async db=>{
+      const initialTeacher=await db.teacher.findUniqueOrThrow({where:{accountId:actor.id}}),initial=await db.consultation.findUnique({where:{id}});
+      if (!initial || initial.teacherId!==initialTeacher.id) fail(404,'NOT_FOUND','Consultation not found.');
+      await this.service.guardian(db,initial.guardianId);
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${initial.teacherId},0))`;
+      const t=await db.teacher.findUniqueOrThrow({where:{id:initial.teacherId}}),call=await db.consultation.findUnique({where:{id}});
       if (!call || call.teacherId!==t.id) fail(404,'NOT_FOUND','Consultation not found.');
       const p=await db.placement.findUniqueOrThrow({where:{id:call.placementId}});
-      if (p.status!=='ACTIVE' || p.teacherId!==t.id || t.status!=='APPROVED' || !t.consultationOptIn) fail(409,'UNAVAILABLE','The teacher assignment is unavailable.');
+      if (p.status!=='ACTIVE' || p.teacherId!==t.id || t.status!=='APPROVED' || !t.screeningComplete || !t.screeningValidUntil || t.screeningValidUntil<=new Date() || !t.consultationOptIn) fail(409,'UNAVAILABLE','The teacher assignment is unavailable.');
       await this.service.guardian(db,call.guardianId);
       const flag=await db.featureFlag.findUnique({where:{name:'proCalls'}});if (!flag?.enabled) fail(503,'CALLS_PAUSED','Consultations are paused.');
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${call.guardianId},0))`;
@@ -48,7 +57,11 @@ class MembershipsController {
       if (call.status!=='REQUESTED' || call.version!==expectedVersion || call.startsAt<new Date()) fail(409,'CONFLICT','Consultation has changed or expired.');
       const hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',hour:'2-digit',hourCycle:'h23'}).format(call.startsAt));
       if (hour<17 || hour>=20) fail(409,'OUTSIDE_CONSULTATION_WINDOW','Development consultation windows run from 5pm to 8pm IST.');
-      await db.reservation.create({data:{teacherId:t.id,guardianId:call.guardianId,kind:'CONSULTATION',startsAt:call.startsAt,endsAt:new Date(call.startsAt.getTime()+600_000),status:'CONFIRMED',topic:call.id}});
+      const pattern=await available(db,t.id,'CALL',call.startsAt,new Date(call.startsAt.getTime()+600_000));
+      if (!pattern) fail(409,'SLOT_UNAVAILABLE','The consultation slot is no longer available.');
+      await db.reservation.updateMany({where:{teacherId:t.id,status:'HOLD',expiresAt:{lt:new Date()}},data:{status:'EXPIRED',version:{increment:1}}});
+      await this.service.audit(db,actor,req,'CONSULTATION_ACCEPTED',id,'Teacher accepted declared consultation slot');
+      await db.reservation.create({data:{teacherId:t.id,guardianId:call.guardianId,kind:'CONSULTATION',source:'ADVERTISED',sourceId:pattern.id,startsAt:call.startsAt,endsAt:new Date(call.startsAt.getTime()+600_000),status:'CONFIRMED',topic:call.id}});
       await db.membership.update({where:{id:m.id},data:{reserved:{increment:1},version:{increment:1}}});
       return db.consultation.update({where:{id},data:{status:'ACCEPTED',version:{increment:1}}});
     });

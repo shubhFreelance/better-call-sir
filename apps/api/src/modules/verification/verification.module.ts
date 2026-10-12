@@ -209,7 +209,7 @@ class VerificationController {
         db,
         actor,
         req,
-        "EVIDENCE_DOWNLOADED",
+        "EVIDENCE_DOWNLOAD_AUTHORIZED",
         id,
         "Authorized private evidence download",
       );
@@ -281,6 +281,7 @@ class VerificationController {
     const actor = await this.service.actor(req, ["ADMIN", "REVIEWER"]);
     return this.service.db.$transaction(async (db) => {
       await this.teacher(db, actor, id, true);
+      await this.service.audit(db,actor,req,"VERIFICATION_CHECKS_READ",id,"Authorized reviewer read screening history");
       return {
         items: await db.verificationCheck.findMany({
           where: { teacherId: id },

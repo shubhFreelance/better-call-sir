@@ -167,3 +167,14 @@ test("OTP contract accepts supported phone/code formats and rejects malformed in
       false,
     );
 });
+
+test('Phase 2 contracts constrain evidence, schedules, capacity and private waitlist inputs',()=>{
+ const upload=validator('EvidenceUpload');
+ const evidence={expectedVersion:1,kind:'IDENTITY',mediaType:'application/pdf',contentBase64:'JVBERi0='};
+ assert(upload(evidence));assert.equal(upload({...evidence,status:'CLEAN'}),false);assert.equal(upload({...evidence,mediaType:'image/svg+xml'}),false);
+ const schedule=validator('SchedulePreferences');const windows={timezone:'Asia/Kolkata',slots:[{startsAt:'2026-10-15T06:00:00Z',endsAt:'2026-10-15T07:00:00Z'}]};
+ assert(schedule(windows));assert.equal(schedule({...windows,timezone:'UTC'}),false);assert.equal(schedule({...windows,slots:[]}),false);
+ const capacity=validator('CapacityInput');assert(capacity({expectedVersion:1,maxActiveStudents:10,travelAccepted:true}));assert.equal(capacity({expectedVersion:1,maxActiveStudents:101,travelAccepted:true}),false);
+ const waitlist=validator('WaitlistInput');const unsupported={grade:11,board:'ICSE',subject:'History',language:'English',mode:'ONLINE',region:'Delhi'};
+ assert(waitlist(unsupported));assert.equal(waitlist({...unsupported,alias:'Unnecessary child identity'}),false);
+});

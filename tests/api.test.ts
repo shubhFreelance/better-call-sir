@@ -155,7 +155,7 @@ test('demo proposal is private, validated and retry-safe; tuition cannot skip th
  assert.equal((await parent.call('/demos',body,{key})).data.id,proposed.data.id);
  assert.equal((await parent.call('/demos',{...body,duration:40},{key})).status,409);
  assert.equal((await other.call(`/demos/${proposed.data.id}/acceptances`,{expectedVersion:1})).status,404);
- assert.equal((await teacher.call(`/reservations/${proposed.data.reservationId}/scope`,{expectedVersion:1})).status,409);
+ assert.equal((await teacher.call(`/reservations/${proposed.data.reservationId}/scope`,{expectedVersion:1})).status,404);
  assert.equal((await parent.call(`/reservations/${proposed.data.reservationId}/cancel`,{expectedVersion:1,reason:'Bypass'})).status,404);
  assert.equal((await other.call('/demos')).data.items.some((d:any)=>d.id===proposed.data.id),false);
 });
@@ -332,4 +332,33 @@ test('matching rechecks capacity, travel, calendar and suspension before present
  await db.recommendation.update({where:{id:candidate.id},data:{expiresAt:new Date(0)}});assert.equal((await teacher.call(`/candidates/${candidate.id}/responses`,{expectedVersion:published.data.items[0].version,response:'ACCEPTED'})).status,409);
 });
 
+test('database ownership constraints reject cross-family learning and financial links',async()=>{
+ const req=await parent.call('/requests',intake());assert.equal(req.status,201);
+ await assert.rejects(db.tuitionRequest.update({where:{id:req.data.id},data:{childId:ids.otherChild}}));
+ await assert.rejects(db.invitation.create({data:{childId:ids.otherChild,guardianId:ids.guardian,tokenHash:randomUUID(),expiresAt:new Date(Date.now()+60000)}}));
+ await assert.rejects(db.note.create({data:{childId:ids.otherChild,guardianId:ids.guardian,text:'Cross-family forbidden'}}));
+ await assert.rejects(db.placement.create({data:{requestId:req.data.id,guardianId:ids.otherGuardian,childId:req.data.childId,teacherId:ids.teacher,monthlyPaise:300000}}));
+ const payment=await db.payment.findFirstOrThrow();
+ await assert.rejects(db.refund.create({data:{paymentId:payment.id,amountPaise:payment.amountPaise+1,reason:'Exceeds capture'}}));
+ await assert.rejects(db.session.create({data:{accountId:randomUUID(),familyId:randomUUID(),accessHash:randomUUID(),refreshHash:randomUUID(),csrf:randomUUID(),accessExpiresAt:new Date(),expiresAt:new Date()}}));
+});
+test('reservation authorization follows declared availability, leave, expiry and concurrent cancellation',async()=>{
+ const t=await db.teacher.findUniqueOrThrow({where:{id:ids.teacher}}),start=new Date(future(49)),end=new Date(start.getTime()+1200000);
+ const leave=await db.availabilityException.create({data:{teacherId:t.id,startsAt:start,endsAt:end,reason:'Private leave'}});
+ assert.equal((await parent.call('/revision/holds',{teacherId:t.id,startsAt:start.toISOString(),duration:20,topic:'Maths'})).status,409);
+ await db.availabilityException.update({where:{id:leave.id},data:{active:false}});
+ const hold=await parent.call('/revision/holds',{teacherId:t.id,startsAt:start.toISOString(),duration:20,topic:'Maths'});assert.equal(hold.status,201);
+ const scope=await teacher.call(`/reservations/${hold.data.id}/scope`,{expectedVersion:1});assert.equal(scope.status,201);
+ await db.teacher.update({where:{id:t.id},data:{screeningValidUntil:new Date(0)}});
+ const capture=await parent.call(`/dev/reservations/${hold.data.id}/capture`,{providerEventId:randomUUID(),amountPaise:30000,currency:'INR'});assert.equal(capture.status,201);assert.equal(capture.data.reservation.status,'PAID_UNALLOCATED');
+ assert.equal(await db.refund.count({where:{paymentId:capture.data.payment.id,status:'PENDING'}}),1);
+ await db.teacher.update({where:{id:t.id},data:{screeningValidUntil:t.screeningValidUntil}});
+ const next=await parent.call('/revision/holds',{teacherId:t.id,startsAt:future(50),duration:20,topic:'Maths'});assert.equal(next.status,201);
+ const cancel={expectedVersion:1,reason:'Cancel once'};
+ const outcomes=await Promise.all([parent.call(`/reservations/${next.data.id}/cancel`,cancel),parent.call(`/reservations/${next.data.id}/cancel`,cancel)]);
+ assert.deepEqual(outcomes.map(x=>x.status).sort(),[201,409]);
+ const account=await db.account.findUniqueOrThrow({where:{id:t.accountId}});await db.account.update({where:{id:account.id},data:{disabled:true}});
+ assert.equal((await new Client().call(`/teachers/${t.id}/availability?startsAt=${future(51)}&endsAt=${future(52)}&kind=REVISION`)).status,404);
+ await db.account.update({where:{id:account.id},data:{disabled:false}});
+});
 test('consent withdrawal blocks new intake, note sharing and student sessions',async()=>{assert.equal((await parent.call('/consents/withdraw',{})).status,201);assert.equal((await parent.call('/requests',intake())).status,403);assert.equal((await student.call('/dashboard')).status,401);assert.equal((await student.call('/auth/refresh',{})).status,401);assert.equal((await teacher.call('/notes')).data.items.length,0);});

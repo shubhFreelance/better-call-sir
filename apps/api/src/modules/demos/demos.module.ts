@@ -10,7 +10,8 @@ import {
 } from "@nestjs/common";
 import { Account, Demo } from "@prisma/client";
 import { z } from "zod";
-import { eligible } from "../../policies";
+import { matched } from "../matching/eligibility";
+import { available } from "../scheduling/calendar";
 import {
   AppService,
   PersistenceModule,
@@ -62,11 +63,14 @@ class DemosController {
           : demo.teacherId !== teacher?.id))
     )
       fail(404, "NOT_FOUND", "Demo not found.");
+    if (review && actor.role==="OPERATOR") {const request=await db.tuitionRequest.findUniqueOrThrow({where:{id:demo.requestId}});if(request.region!==actor.region) fail(404,"NOT_FOUND","Demo not found.");}
     await this.service.guardian(db, demo.guardianId);
+    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${demo.teacherId},0))`;
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
     return db.demo.findUniqueOrThrow({ where: { id } });
   }
   async eligible(db: DB, demo: Pick<Demo, "requestId" | "teacherId">) {
+    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${demo.teacherId},0))`;
     const request = await db.tuitionRequest.findUniqueOrThrow({
       where: { id: demo.requestId },
     });
@@ -88,13 +92,15 @@ class DemosController {
       request.status !== "OPEN" ||
       !candidate ||
       candidate.response !== "ACCEPTED" ||
-      !eligible(request, child, teacher)
+      !candidate.runId || !candidate.presentedAt || !candidate.expiresAt || candidate.expiresAt<=new Date() ||
+      !await matched(db, request, child, teacher)
     )
       fail(
         409,
         "INELIGIBLE",
         "An eligible, accepted recommendation is required.",
       );
+    return candidate;
   }
   async result(db: DB, demo: Demo) {
     return {
@@ -130,6 +136,7 @@ class DemosController {
     });
     const items = [];
     for (const demo of demos) {
+      if(actor.role==="OPERATOR") {const request=await this.service.db.tuitionRequest.findUniqueOrThrow({where:{id:demo.requestId}});if(request.region!==actor.region)continue;}
       const consent = await this.service.db.consent.findUnique({
         where: { guardianId: demo.guardianId },
       });
@@ -151,12 +158,15 @@ class DemosController {
       });
       if (!request || request.guardianId !== actor.id)
         fail(404, "NOT_FOUND", "Request not found.");
-      await this.eligible(db, {
+      const candidate=await this.eligible(db, {
         requestId: data.requestId,
         teacherId: data.teacherId,
       });
+      const time=interval(data);
+      const pattern=await available(db,data.teacherId,"DEMO",time.startsAt,time.endsAt);
+      if (!pattern) fail(409,"SLOT_UNAVAILABLE","Choose a currently advertised free demo slot.");
       await db.reservation.updateMany({
-        where: { status: "HOLD", expiresAt: { lt: new Date() } },
+        where: { teacherId:data.teacherId, status: "HOLD", expiresAt: { lt: new Date() } },
         data: { status: "EXPIRED", version: { increment: 1 } },
       });
       const reservation = await db.reservation.create({
@@ -164,9 +174,12 @@ class DemosController {
           teacherId: data.teacherId,
           guardianId: actor.id,
           kind: "DEMO",
-          ...interval(data),
+          source:"ADVERTISED",sourceId:pattern.id,
+          ...time,
         },
       });
+      await db.candidateDecision.create({data:{candidateId:candidate.id,runId:candidate.runId!,actorId:actor.id,action:"DEMO_SELECTED",candidateVersion:candidate.version}});
+      await db.tuitionRequest.update({where:{id:request.id},data:{selectedCandidateId:candidate.id,version:{increment:1}}});
       const demo = await db.demo.create({
         data: {
           requestId: data.requestId,
@@ -209,6 +222,7 @@ class DemosController {
         r.expiresAt <= new Date()
       )
         fail(409, "CONFLICT", "The demo proposal changed or expired.");
+      if (!await available(db,demo.teacherId,"DEMO",r.startsAt,r.endsAt,r.id,0)) fail(409,"SLOT_UNAVAILABLE","The demo slot is no longer available.");
       const updated = await db.demo.update({
         where: { id },
         data: {
@@ -274,14 +288,18 @@ class DemosController {
           r.startsAt <= new Date()
         )
           fail(409, "CONFLICT", "This demo cannot be rescheduled.");
+        const time=interval(data);
+        const pattern=await available(db,demo.teacherId,"DEMO",time.startsAt,time.endsAt,r.id);
+        if (!pattern) fail(409,"SLOT_UNAVAILABLE","Choose a currently advertised free demo slot.");
         await db.reservation.updateMany({
-          where: { status: "HOLD", expiresAt: { lt: new Date() } },
+          where: { teacherId:demo.teacherId, status: "HOLD", expiresAt: { lt: new Date() } },
           data: { status: "EXPIRED", version: { increment: 1 } },
         });
         await db.reservation.update({
           where: { id: r.id },
           data: {
-            ...interval(data),
+            ...time,
+            source:"ADVERTISED",sourceId:pattern.id,
             status: "HOLD",
             version: { increment: 1 },
           },

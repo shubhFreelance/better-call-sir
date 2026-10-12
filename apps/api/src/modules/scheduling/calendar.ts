@@ -73,10 +73,11 @@ export function availableIn(
   startsAt: Date,
   endsAt: Date,
   now = new Date(),
+  minimumLeadMs = 3600000,
 ) {
   if (
     endsAt <= startsAt ||
-    startsAt.getTime() < now.getTime() + 3600000 ||
+    startsAt.getTime() < now.getTime() + minimumLeadMs ||
     endsAt.getTime() > now.getTime() + 60 * 86400000 ||
     snapshot.blocks.some((b) => b.startsAt < endsAt && b.endsAt > startsAt)
   )
@@ -95,11 +96,14 @@ export async function available(
   startsAt: Date,
   endsAt: Date,
   ignoreId?: string,
+  minimumLeadMs = 3600000,
 ) {
   return availableIn(
     await calendarSnapshot(db, teacherId, kind, startsAt, endsAt, ignoreId),
     startsAt,
     endsAt,
+    new Date(),
+    minimumLeadMs,
   );
 }
 export function slotStarts(

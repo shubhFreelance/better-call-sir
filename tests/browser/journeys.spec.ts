@@ -222,7 +222,7 @@ test("guardian arranges and reschedules a demo; no-show reaches operator review"
             {
               startsAt: preferenceStart.toISOString(),
               endsAt: new Date(
-                Date.now() + 44 * 86400000 + 3600000,
+                preferenceStart.getTime() + 3600000,
               ).toISOString(),
             },
           ],

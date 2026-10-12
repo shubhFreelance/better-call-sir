@@ -1366,6 +1366,12 @@ export interface components {
             amountPaise: number;
             /** Format: date-time */
             createdAt: string;
+            /** @enum {string} */
+            provider?: "INTERNAL";
+            /** @enum {string} */
+            source?: "INTERNAL" | "ADVERTISED";
+            /** Format: uuid */
+            sourceId?: string | null;
         };
         DemoProposal: {
             /** Format: uuid */
