@@ -12,13 +12,13 @@ Source: **BetterCallSir_MVP_PRD.docx, Version 3.0, 11 October 2026**, supplied b
 
 ## Phase sequence — PRD Section 10
 
-**Phase 2 development acceptance remains complete. Active work: backend completion before the remaining frontend, explicitly requested by the owner on 12 October 2026.** The initial implementation contains later-phase slices; they do not close those phases. The demo increments belong to Phase 4, even though they were developed earlier. See `docs/PHASE_1_ACCEPTANCE.md` for the foundation review and `docs/VALIDATION.md` for source-linked checks. The owner authorized Phase 2 completion on 12 October 2026.
+**Phase 2 development acceptance remains complete. Active work: Phase 3 frontend, explicitly requested by the owner on 12 October 2026 after deferring the remaining backend increments.** The initial implementation contains later-phase slices; they do not close those phases. The demo increments belong to Phase 4, even though they were developed earlier. See `docs/PHASE_1_ACCEPTANCE.md` for the foundation review and `docs/VALIDATION.md` for source-linked checks. The owner authorized Phase 2 completion on 12 October 2026.
 
 | Phase | PRD deliverables | Exit evidence | Current status |
 | --- | --- | --- | --- |
 | 1 Foundation | Threat model, modules, schema draft, OpenAPI, CI, auth/consent skeleton | Contract/ownership tests and reviewed foundation evidence; integrated guardian demonstration | Foundation implementation/review recorded; 64 tests, builds, scans and hosted CI pass |
 | 2 Backend core | Teacher screening, public projection, intake, eligible matching, reservations, audit | Real-database constraints and authorization checks | Development acceptance recorded; 79 tests, builds/scans and exact-source hosted CI pass |
-| 3 Frontend | Independent web screens against mocks and the real Phase 2 API | Mobile/accessibility and integrated discovery tests | Early screens present; phase not accepted |
+| 3 Frontend | Independent web screens against mocks and the real Phase 2 API | Mobile/accessibility and integrated discovery tests | Design-system and discovery increment implemented; remaining screens open; phase not accepted |
 | 4 Transactions | Demos, terms, placement invoices, revision holds, checkout, reconciliation | Payment replay, concurrency and actual provider sandbox evidence | Development demo/booking slices present; phase not accepted |
 | 5 Service operations | Notes, cases, rematches, follow-ups, deletion, outbox, reports | Privacy/retry tests and operator drills | Early slices present; phase not accepted |
 | 6 Release qualification | Security scans, adversarial review, load, backup restore, migrations, rollback | All PRD release gates | Not accepted |
@@ -207,3 +207,18 @@ Finance/admin reporting separates captured payments, pending refunds, all-time o
 Refund/payout settlement, partial-payment/refund adjustment records and periodic financial reconciliation remain implementation/qualification work. Approved tax/fee/refund policies are required before live money workflows. Production adult-verification, privileged MFA/recent-auth, dual approval for sensitive actions, configuration version history/rollback, actual notification delivery and provider qualification remain open. Pro sale/renewal/calling is deferred while masked calls are disabled. Frontend completion follows the owner's backend review; independent load/security/recovery and VPS rollout remain later gates.
 
 Development test success does not close these remaining items. No merge or deployment is authorized by the feature-push agreement.
+
+
+## Owner-directed Phase 3 frontend
+
+The owner deferred the remaining backend increments and authorized frontend implementation. Refund/payout/reconciliation, provider qualification and other open backend acceptance criteria remain tracked; deferral does not record them as implemented.
+
+Design direction: shadcn/ui components, a consistent font/forms/charts/banner system, and the owner-supplied Wispr Flow palette: teal `#034F46`, lavender `#F0D7FF`, cream `#FFFFEB`, white and charcoal neutrals. The frontend-design skill was installed, committed and pushed in `f7b7971`. [Frontend design direction](FRONTEND_DESIGN.md) records the plan, official component provenance and the blocked external-site inspection.
+
+### F1 / US02, US05, US06 — component foundation and discovery
+
+Shared Button/Alert helpers now use official shadcn controls; search uses its Input and keyboard-accessible Radix Tabs. Manrope is self-hosted. The catalog exposes board, grade, language, locality and budget alongside subject/mode/text filters. Students may browse; guardian submission stays enforced. Assisted requests use the eligible pool; manual requests preserve the selected teacher through sign-in and send its identifier to the existing backend. Guardian consent, current teacher eligibility and backend-confirmed save states remain required.
+
+Remaining frontend: email OTP login, complete saved/stepped guardian and teacher onboarding, structured schedule confirmation, evidence/calendar/review UI, and the rest of the role-specific workflows and reporting charts. The earlier development account shortcuts remain labelled until the authentication UI increment is complete. This increment does not complete Phase 3.
+
+Validation for F1: all 13 browser journeys pass against the real development API and contract mocks, including keyboard tab navigation, chosen-teacher sign-in/submission, capability/budget prefills, current catalog server rendering, consent denial, role isolation, demo scheduling, 360px overflow checks after font loading, and no serious/critical axe findings on discovery. Desktop/mobile screenshots were inspected and a tab-label overflow was corrected. The production Next.js build and all application type checks pass; runtime dependency audit reports zero known vulnerabilities and the source secrets scan has no findings. Backend integration tests and hosted CI were not rerun for this frontend-only increment. No merge or deployment occurred.

@@ -43,8 +43,13 @@ test("parent intake persists and appears on the private dashboard", async ({
     .getByLabel("When do lessons work for your family?")
     .fill("Tuesday and Thursday after 5pm");
   await page.getByRole("checkbox").check();
+  const submitted = page.waitForRequest(
+    (request) =>
+      request.method() === "POST" && request.url().endsWith("/api/v1/requests"),
+  );
   await page.getByRole("button", { name: "Save my tuition request" }).click();
   await expect(page.getByText(/Request .* saved/)).toBeVisible();
+  expect((await submitted).postDataJSON().discoveryMethod).toBe("ASSISTED");
   await page.goto("/dashboard/requests");
   await expect(
     page.getByText(/Tuesday and Thursday after 5pm/).first(),
@@ -52,6 +57,71 @@ test("parent intake persists and appears on the private dashboard", async ({
   await expect(
     page.getByText(/Waiting for operator review/).first(),
   ).toBeVisible();
+});
+test("discovery tabs support keyboard navigation and preserve manual teacher choice", async ({
+  page,
+}) => {
+  await page.goto("/teachers");
+  const manual = page.getByRole("tab", { name: /^Search Browse/ });
+  const assisted = page.getByRole("tab", { name: /^Let us search for you/ });
+  await manual.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(assisted).toHaveAttribute("aria-selected", "true");
+  await expect(
+    page.getByRole("link", { name: "Share your criteria" }),
+  ).toHaveAttribute("href", "/onboarding/parent?discovery=ASSISTED");
+  await page.keyboard.press("ArrowLeft");
+  await expect(manual).toHaveAttribute("aria-selected", "true");
+  await page.getByLabel("Board", { exact: true }).selectOption("CBSE");
+  await page.getByLabel("Class", { exact: true }).selectOption("8");
+  await page.getByLabel("Maximum monthly tuition").selectOption("3000");
+  await expect(page.getByText("3 teachers to get to know")).toBeVisible();
+  await page
+    .getByLabel("Locality", { exact: true })
+    .selectOption("Shankar Nagar");
+  await expect(page.getByText("1 teachers to get to know")).toBeVisible();
+  await page.getByRole("link", { name: "Ananya Sharma", exact: true }).click();
+  await page.getByRole("link", { name: "Find a recurring teacher" }).click();
+  await expect(page).toHaveURL(/\/onboarding\/parent\?teacher=/);
+  const teacherId = new URL(page.url()).searchParams.get("teacher");
+  expect(teacherId).toBeTruthy();
+  await page.getByRole("link", { name: "Choose a demo account" }).click();
+  await page.getByRole("button", { name: /Kavita/ }).click();
+  await expect(
+    page.getByText("You chose a teacher", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Link an existing learner")
+    .selectOption({ label: "Aarav · Class 8" });
+  await page
+    .getByLabel("When do lessons work for your family?")
+    .fill("Monday and Wednesday after 5pm");
+  await page.getByRole("checkbox").check();
+  const submitted = page.waitForRequest(
+    (request) =>
+      request.method() === "POST" && request.url().endsWith("/api/v1/requests"),
+  );
+  await page.getByRole("button", { name: "Save my tuition request" }).click();
+  await expect(page.getByText(/Request .* saved/)).toBeVisible();
+  expect((await submitted).postDataJSON()).toMatchObject({
+    discoveryMethod: "MANUAL",
+    preferredTeacherId: teacherId,
+    budgetPaise: 300000,
+  });
+});
+test("chosen teacher capabilities prefill the guardian request", async ({
+  page,
+}) => {
+  await login(page, "Kavita");
+  await page.goto("/teachers/arjun-deshmukh");
+  await page.getByRole("link", { name: "Find a recurring teacher" }).click();
+  await expect(
+    page.getByRole("combobox", { name: "Subject", exact: true }),
+  ).toHaveValue("Science");
+  await expect(page.getByLabel("Lesson format")).toHaveValue("ONLINE");
+  await expect(page.getByLabel("Monthly tuition budget (₹)")).toHaveValue(
+    "2800",
+  );
 });
 test("student principal has own classes and no parent finance navigation", async ({
   page,
@@ -113,6 +183,8 @@ test("360px layout has no overflow and labelled keyboard-accessible forms", asyn
     .getByRole("link", { name: "Find a teacher", exact: true })
     .first()
     .click();
+  await expect(page.getByText("4 teachers to get to know")).toBeVisible();
+  await page.evaluate(() => document.fonts.ready.then(() => true));
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -149,6 +221,8 @@ test("homepage screenshot and server-rendered catalog contain real API profiles"
 }) => {
   const response = await request.get("/");
   expect(await response.text()).toContain("Ananya Sharma");
+  const catalog = await request.get("/teachers");
+  expect(await catalog.text()).toContain("Ananya Sharma");
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
   await expect(
