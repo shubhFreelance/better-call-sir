@@ -51,6 +51,8 @@ async function extendRecurring(){
  }
 }
 async function tick() {
+  const now=new Date(),mature=await db.$queryRaw<{id:string;startedAt:Date;closedAt:Date|null;status:string}[]>`SELECT p.id,p."startedAt",p."closedAt",p.status FROM "Placement" p LEFT JOIN "ContinuationObservation" o ON o."placementId"=p.id WHERE p."startedAt"<=CURRENT_TIMESTAMP-interval '30 days' AND o.id IS NULL ORDER BY p."startedAt" LIMIT 1`;
+  if(mature[0]){const p=mature[0],dueAt=new Date(p.startedAt.getTime()+30*86400000),continued=p.closedAt&&p.closedAt<=dueAt?false:now.getTime()<=dueAt.getTime()+86400000?(p.status==='ACTIVE'||!!p.closedAt&&p.closedAt>dueAt):null;await db.continuationObservation.upsert({where:{placementId:p.id},create:{placementId:p.id,dueAt,observedAt:now,continued},update:{}});}
   const expiredMemberships=await db.membership.findMany({where:{periodEnd:{lte:new Date()}},select:{guardianId:true}});
   const overdue=await db.consultation.findFirst({where:{OR:[{status:'REQUESTED',startsAt:{lt:new Date()}},{status:'ACCEPTED',startsAt:{lt:new Date(Date.now()-15*60000)}},{status:{in:['REQUESTED','ACCEPTED']},guardianId:{in:expiredMemberships.map(m=>m.guardianId)}}]},orderBy:{startsAt:'asc'}});
   if(overdue)await db.$transaction(async tx=>{
@@ -65,7 +67,7 @@ async function tick() {
   await extendRecurring();
   await db.reservation.updateMany({where:{status:'HOLD',expiresAt:{lt:new Date()}},data:{status:'EXPIRED',version:{increment:1}}});
   return db.$transaction(async tx=>{
-    const jobs=await tx.$queryRaw<{id:string;type:string;aggregateId:string;payload:{version:number}}[]>`SELECT id,type,"aggregateId",payload FROM "Outbox" WHERE "processedAt" IS NULL AND attempts < 5 ORDER BY CASE WHEN type='evidence.scan_requested' THEN 0 ELSE 1 END,"createdAt" LIMIT 1 FOR UPDATE SKIP LOCKED`;
+    const jobs=await tx.$queryRaw<{id:string;type:string;aggregateId:string;payload:{version:number}}[]>`SELECT id,type,"aggregateId",payload FROM "Outbox" WHERE "processedAt" IS NULL AND attempts < 5 AND type<>'refund.requested' ORDER BY CASE WHEN type='evidence.scan_requested' THEN 0 ELSE 1 END,"createdAt" LIMIT 1 FOR UPDATE SKIP LOCKED`;
     for (const job of jobs) {
       if(job.type==='privacy.evidence_delete_requested'){
         try{files.remove(job.aggregateId);await tx.evidence.updateMany({where:{id:job.aggregateId},data:{status:'DELETED',version:{increment:1}}});await tx.outbox.update({where:{id:job.id},data:{processedAt:new Date(),attempts:{increment:1}}});}catch{await tx.outbox.update({where:{id:job.id},data:{attempts:{increment:1}}});}continue;

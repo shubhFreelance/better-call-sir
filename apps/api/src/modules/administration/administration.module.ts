@@ -33,7 +33,7 @@ class AdministrationController {
   @Post('admin/flags/:name') async flag(@Req() req: HttpRequest,@Param('name') name: string,@Body() body: unknown) {
     const actor=await this.service.actor(req,['ADMIN']);parse(z.enum(['revision','checkout','proCalls','ai']),name);
     const data=parse(z.object({enabled:z.boolean(),expectedVersion:version,reason:text(500),confirmed:z.literal(true)}).strict(),body);
-    if (['ai','checkout'].includes(name) && data.enabled) fail(409,'RELEASE_GATE','This integration requires reviewed provider and release evidence before activation.');
+    if (['ai','checkout','proCalls'].includes(name) && data.enabled) fail(409,'RELEASE_GATE','This integration requires reviewed provider and release evidence before activation.');
     return this.db.$transaction(async db=>{
       const changed=await db.featureFlag.updateMany({where:{name,version:data.expectedVersion},data:{enabled:data.enabled,version:{increment:1}}});
       if (!changed.count) fail(409,'CONFLICT','Configuration has changed.');

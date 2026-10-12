@@ -575,6 +575,20 @@ test('prepaid membership cancellation preserves its period and worker timeouts r
  await db.membership.update({where:{id:membership.id},data:{periodEnd:new Date(Date.now()-1000)}});runEvidenceWorker();assert.equal((await db.membership.findUniqueOrThrow({where:{id:membership.id}})).status,'CANCELLED');assert.equal((await parent.call('/pro/membership')).data.active,false);
 });
 
+test('operational reports distinguish discovery cohorts, mature observations and financial obligations',async()=>{
+ for(const item of [{days:30.5,status:'ACTIVE',closedAt:null},{days:35,status:'CLOSED',closedAt:new Date(Date.now()-15*86400000)},{days:35,status:'ACTIVE',closedAt:null}]){
+  const request=await db.tuitionRequest.create({data:{guardianId:ids.otherGuardian,childId:ids.otherChild,subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Synthetic report fixture'}});await db.placement.create({data:{requestId:request.id,guardianId:ids.otherGuardian,childId:ids.otherChild,teacherId:ids.teacher,monthlyPaise:300000,status:item.status,startedAt:new Date(Date.now()-item.days*86400000),closedAt:item.closedAt}});
+ }
+ for(let i=0;i<3;i++)runEvidenceWorker();
+ const query=`?from=${encodeURIComponent(new Date(Date.now()-86400000).toISOString())}&to=${encodeURIComponent(new Date(Date.now()+3600000).toISOString())}`;
+ assert.equal((await parent.call('/admin/reports/funnel'+query)).status,403);assert.equal((await student.call('/admin/reports/finance'+query)).status,403);
+ const funnel=await operator.call('/admin/reports/funnel'+query);assert.equal(funnel.status,200,JSON.stringify(funnel.data));assert(funnel.data.items.some((x:any)=>x.discoveryMethod==='MANUAL'));assert.equal(funnel.data.continuation.mature,3);assert.equal(funnel.data.continuation.observed,2);assert.equal(funnel.data.continuation.continued,1);assert.equal(funnel.data.continuation.denominator,2);assert.equal(funnel.data.continuation.unobserved,1);assert.equal(funnel.data.continuation.rate,0.5);
+ const regional=await db.account.findFirstOrThrow({where:{phone:'+910000009101'}}),regionalClient=await login(regional.id);const regionReport=await regionalClient.call('/admin/reports/funnel'+query);assert.equal(regionReport.status,200);assert.equal(regionReport.data.items.length,0);assert.equal(regionReport.data.continuation.rate,null);assert.equal((await regionalClient.call('/admin/reports/finance'+query)).status,403);
+ const finance=await operator.call('/admin/reports/finance'+query);assert.equal(finance.status,200);assert(finance.data.captured.amountPaise>0);assert(finance.data.pendingRefunds.amountPaise>0);assert.equal(finance.data.providerSettlementVerified,false);assert.equal(finance.data.outstandingInvoices.basis,'CURRENT_ALL_TIME');
+ for(const [route,result] of [['/admin/reports/funnel',funnel],['/admin/reports/finance',finance]] as const){const validate=operationValidator(route,'get','200');assert(validate(result.data),JSON.stringify(validate.errors));assert.equal(JSON.stringify(result.data).includes('guardianId'),false);assert.equal(JSON.stringify(result.data).includes('childId'),false);}
+ const observation=await db.continuationObservation.findFirstOrThrow();await assert.rejects(db.continuationObservation.update({where:{id:observation.id},data:{continued:false}}));
+});
+
 test('privacy correction and deletion require owner scope, reviewed retention and replay evidence',async()=>{
  const note=await db.note.create({data:{guardianId:ids.otherGuardian,childId:ids.otherChild,text:'Private synthetic note'}});
  assert.equal((await parent.call('/privacy-requests',{kind:'DELETION',scope:'NOTE',resourceId:note.id,reason:'Wrong family'})).status,404);

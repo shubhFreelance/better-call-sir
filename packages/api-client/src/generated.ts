@@ -1852,6 +1852,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/reports/funnel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** /admin/reports/funnel */
+        get: operations["get_FunnelReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/reports/finance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** /admin/reports/finance */
+        get: operations["get_FinanceReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3037,6 +3071,10 @@ export interface components {
             version: number;
             /** Format: date-time */
             createdAt: string;
+            /** Format: date-time */
+            startedAt?: string | null;
+            /** Format: date-time */
+            closedAt?: string | null;
         };
         PrivacyRequest: {
             /** Format: uuid */
@@ -3180,6 +3218,71 @@ export interface components {
             /** Format: date-time */
             acknowledgedAt: string | null;
             version: number;
+        };
+        ReportWindow: {
+            /** Format: date-time */
+            from: string;
+            /** Format: date-time */
+            to: string;
+            /** @constant */
+            timezone: "Asia/Kolkata";
+            /** @constant */
+            metricVersion: "operations-v1";
+        };
+        FunnelReport: {
+            window: components["schemas"]["ReportWindow"];
+            region: string | null;
+            items: {
+                /** @enum {string} */
+                discoveryMethod: "MANUAL" | "ASSISTED";
+                requests: number;
+                published: number;
+                shown: number;
+                teacherAccepted: number;
+                demoCompleted: number;
+                started: number;
+                conversion: {
+                    numerator: number;
+                    denominator: number;
+                };
+            }[];
+            continuation: {
+                mature: number;
+                observed: number;
+                continued: number;
+                missingStartEvidence: number;
+                unobserved: number;
+                denominator: number;
+                rate: number | null;
+            };
+            /** Format: date-time */
+            asOf: string;
+        };
+        ReportMoney: {
+            count: number;
+            amountPaise: number;
+        };
+        FinanceReport: {
+            window: components["schemas"]["ReportWindow"];
+            /** @constant */
+            currency: "INR";
+            captured: components["schemas"]["ReportMoney"];
+            pendingRefunds: components["schemas"]["ReportMoney"];
+            outstandingInvoices: {
+                count: number;
+                amountPaise: number;
+                /** @constant */
+                basis: "CURRENT_ALL_TIME";
+            };
+            teacherPayables: {
+                status: string;
+                count: number;
+                amountPaise: number;
+            }[];
+            /** @constant */
+            providerSettlementVerified: false;
+            /** Format: date-time */
+            asOf: string;
         };
     };
     responses: never;
@@ -12591,6 +12694,178 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Consultation"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_FunnelReport: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FunnelReport"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_FinanceReport: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceReport"];
                 };
             };
             /** @description Validation */

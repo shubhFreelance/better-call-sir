@@ -15,5 +15,5 @@ export async function closePlacement(db:DB,p:Placement){
  await db.consultation.updateMany({where:{id:{in:calls.map(c=>c.id)}},data:{status:'CANCELLED',version:{increment:1}}});
  await db.reservation.updateMany({where:{kind:'CONSULTATION',topic:{in:calls.map(c=>c.id)}},data:{status:'CANCELLED',version:{increment:1}}});
  await db.tuitionRequest.update({where:{id:p.requestId},data:{status:'CLOSED',version:{increment:1}}});
- return db.placement.update({where:{id:p.id},data:{status:'CLOSED',version:{increment:1}}});
+ return db.placement.update({where:{id:p.id},data:{status:'CLOSED',closedAt:now,version:{increment:1}}});
 }

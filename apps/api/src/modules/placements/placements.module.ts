@@ -72,7 +72,7 @@ class PlacementsController {
       const changes=data.action==='ACCEPT_TERMS'?(actor.role==='GUARDIAN'?{guardianAccepted:true}:{teacherAccepted:true}):(actor.role==='GUARDIAN'?{guardianStarted:true}:{teacherReceiptConfirmed:true});
       let updated=await db.placement.update({where:{id},data:{...changes,version:{increment:1}}});
       if (updated.guardianStarted && updated.teacherReceiptConfirmed) {
-        updated=await db.placement.update({where:{id},data:{status:'ACTIVE'}});
+        updated=await db.placement.update({where:{id},data:{status:'ACTIVE',startedAt:p.startedAt||new Date()}});
         const t=await db.teacher.findUniqueOrThrow({where:{id:p.teacherId}});
         await db.invoice.upsert({where:{placementId:id},create:{placementId:id,payerId:t.accountId,amountPaise:placementFee(p.monthlyPaise),policyVersion:p.policyVersion},update:{}});
         await this.service.event(db,'placement.started',id);

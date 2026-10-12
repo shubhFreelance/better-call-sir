@@ -162,12 +162,18 @@ The owner changed delivery order on 12 October 2026: complete missing backend wo
 
 | Sprint | Scope | Status |
 | --- | --- | --- |
-| B1 / US01, US19 | Persist onboarding drafts/status, prevent premature child capture, parent-managed returning student sessions and device revocation | In progress |
-| B2 / US08, US17 | Accepted recurring schedule/version, rolling lesson reservations, learning-record queries, confirmation and dispute resolution | Pending |
-| B3 / US09, US10, US18 | Checkout/webhook/reconciliation, revision lesson lifecycle, Pro periods/cancellation/timeouts and teacher payable records | Pending; provider/commercial decisions needed |
-| B4 / US11–14, US20 | Support queue/status, replacement/rematch, sharing acknowledgement, privacy requests/retention boundary and operational reports | Pending |
+| B1 / US01, US19 | Persist onboarding drafts/status, prevent premature child capture, parent-managed returning student sessions and device revocation | Implemented in development; adult verification/provider qualification remains |
+| B2 / US08, US17 | Accepted recurring schedule/version, rolling lesson reservations, learning-record queries, confirmation and dispute resolution | Implemented in development |
+| B3 / US09, US10, US18 | Checkout/webhook/reconciliation, revision lesson lifecycle, Pro periods/cancellation/timeouts and teacher payable records | Revision capture/fulfilment, held payables, meeting delivery and prepaid lifecycle implemented; refund/payout settlement and Pro purchase/renewal await qualification/approved terms |
+| B4 / US11–14, US20 | Support queue/status, replacement/rematch, sharing acknowledgement, privacy requests/retention boundary and operational reports | Support/rematch, acknowledgement, privacy application replay and aggregate reports implemented; independent legal/recovery, privileged access and finance acceptance remain |
 
 ### B3 / US18 and B4 / US12 — acknowledgement and entitlement cleanup
+
+### B4 / US14 — operational and finance reporting
+
+Added aggregate date-bound reports with explicit UTC bounds/IST display and a versioned metric definition. The service funnel separates MANUAL and ASSISTED requests, counts distinct requests at publication/show/teacher acceptance/demo/start, and returns conversion numerators and denominators. Operators see their own region; finance reports are restricted to finance/admin and contain no learner/guardian identities.
+
+Start and closure timestamps are now recorded when the underlying events happen. Worker continuation observations are immutable: records mature after 30 days, timely observations or documented early closure determine outcome, and missed observations stay unknown. Reports exclude unknown/immature records from the rate and show missing historical start evidence instead of inventing dates. Finance separately reports captured funds, pending refunds, current outstanding invoices and teacher payable statuses; provider settlement is explicitly unverified. All 55 API and eight contract checks pass, including regional denial, empty cohorts, maturity, missed observations, immutable outcome and real-response validation. Refund intents remain pending for the finance integration and are excluded from synthetic worker selection so they cannot starve media/privacy jobs.
 
 Named active teachers can acknowledge the exact version of a deliberately shared note. Acknowledgement is audited and retry-safe; sharing edits/corrections invalidate it, and revocation removes further access. The replay response contains acknowledgement metadata without retaining private note text for the teacher.
 

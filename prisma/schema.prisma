@@ -173,6 +173,8 @@ model Meeting {
   @@index([status, retryAt])
 }
 model Placement {
+  startedAt DateTime?
+  closedAt DateTime?
   id String @id @default(uuid()) @db.Uuid
   guardianId String @db.Uuid
   teacherId String @db.Uuid
@@ -188,6 +190,14 @@ model Placement {
   version Int @default(1)
   createdAt DateTime @default(now())
   @@index([guardianId, status])
+}
+model ContinuationObservation {
+ id String @id @default(uuid()) @db.Uuid
+ placementId String @unique @db.Uuid
+ dueAt DateTime
+ observedAt DateTime @default(now())
+ continued Boolean?
+ @@index([dueAt])
 }
 model Invoice {
   id String @id @default(uuid()) @db.Uuid
