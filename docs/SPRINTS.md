@@ -166,6 +166,12 @@ The owner changed delivery order on 12 October 2026: complete missing backend wo
 | B2 / US08, US17 | Accepted recurring schedule/version, rolling lesson reservations, learning-record queries, confirmation and dispute resolution | Pending |
 | B3 / US09, US10, US18 | Checkout/webhook/reconciliation, revision lesson lifecycle, Pro periods/cancellation/timeouts and teacher payable records | Pending; provider/commercial decisions needed |
 | B4 / US11–14, US20 | Support queue/status, replacement/rematch, sharing acknowledgement, privacy requests/retention boundary and operational reports | Pending |
+
+### B4 / US11, US20 — support operations and replacement
+
+Added owner-only case queues/details, private staff notes, public replies, current-version assignment/status changes, regional operator access and append-only case history. Case resource links are checked against the reporting participant in both the API and PostgreSQL. Safety support remains available without Parent Pro. Resolution records a reason; closure retains the case and its evidence.
+
+Guardian placement closure cancels future scheduled lessons and consultations, supersedes the accepted timetable and revokes the old teacher's shared notes. Completed lessons, invoices and payment evidence are preserved. Rematch atomically closes the former assignment, creates a linked assisted request with fresh confirmed criteria, excludes the old teacher and opens a replacement case. It retains the standard eligibility, reviewed shortlist, demo and agreement workflow; no replacement is silently assigned. All 51 isolated API scenarios and eight contract scenarios pass, including stale/retry/cross-family/region and private staff-note denial.
 | Provider qualification | Live OTP/adult verification/MFA, payment/refund, private meetings, masked audio, notifications, current scanner signatures/private storage | Provider selection/credentials and external review pending; never label simulated delivery complete |
 
 ### B3 / US10 — revision fulfilment, recap and teacher payable

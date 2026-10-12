@@ -13,11 +13,31 @@ import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} fr
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
 
 import {matched} from '../matching/eligibility';
+import {closePlacement} from './closure';
+import {preferenceSchema,normalizedPreferences} from '../requests/request-schedule';
 
 @Controller('api/v1')
 class PlacementsController {
   constructor(@Inject(AppService) private readonly service: AppService) {}
   get db() {return this.service.db;}
+  async closing(db:DB,actor:Account,id:string,expectedVersion:number){
+    await this.service.guardian(db,actor.id);
+    const initial=await db.placement.findUnique({where:{id}});if(!initial||initial.guardianId!==actor.id)fail(404,'NOT_FOUND','Placement not found.');
+    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${initial.teacherId},0))`;
+    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
+    const p=await db.placement.findUniqueOrThrow({where:{id}});if(p.version!==expectedVersion||p.status==='CLOSED')fail(409,'CONFLICT','Placement changed or is closed.');return p;
+  }
+  @Post('placements/:id/closures') async close(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']),data=parse(z.object({expectedVersion:version,reason:text(1000)}).strict(),body);
+    return this.service.once(req,actor,'placement.close',data,async db=>{const p=await this.closing(db,actor,id,data.expectedVersion),updated=await closePlacement(db,p);const support=await db.supportCase.create({data:{accountId:actor.id,region:actor.region,placementId:id,category:'GENERAL',description:`Placement closed: ${data.reason}`}});await this.service.audit(db,actor,req,'PLACEMENT_CLOSED',id,data.reason);await this.service.event(db,'placement.closed',id,updated.version);return {placement:updated,caseId:support.id};});
+  }
+  @Post('placements/:id/rematches') async rematch(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']),data=parse(z.object({expectedVersion:version,reason:text(1000),preferences:preferenceSchema}).strict(),body),preferences=normalizedPreferences(data.preferences);if(!preferences)fail(400,'INVALID_SCHEDULE','Supply current future schedule criteria for replacement.');
+    return this.service.once(req,actor,'placement.rematch',data,async db=>{const p=await this.closing(db,actor,id,data.expectedVersion),old=await db.tuitionRequest.findUniqueOrThrow({where:{id:p.requestId}});await closePlacement(db,p);
+      const request=await db.tuitionRequest.create({data:{guardianId:p.guardianId,childId:p.childId,rematchFromPlacementId:id,discoveryMethod:'ASSISTED',subject:old.subject,mode:old.mode,language:old.language,locality:old.locality,budgetPaise:old.budgetPaise,schedule:old.schedule,region:old.region,schedulePreferences:preferences,scheduleStatus:'CONFIRMED'}});
+      const support=await db.supportCase.create({data:{accountId:actor.id,region:old.region,placementId:id,category:'REPLACEMENT',description:`Replacement request ${request.id}: ${data.reason}`}});await this.service.audit(db,actor,req,'PLACEMENT_REMATCH_REQUESTED',id,data.reason,undefined,{requestId:request.id});await this.service.event(db,'request.created',request.id);return {request,caseId:support.id};
+    });
+  }
   @Post('placements') async placement(@Req() req: HttpRequest,@Body() body: unknown) {
     const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({requestId:uuid,teacherId:uuid}).strict(),body);
     return this.service.once(req,actor,'placement.create',data,async db=>{

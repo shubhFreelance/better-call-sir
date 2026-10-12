@@ -93,6 +93,7 @@ model Teacher {
   @@index([status])
 }
 model TuitionRequest {
+  rematchFromPlacementId String? @unique @db.Uuid
   discoveryMethod String @default("ASSISTED")
   preferredTeacherId String? @db.Uuid
   id String @id @default(uuid()) @db.Uuid
@@ -310,12 +311,29 @@ model Note {
   @@index([guardianId])
 }
 model SupportCase {
+  region String @default("Raipur")
+  assignedToId String? @db.Uuid
+  placementId String? @db.Uuid
+  reservationId String? @db.Uuid
+  resolution String?
+  version Int @default(1)
+  updatedAt DateTime @updatedAt
   id String @id @default(uuid()) @db.Uuid
   accountId String @db.Uuid
   category String
   description String
   status String @default("OPEN")
   createdAt DateTime @default(now())
+  @@index([region, status, createdAt])
+}
+model CaseUpdate {
+  id String @id @default(uuid()) @db.Uuid
+  caseId String @db.Uuid
+  actorId String @db.Uuid
+  message String
+  internal Boolean @default(false)
+  createdAt DateTime @default(now())
+  @@index([caseId, createdAt])
 }
 model Membership {
   id String @id @default(uuid()) @db.Uuid

@@ -12,6 +12,7 @@ export async function matched(
   child: Child,
   teacher: Teacher,
 ) {
+  if(request.rematchFromPlacementId){const old=await db.placement.findUnique({where:{id:request.rematchFromPlacementId}});if(old?.teacherId===teacher.id)return null;}
   if (
     (request.preferredTeacherId && request.preferredTeacherId !== teacher.id) ||
     !eligible(request, child, teacher) ||
