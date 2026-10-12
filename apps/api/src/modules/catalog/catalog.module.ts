@@ -23,7 +23,7 @@ class CatalogController {
   @Get('catalog') catalog() {return {city:'Raipur',subjects:['Maths','Science'],boards:['CBSE','CGBSE'],grades:[6,7,8,9,10],languages:['English','Hindi'],modes:['ONLINE','HOME'],localities:['Shankar Nagar','Avanti Vihar','Telibandha','Civil Lines','Mowa'],timezone:'Asia/Kolkata'};}
 
   @Get('teachers') async teachers(@Query() query:unknown) {
-    const data=parse(z.object({q:z.string().trim().max(100).optional(),subject:z.enum(['Maths','Science']).optional(),mode:z.enum(['HOME','ONLINE']).optional(),limit:z.coerce.number().int().min(1).max(50).default(50),cursor:uuid.optional()}).strict(),query);
+    const data=parse(z.object({q:z.string().trim().max(100).optional(),subject:z.preprocess(v=>v===''?undefined:v,z.enum(['Maths','Science']).optional()),mode:z.preprocess(v=>v===''?undefined:v,z.enum(['HOME','ONLINE']).optional()),limit:z.coerce.number().int().min(1).max(50).default(50),cursor:uuid.optional()}).strict(),query);
     const where:Prisma.TeacherWhereInput={...(data.subject?{subjects:{has:data.subject}}:{}),...(data.mode?{modes:{has:data.mode}}:{}),...(data.q?{OR:[{name:{contains:data.q,mode:'insensitive'}},{headline:{contains:data.q,mode:'insensitive'}},{subjects:{has:data.q}}]}:{})};
     const rows=await this.service.publicTeachers(where,data.limit+1,data.cursor);
     return {items:rows.slice(0,data.limit),nextCursor:rows.length>data.limit?rows[data.limit-1].id:null};
