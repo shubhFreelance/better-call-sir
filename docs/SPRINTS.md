@@ -156,6 +156,8 @@ Reviewed implementation: `2e241a95022c2fd1b82b117384809dedcb7d9a1f`. Hosted [run
 
 ## Owner-directed backend completion before frontend
 
+Owner discovery direction: the frontend will have **Search** and **Let us search for you** tabs. Direct discovery uses the public teacher catalog with board, grade, subject, mode, language, locality and price filters. Guardian requests snapshot MANUAL plus a chosen teacher or ASSISTED with no preselected teacher; matching respects this boundary and still applies all eligibility checks. Both flows retain teacher agreement, demo and guardian booking permissions. Students browse public profiles; guardians submit learner criteria. Assisted discovery uses rules-v2 and operator review/adjustments; future ranking can replace the existing ranker without changing these request identities.
+
 The owner changed delivery order on 12 October 2026: complete missing backend workflows before the remaining frontend. This overrides the earlier phase-order working agreement for implementation sequence; it does not waive provider/security/release gates or mark Phases 4–6 accepted. Continue feature-sized tested commits and pushes on `feat/backend-completion`.
 
 | Sprint | Scope | Status |

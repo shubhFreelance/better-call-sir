@@ -1661,6 +1661,13 @@ export interface components {
             matchStatus?: string;
             /** Format: uuid */
             selectedCandidateId?: string | null;
+            /**
+             * @default ASSISTED
+             * @enum {string}
+             */
+            discoveryMethod: "MANUAL" | "ASSISTED";
+            /** Format: uuid */
+            preferredTeacherId?: string | null;
         };
         Intake: {
             /** Format: uuid */
@@ -1679,6 +1686,13 @@ export interface components {
             budgetPaise: number;
             schedule: string;
             preferences?: components["schemas"]["SchedulePreferences"];
+            /**
+             * @default ASSISTED
+             * @enum {string}
+             */
+            discoveryMethod: "MANUAL" | "ASSISTED";
+            /** Format: uuid */
+            preferredTeacherId?: string;
         };
         Error: {
             code: string;
@@ -1882,6 +1896,13 @@ export interface components {
             matchStatus?: string;
             /** Format: uuid */
             selectedCandidateId?: string | null;
+            /**
+             * @default ASSISTED
+             * @enum {string}
+             */
+            discoveryMethod: "MANUAL" | "ASSISTED";
+            /** Format: uuid */
+            preferredTeacherId?: string | null;
         };
         RequestList: {
             items: components["schemas"]["TuitionRequest"][];
@@ -2913,6 +2934,11 @@ export interface operations {
                 mode?: "HOME" | "ONLINE" | "";
                 limit?: number;
                 cursor?: string;
+                board?: "CBSE" | "CGBSE";
+                grade?: number;
+                language?: "English" | "Hindi";
+                locality?: string;
+                maxMonthlyPaise?: number;
             };
             header?: never;
             path?: never;

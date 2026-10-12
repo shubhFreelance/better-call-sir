@@ -67,6 +67,7 @@ class MatchingController {
       const teachers = scheduleReady
         ? await db.teacher.findMany({
             where: {
+              ...(request.preferredTeacherId ? {id:request.preferredTeacherId} : {}),
               status: "APPROVED",
               screeningComplete: true,
               screeningValidUntil: { gt: new Date() },

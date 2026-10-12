@@ -779,6 +779,60 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "board",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CBSE",
+                "CGBSE"
+              ]
+            }
+          },
+          {
+            "name": "grade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 6,
+              "maximum": 10
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "English",
+                "Hindi"
+              ]
+            }
+          },
+          {
+            "name": "locality",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "maxMonthlyPaise",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 50000,
+              "maximum": 2000000
+            }
           }
         ]
       }
@@ -13458,6 +13512,21 @@
               "null"
             ],
             "format": "uuid"
+          },
+          "discoveryMethod": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "ASSISTED"
+            ],
+            "default": "ASSISTED"
+          },
+          "preferredTeacherId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
           }
         },
         "required": [
@@ -13538,6 +13607,18 @@
           },
           "preferences": {
             "$ref": "#/components/schemas/SchedulePreferences"
+          },
+          "discoveryMethod": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "ASSISTED"
+            ],
+            "default": "ASSISTED"
+          },
+          "preferredTeacherId": {
+            "type": "string",
+            "format": "uuid"
           }
         },
         "required": [
@@ -14309,6 +14390,21 @@
             "type": "string"
           },
           "selectedCandidateId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "discoveryMethod": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "ASSISTED"
+            ],
+            "default": "ASSISTED"
+          },
+          "preferredTeacherId": {
             "type": [
               "string",
               "null"

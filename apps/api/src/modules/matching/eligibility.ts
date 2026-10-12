@@ -13,6 +13,7 @@ export async function matched(
   teacher: Teacher,
 ) {
   if (
+    (request.preferredTeacherId && request.preferredTeacherId !== teacher.id) ||
     !eligible(request, child, teacher) ||
     (request.mode === "HOME" &&
       (teacher.region !== request.region || !teacher.travelAccepted))
