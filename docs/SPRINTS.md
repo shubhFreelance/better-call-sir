@@ -12,7 +12,7 @@ Source: **BetterCallSir_MVP_PRD.docx, Version 3.0, 11 October 2026**, supplied b
 
 ## Phase sequence — PRD Section 10
 
-**Active phase: 1 — Foundation implementation validated; acceptance record completed.** The initial implementation contains later-phase slices; they do not close those phases. The demo increments belong to Phase 4, even though they were developed earlier. See `docs/PHASE_1_ACCEPTANCE.md` for the foundation review and `docs/VALIDATION.md` for source-linked checks. Phase 2 is the next planned implementation phase; it has not started.
+**Active phase: 2 — Backend core implementation in progress.** The initial implementation contains later-phase slices; they do not close those phases. The demo increments belong to Phase 4, even though they were developed earlier. See `docs/PHASE_1_ACCEPTANCE.md` for the foundation review and `docs/VALIDATION.md` for source-linked checks. The owner authorized Phase 2 completion on 12 October 2026.
 
 | Phase | PRD deliverables | Exit evidence | Current status |
 | --- | --- | --- | --- |
@@ -47,7 +47,7 @@ This initial implementation also contains early development slices from later ph
 | --- | --- | --- |
 | US01 | OTP sandbox, session replay/logout, consent and family isolation | Real adult verification, reviewed consent, provider abuse handling |
 | US02 | Validated supported intake, child linkage and idempotency | Unsupported-scope waitlist, persisted draft resume and schedule validation |
-| US03–04 | Pending teacher application, server-only approval with screening gate, suspension | Private evidence store, quarantine/scanner, capability check workflow and material-change review |
+| US03–04 | Private content-checked evidence, fail-closed ClamAV worker, revision-bound reviewer checks, fee acceptance snapshot, material-change re-review, suspension | Staging/private-store and current-signature qualification; full Phase 3 reviewer/upload UI |
 | US05 | Allowlisted approved profiles, filters, SSR and suspension hiding | Cursor pagination, real supply and availability |
 | US06 | Hard eligibility filters, fit reasons, operator shortlist, teacher response | Capacity/schedule eligibility, ranking evidence snapshots, exposure tracking |
 | US07 | Demo API and guardian/teacher/operator screens: proposal, versioned dual acceptance, shared-calendar conflict protection, reschedule reset, outcome confirmations, no-show support case and operator review | Staging notification and private meeting qualification; reviewed pilot evidence |
@@ -105,3 +105,13 @@ Validation: the controlled regression fails before the fix and passes after it; 
 ## Phase 1 completion record
 
 Completed the S1-01–S1-08 implementation audit, role/module ownership matrix, OTP/adult-verification/MFA boundary and synthetic guardian demonstration record. 64 automated tests pass, all builds/type checks pass, source secrets scan has no findings and both runtime/tooling audits have zero known advisories at this run. Hosted CI run `38172798589` succeeds for reviewed source `2a0cc438af0c14bd8e3b777f597931921076bf71`. Raw private artifact payloads and independent live-service review are outside the claimed evidence. No Phase 2 implementation, merge or deployment occurred in this increment.
+
+## Phase 2 backend acceptance plan
+
+Implement US03–US06 backend requirements in focused increments: private content-checked evidence and fail-closed scanning; reviewer capability/identity/qualification/reference records and material-change re-review; UTC/timezone-valid advertised availability, leave exceptions and public pagination; structured request schedules and unsupported-scope waitlist; capacity/schedule/travel-aware matching with immutable run snapshots, actual presentation and versioned candidate decisions. Add core relational ownership constraints and authoritative reservation rechecks. Every increment has unauthorized/wrong-owner/stale/retry/failure-path real-DB checks and a separate push. Phase 3 UI and Phase 4 financial/recurring-commitment qualification remain separate.
+
+### Phase 2 increment — US03 / US04 screening backend
+
+Private PDF/PNG/JPEG uploads are capped at 5 MiB and checked against content signatures, stored outside the web root with private permissions and SHA-256, quarantined and scanned through ClamAV INSTREAM. Only scanner-cleared files can be downloaded by their owner or an authorized regional reviewer/admin; downloads are attachments, uncached and audited. Provider failure retains quarantine and a retryable outbox job. Infection cannot be approved. Four immutable checks (identity, qualifications, declared capability coverage and references) must match the current profile revision and unexpired evidence before approval. Every full profile resubmission reopens review and hides unreviewed capabilities; fee-policy acceptance is persisted.
+
+Validation includes real engine clean/EICAR results, scanner-unavailable quarantine, owner/role/region denial, stale version/retry behavior, missing/current-revision checks, self-review denial and database rejection of foreign evidence. The pinned ClamAV engine test intentionally uses an EICAR-only definition; current production signature feeds and live private-store qualification remain Phase 6 prerequisites. Existing synthetic seed approvals retain explicitly synthetic fixture validity.

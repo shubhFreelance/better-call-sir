@@ -41,6 +41,8 @@ jobs:
         run: git diff --exit-code -- packages/api-client/src/generated.ts
       - run: npm run db:migrate
       - run: npm run db:seed
+      - name: Deterministic ClamAV engine fixture
+        run: npm run scanner:test:setup
       - id: typecheck
         run: npm run typecheck > test-results/typecheck.txt 2>&1
       - id: unit

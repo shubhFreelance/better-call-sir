@@ -20,7 +20,7 @@ async function seed() {
   for (const [i,t] of teachers.entries()) {
     const accountId=i===0?ids.teacherAccount:`10000000-0000-4000-8000-${String(i+10).padStart(12,'0')}`;
     if (i>0) await db.account.upsert({where:{id:accountId},create:{id:accountId,name:t.name,phone:`+9100000000${i+10}`,role:'TEACHER',verified:true},update:{}});
-    await db.teacher.upsert({where:{slug:t.slug},create:{...t,id:`30000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,accountId,boards:['CBSE','CGBSE'],grades:[6,7,8,9,10],status:'APPROVED',screeningComplete:true,consultationOptIn:true},update:{}});
+    await db.teacher.upsert({where:{slug:t.slug},create:{...t,id:`30000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,accountId,boards:['CBSE','CGBSE'],grades:[6,7,8,9,10],status:'APPROVED',screeningComplete:true,screeningValidUntil:new Date(Date.now()+180*86400000),feeTermsAcceptedAt:new Date(),travelAccepted:true,consultationOptIn:true},update:{}});
   }
   await db.tuitionRequest.upsert({where:{id:ids.request},create:{id:ids.request,guardianId:ids.guardian,childId:ids.child,subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Weekdays after 5pm',status:'PLACED'},update:{}});
   await db.placement.upsert({where:{requestId:ids.request},create:{id:ids.placement,requestId:ids.request,guardianId:ids.guardian,childId:ids.child,teacherId:ids.teacher,monthlyPaise:300000,status:'ACTIVE',guardianAccepted:true,teacherAccepted:true,guardianStarted:true,teacherReceiptConfirmed:true},update:{}});

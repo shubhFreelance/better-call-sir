@@ -30,7 +30,8 @@
     "test:mock": "tsx --test tests/mock.test.ts",
     "security:secrets": "node scripts/secrets-scan.mjs",
     "test:security": "tsx --test tests/security.test.ts tests/ci-evidence.test.ts",
-    "security:tooling": "npm audit"
+    "security:tooling": "npm audit",
+    "scanner:test:setup": "node scripts/clamav-test-setup.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "5.2.2",

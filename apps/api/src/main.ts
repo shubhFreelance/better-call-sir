@@ -4,7 +4,7 @@ import {Module, Controller, Get, Post, Param, Query, Body, Req, Res, Injectable,
 import {Prisma, PrismaClient, Account} from '@prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg';
 import {randomBytes, randomUUID, createHash, timingSafeEqual} from 'node:crypto';
-import {Request, Response} from 'express';
+import {Request, Response,json} from 'express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import {z} from 'zod';
@@ -18,7 +18,8 @@ class ErrorFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const res=host.switchToHttp().getResponse<Response>(),req=host.switchToHttp().getRequest<HttpRequest>();
     let status=500,body: Record<string,unknown>={code:'INTERNAL',message:'Something went wrong. Please retry or contact support.'};
-    if (exception instanceof HttpException) {status=exception.getStatus();const response=exception.getResponse();body=typeof response==='object'?response as Record<string,unknown>:{code:'ERROR',message:response};}
+    if (typeof exception==='object' && exception!==null && 'type' in exception && exception.type==='entity.too.large') {status=413;body={code:'UPLOAD_TOO_LARGE',message:'The request body exceeds the upload limit.'};}
+    else if (exception instanceof HttpException) {status=exception.getStatus();const response=exception.getResponse();body=typeof response==='object'?response as Record<string,unknown>:{code:'ERROR',message:response};}
     else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       if (['P2002','P2004','P2034','P2039'].includes(exception.code) || String(exception.meta?.message).includes('reservation_no_overlap')) {status=409;body={code:'CONFLICT',message:'This record or time slot is no longer available. Refresh and try again.'};}
       else if (exception.code==='P2025') {status=404;body={code:'NOT_FOUND',message:'Record not found.'};}
@@ -29,11 +30,11 @@ class ErrorFilter implements ExceptionFilter {
 }
 async function bootstrap() {
   if (!development()) throw new Error('Live mode is blocked until authentication, guardian verification, MFA and payment adapters pass release gates.');
-  const app=await NestFactory.create(AppModule,{logger:['error','warn','log']});
-  app.use(helmet());app.use(cookieParser());
+  const app=await NestFactory.create(AppModule,{logger:['error','warn','log'],bodyParser:false});
+  app.use(helmet());app.use(cookieParser());app.use(json({limit:"8mb"}));
   app.use((req: HttpRequest,res: Response,next: ()=>void)=>{
     req.requestId=randomUUID();res.setHeader('X-Request-ID',req.requestId);
-    if (!req.path.startsWith('/api/v1/teachers') && !req.path.startsWith('/api/v1/catalog')) res.setHeader('Cache-Control','no-store');
+    res.setHeader('Cache-Control','no-store');
     if (!['GET','HEAD','OPTIONS'].includes(req.method) && req.get('Origin')!== (process.env.WEB_ORIGIN || 'http://localhost:3000')) {res.status(403).json({code:'ORIGIN',message:'Request origin is not allowed.',requestId:req.requestId});return;}
     next();
   });

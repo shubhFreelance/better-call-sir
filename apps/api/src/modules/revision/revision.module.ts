@@ -24,7 +24,7 @@ class RevisionController {
       const enabled=await db.featureFlag.findUnique({where:{name:'revision'}});
       if (!enabled?.enabled) fail(503,'FEATURE_PAUSED','New revision bookings are temporarily paused.');
       const teacher=await db.teacher.findUnique({where:{id:data.teacherId}});
-      if (!teacher || teacher.status!=='APPROVED' || !teacher.screeningComplete) fail(409,'TEACHER_UNAVAILABLE','This expert is unavailable.');
+      if (!teacher || teacher.status!=='APPROVED' || !teacher.screeningComplete || !teacher.screeningValidUntil || teacher.screeningValidUntil<=new Date()) fail(409,'TEACHER_UNAVAILABLE','This expert is unavailable.');
       const startsAt=new Date(data.startsAt);
       if (startsAt.getTime()<Date.now()+3_600_000 || startsAt.getTime()>Date.now()+60*86_400_000) fail(400,'INVALID_TIME','Choose a slot between one hour and 60 days from now.');
       const localHour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',hour:'2-digit',hourCycle:'h23'}).format(startsAt));

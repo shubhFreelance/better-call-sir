@@ -894,6 +894,114 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/teachers/{id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listPrivateTeacherEvidence
+         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
+         */
+        get: operations["listPrivateTeacherEvidence"];
+        put?: never;
+        /**
+         * uploadPrivateTeacherEvidence
+         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
+         */
+        post: operations["uploadPrivateTeacherEvidence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/evidence/{id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * downloadPrivateTeacherEvidence
+         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
+         */
+        get: operations["downloadPrivateTeacherEvidence"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/evidence/{id}/retries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * retryPrivateEvidenceScan
+         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
+         */
+        post: operations["retryPrivateEvidenceScan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/teachers/{id}/checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listTeacherVerificationChecks
+         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
+         */
+        get: operations["listTeacherVerificationChecks"];
+        put?: never;
+        /**
+         * recordTeacherVerificationCheck
+         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
+         */
+        post: operations["recordTeacherVerificationCheck"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/teacher-applications/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * reviseTeacherApplication
+         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
+         */
+        post: operations["reviseTeacherApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1164,6 +1272,137 @@ export interface components {
         Logout: {
             /** @constant */
             status: "SIGNED_OUT";
+        };
+        TeacherRevision: {
+            name: string;
+            headline: string;
+            bio: string;
+            subjects: string[];
+            boards: string[];
+            grades: number[];
+            languages: string[];
+            modes: string[];
+            localities: string[];
+            monthlyPaise: number;
+            experience: number;
+            consultationOptIn: boolean;
+            /** @constant */
+            feeTermsAccepted: true;
+            expectedVersion: number;
+        };
+        PrivateTeacher: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            headline: string;
+            bio: string;
+            subjects: string[];
+            boards: string[];
+            grades: number[];
+            languages: string[];
+            modes: string[];
+            localities: string[];
+            monthlyPaise: number;
+            experience: number;
+            avatarColor: string;
+            consultationOptIn: boolean;
+            /** Format: uuid */
+            accountId: string;
+            /** @enum {string} */
+            status: "SUBMITTED" | "APPROVED" | "SUSPENDED" | "CHANGES_REQUESTED";
+            screeningComplete: boolean;
+            /** Format: date-time */
+            screeningValidUntil: string | null;
+            profileRevision: number;
+            feePolicyVersion: string;
+            /** Format: date-time */
+            feeTermsAcceptedAt: string | null;
+            region: string;
+            maxActiveStudents: number;
+            travelAccepted: boolean;
+            version: number;
+        };
+        PrivateTeacherList: {
+            items: components["schemas"]["PrivateTeacher"][];
+        };
+        Evidence: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            teacherId: string;
+            /** @enum {string} */
+            kind: "IDENTITY" | "QUALIFICATIONS" | "CAPABILITY" | "REFERENCES";
+            /** @enum {string} */
+            mediaType: "application/pdf" | "image/png" | "image/jpeg";
+            size: number;
+            sha256: string;
+            /** @enum {string} */
+            status: "QUARANTINED" | "CLEAN" | "INFECTED";
+            scannerVersion: string | null;
+            /** Format: date-time */
+            scannedAt: string | null;
+            /** Format: date-time */
+            uploadedAt: string;
+            version: number;
+        };
+        EvidenceList: {
+            items: components["schemas"]["Evidence"][];
+        };
+        EvidenceUpload: {
+            expectedVersion: number;
+            /** @enum {string} */
+            kind: "IDENTITY" | "QUALIFICATIONS" | "CAPABILITY" | "REFERENCES";
+            /** @enum {string} */
+            mediaType: "application/pdf" | "image/png" | "image/jpeg";
+            contentBase64: string;
+        };
+        EvidenceRetry: {
+            expectedVersion: number;
+            reason: string;
+        };
+        CapabilityCoverage: {
+            subjects: string[];
+            boards: string[];
+            grades: number[];
+        };
+        VerificationInput: {
+            expectedVersion: number;
+            /** @enum {string} */
+            kind: "IDENTITY" | "QUALIFICATIONS" | "CAPABILITY" | "REFERENCES";
+            /** Format: uuid */
+            evidenceId: string;
+            /** @enum {string} */
+            result: "PASSED" | "FAILED";
+            reason: string;
+            /** Format: date-time */
+            validUntil: string;
+            coverage?: components["schemas"]["CapabilityCoverage"];
+        };
+        VerificationCheck: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            teacherId: string;
+            /** Format: uuid */
+            reviewerId: string;
+            profileRevision: number;
+            /** @enum {string} */
+            kind: "IDENTITY" | "QUALIFICATIONS" | "CAPABILITY" | "REFERENCES";
+            /** Format: uuid */
+            evidenceId: string;
+            /** @enum {string} */
+            result: "PASSED" | "FAILED";
+            reason: string;
+            coverage: components["schemas"]["CapabilityCoverage"] | null;
+            policyVersion: string;
+            /** Format: date-time */
+            validUntil: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        VerificationList: {
+            items: components["schemas"]["VerificationCheck"][];
         };
     };
     responses: never;
@@ -2871,7 +3110,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["PrivateTeacher"];
                 };
             };
             /** @description Validation */
@@ -2954,7 +3193,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["PrivateTeacherList"];
                 };
             };
             /** @description Validation */
@@ -3050,7 +3289,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["PrivateTeacher"];
                 };
             };
             /** @description Validation */
@@ -5567,6 +5806,646 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Demo"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listPrivateTeacherEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceList"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    uploadPrivateTeacherEvidence: {
+        parameters: {
+            query?: never;
+            header: {
+                Origin: string;
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvidenceUpload"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Evidence"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Upload body exceeds the transport size limit */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    downloadPrivateTeacherEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    retryPrivateEvidenceScan: {
+        parameters: {
+            query?: never;
+            header: {
+                Origin: string;
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvidenceRetry"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Evidence"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listTeacherVerificationChecks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationList"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    recordTeacherVerificationCheck: {
+        parameters: {
+            query?: never;
+            header: {
+                Origin: string;
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerificationInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationCheck"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    reviseTeacherApplication: {
+        parameters: {
+            query?: never;
+            header: {
+                Origin: string;
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeacherRevision"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivateTeacher"];
                 };
             };
             /** @description Validation */

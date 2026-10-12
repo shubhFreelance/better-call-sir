@@ -2584,7 +2584,7 @@ function AdminPanel({ dashboard: d, act }: { dashboard: Dashboard; act: Act }) {
                         t.status === "APPROVED" ? "SUSPENDED" : "APPROVED",
                       reason,
                     },
-                    false,
+                    true,
                   ).then(() => teachers.refetch());
               }}
             >

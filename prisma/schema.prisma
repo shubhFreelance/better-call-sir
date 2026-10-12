@@ -77,6 +77,13 @@ model Teacher {
   experience Int @default(0)
   status String @default("SUBMITTED")
   screeningComplete Boolean @default(false)
+  screeningValidUntil DateTime?
+  profileRevision Int @default(1)
+  feePolicyVersion String @default("pilot-v1")
+  feeTermsAcceptedAt DateTime?
+  region String @default("Raipur")
+  maxActiveStudents Int @default(10)
+  travelAccepted Boolean @default(false)
   consultationOptIn Boolean @default(false)
   version Int @default(1)
   avatarColor String @default("#e4eee5")
@@ -280,4 +287,34 @@ model Demo {
   @@index([guardianId])
   @@index([teacherId])
   @@index([requestId, teacherId, status])
+}
+
+model Evidence {
+  id String @id @default(uuid()) @db.Uuid
+  teacherId String @db.Uuid
+  kind String
+  mediaType String
+  size Int
+  sha256 String
+  status String @default("QUARANTINED")
+  scannerVersion String?
+  scannedAt DateTime?
+  uploadedAt DateTime @default(now())
+  version Int @default(1)
+  @@index([teacherId, status])
+}
+model VerificationCheck {
+  id String @id @default(uuid()) @db.Uuid
+  teacherId String @db.Uuid
+  reviewerId String @db.Uuid
+  profileRevision Int
+  kind String
+  evidenceId String @db.Uuid
+  result String
+  reason String
+  coverage Json?
+  policyVersion String @default("screening-v1")
+  validUntil DateTime
+  createdAt DateTime @default(now())
+  @@unique([teacherId, profileRevision, kind])
 }

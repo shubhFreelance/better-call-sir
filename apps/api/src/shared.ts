@@ -66,7 +66,7 @@ export class AppService {
   async audit(db: DB, actor: Account, req: HttpRequest, action: string, id: string, reason: string, before?: Prisma.InputJsonValue, after?: Prisma.InputJsonValue) {
     return db.audit.create({data:{actorId:actor.id,action,aggregateId:id,reason,requestId:req.requestId || randomUUID(),before,after}});
   }
-  async event(db: DB,type: string,id: string) {return db.outbox.create({data:{type,aggregateId:id,payload:{version:1}}});}
+  async event(db: DB,type: string,id: string,version=1) {return db.outbox.create({data:{type,aggregateId:id,payload:{version}}});}
   async once<T>(req: Request, actor: Account, operation: string, body: unknown, fn: (db: DB) => Promise<T>): Promise<T> {
     operation += ':' + req.path;
     const key = req.get('Idempotency-Key');
@@ -98,7 +98,7 @@ export class AppService {
     return this.sessionResponse(account,await this.issueSession(account,familyId),res);
   }
   async publicTeachers() {
-    const teachers = await this.db.teacher.findMany({where:{status:'APPROVED',screeningComplete:true},orderBy:{name:'asc'},take:50});
+    const teachers = await this.db.teacher.findMany({where:{status:'APPROVED',screeningComplete:true,screeningValidUntil:{gt:new Date()}},orderBy:{name:'asc'},take:50});
     return teachers.map(t => ({id:t.id,slug:t.slug,name:t.name,headline:t.headline,bio:t.bio,subjects:t.subjects,boards:t.boards,grades:t.grades,languages:t.languages,modes:t.modes,localities:t.localities,monthlyPaise:t.monthlyPaise,experience:t.experience,avatarColor:t.avatarColor,capabilityLabel:'Reviewed subject coverage',consultationOptIn:t.consultationOptIn}));
   }
 }
