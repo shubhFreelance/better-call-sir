@@ -14,6 +14,7 @@ import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,sam
 
 import {available} from '../scheduling/calendar';
 import {mode as meetingMode} from '@bcs/meetings';
+import {createRevisionFulfillment} from './fulfillment';
 
 @Controller('api/v1')
 class RevisionController {
@@ -21,7 +22,7 @@ class RevisionController {
   get db() {return this.service.db;}
   @Post('revision/holds') async hold(@Req() req: HttpRequest,@Body() body: unknown) {
     const actor=await this.service.actor(req,['GUARDIAN']);
-    const data=parse(z.object({childId:uuid.optional(),teacherId:uuid,startsAt:z.iso.datetime({offset:true}),duration:z.union([z.literal(20),z.literal(40)]),topic:text(1000)}).strict(),body);
+    const data=parse(z.object({childId:uuid.optional(),teacherId:uuid,startsAt:z.iso.datetime({offset:true}),duration:z.union([z.literal(20),z.literal(40)]),subject:z.enum(['Maths','Science']).default('Maths'),language:z.enum(['English','Hindi']).default('English'),topic:text(1000)}).strict(),body);
     return this.service.once(req,actor,'revision.hold',data,async db=>{
       await this.service.guardian(db,actor.id);
       const children=await db.child.findMany({where:{guardianId:actor.id},take:2});
@@ -32,7 +33,7 @@ class RevisionController {
       if (!enabled?.enabled) fail(503,'FEATURE_PAUSED','New revision bookings are temporarily paused.');
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${data.teacherId},0))`;
       const teacher=await db.teacher.findUnique({where:{id:data.teacherId}});
-      if (!teacher || teacher.status!=='APPROVED' || !teacher.screeningComplete || !teacher.screeningValidUntil || teacher.screeningValidUntil<=new Date()) fail(409,'TEACHER_UNAVAILABLE','This expert is unavailable.');
+      if (!teacher || teacher.status!=='APPROVED' || !teacher.screeningComplete || !teacher.screeningValidUntil || teacher.screeningValidUntil<=new Date() || !teacher.subjects.includes(data.subject) || !teacher.languages.includes(data.language) || !teacher.grades.includes(child.grade) || !teacher.boards.includes(child.board)) fail(409,'TEACHER_UNAVAILABLE','This expert is unavailable for the selected learner and subject.');
       const startsAt=new Date(data.startsAt);
       if (startsAt.getTime()<Date.now()+3_600_000 || startsAt.getTime()>Date.now()+60*86_400_000) fail(400,'INVALID_TIME','Choose a slot between one hour and 60 days from now.');
       const endsAt=new Date(startsAt.getTime()+data.duration*60_000);
@@ -42,7 +43,7 @@ class RevisionController {
       const localHour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',hour:'2-digit',hourCycle:'h23'}).format(startsAt));
       if (localHour<9 || localHour>=20) fail(400,'OUTSIDE_WINDOW','Development revision slots run from 9am to 8pm IST.');
       await db.reservation.updateMany({where:{teacherId:teacher.id,status:'HOLD',expiresAt:{lt:new Date()}},data:{status:'EXPIRED'}});
-      const reservation=await db.reservation.create({data:{teacherId:teacher.id,guardianId:actor.id,childId:child.id,kind:'REVISION',source:'ADVERTISED',sourceId:pattern.id,startsAt,endsAt:new Date(startsAt.getTime()+data.duration*60_000),expiresAt:new Date(Date.now()+600_000),topic:data.topic,amountPaise:data.duration*1500}});
+      const price=data.duration*1500;const reservation=await db.reservation.create({data:{teacherId:teacher.id,guardianId:actor.id,childId:child.id,kind:'REVISION',source:'ADVERTISED',sourceId:pattern.id,startsAt,endsAt:new Date(startsAt.getTime()+data.duration*60_000),expiresAt:new Date(Date.now()+600_000),topic:data.topic,subject:data.subject,language:data.language,amountPaise:price,payablePaise:price}});
       await this.service.audit(db,actor,req,'REVISION_HELD',reservation.id,'Guardian reserved declared expert availability');
       await this.service.event(db,'revision.scope_requested',reservation.id);return reservation;
     });
@@ -93,6 +94,7 @@ class RevisionController {
         await this.service.event(db,'refund.requested',payment.id);return {payment,reservation};
       }
       const reservation=await db.reservation.update({where:{id},data:{status:'CONFIRMED',expiresAt:null,version:{increment:1}}});
+      await createRevisionFulfillment(db,reservation,payment);
       const meeting=await db.meeting.upsert({where:{reservationId:id},create:{reservationId:id,providerMode:meetingMode()},update:{status:'PENDING',joinUrl:null,providerSpaceId:null,failureCode:null,retryAt:null,providerMode:meetingMode(),version:{increment:1}}});await this.service.event(db,'meeting.create_requested',meeting.id,meeting.version);
       await this.service.audit(db,actor,req,'SANDBOX_REVISION_CONFIRMED',id,'Exact sandbox capture confirmed current expert availability');
       await this.service.event(db,'revision.confirmed',id);return {payment,reservation};
@@ -112,7 +114,7 @@ class RevisionController {
       if (!['HOLD','CONFIRMED'].includes(r.status) || r.version!==data.expectedVersion) fail(409,'CONFLICT','Booking has changed.');
       const payment=await db.payment.findUnique({where:{reservationId:id}});
       if (payment && !revisionRefund(r.startsAt,new Date(),'GUARDIAN_CANCELLED')) fail(409,'POLICY_REVIEW','Late-cancellation policy is unapproved. Contact support; no automated charge or refund decision was made.');
-      const updated=await db.reservation.update({where:{id},data:{status:'CANCELLED',version:{increment:1}}});
+      const lesson=await db.lesson.findUnique({where:{reservationId:id}});await db.lesson.updateMany({where:{reservationId:id,status:'SCHEDULED'},data:{status:'CANCELLED',version:{increment:1}}});const updated=await db.reservation.update({where:{id},data:{status:'CANCELLED',version:{increment:1}}});if(lesson)await db.teacherPayable.updateMany({where:{lessonId:lesson.id},data:{status:'REFUND_PENDING',version:{increment:1}}});
       await db.meeting.updateMany({where:{reservationId:id},data:{status:'CANCELLED',joinUrl:null,version:{increment:1}}});
       if (payment) {await db.refund.upsert({where:{paymentId:payment.id},create:{paymentId:payment.id,amountPaise:payment.amountPaise,reason:data.reason},update:{}});await this.service.event(db,'refund.requested',payment.id);}
       await this.service.audit(db,actor,req,'REVISION_CANCELLED',id,data.reason);

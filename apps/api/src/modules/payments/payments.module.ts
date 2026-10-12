@@ -1,13 +1,18 @@
-import {Module,Controller,Get,Post,Param,Body,Req,Headers,Inject} from '@nestjs/common';
+import {Module,Controller,Get,Post,Param,Query,Body,Req,Headers,Inject} from '@nestjs/common';
 import {z} from 'zod';
 import {AppService,PersistenceModule,HttpRequest,uuid,version,text,parse,fail,development} from '../../shared';
 import {available} from '../scheduling/calendar';
 import {createRazorpayOrder,fetchRazorpayOrder,paymentMode,verifyWebhook} from './razorpay';
 import {mode as meetingMode} from '@bcs/meetings';
+import {createRevisionFulfillment} from '../revision/fulfillment';
 
 @Controller('api/v1')
 class PaymentsController{
   constructor(@Inject(AppService) private readonly service:AppService){}
+  @Get('payables') async payables(@Req() req:HttpRequest,@Query() query:unknown){
+    const actor=await this.service.actor(req,['TEACHER','FINANCE','ADMIN']);const data=parse(z.object({status:z.enum(['HELD_SERVICE','HELD_CONFIRMATION','HELD_DISPUTE','ELIGIBLE','REFUND_PENDING','REVIEW_REQUIRED']).optional()}).strict(),query),teacher=actor.role==='TEACHER'?await this.service.db.teacher.findUnique({where:{accountId:actor.id}}):null;
+    const items=await this.service.db.teacherPayable.findMany({where:{...(teacher?{teacherId:teacher.id}:{}),...(data.status?{status:data.status}:{})},orderBy:[{createdAt:'desc'},{id:'desc'}],take:50,select:{id:true,lessonId:true,teacherId:true,amountPaise:true,currency:true,policyVersion:true,status:true,eligibleAt:true,version:true,createdAt:true}});return {items};
+  }
   @Post('checkout-orders') async create(@Req() req:HttpRequest,@Body() body:unknown){
     const actor=await this.service.actor(req,['GUARDIAN','TEACHER']);const data=parse(z.object({kind:z.enum(['INVOICE','REVISION']),resourceId:uuid,expectedVersion:version}).strict(),body);
     return this.service.once(req,actor,'checkout.create',data,async db=>{
@@ -50,7 +55,7 @@ class PaymentsController{
         const payment=await db.payment.create({data:{reservationId:reservation.id,checkoutOrderId:order.id,providerEventId:entity.id,amountPaise:entity.amount}});
         if(teacher.status!=='APPROVED'||!teacher.screeningComplete||!teacher.screeningValidUntil||teacher.screeningValidUntil<=new Date()||account.disabled||collision||!await available(db,teacher.id,'REVISION',reservation.startsAt,reservation.endsAt,reservation.id,0)||reservation.status==='CANCELLED'||reservation.startsAt<=new Date()){
           await db.reservation.update({where:{id:reservation.id},data:{status:'PAID_UNALLOCATED',version:{increment:1}}});await db.refund.create({data:{paymentId:payment.id,amountPaise:payment.amountPaise,reason:'SLOT_UNAVAILABLE'}});await this.service.event(db,'refund.requested',payment.id);result='PAID_UNALLOCATED';
-        }else {await db.reservation.update({where:{id:reservation.id},data:{status:'CONFIRMED',expiresAt:null,version:{increment:1}}});const meeting=await db.meeting.upsert({where:{reservationId:reservation.id},create:{reservationId:reservation.id,providerMode:meetingMode()},update:{status:'PENDING',joinUrl:null,providerSpaceId:null,failureCode:null,retryAt:null,attempts:0,providerMode:meetingMode(),version:{increment:1}}});await this.service.event(db,'meeting.create_requested',meeting.id,meeting.version);}
+        }else {const confirmed=await db.reservation.update({where:{id:reservation.id},data:{status:'CONFIRMED',expiresAt:null,version:{increment:1}}});await createRevisionFulfillment(db,confirmed,payment);const meeting=await db.meeting.upsert({where:{reservationId:reservation.id},create:{reservationId:reservation.id,providerMode:meetingMode()},update:{status:'PENDING',joinUrl:null,providerSpaceId:null,failureCode:null,retryAt:null,attempts:0,providerMode:meetingMode(),version:{increment:1}}});await this.service.event(db,'meeting.create_requested',meeting.id,meeting.version);}
       }
       await db.checkoutOrder.update({where:{id:order.id},data:{status:'PAID',version:{increment:1}}});await db.billingEvent.create({data:{id:eventId,provider:'RAZORPAY',type:event.event,checkoutOrderId:order.id,result,processedAt:new Date()}});await this.service.event(db,'payment.captured',order.id);return {status:result};
     });

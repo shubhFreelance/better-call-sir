@@ -1582,6 +1582,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/payables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List teacher-owned or finance-scoped payable records */
+        get: operations["getPayables"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1706,6 +1723,12 @@ export interface components {
             sourceId?: string | null;
             /** Format: uuid */
             childId?: string | null;
+            /** @enum {string} */
+            subject: "Maths" | "Science";
+            /** @enum {string} */
+            language: "English" | "Hindi";
+            pricePolicyVersion: string;
+            payablePaise: number;
         };
         DemoProposal: {
             /** Format: uuid */
@@ -2478,6 +2501,9 @@ export interface components {
             attendance: "PENDING" | "PRESENT" | "LATE" | "ABSENT";
             disputed: boolean;
             version: number;
+            recap: string | null;
+            /** Format: date-time */
+            recapSubmittedAt: string | null;
         };
         LessonRecords: {
             items: {
@@ -2596,6 +2622,28 @@ export interface components {
             retryAt: string | null;
             attempts: number;
             version: number;
+        };
+        TeacherPayable: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            lessonId: string;
+            /** Format: uuid */
+            teacherId: string;
+            amountPaise: number;
+            /** @enum {string} */
+            currency: "INR";
+            policyVersion: string;
+            /** @enum {string} */
+            status: "HELD_SERVICE" | "HELD_CONFIRMATION" | "HELD_DISPUTE" | "ELIGIBLE" | "REFUND_PENDING" | "REVIEW_REQUIRED";
+            /** Format: date-time */
+            eligibleAt: string | null;
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        TeacherPayableList: {
+            items: components["schemas"]["TeacherPayable"][];
         };
     };
     responses: never;
@@ -4578,6 +4626,16 @@ export interface operations {
                     topic: string;
                     /** Format: uuid */
                     childId?: string;
+                    /**
+                     * @default Maths
+                     * @enum {string}
+                     */
+                    subject?: "Maths" | "Science";
+                    /**
+                     * @default English
+                     * @enum {string}
+                     */
+                    language?: "English" | "Hindi";
                 };
             };
         };
@@ -5250,6 +5308,7 @@ export interface operations {
                     /** @enum {string} */
                     attendance: "PRESENT" | "LATE" | "ABSENT";
                     reason: string;
+                    recap?: string;
                 };
             };
         };
@@ -10629,6 +10688,73 @@ export interface operations {
             };
             /** @description Provider unavailable or feature paused */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPayables: {
+        parameters: {
+            query?: {
+                status?: "HELD_SERVICE" | "HELD_CONFIRMATION" | "HELD_DISPUTE" | "ELIGIBLE" | "REFUND_PENDING" | "REVIEW_REQUIRED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherPayableList"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

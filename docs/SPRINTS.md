@@ -166,6 +166,12 @@ The owner changed delivery order on 12 October 2026: complete missing backend wo
 | B4 / US11–14, US20 | Support queue/status, replacement/rematch, sharing acknowledgement, privacy requests/retention boundary and operational reports | Pending |
 | Provider qualification | Live OTP/adult verification/MFA, payment/refund, private meetings, masked audio, notifications, current scanner signatures/private storage | Provider selection/credentials and external review pending; never label simulated delivery complete |
 
+### B3 / US10 — revision fulfilment, recap and teacher payable
+
+Successful sandbox or signed Razorpay capture now creates one learner-linked revision lesson and one separately tracked teacher payable. The reservation snapshots subject, language, price, payable and the explicit development policy version; current unapproved commercial terms use a zero-platform-fee pass-through policy. Teacher eligibility is rechecked against the learner's grade/board and selected subject/language before the hold is created.
+
+Delivered revision attendance requires an expert recap. A guardian confirmation makes the payable eligible, a learner confirmation records service evidence without authorizing finance, a dispute holds the payable, and operator resolution records eligibility or manual review. Eligible cancellation cancels the scheduled lesson and moves its payable to refund-pending. Teachers can list only their own payable projection; finance/admin can operate the bounded queue. PostgreSQL binds the payment, revision reservation, lesson and teacher and rejects payables above captured funds. No provider payout is represented as sent; live fee/tax terms, payout settlement and accounting acceptance remain open.
+
 ### B2 / US08 — mutually accepted recurring tuition calendar
 
 Added versioned weekly Asia/Kolkata schedules owned by a placement. A guardian or assigned teacher proposes 20–120 minute windows; online windows are capped at the owner's selected 40-minute meeting limit. Both parties must accept the same version before the backend materializes confirmed reservations and lessons through the rolling 60-day horizon. Tuition cannot enter the started state until terms and a recurring schedule are accepted.

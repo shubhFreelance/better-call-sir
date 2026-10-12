@@ -142,6 +142,10 @@ model Reservation {
   expiresAt DateTime?
   version Int @default(1)
   topic String @default("")
+  subject String @default("Maths")
+  language String @default("English")
+  pricePolicyVersion String @default("revision-dev-v1-zero-platform-fee")
+  payablePaise Int @default(0)
   scopeAccepted Boolean @default(false)
   amountPaise Int @default(0)
   createdAt DateTime @default(now())
@@ -251,10 +255,27 @@ model Lesson {
   status String @default("SCHEDULED")
   attendance String @default("PENDING")
   disputed Boolean @default(false)
+  recap String?
+  recapSubmittedAt DateTime?
   version Int @default(1)
   @@unique([recurringScheduleId, startsAt])
   @@index([childId, startsAt])
   @@index([teacherId, startsAt])
+}
+model TeacherPayable {
+  id String @id @default(uuid()) @db.Uuid
+  paymentId String @unique @db.Uuid
+  lessonId String @unique @db.Uuid
+  teacherId String @db.Uuid
+  amountPaise Int
+  currency String @default("INR")
+  policyVersion String
+  status String @default("HELD_SERVICE")
+  eligibleAt DateTime?
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([teacherId, status])
 }
 model LessonConfirmation {
   id String @id @default(uuid()) @db.Uuid

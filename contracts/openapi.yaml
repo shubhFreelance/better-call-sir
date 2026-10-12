@@ -4222,6 +4222,22 @@
                   "childId": {
                     "type": "string",
                     "format": "uuid"
+                  },
+                  "subject": {
+                    "type": "string",
+                    "enum": [
+                      "Maths",
+                      "Science"
+                    ],
+                    "default": "Maths"
+                  },
+                  "language": {
+                    "type": "string",
+                    "enum": [
+                      "English",
+                      "Hindi"
+                    ],
+                    "default": "English"
                   }
                 },
                 "required": [
@@ -5266,6 +5282,11 @@
                   },
                   "reason": {
                     "type": "string"
+                  },
+                  "recap": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
                   }
                 },
                 "required": [
@@ -13110,6 +13131,100 @@
           }
         }
       }
+    },
+    "/payables": {
+      "get": {
+        "operationId": "getPayables",
+        "summary": "List teacher-owned or finance-scoped payable records",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "HELD_SERVICE",
+                "HELD_CONFIRMATION",
+                "HELD_DISPUTE",
+                "ELIGIBLE",
+                "REFUND_PENDING",
+                "REVIEW_REQUIRED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherPayableList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "payments"
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -13564,6 +13679,27 @@
               "null"
             ],
             "format": "uuid"
+          },
+          "subject": {
+            "type": "string",
+            "enum": [
+              "Maths",
+              "Science"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "English",
+              "Hindi"
+            ]
+          },
+          "pricePolicyVersion": {
+            "type": "string"
+          },
+          "payablePaise": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "required": [
@@ -13579,7 +13715,11 @@
           "topic",
           "scopeAccepted",
           "amountPaise",
-          "createdAt"
+          "createdAt",
+          "subject",
+          "language",
+          "pricePolicyVersion",
+          "payablePaise"
         ],
         "additionalProperties": false
       },
@@ -16664,6 +16804,19 @@
           "version": {
             "type": "integer",
             "minimum": 1
+          },
+          "recap": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "recapSubmittedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           }
         },
         "required": [
@@ -16680,7 +16833,9 @@
           "status",
           "attendance",
           "disputed",
-          "version"
+          "version",
+          "recap",
+          "recapSubmittedAt"
         ],
         "additionalProperties": false
       },
@@ -17128,6 +17283,90 @@
           "retryAt",
           "attempts",
           "version"
+        ],
+        "additionalProperties": false
+      },
+      "TeacherPayable": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lessonId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teacherId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amountPaise": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "INR"
+            ]
+          },
+          "policyVersion": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "HELD_SERVICE",
+              "HELD_CONFIRMATION",
+              "HELD_DISPUTE",
+              "ELIGIBLE",
+              "REFUND_PENDING",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "eligibleAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "lessonId",
+          "teacherId",
+          "amountPaise",
+          "currency",
+          "policyVersion",
+          "status",
+          "eligibleAt",
+          "version",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "TeacherPayableList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeacherPayable"
+            }
+          }
+        },
+        "required": [
+          "items"
         ],
         "additionalProperties": false
       }
