@@ -230,3 +230,14 @@ The primary sign-in screen now uses name/email entry and six-digit OTP verificat
 Complete saved/stepped guardian onboarding, structured schedule confirmation and the remaining role-specific screens are still open. Live email/adult-verification qualification remains a backend/release gate.
 
 Validation for F2: all 17 browser tests pass. New cases cover a real sandbox OTP session with wrong-code recovery, current-version teacher onboarding return, new-adult verification blocking after reload, local validation without network submission, failed delivery with preserved inputs, SENT response preview-code suppression, expiry/resend/reset, keyboard focus recovery, mobile overflow and serious/critical axe checks on both sign-in steps. Desktop/mobile screenshots were inspected and the mobile form was moved ahead of introductory content. The production Next.js build, all application type checks and source secrets scan pass. Backend-only suites and hosted CI were not rerun; live email/adult-verification acceptance remains open. No merge or deployment occurred.
+
+
+## Backend/frontend branch separation
+
+At the owner's request, published frontend increments were reverted on `feat/backend-completion` without rewriting history. They were reapplied on `feat/frontend-implementation`, which owns further UI work. The backend branch retains the backend implementation and original web foundation.
+
+### US02 / US19 — saved discovery draft contract correction
+
+Frontend contract checks found that saved parent drafts accepted discoveryMethod/preferredTeacherId in the API but omitted them from OpenAPI's partial onboarding schema. Both fields now match Intake and the generated client. The real-database onboarding regression validates the saved/resumed discovery draft against its response contract. Runtime behavior and permissions are unchanged.
+
+Validation: all 57 real-database API and eight contract tests pass, including the saved-draft response check. The fix is isolated on the backend branch; frontend integration consumes its generated schema.

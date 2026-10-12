@@ -2667,6 +2667,13 @@ export interface components {
             budgetPaise?: number;
             schedule?: string;
             preferences?: components["schemas"]["SchedulePreferences"];
+            /**
+             * @default ASSISTED
+             * @enum {string}
+             */
+            discoveryMethod: "MANUAL" | "ASSISTED";
+            /** Format: uuid */
+            preferredTeacherId?: string;
         } | {
             name?: string;
             headline?: string;
