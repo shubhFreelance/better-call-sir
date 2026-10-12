@@ -31,11 +31,11 @@ class ErrorFilter implements ExceptionFilter {
 async function bootstrap() {
   if (!development()) throw new Error('Live mode is blocked until authentication, guardian verification, MFA and payment adapters pass release gates.');
   const app=await NestFactory.create(AppModule,{logger:['error','warn','log'],bodyParser:false});
-  app.use(helmet());app.use(cookieParser());app.use(json({limit:"8mb"}));
+  app.use(helmet());app.use(cookieParser());app.use(json({limit:"8mb",verify:(req,_,buffer)=>{(req as HttpRequest).rawBody=Buffer.from(buffer);}}));
   app.use((req: HttpRequest,res: Response,next: ()=>void)=>{
     req.requestId=randomUUID();res.setHeader('X-Request-ID',req.requestId);
     res.setHeader('Cache-Control','no-store');
-    if (!['GET','HEAD','OPTIONS'].includes(req.method) && req.get('Origin')!== (process.env.WEB_ORIGIN || 'http://localhost:3000')) {res.status(403).json({code:'ORIGIN',message:'Request origin is not allowed.',requestId:req.requestId});return;}
+    if (!['GET','HEAD','OPTIONS'].includes(req.method) && req.path!=='/api/v1/billing/webhooks/razorpay' && req.get('Origin')!== (process.env.WEB_ORIGIN || 'http://localhost:3000')) {res.status(403).json({code:'ORIGIN',message:'Request origin is not allowed.',requestId:req.requestId});return;}
     next();
   });
   app.useGlobalFilters(new ErrorFilter());app.enableShutdownHooks();

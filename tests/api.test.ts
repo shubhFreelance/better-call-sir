@@ -1,7 +1,7 @@
 import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn,spawnSync,execFileSync,ChildProcess} from 'node:child_process';
-import {randomUUID,createHash} from 'node:crypto';
+import {randomUUID,createHash,createHmac} from 'node:crypto';
 import {readFileSync,mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -34,7 +34,7 @@ const future=(days=15,hour=6)=>{const d=new Date();d.setUTCDate(d.getUTCDate()+d
 const intake=(extra={})=>({alias:'Test learner',grade:8,board:'CBSE',subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Monday after 5pm',...extra});
 before(async()=>{
  await admin.query(`CREATE DATABASE "${name}"`);
- const env={...process.env,...local,DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',EVIDENCE_DIRECTORY:evidenceDir};
+ const env={...process.env,...local,DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',RAZORPAY_WEBHOOK_SECRET:['synthetic','webhook','key'].join('-'),EVIDENCE_DIRECTORY:evidenceDir};
  execFileSync(process.execPath,['node_modules/prisma/build/index.js','migrate','deploy'],{env,stdio:'pipe'});
  execFileSync(process.execPath,['--import','tsx','prisma/seed.ts'],{env,stdio:'pipe'});
  execFileSync(process.execPath,['node_modules/typescript/bin/tsc','-p','apps/api/tsconfig.json'],{env,stdio:'pipe'});
@@ -371,6 +371,29 @@ test('reservation authorization follows declared availability, leave, expiry and
  const account=await db.account.findUniqueOrThrow({where:{id:t.accountId}});await db.account.update({where:{id:account.id},data:{disabled:true}});
  assert.equal((await new Client().call(`/teachers/${t.id}/availability?startsAt=${future(51)}&endsAt=${future(52)}&kind=REVISION`)).status,404);
  await db.account.update({where:{id:account.id},data:{disabled:false}});
+});
+test('Razorpay checkout verifies raw webhooks, exact money, ownership, replay and final booking eligibility',async()=>{
+ await db.featureFlag.update({where:{name:'checkout'},data:{enabled:true}});
+ const invoice=await db.invoice.upsert({where:{placementId:ids.placement},create:{placementId:ids.placement,payerId:ids.teacherAccount,amountPaise:75000,policyVersion:'pilot-v1'},update:{status:'DUE',version:{increment:1}}});
+ assert.equal((await parent.call('/checkout-orders',{kind:'INVOICE',resourceId:invoice.id,expectedVersion:invoice.version})).status,404);
+ const key=randomUUID(),order=await teacher.call('/checkout-orders',{kind:'INVOICE',resourceId:invoice.id,expectedVersion:invoice.version},{key});assert.equal(order.status,201,JSON.stringify(order.data));assert.equal(order.data.provider,'RAZORPAY');assert.equal(order.data.providerMode,'SANDBOX');assert.equal(order.data.status,'CREATED');
+ assert.equal((await teacher.call('/checkout-orders',{kind:'INVOICE',resourceId:invoice.id,expectedVersion:invoice.version},{key})).data.id,order.data.id);
+ const webhook=async(eventId:string,providerOrderId:string,amount:number,signatureValid=true)=>{
+  const raw=JSON.stringify({event:'payment.captured',payload:{payment:{entity:{id:'pay_'+eventId,order_id:providerOrderId,amount,currency:'INR',status:'captured'}}}}),signature=createHmac('sha256',['synthetic','webhook','key'].join('-')).update(raw).digest('hex');
+  const response=await fetch('http://127.0.0.1:4100/api/v1/billing/webhooks/razorpay',{method:'POST',headers:{'Content-Type':'application/json','x-razorpay-event-id':eventId,'x-razorpay-signature':signatureValid?signature:'0'.repeat(64)},body:raw});return {status:response.status,data:await response.json()};
+ };
+ assert.equal((await webhook('evt_bad_signature',order.data.providerOrderId,invoice.amountPaise,false)).status,401);
+ const captured=await webhook('evt_invoice_paid',order.data.providerOrderId,invoice.amountPaise);assert.equal(captured.status,201);assert.equal(captured.data.status,'PAID');
+ assert.equal((await webhook('evt_invoice_paid',order.data.providerOrderId,invoice.amountPaise)).data.status,'PAID');assert.equal((await db.invoice.findUniqueOrThrow({where:{id:invoice.id}})).status,'PAID');assert.equal(await db.payment.count({where:{invoiceId:invoice.id}}),1);
+ assert.equal((await webhook('evt_invoice_duplicate',order.data.providerOrderId,invoice.amountPaise)).data.status,'ALREADY_PAID');assert.equal(await db.payment.count({where:{invoiceId:invoice.id}}),1);
+ const reconciliation=await operator.call(`/admin/checkout-orders/${order.data.id}/reconciliations`,{expectedVersion:3,reason:'Verify synthetic order'});assert.equal(reconciliation.status,201);assert.equal(reconciliation.data.status,'LOCAL_SANDBOX_ONLY');
+ const hold=await parent.call('/revision/holds',{teacherId:ids.teacher,startsAt:future(54),duration:20,topic:'Razorpay revision'});assert.equal(hold.status,201);const scoped=await teacher.call(`/reservations/${hold.data.id}/scope`,{expectedVersion:1});assert.equal(scoped.status,201);
+ const revisionOrder=await parent.call('/checkout-orders',{kind:'REVISION',resourceId:hold.data.id,expectedVersion:scoped.data.version});assert.equal(revisionOrder.status,201);
+ const concurrent=await Promise.all([webhook('evt_revision_paid_a',revisionOrder.data.providerOrderId,hold.data.amountPaise),webhook('evt_revision_paid_b',revisionOrder.data.providerOrderId,hold.data.amountPaise)]);assert.deepEqual(concurrent.map(x=>x.data.status).sort(),['ALREADY_PAID','PAID']);assert.equal((await db.reservation.findUniqueOrThrow({where:{id:hold.data.id}})).status,'CONFIRMED');assert.equal(await db.payment.count({where:{reservationId:hold.data.id}}),1);
+ const mismatchInvoice=await db.invoice.create({data:{placementId:(await db.placement.create({data:{guardianId:ids.otherGuardian,teacherId:ids.teacher,childId:ids.otherChild,requestId:(await db.tuitionRequest.create({data:{guardianId:ids.otherGuardian,childId:ids.otherChild,subject:'Maths',mode:'ONLINE',language:'English',locality:'Raipur',budgetPaise:300000,schedule:'Synthetic'}})).id,monthlyPaise:300000}})).id,payerId:ids.teacherAccount,amountPaise:50000,policyVersion:'pilot-v1'}});
+ const mismatchOrder=await teacher.call('/checkout-orders',{kind:'INVOICE',resourceId:mismatchInvoice.id,expectedVersion:1});assert.equal(mismatchOrder.status,201);assert.equal((await webhook('evt_amount_mismatch',mismatchOrder.data.providerOrderId,49999)).data.status,'AMOUNT_MISMATCH');assert.equal(await db.payment.count({where:{invoiceId:mismatchInvoice.id}}),0);assert(await db.supportCase.findFirst({where:{category:'PAYMENT',description:{contains:mismatchOrder.data.id}}}));
+ await assert.rejects(db.checkoutOrder.create({data:{accountId:ids.otherGuardian,kind:'INVOICE',resourceId:invoice.id,amountPaise:invoice.amountPaise,providerMode:'SANDBOX'}}));
+ const validate=operationValidator('/checkout-orders','post','201');assert(validate(order.data),JSON.stringify(validate.errors));await db.featureFlag.update({where:{name:'checkout'},data:{enabled:false}});
 });
 test('mutually accepted recurring schedules materialize real shared reservations and preserve commitments on failed reschedule',async()=>{
  const p=await db.placement.findUniqueOrThrow({where:{id:ids.placement}}),from=new Date(future(3)),weekday=new Date(from.getTime()+330*60000).getUTCDay();

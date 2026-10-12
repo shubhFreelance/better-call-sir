@@ -23,7 +23,7 @@ export const parse = <T>(schema: z.ZodType<T>, body: unknown): T => {
 };
 export const same = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a),Buffer.from(b));
 export const development = () => process.env.APP_MODE === 'development' && process.env.NODE_ENV !== 'production';
-export type HttpRequest = Request & {requestId?: string};
+export type HttpRequest = Request & {requestId?:string;rawBody?:Buffer};
 export type DB = Prisma.TransactionClient;
 
 @Injectable()

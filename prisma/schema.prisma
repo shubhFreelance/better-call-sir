@@ -173,15 +173,44 @@ model Invoice {
   currency String @default("INR")
   policyVersion String
   status String @default("DUE")
+  version Int @default(1)
 }
 model Payment {
   id String @id @default(uuid()) @db.Uuid
-  reservationId String @unique @db.Uuid
+  reservationId String? @unique @db.Uuid
+  invoiceId String? @unique @db.Uuid
+  checkoutOrderId String? @unique @db.Uuid
   providerEventId String @unique
   amountPaise Int
   currency String @default("INR")
   status String @default("CAPTURED")
   createdAt DateTime @default(now())
+}
+model CheckoutOrder {
+  id String @id @default(uuid()) @db.Uuid
+  accountId String @db.Uuid
+  kind String
+  resourceId String @db.Uuid
+  amountPaise Int
+  currency String @default("INR")
+  provider String @default("RAZORPAY")
+  providerMode String
+  providerOrderId String? @unique
+  status String @default("CREATING")
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([accountId, createdAt])
+}
+model BillingEvent {
+  id String @id
+  provider String
+  type String
+  checkoutOrderId String? @db.Uuid
+  receivedAt DateTime @default(now())
+  processedAt DateTime?
+  result String
+  @@index([receivedAt])
 }
 model Refund {
   id String @id @default(uuid()) @db.Uuid
