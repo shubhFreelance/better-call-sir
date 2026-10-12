@@ -34,7 +34,7 @@ const future=(days=15,hour=6)=>{const d=new Date();d.setUTCDate(d.getUTCDate()+d
 const intake=(extra={})=>({alias:'Test learner',grade:8,board:'CBSE',subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Monday after 5pm',...extra});
 before(async()=>{
  await admin.query(`CREATE DATABASE "${name}"`);
- const env={...process.env,...local,DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EVIDENCE_DIRECTORY:evidenceDir};
+ const env={...process.env,...local,DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',EVIDENCE_DIRECTORY:evidenceDir};
  execFileSync(process.execPath,['node_modules/prisma/build/index.js','migrate','deploy'],{env,stdio:'pipe'});
  execFileSync(process.execPath,['--import','tsx','prisma/seed.ts'],{env,stdio:'pipe'});
  execFileSync(process.execPath,['node_modules/typescript/bin/tsc','-p','apps/api/tsconfig.json'],{env,stdio:'pipe'});
@@ -119,15 +119,15 @@ test('production authentication and worker startup stay blocked before provider 
   const worker=spawnSync(process.execPath,['--import','tsx','apps/worker/src/main.ts'],{env:{...process.env,...local,...env},encoding:'utf8'});assert.equal(worker.status,1);assert.match(worker.stderr,/No live delivery adapters configured/);
  }
 });
-test('valid sandbox OTP creates only an unverified guardian, is single-use and stores hashed session credentials',async()=>{
- const client=new Client(),phone='+919999999993';const requested=await client.call('/auth/otp/request',{phone});assert.equal(requested.status,201);
- const body={phone,code:requested.data.developmentCode,name:'Synthetic OTP guardian'};
+test('valid sandbox email OTP creates only an unverified guardian, is single-use and stores hashed session credentials',async()=>{
+ const client=new Client();assert.equal((await client.call('/auth/otp/request',{phone:'+919999999993'})).status,400);const email='otp3@example.test';const requested=await client.call('/auth/otp/request',{email});assert.equal(requested.status,201);
+ const body={email,code:requested.data.developmentCode,name:'Synthetic OTP guardian'};
  const verified=await client.call('/auth/otp/verify',body);assert.equal(verified.status,201);assert.equal(verified.data.account.role,'GUARDIAN');assert.equal(verified.data.account.verified,false);
  for(const cookie of verified.headers.getSetCookie()){assert.match(cookie,/HttpOnly/i);assert.match(cookie,/SameSite=Lax/i);}
  const access=client.cookies.split('bcs_access=')[1].split(';')[0];const persisted=await db.session.findUniqueOrThrow({where:{accessHash:createHash('sha256').update(access).digest('hex')}});assert.notEqual(persisted.accessHash,access);
  assert.equal((await client.call('/auth/otp/verify',body)).status,401);assert.equal((await client.call('/consents',{purpose:'tuition-and-learning-records',policyVersion:'development-v1',accepted:true})).status,403);assert.equal((await client.call('/requests',intake())).status,403);
 });
-test('OTP expiry and wrong-code attempt limits fail; OTP cannot assign a role',async()=>{const c=new Client(),phone='+919999999991';const otp=await c.call('/auth/otp/request',{phone});assert.equal(otp.status,201);await db.otp.update({where:{phone},data:{expiresAt:new Date(0)}});assert.equal((await c.call('/auth/otp/verify',{phone,code:otp.data.developmentCode,name:'Synthetic'})).status,401);const phone2='+919999999992';const valid=await c.call('/auth/otp/request',{phone:phone2});for(let i=0;i<5;i++)assert.equal((await c.call('/auth/otp/verify',{phone:phone2,code:valid.data.developmentCode==='000000'?'111111':'000000',name:'Synthetic'})).status,401);assert.equal((await c.call('/auth/otp/verify',{phone:phone2,code:valid.data.developmentCode,name:'Synthetic'})).status,401);});
+test('OTP expiry and wrong-code attempt limits fail; OTP cannot assign a role',async()=>{const c=new Client(),email='otp1@example.test';const otp=await c.call('/auth/otp/request',{email});assert.equal(otp.status,201);await db.otp.update({where:{address:email},data:{expiresAt:new Date(0)}});assert.equal((await c.call('/auth/otp/verify',{email,code:otp.data.developmentCode,name:'Synthetic'})).status,401);const email2='otp2@example.test';const valid=await c.call('/auth/otp/request',{email:email2});for(let i=0;i<5;i++)assert.equal((await c.call('/auth/otp/verify',{email:email2,code:valid.data.developmentCode==='000000'?'111111':'000000',name:'Synthetic'})).status,401);assert.equal((await c.call('/auth/otp/verify',{email:email2,code:valid.data.developmentCode,name:'Synthetic'})).status,401);});
 test('invitation is guardian-bound, single-use and does not inherit parent privileges',async()=>{const child=await db.child.create({data:{guardianId:ids.guardian,alias:'New learner',grade:7,board:'CBSE'}});const invite=await parent.call(`/children/${child.id}/invitations`,{});assert.equal(invite.status,201);assert.equal((await other.call('/invitations/activate',{token:invite.data.token})).status,409);const c=await login(ids.guardian);const activated=await c.call('/invitations/activate',{token:invite.data.token});assert.equal(activated.status,201);assert.equal(activated.data.account.role,'STUDENT');assert.equal((await c.call('/notes')).status,403);assert.equal((await parent.call('/invitations/activate',{token:invite.data.token})).status,409);});
 async function demoRequest() {
  const scheduleStart=future(44),scheduleEnd=new Date(new Date(scheduleStart).getTime()+3600000).toISOString();
@@ -213,7 +213,7 @@ test('real foundation responses match the discovery, identity and intake contrac
 });
 
 function runEvidenceWorker(available=true) {
- const env={...process.env,...local,DATABASE_URL:base.href,APP_MODE:'development',NODE_ENV:'test',EVIDENCE_DIRECTORY:evidenceDir,CLAMAV_HOST:'127.0.0.1',CLAMAV_PORT:available?'3310':'3311',WORKER_ONCE:'1'};
+ const env={...process.env,...local,DATABASE_URL:base.href,APP_MODE:'development',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',EVIDENCE_DIRECTORY:evidenceDir,CLAMAV_HOST:'127.0.0.1',CLAMAV_PORT:available?'3310':'3311',WORKER_ONCE:'1'};
  const result=spawnSync(process.execPath,['--import','tsx','apps/worker/src/main.ts'],{env,encoding:'utf8',timeout:15000});assert.equal(result.status,0,result.stderr);
 }
 test('private evidence quarantines, uses a real scanner, enforces ownership and gates current-revision screening',async()=>{

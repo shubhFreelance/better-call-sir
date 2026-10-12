@@ -136,7 +136,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * auth · otp · request
+         * Email OTP request (sandbox or configured Resend delivery; no SMS)
          * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
          */
         post: operations["postAuthOtpRequest"];
@@ -156,7 +156,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * auth · otp · verify
+         * Email OTP verify (sandbox or configured Resend delivery; no SMS)
          * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
          */
         post: operations["postAuthOtpVerify"];
@@ -1543,17 +1543,20 @@ export interface components {
             timezone: "Asia/Kolkata";
         };
         OtpRequest: {
-            phone: string;
+            /** Format: email */
+            email: string;
         };
         OtpVerify: {
-            phone: string;
             code: string;
             name: string;
+            /** Format: email */
+            email: string;
         };
+        /** @description SENT never contains developmentCode. Sandbox is development-only. Email possession is not adult/guardian verification. */
         OtpSandbox: {
-            /** @constant */
-            status: "SANDBOX";
-            developmentCode: string;
+            /** @enum {string} */
+            status: "SANDBOX" | "SENT";
+            developmentCode?: string;
             /** @constant */
             expiresIn: 300;
         };

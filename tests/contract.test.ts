@@ -149,23 +149,12 @@ test("foundation examples validate against their operation response schemas", ()
           );
       }
 });
-test("OTP contract accepts supported phone/code formats and rejects malformed input", () => {
-  const request = validator("OtpRequest"),
-    verify = validator("OtpVerify");
-  assert(request({ phone: "+919999999991" }));
-  assert(verify({ phone: "+919999999991", code: "123456", name: "Synthetic" }));
-  for (const phone of [
-    "9999999991",
-    "+915999999991",
-    "+91999999999",
-    "+9199999999911",
-  ])
-    assert.equal(request({ phone }), false);
-  for (const code of ["12345", "1234567", "abcdef"])
-    assert.equal(
-      verify({ phone: "+919999999991", code, name: "Synthetic" }),
-      false,
-    );
+test("OTP contract accepts email/code formats and rejects phone or malformed input",()=>{
+ const request=validator('OtpRequest'),verify=validator('OtpVerify');
+ assert(request({email:'otp@example.test'}));assert(verify({email:'otp@example.test',code:'123456',name:'Synthetic'}));
+ for(const email of ['plain-text','@example.test','learner@','learner example@test'])assert.equal(request({email}),false);
+ assert.equal(request({phone:'+919999999991'}),false);
+ for(const code of ['12345','1234567','abcdef'])assert.equal(verify({email:'otp@example.test',code,name:'Synthetic'}),false);
 });
 
 test('Phase 2 contracts constrain evidence, schedules, capacity and private waitlist inputs',()=>{

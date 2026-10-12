@@ -7,7 +7,8 @@ datasource db {
 }
 model Account {
   id String @id @default(uuid()) @db.Uuid
-  phone String @unique
+  phone String? @unique
+  email String? @unique
   name String
   role String @default("GUARDIAN")
   verified Boolean @default(false)
@@ -17,7 +18,7 @@ model Account {
 }
 model Otp {
   id String @id @default(uuid()) @db.Uuid
-  phone String @unique
+  address String @unique
   hash String
   expiresAt DateTime
   attempts Int @default(0)

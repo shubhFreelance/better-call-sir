@@ -1376,7 +1376,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth \u00b7 otp \u00b7 request",
+        "summary": "Email OTP request (sandbox or configured Resend delivery; no SMS)",
         "security": [],
         "responses": {
           "201": {
@@ -1564,7 +1564,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth \u00b7 otp \u00b7 verify",
+        "summary": "Email OTP verify (sandbox or configured Resend delivery; no SMS)",
         "security": [],
         "responses": {
           "201": {
@@ -12297,23 +12297,20 @@
       "OtpRequest": {
         "type": "object",
         "properties": {
-          "phone": {
+          "email": {
             "type": "string",
-            "pattern": "^\\+91[6-9]\\d{9}$"
+            "format": "email",
+            "maxLength": 254
           }
         },
         "required": [
-          "phone"
+          "email"
         ],
         "additionalProperties": false
       },
       "OtpVerify": {
         "type": "object",
         "properties": {
-          "phone": {
-            "type": "string",
-            "pattern": "^\\+91[6-9]\\d{9}$"
-          },
           "code": {
             "type": "string",
             "pattern": "^\\d{6}$"
@@ -12322,10 +12319,15 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 80
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
           }
         },
         "required": [
-          "phone",
+          "email",
           "code",
           "name"
         ],
@@ -12336,7 +12338,10 @@
         "properties": {
           "status": {
             "type": "string",
-            "const": "SANDBOX"
+            "enum": [
+              "SANDBOX",
+              "SENT"
+            ]
           },
           "developmentCode": {
             "type": "string",
@@ -12349,10 +12354,10 @@
         },
         "required": [
           "status",
-          "developmentCode",
           "expiresIn"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "SENT never contains developmentCode. Sandbox is development-only. Email possession is not adult/guardian verification."
       },
       "Consent": {
         "type": "object",

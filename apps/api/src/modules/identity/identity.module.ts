@@ -3,7 +3,7 @@ import {NestFactory} from '@nestjs/core';
 import {Module, Controller, Get, Post, Param, Query, Body, Req, Res, Injectable, Inject, HttpException, Catch, ExceptionFilter, ArgumentsHost, Global} from '@nestjs/common';
 import {Prisma, PrismaClient, Account} from '@prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg';
-import {randomBytes, randomUUID, createHash, timingSafeEqual} from 'node:crypto';
+import {randomBytes, randomInt, randomUUID, createHash, timingSafeEqual} from 'node:crypto';
 import {Request, Response} from 'express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
@@ -11,6 +11,8 @@ import {z} from 'zod';
 import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} from '../../policies';
 
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
+
+import {emailAddress,sendEmailOtp} from './email-otp';
 
 @Controller('api/v1')
 class IdentityController {
@@ -25,30 +27,31 @@ class IdentityController {
     if (!development()) fail(404,'NOT_FOUND','Not found.'); this.service.limit(`dev:${req.ip}`,30);
     const {accountId} = parse(z.object({accountId:uuid}).strict(),body);
     const account = await this.db.account.findUnique({where:{id:accountId}});
-    if (!account || !account.phone.startsWith('+91000000') || account.disabled) fail(404,'NOT_FOUND','Synthetic account not found.');
+    if (!account || !account.phone?.startsWith('+91000000') || account.disabled) fail(404,'NOT_FOUND','Synthetic account not found.');
     return this.service.session(account,res);
   }
 
   @Post('auth/otp/request') async otpRequest(@Body() body: unknown,@Req() req: Request) {
-    const {phone} = parse(z.object({phone:z.string().regex(/^\+91[6-9]\d{9}$/)}).strict(),body);
-    this.service.limit(`otp:${phone}`,3); this.service.limit(`otp-ip:${req.ip}`,10);
-    if (!development()) fail(503,'PROVIDER_UNAVAILABLE','OTP provider is not configured.');
-    const code = randomBytes(4).readUInt32BE(0)%1_000_000;
-    await this.db.otp.upsert({where:{phone},create:{phone,hash:hash(String(code).padStart(6,'0')),expiresAt:new Date(Date.now()+300_000)},update:{hash:hash(String(code).padStart(6,'0')),expiresAt:new Date(Date.now()+300_000),attempts:0}});
-    return {status:'SANDBOX',developmentCode:String(code).padStart(6,'0'),expiresIn:300};
+    const {email}=parse(z.object({email:emailAddress}).strict(),body);
+    this.service.limit(`otp:${email}`,3);this.service.limit(`otp-ip:${req.ip}`,10);
+    if(!development())fail(503,'PROVIDER_UNAVAILABLE','Authentication is not qualified for live mode.');
+    const code=String(randomInt(1000000)).padStart(6,'0'),digest=hash(code);
+    await this.db.otp.upsert({where:{address:email},create:{address:email,hash:digest,expiresAt:new Date(Date.now()+300000)},update:{hash:digest,expiresAt:new Date(Date.now()+300000),attempts:0}});
+    try{return await sendEmailOtp(email,code,randomUUID());}
+    catch{await this.db.otp.deleteMany({where:{address:email,hash:digest}});fail(503,'EMAIL_UNAVAILABLE','Email delivery is unavailable. Please retry later.');}
   }
 
   @Post('auth/otp/verify') async otpVerify(@Body() body: unknown,@Req() req: Request,@Res({passthrough:true}) res: Response) {
-    const {phone,code,name} = parse(z.object({phone:z.string().regex(/^\+91[6-9]\d{9}$/),code:z.string().regex(/^\d{6}$/),name:text(80)}).strict(),body);
+    const {email,code,name}=parse(z.object({email:emailAddress,code:z.string().regex(/^\d{6}$/),name:text(80)}).strict(),body);
     this.service.limit(`verify:${req.ip}`,10);
     const account = await this.db.$transaction(async db=>{
-      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${phone},0))`;
-      const otp = await db.otp.findUnique({where:{phone}});
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${email},0))`;
+      const otp = await db.otp.findUnique({where:{address:email}});
       if (!otp || otp.expiresAt < new Date() || otp.attempts >= 5) return null;
-      await db.otp.update({where:{phone},data:{attempts:{increment:1}}});
+      await db.otp.update({where:{address:email},data:{attempts:{increment:1}}});
       if (!same(otp.hash,hash(code))) return null;
-      await db.otp.delete({where:{phone}});
-      return db.account.upsert({where:{phone},create:{phone,name},update:{}});
+      await db.otp.delete({where:{address:email}});
+      return db.account.upsert({where:{email},create:{email,name},update:{}});
     });
     if (!account || account.disabled) fail(401,'INVALID_OTP','The code is invalid or expired.');
     return this.service.session(account,res);

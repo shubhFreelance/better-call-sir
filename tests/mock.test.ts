@@ -55,11 +55,11 @@ test("contract-generated mock serves foundation discovery, identity and intake e
     ["/teachers/ananya-sharma", "/teachers/{slug}"],
     ["/auth/session", "/auth/session"],
     ["/children", "/children"],
-    ["/auth/otp/request", "/auth/otp/request", { phone: "+919999999991" }],
+    ["/auth/otp/request", "/auth/otp/request", { email: "otp@example.test" }],
     [
       "/auth/otp/verify",
       "/auth/otp/verify",
-      { phone: "+919999999991", code: "123456", name: "Synthetic" },
+      { email: "otp@example.test", code: "123456", name: "Synthetic" },
     ],
     [
       "/consents",
@@ -120,8 +120,8 @@ test("mock selects documented expired, forbidden, conflict and provider-error st
 });
 test("mock rejects invalid OTP format and mass assignment before returning a success example", async () => {
   for (const body of [
-    { phone: "invalid" },
-    { phone: "+919999999991", role: "ADMIN" },
+    { email: "invalid" },
+    { email: "otp@example.test", role: "ADMIN" },
   ])
     assert((await call("/auth/otp/request", body)).status >= 400);
 });
