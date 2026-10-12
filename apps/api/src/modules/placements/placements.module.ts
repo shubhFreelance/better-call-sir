@@ -48,6 +48,7 @@ class PlacementsController {
       await this.service.guardian(db,p.guardianId);
       if (p.version!==data.expectedVersion || p.status==='CLOSED') fail(409,'CONFLICT','Placement has changed.');
       if (data.action==='CONFIRM_START' && !(p.guardianAccepted && p.teacherAccepted)) fail(409,'TERMS_PENDING','Both parties must first accept tuition terms.');
+      if (data.action==='CONFIRM_START' && !await db.recurringSchedule.findFirst({where:{placementId:id,status:'ACCEPTED'}})) fail(409,'SCHEDULE_PENDING','Both parties must accept the recurring timetable before starting tuition.');
       const changes=data.action==='ACCEPT_TERMS'?(actor.role==='GUARDIAN'?{guardianAccepted:true}:{teacherAccepted:true}):(actor.role==='GUARDIAN'?{guardianStarted:true}:{teacherReceiptConfirmed:true});
       let updated=await db.placement.update({where:{id},data:{...changes,version:{increment:1}}});
       if (updated.guardianStarted && updated.teacherReceiptConfirmed) {

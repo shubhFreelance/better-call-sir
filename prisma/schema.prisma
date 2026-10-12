@@ -192,6 +192,7 @@ model Refund {
   createdAt DateTime @default(now())
 }
 model Lesson {
+  recurringScheduleId String? @db.Uuid
   id String @id @default(uuid()) @db.Uuid
   placementId String? @db.Uuid
   reservationId String? @unique @db.Uuid
@@ -205,6 +206,7 @@ model Lesson {
   attendance String @default("PENDING")
   disputed Boolean @default(false)
   version Int @default(1)
+  @@unique([recurringScheduleId, startsAt])
   @@index([childId, startsAt])
   @@index([teacherId, startsAt])
 }
@@ -427,4 +429,25 @@ model OnboardingProgress {
   version Int @default(1)
   updatedAt DateTime @updatedAt
   @@unique([accountId, kind])
+}
+
+model RecurringSchedule {
+ id String @id @default(uuid()) @db.Uuid
+ placementId String @db.Uuid
+ guardianId String @db.Uuid
+ teacherId String @db.Uuid
+ childId String @db.Uuid
+ timezone String @default("Asia/Kolkata")
+ slots Json
+ validFrom DateTime @db.Date
+ validUntil DateTime @db.Date
+ status String @default("PROPOSED")
+ guardianAccepted Boolean @default(false)
+ teacherAccepted Boolean @default(false)
+ version Int @default(1)
+ reason String
+ materializedUntil DateTime?
+ extensionRetryAt DateTime?
+ createdAt DateTime @default(now())
+ @@index([placementId,status])
 }

@@ -166,6 +166,12 @@ The owner changed delivery order on 12 October 2026: complete missing backend wo
 | B4 / US11–14, US20 | Support queue/status, replacement/rematch, sharing acknowledgement, privacy requests/retention boundary and operational reports | Pending |
 | Provider qualification | Live OTP/adult verification/MFA, payment/refund, private meetings, masked audio, notifications, current scanner signatures/private storage | Provider selection/credentials and external review pending; never label simulated delivery complete |
 
+### B2 / US08 — mutually accepted recurring tuition calendar
+
+Added versioned weekly Asia/Kolkata schedules owned by a placement. A guardian or assigned teacher proposes 20–120 minute windows; online windows are capped at the owner's selected 40-minute meeting limit. Both parties must accept the same version before the backend materializes confirmed reservations and lessons through the rolling 60-day horizon. Tuition cannot enter the started state until terms and a recurring schedule are accepted.
+
+Materialization uses the shared expert calendar, declared recurring availability, leave exceptions, current screening/account/consent and PostgreSQL overlap protection. Retry-safe unique keys prevent duplicate lessons. A conflicting replacement rolls back and preserves the old accepted timetable; a successful replacement cancels only future unstarted commitments. The worker extends accepted schedules and opens one support case with retry time when extension fails, preserving existing lessons. Real-DB tests cover roles, stale acceptance, idempotency, conflict rollback, replacement, revision collision, owner constraints, extension and failure escalation. All 44 API, 11 domain and eight contract tests pass.
+
 Acceptance uses real persisted state, schema/ownership constraints, contract generation and unauthorized/stale/retry/dependency-failure checks. Endpoint existence alone is not full workflow acceptance. Independent student signup is intentionally excluded by PRD Section 20; returning access is guardian-approved and needs no child phone.
 
 ### B1 / US19 — persisted onboarding and guardian-managed student devices
