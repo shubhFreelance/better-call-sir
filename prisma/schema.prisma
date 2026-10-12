@@ -318,3 +318,28 @@ model VerificationCheck {
   createdAt DateTime @default(now())
   @@unique([teacherId, profileRevision, kind])
 }
+
+model AvailabilityPattern {
+  id String @id @default(uuid()) @db.Uuid
+  teacherId String @db.Uuid
+  kind String
+  weekday Int
+  startMinute Int
+  endMinute Int
+  timezone String @default("Asia/Kolkata")
+  validFrom DateTime @db.Date
+  validUntil DateTime @db.Date
+  active Boolean @default(true)
+  version Int @default(1)
+  @@index([teacherId, kind, active])
+}
+model AvailabilityException {
+  id String @id @default(uuid()) @db.Uuid
+  teacherId String @db.Uuid
+  startsAt DateTime
+  endsAt DateTime
+  reason String
+  active Boolean @default(true)
+  version Int @default(1)
+  @@index([teacherId, startsAt])
+}

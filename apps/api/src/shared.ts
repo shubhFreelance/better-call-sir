@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
 import {Module, Controller, Get, Post, Param, Query, Body, Req, Res, Injectable, Inject, HttpException, Catch, ExceptionFilter, ArgumentsHost, Global} from '@nestjs/common';
-import {Prisma, PrismaClient, Account} from '@prisma/client';
+import {Prisma, PrismaClient, Account, Teacher} from '@prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg';
 import {randomBytes, randomUUID, createHash, timingSafeEqual} from 'node:crypto';
 import {Request, Response} from 'express';
@@ -97,10 +97,12 @@ export class AppService {
   async session(account: Account, res: Response, familyId: string = randomUUID()) {
     return this.sessionResponse(account,await this.issueSession(account,familyId),res);
   }
-  async publicTeachers() {
-    const teachers = await this.db.teacher.findMany({where:{status:'APPROVED',screeningComplete:true,screeningValidUntil:{gt:new Date()}},orderBy:{name:'asc'},take:50});
-    return teachers.map(t => ({id:t.id,slug:t.slug,name:t.name,headline:t.headline,bio:t.bio,subjects:t.subjects,boards:t.boards,grades:t.grades,languages:t.languages,modes:t.modes,localities:t.localities,monthlyPaise:t.monthlyPaise,experience:t.experience,avatarColor:t.avatarColor,capabilityLabel:'Reviewed subject coverage',consultationOptIn:t.consultationOptIn}));
+  async publicTeachers(where:Prisma.TeacherWhereInput={},limit=50,cursor?:string) {
+    const teachers=await this.db.teacher.findMany({where:{AND:[where,{status:'APPROVED',screeningComplete:true,screeningValidUntil:{gt:new Date()}}]},orderBy:[{name:'asc'},{id:'asc'}],take:limit,...(cursor?{cursor:{id:cursor},skip:1}:{})});
+    return teachers.map(t=>this.publicProjection(t));
   }
+  publicProjection(t:Teacher) {return {id:t.id,slug:t.slug,name:t.name,headline:t.headline,bio:t.bio,subjects:t.subjects,boards:t.boards,grades:t.grades,languages:t.languages,modes:t.modes,localities:t.localities,monthlyPaise:t.monthlyPaise,experience:t.experience,avatarColor:t.avatarColor,capabilityLabel:'Reviewed subject coverage',consultationOptIn:t.consultationOptIn};}
+
 }
 
 

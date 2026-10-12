@@ -22,6 +22,9 @@ async function seed() {
     if (i>0) await db.account.upsert({where:{id:accountId},create:{id:accountId,name:t.name,phone:`+9100000000${i+10}`,role:'TEACHER',verified:true},update:{}});
     await db.teacher.upsert({where:{slug:t.slug},create:{...t,id:`30000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,accountId,boards:['CBSE','CGBSE'],grades:[6,7,8,9,10],status:'APPROVED',screeningComplete:true,screeningValidUntil:new Date(Date.now()+180*86400000),feeTermsAcceptedAt:new Date(),travelAccepted:true,consultationOptIn:true},update:{}});
   }
+  for(const teacher of await db.teacher.findMany({where:{accountId:{in:(await db.account.findMany({where:{phone:{startsWith:'+91000000'}}})).map(a=>a.id)}}})) {
+    if(!await db.availabilityPattern.count({where:{teacherId:teacher.id}})) for(const kind of ['DEMO','REVISION','RECURRING','CALL'])for(let weekday=0;weekday<7;weekday++)await db.availabilityPattern.create({data:{teacherId:teacher.id,kind,weekday,startMinute:kind==='CALL'?17*60:9*60,endMinute:20*60,validFrom:new Date(new Date().toISOString().slice(0,10)),validUntil:new Date(Date.now()+180*86400000)}});
+  }
   await db.tuitionRequest.upsert({where:{id:ids.request},create:{id:ids.request,guardianId:ids.guardian,childId:ids.child,subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Weekdays after 5pm',status:'PLACED'},update:{}});
   await db.placement.upsert({where:{requestId:ids.request},create:{id:ids.placement,requestId:ids.request,guardianId:ids.guardian,childId:ids.child,teacherId:ids.teacher,monthlyPaise:300000,status:'ACTIVE',guardianAccepted:true,teacherAccepted:true,guardianStarted:true,teacherReceiptConfirmed:true},update:{}});
   const now=new Date();

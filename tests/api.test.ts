@@ -253,4 +253,34 @@ assert.equal((await applicant.call(`/teachers/${id}/evidence`,payload,{key})).da
  await assert.rejects(db.verificationCheck.create({data:{teacherId:ids.teacher,reviewerId:ids.admin,profileRevision:2,kind:'IDENTITY',evidenceId:upload.data.id,result:'PASSED',reason:'Foreign evidence',validUntil:new Date(validUntil)}}));
 });
 
+test('public discovery paginates stable approved projections with bounded cursors',async()=>{
+ const first=await new Client().call('/teachers?limit=2');assert.equal(first.status,200);assert.equal(first.data.items.length,2);assert(first.data.nextCursor);
+ const second=await new Client().call('/teachers?limit=2&cursor='+first.data.nextCursor);assert.equal(second.status,200);assert.equal(second.data.items.length,2);assert.equal(new Set([...first.data.items,...second.data.items].map((t:any)=>t.id)).size,4);assert.equal(second.data.nextCursor,null);
+ assert.equal((await new Client().call('/teachers?limit=51')).status,400);assert.equal((await new Client().call('/teachers?cursor=bad')).status,400);
+});
+test('weekly IST availability, leave and shared-calendar occupancy produce private-free public slots',async()=>{
+ const t=await db.teacher.findUniqueOrThrow({where:{id:ids.teacher}}),start=new Date(future(38)),end=new Date(start.getTime()+2*3600000);
+ const query=`/teachers/${ids.teacher}/availability?kind=REVISION&startsAt=${encodeURIComponent(start.toISOString())}&endsAt=${encodeURIComponent(end.toISOString())}&limit=2`;
+ const first=await new Client().call(query);assert.equal(first.status,200);assert.equal(first.data.items.length,2);assert(first.data.nextCursor);const validate=operationValidator('/teachers/{id}/availability','get','200');assert(validate(first.data),JSON.stringify(validate.errors));
+ for(const slot of first.data.items)for(const field of ['guardianId','childId','reservationId','reason','accountId'])assert.equal(field in slot,false);
+ const next=await new Client().call(query+'&cursor='+encodeURIComponent(first.data.nextCursor));assert.equal(next.status,200);assert(next.data.items[0].startsAt>first.data.items[1].startsAt);
+ const leaveBody={expectedVersion:t.version,startsAt:start.toISOString(),endsAt:new Date(start.getTime()+40*60000).toISOString(),reason:'Synthetic personal leave'};
+ assert.equal((await parent.call(`/teachers/${ids.teacher}/leave`,leaveBody)).status,403);
+ const otherTeacher=await db.teacher.findFirstOrThrow({where:{id:{not:ids.teacher}}});assert.equal((await teacher.call(`/teachers/${otherTeacher.id}/leave`,leaveBody)).status,404);
+ const key=randomUUID(),leave=await teacher.call(`/teachers/${ids.teacher}/leave`,leaveBody,{key});assert.equal(leave.status,201,JSON.stringify(leave.data));assert.equal((await teacher.call(`/teachers/${ids.teacher}/leave`,leaveBody,{key})).data.id,leave.data.id);
+ const blocked=await new Client().call(query);assert(blocked.data.items.every((s:any)=>new Date(s.startsAt)>=new Date(leaveBody.endsAt)));
+ assert.equal((await teacher.call(`/leave/${leave.data.id}/cancellations`,{expectedVersion:99,reason:'Stale'})).status,409);
+ assert.equal((await teacher.call(`/leave/${leave.data.id}/cancellations`,{expectedVersion:1,reason:'Leave cancelled'})).status,201);
+ const reserved=await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,kind:'DEMO',startsAt:start,endsAt:new Date(start.getTime()+40*60000),status:'CONFIRMED'}});
+ assert.equal((await teacher.call(`/teachers/${ids.teacher}/leave`,leaveBody)).status,409);assert((await new Client().call(query)).data.items.every((s:any)=>new Date(s.startsAt)>=reserved.endsAt));
+ const day=new Date(start.getTime()+330*60000).getUTCDay(),pattern=await db.availabilityPattern.findFirstOrThrow({where:{teacherId:ids.teacher,kind:'REVISION',weekday:day}});
+ const changed=await teacher.call(`/availability/${pattern.id}/changes`,{expectedVersion:pattern.version,active:false,reason:'Close unbooked slots'});assert.equal(changed.status,201);assert.equal((await new Client().call(query)).data.items.length,0);assert.equal((await db.reservation.findUniqueOrThrow({where:{id:reserved.id}})).status,'CONFIRMED');
+ assert.equal((await teacher.call(`/availability/${pattern.id}/changes`,{expectedVersion:pattern.version,active:true,reason:'Stale'})).status,409);
+ await db.availabilityPattern.update({where:{id:pattern.id},data:{active:true}});
+ assert.equal((await teacher.call(`/teachers/${ids.teacher}/availability`,{expectedVersion:t.version,kind:'REVISION',weekday:day,startMinute:10*60,endMinute:12*60,timezone:'Asia/Kolkata',validFrom:new Date().toISOString().slice(0,10),validUntil:new Date(Date.now()+30*86400000).toISOString().slice(0,10)})).status,409);
+ assert.equal((await teacher.call(`/teachers/${ids.teacher}/capacity`,{expectedVersion:t.version,maxActiveStudents:1,travelAccepted:true})).status,409);
+ const settings=await teacher.call(`/teachers/${ids.teacher}/capacity`,{expectedVersion:t.version,maxActiveStudents:2,travelAccepted:true});assert.equal(settings.status,201);assert.equal((await teacher.call(`/teachers/${ids.teacher}/capacity`,{expectedVersion:t.version,maxActiveStudents:2,travelAccepted:true})).status,409);
+ await db.teacher.update({where:{id:ids.teacher},data:{maxActiveStudents:t.maxActiveStudents}});
+});
+
 test('consent withdrawal blocks new intake, note sharing and student sessions',async()=>{assert.equal((await parent.call('/consents/withdraw',{})).status,201);assert.equal((await parent.call('/requests',intake())).status,403);assert.equal((await student.call('/dashboard')).status,401);assert.equal((await student.call('/auth/refresh',{})).status,401);assert.equal((await teacher.call('/notes')).data.items.length,0);});
