@@ -91,6 +91,8 @@ async function mock(
           csrfToken: "synthetic-csrf",
         },
       });
+    if (path.endsWith("/calendar"))
+      return route.fulfill({ json: { patterns: [], exceptions: [] } });
     if (path.endsWith("/dashboard"))
       return route.fulfill({ json: { profile } });
     if (path.includes("/onboarding/teacher")) {

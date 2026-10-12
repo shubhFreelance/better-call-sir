@@ -1354,6 +1354,7 @@ function DashboardShell({
       : role === "TEACHER"
         ? ([
             ["/dashboard/bookings", "Bookings & opportunities", ClipboardList],
+            ["/onboarding/teacher", "Profile & schedule", Settings],
           ] as [string, string, LucideIcon][])
         : role === "ADMIN"
           ? ([["/dashboard/admin", "Control console", Settings]] as [

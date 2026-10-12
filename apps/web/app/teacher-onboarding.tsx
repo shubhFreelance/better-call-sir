@@ -10,6 +10,8 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Alert, AlertDescription } from "../components/ui/alert";
 
+import { TeacherSchedule } from "./teacher-schedule";
+
 type Profile = components["schemas"]["PrivateTeacher"];
 type Evidence = components["schemas"]["Evidence"];
 const profileSchema = z.object({
@@ -811,6 +813,7 @@ function TeacherWorkspace({
   onReload: () => Promise<void>;
 }) {
   const [edit, setEdit] = useState(false);
+  const [scheduleLocked, setScheduleLocked] = useState(false);
   const evidence = useQuery({
     queryKey: ["teacher-evidence", profile.id],
     queryFn: () =>
@@ -841,7 +844,10 @@ function TeacherWorkspace({
     <main className="container section">
       <div className="wizard-title">
         <h1>Your teacher workspace.</h1>
-        <p>Manage your application and private screening evidence.</p>
+        <p>Manage your application, private evidence and teaching schedule.</p>
+        <a href="#teaching-schedule" className="inline-link">
+          Manage teaching schedule
+        </a>
       </div>
       <div className="wizard-layout">
         <aside className="wizard-aside">
@@ -853,6 +859,9 @@ function TeacherWorkspace({
               {profile.subjects.join(", ")} · {money(profile.monthlyPaise)} per
               month
             </p>
+            <a href="#teaching-schedule" className="inline-link">
+              Manage teaching schedule
+            </a>
             <Link href="/dashboard" className="inline-link">
               Open teacher dashboard
             </Link>
@@ -876,10 +885,15 @@ function TeacherWorkspace({
                 variant="outline"
                 className="button secondary"
                 onClick={onReload}
+                disabled={scheduleLocked}
               >
                 Refresh review status
               </Button>
-              <Button variant="ghost" onClick={() => setEdit(true)}>
+              <Button
+                variant="ghost"
+                disabled={scheduleLocked}
+                onClick={() => setEdit(true)}
+              >
                 Edit application
               </Button>
               <Link href="/support" className="inline-link">
@@ -953,6 +967,11 @@ function TeacherWorkspace({
               </p>
             )}
           </section>
+          <TeacherSchedule
+            session={session}
+            profile={profile}
+            onLockChange={setScheduleLocked}
+          />
         </div>
       </div>
     </main>

@@ -3334,3 +3334,91 @@ footer {
   display: block;
   margin-top: 8px;
 }
+
+.teacher-schedule {
+  scroll-margin-top: 24px;
+}
+.teacher-schedule .schedule-heading h2 {
+  margin-bottom: 12px;
+}
+.schedule-heading {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+}
+.schedule-heading p {
+  max-width: 65ch;
+}
+.schedule-tabs {
+  width: 100%;
+  height: auto;
+  min-height: 46px;
+  margin: 10px 0 20px;
+  background: var(--soft);
+}
+.schedule-tabs [data-slot="tabs-trigger"] {
+  padding: 12px 10px;
+  font-size: 13px;
+  appearance: none;
+  border: 1px solid transparent;
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
+}
+.schedule-tabs [data-state="active"] {
+  background: var(--green);
+  color: var(--ink);
+}
+.schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.schedule-midnight {
+  width: fit-content;
+}
+.teacher-schedule .schedule-midnight input {
+  width: 18px;
+  min-height: 0;
+  margin: 0;
+  accent-color: var(--primary);
+}
+.schedule-saved {
+  margin-top: 28px;
+}
+.schedule-saved .teacher-evidence-list li > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.schedule-saved h3,
+.schedule-confirm h3 {
+  font-size: 17px;
+  margin-bottom: 14px;
+}
+.schedule-confirm {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 24px 0;
+  background: var(--paper);
+}
+.teacher-schedule > [data-slot="alert"] {
+  margin-top: 18px;
+}
+.teacher-schedule .wizard-save-note {
+  margin-bottom: 0;
+}
+@media (max-width: 600px) {
+  .schedule-grid {
+    grid-template-columns: 1fr;
+  }
+  .schedule-heading > button {
+    width: 100%;
+  }
+  .schedule-tabs [data-slot="tabs-trigger"] {
+    padding: 12px 6px;
+    font-size: 12px;
+  }
+}
