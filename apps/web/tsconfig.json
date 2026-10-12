@@ -9,14 +9,7 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "isolatedModules": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
+    "plugins": [{ "name": "next" }]
   },
   "include": [
     "next-env.d.ts",

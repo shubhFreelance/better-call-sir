@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import "@fontsource-variable/manrope";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "Better Call Sir · Find your kind of teacher",

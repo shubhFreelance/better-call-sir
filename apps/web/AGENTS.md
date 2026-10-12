@@ -1,7 +1,3 @@
-## Better Call Sir frontend
-
-Use the installed `../../.agents/skills/frontend-design/SKILL.md` and read `../../docs/FRONTEND_DESIGN.md` before frontend design work. The owner chose shadcn/ui and supplied the Wispr Flow palette: teal `#034F46`, lavender `#F0D7FF`, cream `#FFFFEB`, white and charcoal neutrals. Preserve these tokens and use the shared component system for new screens. Complete login, onboarding, search and dashboard flows with visible labels, accessible controls and API-confirmed results; track unfinished workflows in the sprint board.
-
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know
