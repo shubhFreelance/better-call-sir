@@ -2906,6 +2906,7 @@ export interface components {
         LessonFeedbackInput: {
             rating: number;
             comment: string;
+            expectedVersion: number;
         };
         LessonFeedback: {
             /** Format: uuid */
@@ -2988,6 +2989,26 @@ export interface components {
                     /** Format: date-time */
                     createdAt: string;
                 }[];
+                recap: string | null;
+                /** Format: date-time */
+                recapSubmittedAt: string | null;
+                myConfirmation: {
+                    /** @enum {string} */
+                    action: "CONFIRMED" | "DISPUTED";
+                    lessonVersion: number;
+                    /** Format: date-time */
+                    createdAt: string;
+                } | null;
+                feedback: {
+                    /** Format: uuid */
+                    id: string;
+                    rating: number;
+                    comment: string;
+                    /** Format: date-time */
+                    createdAt: string;
+                } | null;
+                /** @description Current guardian confirmation, consent and lesson state permit one private feedback submission. */
+                feedbackEligible: boolean;
             }[];
             /** Format: uuid */
             nextCursor: string | null;
