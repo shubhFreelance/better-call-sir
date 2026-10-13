@@ -1,16 +1,17 @@
 # Better Call Sir — remaining MVP work
 
-Reviewed against the owner's Version 3 PRD, the delivery board and implementation on 13 October 2026. This is the outstanding-work inventory after frontend increment F9. Development implementation, live provider qualification and pilot acceptance are different statuses. Phase 3 is still active; Phases 4–7 have not been accepted.
+Reviewed against the owner's Version 3 PRD, the delivery board and implementation on 13 October 2026. This is the outstanding-work inventory after frontend increment F10 and the owner-priority security audit. Development implementation, live provider qualification and pilot acceptance are different statuses. Phase 3 is still active; Phases 4–7 have not been accepted.
 
 ## Implemented foundation to build on
 
-Email OTP UI/transport boundary; guardian consent and saved onboarding; teacher application/private evidence/calendar; guardian-managed student activation/revocation; public manual and assisted discovery; guardian shortlists/teacher choice/demo/terms; recurring timetable agreement and lesson materialization; role-scoped lesson history/attendance review; revision request/expert scope/cancellation; saved checkout recovery and Razorpay browser handoff; invoice checkout; participant/time-gated private meeting access. These use tested development APIs. Local sandbox payments and meetings are explicitly labelled and do not establish real service delivery or settlement.
+Email OTP UI/transport boundary; guardian consent and saved onboarding; teacher application/private evidence/calendar; guardian-managed student activation/revocation; public manual and assisted discovery; guardian shortlists/teacher choice/demo/terms; recurring timetable agreement and lesson materialization; role-scoped lesson history/attendance review; revision request/expert scope/cancellation; saved checkout recovery and Razorpay browser handoff; invoice checkout; participant/time-gated private meeting access. Private guardian lesson feedback, teacher recap/feedback visibility and caller-only attendance review status now persist across reload, with version/consent checks and retry-safe submission. Staff MFA enrollment/recovery and browser CSP are also implemented. These use tested development APIs. Local sandbox payments and meetings are explicitly labelled and do not establish real service delivery or settlement.
+
+F10 and B11’s owner-safe lesson metadata are implemented. Feedback remains private; there is no public review publication. Any future public use requires moderation. Attendance review/feedback correction still uses support escalation, with no self-service overwrite.
 
 ## Frontend work still open
 
 | # | Work remaining | Backend position |
 | --- | --- | --- |
-| F10 | Guardian lesson feedback after eligible attendance confirmation; teacher feedback/recap visibility and useful review status | Confirmation/feedback APIs exist. Lesson-history contract does not include the recap or the current user's review/feedback state; expose them safely before claiming these views complete. Public feedback requires moderation. |
 | F11 | Finish guardian private-note creation/editing, named-teacher sharing review, withdrawal and teacher acknowledgement | Owner/share/acknowledgement APIs exist; current note screen is an earlier implementation with incomplete confirmation/retry handling. |
 | F12 | Support case list/detail, replies, status, free safeguarding escalation and clear recovery paths | Owner/staff case APIs exist; current UI primarily creates a case. |
 | F13 | Guardian placement closure/rematch review, cancellation effects, fresh replacement criteria and progress | Closure/rematch APIs exist. Commercial/refund fulfilment remains open. |
@@ -27,7 +28,7 @@ Email OTP UI/transport boundary; guardian consent and saved onboarding; teacher 
 | F24 | Full English/Hindi localization: all forms, notices, validation, dashboard/console copy and typography | Existing language toggle covers only part of the product. |
 | F25 | Finish remaining legacy screens/components and demo booking-detail forms using the shared shadcn controls and deliberate palette; review every loading/error/empty/retry state on mobile and keyboard | Incremental migration is underway. Initial demo controls and service/console screens are not all at the new standard. |
 
-The next practical sprint is feedback/recaps, followed by private notes, support/rematch/privacy, then reviewer/operator/finance/admin/reporting screens and localization. F9 checkout/provider qualification is tracked below rather than described as live-ready.
+The next practical sprint is private notes, followed by support/rematch/privacy, then reviewer/operator/finance/admin/reporting screens and localization. F9 checkout/provider qualification is tracked below rather than described as live-ready.
 
 ## Backend implementation and contract gaps
 
@@ -43,7 +44,6 @@ The next practical sprint is feedback/recaps, followed by private notes, support
 | B8 | Actual notification delivery, status/receipt history, duplicate-safe retry and staff-visible failure recovery for scope requests, demos, bookings and follow-ups. Worker development delivery is still synthetic. |
 | B9 | Durable Google Meet credentials/OAuth lifecycle, participant/Workspace admission policy and recovery handling; current adapter uses an injected short-lived token. |
 | B10 | Richer role/date-filtered dashboard metrics and contracts: previous-calendar-month/custom ranges, recurring/demo/revision separation, denominators/sample sizes, pending confirmations and last-updated metadata. |
-| B11 | Expose own attendance-review/feedback state and revision recaps in owner-safe learning records. The current confirmation history omits actor identity, so a reload cannot reliably identify the viewer's prior review. Each actor may submit only one review per lesson. |
 | B12 | Durable per-request/revised-application/timetable drafts where required; invitation recovery/idempotency/device labels and complete pagination for bounded calendar/leave, demo/timetable, session, payable and administrative histories. Preserve owned data and uncertainty during recovery. |
 | B13 | Complete follow-up/service-operation read models and queues not covered by existing cases and immutable continuation observations. |
 | B14 | Production private-object storage and upload/download/deletion lifecycle; current-signature malware scanning; approved retention rules and external-backup deletion replay. Existing local private files and application scrubbing are development infrastructure. |

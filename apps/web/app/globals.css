@@ -4686,3 +4686,19 @@ footer {
   .staff-recovery-codes { grid-template-columns: 1fr; }
   .staff-security-actions > button { flex: 1 1 100%; }
 }
+
+/* Lesson feedback keeps teaching notes, review state and private decisions distinct. */
+.lesson-recap {margin:1.2rem 0;padding:1.3rem 1.5rem;background:var(--primary);color:white;border-radius:18px;border-left:5px solid var(--green);}
+.lesson-recap>div,.lesson-saved-feedback>div {display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.lesson-recap>div {justify-content:flex-start;}.lesson-recap h4,.lesson-saved-feedback h4 {margin:0;}
+.lesson-recap p,.lesson-saved-feedback p,.lesson-feedback-review p {white-space:pre-wrap;overflow-wrap:anywhere;}
+.learning-lesson .lesson-recap p {color:var(--white);}.lesson-recap small {color:var(--paper);}.lesson-personal-review {background:var(--green);color:var(--ink);padding:1rem 1.2rem;border-radius:12px;}
+.lesson-saved-feedback {padding:1.3rem;margin:1rem 0;background:var(--white);border:1px solid var(--line);border-radius:16px;}
+.lesson-rating-value {color:var(--primary);font-weight:750;white-space:nowrap;}.lesson-saved-feedback small {color:var(--muted);}
+.lesson-feedback-editor {margin-top:1rem;padding:1.5rem;background:white;border:1px solid var(--primary);border-radius:18px;}
+.lesson-feedback-editor h4 {font-size:1.3rem;margin:0 0 .6rem;}.lesson-feedback-editor form>fieldset {border:0;padding:0;min-width:0;display:grid;gap:1rem;}
+.lesson-feedback-editor label {display:grid;gap:.5rem;}.lesson-rating-options {border:0;padding:0;min-width:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.6rem;}
+.lesson-rating-options legend {margin-bottom:.75rem;font-weight:650;}.lesson-rating-options label {display:flex;align-items:flex-start;gap:.55rem;border:1px solid var(--line);padding:.8rem;border-radius:12px;cursor:pointer;}
+.lesson-rating-options label.selected {background:var(--green);border-color:var(--primary);}.lesson-rating-options input {width:auto;margin:.25rem 0;accent-color:var(--primary);}.lesson-rating-options strong {display:block;font-size:1.25rem;}
+.lesson-feedback-review {background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:1.2rem;}.lesson-feedback-editor .learning-check {display:flex;}
+@media(max-width:700px) {.lesson-rating-options {grid-template-columns:1fr;}.lesson-rating-options strong {display:inline;margin-right:.45rem;}.lesson-feedback-editor {padding:1.15rem;}.lesson-saved-feedback>div {align-items:flex-start;flex-direction:column;gap:.5rem;}}

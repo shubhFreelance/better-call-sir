@@ -101,13 +101,36 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
     subject: "Maths",
     startsAt: iso(-2),
     endsAt: iso(-2 + 1 / 48),
-    status: role === "TEACHER" ? "SCHEDULED" : "COMPLETED",
-    attendance: role === "TEACHER" ? "PENDING" : "PRESENT",
+    status:
+      role === "TEACHER" && !mode.includes("feedback")
+        ? "SCHEDULED"
+        : "COMPLETED",
+    attendance:
+      role === "TEACHER" && !mode.includes("feedback") ? "PENDING" : "PRESENT",
     disputed: false,
     version: 1,
     learner: { alias: "Synthetic Learner", grade: 8, board: "CBSE" },
     teacher: { id: teacherId, name: profile.name },
     confirmations: [],
+    recap: "Reviewed fractions; practise mixed-number conversions.",
+    recapSubmittedAt: iso(-1),
+    myConfirmation:
+      role !== "TEACHER" && mode.includes("feedback")
+        ? { action: "CONFIRMED", lessonVersion: 1, createdAt: iso(-1) }
+        : null,
+    feedback:
+      mode === "feedback-saved" && role !== "STUDENT"
+        ? {
+            id: "90000000-0000-4000-8000-000000000099",
+            rating: 4,
+            comment: "Clear guidance and useful practice.",
+            createdAt: iso(-1),
+          }
+        : null,
+    feedbackEligible:
+      role === "GUARDIAN" &&
+      mode.includes("feedback") &&
+      mode !== "feedback-saved",
   };
   let writes: { path: string; key: string; body: any }[] = [],
     paths: string[] = [],
@@ -288,7 +311,39 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
         result = check("RecurringSchedule", schedule);
       } else if (path.endsWith(`/recurring-schedules/${scheduleId}/extensions`))
         result = check("RecurringExtension", { created: 0, horizonDays: 60 });
-      else if (path.endsWith(`/lessons/${lessonId}/attendance`)) {
+      else if (path.endsWith(`/lessons/${lessonId}/feedback`)) {
+        check("LessonFeedbackInput", body);
+        if (mode === "stale-feedback") {
+          lesson = { ...lesson, version: 2, feedbackEligible: false };
+          return route.fulfill({
+            status: 409,
+            json: {
+              code: "CONFLICT",
+              message:
+                "The lesson changed. Refresh its record before sending feedback.",
+            },
+          });
+        }
+        expect(body.expectedVersion).toBe(lesson.version);
+        result = check("LessonFeedback", {
+          id: "90000000-0000-4000-8000-000000000099",
+          lessonId,
+          guardianId: parent,
+          rating: body.rating,
+          comment: body.comment,
+          createdAt: iso(),
+        });
+        lesson = {
+          ...lesson,
+          feedbackEligible: false,
+          feedback: {
+            id: result.id,
+            rating: result.rating,
+            comment: result.comment,
+            createdAt: result.createdAt,
+          },
+        };
+      } else if (path.endsWith(`/lessons/${lessonId}/attendance`)) {
         expect(body.expectedVersion).toBe(lesson.version);
         lesson = {
           ...lesson,
@@ -313,6 +368,12 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
           ...lesson,
           disputed: body.action === "DISPUTED",
           version: lesson.version + (body.action === "DISPUTED" ? 1 : 0),
+          myConfirmation: {
+            action: body.action,
+            lessonVersion: body.expectedVersion,
+            createdAt: iso(),
+          },
+          feedbackEligible: role === "GUARDIAN" && body.action === "CONFIRMED",
           confirmations: [
             ...lesson.confirmations,
             { action: body.action, createdAt: iso() },
@@ -739,7 +800,7 @@ async function login(page: Page, name: string) {
     page.getByRole("heading", { name: new RegExp(`Hello, ${name}`) }),
   ).toBeVisible();
 }
-test("real guardian and teacher agree a timetable, book lessons, and review attendance", async ({
+test("real guardian and teacher agree a timetable, review attendance and share private lesson feedback", async ({
   page,
   context,
 }) => {
@@ -898,4 +959,238 @@ test("real guardian and teacher agree a timetable, book lessons, and review atte
       exact: true,
     }),
   ).toBeVisible();
+  await late.getByRole("button", { name: "Share lesson feedback" }).click();
+  await late.getByRole("radio", { name: "5 Excellent", exact: true }).check();
+  await late
+    .getByLabel("What worked well, or could be better? (optional)")
+    .fill("Synthetic browser check: useful lesson practice.");
+  await late
+    .getByRole("button", { name: "Review feedback", exact: true })
+    .click();
+  await late.getByRole("checkbox", { name: /I reviewed my feedback/ }).check();
+  await late.getByRole("button", { name: "Send private feedback" }).click();
+  await expect(
+    late.getByRole("region", { name: "Private lesson feedback" }),
+  ).toContainText("5 out of 5");
+  await page.reload();
+  await page.getByRole("tab", { name: "Attendance & records" }).click();
+  await page.getByLabel("Lessons through").fill(day());
+  await page.getByRole("button", { name: "Apply dates" }).click();
+  await expect(
+    page
+      .locator(`[data-lesson-id="${freshLessonId}"]`)
+      .getByRole("region", { name: "Private lesson feedback" }),
+  ).toContainText("Synthetic browser check");
+  const readContext = await context.browser()!.newContext();
+  try {
+    const readPage = await readContext.newPage();
+    await login(readPage, "Ananya");
+    await readPage.goto("/dashboard/lessons");
+    await readPage.getByRole("tab", { name: "Attendance & records" }).click();
+    await readPage.getByLabel("Lessons through").fill(day());
+    await readPage.getByRole("button", { name: "Apply dates" }).click();
+    await expect(
+      readPage
+        .locator(`[data-lesson-id="${freshLessonId}"]`)
+        .getByRole("region", { name: "Private lesson feedback" }),
+    ).toContainText("Synthetic browser check");
+  } finally {
+    await readContext.close();
+  }
+});
+
+async function composeFeedback(page: Page) {
+  await page.goto("/dashboard/lessons");
+  await page.getByRole("tab", { name: "Attendance & records" }).click();
+  await page.getByRole("button", { name: "Share lesson feedback" }).click();
+  await page
+    .getByRole("radio", { name: "4 Very helpful", exact: true })
+    .check();
+  await page
+    .getByLabel("What worked well, or could be better? (optional)")
+    .fill("Clear guidance and useful practice.");
+  await page
+    .getByRole("button", { name: "Review feedback", exact: true })
+    .click();
+}
+test("guardian feedback validates a rating, reviews private visibility and records only after explicit consent", async ({
+  page,
+}) => {
+  const state = await mock(page, "feedback");
+  await page.goto("/dashboard/lessons");
+  await page.getByRole("tab", { name: "Attendance & records" }).click();
+  await expect(
+    page.getByRole("region", { name: "Teacher recap" }),
+  ).toContainText("mixed-number conversions");
+  await expect(
+    page.getByText("You confirmed this attendance record.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Confirm attendance", exact: true }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Share lesson feedback" }).click();
+  await page
+    .getByRole("button", { name: "Review feedback", exact: true })
+    .click();
+  await expect(
+    page.getByText("Choose how helpful this lesson was.", { exact: true }),
+  ).toBeVisible();
+  expect(state.writes).toHaveLength(0);
+  await page
+    .getByRole("radio", { name: "4 Very helpful", exact: true })
+    .check();
+  await page
+    .getByLabel("What worked well, or could be better? (optional)")
+    .fill("Clear guidance and useful practice.");
+  await page
+    .getByRole("button", { name: "Review feedback", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Send private feedback" }).click();
+  expect(state.writes).toHaveLength(0);
+  await page.getByRole("checkbox", { name: /I reviewed my feedback/ }).check();
+  await page.getByRole("button", { name: "Send private feedback" }).click();
+  await expect(
+    page.getByRole("region", { name: "Private lesson feedback" }),
+  ).toContainText("4 out of 5");
+  expect(state.writes).toHaveLength(1);
+  expect(state.writes[0].body).toEqual({
+    expectedVersion: 1,
+    rating: 4,
+    comment: "Clear guidance and useful practice.",
+  });
+  await expect(
+    page.getByRole("button", { name: "Share lesson feedback" }),
+  ).toHaveCount(0);
+  await page.reload();
+  await page.getByRole("tab", { name: "Attendance & records" }).click();
+  await expect(
+    page.getByRole("region", { name: "Private lesson feedback" }),
+  ).toContainText("Clear guidance");
+  expect(state.writes).toHaveLength(1);
+});
+test("an uncertain feedback save freezes navigation and retries the same key and payload without duplicates", async ({
+  page,
+}) => {
+  const state = await mock(page, "uncertain-feedback");
+  await composeFeedback(page);
+  await page.getByRole("checkbox", { name: /I reviewed my feedback/ }).check();
+  await page.getByRole("button", { name: "Send private feedback" }).click();
+  await expect(
+    page.getByText(/We couldn’t confirm this decision/),
+  ).toBeVisible();
+  await expect(page.getByLabel("Lessons from")).toBeDisabled();
+  await expect(page.getByRole("tab", { name: "Upcoming" })).toBeDisabled();
+  await page.getByRole("button", { name: "Retry same decision" }).click();
+  await expect(
+    page.getByRole("region", { name: "Private lesson feedback" }),
+  ).toBeVisible();
+  expect(state.writes).toHaveLength(2);
+  expect(state.writes[0]).toEqual(state.writes[1]);
+  await expect(
+    page.getByRole("button", { name: "Share lesson feedback" }),
+  ).toHaveCount(0);
+});
+test("changed attendance preserves feedback edits and requires an explicit refresh before another decision", async ({
+  page,
+}) => {
+  const state = await mock(page, "stale-feedback");
+  await composeFeedback(page);
+  await page.getByRole("checkbox", { name: /I reviewed my feedback/ }).check();
+  await page.getByRole("button", { name: "Send private feedback" }).click();
+  await expect(page.getByText(/The lesson changed/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Send private feedback" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Refresh attendance record" }).click();
+  await expect(
+    page.getByText(/You reviewed an earlier attendance record/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Send private feedback" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Edit feedback" }).click();
+  await expect(
+    page.getByLabel("What worked well, or could be better? (optional)"),
+  ).toHaveValue("Clear guidance and useful practice.");
+  expect(state.writes).toHaveLength(1);
+});
+test("teachers see saved guardian feedback while students have recap access without feedback controls or guardian comments", async ({
+  page,
+}) => {
+  await mock(page, "feedback-saved", "TEACHER");
+  await page.goto("/dashboard/lessons");
+  await page.getByRole("tab", { name: "Attendance & records" }).click();
+  await expect(
+    page.getByRole("region", { name: "Private lesson feedback" }),
+  ).toContainText("Guardian feedback");
+  await expect(
+    page.getByRole("button", { name: "Share lesson feedback" }),
+  ).toHaveCount(0);
+  await page.unroute("**/api/v1/**");
+  const state = await mock(page, "feedback-saved", "STUDENT");
+  await page.reload();
+  await page.getByRole("tab", { name: "Attendance & records" }).click();
+  await expect(
+    page.getByRole("region", { name: "Teacher recap" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Private lesson feedback" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Share lesson feedback" }),
+  ).toHaveCount(0);
+  expect(state.paths.some((x) => x.endsWith("/feedback"))).toBe(false);
+});
+test("mobile feedback has labelled keyboard controls, readable recap colors and no serious accessibility findings", async ({
+  page,
+}) => {
+  await mock(page, "feedback");
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/dashboard/lessons");
+  await page.getByRole("tab", { name: "Attendance & records" }).click();
+  await page.getByRole("button", { name: "Share lesson feedback" }).click();
+  const first = page.getByRole("radio", {
+    name: "1 Needs support",
+    exact: true,
+  });
+  await first.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(
+    page.getByRole("radio", { name: "2 Could be clearer", exact: true }),
+  ).toBeChecked();
+  await page
+    .getByLabel("What worked well, or could be better? (optional)")
+    .fill("A little more practice next time.");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(
+    results.violations.filter((x) =>
+      ["serious", "critical"].includes(x.impact || ""),
+    ),
+  ).toEqual([]);
+  await page.screenshot({
+    path: "test-results/lesson-feedback-mobile.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "Review feedback", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Edit feedback" }).click();
+  await expect(
+    page.getByLabel("What worked well, or could be better? (optional)"),
+  ).toHaveValue("A little more practice next time.");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: "test-results/lesson-feedback-desktop.png",
+    fullPage: true,
+  });
 });

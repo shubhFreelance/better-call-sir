@@ -875,17 +875,21 @@ function LessonRecord({
 }) {
   const teacher = session.account.role === "TEACHER";
   const [action, setAction] = useState<
-      "attendance" | "CONFIRMED" | "DISPUTED" | null
+      "attendance" | "CONFIRMED" | "DISPUTED" | "feedback" | null
     >(null),
     [attendance, setAttendance] = useState("PRESENT"),
     [reason, setReason] = useState(""),
     [recap, setRecap] = useState(""),
-    [agreed, setAgreed] = useState(false);
+    [agreed, setAgreed] = useState(false),
+    [rating, setRating] = useState(""),
+    [comment, setComment] = useState(""),
+    [reviewingFeedback, setReviewingFeedback] = useState(false);
+  const feedbackSubmitting = useRef(false);
   const review = useRef<HTMLDivElement>(null);
   const decision = useDecision(session, refresh);
   useEffect(() => {
-    onLock(l.id, decision.busy || decision.uncertain);
-  }, [l.id, decision.busy, decision.uncertain, onLock]);
+    onLock(l.id, decision.busy || decision.uncertain || decision.conflict);
+  }, [l.id, decision.busy, decision.uncertain, decision.conflict, onLock]);
   useEffect(() => {
     if (action) {
       review.current?.focus();
@@ -899,12 +903,46 @@ function LessonRecord({
     l.status === "COMPLETED" &&
     l.attendance !== "PENDING" &&
     !l.disputed;
-  // shortcut: review history omits actors; use owner review state when the API provides it.
   const [confirmedHere, setConfirmedHere] = useState(false);
   function open(next: typeof action) {
     setAction(next);
     setAgreed(false);
     setReason("");
+    setReviewingFeedback(false);
+  }
+  async function saveFeedback() {
+    if (feedbackSubmitting.current || decision.locked || blocked) return;
+    if (
+      !l.feedbackEligible ||
+      !agreed ||
+      !/^[1-5]$/.test(rating) ||
+      comment.trim().length > 1000
+    ) {
+      decision.invalid(
+        "Choose a rating and review who will see your feedback before sending.",
+      );
+      return;
+    }
+    feedbackSubmitting.current = true;
+    try {
+      await decision.run({
+        path: `/lessons/${l.id}/feedback`,
+        body: {
+          expectedVersion: l.version,
+          rating: Number(rating),
+          comment: comment.trim(),
+        },
+        message: "Your private lesson feedback is recorded.",
+        onSaved: () => {
+          setAction(null);
+          setRating("");
+          setComment("");
+          setReviewingFeedback(false);
+        },
+      });
+    } finally {
+      feedbackSubmitting.current = false;
+    }
   }
   async function save() {
     const max = action === "attendance" ? 300 : 500;
@@ -986,6 +1024,66 @@ function LessonRecord({
             : `${label(l.status)} · ${label(l.attendance)}`}
         </span>
       </div>
+      {l.recap && (
+        <section className="lesson-recap" aria-label="Teacher recap">
+          <div>
+            <BookOpen size={20} aria-hidden="true" />
+            <h4>Teacher recap</h4>
+          </div>
+          <p>{l.recap}</p>
+          {l.recapSubmittedAt && (
+            <small>Recorded {dayLabel(l.recapSubmittedAt)}</small>
+          )}
+        </section>
+      )}
+      {l.myConfirmation && (
+        <p className="lesson-personal-review" role="status">
+          {l.myConfirmation.lessonVersion !== l.version
+            ? "You reviewed an earlier attendance record. Ask support to review the correction before adding feedback."
+            : l.myConfirmation.action === "CONFIRMED"
+              ? "You confirmed this attendance record."
+              : "You reported an attendance error. Support will review it."}
+        </p>
+      )}
+      {l.feedback && session.account.role !== "STUDENT" && (
+        <section
+          className="lesson-saved-feedback"
+          aria-label="Private lesson feedback"
+        >
+          <div>
+            <h4>{teacher ? "Guardian feedback" : "Your lesson feedback"}</h4>
+            <span className="lesson-rating-value">
+              {l.feedback.rating} out of 5
+            </span>
+          </div>
+          {l.feedback.comment ? (
+            <p>{l.feedback.comment}</p>
+          ) : (
+            <p>No written comment added.</p>
+          )}
+          <small>
+            Recorded {dayLabel(l.feedback.createdAt)} · Private to the guardian
+            and this lesson’s teacher
+          </small>
+          {!teacher && (
+            <p>
+              <Link href="/support" className="inline-link">
+                Ask support for a correction
+              </Link>
+            </p>
+          )}
+        </section>
+      )}
+      {session.account.role === "GUARDIAN" &&
+        !l.feedback &&
+        !l.feedbackEligible &&
+        l.status === "COMPLETED" && (
+          <p className="learning-help">
+            Feedback is available after you confirm the current attendance for a
+            present or late lesson, with active guardian consent. Resolve any
+            attendance review first.
+          </p>
+        )}
       {l.reservationId && l.status === "SCHEDULED" && (
         <MeetingAccess
           session={session}
@@ -1035,22 +1133,170 @@ function LessonRecord({
           <>
             <Button
               variant="outline"
-              disabled={decision.locked || blocked || confirmedHere}
+              disabled={
+                decision.locked ||
+                blocked ||
+                confirmedHere ||
+                !!l.myConfirmation
+              }
               onClick={() => open("CONFIRMED")}
             >
               Confirm attendance
             </Button>
             <Button
               variant="ghost"
-              disabled={decision.locked || blocked || confirmedHere}
+              disabled={
+                decision.locked ||
+                blocked ||
+                confirmedHere ||
+                !!l.myConfirmation
+              }
               onClick={() => open("DISPUTED")}
             >
               Report attendance error
             </Button>
           </>
         )}
+        {session.account.role === "GUARDIAN" &&
+          l.feedbackEligible &&
+          !l.feedback && (
+            <Button
+              disabled={decision.locked || blocked}
+              onClick={() => open("feedback")}
+            >
+              Share lesson feedback
+            </Button>
+          )}
       </div>
-      {action && (
+      {action === "feedback" && (
+        <div className="lesson-feedback-editor" ref={review} tabIndex={-1}>
+          <h4>
+            {reviewingFeedback
+              ? "Review your lesson feedback"
+              : "How did this lesson go?"}
+          </h4>
+          <p>
+            Shared privately with this lesson’s teacher. Your feedback won’t
+            appear on their public profile.
+          </p>
+          <form
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (reviewingFeedback) {
+                void saveFeedback();
+                return;
+              }
+              if (!/^[1-5]$/.test(rating)) {
+                decision.invalid("Choose how helpful this lesson was.");
+                return;
+              }
+              if (comment.trim().length > 1000) {
+                decision.invalid("Keep your comment within 1,000 characters.");
+                return;
+              }
+              setReviewingFeedback(true);
+              setAgreed(false);
+            }}
+          >
+            <fieldset disabled={decision.locked || blocked}>
+              {reviewingFeedback ? (
+                <div className="lesson-feedback-review">
+                  <p>
+                    <strong>{rating} out of 5</strong> for {l.subject} on{" "}
+                    {dayLabel(l.startsAt)}
+                  </p>
+                  <p>{comment.trim() || "No written comment added."}</p>
+                  <label className="learning-check">
+                    <input
+                      type="checkbox"
+                      checked={agreed}
+                      onChange={(e) => setAgreed(e.target.checked)}
+                    />
+                    <span>
+                      I reviewed my feedback and understand it will be shared
+                      with this lesson’s teacher.
+                    </span>
+                  </label>
+                </div>
+              ) : (
+                <>
+                  <fieldset className="lesson-rating-options">
+                    <legend>How helpful was this lesson?</legend>
+                    {[
+                      ["1", "Needs support"],
+                      ["2", "Could be clearer"],
+                      ["3", "Good"],
+                      ["4", "Very helpful"],
+                      ["5", "Excellent"],
+                    ].map(([value, title]) => (
+                      <label
+                        key={value}
+                        className={rating === value ? "selected" : ""}
+                      >
+                        <input
+                          type="radio"
+                          name={`lesson-rating-${l.id}`}
+                          value={value}
+                          checked={rating === value}
+                          onChange={() => setRating(value)}
+                        />
+                        <span>
+                          <strong>{value}</strong> {title}
+                        </span>
+                      </label>
+                    ))}
+                  </fieldset>
+                  <label>
+                    What worked well, or could be better? (optional)
+                    <Textarea
+                      value={comment}
+                      maxLength={1000}
+                      onChange={(e) => setComment(e.target.value)}
+                      aria-describedby={`feedback-help-${l.id}`}
+                    />
+                  </label>
+                  <small id={`feedback-help-${l.id}`}>
+                    {comment.length}/1,000 characters. Keep the comment about
+                    this lesson; leave out contact details.
+                  </small>
+                </>
+              )}
+              <div className="learning-actions">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    reviewingFeedback
+                      ? setReviewingFeedback(false)
+                      : setAction(null)
+                  }
+                >
+                  {reviewingFeedback ? "Edit feedback" : "Cancel feedback"}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    reviewingFeedback && (!l.feedbackEligible || !!l.feedback)
+                  }
+                >
+                  {reviewingFeedback
+                    ? "Send private feedback"
+                    : "Review feedback"}
+                </Button>
+              </div>
+            </fieldset>
+          </form>
+          <p className="learning-help">
+            For a safety concern,{" "}
+            <Link href="/support" className="inline-link">
+              contact support
+            </Link>
+            .
+          </p>
+        </div>
+      )}
+      {action && action !== "feedback" && (
         <div className="learning-review" ref={review} tabIndex={-1}>
           <h4>
             {action === "attendance"
