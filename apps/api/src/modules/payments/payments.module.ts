@@ -28,6 +28,7 @@ class PaymentsController{
     const actor=await this.service.actor(req,['GUARDIAN','TEACHER']);const data=parse(z.object({kind:z.enum(['INVOICE','REVISION']),resourceId:uuid,expectedVersion:version}).strict(),body);
     return this.service.once(req,actor,'checkout.create',data,async db=>{
       const flag=await db.featureFlag.findUnique({where:{name:'checkout'}});if(!flag?.enabled)fail(503,'CHECKOUT_PAUSED','Checkout is temporarily unavailable.');
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id+':checkout:'+data.kind+':'+data.resourceId},0))`;
       let amount=0;
       if(data.kind==='INVOICE'){
         const invoice=await db.invoice.findUnique({where:{id:data.resourceId}});if(!invoice||invoice.payerId!==actor.id)fail(404,'NOT_FOUND','Invoice not found.');if(invoice.version!==data.expectedVersion||invoice.status!=='DUE')fail(409,'CONFLICT','Invoice changed or is not due.');amount=invoice.amountPaise;
@@ -35,6 +36,9 @@ class PaymentsController{
         if(actor.role!=='GUARDIAN')fail(403,'FORBIDDEN','Only the booking guardian can pay.');const reservation=await db.reservation.findUnique({where:{id:data.resourceId}});if(!reservation||reservation.guardianId!==actor.id||reservation.kind!=='REVISION')fail(404,'NOT_FOUND','Booking not found.');
         if(reservation.version!==data.expectedVersion||reservation.status!=='HOLD'||!reservation.expiresAt||reservation.expiresAt<=new Date()||!reservation.scopeAccepted)fail(409,'CONFLICT','The accepted revision hold changed or expired.');amount=reservation.amountPaise;
       }
+      const where={accountId:actor.id,kind:data.kind,resourceId:data.resourceId};
+      const existing=await db.checkoutOrder.findFirst({where:{...where,status:'PAID'},orderBy:{createdAt:'desc'}})||await db.checkoutOrder.findFirst({where,orderBy:{createdAt:'desc'}});
+      if(existing){if(existing.amountPaise!==amount||existing.currency!=='INR')fail(409,'ORDER_CHANGED','The existing order needs finance review before another payment.');return existing;}
       const order=await db.checkoutOrder.create({data:{accountId:actor.id,kind:data.kind,resourceId:data.resourceId,amountPaise:amount,providerMode:paymentMode()}});
       // shortcut: provider creation is inside the retry transaction; move to an outbox if Razorpay adds a supported order-idempotency key.
       try{const provider=await createRazorpayOrder(order.id,amount);return db.checkoutOrder.update({where:{id:order.id},data:{providerOrderId:provider.id,status:'CREATED',version:{increment:1}}});}
