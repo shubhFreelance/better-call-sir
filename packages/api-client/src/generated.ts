@@ -2009,6 +2009,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/notes/{id}/updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save guardian note edits privately and withdraw prior sharing
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["post_note_updates"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3497,6 +3517,34 @@ export interface components {
             recoveryCodes: string[];
         };
         EmptyInput: Record<string, never>;
+        NoteRecord: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            childId: string;
+            text: string;
+            /** Format: uuid */
+            sharedTeacherId: string | null;
+            /** Format: date-time */
+            acknowledgedAt: string | null;
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            learner: {
+                alias: string;
+                grade: number;
+                board: string;
+            };
+            sharedTeacher: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            } | null;
+            sharingActive: boolean;
+        };
+        NoteRecords: {
+            items: components["schemas"]["NoteRecord"][];
+        };
     };
     responses: never;
     parameters: never;
@@ -6352,7 +6400,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["NoteRecords"];
                 };
             };
             /** @description Validation */
@@ -6447,7 +6495,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["Note"];
                 };
             };
             /** @description Validation */
@@ -6542,7 +6590,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["Note"];
                 };
             };
             /** @description Validation */
@@ -13754,6 +13802,100 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MfaRecovery"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    post_note_updates: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expectedVersion: number;
+                    text: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Note"];
                 };
             };
             /** @description Validation */
