@@ -17,6 +17,7 @@ test('Google Meet creation uses restricted access and validates the provider res
  process.env.MEETING_PROVIDER_MODE='google-meet';process.env.GOOGLE_MEET_ACCESS_TOKEN='controlled-test-token';
  globalThis.fetch=(async(url,init)=>{
   assert.equal(url,'https://meet.googleapis.com/v2/spaces');
+  assert.equal(init?.redirect,'error');assert(init?.signal);
   assert.equal((init?.headers as Record<string,string>).Authorization,'Bearer controlled-test-token');
   assert.deepEqual(JSON.parse(String(init?.body)),{config:{accessType:'RESTRICTED'}});
   return new Response(JSON.stringify({name:'spaces/test-space',meetingUri:'https://meet.google.com/abc-defg-hij'}),{status:200});
@@ -28,6 +29,5 @@ test('live meeting creation fails closed without credentials or a valid Meet URL
  process.env.MEETING_PROVIDER_MODE='google-meet';
  await assert.rejects(create('10000000-0000-4000-8000-000000000001'),/GOOGLE_MEET_NOT_CONFIGURED/);
  process.env.GOOGLE_MEET_ACCESS_TOKEN='controlled-test-token';
- globalThis.fetch=(async()=>new Response(JSON.stringify({name:'spaces/test-space',meetingUri:'https://attacker.invalid/room'}),{status:200})) as typeof fetch;
- await assert.rejects(create('10000000-0000-4000-8000-000000000001'),/GOOGLE_MEET_RESPONSE_INVALID/);
+ for(const meetingUri of ['https://attacker.invalid/room','https://meet.google.com/not-a-meeting','https://meet.google.com/abc-defg-hij?private=token','https://user@meet.google.com/abc-defg-hij']){globalThis.fetch=(async()=>new Response(JSON.stringify({name:'spaces/test-space',meetingUri}),{status:200})) as typeof fetch;await assert.rejects(create('10000000-0000-4000-8000-000000000001'),/GOOGLE_MEET_RESPONSE_INVALID/);}
 });

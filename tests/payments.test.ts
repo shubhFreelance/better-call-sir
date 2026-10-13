@@ -7,7 +7,7 @@ test('Razorpay transport validates provider responses and webhook bytes',async()
   try{
     delete process.env.PAYMENT_PROVIDER_MODE;assert.equal(paymentMode(),'SANDBOX');assert.match((await createRazorpayOrder('10000000-0000-4000-8000-000000000099',12345)).id,/^order_synthetic_/);
     process.env.PAYMENT_PROVIDER_MODE='razorpay';process.env.RAZORPAY_KEY_ID='synthetic-key-id';process.env.RAZORPAY_KEY_SECRET='synthetic-key-secret';
-    globalThis.fetch=async(_input,init)=>{const body=JSON.parse(init!.body as string);return new Response(JSON.stringify({id:'order_provider',amount:body.amount,currency:'INR',status:'created',receipt:body.receipt}),{status:200});};
+    globalThis.fetch=async(_input,init)=>{assert.equal(init?.redirect,'error');assert(init?.signal);const body=JSON.parse(init!.body as string);return new Response(JSON.stringify({id:'order_provider',amount:body.amount,currency:'INR',status:'created',receipt:body.receipt}),{status:200});};
     assert.equal((await createRazorpayOrder('10000000-0000-4000-8000-000000000099',12345)).id,'order_provider');
     globalThis.fetch=async()=>new Response(JSON.stringify({id:'wrong',amount:1,currency:'INR',receipt:'wrong'}),{status:200});await assert.rejects(createRazorpayOrder('10000000-0000-4000-8000-000000000099',12345));
     const raw=Buffer.from('{"event":"payment.captured"}');process.env.RAZORPAY_WEBHOOK_SECRET='synthetic-webhook-key';const signature=createHmac('sha256',process.env.RAZORPAY_WEBHOOK_SECRET).update(raw).digest('hex');assert(verifyWebhook(raw,signature));assert.equal(verifyWebhook(Buffer.from('{}'),signature),false);

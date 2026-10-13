@@ -1,6 +1,9 @@
 import { execFileSync, spawnSync } from "node:child_process";
+import {readdirSync} from 'node:fs';
+import path from 'node:path';
 const files = process.argv.slice(2);
-const selected = files.length
+const walk=(dir)=>readdirSync(dir,{withFileTypes:true}).flatMap(item=>item.isDirectory()?walk(path.join(dir,item.name)):/\.(js|map)$/.test(item.name)?[path.join(dir,item.name)]:[]);
+const selected = files[0]==='--bundle'?walk('apps/web/.next/static'):files.length
   ? files
   : [
       ...new Set(

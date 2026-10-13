@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, writeFileSync, rmSync,readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
+import { spawnSync,execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 function scan(content: string) {
   const dir = mkdtempSync(path.join(tmpdir(), "bcs-secret-scan-")),
@@ -48,4 +48,13 @@ test("benign input passes and a missing input file fails the scanner", () => {
     { encoding: "utf8" },
   );
   assert.notEqual(result.status, 0);
+});
+test('history scanning catches a removed synthetic secret without printing it',()=>{
+ const dir=mkdtempSync(path.join(tmpdir(),'bcs-history-test-')),token='ghp_'+randomBytes(18).toString('hex'),git=(args:string[])=>execFileSync('git',['-C',dir,...args],{stdio:'pipe'});
+ try{git(['init','--quiet']);git(['config','user.name','Synthetic security fixture']);git(['config','user.email','security@example.test']);git(['config','commit.gpgsign','false']);writeFileSync(path.join(dir,'removed.txt'),token);git(['add','removed.txt']);git(['commit','--quiet','-m','Synthetic fixture']);git(['rm','--quiet','removed.txt']);git(['commit','--quiet','-m','Remove fixture']);const scan=spawnSync(process.execPath,['scripts/history-secrets.mjs',dir],{encoding:'utf8'});assert.equal(scan.status,1);const report=JSON.parse(scan.stdout);assert(report.findings.some((x:any)=>x.path==='removed.txt'));assert.equal(scan.stdout.includes(token),false);assert(report.findings.every((x:any)=>/^[0-9a-f]{40}$/.test(x.blob)));}finally{rmSync(dir,{recursive:true,force:true});}
+});
+test('CI installs only reviewed engine scripts and never retains checkout credentials',()=>{
+ const ci=readFileSync('.github/workflows/ci.yml','utf8');assert(ci.includes('persist-credentials: false'));assert(ci.includes('fetch-depth: 0'));assert(ci.includes('npm ci --ignore-scripts'));assert(ci.includes('npm rebuild @prisma/engines esbuild'));assert(!ci.includes('pull_request_target'));assert(!ci.includes('continue-on-error: true'));
+ const actions=[...ci.matchAll(/uses:\s+(\S+)/g)].map(x=>x[1]);assert(actions.length>=3);assert(actions.every(x=>/^(actions\/(checkout|setup-node|upload-artifact))@[0-9a-f]{40}$/.test(x)));
+ const lock=JSON.parse(readFileSync('package-lock.json','utf8'));for(const [name,pkg] of Object.entries(lock.packages) as [string,any][]){if(!name.startsWith('node_modules/')||pkg.link)continue;assert(pkg.integrity&&pkg.resolved.startsWith('https://registry.npmjs.org/'),name+' must have an immutable verified registry artifact');}
 });

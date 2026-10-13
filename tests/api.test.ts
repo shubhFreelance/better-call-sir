@@ -2,7 +2,7 @@ import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn,spawnSync,execFileSync,ChildProcess} from 'node:child_process';
 import {randomUUID,randomBytes,createHash,createHmac} from 'node:crypto';
-import {readFileSync,mkdtempSync,rmSync} from 'node:fs';
+import {readFileSync,mkdtempSync,rmSync,mkdirSync,writeFileSync,statSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {parseEnv} from 'node:util';
@@ -12,7 +12,7 @@ import {PrismaPg} from '@prisma/adapter-pg';
 import {ids} from '../packages/test-fixtures/src';
 import {operationValidator,contract} from './helpers/contract';
 import {AppService,privileged} from '../apps/api/src/shared';
-import {totp} from '../apps/api/src/modules/identity/totp';
+import {totp,newMfaSecret,encryptMfa,decryptMfa} from '../apps/api/src/modules/identity/totp';
 import {completeCheckout} from '../apps/api/src/modules/payments/checkout';
 process.env.MFA_ENCRYPTION_KEY=randomBytes(32).toString('base64');
 const mfaRecovery=new Map<string,string[]>();
@@ -23,6 +23,7 @@ const name=`bcs_test_${randomUUID().replace(/-/g,'')}`;
 const admin=new Pool({connectionString:base.href});base.pathname='/'+name;
 const db=new PrismaClient({adapter:new PrismaPg({connectionString:base.href})});
 let server:ChildProcess;
+const runtimeRoles:string[]=[];
 const evidenceDir=mkdtempSync(path.join(tmpdir(),"bcs-private-evidence-"));
 let parent:Client,other:Client,teacher:Client,student:Client,operator:Client,unverified:Client;
 class Client {
@@ -39,7 +40,7 @@ const future=(days=15,hour=6)=>{const d=new Date();d.setUTCDate(d.getUTCDate()+d
 const intake=(extra={})=>({alias:'Test learner',grade:8,board:'CBSE',subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Monday after 5pm',...extra});
 before(async()=>{
  await admin.query(`CREATE DATABASE "${name}"`);
- const env={...process.env,...local,DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',RAZORPAY_KEY_ID:'rzp_test_synthetic_public',RAZORPAY_WEBHOOK_SECRET:['synthetic','webhook','key'].join('-'),EVIDENCE_DIRECTORY:evidenceDir};
+ const env={...process.env,...local,DATABASE_URL:base.href,MIGRATION_DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',RAZORPAY_KEY_ID:'rzp_test_synthetic_public',RAZORPAY_WEBHOOK_SECRET:['synthetic','webhook','key'].join('-'),EVIDENCE_DIRECTORY:evidenceDir};
  execFileSync(process.execPath,['node_modules/prisma/build/index.js','migrate','deploy'],{env,stdio:'pipe'});
  execFileSync(process.execPath,['--import','tsx','prisma/seed.ts'],{env,stdio:'pipe'});
  execFileSync(process.execPath,['node_modules/typescript/bin/tsc','-p','apps/api/tsconfig.json'],{env,stdio:'pipe'});
@@ -48,7 +49,7 @@ before(async()=>{
  for(let i=0;i<100;i++){try{const r=await fetch('http://127.0.0.1:4100/api/v1/health/ready');if(r.ok)break;}catch{}if(server.exitCode!==null)throw new Error(`API exited: ${log}`);if(i===99)throw new Error('API readiness timed out');await new Promise(r=>setTimeout(r,100));}
  [parent,other,teacher,student,operator,unverified]=await Promise.all([ids.guardian,ids.otherGuardian,ids.teacherAccount,ids.student,ids.admin,ids.unverified].map(login));
 }, {timeout:60000});
-after(async()=>{if(server){server.kill('SIGTERM');await new Promise<void>(r=>{if(server.exitCode!==null)return r();server.once('exit',()=>r());});}await db.$disconnect();await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);await admin.end();rmSync(evidenceDir,{recursive:true,force:true});});
+after(async()=>{if(server){server.kill('SIGTERM');await new Promise<void>(r=>{if(server.exitCode!==null)return r();server.once('exit',()=>r());});}await db.$disconnect();await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);for(const role of runtimeRoles)await admin.query(`DROP ROLE IF EXISTS "${role}"`);await admin.end();rmSync(evidenceDir,{recursive:true,force:true});});
 
 test('public catalog is an allowlisted projection and private API is no-store',async()=>{const r=await new Client().call('/teachers');assert.equal(r.status,200);assert.equal(r.data.items.length,4);for(const t of r.data.items){for(const field of ['accountId','phone','screeningComplete','verification','guardianId'])assert.equal(field in t,false);}const d=await parent.call('/dashboard');assert.equal(d.headers.get('cache-control'),'no-store');});
 test('direct teacher search and assisted requests preserve distinct discovery paths',async()=>{
@@ -78,6 +79,27 @@ test('rate limits are atomic across instances, survive recreation and store no r
  const recreated=new AppService();recreated.db=db;await assert.rejects(recreated.limit(key,2),(e:any)=>e.getStatus()===429);
  const stored=await db.rateBucket.findUniqueOrThrow({where:{key:createHash('sha256').update(key).digest('hex')}});assert.equal(stored.count,5);assert(!stored.key.includes(key));
  await db.rateBucket.update({where:{key:stored.key},data:{resetsAt:new Date(0)}});await recreated.limit(key,2);assert.equal((await db.rateBucket.findUniqueOrThrow({where:{key:stored.key}})).count,1);
+});
+test('runtime database role can serve app data but cannot own schema, alter privileges, edit audit or read migration records',async()=>{
+ const role='bcs_runtime_test_'+randomUUID().replaceAll('-',''),pool=new Pool({connectionString:base.href}),client=await pool.connect();runtimeRoles.push(role);
+ try{await client.query("SELECT set_config('bcs.runtime_role',$1,false)",[role]);await client.query(readFileSync('infra/sql/runtime-permissions.sql','utf8'));const authority=await client.query('SELECT rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls,rolcanlogin FROM pg_roles WHERE rolname=$1',[role]);assert(Object.values(authority.rows[0]).every(x=>x===false));await client.query(`SET ROLE "${role}"`);assert.equal((await client.query('SELECT count(*) FROM "Teacher"')).rows[0].count,'4');
+  for(const sql of ['CREATE TABLE forbidden_table(id int)','ALTER TABLE "Account" ADD COLUMN forbidden_column int','TRUNCATE "Account" CASCADE','DELETE FROM "Audit"','SELECT * FROM "_prisma_migrations"','CREATE ROLE forbidden_role'])await assert.rejects(client.query(sql),(e:any)=>e.code==='42501');
+  const inserted=await client.query('INSERT INTO "SupportCase" (id,"accountId",category,description,"updatedAt") VALUES ($1,$2,$3,$4,CURRENT_TIMESTAMP) RETURNING id',[randomUUID(),ids.guardian,'GENERAL','Synthetic runtime permission check']);assert(inserted.rows[0].id);
+ }finally{await client.query('RESET ROLE');client.release();await pool.end();}
+});
+test('encrypted database/media backup restores into a new target and rejects wrong keys, tampering and existing data',async()=>{
+ const suffix=randomUUID().replaceAll('-',''),sourceName='bcs_backup_'+suffix,targetName='bcs_restore_'+suffix,sourceUrl=new URL(base.href),targetUrl=new URL(base.href);sourceUrl.pathname='/'+sourceName;targetUrl.pathname='/'+targetName;
+ const dir=mkdtempSync(path.join(tmpdir(),'bcs-restore-drill-')),media=path.join(dir,'source-media'),destination=path.join(dir,'restored-media'),archive=path.join(dir,'backup.bcs'),backupKey=randomBytes(32).toString('base64');mkdirSync(media,{mode:0o700});
+ let source:Pool|undefined,target:Pool|undefined;
+ try{await admin.query(`CREATE DATABASE "${sourceName}"`);await admin.query(`CREATE DATABASE "${targetName}"`);const env={...process.env,...local,DATABASE_URL:sourceUrl.href,MIGRATION_DATABASE_URL:sourceUrl.href,APP_MODE:'development',NODE_ENV:'test',EVIDENCE_DIRECTORY:media,BACKUP_ENCRYPTION_KEY:backupKey,PG_TOOLS_CONTAINER:process.env.PG_TOOLS_CONTAINER||'better-call-sir-dev-db-1'};
+  execFileSync(process.execPath,['node_modules/prisma/build/index.js','migrate','deploy'],{env,stdio:'pipe'});execFileSync(process.execPath,['--import','tsx','prisma/seed.ts'],{env,stdio:'pipe'});source=new Pool({connectionString:sourceUrl.href});target=new Pool({connectionString:targetUrl.href});const fileId=randomUUID(),bytes=Buffer.from('%PDF-1.7\nSynthetic private restoration evidence'),note='Synthetic private note requiring backup confidentiality',secret=newMfaSecret(),encrypted=encryptMfa(secret,ids.admin);
+  writeFileSync(path.join(media,fileId),bytes,{mode:0o600});await source.query('INSERT INTO "Evidence" (id,"teacherId",kind,"mediaType",size,sha256) VALUES ($1,$2,$3,$4,$5,$6)',[fileId,ids.teacher,'IDENTITY','application/pdf',bytes.length,createHash('sha256').update(bytes).digest('hex')]);await source.query('INSERT INTO "Note" (id,"guardianId","childId",text) VALUES ($1,$2,$3,$4)',[randomUUID(),ids.guardian,ids.child,note]);await source.query('INSERT INTO "MfaCredential" ("accountId","encryptedSecret") VALUES ($1,$2)',[ids.admin,encrypted]);
+  const run=(args:string[],override:Record<string,string>={})=>spawnSync(process.execPath,['scripts/backup.mjs',...args],{env:{...env,...override},encoding:'utf8',timeout:60000});const saved=run(['create',archive]);assert.equal(saved.status,0,saved.stderr);assert.equal(statSync(archive).mode&0o777,0o600);const content=readFileSync(archive);assert(!content.includes(Buffer.from(note)));assert(!content.includes(bytes));assert(!content.includes(Buffer.from(secret)));const restoreEnv={DATABASE_URL:targetUrl.href,RESTORE_CONFIRM_DATABASE:targetName};
+  assert.equal(run(['restore',archive,destination],{...restoreEnv,BACKUP_ENCRYPTION_KEY:randomBytes(32).toString('base64')}).status,1);assert(!existsSync(destination));assert.equal((await target.query("SELECT count(*) FROM pg_tables WHERE schemaname='public'")).rows[0].count,'0');
+  const corrupt=Buffer.from(content);corrupt[40]^=1;const bad=path.join(dir,'corrupt.bcs');writeFileSync(bad,corrupt);assert.equal(run(['restore',bad,destination],restoreEnv).status,1);assert(!existsSync(destination));
+  const restored=run(['restore',archive,destination],restoreEnv);assert.equal(restored.status,0,restored.stderr);assert.equal((await target.query('SELECT text FROM "Note"')).rows[0].text,note);assert.deepEqual(readFileSync(path.join(destination,fileId)),bytes);assert.equal(decryptMfa((await target.query('SELECT "encryptedSecret" FROM "MfaCredential"')).rows[0].encryptedSecret,ids.admin),secret);
+  assert.equal(run(['restore',archive,path.join(dir,'must-not-create')],restoreEnv).status,1);assert(!existsSync(path.join(dir,'must-not-create')));assert.equal((await target.query('SELECT text FROM "Note"')).rows[0].text,note);assert.equal(run(['create',archive]).status,1);assert.deepEqual(readFileSync(archive),content);
+ }finally{await source?.end();await target?.end();await admin.query(`DROP DATABASE IF EXISTS "${sourceName}" WITH (FORCE)`);await admin.query(`DROP DATABASE IF EXISTS "${targetName}" WITH (FORCE)`);rmSync(dir,{recursive:true,force:true});}
 });
 test('malformed JSON, oversized normal bodies and non-ASCII credentials fail safely with no-store headers',async()=>{
  const send=(body:string)=>fetch('http://127.0.0.1:4100/api/v1/auth/otp/request',{method:'POST',headers:{Origin:'http://localhost:3000','Content-Type':'application/json'},body});

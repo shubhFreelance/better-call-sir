@@ -25,6 +25,9 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version-file: .node-version
@@ -34,7 +37,9 @@ jobs:
           cp .env.example .env
           node scripts/development-key.mjs
           mkdir -p test-results
-      - run: npm ci
+      - run: npm ci --ignore-scripts
+      - name: Run only required pinned engine installers
+        run: npm rebuild @prisma/engines esbuild
       - run: npm run generate
       - id: contract-lint
         run: npm run contract:lint > test-results/contract-lint.txt 2>&1
@@ -49,6 +54,8 @@ jobs:
       - id: unit
         run: npm exec -- tsx --test --test-reporter=junit tests/policies.test.ts tests/calendar.test.ts tests/ranking.test.ts tests/email-otp.test.ts tests/recurring.test.ts tests/payments.test.ts tests/meetings.test.ts tests/mfa.test.ts > test-results/unit.xml
       - id: integration
+        env:
+          PG_TOOLS_CONTAINER: ${{ job.services.postgres.id }}
         run: npm exec -- tsx --test --test-concurrency=1 --test-reporter=junit tests/api.test.ts > test-results/integration.xml
       - id: contract
         run: npm exec -- tsx --test --test-reporter=junit tests/contract.test.ts > test-results/contract.xml
@@ -68,6 +75,12 @@ jobs:
       - name: Runtime dependency audit
         id: runtime-audit
         run: npm audit --omit=dev --json > test-results/runtime-audit.json
+      - name: Historical secrets scan
+        id: history-secrets
+        run: node scripts/history-secrets.mjs > test-results/history-secrets.json
+      - name: Public browser bundle secrets scan
+        id: bundle-secrets
+        run: node scripts/secrets-scan.mjs --bundle > test-results/bundle-secrets.json
       - name: Development tooling dependency audit
         id: tooling-audit
         run: npm audit --json > test-results/tooling-audit.json
@@ -76,7 +89,7 @@ jobs:
         env:
           BCS_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           BCS_CHECK_RESULTS: >-
-            {"contractLint":"${{ steps.contract-lint.outcome }}","generatedClient":"${{ steps.generated-client.outcome }}","typecheck":"${{ steps.typecheck.outcome }}","unit":"${{ steps.unit.outcome }}","integration":"${{ steps.integration.outcome }}","contract":"${{ steps.contract.outcome }}","mock":"${{ steps.mock.outcome }}","securityTests":"${{ steps.security-tests.outcome }}","releaseGate":"${{ steps.release-gate.outcome }}","browser":"${{ steps.browser.outcome }}","build":"${{ steps.build.outcome }}","secrets":"${{ steps.secrets.outcome }}","runtimeAudit":"${{ steps.runtime-audit.outcome }}","toolingAudit":"${{ steps.tooling-audit.outcome }}"}
+            {"contractLint":"${{ steps.contract-lint.outcome }}","generatedClient":"${{ steps.generated-client.outcome }}","typecheck":"${{ steps.typecheck.outcome }}","unit":"${{ steps.unit.outcome }}","integration":"${{ steps.integration.outcome }}","contract":"${{ steps.contract.outcome }}","mock":"${{ steps.mock.outcome }}","securityTests":"${{ steps.security-tests.outcome }}","releaseGate":"${{ steps.release-gate.outcome }}","browser":"${{ steps.browser.outcome }}","build":"${{ steps.build.outcome }}","secrets":"${{ steps.secrets.outcome }}","historySecrets":"${{ steps.history-secrets.outcome }}","bundleSecrets":"${{ steps.bundle-secrets.outcome }}","runtimeAudit":"${{ steps.runtime-audit.outcome }}","toolingAudit":"${{ steps.tooling-audit.outcome }}"}
         run: node scripts/ci-evidence.mjs
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
