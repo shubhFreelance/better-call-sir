@@ -11,6 +11,7 @@ import {PrismaClient} from '@prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg';
 import {ids} from '../packages/test-fixtures/src';
 import {operationValidator} from './helpers/contract';
+import {AppService} from '../apps/api/src/shared';
 const local=parseEnv(readFileSync('.env','utf8'));
 const base=new URL(local.DATABASE_URL);
 assert(['127.0.0.1','localhost'].includes(base.hostname),'Integration tests require a local synthetic database.');
@@ -57,6 +58,24 @@ test('direct teacher search and assisted requests preserve distinct discovery pa
  const assisted=await parent.call('/requests',intake({childId:ids.child}));assert.equal(assisted.status,201);assert.equal(assisted.data.discoveryMethod,'ASSISTED');assert.equal(assisted.data.preferredTeacherId,null);assert.equal((await student.call('/requests',body)).status,403);
 });
 test('anonymous, role, Origin and CSRF checks reject direct requests',async()=>{assert.equal((await new Client().call('/dashboard')).status,401);assert.equal((await student.call('/requests',intake())).status,403);assert.equal((await parent.call('/requests',intake(),{origin:'https://attacker.invalid'})).status,403);assert.equal((await parent.call('/requests',intake(),{csrf:'wrong'})).status,403);});
+test('profileless teachers cannot read other teachers financial payables',async()=>{
+ const account=await db.account.create({data:{phone:'+91000000'+randomUUID().slice(0,8),name:'Synthetic profileless teacher',role:'TEACHER'}}),client=await login(account.id);
+ assert.equal((await client.call('/payables')).status,404);assert.equal((await client.call('/payables?status=ELIGIBLE')).status,404);
+});
+test('rate limits are atomic across instances, survive recreation and store no raw identifiers',async()=>{
+ const first=new AppService(),second=new AppService();first.db=db;second.db=db;const key='synthetic-email:'+randomUUID(),attempts=await Promise.allSettled([first.limit(key,2),second.limit(key,2),first.limit(key,2),second.limit(key,2)]);
+ assert.equal(attempts.filter(x=>x.status==='fulfilled').length,2);assert.equal(attempts.filter(x=>x.status==='rejected'&&x.reason.getStatus()===429).length,2);
+ const recreated=new AppService();recreated.db=db;await assert.rejects(recreated.limit(key,2),(e:any)=>e.getStatus()===429);
+ const stored=await db.rateBucket.findUniqueOrThrow({where:{key:createHash('sha256').update(key).digest('hex')}});assert.equal(stored.count,5);assert(!stored.key.includes(key));
+ await db.rateBucket.update({where:{key:stored.key},data:{resetsAt:new Date(0)}});await recreated.limit(key,2);assert.equal((await db.rateBucket.findUniqueOrThrow({where:{key:stored.key}})).count,1);
+});
+test('malformed JSON, oversized normal bodies and non-ASCII credentials fail safely with no-store headers',async()=>{
+ const send=(body:string)=>fetch('http://127.0.0.1:4100/api/v1/auth/otp/request',{method:'POST',headers:{Origin:'http://localhost:3000','Content-Type':'application/json'},body});
+ const malformed=await send('{"email":');assert.equal(malformed.status,400);assert.equal(malformed.headers.get('cache-control'),'no-store');assert.equal((await malformed.json()).code,'INVALID_JSON');
+ const large=await send(JSON.stringify({email:'x'.repeat(70000)}));assert.equal(large.status,413);assert.equal(large.headers.get('cache-control'),'no-store');assert.equal((await large.json()).code,'UPLOAD_TOO_LARGE');
+ assert.equal((await parent.call('/requests',intake(),{csrf:'é'.repeat(43)})).status,403);
+ const result=await fetch('http://127.0.0.1:4100/api/v1/billing/webhooks/razorpay',{method:'POST',headers:{'Content-Type':'application/json','x-razorpay-event-id':randomUUID(),'x-razorpay-signature':'é'.repeat(64)},body:'{}'});assert.equal(result.status,401);assert.equal((await result.json()).code,'INVALID_SIGNATURE');
+});
 test('unverified guardian cannot grant consent or capture child data',async()=>{assert.equal((await unverified.call('/consents',{purpose:'tuition-and-learning-records',policyVersion:'development-v1',accepted:true})).status,403);assert.equal((await unverified.call('/requests',intake())).status,403);});
 test('intake is retry-safe; mismatched payload and cross-family child are rejected',async()=>{const key=randomUUID();const first=await parent.call('/requests',intake(),{key});assert.equal(first.status,201,JSON.stringify(first.data));const replay=await parent.call('/requests',intake(),{key});assert.equal(replay.data.id,first.data.id);assert.equal((await parent.call('/requests',intake({alias:'Different'}),{key})).status,409);assert.equal((await other.call(`/requests/${first.data.id}`)).status,404);assert.equal((await parent.call('/requests',intake({childId:ids.otherChild}))).status,404);});
 test('mass assignment cannot set administrator or approved teacher status',async()=>{assert.equal((await parent.call('/requests',intake({role:'ADMIN'}))).status,400);assert.equal((await teacher.call(`/admin/teachers/${ids.teacher}/reviews`,{expectedVersion:1,status:'APPROVED',reason:'Self approve'})).status,403);});

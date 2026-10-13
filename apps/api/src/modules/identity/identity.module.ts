@@ -24,7 +24,7 @@ class IdentityController {
   }
 
   @Post('dev/session') async devSession(@Body() body: unknown,@Res({passthrough:true}) res: Response,@Req() req: Request) {
-    if (!development()) fail(404,'NOT_FOUND','Not found.'); this.service.limit(`dev:${req.ip}`,30);
+    if (!development()) fail(404,'NOT_FOUND','Not found.'); await this.service.limit(`dev:${req.ip}`,30);
     const {accountId} = parse(z.object({accountId:uuid}).strict(),body);
     const account = await this.db.account.findUnique({where:{id:accountId}});
     if (!account || !account.phone?.startsWith('+91000000') || account.disabled) fail(404,'NOT_FOUND','Synthetic account not found.');
@@ -33,7 +33,7 @@ class IdentityController {
 
   @Post('auth/otp/request') async otpRequest(@Body() body: unknown,@Req() req: Request) {
     const {email}=parse(z.object({email:emailAddress}).strict(),body);
-    this.service.limit(`otp:${email}`,3);this.service.limit(`otp-ip:${req.ip}`,10);
+    await this.service.limit(`otp:${email}`,3);await this.service.limit(`otp-ip:${req.ip}`,10);
     if(!development())fail(503,'PROVIDER_UNAVAILABLE','Authentication is not qualified for live mode.');
     const code=String(randomInt(1000000)).padStart(6,'0'),digest=hash(code);
     await this.db.otp.upsert({where:{address:email},create:{address:email,hash:digest,expiresAt:new Date(Date.now()+300000)},update:{hash:digest,expiresAt:new Date(Date.now()+300000),attempts:0}});
@@ -43,7 +43,7 @@ class IdentityController {
 
   @Post('auth/otp/verify') async otpVerify(@Body() body: unknown,@Req() req: Request,@Res({passthrough:true}) res: Response) {
     const {email,code,name}=parse(z.object({email:emailAddress,code:z.string().regex(/^\d{6}$/),name:text(80)}).strict(),body);
-    this.service.limit(`verify:${req.ip}`,10);
+    await this.service.limit(`verify:${req.ip}`,10);
     const account = await this.db.$transaction(async db=>{
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${email},0))`;
       const otp = await db.otp.findUnique({where:{address:email}});

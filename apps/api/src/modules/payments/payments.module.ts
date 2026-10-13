@@ -11,6 +11,7 @@ class PaymentsController{
   constructor(@Inject(AppService) private readonly service:AppService){}
   @Get('payables') async payables(@Req() req:HttpRequest,@Query() query:unknown){
     const actor=await this.service.actor(req,['TEACHER','FINANCE','ADMIN']);const data=parse(z.object({status:z.enum(['HELD_SERVICE','HELD_CONFIRMATION','HELD_DISPUTE','ELIGIBLE','REFUND_PENDING','REVIEW_REQUIRED']).optional()}).strict(),query),teacher=actor.role==='TEACHER'?await this.service.db.teacher.findUnique({where:{accountId:actor.id}}):null;
+    if(actor.role==='TEACHER'&&!teacher)fail(404,'NOT_FOUND','Teacher profile not found.');
     const items=await this.service.db.teacherPayable.findMany({where:{...(teacher?{teacherId:teacher.id}:{}),...(data.status?{status:data.status}:{})},orderBy:[{createdAt:'desc'},{id:'desc'}],take:50,select:{id:true,lessonId:true,teacherId:true,amountPaise:true,currency:true,policyVersion:true,status:true,eligibleAt:true,version:true,createdAt:true}});return {items};
   }
   @Get('checkout-orders') async current(@Req() req:HttpRequest,@Query() query:unknown){

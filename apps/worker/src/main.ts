@@ -51,6 +51,7 @@ async function extendRecurring(){
  }
 }
 async function tick() {
+  await db.rateBucket.deleteMany({where:{resetsAt:{lt:new Date(Date.now()-86400000)}}});
   const now=new Date(),mature=await db.$queryRaw<{id:string;startedAt:Date;closedAt:Date|null;status:string}[]>`SELECT p.id,p."startedAt",p."closedAt",p.status FROM "Placement" p LEFT JOIN "ContinuationObservation" o ON o."placementId"=p.id WHERE p."startedAt"<=CURRENT_TIMESTAMP-interval '30 days' AND o.id IS NULL ORDER BY p."startedAt" LIMIT 1`;
   if(mature[0]){const p=mature[0],dueAt=new Date(p.startedAt.getTime()+30*86400000),continued=p.closedAt&&p.closedAt<=dueAt?false:now.getTime()<=dueAt.getTime()+86400000?(p.status==='ACTIVE'||!!p.closedAt&&p.closedAt>dueAt):null;await db.continuationObservation.upsert({where:{placementId:p.id},create:{placementId:p.id,dueAt,observedAt:now,continued},update:{}});}
   const expiredMemberships=await db.membership.findMany({where:{periodEnd:{lte:new Date()}},select:{guardianId:true}});

@@ -17,7 +17,7 @@
         "tags": [
           "health"
         ],
-        "summary": "health \u00b7 live",
+        "summary": "health · live",
         "security": [],
         "responses": {
           "200": {
@@ -109,7 +109,7 @@
         "tags": [
           "health"
         ],
-        "summary": "health \u00b7 ready",
+        "summary": "health · ready",
         "security": [],
         "responses": {
           "200": {
@@ -551,7 +551,7 @@
                         {
                           "name": "Arjun Deshmukh",
                           "slug": "arjun-deshmukh",
-                          "headline": "Turn \u201cI don\u2019t get it\u201d into \u201cI can do this.\u201d",
+                          "headline": "Turn “I don’t get it” into “I can do this.”",
                           "bio": "Focused online science lessons with visual explanations and practical questions. Revision sessions cover a clear topic, with a recap and next steps.",
                           "subjects": [
                             "Science"
@@ -843,7 +843,7 @@
         "tags": [
           "teachers"
         ],
-        "summary": "teachers \u00b7 :slug",
+        "summary": "teachers · :slug",
         "security": [],
         "responses": {
           "200": {
@@ -1052,7 +1052,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev \u00b7 accounts",
+        "summary": "dev · accounts",
         "security": [],
         "responses": {
           "200": {
@@ -1227,7 +1227,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev \u00b7 session",
+        "summary": "dev · session",
         "security": [],
         "responses": {
           "201": {
@@ -1810,7 +1810,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth \u00b7 session",
+        "summary": "auth · session",
         "security": [
           {
             "cookieSession": []
@@ -1983,7 +1983,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth \u00b7 refresh",
+        "summary": "auth · refresh",
         "security": [
           {
             "cookieSession": []
@@ -2177,7 +2177,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth \u00b7 logout",
+        "summary": "auth · logout",
         "security": [
           {
             "cookieSession": []
@@ -2588,7 +2588,7 @@
         "tags": [
           "consents"
         ],
-        "summary": "consents \u00b7 withdraw",
+        "summary": "consents · withdraw",
         "security": [
           {
             "cookieSession": []
@@ -3352,7 +3352,7 @@
         "tags": [
           "requests"
         ],
-        "summary": "requests \u00b7 :id",
+        "summary": "requests · :id",
         "security": [
           {
             "cookieSession": []
@@ -3892,7 +3892,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin \u00b7 teachers",
+        "summary": "admin · teachers",
         "security": [
           {
             "cookieSession": []
@@ -3988,7 +3988,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin \u00b7 teachers \u00b7 :id \u00b7 reviews",
+        "summary": "admin · teachers · :id · reviews",
         "security": [
           {
             "cookieSession": []
@@ -4136,7 +4136,7 @@
         "tags": [
           "revision"
         ],
-        "summary": "revision \u00b7 holds",
+        "summary": "revision · holds",
         "security": [
           {
             "cookieSession": []
@@ -4313,7 +4313,7 @@
         "tags": [
           "reservations"
         ],
-        "summary": "reservations \u00b7 :id \u00b7 scope",
+        "summary": "reservations · :id · scope",
         "security": [
           {
             "cookieSession": []
@@ -4448,7 +4448,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev \u00b7 reservations \u00b7 :id \u00b7 capture",
+        "summary": "dev · reservations · :id · capture",
         "security": [
           {
             "cookieSession": []
@@ -4604,7 +4604,7 @@
         "tags": [
           "reservations"
         ],
-        "summary": "reservations \u00b7 :id \u00b7 cancel",
+        "summary": "reservations · :id · cancel",
         "security": [
           {
             "cookieSession": []
@@ -5043,7 +5043,7 @@
         "tags": [
           "placements"
         ],
-        "summary": "placements \u00b7 :id \u00b7 acceptances",
+        "summary": "placements · :id · acceptances",
         "security": [
           {
             "cookieSession": []
@@ -5197,7 +5197,7 @@
         "tags": [
           "lessons"
         ],
-        "summary": "lessons \u00b7 :id \u00b7 attendance",
+        "summary": "lessons · :id · attendance",
         "security": [
           {
             "cookieSession": []
@@ -5361,7 +5361,7 @@
         "tags": [
           "lessons"
         ],
-        "summary": "lessons \u00b7 :id \u00b7 disputes",
+        "summary": "lessons · :id · disputes",
         "security": [
           {
             "cookieSession": []
@@ -5734,7 +5734,7 @@
         "tags": [
           "notes"
         ],
-        "summary": "notes \u00b7 :id \u00b7 shares",
+        "summary": "notes · :id · shares",
         "security": [
           {
             "cookieSession": []
@@ -6226,7 +6226,7 @@
         "tags": [
           "children"
         ],
-        "summary": "children \u00b7 :id \u00b7 invitations",
+        "summary": "children · :id · invitations",
         "security": [
           {
             "cookieSession": []
@@ -6342,7 +6342,7 @@
         "tags": [
           "invitations"
         ],
-        "summary": "invitations \u00b7 activate",
+        "summary": "invitations · activate",
         "security": [
           {
             "cookieSession": []
@@ -6468,7 +6468,7 @@
         "tags": [
           "pro"
         ],
-        "summary": "pro \u00b7 calls",
+        "summary": "pro · calls",
         "security": [
           {
             "cookieSession": []
@@ -6611,7 +6611,7 @@
         "tags": [
           "pro"
         ],
-        "summary": "pro \u00b7 calls \u00b7 :id \u00b7 accept",
+        "summary": "pro · calls · :id · accept",
         "security": [
           {
             "cookieSession": []
@@ -6746,7 +6746,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev \u00b7 pro \u00b7 calls \u00b7 :id \u00b7 outcome",
+        "summary": "dev · pro · calls · :id · outcome",
         "security": [
           {
             "cookieSession": []
@@ -6993,7 +6993,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin \u00b7 flags \u00b7 :name",
+        "summary": "admin · flags · :name",
         "security": [
           {
             "cookieSession": []
@@ -13062,7 +13062,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "razorpaySignature": []
+          }
+        ]
       }
     },
     "/admin/checkout-orders/{id}/reconciliations": {
@@ -22042,7 +22047,18 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "bcs_access"
+      },
+      "razorpaySignature": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-razorpay-signature",
+        "description": "HMAC-SHA256 over the unmodified raw body, verified on the server with the private webhook secret. Event IDs are deduplicated; this is not a session credential."
       }
     }
-  }
+  },
+  "security": [
+    {
+      "cookieSession": []
+    }
+  ]
 }
