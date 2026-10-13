@@ -157,6 +157,10 @@ test("OTP contract accepts email/code formats and rejects phone or malformed inp
  assert.equal(request({phone:'+919999999991'}),false);
  for(const code of ['12345','1234567','abcdef'])assert.equal(verify({email:'otp@example.test',code,name:'Synthetic'}),false);
 });
+test('MFA contract separates public status from private enrollment and limits verification inputs',()=>{
+ const input=validator('MfaVerificationInput');assert(input({code:'123456'}));assert.equal(input({code:'12345'}),false);assert.equal(input({code:'123456',accountId:ids.admin}),false);
+ const status=validator('MfaStatus');assert(status({enabled:true,verifiedUntil:null,recoveryCodesRemaining:8}));assert.equal(status({enabled:true,verifiedUntil:null,recoveryCodesRemaining:8,secret:'private'}),false);
+});
 
 test('Phase 2 contracts constrain evidence, schedules, capacity and private waitlist inputs',()=>{
  const upload=validator('EvidenceUpload');

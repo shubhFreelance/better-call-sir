@@ -1,7 +1,7 @@
 import {test,before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn,spawnSync,execFileSync,ChildProcess} from 'node:child_process';
-import {randomUUID,createHash,createHmac} from 'node:crypto';
+import {randomUUID,randomBytes,createHash,createHmac} from 'node:crypto';
 import {readFileSync,mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -11,7 +11,10 @@ import {PrismaClient} from '@prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg';
 import {ids} from '../packages/test-fixtures/src';
 import {operationValidator} from './helpers/contract';
-import {AppService} from '../apps/api/src/shared';
+import {AppService,privileged} from '../apps/api/src/shared';
+import {totp} from '../apps/api/src/modules/identity/totp';
+process.env.MFA_ENCRYPTION_KEY=randomBytes(32).toString('base64');
+const mfaRecovery=new Map<string,string[]>();
 const local=parseEnv(readFileSync('.env','utf8'));
 const base=new URL(local.DATABASE_URL);
 assert(['127.0.0.1','localhost'].includes(base.hostname),'Integration tests require a local synthetic database.');
@@ -30,7 +33,7 @@ class Client {
   return {status:response.status,data,headers:response.headers};
  }
 }
-async function login(id:string){const c=new Client();const r=await c.call('/dev/session',{accountId:id});assert.equal(r.status,201);return c;}
+async function login(id:string,verifyMfa=true){const c=new Client();const r=await c.call('/dev/session',{accountId:id});assert.equal(r.status,201);if(verifyMfa&&privileged(r.data.account.role)){let code=mfaRecovery.get(id)?.pop();if(!code){const enrollment=await c.call('/auth/mfa/enrollment',{});assert.equal(enrollment.status,201);code=totp(enrollment.data.secret,BigInt(Math.floor(Date.now()/30000)));}const verified=await c.call('/auth/mfa/verification',{code});assert.equal(verified.status,201,JSON.stringify(verified.data));if(verified.data.recoveryCodes.length)mfaRecovery.set(id,verified.data.recoveryCodes);}return c;}
 const future=(days=15,hour=6)=>{const d=new Date();d.setUTCDate(d.getUTCDate()+days);d.setUTCHours(hour,0,0,0);return d.toISOString();};
 const intake=(extra={})=>({alias:'Test learner',grade:8,board:'CBSE',subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Monday after 5pm',...extra});
 before(async()=>{
@@ -79,6 +82,30 @@ test('malformed JSON, oversized normal bodies and non-ASCII credentials fail saf
 test('unverified guardian cannot grant consent or capture child data',async()=>{assert.equal((await unverified.call('/consents',{purpose:'tuition-and-learning-records',policyVersion:'development-v1',accepted:true})).status,403);assert.equal((await unverified.call('/requests',intake())).status,403);});
 test('intake is retry-safe; mismatched payload and cross-family child are rejected',async()=>{const key=randomUUID();const first=await parent.call('/requests',intake(),{key});assert.equal(first.status,201,JSON.stringify(first.data));const replay=await parent.call('/requests',intake(),{key});assert.equal(replay.data.id,first.data.id);assert.equal((await parent.call('/requests',intake({alias:'Different'}),{key})).status,409);assert.equal((await other.call(`/requests/${first.data.id}`)).status,404);assert.equal((await parent.call('/requests',intake({childId:ids.otherChild}))).status,404);});
 test('mass assignment cannot set administrator or approved teacher status',async()=>{assert.equal((await parent.call('/requests',intake({role:'ADMIN'}))).status,400);assert.equal((await teacher.call(`/admin/teachers/${ids.teacher}/reviews`,{expectedVersion:1,status:'APPROVED',reason:'Self approve'})).status,403);});
+test('staff MFA blocks direct APIs, encrypts enrollment, rejects TOTP replay and consumes recovery codes once',async()=>{
+ const account=await db.account.create({data:{phone:'+91000000'+randomUUID().slice(0,8),name:'Synthetic MFA staff',role:'ADMIN'}}),client=await login(account.id,false);
+ for(const path of ['/dashboard','/requests','/admin/jobs',`/teachers/${ids.teacher}/evidence`]){const denied=await client.call(path);assert.equal(denied.status,403);assert.equal(denied.data.code,'MFA_REQUIRED');}
+ assert.equal((await parent.call('/auth/mfa')).status,403);assert.equal((await client.call('/auth/mfa/enrollment',{role:'ADMIN'})).status,400);
+ const enrollment=await client.call('/auth/mfa/enrollment',{});assert.equal(enrollment.status,201);const credential=await db.mfaCredential.findUniqueOrThrow({where:{accountId:account.id}});assert(!credential.encryptedSecret.includes(enrollment.data.secret));
+ const stranger=await login(account.id,false);assert.equal((await stranger.call('/auth/mfa/enrollment',{})).status,409);
+ const code=totp(enrollment.data.secret,BigInt(Math.floor(Date.now()/30000))),verified=await client.call('/auth/mfa/verification',{code});assert.equal(verified.status,201);assert.equal(verified.data.recoveryCodes.length,8);assert.equal((await client.call('/dashboard')).status,200);
+ assert.equal((await client.call('/auth/mfa/verification',{code})).status,401);assert.equal((await client.call('/auth/mfa/enrollment',{})).status,409);
+ const stored=await db.mfaCredential.findUniqueOrThrow({where:{accountId:account.id}});assert(stored.recoveryHashes.every(hash=>!verified.data.recoveryCodes.includes(hash)));
+ const second=await login(account.id,false),third=await login(account.id,false),recovery=verified.data.recoveryCodes[0],results=await Promise.all([second.call('/auth/mfa/verification',{code:recovery}),third.call('/auth/mfa/verification',{code:recovery})]);assert.deepEqual(results.map(x=>x.status).sort(),[201,401]);assert.equal((await client.call('/dashboard')).status,401);assert.equal((await db.mfaCredential.findUniqueOrThrow({where:{accountId:account.id}})).recoveryHashes.length,7);
+ const audit=await db.audit.findMany({where:{actorId:account.id}});assert(audit.some(x=>x.action==='MFA_RECOVERY_USED'));assert(!JSON.stringify(audit).includes(enrollment.data.secret));assert(!JSON.stringify(audit).includes(recovery));
+});
+test('staff step-up expires, refresh preserves its timestamp and idle sessions cannot refresh',async()=>{
+ const account=await db.account.create({data:{phone:'+91000000'+randomUUID().slice(0,8),name:'Synthetic short staff session',role:'FINANCE'}}),client=await login(account.id),access=client.cookies.split('bcs_access=')[1].split(';')[0],session=await db.session.findUniqueOrThrow({where:{accessHash:createHash('sha256').update(access).digest('hex')}});
+ assert(session.expiresAt.getTime()<=Date.now()+8*3600000);const old=new Date(Date.now()-660000);await db.session.update({where:{id:session.id},data:{mfaVerifiedAt:old}});assert.equal((await client.call('/payables')).status,403);
+ assert.equal((await client.call('/auth/refresh',{})).status,201);const refreshed=await db.session.findUniqueOrThrow({where:{accessHash:createHash('sha256').update(client.cookies.split('bcs_access=')[1].split(';')[0]).digest('hex')}});assert.equal(refreshed.mfaVerifiedAt?.getTime(),old.getTime());assert.equal(refreshed.createdAt.getTime(),session.createdAt.getTime());assert.equal((await client.call('/payables')).status,403);
+ await db.session.update({where:{id:refreshed.id},data:{lastSeenAt:new Date(Date.now()-960000)}});assert.equal((await client.call('/auth/session')).status,401);assert.equal((await client.call('/auth/refresh',{})).status,401);
+});
+test('staff enrollment expiry and repeated invalid MFA fail closed before any privilege is granted',async()=>{
+ const account=await db.account.create({data:{phone:'+91000000'+randomUUID().slice(0,8),name:'Synthetic MFA limits',role:'REVIEWER'}}),client=await login(account.id,false),enrollment=await client.call('/auth/mfa/enrollment',{});assert.equal(enrollment.status,201);await db.mfaCredential.update({where:{accountId:account.id},data:{enrollmentExpiresAt:new Date(0)}});
+ for(let i=0;i<5;i++)assert.equal((await client.call('/auth/mfa/verification',{code:'000000'})).status,401);
+ assert.equal((await client.call('/auth/mfa/verification',{code:totp(enrollment.data.secret,BigInt(Math.floor(Date.now()/30000)))})).status,429);assert.equal((await client.call('/dashboard')).status,403);assert.equal((await db.mfaCredential.findUniqueOrThrow({where:{accountId:account.id}})).enabledAt,null);
+ const access=client.cookies.split('bcs_access=')[1].split(';')[0];await db.session.update({where:{accessHash:createHash('sha256').update(access).digest('hex')},data:{createdAt:new Date(Date.now()-360000)}});assert.equal((await client.call('/auth/mfa/enrollment',{})).status,401);
+});
 test('student dashboard excludes finance, private notes, other children and purchases',async()=>{const r=await student.call('/dashboard');assert.equal(r.status,200);assert.deepEqual(r.data.children.map((x:{id:string})=>x.id),[ids.child]);for(const key of ['membership','requests','invoices','reservations','calls'])assert.equal(key in r.data,false);assert.equal((await student.call('/notes')).status,403);assert.equal((await student.call('/revision/holds',{})).status,403);assert.equal((await student.call('/pro/calls',{})).status,403);});
 test('concurrent overlapping holds allow exactly one; adjacent half-open slot is accepted',async()=>{const body={teacherId:ids.teacher,startsAt:future(16),duration:40,topic:'Class 8 CBSE fractions'};const r=await Promise.all([parent.call('/revision/holds',body),other.call('/revision/holds',{...body,startsAt:new Date(new Date(body.startsAt).getTime()+20*60000).toISOString()})]);assert.deepEqual(r.map(x=>x.status).sort(),[201,409],JSON.stringify(r));const winner=r.find(x=>x.status===201)!;assert.equal((await parent.call('/revision/holds',{...body,startsAt:winner.data.endsAt,duration:20})).status,201);});
 test('shared expert calendar blocks revision against an existing recurring lesson',async()=>{const start=future(18);await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,kind:'RECURRING',startsAt:new Date(start),endsAt:new Date(new Date(start).getTime()+3600000),status:'CONFIRMED'}});assert.equal((await parent.call('/revision/holds',{teacherId:ids.teacher,startsAt:start,duration:20,topic:'Maths'})).status,409);});

@@ -23,6 +23,7 @@ export const parse = <T>(schema: z.ZodType<T>, body: unknown): T => {
 };
 export const same = (a: string, b: string) => {const left=Buffer.from(a),right=Buffer.from(b);return left.length===right.length&&timingSafeEqual(left,right);};
 export const development = () => process.env.APP_MODE === 'development' && process.env.NODE_ENV !== 'production';
+export const privileged = (role:string) => ['ADMIN','OPERATOR','REVIEWER','FINANCE'].includes(role);
 export type HttpRequest = Request & {requestId?:string;rawBody?:Buffer};
 export type DB = Prisma.TransactionClient;
 
@@ -48,6 +49,12 @@ export class AppService {
       if (!child || child.studentAccessRevokedAt || !consent || consent.withdrawnAt) fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
     }
     if (roles && !roles.includes(account.role)) fail(403,'FORBIDDEN','Your role cannot perform this action.');
+    if(privileged(account.role)){
+      if(session.createdAt.getTime()<Date.now()-8*3600000||session.lastSeenAt.getTime()<Date.now()-900000)fail(401,'SESSION_EXPIRED','Staff session expired. Sign in again.');
+      const securityRoute=/^\/api\/v1\/auth\/(session|logout|mfa(?:\/(?:enrollment|verification|recovery-codes))?)$/.test(req.path);
+      if(!securityRoute&&(!session.mfaVerifiedAt||session.mfaVerifiedAt.getTime()<Date.now()-600000))fail(403,'MFA_REQUIRED','Verify your authenticator before accessing staff records.');
+      if(session.lastSeenAt.getTime()<Date.now()-60000)await this.db.session.updateMany({where:{id:session.id,lastSeenAt:{lt:new Date(Date.now()-60000)}},data:{lastSeenAt:new Date()}});
+    }
     if(!['GET','HEAD','OPTIONS'].includes(req.method))await this.limit('write:'+account.id,300);
     if(req.method==='POST'&&/^\/api\/v1\/teachers\/[^/]+\/evidence$/.test(req.path))await this.limit('upload:'+account.id,30,86400);
     return account;
@@ -82,9 +89,10 @@ export class AppService {
       return result;
     });
   }
-  async issueSession(account: Account, familyId: string, db: Pick<DB,'session'> = this.db, expiresAt = new Date(Date.now()+30*86_400_000)) {
+  async issueSession(account: Account, familyId: string, db: Pick<DB,'session'> = this.db, expiresAt = new Date(Date.now()+30*86_400_000),security?:{createdAt:Date;mfaVerifiedAt:Date|null}) {
+    if(privileged(account.role))expiresAt=new Date(Math.min(expiresAt.getTime(),Date.now()+8*3600000));
     const access=token(),refresh=token(),csrf=token();
-    await db.session.create({data:{accountId:account.id,familyId,accessHash:hash(access),refreshHash:hash(refresh),csrf,accessExpiresAt:new Date(Math.min(Date.now()+600_000,expiresAt.getTime())),expiresAt}});
+    await db.session.create({data:{accountId:account.id,familyId,accessHash:hash(access),refreshHash:hash(refresh),csrf,accessExpiresAt:new Date(Math.min(Date.now()+600_000,expiresAt.getTime())),expiresAt,...security}});
     return {access,refresh,csrf,expiresAt,familyId};
   }
   sessionResponse(account: Account, state: {access:string;refresh:string;csrf:string;expiresAt:Date}, res: Response) {

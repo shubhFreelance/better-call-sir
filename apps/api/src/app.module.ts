@@ -1,4 +1,5 @@
 import {RecurringModule} from './modules/recurring/recurring.module';
+import {MfaModule} from './modules/identity/mfa.module';
 import {PrivacyModule} from './modules/privacy/privacy.module';
 import {AnalyticsModule} from './modules/analytics/analytics.module';
 import {PaymentsModule} from './modules/payments/payments.module';
@@ -21,5 +22,5 @@ import {NotesModule} from './modules/notes/notes.module';
 import {SupportModule} from './modules/support/support.module';
 import {MembershipsModule} from './modules/memberships/memberships.module';
 import {AdministrationModule} from './modules/administration/administration.module';
-@Module({imports:[AnalyticsModule,PrivacyModule,MeetingsModule,PaymentsModule,RecurringModule,StudentAccessModule,OnboardingModule,SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,PlacementsModule,TeachersModule,RevisionModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
+@Module({imports:[MfaModule,AnalyticsModule,PrivacyModule,MeetingsModule,PaymentsModule,RecurringModule,StudentAccessModule,OnboardingModule,SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,PlacementsModule,TeachersModule,RevisionModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
 export class AppModule {}
