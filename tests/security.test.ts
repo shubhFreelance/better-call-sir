@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, rmSync,readFileSync } from "node:fs";
+import { mkdtempSync, writeFileSync, rmSync,readFileSync,mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync,execFileSync } from "node:child_process";
@@ -57,4 +57,9 @@ test('CI installs only reviewed engine scripts and never retains checkout creden
  const ci=readFileSync('.github/workflows/ci.yml','utf8');assert(ci.includes('persist-credentials: false'));assert(ci.includes('fetch-depth: 0'));assert(ci.includes('npm ci --ignore-scripts'));assert(ci.includes('npm rebuild @prisma/engines esbuild'));assert(!ci.includes('pull_request_target'));assert(!ci.includes('continue-on-error: true'));
  const actions=[...ci.matchAll(/uses:\s+(\S+)/g)].map(x=>x[1]);assert(actions.length>=3);assert(actions.every(x=>/^(actions\/(checkout|setup-node|upload-artifact))@[0-9a-f]{40}$/.test(x)));
  const lock=JSON.parse(readFileSync('package-lock.json','utf8'));for(const [name,pkg] of Object.entries(lock.packages) as [string,any][]){if(!name.startsWith('node_modules/')||pkg.link)continue;assert(pkg.integrity&&pkg.resolved.startsWith('https://registry.npmjs.org/'),name+' must have an immutable verified registry artifact');}
+});
+
+test('explicit generated assets and scanner config are scanned even when ignored',()=>{
+ mkdirSync('test-results',{recursive:true});const dir=mkdtempSync(path.join('test-results','secret-scan-')),token='ghp_'+randomBytes(18).toString('hex');
+ try{for(const name of ['generated.js','.secretlintrc.json']){const file=path.join(dir,name);writeFileSync(file,'const synthetic='+JSON.stringify(token)+';');const result=spawnSync(process.execPath,['scripts/secrets-scan.mjs',file],{encoding:'utf8'});assert.equal(result.status,1);const report=JSON.parse(result.stdout);assert.equal(report.filesScanned,1);assert(report.findings.length>0);assert.equal(result.stdout.includes(token),false);}}finally{rmSync(dir,{recursive:true,force:true});}
 });
