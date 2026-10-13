@@ -12,5 +12,9 @@ coverage/
 *.tsbuildinfo
 
 .cache/
+backups/
+*.bcsbackup
+*.bcs
+*.dump
 
 apps/web/next-env.d.ts

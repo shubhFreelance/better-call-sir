@@ -14,6 +14,8 @@ const required = [
   "browser",
   "build",
   "secrets",
+  "historySecrets",
+  "bundleSecrets",
   "runtimeAudit",
   "toolingAudit",
 ];

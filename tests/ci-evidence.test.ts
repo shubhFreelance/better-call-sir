@@ -44,6 +44,8 @@ test("CI evidence records all successful checks without authorizing release", ()
     "browser",
     "build",
     "secrets",
+    "historySecrets",
+    "bundleSecrets",
     "runtimeAudit",
     "toolingAudit",
   ];

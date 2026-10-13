@@ -31,7 +31,10 @@
     "security:secrets": "node scripts/secrets-scan.mjs",
     "test:security": "tsx --test tests/security.test.ts tests/ci-evidence.test.ts",
     "security:tooling": "npm audit",
-    "scanner:test:setup": "node scripts/clamav-test-setup.mjs"
+    "scanner:test:setup": "node scripts/clamav-test-setup.mjs",
+    "security:history": "node scripts/history-secrets.mjs",
+    "security:bundle": "node scripts/secrets-scan.mjs --bundle",
+    "ops:backup": "node --env-file=.env scripts/backup.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "5.2.2",
