@@ -17,6 +17,7 @@ class LearningRecordsController {
     const actor=await this.service.actor(req,['GUARDIAN','STUDENT','TEACHER']);
     const data=parse(z.object({from:z.iso.datetime({offset:true}),to:z.iso.datetime({offset:true}),limit:z.coerce.number().int().min(1).max(50).default(20),cursor:uuid.optional()}).strict(),query);
     const from=new Date(data.from),to=new Date(data.to);if(to<=from||to.getTime()-from.getTime()>366*86400000)fail(400,'INVALID_RANGE','Choose a date range of up to one year.');
+    if(data.cursor)await this.visible(this.service.db,actor,data.cursor);
     const teacher=actor.role==='TEACHER'?await this.service.db.teacher.findUnique({where:{accountId:actor.id}}):null;
     const children=actor.role==='GUARDIAN'?await this.service.db.child.findMany({where:{guardianId:actor.id},select:{id:true}}):actor.role==='STUDENT'?await this.service.db.child.findMany({where:{studentAccountId:actor.id},select:{id:true}}):[];
     const items=await this.service.db.lesson.findMany({where:{startsAt:{gte:from,lte:to},...(teacher?{teacherId:teacher.id}:{childId:{in:children.map(c=>c.id)}})},orderBy:[{startsAt:'desc'},{id:'desc'}],take:data.limit+1,...(data.cursor?{cursor:{id:data.cursor},skip:1}:{})});

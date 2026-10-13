@@ -1,7 +1,17 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { ids } from "../../packages/test-fixtures/src";
+import { verifiedStaffSession, cleanupStaffFixtures } from "./staff-fixture";
+test.afterEach(async () => cleanupStaffFixtures());
 async function login(page: import("@playwright/test").Page, name: string) {
+  if (name === "Operator") {
+    await verifiedStaffSession(page.request);
+    await page.goto("/dashboard");
+    await expect(
+      page.getByRole("heading", { name: /Hello, Operator/ }),
+    ).toBeVisible();
+    return;
+  }
   await page.goto("/login");
   await page.getByRole("button", { name: new RegExp(name) }).click();
   await expect(
@@ -190,7 +200,7 @@ test("guardian arranges and reschedules a demo; no-show reaches operator review"
     return data;
   };
   try {
-    const op = await post(operator, "/dev/session", { accountId: ids.admin });
+    const op = await verifiedStaffSession(operator);
     const t = await post(teacher, "/dev/session", {
       accountId: ids.teacherAccount,
     });

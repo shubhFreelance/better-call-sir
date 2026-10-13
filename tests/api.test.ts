@@ -1,4 +1,4 @@
-import {test,before,after} from 'node:test';
+import {test,before,after,afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn,spawnSync,execFileSync,ChildProcess} from 'node:child_process';
 import {randomUUID,randomBytes,createHash,createHmac} from 'node:crypto';
@@ -13,8 +13,10 @@ import {ids} from '../packages/test-fixtures/src';
 import {operationValidator,contract} from './helpers/contract';
 import {AppService,privileged} from '../apps/api/src/shared';
 import {totp,newMfaSecret,encryptMfa,decryptMfa} from '../apps/api/src/modules/identity/totp';
+import {otpDigest} from '../apps/api/src/modules/identity/email-otp';
 import {completeCheckout} from '../apps/api/src/modules/payments/checkout';
 process.env.MFA_ENCRYPTION_KEY=randomBytes(32).toString('base64');
+process.env.OTP_HASH_KEY=randomBytes(32).toString('base64');
 const mfaRecovery=new Map<string,string[]>();
 const local=parseEnv(readFileSync('.env','utf8'));
 const base=new URL(local.DATABASE_URL);
@@ -40,7 +42,7 @@ const future=(days=15,hour=6)=>{const d=new Date();d.setUTCDate(d.getUTCDate()+d
 const intake=(extra={})=>({alias:'Test learner',grade:8,board:'CBSE',subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Monday after 5pm',...extra});
 before(async()=>{
  await admin.query(`CREATE DATABASE "${name}"`);
- const env={...process.env,...local,DATABASE_URL:base.href,MIGRATION_DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',RAZORPAY_KEY_ID:'rzp_test_synthetic_public',RAZORPAY_WEBHOOK_SECRET:['synthetic','webhook','key'].join('-'),EVIDENCE_DIRECTORY:evidenceDir};
+ const env={...process.env,...local,MFA_ENCRYPTION_KEY:process.env.MFA_ENCRYPTION_KEY,OTP_HASH_KEY:process.env.OTP_HASH_KEY,DATABASE_URL:base.href,MIGRATION_DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',RAZORPAY_KEY_ID:'rzp_test_synthetic_public',RAZORPAY_WEBHOOK_SECRET:['synthetic','webhook','key'].join('-'),EVIDENCE_DIRECTORY:evidenceDir};
  execFileSync(process.execPath,['node_modules/prisma/build/index.js','migrate','deploy'],{env,stdio:'pipe'});
  execFileSync(process.execPath,['--import','tsx','prisma/seed.ts'],{env,stdio:'pipe'});
  execFileSync(process.execPath,['node_modules/typescript/bin/tsc','-p','apps/api/tsconfig.json'],{env,stdio:'pipe'});
@@ -50,8 +52,10 @@ before(async()=>{
  [parent,other,teacher,student,operator,unverified]=await Promise.all([ids.guardian,ids.otherGuardian,ids.teacherAccount,ids.student,ids.admin,ids.unverified].map(login));
 }, {timeout:60000});
 after(async()=>{if(server){server.kill('SIGTERM');await new Promise<void>(r=>{if(server.exitCode!==null)return r();server.once('exit',()=>r());});}await db.$disconnect();await admin.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);for(const role of runtimeRoles)await admin.query(`DROP ROLE IF EXISTS "${role}"`);await admin.end();rmSync(evidenceDir,{recursive:true,force:true});});
+afterEach(async()=>{await db.reservation.updateMany({where:{kind:'REVISION',status:'HOLD'},data:{status:'EXPIRED',expiresAt:new Date(0)}});});
 
 test('public catalog is an allowlisted projection and private API is no-store',async()=>{const r=await new Client().call('/teachers');assert.equal(r.status,200);assert.equal(r.data.items.length,4);for(const t of r.data.items){for(const field of ['accountId','phone','screeningComplete','verification','guardianId'])assert.equal(field in t,false);}const d=await parent.call('/dashboard');assert.equal(d.headers.get('cache-control'),'no-store');});
+test('synthetic account picker excludes disabled and non-fixture identities',async()=>{const hidden=await db.account.create({data:{phone:'+91000000'+randomUUID().slice(0,8),name:'Disabled synthetic account',disabled:true}}),real=await db.account.create({data:{email:'non-fixture@example.test',name:'Not a public development identity'}}),result=await new Client().call('/dev/accounts');assert.equal(result.status,200);assert(!result.data.some((x:any)=>[hidden.id,real.id].includes(x.id)));assert(result.data.length<=50);});
 test('direct teacher search and assisted requests preserve distinct discovery paths',async()=>{
  const results=await student.call('/teachers?board=CBSE&grade=8&language=English&mode=HOME&locality=Shankar%20Nagar&maxMonthlyPaise=300000');assert.equal(results.status,200);assert(results.data.items.length);for(const t of results.data.items)assert(t.monthlyPaise<=300000&&t.boards.includes('CBSE')&&t.grades.includes(8)&&t.localities.includes('Shankar Nagar'));
  assert.equal((await parent.call('/teachers?grade=11')).status,400);
@@ -137,6 +141,8 @@ test('staff enrollment expiry and repeated invalid MFA fail closed before any pr
 });
 test('student dashboard excludes finance, private notes, other children and purchases',async()=>{const r=await student.call('/dashboard');assert.equal(r.status,200);assert.deepEqual(r.data.children.map((x:{id:string})=>x.id),[ids.child]);for(const key of ['membership','requests','invoices','reservations','calls'])assert.equal(key in r.data,false);assert.equal((await student.call('/notes')).status,403);assert.equal((await student.call('/revision/holds',{})).status,403);assert.equal((await student.call('/pro/calls',{})).status,403);});
 test('concurrent overlapping holds allow exactly one; adjacent half-open slot is accepted',async()=>{const body={teacherId:ids.teacher,startsAt:future(16),duration:40,topic:'Class 8 CBSE fractions'};const r=await Promise.all([parent.call('/revision/holds',body),other.call('/revision/holds',{...body,startsAt:new Date(new Date(body.startsAt).getTime()+20*60000).toISOString()})]);assert.deepEqual(r.map(x=>x.status).sort(),[201,409],JSON.stringify(r));const winner=r.find(x=>x.status===201)!;assert.equal((await parent.call('/revision/holds',{...body,startsAt:winner.data.endsAt,duration:20})).status,201);});
+test('concurrent revision requests cannot exceed the guardian unpaid-hold quota',async()=>{for(let i=0;i<4;i++)assert.equal((await parent.call('/revision/holds',{childId:ids.child,teacherId:ids.teacher,startsAt:future(37+i),duration:20,topic:'Synthetic quota fixture'})).status,201);const results=await Promise.all([41,42].map(day=>parent.call('/revision/holds',{childId:ids.child,teacherId:ids.teacher,startsAt:future(day),duration:20,topic:'Concurrent quota fixture'})));assert.deepEqual(results.map(x=>x.status).sort(),[201,409]);assert.equal(results.find(x=>x.status===409)!.data.code,'HOLD_LIMIT');assert.equal(await db.reservation.count({where:{guardianId:ids.guardian,kind:'REVISION',status:'HOLD'}}),5);});
+test('learning-history cursors are owned objects rather than cross-family pagination hints',async()=>{const query=`/lessons?from=${encodeURIComponent(new Date(Date.now()-30*86400000).toISOString())}&to=${encodeURIComponent(new Date(Date.now()+60*86400000).toISOString())}&cursor=60000000-0000-4000-8000-000000000001`;assert.equal((await other.call(query)).status,404);assert.equal((await parent.call(query)).status,200);});
 test('shared expert calendar blocks revision against an existing recurring lesson',async()=>{const start=future(18);await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,kind:'RECURRING',startsAt:new Date(start),endsAt:new Date(new Date(start).getTime()+3600000),status:'CONFIRMED'}});assert.equal((await parent.call('/revision/holds',{teacherId:ids.teacher,startsAt:start,duration:20,topic:'Maths'})).status,409);});
 test('scope and exact price are prerequisites; replay captures once; early cancel creates one pending refund',async()=>{
  const r=await parent.call('/revision/holds',{teacherId:ids.teacher,startsAt:future(20),duration:20,topic:'Maths algebra'});assert.equal(r.status,201);
@@ -210,6 +216,7 @@ test('production authentication and worker startup stay blocked before provider 
 });
 test('valid sandbox email OTP creates only an unverified guardian, is single-use and stores hashed session credentials',async()=>{
  const client=new Client();assert.equal((await client.call('/auth/otp/request',{phone:'+919999999993'})).status,400);const email='otp3@example.test';const requested=await client.call('/auth/otp/request',{email});assert.equal(requested.status,201);
+ const storedOtp=await db.otp.findUniqueOrThrow({where:{address:email}});assert.equal(storedOtp.hash,otpDigest(email,requested.data.developmentCode));assert.notEqual(storedOtp.hash,createHash('sha256').update(requested.data.developmentCode).digest('hex'));
  const body={email,code:requested.data.developmentCode,name:'Synthetic OTP guardian'};
  const verified=await client.call('/auth/otp/verify',body);assert.equal(verified.status,201);assert.equal(verified.data.account.role,'GUARDIAN');assert.equal(verified.data.account.verified,false);
  for(const cookie of verified.headers.getSetCookie()){assert.match(cookie,/HttpOnly/i);assert.match(cookie,/SameSite=Lax/i);}
@@ -329,6 +336,11 @@ test('paused checkout removes the public gateway key from an existing live order
  const order=await db.checkoutOrder.create({data:{accountId:ids.guardian,kind:'REVISION',resourceId:r.id,amountPaise:30000,providerMode:'LIVE',status:'CREATED',providerOrderId:'order_gate_'+randomUUID()}}),url=`/checkout-orders?kind=REVISION&resourceId=${r.id}`;
  await db.featureFlag.update({where:{name:'checkout'},data:{enabled:true}});assert.equal((await parent.call(url)).data.publicKeyId,'rzp_test_synthetic_public');await db.featureFlag.update({where:{name:'checkout'},data:{enabled:false}});const paused=await parent.call(url);assert.equal(paused.data.order.id,order.id);assert.equal(paused.data.publicKeyId,null);
 });
+test('withdrawn consent blocks revision checkout and a saved creating replay before provider I/O',async()=>{
+ const r=await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,childId:ids.child,kind:'REVISION',startsAt:new Date(future(27)),endsAt:new Date(new Date(future(27)).getTime()+1200000),status:'HOLD',expiresAt:new Date(Date.now()+600000),scopeAccepted:true,amountPaise:30000}}),body={kind:'REVISION',resourceId:r.id,expectedVersion:1};
+ await db.featureFlag.update({where:{name:'checkout'},data:{enabled:true}});await db.consent.update({where:{guardianId:ids.guardian},data:{withdrawnAt:new Date()}});assert.equal((await parent.call('/checkout-orders',body)).status,403);assert.equal(await db.checkoutOrder.count({where:{resourceId:r.id}}),0);
+ const order=await db.checkoutOrder.create({data:{accountId:ids.guardian,kind:'REVISION',resourceId:r.id,amountPaise:30000,providerMode:'SANDBOX'}}),key=randomUUID();await db.idempotency.create({data:{accountId:ids.guardian,operation:'checkout.create:/api/v1/checkout-orders',key,hash:createHash('sha256').update(JSON.stringify(body)).digest('hex'),result:JSON.parse(JSON.stringify(order))}});assert.equal((await parent.call('/checkout-orders',body,{key})).status,403);assert.equal(await db.checkoutAttempt.count({where:{orderId:order.id}}),0);assert.equal((await db.checkoutOrder.findUniqueOrThrow({where:{id:order.id}})).status,'CREATING');await db.consent.update({where:{guardianId:ids.guardian},data:{withdrawnAt:null}});await db.featureFlag.update({where:{name:'checkout'},data:{enabled:false}});
+});
 test('owned checkout recovery survives reload, prefers captured orders and never exposes a secret',async()=>{
  const r=await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,childId:ids.child,kind:'REVISION',startsAt:new Date(future(58)),endsAt:new Date(new Date(future(58)).getTime()+1200000),status:'HOLD',scopeAccepted:true,expiresAt:new Date(Date.now()+600000),amountPaise:30000}});
  const path=`/checkout-orders?kind=REVISION&resourceId=${r.id}`;
@@ -397,7 +409,7 @@ assert.equal((await applicant.call(`/teachers/${id}/evidence`,payload,{key})).da
  const infected=await applicant.call(`/teachers/${id}/evidence`,{...payload,expectedVersion:revised.data.version,contentBase64:Buffer.concat([Buffer.from('%PDF-1.4\n'),Buffer.from('58354f2150254041505b345c505a58353428505e2937434329377d2445494341522d5354414e444152442d414e544956495255532d544553542d46494c452124482b482a','hex')]).toString('base64')});assert.equal(infected.status,201);runEvidenceWorker();assert.equal((await db.evidence.findUniqueOrThrow({where:{id:infected.data.id}})).status,'INFECTED');
  assert.equal((await applicant.call(`/admin/teachers/${id}/checks`,{expectedVersion:revised.data.version,kind:'IDENTITY',evidenceId:infected.data.id,result:'PASSED',reason:'Self review',validUntil})).status,403);
  assert.equal((await operator.call(`/admin/teachers/${id}/checks`,{expectedVersion:revised.data.version,kind:'IDENTITY',evidenceId:infected.data.id,result:'PASSED',reason:'Infected evidence',validUntil})).status,409);
- await db.account.update({where:{id:account.id},data:{role:'REVIEWER'}});assert.equal((await applicant.call(`/admin/teachers/${id}/checks`,{expectedVersion:revised.data.version,kind:'IDENTITY',evidenceId:upload.data.id,result:'PASSED',reason:'Self reviewer',validUntil})).status,403);
+ await db.account.update({where:{id:account.id},data:{role:'REVIEWER'}});const selfReviewer=await login(account.id),selfReview=await selfReviewer.call(`/admin/teachers/${id}/checks`,{expectedVersion:revised.data.version,kind:'IDENTITY',evidenceId:upload.data.id,result:'PASSED',reason:'Self reviewer',validUntil});assert.equal(selfReview.status,403);assert.equal(selfReview.data.code,'SELF_REVIEW');
  await assert.rejects(db.verificationCheck.create({data:{teacherId:ids.teacher,reviewerId:ids.admin,profileRevision:2,kind:'IDENTITY',evidenceId:upload.data.id,result:'PASSED',reason:'Foreign evidence',validUntil:new Date(validUntil)}}));
 });
 

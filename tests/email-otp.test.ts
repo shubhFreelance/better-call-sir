@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {emailAddress,sendEmailOtp} from '../apps/api/src/modules/identity/email-otp';
+import {emailAddress,sendEmailOtp,otpDigest} from '../apps/api/src/modules/identity/email-otp';
+import {randomBytes,createHash} from 'node:crypto';
 test('email OTP normalizes addresses, requires delivery configuration and never discloses real codes',async()=>{
  const oldMode=process.env.EMAIL_DELIVERY_MODE,oldKey=process.env.RESEND_API_KEY,oldFrom=process.env.EMAIL_FROM,original=globalThis.fetch;
  try{
@@ -13,4 +14,7 @@ test('email OTP normalizes addresses, requires delivery configuration and never 
   globalThis.fetch=async()=>new Response('{}',{status:500});await assert.rejects(sendEmailOtp('guardian@example.test','123456','fixture'));
   globalThis.fetch=async()=>new Response('{}',{status:200});await assert.rejects(sendEmailOtp('guardian@example.test','123456','fixture'));
  }finally{globalThis.fetch=original;for(const [key,value] of Object.entries({EMAIL_DELIVERY_MODE:oldMode,RESEND_API_KEY:oldKey,EMAIL_FROM:oldFrom})){if(value===undefined)delete process.env[key];else process.env[key]=value;}}
+});
+test('low-entropy OTP storage is keyed and bound to the normalized address',()=>{
+ const old=process.env.OTP_HASH_KEY;try{process.env.OTP_HASH_KEY=randomBytes(32).toString('base64');const digest=otpDigest('guardian@example.test','123456');assert.match(digest,/^[a-f0-9]{64}$/);assert.notEqual(digest,createHash('sha256').update('123456').digest('hex'));assert.notEqual(digest,otpDigest('other@example.test','123456'));process.env.OTP_HASH_KEY=randomBytes(32).toString('base64');assert.notEqual(digest,otpDigest('guardian@example.test','123456'));delete process.env.OTP_HASH_KEY;assert.throws(()=>otpDigest('guardian@example.test','123456'),/OTP_KEY_UNAVAILABLE/);}finally{if(old===undefined)delete process.env.OTP_HASH_KEY;else process.env.OTP_HASH_KEY=old;}
 });
