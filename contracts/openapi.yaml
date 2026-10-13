@@ -20623,11 +20623,16 @@
           "comment": {
             "type": "string",
             "maxLength": 1000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
           }
         },
         "required": [
           "rating",
-          "comment"
+          "comment",
+          "expectedVersion"
         ],
         "additionalProperties": false
       },
@@ -20907,6 +20912,84 @@
                     ],
                     "additionalProperties": false
                   }
+                },
+                "recap": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 2000
+                },
+                "recapSubmittedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
+                "myConfirmation": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "action": {
+                      "type": "string",
+                      "enum": [
+                        "CONFIRMED",
+                        "DISPUTED"
+                      ]
+                    },
+                    "lessonVersion": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "action",
+                    "lessonVersion",
+                    "createdAt"
+                  ],
+                  "additionalProperties": false
+                },
+                "feedback": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "rating": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 5
+                    },
+                    "comment": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "rating",
+                    "comment",
+                    "createdAt"
+                  ],
+                  "additionalProperties": false
+                },
+                "feedbackEligible": {
+                  "type": "boolean",
+                  "description": "Current guardian confirmation, consent and lesson state permit one private feedback submission."
                 }
               },
               "required": [
@@ -20926,7 +21009,12 @@
                 "version",
                 "learner",
                 "teacher",
-                "confirmations"
+                "confirmations",
+                "recap",
+                "recapSubmittedAt",
+                "myConfirmation",
+                "feedback",
+                "feedbackEligible"
               ],
               "additionalProperties": false
             }

@@ -22,9 +22,14 @@ class LearningRecordsController {
     const children=actor.role==='GUARDIAN'?await this.service.db.child.findMany({where:{guardianId:actor.id},select:{id:true}}):actor.role==='STUDENT'?await this.service.db.child.findMany({where:{studentAccountId:actor.id},select:{id:true}}):[];
     const items=await this.service.db.lesson.findMany({where:{startsAt:{gte:from,lte:to},...(teacher?{teacherId:teacher.id}:{childId:{in:children.map(c=>c.id)}})},orderBy:[{startsAt:'desc'},{id:'desc'}],take:data.limit+1,...(data.cursor?{cursor:{id:data.cursor},skip:1}:{})});
     const page=items.slice(0,data.limit),records=[];
+    const consent=actor.role==='GUARDIAN'?await this.service.db.consent.findUnique({where:{guardianId:actor.id}}):null;
+    const paused=actor.role==='GUARDIAN'?await this.service.db.privacyRequest.findFirst({where:{accountId:actor.id,kind:'DELETION',scope:{in:['ACCOUNT','CHILD']},status:'PENDING'}}):null;
     for(const lesson of page){
       const child=await this.service.db.child.findUniqueOrThrow({where:{id:lesson.childId},select:{alias:true,grade:true,board:true}}),profile=await this.service.db.teacher.findUniqueOrThrow({where:{id:lesson.teacherId},select:{name:true}});
-      records.push({...lesson,learner:child,teacher:{id:lesson.teacherId,name:profile.name},confirmations:await this.service.db.lessonConfirmation.findMany({where:{lessonId:lesson.id},select:{action:true,createdAt:true},orderBy:{createdAt:'asc'}})});
+      const myConfirmation=await this.service.db.lessonConfirmation.findUnique({where:{lessonId_actorId:{lessonId:lesson.id,actorId:actor.id}},select:{action:true,lessonVersion:true,createdAt:true}});
+      const feedback=actor.role==='STUDENT'?null:await this.service.db.lessonFeedback.findFirst({where:{lessonId:lesson.id},select:{id:true,rating:true,comment:true,createdAt:true}});
+      const feedbackEligible=actor.role==='GUARDIAN'&&actor.verified&&!!consent&&!consent.withdrawnAt&&!paused&&lesson.status==='COMPLETED'&&!lesson.disputed&&['PRESENT','LATE'].includes(lesson.attendance)&&myConfirmation?.action==='CONFIRMED'&&myConfirmation.lessonVersion===lesson.version&&!feedback;
+      records.push({...lesson,learner:child,teacher:{id:lesson.teacherId,name:profile.name},myConfirmation,feedback,feedbackEligible,confirmations:await this.service.db.lessonConfirmation.findMany({where:{lessonId:lesson.id},select:{action:true,createdAt:true},orderBy:{createdAt:'asc'}})});
     }
     return {items:records,nextCursor:items.length>data.limit?page.at(-1)!.id:null};
   }
@@ -65,11 +70,13 @@ class LearningRecordsController {
     });
   }
   @Post('lessons/:id/feedback') async feedback(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
-    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({rating:z.number().int().min(1).max(5),comment:z.string().trim().max(1000)}).strict(),body);
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({expectedVersion:version,rating:z.number().int().min(1).max(5),comment:z.string().trim().max(1000)}).strict(),body);
     return this.service.once(req,actor,'lesson.feedback',data,async db=>{
-      const lesson=await this.visible(db,actor,id);if(lesson.status!=='COMPLETED'||lesson.disputed||!['PRESENT','LATE'].includes(lesson.attendance))fail(409,'LESSON_NOT_CONFIRMED','Resolve attendance before feedback.');
-      if(!await db.lessonConfirmation.findFirst({where:{lessonId:id,actorId:actor.id,action:'CONFIRMED'}}))fail(409,'CONFIRMATION_REQUIRED','Confirm attendance before feedback.');
-      const feedback=await db.lessonFeedback.create({data:{lessonId:id,guardianId:actor.id,...data}});await this.service.audit(db,actor,req,'LESSON_FEEDBACK_RECORDED',id,'Guardian submitted private lesson feedback',undefined,{rating:data.rating});return feedback;
+      await this.service.guardian(db,actor.id);await this.visible(db,actor,id);await db.$executeRaw`SELECT id FROM "Lesson" WHERE id=${id}::uuid FOR UPDATE`;
+      const lesson=await this.visible(db,actor,id);if(lesson.version!==data.expectedVersion)fail(409,'CONFLICT','The lesson changed. Refresh its record before sending feedback.');if(lesson.status!=='COMPLETED'||lesson.disputed||!['PRESENT','LATE'].includes(lesson.attendance))fail(409,'LESSON_NOT_CONFIRMED','Resolve attendance before feedback.');
+      if(!await db.lessonConfirmation.findFirst({where:{lessonId:id,actorId:actor.id,action:'CONFIRMED',lessonVersion:lesson.version}}))fail(409,'CONFIRMATION_REQUIRED','Confirm attendance before feedback.');
+      if(await db.lessonFeedback.findUnique({where:{lessonId_guardianId:{lessonId:id,guardianId:actor.id}}}))fail(409,'FEEDBACK_RECORDED','Feedback is already recorded. Contact support for a correction.');
+      const feedback=await db.lessonFeedback.create({data:{lessonId:id,guardianId:actor.id,rating:data.rating,comment:data.comment}});await this.service.audit(db,actor,req,'LESSON_FEEDBACK_RECORDED',id,'Guardian submitted private lesson feedback',undefined,{rating:data.rating});return feedback;
     });
   }
 }
