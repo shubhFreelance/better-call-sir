@@ -54,7 +54,7 @@ test("parent intake persists and appears on the private dashboard", async ({
     page.getByText(/Tuesday and Thursday after 5pm/).first(),
   ).toBeVisible();
   await expect(
-    page.getByText(/Waiting for operator review/).first(),
+    page.getByText(/Your shortlist is awaiting review/).first(),
   ).toBeVisible();
 });
 test("discovery tabs support keyboard navigation and preserve manual teacher choice", async ({
@@ -327,6 +327,25 @@ test("guardian arranges and reschedules a demo; no-show reaches operator review"
     );
     await page.goto("/dashboard/requests");
     const panel = page.locator(".panel").filter({ hasText: schedule });
+    await panel
+      .getByRole("button", { name: "Select teacher", exact: true })
+      .click();
+    await panel
+      .getByRole("checkbox", {
+        name: /I understand this records my teacher choice/,
+      })
+      .check();
+    await panel.getByRole("button", { name: "Confirm teacher choice" }).click();
+    await expect(
+      panel.getByText(
+        "Teacher choice saved. This does not assign a teacher or start tuition.",
+      ),
+    ).toBeVisible();
+    const selected = await (
+      await page.request.get(`/api/v1/requests/${request.id}`)
+    ).json();
+    expect(selected.selectedCandidateId).toBe(candidate.id);
+    expect(selected.status).toBe("OPEN");
     await panel.getByRole("button", { name: "Choose & arrange demo" }).click();
     const slot = new Date();
     slot.setUTCDate(slot.getUTCDate() + 40);

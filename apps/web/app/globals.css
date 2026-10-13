@@ -3643,3 +3643,136 @@ footer {
   background: var(--green);
   color: var(--primary);
 }
+
+.tuition-workspace,
+.tuition-terms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.tuition-workspace .panel h2,
+.tuition-term-card h2 {
+  font-size: 23px;
+  margin: 0;
+  letter-spacing: -0.4px;
+}
+.tuition-workspace .panel-title,
+.tuition-term-card .panel-title {
+  flex-wrap: wrap;
+  align-items: start;
+}
+.tuition-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 24px 0;
+}
+.tuition-summary dt {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 7px;
+}
+.tuition-summary dd {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.tuition-candidate {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 22px 0;
+  background: var(--white);
+}
+.tuition-candidate h4 {
+  font-size: 21px;
+  margin: 0;
+  letter-spacing: -0.4px;
+}
+.tuition-candidate h5 {
+  font-size: 13px;
+  margin: 20px 0 8px;
+}
+.tuition-candidate ul,
+.tuition-windows {
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.tuition-response {
+  color: var(--primary);
+  font-weight: 650;
+}
+.tuition-confirm {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  margin: 24px 0;
+}
+.tuition-confirm h3 {
+  margin-top: 0;
+}
+.tuition-workspace fieldset,
+.tuition-term-card fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.tuition-window {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+}
+.tuition-workspace .field > select {
+  width: 100%;
+}
+.tuition-workspace .button,
+.tuition-term-card .button {
+  white-space: normal;
+  height: auto;
+  max-width: 100%;
+  text-align: center;
+}
+.tuition-workspace [data-slot="alert"],
+.tuition-term-card [data-slot="alert"] {
+  margin: 18px 0;
+}
+.tuition-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.tuition-price {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.tuition-workspace .badge,
+.tuition-term-card .badge {
+  background: var(--soft);
+  color: var(--primary);
+  border-color: var(--line);
+}
+@media (max-width: 600px) {
+  .tuition-window,
+  .tuition-summary {
+    grid-template-columns: 1fr;
+  }
+  .tuition-candidate,
+  .tuition-confirm {
+    padding: 18px;
+  }
+}
+.tuition-candidate h4,
+.tuition-workspace .panel h2,
+.tuition-term-card h3 {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.tuition-confirm:focus {
+  outline: none;
+}

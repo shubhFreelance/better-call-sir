@@ -19,9 +19,10 @@ import {
 import { GuardianOnboarding } from "./guardian-onboarding";
 import { TeacherSetup } from "./teacher-onboarding";
 import { FamilyOverview } from "./family-overview";
+import { TuitionRequests, TuitionTerms } from "./tuition-workflow";
 import { FamilyAccess, StudentActivation } from "./student-access";
 import { EmailLogin } from "./email-login";
-import { DemoChoice, DemoJourney } from "./demo-journey";
+import { DemoJourney } from "./demo-journey";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   QueryClient,
@@ -1468,7 +1469,9 @@ function DashboardPage({ tab }: { tab: string }) {
                 ? `Here’s your learning picture · ${date(d.window.start, false)}–${date(d.window.end, false)} · IST`
                 : tab.endsWith("family")
                   ? "Manage student devices and the permissions you grant."
-                  : "All changes are confirmed by the backend."
+                  : tab.endsWith("requests")
+                    ? "Review teacher options, demo progress and your tuition agreement."
+                    : "All changes are confirmed by the backend."
             }
           />
           {error && <Notice error>{error}</Notice>}
@@ -1654,25 +1657,21 @@ function DashboardPage({ tab }: { tab: string }) {
               />
             </div>
           )}
-          {tab.endsWith("requests") && (
-            <>
-              <div className="panel-title">
-                <h3>Your tuition requests</h3>
-                <Link className="button small" href="/onboarding/parent">
-                  <Plus size={16} />
-                  New request
+          {tab.endsWith("requests") &&
+            (session.account.role === "GUARDIAN" ? (
+              <TuitionRequests session={session} dashboard={d} />
+            ) : (
+              <section className="panel">
+                <h2>Tuition choices belong to your guardian.</h2>
+                <p>
+                  Only a guardian can review their family’s requests and choose
+                  a teacher.
+                </p>
+                <Link href="/dashboard" className="inline-link">
+                  Return to your dashboard
                 </Link>
-              </div>
-              {d.requests?.length ? (
-                d.requests.map((r) => (
-                  <RequestCard key={r.id} request={r} act={act} />
-                ))
-              ) : (
-                <Empty>No requests yet. Tell us what your family needs.</Empty>
-              )}
-              <PlacementList dashboard={d} act={act} />
-            </>
-          )}
+              </section>
+            ))}
           {tab.endsWith("bookings") && (
             <>
               <DemoJourney session={session} act={act} />
@@ -1804,7 +1803,7 @@ function DashboardPage({ tab }: { tab: string }) {
                   ) : (
                     <Empty>No assigned opportunities yet.</Empty>
                   )}
-                  <PlacementList dashboard={d} act={act} />
+                  <TuitionTerms session={session} dashboard={d} />
                   <h3>Placement invoices</h3>
                   {d.invoices?.length ? (
                     d.invoices.map((i) => (
@@ -1929,125 +1928,6 @@ function LessonList({
         </div>
       ))}
     </div>
-  );
-}
-function RequestCard({ request, act }: { request: TuitionRequest; act: Act }) {
-  const { session } = useAuth();
-  const query = useQuery({
-    queryKey: ["request", session?.account.id, request.id],
-    queryFn: () =>
-      api<TuitionRequest & { candidates: Candidate[] }>(
-        `/requests/${request.id}`,
-      ),
-  });
-  const teachers = useQuery({
-    queryKey: ["teachers"],
-    queryFn: () => api<{ items: Teacher[] }>("/teachers"),
-  });
-  return (
-    <div className="panel">
-      <div className="panel-title">
-        <h3>
-          {request.subject} · {pretty(request.mode)}
-        </h3>
-        <Badge>{pretty(request.status)}</Badge>
-      </div>
-      <p>
-        {request.locality} · {request.language} · up to{" "}
-        {rupees(request.budgetPaise)}/month
-      </p>
-      <p className="muted">{request.schedule}</p>
-      {query.data?.candidates.length ? (
-        query.data.candidates.map((c) => (
-          <div className="candidate" key={c.id}>
-            <div>
-              <strong>
-                {teachers.data?.items.find((t) => t.id === c.teacherId)?.name ||
-                  "Candidate"}
-              </strong>
-              <p>{c.reasons.join(" · ")}</p>
-              <Badge>Teacher response: {pretty(c.response)}</Badge>
-            </div>
-            {c.response === "ACCEPTED" && request.status === "OPEN" && (
-              <DemoChoice
-                session={session}
-                requestId={request.id}
-                teacherId={c.teacherId}
-                act={act}
-              />
-            )}
-          </div>
-        ))
-      ) : (
-        <Notice>
-          {request.status === "OPEN"
-            ? "Waiting for operator review, teacher response and schedule confirmation. No automatic assignment."
-            : "This request has an existing placement."}
-        </Notice>
-      )}
-    </div>
-  );
-}
-function PlacementList({
-  dashboard: d,
-  act,
-}: {
-  dashboard: Dashboard;
-  act: Act;
-}) {
-  return (
-    <>
-      {d.placements?.map((p) => (
-        <div className="panel" key={p.id}>
-          <div className="panel-title">
-            <h3>Recurring tuition terms</h3>
-            <Badge>{pretty(p.status)}</Badge>
-          </div>
-          <p>
-            {rupees(p.monthlyPaise)}/month · Direct tuition payment · pilot-v1
-          </p>
-          <p className="muted">
-            Teacher fee: 25% of the first monthly tuition, capped at ₹1,500.
-            Invoiced only after both independent start confirmations and
-            acknowledged receipt.
-          </p>
-          <div className="action-row">
-            {!(d.role === "GUARDIAN"
-              ? p.guardianAccepted
-              : p.teacherAccepted) && (
-              <Button
-                onClick={() =>
-                  void act(`/placements/${p.id}/acceptances`, {
-                    expectedVersion: p.version,
-                    action: "ACCEPT_TERMS",
-                  })
-                }
-              >
-                Accept tuition terms
-              </Button>
-            )}
-            {p.guardianAccepted &&
-              p.teacherAccepted &&
-              !(d.role === "GUARDIAN"
-                ? p.guardianStarted
-                : p.teacherReceiptConfirmed) && (
-                <Button
-                  onClick={() =>
-                    void act(`/placements/${p.id}/acceptances`, {
-                      expectedVersion: p.version,
-                      action: "CONFIRM_START",
-                    })
-                  }
-                >
-                  {d.role === "GUARDIAN"
-                    ? "Confirm first paid lesson"
-                    : "Confirm lesson & tuition receipt"}
-                </Button>
-              )}
-          </div>
-        </div>
-      ))}
-    </>
   );
 }
 function Pro({

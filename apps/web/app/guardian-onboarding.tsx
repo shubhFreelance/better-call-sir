@@ -65,7 +65,7 @@ type Values = {
   budget: string;
   schedule: string;
 };
-type Window = { start: string; duration: string };
+export type Window = { start: string; duration: string };
 const steps = ["Permission", "Learner", "Tuition needs", "Schedule", "Review"];
 const learnerSchema = z.object({
   alias: z
@@ -89,7 +89,7 @@ const needsSchema = z.object({
       "Enter a monthly budget between ₹500 and ₹20,000, in whole paise.",
     ),
 });
-const localTime = (iso: string) =>
+export const localTime = (iso: string) =>
   new Date(new Date(iso).getTime() + 330 * 60000).toISOString().slice(0, 16);
 const formatTime = (iso: string) =>
   new Intl.DateTimeFormat("en-IN", {
@@ -99,7 +99,7 @@ const formatTime = (iso: string) =>
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(iso));
-function preferences(windows: Window[]): Preferences | null {
+export function preferences(windows: Window[]): Preferences | null {
   const slots = windows
     .map((w) => {
       const start = new Date(w.start + ":00+05:30");

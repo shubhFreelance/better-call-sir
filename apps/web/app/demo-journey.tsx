@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api, Demo, Session, Teacher } from "@bcs/api-client";
 type Act = (path: string, body?: unknown) => Promise<unknown>;
@@ -60,7 +59,6 @@ function DemoSlot({
           <option value="20">20 minutes</option>
           <option value="30">30 minutes</option>
           <option value="40">40 minutes</option>
-          <option value="60">60 minutes</option>
         </select>
       </label>
       {reschedule && (
@@ -77,76 +75,6 @@ function DemoSlot({
         {reschedule ? "Propose new demo time" : "Propose demo"}
       </button>
     </form>
-  );
-}
-export function DemoChoice({
-  session,
-  requestId,
-  teacherId,
-  act,
-}: {
-  session: Session | null;
-  requestId: string;
-  teacherId: string;
-  act: Act;
-}) {
-  const query = useDemos(session),
-    [open, setOpen] = useState(false),
-    [pending, setPending] = useState(false);
-  const demo = query.data?.items.find(
-    (d) => d.requestId === requestId && d.teacherId === teacherId,
-  );
-  if (query.isLoading) return <p>Loading demo status…</p>;
-  if (query.error) return <p role="alert">{query.error.message}</p>;
-  if (demo?.status === "COMPLETED")
-    return (
-      <button
-        className="button secondary"
-        disabled={pending}
-        onClick={async () => {
-          setPending(true);
-          try {
-            await act("/placements", { requestId, teacherId });
-          } finally {
-            setPending(false);
-          }
-        }}
-      >
-        Review tuition terms
-      </button>
-    );
-  if (demo && ["PROPOSED", "CONFIRMED", "DISPUTED"].includes(demo.status))
-    return (
-      <Link className="button secondary" href="/dashboard/bookings">
-        Review demo · {pretty(demo.status)}
-      </Link>
-    );
-  return (
-    <div>
-      {open ? (
-        <DemoSlot
-          pending={pending}
-          submit={async (body) => {
-            setPending(true);
-            try {
-              const result = await act("/demos", {
-                requestId,
-                teacherId,
-                ...body,
-              });
-              if (result) setOpen(false);
-              return result;
-            } finally {
-              setPending(false);
-            }
-          }}
-        />
-      ) : (
-        <button className="button secondary" onClick={() => setOpen(true)}>
-          Choose & arrange demo
-        </button>
-      )}
-    </div>
   );
 }
 export function DemoJourney({
@@ -255,8 +183,8 @@ function DemoCard({
         <p>Accept before {date(r.expiresAt)}.</p>
       )}
       <p className="muted">
-        Scheduling record only. Private meeting delivery is awaiting provider
-        integration.
+        This is a scheduling record. Private meeting access is provided
+        separately when a meeting is ready.
       </p>
       {outcome && <p>Your recorded outcome: {pretty(outcome)}.</p>}
       {d.status === "DISPUTED" && (
