@@ -29,6 +29,7 @@ import {
 import { FamilyAccess, StudentActivation } from "./student-access";
 import { EmailLogin } from "./email-login";
 import { DemoJourney } from "./demo-journey";
+import { StaffAccess, staffRole } from "./staff-access";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   QueryClient,
@@ -1236,6 +1237,15 @@ function DashboardShell({
             ][])
           : []),
     ["/support", "Help & safety", LifeBuoy],
+    ...(role && staffRole(role)
+      ? [
+          ["/dashboard/security", "Authenticator & recovery", ShieldCheck] as [
+            string,
+            string,
+            LucideIcon,
+          ],
+        ]
+      : []),
   ];
   return (
     <main className="container dashboard-layout">
@@ -1895,7 +1905,8 @@ function AdminPanel({ dashboard: d, act }: { dashboard: Dashboard; act: Act }) {
     <>
       <Notice>
         This synthetic console is development-only. Live privileged access is
-        blocked pending MFA, role delegation and release qualification.
+        blocked pending provider and release qualification. Staff records
+        require a current authenticator verification.
       </Notice>
       <div className="panel">
         <h3>Feature controls</h3>
@@ -2306,7 +2317,16 @@ function AppContent() {
           </div>
         )}
         <div id="main" tabIndex={-1}>
-          <Routes />
+          <StaffAccess
+            session={session}
+            onSignIn={() => {
+              client.clear();
+              changeSession(null);
+              router.push("/login");
+            }}
+          >
+            <Routes />
+          </StaffAccess>
         </div>
         <Footer />
       </div>

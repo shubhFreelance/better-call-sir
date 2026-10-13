@@ -14,9 +14,12 @@ export interface Call {id:string;teacherId:string;placementId:string;startsAt:st
 export interface Dashboard {role:string;window:{start:string;end:string;timezone:string;metricVersion:string};metrics:Record<string,number>;children?:Child[];lessons?:Lesson[];placements?:Placement[];teachers?:Teacher[];requests?:TuitionRequest[];reservations?:Reservation[];membership?:Membership|null;calls?:Call[];consent?:{withdrawnAt:string|null}|null;profile?:Teacher;opportunities?:Candidate[];invoices?:{id:string;amountPaise:number;status:string}[];cases?:{id:string;category:string;description:string;status:string}[];flags?:{name:string;enabled:boolean;version:number}[];audit?:{id:string;action:string;reason:string;createdAt:string}[];jobs?:{pending:number;failed:number}}
 export class ApiError extends Error {constructor(public status:number,public code:string,message:string,public fieldErrors?:Record<string,string[]>){super(message);}}
 export async function api<T>(path:string,options:{method?:string;body?:unknown;csrf?:string;key?:string;signal?:AbortSignal}={}):Promise<T> {
-  const response=await fetch(`${process.env.NEXT_PUBLIC_API_BASE || '/api/v1'}${path}`,{method:options.method || 'GET',credentials:'include',cache:'no-store',signal:options.signal,headers:{'Content-Type':'application/json',...(options.csrf?{'X-CSRF-Token':options.csrf}:{}),...(options.key?{'Idempotency-Key':options.key}:{})},...(options.body!==undefined?{body:JSON.stringify(options.body)}:{})});
+  const base=process.env.NEXT_PUBLIC_API_BASE||'/api/v1';
+  if(base!=='/api/v1'||!path.startsWith('/')||path.startsWith('//')||!new URL(base+path,'https://api.invalid').pathname.startsWith(base+'/'))throw new ApiError(400,'INVALID_REQUEST','Use the same-origin application API.');
+  const timeout=AbortSignal.timeout(15000),signal=options.signal?AbortSignal.any([options.signal,timeout]):timeout;
+  const response=await fetch(`${base}${path}`,{method:options.method || 'GET',credentials:'include',cache:'no-store',redirect:'error',signal,headers:{'Content-Type':'application/json',...(options.csrf?{'X-CSRF-Token':options.csrf}:{}),...(options.key?{'Idempotency-Key':options.key}:{})},...(options.body!==undefined?{body:JSON.stringify(options.body)}:{})});
   let result;try {result=await response.json();}catch {throw new ApiError(response.status,'INVALID_RESPONSE','The service returned an unreadable response. Please retry.');}
-  if (!response.ok) throw new ApiError(response.status,result.code || 'ERROR',result.message || 'Unable to complete this action.',result.fieldErrors);
+  if (!response.ok) throw new ApiError(response.status,typeof result?.code==='string'?result.code:'ERROR',typeof result?.message==='string'?result.message:'Unable to complete this action.',result?.fieldErrors);
   return result as T;
 }
 export const rupees=(paise:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(paise/100);

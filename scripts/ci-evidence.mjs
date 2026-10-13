@@ -12,6 +12,7 @@ const required = [
   "securityTests",
   "releaseGate",
   "browser",
+  "productionBrowser",
   "build",
   "secrets",
   "historySecrets",

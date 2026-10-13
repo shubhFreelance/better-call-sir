@@ -34,12 +34,12 @@ The next practical sprint is feedback/recaps, followed by private notes, support
 | # | Work remaining |
 | --- | --- |
 | B1 | Implement the approved guardian adult-verification process and its owner/reviewer states; newly signed-in adults currently cannot collect learner data until verified. Synthetic verified personas are not a live method. |
-| B2 | Privileged MFA, recent-authentication checks, privileged session/timeouts and role administration; add required independent/dual approvals for sensitive grants and high-value actions. |
+| B2 | Server staff MFA, recent-authentication, idle/absolute/step-up sessions and browser enrollment are implemented. Remaining: managed keys, staff provisioning/recovery drill and role administration with required independent/dual approvals for sensitive grants and high-value actions. |
 | B3 | Versioned commercial/configuration administration: pricing, fees/plans, service/region coverage, supply checks, history and rollback. Keep accepted terms immutable. |
 | B4 | Provider refund execution, signed outcome/retry handling, partial-payment/refund correction records and allocation-loss/late-capture recovery through settlement. A pending refund is not a settled refund. |
 | B5 | Actual teacher payout execution and settlement/reconciliation, payee/provider onboarding, commercial/tax accounting and immutable financial adjustment records. A payable marked eligible is not money paid to a teacher. |
 | B6 | Periodic provider reconciliation and recovery queues, including captured events missing from local state, amount mismatches and out-of-order/late evidence. Existing manual order-query reconciliation is insufficient. |
-| B7 | Harden checkout-order creation across provider timeout/crash/retry boundaries. Provider creation currently occurs inside the database retry transaction; qualify receipt/order recovery or implement a supported outbox/idempotency approach before live charging. |
+| B7 | Durable unique provider-attempt claims now run after the committed local order, outside the retry transaction; concurrency/crash/failure and current consent/eligibility rechecks are tested. Remaining: qualify live receipt/order recovery and reconciliation before charging; uncertain outcomes never automatically create another provider order. |
 | B8 | Actual notification delivery, status/receipt history, duplicate-safe retry and staff-visible failure recovery for scope requests, demos, bookings and follow-ups. Worker development delivery is still synthetic. |
 | B9 | Durable Google Meet credentials/OAuth lifecycle, participant/Workspace admission policy and recovery handling; current adapter uses an injected short-lived token. |
 | B10 | Richer role/date-filtered dashboard metrics and contracts: previous-calendar-month/custom ranges, recurring/demo/revision separation, denominators/sample sizes, pending confirmations and last-updated metadata. |

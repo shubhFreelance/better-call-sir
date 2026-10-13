@@ -42,6 +42,7 @@ test("CI evidence records all successful checks without authorizing release", ()
     "securityTests",
     "releaseGate",
     "browser",
+    "productionBrowser",
     "build",
     "secrets",
     "historySecrets",

@@ -4650,3 +4650,39 @@ footer {
     padding: 16px;
   }
 }
+
+.staff-security-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 30px;
+  background: var(--primary);
+  color: white;
+  border-radius: 22px 22px 0 0;
+}
+.staff-security-heading > svg { flex-shrink: 0; margin-top: 6px; }
+.staff-security-heading h1 { margin: 0 0 12px; font-size: clamp(26px, 4vw, 34px); line-height: 1.2; }
+.staff-security-heading p { color: #d7eeea; margin: 0; }
+.staff-security-heading > span { background: var(--green); color: var(--primary); border-radius: 30px; padding: 6px 12px; font-size: 13px; }
+.staff-security-form { border-radius: 0 0 22px 22px; border-top: 0; }
+.staff-security-form h2 { font-size: 21px; margin: 0 0 12px; }
+.staff-security-form form { display: grid; gap: 12px; margin-top: 24px; }
+.staff-security-form label { font-weight: 600; }
+.staff-security-form p { color: var(--muted); }
+.staff-security-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+.staff-security-private { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 22px; margin: 24px 0; }
+.staff-security-private > code { display: block; padding: 14px; background: white; overflow-wrap: anywhere; border-radius: 8px; font-size: 16px; color: var(--primary); }
+.staff-security-private > small { display: block; margin-top: 16px; color: var(--muted); }
+.staff-recovery-codes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; list-style: none; padding: 0; margin: 20px 0; }
+.staff-recovery-codes li { background: white; border: 1px solid var(--line); padding: 12px; border-radius: 8px; overflow-wrap: anywhere; }
+.staff-recovery-codes code { font-size: 13px; color: var(--primary); }
+.staff-security-check { display: flex; align-items: flex-start; gap: 10px; margin: 20px 0; }
+.staff-security-check input { width: 18px; height: 18px; flex-shrink: 0; }
+@media (max-width: 600px) {
+  .staff-security-heading { flex-wrap: wrap; padding: 22px; }
+  .staff-security-heading > div { flex: 1; min-width: 0; }
+  .staff-security-heading > span { margin-left: 46px; }
+  .staff-security-private { padding: 16px; }
+  .staff-recovery-codes { grid-template-columns: 1fr; }
+  .staff-security-actions > button { flex: 1 1 100%; }
+}

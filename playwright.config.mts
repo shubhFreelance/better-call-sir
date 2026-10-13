@@ -2,6 +2,7 @@ import { defineConfig } from "@playwright/test";
 import chromium from "@sparticuz/chromium";
 export default defineConfig({
   testDir: "./tests/browser",
+  outputDir: "test-results/browser-artifacts",
   fullyParallel: false,
   workers: 1,
   timeout: 30000,

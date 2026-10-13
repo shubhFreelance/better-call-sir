@@ -62,13 +62,15 @@ jobs:
       - id: mock
         run: npm exec -- tsx --test --test-reporter=junit tests/mock.test.ts > test-results/mock.xml
       - id: security-tests
-        run: npm exec -- tsx --test --test-reporter=junit tests/security.test.ts tests/ci-evidence.test.ts > test-results/security-tests.xml
+        run: npm exec -- tsx --test --test-reporter=junit tests/security.test.ts tests/ci-evidence.test.ts tests/client.test.ts > test-results/security-tests.xml
       - id: release-gate
         run: npm exec -- tsx --test --test-reporter=junit tests/release.test.ts > test-results/release-gate.xml
       - id: browser
         run: npm run test:e2e > test-results/browser.txt 2>&1
       - id: build
         run: npm run build > test-results/build.txt 2>&1
+      - id: production-browser
+        run: npm run test:production-browser > test-results/production-browser.txt 2>&1
       - name: Secrets scan (source content is excluded from the report)
         id: secrets
         run: npm run --silent security:secrets > test-results/secrets.json
@@ -89,7 +91,7 @@ jobs:
         env:
           BCS_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           BCS_CHECK_RESULTS: >-
-            {"contractLint":"${{ steps.contract-lint.outcome }}","generatedClient":"${{ steps.generated-client.outcome }}","typecheck":"${{ steps.typecheck.outcome }}","unit":"${{ steps.unit.outcome }}","integration":"${{ steps.integration.outcome }}","contract":"${{ steps.contract.outcome }}","mock":"${{ steps.mock.outcome }}","securityTests":"${{ steps.security-tests.outcome }}","releaseGate":"${{ steps.release-gate.outcome }}","browser":"${{ steps.browser.outcome }}","build":"${{ steps.build.outcome }}","secrets":"${{ steps.secrets.outcome }}","historySecrets":"${{ steps.history-secrets.outcome }}","bundleSecrets":"${{ steps.bundle-secrets.outcome }}","runtimeAudit":"${{ steps.runtime-audit.outcome }}","toolingAudit":"${{ steps.tooling-audit.outcome }}"}
+            {"contractLint":"${{ steps.contract-lint.outcome }}","generatedClient":"${{ steps.generated-client.outcome }}","typecheck":"${{ steps.typecheck.outcome }}","unit":"${{ steps.unit.outcome }}","integration":"${{ steps.integration.outcome }}","contract":"${{ steps.contract.outcome }}","mock":"${{ steps.mock.outcome }}","securityTests":"${{ steps.security-tests.outcome }}","releaseGate":"${{ steps.release-gate.outcome }}","browser":"${{ steps.browser.outcome }}","productionBrowser":"${{ steps.production-browser.outcome }}","build":"${{ steps.build.outcome }}","secrets":"${{ steps.secrets.outcome }}","historySecrets":"${{ steps.history-secrets.outcome }}","bundleSecrets":"${{ steps.bundle-secrets.outcome }}","runtimeAudit":"${{ steps.runtime-audit.outcome }}","toolingAudit":"${{ steps.tooling-audit.outcome }}"}
         run: node scripts/ci-evidence.mjs
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
@@ -98,4 +100,5 @@ jobs:
           path: |
             test-results/
             playwright-report/
+            playwright-production-report/
           retention-days: 14

@@ -13,6 +13,7 @@ import {
 } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Notice, Feedback, useDecision } from "./tuition-workflow";
+import { useScriptNonce } from "./security-nonce";
 type Order = components["schemas"]["CheckoutOrder"];
 type Current = components["schemas"]["CurrentCheckout"];
 type GatewayOptions = {
@@ -211,6 +212,7 @@ export function CheckoutReview({
   onLock?: (locked: boolean) => void;
   payable: boolean;
 }) {
+  const nonce = useScriptNonce();
   const allowed =
     kind === "REVISION"
       ? session.account.role === "GUARDIAN"
@@ -650,6 +652,7 @@ export function CheckoutReview({
       {loadScript && !scriptError && (
         <Script
           id="razorpay-checkout"
+          nonce={nonce}
           src="https://checkout.razorpay.com/v1/checkout.js"
           strategy="afterInteractive"
           onReady={() => {
