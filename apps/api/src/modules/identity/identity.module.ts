@@ -10,7 +10,7 @@ import helmet from 'helmet';
 import {z} from 'zod';
 import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} from '../../policies';
 
-import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
+import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,privileged,HttpRequest,DB} from '../../shared';
 
 import {emailAddress,sendEmailOtp} from './email-otp';
 
@@ -83,10 +83,11 @@ class IdentityController {
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${original.familyId},0))`;
       const session=await db.session.findUniqueOrThrow({where:{id:original.id}});
       if(session.revoked || session.expiresAt<=new Date()) return {error:true} as const;
+      if(privileged(account.role)&&(session.createdAt.getTime()<Date.now()-8*3600000||session.lastSeenAt.getTime()<Date.now()-900000))return {error:true} as const;
       if(!same(req.get('X-CSRF-Token')||'',session.csrf)) fail(403,'CSRF','Refresh token validation failed.');
       if(session.rotated) {await db.session.updateMany({where:{familyId:session.familyId},data:{revoked:true}});return {error:true} as const;}
       await db.session.update({where:{id:session.id},data:{rotated:true}});
-      const state=await this.service.issueSession(account,session.familyId,db,session.expiresAt);
+      const state=await this.service.issueSession(account,session.familyId,db,session.expiresAt,{createdAt:session.createdAt,mfaVerifiedAt:session.mfaVerifiedAt});
       return {account,state};
     });
     if('error' in result) fail(401,'REFRESH_REPLAY','Session expired or refresh replay detected. Sign in again.');

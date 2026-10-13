@@ -40,7 +40,19 @@ model Session {
   expiresAt DateTime
   revoked Boolean @default(false)
   rotated Boolean @default(false)
+  createdAt DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  mfaVerifiedAt DateTime?
   @@index([accountId])
+}
+model MfaCredential {
+  accountId String @id @db.Uuid
+  encryptedSecret String
+  enrollmentFamilyId String? @db.Uuid
+  enrollmentExpiresAt DateTime?
+  enabledAt DateTime?
+  lastUsedStep BigInt @default(-1)
+  recoveryHashes String[] @default([])
 }
 model Consent {
   id String @id @default(uuid()) @db.Uuid
