@@ -254,6 +254,11 @@ model CheckoutOrder {
   updatedAt DateTime @updatedAt
   @@index([accountId, createdAt])
 }
+model CheckoutAttempt {
+  orderId String @id @db.Uuid
+  startedAt DateTime @default(now())
+  failureCode String?
+}
 model BillingEvent {
   id String @id
   provider String

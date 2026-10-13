@@ -24,7 +24,7 @@ class MfaController {
   });
  }
  @Post('auth/mfa/verification') async verify(@Req() req:HttpRequest,@Body() body:unknown){
-  const data=parse(input,body),{actor,session}=await this.identity(req);await this.service.limit('mfa-verify:'+actor.id,5);
+  const {actor,session}=await this.identity(req),data=parse(input,body);await this.service.limit('mfa-verify:'+actor.id,5);
   const result=await this.service.db.$transaction(async db=>{
    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id+':mfa'},0))`;
    const credential=await db.mfaCredential.findUnique({where:{accountId:actor.id}});if(!credential)return null;
@@ -43,7 +43,7 @@ class MfaController {
   if(!result)fail(401,'INVALID_MFA','The code is invalid, expired or already used. Use a new authenticator code.');return result;
  }
  @Post('auth/mfa/recovery-codes') async recoveryCodes(@Req() req:HttpRequest,@Body() body:unknown){
-  const data=parse(z.object({code:z.string().regex(/^\d{6}$/)}).strict(),body),{actor,session}=await this.identity(req);await this.service.limit('mfa-verify:'+actor.id,5);
+  const {actor,session}=await this.identity(req),data=parse(z.object({code:z.string().regex(/^\d{6}$/)}).strict(),body);await this.service.limit('mfa-verify:'+actor.id,5);
   return this.service.db.$transaction(async db=>{
    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id+':mfa'},0))`;
    const credential=await db.mfaCredential.findUnique({where:{accountId:actor.id}});if(!credential?.enabledAt)fail(409,'MFA_REQUIRED','Enable an authenticator first.');
