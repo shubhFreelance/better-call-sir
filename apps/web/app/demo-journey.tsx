@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { MeetingAccess } from "./booking-payments";
 import { useQuery } from "@tanstack/react-query";
 import { api, Demo, Session, Teacher } from "@bcs/api-client";
 type Act = (path: string, body?: unknown) => Promise<unknown>;
@@ -112,6 +113,7 @@ export function DemoJourney({
         <DemoCard
           key={d.id}
           demo={d}
+          session={session}
           role={session.account.role}
           teacherName={
             teachers.data?.items.find((t) => t.id === d.teacherId)?.name ||
@@ -125,11 +127,13 @@ export function DemoJourney({
 }
 function DemoCard({
   demo: d,
+  session,
   role,
   teacherName,
   act,
 }: {
   demo: Demo;
+  session: Session;
   role: string;
   teacherName: string;
   act: Act;
@@ -186,6 +190,9 @@ function DemoCard({
         This is a scheduling record. Private meeting access is provided
         separately when a meeting is ready.
       </p>
+      {d.status === "CONFIRMED" && (
+        <MeetingAccess session={session} reservationId={r.id} confirmed />
+      )}
       {outcome && <p>Your recorded outcome: {pretty(outcome)}.</p>}
       {d.status === "DISPUTED" && (
         <p role="status">

@@ -44,8 +44,9 @@ const when = (iso: string) =>
 const unknown = (error: unknown) =>
   !(error instanceof ApiError) ||
   error.code === "INVALID_RESPONSE" ||
-  error.status >= 500;
-function Notice({
+  (error.status >= 500 &&
+    !["CHECKOUT_PAUSED", "FEATURE_PAUSED"].includes(error.code));
+export function Notice({
   children,
   error = false,
 }: {
@@ -80,13 +81,13 @@ export function useDecision(
     body: unknown;
     key: string;
     message: string;
-    onSaved?: () => void;
+    onSaved?: (result: unknown) => void;
   } | null>(null);
   async function run(next?: {
     path: string;
     body: unknown;
     message: string;
-    onSaved?: () => void;
+    onSaved?: (result: unknown) => void;
   }) {
     if (next) pending.current = { ...next, key: crypto.randomUUID() };
     if (!pending.current) return false;
@@ -135,7 +136,7 @@ export function useDecision(
         "Your decision was saved, but current details could not be loaded. Refresh before making another decision.",
       );
     }
-    operation.onSaved?.();
+    operation.onSaved?.(result);
     setBusy(false);
     return true;
   }

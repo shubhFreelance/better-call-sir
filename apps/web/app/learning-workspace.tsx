@@ -25,6 +25,7 @@ import {
   TabsTrigger,
 } from "../components/ui/tabs";
 import { Feedback, useDecision } from "./tuition-workflow";
+import { MeetingAccess } from "./booking-payments";
 type Schedule = components["schemas"]["RecurringSchedule"];
 type RecordPage = components["schemas"]["LessonRecords"];
 type Record = RecordPage["items"][number];
@@ -985,6 +986,13 @@ function LessonRecord({
             : `${label(l.status)} · ${label(l.attendance)}`}
         </span>
       </div>
+      {l.reservationId && l.status === "SCHEDULED" && (
+        <MeetingAccess
+          session={session}
+          reservationId={l.reservationId}
+          confirmed
+        />
+      )}
       {l.disputed && (
         <p className="learning-help">
           Excluded from attendance totals until support resolves the record.

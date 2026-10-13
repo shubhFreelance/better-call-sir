@@ -21,6 +21,11 @@ import { TeacherSetup } from "./teacher-onboarding";
 import { FamilyOverview } from "./family-overview";
 import { TuitionRequests, TuitionTerms } from "./tuition-workflow";
 import { LearningWorkspace } from "./learning-workspace";
+import {
+  RevisionBooking,
+  ReservationBookings,
+  PlacementInvoices,
+} from "./revision-booking";
 import { FamilyAccess, StudentActivation } from "./student-access";
 import { EmailLogin } from "./email-login";
 import { DemoJourney } from "./demo-journey";
@@ -637,7 +642,7 @@ function Home() {
             Let’s work through it.
           </h2>
           <p>
-            Scheduled 20, 40 or 60 minute revision with a clear topic scope.
+            Scheduled 20 or 40 minute revision with a clear topic scope.
             <br />
             Expert acceptance first. Transparent pricing next.
           </p>
@@ -1006,7 +1011,10 @@ function Login() {
     setSession(session);
     const next = searchParams.get("next");
     router.push(
-      next && /^\/onboarding\/(parent|teacher|student)(?:\?|$)/.test(next)
+      next &&
+        (/^\/onboarding\/(parent|teacher|student)(?:\?|$)/.test(next) ||
+          (session.account.role === "GUARDIAN" &&
+            /^\/revision(?:\?[^#]*)?$/.test(next)))
         ? next
         : session.account.role === "GUARDIAN" && !session.account.verified
           ? "/onboarding/parent"
@@ -1189,135 +1197,12 @@ function StudentOnboarding() {
 }
 function Revision() {
   const { session } = useAuth();
-  const teachers = useQuery({
-    queryKey: ["teachers"],
-    queryFn: () => api<{ items: Teacher[] }>("/teachers"),
-  });
-  const [reservation, setReservation] = useState<Reservation | null>(null),
-    [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError("");
-    setBusy(true);
-    const f = new FormData(e.currentTarget);
-    try {
-      if (!session)
-        throw new Error(
-          "Sign in with a guardian account to request a session.",
-        );
-      const r = await api<Reservation>("/revision/holds", {
-        method: "POST",
-        csrf: session.csrfToken,
-        key: crypto.randomUUID(),
-        body: {
-          teacherId: f.get("teacher"),
-          startsAt: new Date(`${f.get("startsAt")}+05:30`).toISOString(),
-          duration: Number(f.get("duration")),
-          topic: f.get("topic"),
-        },
-      });
-      setReservation(r);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
+  const params = useSearchParams();
   return (
-    <main className="container section">
-      <PageTitle
-        eyebrow="A LITTLE MORE CLARITY"
-        title="One topic. One focused session."
-        subtitle="Choose 20, 40 or 60 minutes. Your expert reviews the scope before checkout."
-      />
-      <div className="form-layout">
-        <aside className="form-aside">
-          <div className="duration-cards">
-            {[20, 40, 60].map((d) => (
-              <div key={d}>
-                <strong>
-                  {d}
-                  <small> minutes</small>
-                </strong>
-                <span>{rupees(d * 1500)} total · sandbox quote</span>
-                <p>
-                  {d === 20
-                    ? "One narrow topic"
-                    : d === 40
-                      ? "Related topics & practice"
-                      : "A broader selected review"}
-                </p>
-              </div>
-            ))}
-          </div>
-          <Notice>
-            No full-syllabus or marks guarantee. Live checkout and expert
-            settlement are disabled pending provider approval.
-          </Notice>
-        </aside>
-        <form className="panel form-panel" onSubmit={submit}>
-          <h3>What shall we work through?</h3>
-          <Field label="Expert">
-            <select name="teacher" required>
-              {teachers.data?.items.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name} · {t.subjects.join(" & ")}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <div className="form-row">
-            <Field label="Duration">
-              <select name="duration">
-                <option value="20">20 minutes</option>
-                <option value="40">40 minutes</option>
-                <option value="60">60 minutes</option>
-              </select>
-            </Field>
-            <Field label="Preferred start (IST)">
-              <input name="startsAt" type="datetime-local" required />
-            </Field>
-          </div>
-          <p className="muted">
-            Development window: 9am–8pm IST, at least one hour ahead, within 60
-            days.
-          </p>
-          <Field label="Topic brief">
-            <textarea
-              name="topic"
-              required
-              rows={5}
-              maxLength={1000}
-              placeholder="Class, board, subject and the specific topic or question you want to cover"
-            />
-          </Field>
-          {error && <Notice error>{error}</Notice>}
-          {reservation && (
-            <Notice>
-              Hold created until{" "}
-              {reservation.expiresAt ? date(reservation.expiresAt) : "expiry"}.
-              Waiting for expert scope acceptance. This is not a confirmed
-              booking. Check your dashboard for its status.
-            </Notice>
-          )}
-          <Button
-            type="submit"
-            disabled={busy || session?.account.role !== "GUARDIAN"}
-          >
-            {busy ? "Reserving…" : "Request scope & hold slot"}
-            <Clock size={17} />
-          </Button>
-          {!session && (
-            <Link href="/login" className="inline-link">
-              Sign in to request a revision →
-            </Link>
-          )}
-        </form>
-      </div>
-    </main>
+    <RevisionBooking session={session} initialTeacher={params.get("teacher")} />
   );
 }
+
 function DashboardShell({
   children,
   tab,
@@ -1663,88 +1548,7 @@ function DashboardPage({ tab }: { tab: string }) {
           {tab.endsWith("bookings") && (
             <>
               <DemoJourney session={session} act={act} />
-              <div className="panel-title">
-                <h3>Revision & recurring reservations</h3>
-                {d.role === "GUARDIAN" && (
-                  <Link className="button small" href="/revision">
-                    Request revision <Plus size={16} />
-                  </Link>
-                )}
-              </div>
-              {d.reservations?.length ? (
-                d.reservations
-                  .filter((r) => r.kind !== "DEMO")
-                  .map((r) => (
-                    <div className="panel reservation-card" key={r.id}>
-                      <div className="panel-title">
-                        <h3>
-                          {pretty(r.kind)} · {date(r.startsAt)}
-                        </h3>
-                        <Badge>{pretty(r.status)}</Badge>
-                      </div>
-                      <p>{r.topic}</p>
-                      <p className="muted">
-                        {rupees(r.amountPaise)} total · Scope{" "}
-                        {r.scopeAccepted ? "accepted" : "pending"}
-                        {r.expiresAt
-                          ? ` · Hold expires ${date(r.expiresAt)}`
-                          : ""}
-                      </p>
-                      <div className="action-row">
-                        {d.role === "TEACHER" &&
-                          r.kind === "REVISION" &&
-                          r.status === "HOLD" &&
-                          !r.scopeAccepted && (
-                            <Button
-                              secondary
-                              onClick={() =>
-                                void act(
-                                  `/reservations/${r.id}/scope`,
-                                  { expectedVersion: r.version },
-                                  false,
-                                )
-                              }
-                            >
-                              Accept topic scope
-                            </Button>
-                          )}
-                        {d.role === "GUARDIAN" &&
-                          r.kind === "REVISION" &&
-                          r.status === "HOLD" &&
-                          r.scopeAccepted && (
-                            <Button
-                              onClick={() =>
-                                void act(`/dev/reservations/${r.id}/capture`, {
-                                  providerEventId: `sandbox-${r.id}`,
-                                  amountPaise: r.amountPaise,
-                                  currency: "INR",
-                                })
-                              }
-                            >
-                              Simulate sandbox capture
-                            </Button>
-                          )}
-                        {d.role === "GUARDIAN" &&
-                          r.kind === "REVISION" &&
-                          ["HOLD", "CONFIRMED"].includes(r.status) && (
-                            <Button
-                              secondary
-                              onClick={() =>
-                                void act(`/reservations/${r.id}/cancel`, {
-                                  expectedVersion: r.version,
-                                  reason: "Guardian cancellation",
-                                })
-                              }
-                            >
-                              Cancel reservation
-                            </Button>
-                          )}
-                      </div>
-                    </div>
-                  ))
-              ) : (
-                <Empty>No reservations. Choose a topic to begin.</Empty>
-              )}
+              <ReservationBookings session={session} dashboard={d} />
               {d.role === "TEACHER" && (
                 <>
                   <h3>Assigned opportunities</h3>
@@ -1792,28 +1596,9 @@ function DashboardPage({ tab }: { tab: string }) {
                     <Empty>No assigned opportunities yet.</Empty>
                   )}
                   <TuitionTerms session={session} dashboard={d} />
-                  <h3>Placement invoices</h3>
-                  {d.invoices?.length ? (
-                    d.invoices.map((i) => (
-                      <div className="panel panel-title" key={i.id}>
-                        <span>
-                          Teacher success fee · {rupees(i.amountPaise)}
-                        </span>
-                        <Badge>{pretty(i.status)}</Badge>
-                      </div>
-                    ))
-                  ) : (
-                    <Empty>
-                      No placement invoices. Both parties must confirm start and
-                      tuition receipt.
-                    </Empty>
-                  )}
+                  <PlacementInvoices session={session} dashboard={d} />
                 </>
               )}
-              <Notice>
-                Sandbox capture is synthetic provider evidence. Live checkout,
-                settlement and private meeting links remain disabled.
-              </Notice>
             </>
           )}
           {tab.endsWith("pro") && <Pro dashboard={d} act={act} busy={busy} />}

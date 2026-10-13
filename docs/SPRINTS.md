@@ -18,7 +18,7 @@ Source: **BetterCallSir_MVP_PRD.docx, Version 3.0, 11 October 2026**, supplied b
 | --- | --- | --- | --- |
 | 1 Foundation | Threat model, modules, schema draft, OpenAPI, CI, auth/consent skeleton | Contract/ownership tests and reviewed foundation evidence; integrated guardian demonstration | Foundation implementation/review recorded; 64 tests, builds, scans and hosted CI pass |
 | 2 Backend core | Teacher screening, public projection, intake, eligible matching, reservations, audit | Real-database constraints and authorization checks | Development acceptance recorded; 79 tests, builds/scans and exact-source hosted CI pass |
-| 3 Frontend | Independent web screens against mocks and the real Phase 2 API | Mobile/accessibility and integrated discovery tests | Discovery, email sign-in and guided guardian onboarding implemented; remaining screens open; phase not accepted |
+| 3 Frontend | Independent web screens against mocks and the real Phase 2 API | Mobile/accessibility and integrated discovery tests | F1–F9 role onboarding, family access, discovery/shortlists, timetables/attendance, revision booking/checkout/meeting UI implemented; service/console/reporting/localization open; phase not accepted |
 | 4 Transactions | Demos, terms, placement invoices, revision holds, checkout, reconciliation | Payment replay, concurrency and actual provider sandbox evidence | Development demo/booking slices present; phase not accepted |
 | 5 Service operations | Notes, cases, rematches, follow-ups, deletion, outbox, reports | Privacy/retry tests and operator drills | Early slices present; phase not accepted |
 | 6 Release qualification | Security scans, adversarial review, load, backup restore, migrations, rollback | All PRD release gates | Not accepted |
@@ -42,6 +42,9 @@ This initial implementation also contains early development slices from later ph
 | S1-08 | Integrated guardian demonstration, ownership/withdrawal/replay checks and implementation review recorded | Independent live-service and final release acceptance: Phase 6 |
 
 ## Story coverage — development only
+
+
+Latest complete remaining-work inventory: [MVP_REMAINING.md](MVP_REMAINING.md). The table below records foundational story coverage; detailed frontend increments and remaining backend/release acceptance take precedence over its earlier screen-status summaries.
 
 | Story | Current implementation | Remaining work before story acceptance |
 | --- | --- | --- |
@@ -315,3 +318,13 @@ Validation: all 64 browser tests passed in the final regression run, including 1
 Remaining: timetable history is limited to the latest 50 records; teacher dashboard does not expose the learner alias before lessons exist, so an agreement identifier is shown. The backend allows one review per person per lesson. Confirmation history omits actor IDs; only confirmation submitted in the current view can suppress a duplicate UI action, and recorded-review history directs later corrections to support. Feedback, private meeting/checkout, remaining booking-detail design, service/finance/reporting/localization flows and deferred backend qualification remain open. This frontend increment does not complete all of US10/US17 or Phase 3. No backend implementation changed.
 
 Next frontend increment: revision checkout and private meeting access, followed by feedback and the remaining support/privacy/reporting workflows.
+
+### F9 / US09, US10, US17, US19 — revision booking, checkout and private meeting access
+
+Guardians now have a dedicated revision request with owned-learner selection, filtered online experts, advertised IST times, 20/40-minute scope, a topic brief and an explicit hold review. A saved hold waits for expert scope acceptance and retains its exact retry key after uncertain outcomes. Booking details show the current state, version, amount, cancellation review and hold expiry; a hold, captured payment, final slot allocation and settled refund are never conflated. Confirmed demos, revisions and lessons expose participant-only meeting lookup, with a live Google Meet join action only in the permitted time window. Student lesson views do not query guardian money.
+
+Guardians and teachers review their own revision/invoice amount and policy before checkout. The frontend reads and recovers a server-owned order across reloads, blocks rapid duplicate submissions, and only opens Razorpay for a current live order using the public key, server order ID and exact paise. Browser callbacks trigger an owner status refresh; they do not prove payment. Failed, mismatched, sandbox or unallocated orders never claim a completed booking or refund. The running application's checkout flag stays closed. Backend dependencies for owned checkout/meeting discovery and resource-scoped order reuse were tested and pushed separately to feat/backend-completion, then brought into this frontend branch.
+
+The visual treatment makes teal the revision introduction and payment amount, lavender the timing/status guide, cream the confirmation layer and white the working form. The new UI uses labelled controls and responsive layouts. [The complete remaining-work inventory](MVP_REMAINING.md) replaces earlier shorthand remaining-feature descriptions. Phase 3, provider qualification, finance settlement and pilot acceptance remain open.
+
+Validation: all 82 browser tests pass, including 18 new revision/payment/meeting cases and a real API guardian–teacher hold, scope, release-gate and synthetic-capture journey. The new cases cover simultaneous checkout taps, exact saved-order reuse, lost responses, amount mismatches, provider script failure, callback versus signed server capture, expired/unallocated states, role and join-window limits, keyboard access, 360px overflow and serious/critical axe findings. Loaded-font desktop and mobile revision/checkout screenshots were inspected. All 59 real-database API and eight contract tests pass for the two separately pushed backend dependencies. Production web build, all application type checks, formatting and source secrets scan pass. Hosted CI evidence and live Razorpay/Meet qualification remain uninspected; no merge, release-gate activation or deployment occurred.
