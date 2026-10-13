@@ -21,6 +21,11 @@ class NotesController {
     return this.service.once(req,actor,'note.create',data,async db=>{await this.service.guardian(db,actor.id);await this.service.child(db,actor,data.childId);return db.note.create({data:{...data,guardianId:actor.id}});});
   }
 
+  @Post('notes/:id/updates') async update(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown) {
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({expectedVersion:version,text:text(5000)}).strict(),body);
+    return this.service.once(req,actor,'note.update',data,async db=>{await this.service.guardian(db,actor.id);const note=await db.note.findUnique({where:{id}});if(!note||note.guardianId!==actor.id)fail(404,'NOT_FOUND','Note not found.');const changed=await db.note.updateMany({where:{id,version:data.expectedVersion},data:{text:data.text,sharedTeacherId:null,acknowledgedAt:null,version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Note changed. Refresh before saving edits.');await this.service.audit(db,actor,req,'NOTE_UPDATED_PRIVATE',id,'Guardian saved edits and withdrew previous sharing');return db.note.findUniqueOrThrow({where:{id}});});
+  }
+
   @Post('notes/:id/shares') async share(@Req() req: HttpRequest,@Param('id') id: string,@Body() body: unknown) {
     parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({teacherId:uuid.nullable(),expectedVersion:version}).strict(),body);
     return this.service.once(req,actor,'note.share',data,async db=>{
@@ -44,12 +49,27 @@ class NotesController {
 
   @Get('notes') async notes(@Req() req: Request) {
     const actor=await this.service.actor(req,['GUARDIAN','TEACHER']);
-    if (actor.role==='GUARDIAN') return {items:await this.db.note.findMany({where:{guardianId:actor.id},orderBy:{createdAt:'desc'},take:50})};
-    const teacher=await this.db.teacher.findUniqueOrThrow({where:{accountId:actor.id}});
-    if (teacher.status!=='APPROVED') return {items:[]};
-    const placements=await this.db.placement.findMany({where:{teacherId:teacher.id,status:'ACTIVE'}});
-    const consents=await this.db.consent.findMany({where:{guardianId:{in:placements.map(p=>p.guardianId)},withdrawnAt:null}});
-    return {items:await this.db.note.findMany({where:{sharedTeacherId:teacher.id,childId:{in:placements.filter(p=>consents.some(c=>c.guardianId===p.guardianId)).map(p=>p.childId)}},take:50})};
+    let notes;
+    if(actor.role==='GUARDIAN') notes=await this.db.note.findMany({where:{guardianId:actor.id},orderBy:[{createdAt:'desc'},{id:'desc'}],take:50});
+    else {
+      const teacher=await this.db.teacher.findUnique({where:{accountId:actor.id}});if(!teacher||teacher.status!=='APPROVED')return {items:[]};
+      const placements=await this.db.placement.findMany({where:{teacherId:teacher.id,status:'ACTIVE'}});
+      const guardians=await this.db.account.findMany({where:{id:{in:placements.map(p=>p.guardianId)},verified:true,disabled:false,role:'GUARDIAN'},select:{id:true}});
+      const consents=await this.db.consent.findMany({where:{guardianId:{in:guardians.map(g=>g.id)},withdrawnAt:null}});
+      const paused=await this.db.privacyRequest.findMany({where:{accountId:{in:guardians.map(g=>g.id)},kind:'DELETION',scope:{in:['ACCOUNT','CHILD']},status:'PENDING'},select:{accountId:true}});
+      notes=await this.db.note.findMany({where:{sharedTeacherId:teacher.id,childId:{in:placements.filter(p=>consents.some(c=>c.guardianId===p.guardianId)&&!paused.some(g=>g.accountId===p.guardianId)).map(p=>p.childId)}},orderBy:[{createdAt:'desc'},{id:'desc'}],take:50});
+    }
+    const records=[];
+    for(const note of notes){
+      const {guardianId,...record}=note,learner=await this.db.child.findUniqueOrThrow({where:{id:note.childId},select:{alias:true,grade:true,board:true}}),profile=note.sharedTeacherId?await this.db.teacher.findUnique({where:{id:note.sharedTeacherId},select:{id:true,name:true,status:true,accountId:true}}):null;
+      let sharingActive=actor.role==='TEACHER';
+      if(actor.role==='GUARDIAN'&&profile?.status==='APPROVED'){
+        const consent=await this.db.consent.findUnique({where:{guardianId}}),teacherAccount=await this.db.account.findUnique({where:{id:profile.accountId}}),placement=await this.db.placement.findFirst({where:{guardianId,childId:note.childId,teacherId:profile.id,status:'ACTIVE'}}),paused=await this.db.privacyRequest.findFirst({where:{accountId:guardianId,kind:'DELETION',scope:{in:['ACCOUNT','CHILD']},status:'PENDING'}});
+        sharingActive=actor.verified&&!!consent&&!consent.withdrawnAt&&!paused&&!!placement&&!!teacherAccount&&!teacherAccount.disabled;
+      }
+      records.push({...record,learner,sharedTeacher:profile?{id:profile.id,name:profile.name}:null,sharingActive});
+    }
+    return {items:records};
   }
 
 }
