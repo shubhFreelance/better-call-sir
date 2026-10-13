@@ -2,7 +2,8 @@ import {Module,Controller,Get,Post,Param,Query,Body,Req,Headers,Inject} from '@n
 import {z} from 'zod';
 import {AppService,PersistenceModule,HttpRequest,uuid,version,text,parse,fail,development} from '../../shared';
 import {available} from '../scheduling/calendar';
-import {createRazorpayOrder,fetchRazorpayOrder,paymentMode,verifyWebhook} from './razorpay';
+import {fetchRazorpayOrder,paymentMode,verifyWebhook} from './razorpay';
+import {completeCheckout} from './checkout';
 import {mode as meetingMode} from '@bcs/meetings';
 import {createRevisionFulfillment} from '../revision/fulfillment';
 
@@ -23,11 +24,12 @@ class PaymentsController{
     }
     const where={accountId:actor.id,kind:data.kind,resourceId:data.resourceId};
     const order=await this.service.db.checkoutOrder.findFirst({where:{...where,status:'PAID'},orderBy:{createdAt:'desc'}})||await this.service.db.checkoutOrder.findFirst({where,orderBy:{createdAt:'desc'}});
-    return {order,publicKeyId:order?.providerMode==='LIVE'?process.env.RAZORPAY_KEY_ID||null:null};
+    const enabled=(await this.service.db.featureFlag.findUnique({where:{name:'checkout'}}))?.enabled;
+    return {order,publicKeyId:enabled&&order?.providerMode==='LIVE'?process.env.RAZORPAY_KEY_ID||null:null};
   }
   @Post('checkout-orders') async create(@Req() req:HttpRequest,@Body() body:unknown){
     const actor=await this.service.actor(req,['GUARDIAN','TEACHER']);const data=parse(z.object({kind:z.enum(['INVOICE','REVISION']),resourceId:uuid,expectedVersion:version}).strict(),body);
-    return this.service.once(req,actor,'checkout.create',data,async db=>{
+    const saved=await this.service.once(req,actor,'checkout.create',data,async db=>{
       const flag=await db.featureFlag.findUnique({where:{name:'checkout'}});if(!flag?.enabled)fail(503,'CHECKOUT_PAUSED','Checkout is temporarily unavailable.');
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id+':checkout:'+data.kind+':'+data.resourceId},0))`;
       let amount=0;
@@ -40,11 +42,10 @@ class PaymentsController{
       const where={accountId:actor.id,kind:data.kind,resourceId:data.resourceId};
       const existing=await db.checkoutOrder.findFirst({where:{...where,status:'PAID'},orderBy:{createdAt:'desc'}})||await db.checkoutOrder.findFirst({where,orderBy:{createdAt:'desc'}});
       if(existing){if(existing.amountPaise!==amount||existing.currency!=='INR')fail(409,'ORDER_CHANGED','The existing order needs finance review before another payment.');return existing;}
-      const order=await db.checkoutOrder.create({data:{accountId:actor.id,kind:data.kind,resourceId:data.resourceId,amountPaise:amount,providerMode:paymentMode()}});
-      // shortcut: provider creation is inside the retry transaction; move to an outbox if Razorpay adds a supported order-idempotency key.
-      try{const provider=await createRazorpayOrder(order.id,amount);return db.checkoutOrder.update({where:{id:order.id},data:{providerOrderId:provider.id,status:'CREATED',version:{increment:1}}});}
-      catch{await db.checkoutOrder.update({where:{id:order.id},data:{status:'FAILED',version:{increment:1}}});fail(503,'PAYMENT_PROVIDER_UNAVAILABLE','Payment provider is unavailable. No payment was confirmed.');}
+      return db.checkoutOrder.create({data:{accountId:actor.id,kind:data.kind,resourceId:data.resourceId,amountPaise:amount,providerMode:paymentMode()}});
     });
+    if(saved.status==='CREATING'&&!(await this.service.db.featureFlag.findUnique({where:{name:'checkout'}}))?.enabled)fail(503,'CHECKOUT_PAUSED','Checkout is temporarily unavailable.');
+    try{return await completeCheckout(this.service.db,saved.id);}catch{fail(503,'PAYMENT_PROVIDER_UNAVAILABLE','The saved order needs provider review. Check its status before attempting another payment.');}
   }
   @Get('checkout-orders/:id') async get(@Req() req:HttpRequest,@Param('id') id:string){
     parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER','FINANCE','ADMIN']);const order=await this.service.db.checkoutOrder.findUnique({where:{id}});if(!order||(!['FINANCE','ADMIN'].includes(actor.role)&&order.accountId!==actor.id))fail(404,'NOT_FOUND','Checkout order not found.');return order;

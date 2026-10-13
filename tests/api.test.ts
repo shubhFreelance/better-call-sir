@@ -10,9 +10,10 @@ import {Pool} from 'pg';
 import {PrismaClient} from '@prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg';
 import {ids} from '../packages/test-fixtures/src';
-import {operationValidator} from './helpers/contract';
+import {operationValidator,contract} from './helpers/contract';
 import {AppService,privileged} from '../apps/api/src/shared';
 import {totp} from '../apps/api/src/modules/identity/totp';
+import {completeCheckout} from '../apps/api/src/modules/payments/checkout';
 process.env.MFA_ENCRYPTION_KEY=randomBytes(32).toString('base64');
 const mfaRecovery=new Map<string,string[]>();
 const local=parseEnv(readFileSync('.env','utf8'));
@@ -38,7 +39,7 @@ const future=(days=15,hour=6)=>{const d=new Date();d.setUTCDate(d.getUTCDate()+d
 const intake=(extra={})=>({alias:'Test learner',grade:8,board:'CBSE',subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Monday after 5pm',...extra});
 before(async()=>{
  await admin.query(`CREATE DATABASE "${name}"`);
- const env={...process.env,...local,DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',RAZORPAY_WEBHOOK_SECRET:['synthetic','webhook','key'].join('-'),EVIDENCE_DIRECTORY:evidenceDir};
+ const env={...process.env,...local,DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',RAZORPAY_KEY_ID:'rzp_test_synthetic_public',RAZORPAY_WEBHOOK_SECRET:['synthetic','webhook','key'].join('-'),EVIDENCE_DIRECTORY:evidenceDir};
  execFileSync(process.execPath,['node_modules/prisma/build/index.js','migrate','deploy'],{env,stdio:'pipe'});
  execFileSync(process.execPath,['--import','tsx','prisma/seed.ts'],{env,stdio:'pipe'});
  execFileSync(process.execPath,['node_modules/typescript/bin/tsc','-p','apps/api/tsconfig.json'],{env,stdio:'pipe'});
@@ -61,6 +62,12 @@ test('direct teacher search and assisted requests preserve distinct discovery pa
  const assisted=await parent.call('/requests',intake({childId:ids.child}));assert.equal(assisted.status,201);assert.equal(assisted.data.discoveryMethod,'ASSISTED');assert.equal(assisted.data.preferredTeacherId,null);assert.equal((await student.call('/requests',body)).status,403);
 });
 test('anonymous, role, Origin and CSRF checks reject direct requests',async()=>{assert.equal((await new Client().call('/dashboard')).status,401);assert.equal((await student.call('/requests',intake())).status,403);assert.equal((await parent.call('/requests',intake(),{origin:'https://attacker.invalid'})).status,403);assert.equal((await parent.call('/requests',intake(),{csrf:'wrong'})).status,403);});
+test('every declared cookie-protected endpoint denies anonymous direct access',async()=>{
+ let checked=0;for(const [route,methods] of Object.entries(contract.paths) as [string,Record<string,any>][])for(const [method,operation] of Object.entries(methods)){
+  if(!(operation.security||contract.security||[]).some((x:any)=>'cookieSession' in x))continue;
+  const endpoint=route.replace(/\{(\w+)\}/g,(_,name)=>name==='kind'?'parent':name==='name'?'revision':ids.child),response=await new Client().call(endpoint,method==='post'?{}:undefined);assert.equal(response.status,401,method+' '+route+' must deny anonymous access');checked++;
+ }assert(checked>=70);
+});
 test('profileless teachers cannot read other teachers financial payables',async()=>{
  const account=await db.account.create({data:{phone:'+91000000'+randomUUID().slice(0,8),name:'Synthetic profileless teacher',role:'TEACHER'}}),client=await login(account.id);
  assert.equal((await client.call('/payables')).status,404);assert.equal((await client.call('/payables?status=ELIGIBLE')).status,404);
@@ -286,6 +293,19 @@ test('concurrent distinct checkout keys reuse one order per resource and preserv
  await db.checkoutOrder.update({where:{id:later.data.id},data:{status:'FAILED'}});assert.equal((await parent.call('/checkout-orders',body,{key:randomUUID()})).data.id,later.data.id);
  await db.reservation.update({where:{id:r.id},data:{amountPaise:40000}});assert.equal((await parent.call('/checkout-orders',body,{key:randomUUID()})).status,409);assert.equal(await db.checkoutOrder.count({where:{resourceId:r.id}}),1);
  await db.featureFlag.update({where:{name:'checkout'},data:{enabled:false}});
+});
+test('durable checkout claims prevent duplicate provider calls after concurrency, failure and a crash',async()=>{
+ let fixture=0;const create=async()=>{const start=new Date(Date.now()+61*86400000+(fixture++)*3600000),r=await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,childId:ids.child,kind:'REVISION',startsAt:start,endsAt:new Date(start.getTime()+1200000),status:'HOLD',scopeAccepted:true,expiresAt:new Date(Date.now()+600000),amountPaise:30000}});return db.checkoutOrder.create({data:{accountId:ids.guardian,kind:'REVISION',resourceId:r.id,amountPaise:30000,providerMode:'SANDBOX'}});};
+ const order=await create();let calls=0;let release!:()=>void;const barrier=new Promise<void>(resolve=>release=resolve),provider=async(id:string,amount:number)=>{calls++;await barrier;return {id:'order_claim_'+id,amount,currency:'INR' as const,status:'created',receipt:id};};
+ const first=completeCheckout(db,order.id,provider);for(let i=0;i<100;i++){if(await db.checkoutAttempt.findUnique({where:{orderId:order.id}}))break;await new Promise(r=>setTimeout(r,10));}
+ const second=await completeCheckout(db,order.id,provider);assert.equal(second.status,'CREATING');release();assert.equal((await first).status,'CREATED');assert.equal(calls,1);assert.equal(await db.checkoutAttempt.count({where:{orderId:order.id}}),1);
+ const failed=await create();let failures=0;const unavailable=async()=>{failures++;throw new Error('Synthetic timeout after unknown provider outcome');};await assert.rejects(completeCheckout(db,failed.id,unavailable));assert.equal((await db.checkoutOrder.findUniqueOrThrow({where:{id:failed.id}})).status,'FAILED');assert.equal((await completeCheckout(db,failed.id,unavailable)).status,'FAILED');assert.equal(failures,1);
+ const interrupted=await create();await db.checkoutAttempt.create({data:{orderId:interrupted.id}});assert.equal((await completeCheckout(db,interrupted.id,unavailable)).status,'CREATING');assert.equal(failures,1);assert.equal(await db.checkoutOrder.count({where:{resourceId:interrupted.resourceId}}),1);
+});
+test('paused checkout removes the public gateway key from an existing live order',async()=>{
+ const r=await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,childId:ids.child,kind:'REVISION',startsAt:new Date(future(58,8)),endsAt:new Date(new Date(future(58,8)).getTime()+1200000),status:'HOLD',expiresAt:new Date(Date.now()+600000),scopeAccepted:true,amountPaise:30000}});
+ const order=await db.checkoutOrder.create({data:{accountId:ids.guardian,kind:'REVISION',resourceId:r.id,amountPaise:30000,providerMode:'LIVE',status:'CREATED',providerOrderId:'order_gate_'+randomUUID()}}),url=`/checkout-orders?kind=REVISION&resourceId=${r.id}`;
+ await db.featureFlag.update({where:{name:'checkout'},data:{enabled:true}});assert.equal((await parent.call(url)).data.publicKeyId,'rzp_test_synthetic_public');await db.featureFlag.update({where:{name:'checkout'},data:{enabled:false}});const paused=await parent.call(url);assert.equal(paused.data.order.id,order.id);assert.equal(paused.data.publicKeyId,null);
 });
 test('owned checkout recovery survives reload, prefers captured orders and never exposes a secret',async()=>{
  const r=await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,childId:ids.child,kind:'REVISION',startsAt:new Date(future(58)),endsAt:new Date(new Date(future(58)).getTime()+1200000),status:'HOLD',scopeAccepted:true,expiresAt:new Date(Date.now()+600000),amountPaise:30000}});
