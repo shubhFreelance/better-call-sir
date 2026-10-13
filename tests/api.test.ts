@@ -230,14 +230,31 @@ function runEvidenceWorker(available=true,extra:Record<string,string>={}) {
  const env={...process.env,...local,DATABASE_URL:base.href,APP_MODE:'development',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',EVIDENCE_DIRECTORY:evidenceDir,CLAMAV_HOST:'127.0.0.1',CLAMAV_PORT:available?'3310':'3311',WORKER_ONCE:'1',...extra};
  const result=spawnSync(process.execPath,['--import','tsx','apps/worker/src/main.ts'],{env,encoding:'utf8',timeout:15000});assert.equal(result.status,0,result.stderr);
 }
+test('owned checkout recovery survives reload, prefers captured orders and never exposes a secret',async()=>{
+ const r=await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,childId:ids.child,kind:'REVISION',startsAt:new Date(future(58)),endsAt:new Date(new Date(future(58)).getTime()+1200000),status:'HOLD',scopeAccepted:true,expiresAt:new Date(Date.now()+600000),amountPaise:30000}});
+ const path=`/checkout-orders?kind=REVISION&resourceId=${r.id}`;
+ assert.equal((await parent.call(path)).data.order,null);
+ assert.equal((await other.call(path)).status,404);assert.equal((await teacher.call(path)).status,403);assert.equal((await student.call(path)).status,403);assert.equal((await new Client().call(path)).status,401);
+ const order=await db.checkoutOrder.create({data:{accountId:ids.guardian,kind:'REVISION',resourceId:r.id,amountPaise:30000,providerMode:'SANDBOX',status:'CREATED',providerOrderId:'order_synthetic_recovery'}});
+ assert.equal((await parent.call(path)).data.order.id,order.id);
+ const failed=await db.checkoutOrder.create({data:{accountId:ids.guardian,kind:'REVISION',resourceId:r.id,amountPaise:30000,providerMode:'SANDBOX',status:'FAILED',createdAt:new Date(Date.now()+1000)}});
+ assert.equal((await parent.call(path)).data.order.id,failed.id);
+ await db.checkoutOrder.update({where:{id:order.id},data:{status:'PAID'}});
+ const recovered=await parent.call(path);assert.equal(recovered.data.order.id,order.id);assert.equal(recovered.data.publicKeyId,null);assert(!JSON.stringify(recovered.data).includes('KEY_SECRET'));
+ const valid=operationValidator('/checkout-orders','get','200');assert(valid(recovered.data),JSON.stringify(valid.errors));
+ assert.equal((await parent.call(`/checkout-orders?kind=REVISION&resourceId=${r.id}&accountId=${ids.otherGuardian}`)).status,400);
+});
 test('private meetings are delivered, ownership-scoped, time-gated and manually retryable',async()=>{
  const start=new Date(Date.now()+2*3600000),reservation=await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,childId:ids.child,kind:'DEMO',startsAt:start,endsAt:new Date(start.getTime()+40*60000),status:'CONFIRMED'}});
+ assert.deepEqual((await parent.call(`/reservations/${reservation.id}/meeting`)).data,{meeting:null});assert.equal((await other.call(`/reservations/${reservation.id}/meeting`)).status,404);
  const meeting=await db.meeting.create({data:{reservationId:reservation.id,providerMode:'SANDBOX'}});await db.outbox.create({data:{type:'meeting.create_requested',aggregateId:meeting.id,payload:{version:meeting.version}}});
  runEvidenceWorker(true,{MEETING_PROVIDER_MODE:'sandbox'});
  const ready=await db.meeting.findUniqueOrThrow({where:{id:meeting.id}});assert.equal(ready.status,'READY');assert.match(ready.joinUrl!,/^https:\/\/meet\.invalid\//);
  for(const client of [parent,teacher,student]){const result=await client.call(`/meetings/${meeting.id}`);assert.equal(result.status,200);assert.equal(result.data.joinUrl,null);assert.equal(result.data.canJoin,false);}
  assert.equal((await other.call(`/meetings/${meeting.id}`)).status,404);
+ for(const client of [parent,teacher,student]){const found=await client.call(`/reservations/${reservation.id}/meeting`);assert.equal(found.status,200);assert.equal(found.data.meeting.id,meeting.id);assert.equal(found.data.meeting.joinUrl,null);assert.equal(found.data.meeting.providerMode,'SANDBOX');const valid=operationValidator('/reservations/{id}/meeting','get','200');assert(valid(found.data),JSON.stringify(valid.errors));}
  const joinStart=new Date(Date.now()+5*60000);await db.reservation.update({where:{id:reservation.id},data:{startsAt:joinStart,endsAt:new Date(joinStart.getTime()+40*60000)}});
+ const viaBooking=await student.call(`/reservations/${reservation.id}/meeting`);assert.equal(viaBooking.data.meeting.canJoin,true);
  const visible=await student.call(`/meetings/${meeting.id}`);assert.equal(visible.status,200);assert.equal(visible.data.canJoin,true);assert.match(visible.data.joinUrl,/^https:\/\/meet\.invalid\//);
 
  const failedReservation=await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,childId:ids.child,kind:'REVISION',startsAt:new Date(Date.now()+3*3600000),endsAt:new Date(Date.now()+3*3600000+20*60000),status:'CONFIRMED'}});
@@ -415,6 +432,7 @@ test('Razorpay checkout verifies raw webhooks, exact money, ownership, replay an
  assert.equal((await webhook('evt_bad_signature',order.data.providerOrderId,invoice.amountPaise,false)).status,401);
  const captured=await webhook('evt_invoice_paid',order.data.providerOrderId,invoice.amountPaise);assert.equal(captured.status,201);assert.equal(captured.data.status,'PAID');
  assert.equal((await webhook('evt_invoice_paid',order.data.providerOrderId,invoice.amountPaise)).data.status,'PAID');assert.equal((await db.invoice.findUniqueOrThrow({where:{id:invoice.id}})).status,'PAID');assert.equal(await db.payment.count({where:{invoiceId:invoice.id}}),1);
+ const resumed=await teacher.call(`/checkout-orders?kind=INVOICE&resourceId=${invoice.id}`);assert.equal(resumed.data.order.id,order.data.id);assert.equal(resumed.data.order.status,'PAID');assert.equal((await parent.call(`/checkout-orders?kind=INVOICE&resourceId=${invoice.id}`)).status,404);
  assert.equal((await webhook('evt_invoice_duplicate',order.data.providerOrderId,invoice.amountPaise)).data.status,'ALREADY_PAID');assert.equal(await db.payment.count({where:{invoiceId:invoice.id}}),1);
  const reconciliation=await operator.call(`/admin/checkout-orders/${order.data.id}/reconciliations`,{expectedVersion:3,reason:'Verify synthetic order'});assert.equal(reconciliation.status,201);assert.equal(reconciliation.data.status,'LOCAL_SANDBOX_ONLY');
  const hold=await parent.call('/revision/holds',{teacherId:ids.teacher,startsAt:future(54),duration:20,topic:'Razorpay revision'});assert.equal(hold.status,201);const scoped=await teacher.call(`/reservations/${hold.data.id}/scope`,{expectedVersion:1});assert.equal(scoped.status,201);

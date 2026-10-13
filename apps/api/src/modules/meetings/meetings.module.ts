@@ -1,16 +1,25 @@
 import {Module,Controller,Get,Post,Param,Body,Req,Inject} from '@nestjs/common';
 import {z} from 'zod';
+import {Account,Meeting,Reservation} from '@prisma/client';
 import {AppService,PersistenceModule,HttpRequest,uuid,version,text,parse,fail} from '../../shared';
 import {mode} from '@bcs/meetings';
 @Controller('api/v1')
 class MeetingsController{
   constructor(@Inject(AppService) private readonly service:AppService){}
+  async visible(actor:Account,reservation:Reservation,meeting:Meeting|null){
+    const teacher=actor.role==='TEACHER'?await this.service.db.teacher.findUnique({where:{accountId:actor.id}}):null,child=actor.role==='STUDENT'?await this.service.db.child.findUnique({where:{studentAccountId:actor.id}}):null;
+    if(actor.role==='GUARDIAN'?reservation.guardianId!==actor.id:actor.role==='TEACHER'?reservation.teacherId!==teacher?.id:reservation.childId!==child?.id)fail(404,'NOT_FOUND','Meeting not found.');
+    if(!meeting)return null;
+    const now=Date.now(),canJoin=meeting.status==='READY'&&reservation.status==='CONFIRMED'&&now>=reservation.startsAt.getTime()-10*60000&&now<=reservation.endsAt.getTime()+15*60000;
+    return {id:meeting.id,reservationId:reservation.id,status:meeting.status,startsAt:reservation.startsAt,endsAt:reservation.endsAt,provider:'GOOGLE_MEET',providerMode:meeting.providerMode,canJoin,joinUrl:canJoin?meeting.joinUrl:null,version:meeting.version};
+  }
   @Get('meetings/:id') async get(@Req() req:HttpRequest,@Param('id') id:string){
     parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT']);const meeting=await this.service.db.meeting.findUnique({where:{id}});if(!meeting)fail(404,'NOT_FOUND','Meeting not found.');
-    const reservation=await this.service.db.reservation.findUniqueOrThrow({where:{id:meeting.reservationId}}),teacher=actor.role==='TEACHER'?await this.service.db.teacher.findUnique({where:{accountId:actor.id}}):null,child=actor.role==='STUDENT'?await this.service.db.child.findUnique({where:{studentAccountId:actor.id}}):null;
-    if(actor.role==='GUARDIAN'?reservation.guardianId!==actor.id:actor.role==='TEACHER'?reservation.teacherId!==teacher?.id:reservation.childId!==child?.id)fail(404,'NOT_FOUND','Meeting not found.');
-    const now=Date.now(),canJoin=meeting.status==='READY'&&reservation.status==='CONFIRMED'&&now>=reservation.startsAt.getTime()-10*60000&&now<=reservation.endsAt.getTime()+15*60000;
-    return {id:meeting.id,reservationId:reservation.id,status:meeting.status,startsAt:reservation.startsAt,endsAt:reservation.endsAt,provider:'GOOGLE_MEET',canJoin,joinUrl:canJoin?meeting.joinUrl:null,version:meeting.version};
+    return this.visible(actor,await this.service.db.reservation.findUniqueOrThrow({where:{id:meeting.reservationId}}),meeting);
+  }
+  @Get('reservations/:id/meeting') async reservationMeeting(@Req() req:HttpRequest,@Param('id') id:string){
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT']);const reservation=await this.service.db.reservation.findUnique({where:{id}});if(!reservation)fail(404,'NOT_FOUND','Booking not found.');
+    return {meeting:await this.visible(actor,reservation,await this.service.db.meeting.findUnique({where:{reservationId:id}}))};
   }
   @Post('admin/meetings/:id/retries') async retry(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
     parse(uuid,id);const actor=await this.service.actor(req,['ADMIN','OPERATOR']);const data=parse(z.object({expectedVersion:version,reason:text(500)}).strict(),body);
