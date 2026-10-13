@@ -20,6 +20,7 @@ import { GuardianOnboarding } from "./guardian-onboarding";
 import { TeacherSetup } from "./teacher-onboarding";
 import { FamilyOverview } from "./family-overview";
 import { TuitionRequests, TuitionTerms } from "./tuition-workflow";
+import { LearningWorkspace } from "./learning-workspace";
 import { FamilyAccess, StudentActivation } from "./student-access";
 import { EmailLogin } from "./email-login";
 import { DemoJourney } from "./demo-journey";
@@ -1471,7 +1472,9 @@ function DashboardPage({ tab }: { tab: string }) {
                   ? "Manage student devices and the permissions you grant."
                   : tab.endsWith("requests")
                     ? "Review teacher options, demo progress and your tuition agreement."
-                    : "All changes are confirmed by the backend."
+                    : tab.endsWith("lessons")
+                      ? "Your weekly timetable, booked lessons and attendance records."
+                      : "All changes are confirmed by the backend."
             }
           />
           {error && <Notice error>{error}</Notice>}
@@ -1640,22 +1643,7 @@ function DashboardPage({ tab }: { tab: string }) {
               </section>
             ))}
           {tab.endsWith("lessons") && (
-            <div className="panel">
-              <div className="panel-title">
-                <h3>Classes & attendance</h3>
-                <Badge>{d.window.metricVersion}</Badge>
-              </div>
-              <p className="muted">
-                Classes taken count completed PRESENT or LATE lessons. Absent,
-                cancelled and disputed records are excluded.
-              </p>
-              <LessonList
-                lessons={d.lessons || []}
-                children={d.children}
-                role={d.role}
-                act={act}
-              />
-            </div>
+            <LearningWorkspace session={session} dashboard={d} />
           )}
           {tab.endsWith("requests") &&
             (session.account.role === "GUARDIAN" ? (
@@ -1849,13 +1837,9 @@ type Act = (
 function LessonList({
   lessons,
   children,
-  role,
-  act,
 }: {
   lessons: Lesson[];
   children?: Child[];
-  role?: string;
-  act?: Act;
 }) {
   if (!lessons.length) return <Empty>No classes in this view yet.</Empty>;
   return (
@@ -1891,40 +1875,6 @@ function LessonList({
                 : `${pretty(l.status)} · ${pretty(l.attendance)}`}
             </span>
           </div>
-          {act &&
-            role === "TEACHER" &&
-            new Date(l.startsAt) < new Date() &&
-            l.status !== "CANCELLED" && (
-              <button
-                className="text-button"
-                onClick={() =>
-                  void act(`/lessons/${l.id}/attendance`, {
-                    expectedVersion: l.version,
-                    attendance: "PRESENT",
-                    reason: "Teacher attendance confirmation",
-                  })
-                }
-              >
-                Mark present
-              </button>
-            )}
-          {act &&
-            ["GUARDIAN", "STUDENT"].includes(role || "") &&
-            l.status === "COMPLETED" &&
-            !l.disputed && (
-              <button
-                className="text-button"
-                onClick={() => {
-                  const reason = prompt(
-                    "What is incorrect about this attendance record?",
-                  );
-                  if (reason)
-                    void act(`/lessons/${l.id}/disputes`, { reason }, false);
-                }}
-              >
-                Flag error
-              </button>
-            )}
         </div>
       ))}
     </div>

@@ -61,7 +61,15 @@ function Notice({
     </Alert>
   );
 }
-function useDecision(session: Session, refresh: () => Promise<void>) {
+export function useDecision(
+  session: Session,
+  refresh: () => Promise<void>,
+  acceptsResult = (result: unknown) =>
+    !!result &&
+    typeof result === "object" &&
+    "id" in result &&
+    typeof result.id === "string",
+) {
   const [busy, setBusy] = useState(false),
     [uncertain, setUncertain] = useState(false),
     [conflict, setConflict] = useState(false),
@@ -72,8 +80,14 @@ function useDecision(session: Session, refresh: () => Promise<void>) {
     body: unknown;
     key: string;
     message: string;
+    onSaved?: () => void;
   } | null>(null);
-  async function run(next?: { path: string; body: unknown; message: string }) {
+  async function run(next?: {
+    path: string;
+    body: unknown;
+    message: string;
+    onSaved?: () => void;
+  }) {
     if (next) pending.current = { ...next, key: crypto.randomUUID() };
     if (!pending.current) return false;
     const operation = pending.current;
@@ -89,12 +103,7 @@ function useDecision(session: Session, refresh: () => Promise<void>) {
         body: operation.body,
         signal: AbortSignal.timeout(15000),
       });
-      if (
-        !result ||
-        typeof result !== "object" ||
-        !("id" in result) ||
-        typeof result.id !== "string"
-      )
+      if (!acceptsResult(result))
         throw new Error("The service did not confirm the result.");
     } catch (e) {
       const unsure = unknown(e);
@@ -126,6 +135,7 @@ function useDecision(session: Session, refresh: () => Promise<void>) {
         "Your decision was saved, but current details could not be loaded. Refresh before making another decision.",
       );
     }
+    operation.onSaved?.();
     setBusy(false);
     return true;
   }
@@ -157,7 +167,11 @@ function useDecision(session: Session, refresh: () => Promise<void>) {
     },
   };
 }
-function Feedback({ decision }: { decision: ReturnType<typeof useDecision> }) {
+export function Feedback({
+  decision,
+}: {
+  decision: ReturnType<typeof useDecision>;
+}) {
   return (
     <>
       {decision.error && <Notice error>{decision.error}</Notice>}
@@ -403,19 +417,17 @@ function RequestReview({
       );
       return;
     }
-    if (
-      await decision.run({
-        path: `/requests/${request!.id}/selections`,
-        body: {
-          expectedVersion: request!.version,
-          candidateId: chosen.id,
-          candidateVersion: chosen.version,
-        },
-        message:
-          "Teacher choice saved. This does not assign a teacher or start tuition.",
-      })
-    )
-      setForm(null);
+    await decision.run({
+      path: `/requests/${request!.id}/selections`,
+      body: {
+        expectedVersion: request!.version,
+        candidateId: chosen.id,
+        candidateVersion: chosen.version,
+      },
+      message:
+        "Teacher choice saved. This does not assign a teacher or start tuition.",
+      onSaved: () => setForm(null),
+    });
   }
   async function createTerms() {
     if (
@@ -428,15 +440,13 @@ function RequestReview({
       );
       return;
     }
-    if (
-      await decision.run({
-        path: "/placements",
-        body: { requestId: request!.id, teacherId: form.teacherId },
-        message:
-          "Tuition terms created. Review the monthly amount and each party’s acceptance below.",
-      })
-    )
-      setForm(null);
+    await decision.run({
+      path: "/placements",
+      body: { requestId: request!.id, teacherId: form.teacherId },
+      message:
+        "Tuition terms created. Review the monthly amount and each party’s acceptance below.",
+      onSaved: () => setForm(null),
+    });
   }
   async function saveWindows() {
     const preferences = buildPreferences(windows);
@@ -446,15 +456,13 @@ function RequestReview({
       );
       return;
     }
-    if (
-      await decision.run({
-        path: `/requests/${request!.id}/schedules`,
-        body: { expectedVersion: request!.version, ...preferences },
-        message:
-          "Availability preferences saved. The previous shortlist has been cleared for a new review.",
-      })
-    )
-      setScheduleOpen(false);
+    await decision.run({
+      path: `/requests/${request!.id}/schedules`,
+      body: { expectedVersion: request!.version, ...preferences },
+      message:
+        "Availability preferences saved. The previous shortlist has been cleared for a new review.",
+      onSaved: () => setScheduleOpen(false),
+    });
   }
   return (
     <section className="panel tuition-request-review">
@@ -842,19 +850,17 @@ function RequestReview({
                   );
                   return;
                 }
-                if (
-                  await decision.run({
-                    path: "/demos",
-                    body: {
-                      requestId: request.id,
-                      teacherId: teacher.id,
-                      ...body,
-                    },
-                    message:
-                      "Demo proposal saved. Both you and the teacher must accept the same time before it is confirmed.",
-                  })
-                )
-                  setForm(null);
+                await decision.run({
+                  path: "/demos",
+                  body: {
+                    requestId: request.id,
+                    teacherId: teacher.id,
+                    ...body,
+                  },
+                  message:
+                    "Demo proposal saved. Both you and the teacher must accept the same time before it is confirmed.",
+                  onSaved: () => setForm(null),
+                });
               }}
             />
           ) : (
@@ -1273,19 +1279,17 @@ function TermsReview({
       );
       return;
     }
-    if (
-      await decision.run({
-        path: `/placements/${p.id}/acceptances`,
-        body: { expectedVersion: p.version, action },
-        message:
-          action === "ACCEPT_TERMS"
-            ? "Your tuition-term acceptance is saved."
-            : guardian
-              ? "Your first paid lesson confirmation is saved. Teacher receipt confirmation is separate."
-              : "Your lesson and tuition-receipt confirmation is saved. Guardian start confirmation is separate.",
-      })
-    )
-      setAction(null);
+    await decision.run({
+      path: `/placements/${p.id}/acceptances`,
+      body: { expectedVersion: p.version, action },
+      message:
+        action === "ACCEPT_TERMS"
+          ? "Your tuition-term acceptance is saved."
+          : guardian
+            ? "Your first paid lesson confirmation is saved. Teacher receipt confirmation is separate."
+            : "Your lesson and tuition-receipt confirmation is saved. Guardian start confirmation is separate.",
+      onSaved: () => setAction(null),
+    });
   }
   return (
     <article className="panel tuition-term-card">

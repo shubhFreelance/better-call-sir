@@ -131,7 +131,10 @@ test("student principal has own classes and no parent finance navigation", async
   await expect(
     page.getByRole("heading", { name: "Every class, accounted for." }),
   ).toBeVisible();
-  await expect(page.getByText("Maths · recurring").first()).toBeVisible();
+  await page.getByRole("tab", { name: "Attendance & records" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Maths with Ananya Sharma" }).first(),
+  ).toBeVisible();
 });
 test("role switch and logout clear private pages", async ({ page }) => {
   await login(page, "Kavita");
