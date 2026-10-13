@@ -230,6 +230,17 @@ function runEvidenceWorker(available=true,extra:Record<string,string>={}) {
  const env={...process.env,...local,DATABASE_URL:base.href,APP_MODE:'development',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',EVIDENCE_DIRECTORY:evidenceDir,CLAMAV_HOST:'127.0.0.1',CLAMAV_PORT:available?'3310':'3311',WORKER_ONCE:'1',...extra};
  const result=spawnSync(process.execPath,['--import','tsx','apps/worker/src/main.ts'],{env,encoding:'utf8',timeout:15000});assert.equal(result.status,0,result.stderr);
 }
+test('concurrent distinct checkout keys reuse one order per resource and preserve price review',async()=>{
+ const r=await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,childId:ids.child,kind:'REVISION',startsAt:new Date(future(59)),endsAt:new Date(new Date(future(59)).getTime()+1200000),status:'HOLD',scopeAccepted:true,expiresAt:new Date(Date.now()+600000),amountPaise:30000}});
+ await db.featureFlag.update({where:{name:'checkout'},data:{enabled:true}});
+ const body={kind:'REVISION',resourceId:r.id,expectedVersion:1};
+ const results=await Promise.all([parent.call('/checkout-orders',body,{key:randomUUID()}),parent.call('/checkout-orders',body,{key:randomUUID()})]);
+ assert.deepEqual(results.map(x=>x.status),[201,201]);assert.equal(results[0].data.id,results[1].data.id);assert.equal(await db.checkoutOrder.count({where:{resourceId:r.id}}),1);
+ const later=await parent.call('/checkout-orders',body,{key:randomUUID()});assert.equal(later.data.id,results[0].data.id);
+ await db.checkoutOrder.update({where:{id:later.data.id},data:{status:'FAILED'}});assert.equal((await parent.call('/checkout-orders',body,{key:randomUUID()})).data.id,later.data.id);
+ await db.reservation.update({where:{id:r.id},data:{amountPaise:40000}});assert.equal((await parent.call('/checkout-orders',body,{key:randomUUID()})).status,409);assert.equal(await db.checkoutOrder.count({where:{resourceId:r.id}}),1);
+ await db.featureFlag.update({where:{name:'checkout'},data:{enabled:false}});
+});
 test('owned checkout recovery survives reload, prefers captured orders and never exposes a secret',async()=>{
  const r=await db.reservation.create({data:{teacherId:ids.teacher,guardianId:ids.guardian,childId:ids.child,kind:'REVISION',startsAt:new Date(future(58)),endsAt:new Date(new Date(future(58)).getTime()+1200000),status:'HOLD',scopeAccepted:true,expiresAt:new Date(Date.now()+600000),amountPaise:30000}});
  const path=`/checkout-orders?kind=REVISION&resourceId=${r.id}`;
