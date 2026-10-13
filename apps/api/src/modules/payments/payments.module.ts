@@ -13,6 +13,17 @@ class PaymentsController{
     const actor=await this.service.actor(req,['TEACHER','FINANCE','ADMIN']);const data=parse(z.object({status:z.enum(['HELD_SERVICE','HELD_CONFIRMATION','HELD_DISPUTE','ELIGIBLE','REFUND_PENDING','REVIEW_REQUIRED']).optional()}).strict(),query),teacher=actor.role==='TEACHER'?await this.service.db.teacher.findUnique({where:{accountId:actor.id}}):null;
     const items=await this.service.db.teacherPayable.findMany({where:{...(teacher?{teacherId:teacher.id}:{}),...(data.status?{status:data.status}:{})},orderBy:[{createdAt:'desc'},{id:'desc'}],take:50,select:{id:true,lessonId:true,teacherId:true,amountPaise:true,currency:true,policyVersion:true,status:true,eligibleAt:true,version:true,createdAt:true}});return {items};
   }
+  @Get('checkout-orders') async current(@Req() req:HttpRequest,@Query() query:unknown){
+    const actor=await this.service.actor(req,['GUARDIAN','TEACHER']);const data=parse(z.object({kind:z.enum(['INVOICE','REVISION']),resourceId:uuid}).strict(),query);
+    if(data.kind==='INVOICE'){
+      const invoice=await this.service.db.invoice.findUnique({where:{id:data.resourceId}});if(!invoice||invoice.payerId!==actor.id)fail(404,'NOT_FOUND','Invoice not found.');
+    }else{
+      if(actor.role!=='GUARDIAN')fail(403,'FORBIDDEN','Only the booking guardian can read its checkout.');const reservation=await this.service.db.reservation.findUnique({where:{id:data.resourceId}});if(!reservation||reservation.guardianId!==actor.id||reservation.kind!=='REVISION')fail(404,'NOT_FOUND','Booking not found.');
+    }
+    const where={accountId:actor.id,kind:data.kind,resourceId:data.resourceId};
+    const order=await this.service.db.checkoutOrder.findFirst({where:{...where,status:'PAID'},orderBy:{createdAt:'desc'}})||await this.service.db.checkoutOrder.findFirst({where,orderBy:{createdAt:'desc'}});
+    return {order,publicKeyId:order?.providerMode==='LIVE'?process.env.RAZORPAY_KEY_ID||null:null};
+  }
   @Post('checkout-orders') async create(@Req() req:HttpRequest,@Body() body:unknown){
     const actor=await this.service.actor(req,['GUARDIAN','TEACHER']);const data=parse(z.object({kind:z.enum(['INVOICE','REVISION']),resourceId:uuid,expectedVersion:version}).strict(),body);
     return this.service.once(req,actor,'checkout.create',data,async db=>{

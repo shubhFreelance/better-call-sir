@@ -17,7 +17,7 @@
         "tags": [
           "health"
         ],
-        "summary": "health · live",
+        "summary": "health \u00b7 live",
         "security": [],
         "responses": {
           "200": {
@@ -109,7 +109,7 @@
         "tags": [
           "health"
         ],
-        "summary": "health · ready",
+        "summary": "health \u00b7 ready",
         "security": [],
         "responses": {
           "200": {
@@ -551,7 +551,7 @@
                         {
                           "name": "Arjun Deshmukh",
                           "slug": "arjun-deshmukh",
-                          "headline": "Turn “I don’t get it” into “I can do this.”",
+                          "headline": "Turn \u201cI don\u2019t get it\u201d into \u201cI can do this.\u201d",
                           "bio": "Focused online science lessons with visual explanations and practical questions. Revision sessions cover a clear topic, with a recap and next steps.",
                           "subjects": [
                             "Science"
@@ -843,7 +843,7 @@
         "tags": [
           "teachers"
         ],
-        "summary": "teachers · :slug",
+        "summary": "teachers \u00b7 :slug",
         "security": [],
         "responses": {
           "200": {
@@ -1052,7 +1052,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev · accounts",
+        "summary": "dev \u00b7 accounts",
         "security": [],
         "responses": {
           "200": {
@@ -1227,7 +1227,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev · session",
+        "summary": "dev \u00b7 session",
         "security": [],
         "responses": {
           "201": {
@@ -1810,7 +1810,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth · session",
+        "summary": "auth \u00b7 session",
         "security": [
           {
             "cookieSession": []
@@ -1983,7 +1983,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth · refresh",
+        "summary": "auth \u00b7 refresh",
         "security": [
           {
             "cookieSession": []
@@ -2177,7 +2177,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth · logout",
+        "summary": "auth \u00b7 logout",
         "security": [
           {
             "cookieSession": []
@@ -2588,7 +2588,7 @@
         "tags": [
           "consents"
         ],
-        "summary": "consents · withdraw",
+        "summary": "consents \u00b7 withdraw",
         "security": [
           {
             "cookieSession": []
@@ -3352,7 +3352,7 @@
         "tags": [
           "requests"
         ],
-        "summary": "requests · :id",
+        "summary": "requests \u00b7 :id",
         "security": [
           {
             "cookieSession": []
@@ -3892,7 +3892,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin · teachers",
+        "summary": "admin \u00b7 teachers",
         "security": [
           {
             "cookieSession": []
@@ -3988,7 +3988,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin · teachers · :id · reviews",
+        "summary": "admin \u00b7 teachers \u00b7 :id \u00b7 reviews",
         "security": [
           {
             "cookieSession": []
@@ -4136,7 +4136,7 @@
         "tags": [
           "revision"
         ],
-        "summary": "revision · holds",
+        "summary": "revision \u00b7 holds",
         "security": [
           {
             "cookieSession": []
@@ -4313,7 +4313,7 @@
         "tags": [
           "reservations"
         ],
-        "summary": "reservations · :id · scope",
+        "summary": "reservations \u00b7 :id \u00b7 scope",
         "security": [
           {
             "cookieSession": []
@@ -4448,7 +4448,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev · reservations · :id · capture",
+        "summary": "dev \u00b7 reservations \u00b7 :id \u00b7 capture",
         "security": [
           {
             "cookieSession": []
@@ -4604,7 +4604,7 @@
         "tags": [
           "reservations"
         ],
-        "summary": "reservations · :id · cancel",
+        "summary": "reservations \u00b7 :id \u00b7 cancel",
         "security": [
           {
             "cookieSession": []
@@ -5043,7 +5043,7 @@
         "tags": [
           "placements"
         ],
-        "summary": "placements · :id · acceptances",
+        "summary": "placements \u00b7 :id \u00b7 acceptances",
         "security": [
           {
             "cookieSession": []
@@ -5197,7 +5197,7 @@
         "tags": [
           "lessons"
         ],
-        "summary": "lessons · :id · attendance",
+        "summary": "lessons \u00b7 :id \u00b7 attendance",
         "security": [
           {
             "cookieSession": []
@@ -5361,7 +5361,7 @@
         "tags": [
           "lessons"
         ],
-        "summary": "lessons · :id · disputes",
+        "summary": "lessons \u00b7 :id \u00b7 disputes",
         "security": [
           {
             "cookieSession": []
@@ -5734,7 +5734,7 @@
         "tags": [
           "notes"
         ],
-        "summary": "notes · :id · shares",
+        "summary": "notes \u00b7 :id \u00b7 shares",
         "security": [
           {
             "cookieSession": []
@@ -6226,7 +6226,7 @@
         "tags": [
           "children"
         ],
-        "summary": "children · :id · invitations",
+        "summary": "children \u00b7 :id \u00b7 invitations",
         "security": [
           {
             "cookieSession": []
@@ -6342,7 +6342,7 @@
         "tags": [
           "invitations"
         ],
-        "summary": "invitations · activate",
+        "summary": "invitations \u00b7 activate",
         "security": [
           {
             "cookieSession": []
@@ -6468,7 +6468,7 @@
         "tags": [
           "pro"
         ],
-        "summary": "pro · calls",
+        "summary": "pro \u00b7 calls",
         "security": [
           {
             "cookieSession": []
@@ -6611,7 +6611,7 @@
         "tags": [
           "pro"
         ],
-        "summary": "pro · calls · :id · accept",
+        "summary": "pro \u00b7 calls \u00b7 :id \u00b7 accept",
         "security": [
           {
             "cookieSession": []
@@ -6746,7 +6746,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev · pro · calls · :id · outcome",
+        "summary": "dev \u00b7 pro \u00b7 calls \u00b7 :id \u00b7 outcome",
         "security": [
           {
             "cookieSession": []
@@ -6993,7 +6993,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin · flags · :name",
+        "summary": "admin \u00b7 flags \u00b7 :name",
         "security": [
           {
             "cookieSession": []
@@ -12821,6 +12821,100 @@
             }
           }
         }
+      },
+      "get": {
+        "operationId": "get_current_checkout",
+        "summary": "Recover the latest owned checkout, preferring a captured order",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "INVOICE",
+                "REVISION"
+              ]
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owner-authorized current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentCheckout"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ]
       }
     },
     "/checkout-orders/{id}": {
@@ -16153,6 +16247,176 @@
             }
           }
         }
+      }
+    },
+    "/reservations/{id}/meeting": {
+      "get": {
+        "operationId": "get_reservation_meeting",
+        "tags": [
+          "meetings"
+        ],
+        "summary": "Discover a participant-authorized private meeting for a booking",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owner-authorized current state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationMeeting"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     }
   },
@@ -20223,6 +20487,13 @@
           "version": {
             "type": "integer",
             "minimum": 1
+          },
+          "providerMode": {
+            "type": "string",
+            "enum": [
+              "SANDBOX",
+              "LIVE"
+            ]
           }
         },
         "required": [
@@ -20234,7 +20505,8 @@
           "provider",
           "canJoin",
           "joinUrl",
-          "version"
+          "version",
+          "providerMode"
         ],
         "additionalProperties": false
       },
@@ -21717,6 +21989,52 @@
           "attempts"
         ],
         "additionalProperties": false
+      },
+      "ReservationMeeting": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "meeting"
+        ],
+        "properties": {
+          "meeting": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Meeting"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "CurrentCheckout": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "order",
+          "publicKeyId"
+        ],
+        "properties": {
+          "order": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckoutOrder"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publicKeyId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Public Razorpay key ID for the owned provider order; never the key secret."
+          }
+        }
       }
     },
     "securitySchemes": {
