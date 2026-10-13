@@ -21,24 +21,22 @@ export const parse = <T>(schema: z.ZodType<T>, body: unknown): T => {
   if (!result.success) throw new HttpException({code:'VALIDATION',message:'Please check the highlighted fields.',fieldErrors:result.error.flatten().fieldErrors},400);
   return result.data;
 };
-export const same = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a),Buffer.from(b));
+export const same = (a: string, b: string) => {const left=Buffer.from(a),right=Buffer.from(b);return left.length===right.length&&timingSafeEqual(left,right);};
 export const development = () => process.env.APP_MODE === 'development' && process.env.NODE_ENV !== 'production';
 export type HttpRequest = Request & {requestId?:string;rawBody?:Buffer};
 export type DB = Prisma.TransactionClient;
 
 @Injectable()
 export class AppService {
-  db = new PrismaClient({adapter:new PrismaPg({connectionString:process.env.DATABASE_URL})});
-  rate = new Map<string,{count: number; reset: number}>();
-  limit(key: string, max = 5) {
-    const now = Date.now(); let entry = this.rate.get(key);
-    if (!entry || entry.reset < now) {entry = {count:0, reset:now + 60_000}; this.rate.set(key,entry);}
-    if (++entry.count > max) fail(429,'RATE_LIMIT','Too many attempts. Try again in a minute.');
-    if (this.rate.size > 10_000) for (const [k,v] of this.rate) if (v.reset < now) this.rate.delete(k);
+  db = new PrismaClient({adapter:new PrismaPg({connectionString:process.env.DATABASE_URL,max:10,connectionTimeoutMillis:5000,query_timeout:15000,statement_timeout:15000})});
+  async limit(key: string, max = 5, seconds = 60) {
+    const digest=hash(key);
+    const rows=await this.db.$queryRaw<{count:number}[]>`INSERT INTO "RateBucket" (key,count,"resetsAt") VALUES (${digest},1,CURRENT_TIMESTAMP+${seconds}*interval '1 second') ON CONFLICT (key) DO UPDATE SET count=CASE WHEN "RateBucket"."resetsAt"<=CURRENT_TIMESTAMP THEN 1 ELSE "RateBucket".count+1 END,"resetsAt"=CASE WHEN "RateBucket"."resetsAt"<=CURRENT_TIMESTAMP THEN EXCLUDED."resetsAt" ELSE "RateBucket"."resetsAt" END RETURNING count`;
+    if(rows[0].count>max)fail(429,'RATE_LIMIT','Too many attempts. Try again after the current limit window.');
   }
   async actor(req: Request, roles?: string[]): Promise<Account> {
     const secret = req.cookies?.bcs_access;
-    if (typeof secret !== 'string') fail(401,'SESSION_REQUIRED','Sign in to continue.');
+    if (typeof secret !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(secret)) fail(401,'SESSION_REQUIRED','Sign in to continue.');
     const session = await this.db.session.findUnique({where:{accessHash:hash(secret)}});
     if (!session || session.revoked || session.rotated || session.accessExpiresAt < new Date() || session.expiresAt < new Date()) fail(401,'SESSION_EXPIRED','Your session has expired. Sign in again.');
     const account = await this.db.account.findUnique({where:{id:session.accountId}});
@@ -50,6 +48,8 @@ export class AppService {
       if (!child || child.studentAccessRevokedAt || !consent || consent.withdrawnAt) fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
     }
     if (roles && !roles.includes(account.role)) fail(403,'FORBIDDEN','Your role cannot perform this action.');
+    if(!['GET','HEAD','OPTIONS'].includes(req.method))await this.limit('write:'+account.id,300);
+    if(req.method==='POST'&&/^\/api\/v1\/teachers\/[^/]+\/evidence$/.test(req.path))await this.limit('upload:'+account.id,30,86400);
     return account;
   }
   async guardian(db: DB, id: string) {

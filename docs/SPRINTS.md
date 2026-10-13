@@ -224,3 +224,12 @@ At the owner's request, published frontend increments were reverted on `feat/bac
 Frontend contract checks found that saved parent drafts accepted discoveryMethod/preferredTeacherId in the API but omitted them from OpenAPI's partial onboarding schema. Both fields now match Intake and the generated client. The real-database onboarding regression validates the saved/resumed discovery draft against its response contract. Runtime behavior and permissions are unchanged.
 
 Validation: all 57 real-database API and eight contract tests pass, including the saved-draft response check. The fix is isolated on the backend branch; frontend integration consumes its generated schema.
+
+
+## Owner-priority security audit — 13 October 2026
+
+The owner paused frontend feature development to audit the 69 legible security checks in four supplied pictures; item 54 is unreadable. Security corrections and their evidence take priority until the applicable repository gaps are addressed. Deployment/provider controls must be recorded honestly rather than passed from local tests.
+
+Security increment 1: corrected a cross-account payable-list fallback for teachers without profiles; added hashed, atomic PostgreSQL rate buckets shared across instances and retained across restarts, authenticated write/upload limits and worker expiry cleanup; bounded normal/upload/webhook bodies, database connection/query and HTTP timeouts; made malformed JSON and non-ASCII credential/signature rejection safe; preserved no-store headers and sanitized denial/startup logs. The API never trusts forwarded client IPs by default. OpenAPI now declares cookie authentication by default and the webhook HMAC separately.
+
+Validation: all 62 isolated real-database API tests and eight contract tests pass, including profileless-teacher denial, concurrent distributed limiter consumption/recreation/expiry and malformed/oversized/non-ASCII requests. Type checks and source secret scanning pass; the full npm dependency audit currently reports zero known advisories. This increment is pushed separately to feat/backend-completion. MFA, browser CSP, history/bundle scanning and operational controls remain under audit; no live release was enabled.

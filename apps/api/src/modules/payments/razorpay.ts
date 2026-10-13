@@ -21,5 +21,5 @@ export async function fetchRazorpayOrder(id:string):Promise<RazorpayOrder>{
 }
 export function verifyWebhook(raw:Buffer,signature:string){
   const secret=process.env.RAZORPAY_WEBHOOK_SECRET;if(!secret)throw new Error('RAZORPAY_WEBHOOK_NOT_CONFIGURED');
-  const expected=createHmac('sha256',secret).update(raw).digest('hex');return signature.length===expected.length&&timingSafeEqual(Buffer.from(signature),Buffer.from(expected));
+  const expected=createHmac('sha256',secret).update(raw).digest();return /^[a-f0-9]{64}$/i.test(signature)&&timingSafeEqual(Buffer.from(signature,'hex'),expected);
 }
