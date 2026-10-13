@@ -36,7 +36,7 @@ class PaymentsController{
       if(data.kind==='INVOICE'){
         const invoice=await db.invoice.findUnique({where:{id:data.resourceId}});if(!invoice||invoice.payerId!==actor.id)fail(404,'NOT_FOUND','Invoice not found.');if(invoice.version!==data.expectedVersion||invoice.status!=='DUE')fail(409,'CONFLICT','Invoice changed or is not due.');amount=invoice.amountPaise;
       }else{
-        if(actor.role!=='GUARDIAN')fail(403,'FORBIDDEN','Only the booking guardian can pay.');const reservation=await db.reservation.findUnique({where:{id:data.resourceId}});if(!reservation||reservation.guardianId!==actor.id||reservation.kind!=='REVISION')fail(404,'NOT_FOUND','Booking not found.');
+        if(actor.role!=='GUARDIAN')fail(403,'FORBIDDEN','Only the booking guardian can pay.');await this.service.guardian(db,actor.id);const reservation=await db.reservation.findUnique({where:{id:data.resourceId}});if(!reservation||reservation.guardianId!==actor.id||reservation.kind!=='REVISION')fail(404,'NOT_FOUND','Booking not found.');
         if(reservation.version!==data.expectedVersion||reservation.status!=='HOLD'||!reservation.expiresAt||reservation.expiresAt<=new Date()||!reservation.scopeAccepted)fail(409,'CONFLICT','The accepted revision hold changed or expired.');amount=reservation.amountPaise;
       }
       const where={accountId:actor.id,kind:data.kind,resourceId:data.resourceId};
@@ -44,7 +44,11 @@ class PaymentsController{
       if(existing){if(existing.amountPaise!==amount||existing.currency!=='INR')fail(409,'ORDER_CHANGED','The existing order needs finance review before another payment.');return existing;}
       return db.checkoutOrder.create({data:{accountId:actor.id,kind:data.kind,resourceId:data.resourceId,amountPaise:amount,providerMode:paymentMode()}});
     });
-    if(saved.status==='CREATING'&&!(await this.service.db.featureFlag.findUnique({where:{name:'checkout'}}))?.enabled)fail(503,'CHECKOUT_PAUSED','Checkout is temporarily unavailable.');
+    const current=await this.service.db.checkoutOrder.findUniqueOrThrow({where:{id:saved.id}});
+    if(current.status==='CREATING'){
+      if(!(await this.service.db.featureFlag.findUnique({where:{name:'checkout'}}))?.enabled)fail(503,'CHECKOUT_PAUSED','Checkout is temporarily unavailable.');
+      if(current.kind==='REVISION')await this.service.db.$transaction(async db=>{await this.service.guardian(db,actor.id);const r=await db.reservation.findUniqueOrThrow({where:{id:current.resourceId}}),teacher=await db.teacher.findUniqueOrThrow({where:{id:r.teacherId}}),account=await db.account.findUniqueOrThrow({where:{id:teacher.accountId}});if(r.status!=='HOLD'||!r.scopeAccepted||!r.expiresAt||r.expiresAt<=new Date()||r.amountPaise!==current.amountPaise||teacher.status!=='APPROVED'||!teacher.screeningComplete||!teacher.screeningValidUntil||teacher.screeningValidUntil<=new Date()||account.disabled||!await available(db,teacher.id,'REVISION',r.startsAt,r.endsAt,r.id,0))fail(409,'CHECKOUT_NOT_READY','The current guardian, expert or hold is no longer ready for checkout.');});
+    }
     try{return await completeCheckout(this.service.db,saved.id);}catch{fail(503,'PAYMENT_PROVIDER_UNAVAILABLE','The saved order needs provider review. Check its status before attempting another payment.');}
   }
   @Get('checkout-orders/:id') async get(@Req() req:HttpRequest,@Param('id') id:string){

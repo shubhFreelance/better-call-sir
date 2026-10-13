@@ -4,7 +4,7 @@ This repository is a synthetic development environment. API/worker production st
 
 ## Credentials and database permissions
 
-- Keep `.env`, MFA/backup keys, dumps, encrypted archives and private media outside Git and public/static directories. Configuration and backup files must be owner-readable only; private media directories use mode 0700. Source, full fetched text history and built browser JavaScript have separate secret scans.
+- Keep `.env`, OTP/MFA/backup keys, dumps, encrypted archives and private media outside Git and public/static directories. Configuration and backup files must be owner-readable only; private media directories use mode 0700. Source, full fetched text history and built browser JavaScript have separate secret scans.
 - `DATABASE_URL` is the application/worker runtime identity. Inject a separate migration owner as `MIGRATION_DATABASE_URL` for Prisma migrations. The local `bcs_dev` owner/password exists only to seed fixtures and create isolated test databases; it is not a deployment identity.
 - On the dedicated deployment database, the migration owner sets `bcs.runtime_role` to a distinct role name and runs `infra/sql/runtime-permissions.sql`. The script creates a NOLOGIN role if necessary, refuses administrative authority/memberships/object ownership, grants application DML and revokes mutation of immutable evidence and access to migration records. An operator then injects a new SCRAM credential and enables LOGIN using the restricted database console. Never pass passwords in command arguments or commit them. Reapply reviewed grants after migrations; new immutable tables need the same exclusions.
 - Restrict database/scanner ports to the private network. Apply host firewall rules and PostgreSQL authentication rules before enabling a runtime login. Require certificate-verified TLS for remote database connections, encrypted durable volumes and a supported patched host. The existing compose database is loopback-only; this is not proof of a production firewall or encrypted disk.
@@ -16,6 +16,12 @@ ADMIN, OPERATOR, REVIEWER and FINANCE APIs require server-verified TOTP. Primary
 Save the eight single-use recovery codes in a password manager. Recovery requires an authenticated primary session, consumes one hashed code atomically and revokes other session families. A used TOTP/recovery code cannot be retried after a lost response: inspect current session/MFA status instead. A fresh authenticator code can replace all recovery codes through the dedicated endpoint. The browser shows codes only in memory; no codes belong in tickets, screenshots, email, logs or browser storage.
 
 If both authenticator and recovery codes are lost, do not invent a public email-only reset. A named operator must verify staff identity independently, obtain the required second approval, record the recovery reference and revoke every session before replacing enrollment through the restricted maintenance process. That real operator procedure and key rotation/escrow must be rehearsed before live release. There is no self-service role grant, impersonation or privileged bypass endpoint.
+
+## Primary authentication and transaction abuse
+
+Email OTP digests use HMAC-SHA256 with an independent `OTP_HASH_KEY` (32 random bytes, base64), bound to the normalized email address. Missing keys fail closed before account lookup; a copied database digest cannot be tested offline without that separate key. Inject the key through the secret manager and rotate with expired/revoked pending challenges. Local setup generates independent OTP and MFA keys without printing them.
+
+Guardians may hold at most five active, unexpired, unpaid revision slots. The existing guardian lock makes the cap atomic. Checkout creation revalidates consent, scope, hold expiry, amount and current teacher eligibility before a new provider attempt, including an idempotency replay. Existing provider claims never automatically retry; reconcile unknown outcomes by receipt. Lesson pagination rejects a cursor outside the caller’s visibility. Local persona discovery excludes disabled and non-fixture accounts.
 
 ## Backup and isolated restore
 

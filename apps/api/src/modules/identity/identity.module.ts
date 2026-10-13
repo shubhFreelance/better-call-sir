@@ -12,7 +12,7 @@ import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} fr
 
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,privileged,HttpRequest,DB} from '../../shared';
 
-import {emailAddress,sendEmailOtp} from './email-otp';
+import {emailAddress,sendEmailOtp,otpDigest} from './email-otp';
 
 @Controller('api/v1')
 class IdentityController {
@@ -20,7 +20,7 @@ class IdentityController {
   get db() {return this.service.db;}
   @Get('dev/accounts') async devAccounts() {
     if (!development()) fail(404,'NOT_FOUND','Not found.');
-    return this.db.account.findMany({where:{phone:{startsWith:'+91000000'}},select:{id:true,name:true,role:true,verified:true},orderBy:{role:'asc'}});
+    return this.db.account.findMany({where:{phone:{startsWith:'+91000000'},disabled:false},select:{id:true,name:true,role:true,verified:true},orderBy:{role:'asc'},take:50});
   }
 
   @Post('dev/session') async devSession(@Body() body: unknown,@Res({passthrough:true}) res: Response,@Req() req: Request) {
@@ -35,7 +35,7 @@ class IdentityController {
     const {email}=parse(z.object({email:emailAddress}).strict(),body);
     await this.service.limit(`otp:${email}`,3);await this.service.limit(`otp-ip:${req.ip}`,10);
     if(!development())fail(503,'PROVIDER_UNAVAILABLE','Authentication is not qualified for live mode.');
-    const code=String(randomInt(1000000)).padStart(6,'0'),digest=hash(code);
+    const code=String(randomInt(1000000)).padStart(6,'0');let digest:string;try{digest=otpDigest(email,code);}catch{fail(503,'AUTH_UNAVAILABLE','Authentication is temporarily unavailable. Please retry later.');}
     await this.db.otp.upsert({where:{address:email},create:{address:email,hash:digest,expiresAt:new Date(Date.now()+300000)},update:{hash:digest,expiresAt:new Date(Date.now()+300000),attempts:0}});
     try{return await sendEmailOtp(email,code,randomUUID());}
     catch{await this.db.otp.deleteMany({where:{address:email,hash:digest}});fail(503,'EMAIL_UNAVAILABLE','Email delivery is unavailable. Please retry later.');}
@@ -44,12 +44,13 @@ class IdentityController {
   @Post('auth/otp/verify') async otpVerify(@Body() body: unknown,@Req() req: Request,@Res({passthrough:true}) res: Response) {
     const {email,code,name}=parse(z.object({email:emailAddress,code:z.string().regex(/^\d{6}$/),name:text(80)}).strict(),body);
     await this.service.limit(`verify:${req.ip}`,10);
+    let digest:string;try{digest=otpDigest(email,code);}catch{fail(503,'AUTH_UNAVAILABLE','Authentication is temporarily unavailable. Please retry later.');}
     const account = await this.db.$transaction(async db=>{
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${email},0))`;
       const otp = await db.otp.findUnique({where:{address:email}});
       if (!otp || otp.expiresAt < new Date() || otp.attempts >= 5) return null;
       await db.otp.update({where:{address:email},data:{attempts:{increment:1}}});
-      if (!same(otp.hash,hash(code))) return null;
+      if (!same(otp.hash,digest)) return null;
       await db.otp.delete({where:{address:email}});
       return db.account.upsert({where:{email},create:{email,name},update:{}});
     });

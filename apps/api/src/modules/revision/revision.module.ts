@@ -31,6 +31,7 @@ class RevisionController {
       const child=data.childId?await this.service.child(db,actor,data.childId):inferredId?await this.service.child(db,actor,inferredId):null;if(!child)fail(400,'CHILD_REQUIRED','Choose the learner for this revision booking.');
       const enabled=await db.featureFlag.findUnique({where:{name:'revision'}});
       if (!enabled?.enabled) fail(503,'FEATURE_PAUSED','New revision bookings are temporarily paused.');
+      if(await db.reservation.count({where:{guardianId:actor.id,kind:'REVISION',status:'HOLD',expiresAt:{gt:new Date()}}})>=5)fail(409,'HOLD_LIMIT','Finish or cancel an existing revision hold before reserving another slot. Up to five active holds are allowed.');
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${data.teacherId},0))`;
       const teacher=await db.teacher.findUnique({where:{id:data.teacherId}});
       if (!teacher || teacher.status!=='APPROVED' || !teacher.screeningComplete || !teacher.screeningValidUntil || teacher.screeningValidUntil<=new Date() || !teacher.subjects.includes(data.subject) || !teacher.languages.includes(data.language) || !teacher.grades.includes(child.grade) || !teacher.boards.includes(child.board)) fail(409,'TEACHER_UNAVAILABLE','This expert is unavailable for the selected learner and subject.');
