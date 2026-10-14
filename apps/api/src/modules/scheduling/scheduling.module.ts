@@ -370,6 +370,7 @@ class SchedulingController {
     const cursor = data.cursor ? new Date(data.cursor) : null;
     if (cursor && (cursor < startsAt || cursor > endsAt))
       fail(400, "INVALID_CURSOR", "Cursor must belong to this query range.");
+    if(data.kind==='DEMO'&&teacher.demoOptIn!==true)return {items:[],nextCursor:null};
     const items = [];
     let nextCursor: string | null = null;
     const snapshot = await calendarSnapshot(

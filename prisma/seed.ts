@@ -20,7 +20,10 @@ async function seed() {
   for (const [i,t] of teachers.entries()) {
     const accountId=i===0?ids.teacherAccount:`10000000-0000-4000-8000-${String(i+10).padStart(12,'0')}`;
     if (i>0) await db.account.upsert({where:{id:accountId},create:{id:accountId,name:t.name,phone:`+9100000000${i+10}`,role:'TEACHER',verified:true},update:{}});
-    await db.teacher.upsert({where:{slug:t.slug},create:{...t,...teacherDetails,id:`30000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,accountId,boards:['CBSE','CGBSE'],grades:[6,7,8,9,10],status:'APPROVED',screeningComplete:true,screeningValidUntil:new Date(Date.now()+180*86400000),feeTermsAcceptedAt:new Date(),travelAccepted:true,consultationOptIn:true},update:{}});
+    await db.teacher.upsert({where:{slug:t.slug},create:{...t,...teacherDetails,demoOptIn:i%2===0,id:`30000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,accountId,boards:['CBSE','CGBSE'],grades:[6,7,8,9,10],status:'APPROVED',screeningComplete:true,screeningValidUntil:new Date(Date.now()+180*86400000),feeTermsAcceptedAt:new Date(),travelAccepted:true,consultationOptIn:true},update:{}});
+    const legacy=await db.teacher.findUnique({where:{slug:t.slug}});
+    if(legacy?.demoOptIn===null&&legacy.address===null)await db.teacher.update({where:{id:legacy.id},data:{...teacherDetails,demoOptIn:i%2===0}});
+
   }
   for(const teacher of await db.teacher.findMany({where:{accountId:{in:(await db.account.findMany({where:{phone:{startsWith:'+91000000'}}})).map(a=>a.id)}}})) {
     if(!await db.availabilityPattern.count({where:{teacherId:teacher.id}})) for(const kind of ['DEMO','REVISION','RECURRING','CALL'])for(let weekday=0;weekday<7;weekday++)await db.availabilityPattern.create({data:{teacherId:teacher.id,kind,weekday,startMinute:kind==='CALL'?17*60:9*60,endMinute:20*60,validFrom:new Date(new Date().toISOString().slice(0,10)),validUntil:new Date(Date.now()+180*86400000)}});
