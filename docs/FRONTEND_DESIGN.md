@@ -2,6 +2,10 @@
 
 Owner direction, 12 October 2026: use shadcn/ui, the installed [frontend-design skill](../.agents/skills/frontend-design/SKILL.md), and the Wispr Flow palette supplied by the owner. The environment proxy denies both `wisprflow.ai` and its `www` address; no full-site inspection is claimed. The owner's supplied colors are authoritative for this implementation.
 
+## Current product emphasis
+
+Owner direction, 14 October 2026: design for finding and hiring a teacher. Follow [the current MVP scope](MVP_SCOPE.md). Discovery, profile fit, manual/assisted enquiries, teacher responses and confirmed arrangements take priority in navigation, calls to action and dashboards. Avoid making individual class booking, calendars or attendance the centre of the initial experience. Preserve the established palette, accessible controls and private consent/screening boundaries. Existing class-management screens remain implemented but further development is deferred until scale.
+
 ## Tokens and layout
 
 | Token | Hex | Role |

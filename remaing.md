@@ -2,10 +2,20 @@
 
 Updated 14 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
-Next sprint: **F22 onboarding notice, preferences and recovery**. F14–F21 are implemented in development. Features are tested and pushed separately.
+Next sprint: **H1 teacher discovery and profile journey**, followed by simplified enquiries and hiring confirmation. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
+
+Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides broader class-management launch requirements in the original PRD. Existing security, privacy and release controls remain required for the focused journey.
+
+## Current priorities
+
+- [ ] **H1** Make manual/assisted teacher discovery, profiles and enquiry the primary experience
+- [ ] **H2** Simplify and recover guardian/teacher onboarding and tuition enquiries; broad availability preferences instead of individual class management
+- [ ] **H3** Teacher responses, selection and mutually confirmed hiring terms/status; review and decouple mandatory demo/timetable dependencies
+- [ ] **H4** Prioritize enquiry, shortlist, teacher response and confirmed-arrangement status in role dashboards
+- [ ] **H5** Finish no-match/waitlist, support/replacement, privacy, mobile/keyboard/recovery and localization for the hiring journey
 
 
-## Frontend features
+## Earlier frontend backlog — reprioritized by current scope
 
 - [x] **F14** Guardian/teacher correction and deletion requests, processing-pause status, retention explanation and progress
 - [x] **F15** Reviewer workbench: private evidence, scan status, current-revision screening checks, changes requested, approval/suspension and reasons
@@ -20,7 +30,7 @@ Next sprint: **F22 onboarding notice, preferences and recovery**. F14–F21 are 
 - [ ] **F24** Full English/Hindi localization: all forms, notices, validation, dashboard/console copy and typography
 - [ ] **F25** Finish remaining legacy screens/components and demo booking-detail forms using the shared shadcn controls and deliberate palette; review every loading/error/empty/retry state on mobile and keyboard
 
-## Backend work
+## Backend inventory — apply to the focused journey
 
 - [ ] **B1** Implement the approved guardian adult-verification process and its owner/reviewer states; newly signed-in adults currently cannot collect learner data until verified. Synthetic verified personas are not a live method.
 - [ ] **B2** Server staff MFA, recent-authentication, idle/absolute/step-up sessions and browser enrollment are implemented. Remaining: managed keys, staff provisioning/recovery drill and role administration with required independent/dual approvals for sensitive grants and high-value actions.
@@ -37,7 +47,7 @@ Next sprint: **F22 onboarding notice, preferences and recovery**. F14–F21 are 
 - [ ] **B14** Production private-object storage and upload/download/deletion lifecycle; current-signature malware scanning; approved retention rules and external-backup deletion replay. Existing local private files and application scrubbing are development infrastructure.
 - [ ] **B15** Contract/schema review for the completed UI: missing response metadata, remaining annotations/warnings, backward-compatible changes and web/API image compatibility evidence. Generated-client consistency checks already exist; they must cover the final contract.
 
-## Live-provider and product acceptance
+## Earlier live-provider and product acceptance inventory
 
 - [ ] Approve and test the live guardian-verification method, child-data purposes, consent/notice wording, safeguarding procedure and legal retention/deletion rules.
 - [ ] Qualify email OTP delivery on a verified sending domain, provider failure/expiry/abuse controls and delivery/data terms. Email replaces SMS per the owner.
@@ -62,6 +72,9 @@ Next sprint: **F22 onboarding notice, preferences and recovery**. F14–F21 are 
 - [ ] Run a synthetic deployment rehearsal, review all mandatory release evidence, then separately authorize merge/deployment/cohort opening. Perform post-deployment smoke checks, provider reconciliation and observation.
 
 ## Explicitly deferred / later
+
+- [ ] Individual class/revision booking, recurring timetables/lesson materialization, attendance/confirmation/disputes, lesson feedback/notes/analytics and expanded student learning dashboards. Existing code is retained; further work and launch qualification move to later scale.
+- [ ] Class-specific Razorpay checkout/refund/payout/reconciliation and Google Meet delivery qualification. Hiring payments, if introduced, require their own scoped approval and provider qualification; existing gates stay closed.
 
 - [ ] Masked calling stays disabled, as requested. Parent Pro call delivery, paid sale/renewal/refund periods, provider usage/outcomes and teacher consultation compensation are deferred. The Version 3 PRD calls this US18 P0; the owner's current deferral must remain explicit when defining the first live cohort's accepted scope.
 - [ ] Current Google Meet scope is at most 40 minutes; 60-minute online revision is deferred until a qualified provider/account policy supports it.

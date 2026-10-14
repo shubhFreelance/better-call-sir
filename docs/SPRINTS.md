@@ -1,5 +1,9 @@
 # Delivery board
 
+## Current delivery direction — 14 October 2026
+
+Owner instruction: focus the platform on finding and booking/hiring teachers; individual class booking and management can follow when the app scales. [MVP_SCOPE.md](MVP_SCOPE.md) is the current scope override for the broader Version 3 PRD. Next increments are H1 discovery/profiles, H2 recoverable enquiries, H3 mutually confirmed hiring and H4 dashboards for hiring progress. F22 is no longer the automatic next increment. Existing class/timetable/attendance/revision code and acceptance history stay intact; further investment and class-specific launch qualification are deferred. Security, privacy, consent, screening and applicable release controls remain required. Historical phase/story tables below record prior scope, not completion of the narrower live MVP.
+
 Source: **BetterCallSir_MVP_PRD.docx, Version 3.0, 11 October 2026**, supplied by the project owner. This board tracks implementation against that document; development demonstrations do not satisfy pilot release gates.
 
 ## Working agreement
@@ -503,3 +507,6 @@ Validation: all 32 dashboard/family/navigation browser checks pass, including 11
 
 
 F21 final validation: the final 11 focused dashboard checks pass after screenshot/fixture refinement. Six desktop/mobile guardian/student/teacher screenshots were captured and inspected; mobile axe and overflow checks pass. API/worker/Next production builds and types pass. All three existing production browser security checks pass. Secret scanning covers 221 source files and all 11 public JavaScript/map assets without findings. No dependency or live provider action was added. Full unrelated browser suites, latest hosted CI, immutable-image compatibility, independent qualification and live provider/settlement evidence remain unchecked. No merge or deployment occurs.
+
+
+Owner scope change: recorded the discovery/enquiry/hiring priority and explicit deferral of class booking/management, class-focused dashboards and their provider qualification. remaing.md now tracks H1–H5 before the earlier broader backlog. Discovery and hiring must retain eligibility/capacity, consent, teacher screening, mutual terms and support/replacement controls. Review mandatory demo/timetable coupling before implementing hiring confirmation. This is a documentation-only scope update; no runtime behavior, provider gate, record or endpoint changed. Validation: diff/whitespace and cross-document priority checks. Application tests were not rerun for prose-only edits.
