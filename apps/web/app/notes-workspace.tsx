@@ -519,37 +519,41 @@ export function NotesWorkspace({
                 </span>
               ) : null}
             </footer>
-            <div className="notes-actions">
-              {guardian ? (
-                <>
-                  <Button
-                    variant="outline"
-                    disabled={launchBlocked || !permitted}
-                    onClick={() => open("edit", n)}
-                  >
-                    Edit note
-                  </Button>
-                  <Button
-                    variant={n.sharedTeacherId ? "outline" : "default"}
-                    disabled={launchBlocked || !permitted}
-                    onClick={() =>
-                      open(n.sharedTeacherId ? "withdraw" : "share", n)
-                    }
-                  >
-                    {n.sharedTeacherId ? "Review withdrawal" : "Review sharing"}
-                  </Button>
-                </>
-              ) : (
-                !n.acknowledgedAt && (
-                  <Button
-                    disabled={launchBlocked}
-                    onClick={() => open("ack", n)}
-                  >
-                    Acknowledge note
-                  </Button>
-                )
-              )}
-            </div>
+            {(guardian || !n.acknowledgedAt) && (
+              <div className="notes-actions">
+                {guardian ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      disabled={launchBlocked || !permitted}
+                      onClick={() => open("edit", n)}
+                    >
+                      Edit note
+                    </Button>
+                    <Button
+                      variant={n.sharedTeacherId ? "outline" : "default"}
+                      disabled={launchBlocked || !permitted}
+                      onClick={() =>
+                        open(n.sharedTeacherId ? "withdraw" : "share", n)
+                      }
+                    >
+                      {n.sharedTeacherId
+                        ? "Review withdrawal"
+                        : "Review sharing"}
+                    </Button>
+                  </>
+                ) : (
+                  !n.acknowledgedAt && (
+                    <Button
+                      disabled={launchBlocked}
+                      onClick={() => open("ack", n)}
+                    >
+                      Acknowledge note
+                    </Button>
+                  )
+                )}
+              </div>
+            )}
           </article>
         ))}
       </div>

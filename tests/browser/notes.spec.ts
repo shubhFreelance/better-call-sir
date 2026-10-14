@@ -351,6 +351,10 @@ test("teacher acknowledges a current shared note without a guardian editor", asy
   await page
     .getByRole("button", { name: "Acknowledge note", exact: true })
     .click();
+  await page.locator(".notes-workspace").screenshot({
+    path: "test-results/notes-teacher-review.png",
+    style: "nextjs-portal{display:none!important}",
+  });
   await page
     .getByRole("checkbox", { name: /I have read this shared note/ })
     .check();
@@ -362,7 +366,17 @@ test("teacher acknowledges a current shared note without a guardian editor", asy
   ).toHaveCount(0);
   await page
     .locator(".notes-workspace")
-    .screenshot({ path: "test-results/notes-teacher.png" });
+    .screenshot({
+      path: "test-results/notes-teacher.png",
+      style: "nextjs-portal{display:none!important}",
+    });
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page
+    .locator(".notes-workspace")
+    .screenshot({
+      path: "test-results/notes-teacher-mobile.png",
+      style: "nextjs-portal{display:none!important}",
+    });
 });
 test("student direct access never queries notes and inactive consent disables guardian writes", async ({
   page,
