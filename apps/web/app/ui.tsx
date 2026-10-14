@@ -1,4 +1,5 @@
 "use client";
+import { SupportWorkspace } from "./support-workspace";
 import { NotesWorkspace } from "./notes-workspace";
 import {
   useEffect,
@@ -1956,74 +1957,13 @@ function AdminPanel({ dashboard: d, act }: { dashboard: Dashboard; act: Act }) {
 }
 function Support() {
   const { session } = useAuth();
-  const [message, setMessage] = useState(""),
-    [error, setError] = useState("");
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setMessage("");
-    setError("");
-    const f = new FormData(e.currentTarget);
-    try {
-      if (!session) throw new Error("Sign in to submit a private case.");
-      const c = await api<{ id: string }>("/cases", {
-        method: "POST",
-        csrf: session.csrfToken,
-        key: crypto.randomUUID(),
-        body: {
-          category: f.get("category"),
-          description: f.get("description"),
-        },
-      });
-      setMessage(
-        `Case ${c.id.slice(0, 8)} saved. This development environment has no live support operator or delivery provider.`,
-      );
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  }
   return (
-    <main className="container narrow section">
-      <PageTitle
-        eyebrow="WE’RE HERE TO HELP"
-        title="A little support, when it matters."
-        subtitle="Safety reporting and ordinary support remain free, with or without Pro."
-      />
-      <Notice>
-        This is a development service with no emergency response. For immediate
-        danger, contact local emergency services.
-      </Notice>
-      <form className="panel form-panel" onSubmit={submit}>
-        <Field label="What can we help with?">
-          <select name="category">
-            <option value="GENERAL">General question</option>
-            <option value="SAFETY">Safety concern</option>
-            <option value="REPLACEMENT">Teacher replacement</option>
-            <option value="ATTENDANCE">Attendance record</option>
-            <option value="PAYMENT">Payment or refund</option>
-            <option value="PRIVACY">Privacy, correction or deletion</option>
-          </select>
-        </Field>
-        <Field label="Tell us what happened">
-          <textarea
-            rows={6}
-            name="description"
-            required
-            maxLength={3000}
-            placeholder="Share only what’s needed to help resolve this case."
-          />
-        </Field>
-        {message && <Notice>{message}</Notice>}
-        {error && <Notice error>{error}</Notice>}
-        <Button type="submit" disabled={!session}>
-          Submit a private case <LifeBuoy size={17} />
-        </Button>
-        {!session && (
-          <Link className="inline-link" href="/login">
-            Sign in to submit →
-          </Link>
-        )}
-      </form>
-    </main>
+    <SupportWorkspace
+      key={
+        session ? `${session.account.id}:${session.account.role}` : "anonymous"
+      }
+      session={session}
+    />
   );
 }
 function Routes() {
