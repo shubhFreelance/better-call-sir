@@ -4181,6 +4181,10 @@ export interface components {
                 status: string;
             };
             monthlyPaise?: number;
+            version?: number;
+            policyVersion?: string;
+            /** @description Proposed teacher placement fee under the recorded development policy, payable only after separate start and receipt evidence; not collected by accepting terms. */
+            placementFeePaise?: number;
         };
         HiringDashboard: {
             /** @enum {unknown} */
