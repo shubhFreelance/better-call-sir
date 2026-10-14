@@ -18842,6 +18842,137 @@
         ],
         "description": "Defaults to rolling 30 days. from/to must both be supplied when filtering; interval [from,to), at most 366 days, selected by lesson/demo reservation start. Counts reflect current records as of lastUpdated. Classes taken exclude cancelled, absent, future and disputed records; completed lessons remain a separate status count. Attendance completeness uses ended non-cancelled lessons and current undisputed completed attendance. Pending confirmations require a current-version family confirmation. Feedback aggregates only for teachers and currently valid attended lessons, never students. Demos have independent outcome counts and are not added to lesson counts. noShow counts guardian/teacher NO_SHOW reports, which may overlap disputed outcomes; it never infers teacher responsibility. Learners paginate independently of full scoped totals; current assignments and next lessons are outside the selected interval. Assignment previews are limited to 20 and flagged. Teacher cancellation/absence/demo no-show counts describe assigned records, not responsibility attribution. No contacts, private feedback text or financial records are returned; guardian-only membership metadata is a recorded development allowance."
       }
+    },
+    "/dashboard/hiring": {
+      "get": {
+        "operationId": "getHiringDashboard",
+        "tags": [
+          "dashboard"
+        ],
+        "summary": "Role-scoped discovery, enquiry and arrangement dashboard",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HiringDashboard"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "section",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "ENQUIRIES",
+                "ARRANGEMENTS"
+              ],
+              "default": "ENQUIRIES"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ],
+        "description": "Current-record counts are independent of the requested page. Lists use stable ID-descending order, not chronological order, and a scope-validated cursor. Student projection excludes budget, price, other learners, candidate decisions and administrative data. Teacher enquiries require current presented unexpired recommendations and active verified family consent with no pending deletion; eligibility is rechecked per displayed opportunity. Interest/selection/terms are distinct from an active teaching start or financial settlement. Admin receives audited global aggregates only and uses dedicated queues for details. Learner preview is limited to 20 with an explicit flag. Existing demo/timetable dependencies are not removed by this read endpoint."
+      }
     }
   },
   "components": {
@@ -26386,6 +26517,499 @@
           "demos",
           "serviceKinds",
           "learners",
+          "nextCursor"
+        ]
+      },
+      "HiringLearner": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "alias": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "grade": {
+            "type": "integer"
+          },
+          "board": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "alias",
+          "grade",
+          "board"
+        ]
+      },
+      "HiringEnquiry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "locality": {
+            "type": "string"
+          },
+          "discoveryMethod": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "matchStatus": {
+            "type": "string"
+          },
+          "scheduleStatus": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "learner": {
+            "$ref": "#/components/schemas/HiringLearner"
+          },
+          "hasSelection": {
+            "type": "boolean"
+          },
+          "budgetPaise": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "candidate": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "response": {
+                "type": "string"
+              },
+              "expiresAt": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "selected": {
+                "type": "boolean"
+              },
+              "eligible": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "version",
+              "response",
+              "expiresAt",
+              "selected",
+              "eligible"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "subject",
+          "mode",
+          "language",
+          "locality",
+          "discoveryMethod",
+          "status",
+          "matchStatus",
+          "scheduleStatus",
+          "createdAt",
+          "learner",
+          "hasSelection"
+        ]
+      },
+      "HiringArrangement": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "guardianAccepted": {
+            "type": "boolean"
+          },
+          "teacherAccepted": {
+            "type": "boolean"
+          },
+          "guardianStarted": {
+            "type": "boolean"
+          },
+          "teacherReceiptConfirmed": {
+            "type": "boolean"
+          },
+          "learner": {
+            "$ref": "#/components/schemas/HiringLearner"
+          },
+          "teacher": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "status"
+            ]
+          },
+          "monthlyPaise": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "subject",
+          "mode",
+          "status",
+          "guardianAccepted",
+          "teacherAccepted",
+          "guardianStarted",
+          "teacherReceiptConfirmed",
+          "learner",
+          "teacher"
+        ]
+      },
+      "HiringDashboard": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "enum": [
+              "GUARDIAN",
+              "STUDENT",
+              "TEACHER",
+              "ADMIN"
+            ]
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "definitionVersion": {
+            "const": "hiring-v1"
+          },
+          "section": {
+            "enum": [
+              "ENQUIRIES",
+              "ARRANGEMENTS"
+            ]
+          },
+          "counts": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "enquiries": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "openEnquiries": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "pendingResponses": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "termsPending": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "activeArrangements": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "enquiries",
+              "openEnquiries",
+              "pendingResponses",
+              "termsPending",
+              "activeArrangements"
+            ]
+          },
+          "enquiries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HiringEnquiry"
+            }
+          },
+          "arrangements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HiringArrangement"
+            }
+          },
+          "learners": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "alias": {
+                  "type": "string"
+                },
+                "grade": {
+                  "type": "integer"
+                },
+                "board": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "alias",
+                "grade",
+                "board"
+              ]
+            }
+          },
+          "learnersLimited": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "gate": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "verified": {
+                "type": "boolean"
+              },
+              "consent": {
+                "type": "boolean"
+              },
+              "privacyPaused": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "verified",
+              "consent",
+              "privacyPaused"
+            ]
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "subjects": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "screeningComplete": {
+                    "type": "boolean"
+                  },
+                  "screeningValidUntil": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "feeTermsAccepted": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "status",
+                  "subjects",
+                  "screeningComplete",
+                  "screeningValidUntil",
+                  "feeTermsAccepted"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operations": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requests": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "matchStatus": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "matchStatus",
+                    "count"
+                  ]
+                }
+              },
+              "teachers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "count"
+                  ]
+                }
+              },
+              "arrangements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "count"
+                  ]
+                }
+              },
+              "openSupport": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "pendingPrivacy": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "failedJobs": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "requests",
+              "teachers",
+              "arrangements",
+              "openSupport",
+              "pendingPrivacy",
+              "failedJobs"
+            ]
+          }
+        },
+        "required": [
+          "role",
+          "asOf",
+          "definitionVersion",
+          "section",
+          "counts",
+          "enquiries",
+          "arrangements",
+          "learners",
+          "learnersLimited",
           "nextCursor"
         ]
       }

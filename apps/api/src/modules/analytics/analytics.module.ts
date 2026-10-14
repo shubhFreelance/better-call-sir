@@ -1,4 +1,5 @@
 import {Module,Controller,Get,Query,Req,Inject} from '@nestjs/common';
+import {hiringDashboard} from './hiring-dashboard';
 import {learningDashboard} from './learning-dashboard';
 import {Prisma} from '@prisma/client';
 import {z} from 'zod';
@@ -9,6 +10,7 @@ function amounts(row:Record<string,bigint|number>){return Object.fromEntries(Obj
 @Controller('api/v1')
 class AnalyticsController{
  constructor(@Inject(AppService) private readonly service:AppService){}
+ @Get('dashboard/hiring') async hiring(@Req() req:HttpRequest,@Query() query:unknown){return hiringDashboard(this.service,req,query);}
  @Get('dashboard/learning') async learning(@Req() req:HttpRequest,@Query() query:unknown){return learningDashboard(this.service,req,query);}
  @Get('admin/reports/regions') async regions(@Req() req:HttpRequest){const actor=await this.service.actor(req,['ADMIN','OPERATOR']);const rows=actor.role==='OPERATOR'?[{region:actor.region}]:await this.service.db.tuitionRequest.findMany({distinct:['region'],select:{region:true},orderBy:{region:'asc'},take:101});await this.service.audit(this.service.db,actor,req,'REPORT_REGIONS_READ','reports','Staff accessed scoped report region choices');return {items:rows.slice(0,100),limited:rows.length>100,scope:actor.role==='OPERATOR'?'REGION':'GLOBAL'};}
  @Get('admin/reports/funnel') async funnel(@Req() req:HttpRequest,@Query() query:unknown){
