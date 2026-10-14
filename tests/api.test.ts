@@ -9,7 +9,7 @@ import {parseEnv} from 'node:util';
 import {Pool} from 'pg';
 import {PrismaClient} from '@prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg';
-import {ids} from '../packages/test-fixtures/src';
+import {ids,teacherDetails} from '../packages/test-fixtures/src';
 import {operationValidator,contract} from './helpers/contract';
 import {AppService,privileged} from '../apps/api/src/shared';
 import {totp,newMfaSecret,encryptMfa,decryptMfa} from '../apps/api/src/modules/identity/totp';
@@ -39,7 +39,7 @@ class Client {
 }
 async function login(id:string,verifyMfa=true){const c=new Client();const r=await c.call('/dev/session',{accountId:id});assert.equal(r.status,201);if(verifyMfa&&privileged(r.data.account.role)){let code=mfaRecovery.get(id)?.pop();if(!code){const enrollment=await c.call('/auth/mfa/enrollment',{});assert.equal(enrollment.status,201);code=totp(enrollment.data.secret,BigInt(Math.floor(Date.now()/30000)));}const verified=await c.call('/auth/mfa/verification',{code});assert.equal(verified.status,201,JSON.stringify(verified.data));if(verified.data.recoveryCodes.length)mfaRecovery.set(id,verified.data.recoveryCodes);}return c;}
 const future=(days=15,hour=6)=>{const d=new Date();d.setUTCDate(d.getUTCDate()+days);d.setUTCHours(hour,0,0,0);return d.toISOString();};
-const intake=(extra={})=>({alias:'Test learner',grade:8,board:'CBSE',subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Monday after 5pm',...extra});
+const intake=(extra={})=>({schoolName:'Synthetic school',schoolSubjects:['Maths','Science','English','Hindi'],alias:'Test learner',grade:8,board:'CBSE',subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Monday after 5pm',...extra});
 before(async()=>{
  await admin.query(`CREATE DATABASE "${name}"`);
  const env={...process.env,...local,MFA_ENCRYPTION_KEY:process.env.MFA_ENCRYPTION_KEY,OTP_HASH_KEY:process.env.OTP_HASH_KEY,DATABASE_URL:base.href,MIGRATION_DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',RAZORPAY_KEY_ID:'rzp_test_synthetic_public',RAZORPAY_WEBHOOK_SECRET:['synthetic','webhook','key'].join('-'),EVIDENCE_DIRECTORY:evidenceDir};
@@ -251,9 +251,14 @@ async function confirmDemo(demo:any) {
 async function endDemo(demo:any) {
  await db.reservation.update({where:{id:demo.reservationId},data:{startsAt:new Date(Date.now()-3600000),endsAt:new Date(Date.now()-1800000)}});
 }
-test('demo proposal is private, validated and retry-safe; tuition cannot skip the demo',async()=>{
+test('demo opt-out is publicly visible and does not block eligible, accepted tuition terms',async()=>{
+ const requestId=await demoRequest();await db.teacher.update({where:{id:ids.teacher},data:{demoOptIn:false}});
+ try {const profile=await new Client().call('/teachers/ananya-sharma');const publicRows=await new Client().call('/teachers');const shown=publicRows.data.items.find((t:any)=>t.id===ids.teacher);assert.equal(shown.demoAvailable,false);for(const key of ['address','education','employment','demoOptIn'])assert.equal(key in shown,false);
+ const demo=await parent.call('/demos',{requestId,teacherId:ids.teacher,startsAt:future(29),duration:30});assert.equal(demo.status,409);assert.equal(demo.data.code,'DEMO_NOT_OFFERED');const terms=await parent.call('/placements',{requestId,teacherId:ids.teacher});assert.equal(terms.status,201,JSON.stringify(terms.data));assert.equal(terms.data.guardianAccepted,false);assert.equal(terms.data.teacherAccepted,false);assert.equal(terms.data.status,'TERMS_PENDING');assert.equal(await db.lesson.count({where:{placementId:terms.data.id}}),0);assert.equal((await parent.call(`/placements/${terms.data.id}/closures`,{expectedVersion:terms.data.version,reason:'Finish synthetic optional-demo test'})).status,201);
+ }finally{await db.teacher.update({where:{id:ids.teacher},data:{demoOptIn:true}});}
+});
+test('optional demo proposal is private, validated and retry-safe',async()=>{
  const requestId=await demoRequest(),body={requestId,teacherId:ids.teacher,startsAt:future(30),duration:30},key=randomUUID();
- assert.equal((await parent.call('/placements',{requestId,teacherId:ids.teacher})).data.code,'DEMO_REQUIRED');
  assert.equal((await other.call('/demos',body)).status,404);assert.equal((await student.call('/demos',body)).status,403);
  assert.equal((await parent.call('/demos',{...body,duration:0})).status,400);
  assert.equal((await parent.call('/demos',{...body,startsAt:new Date().toISOString()})).status,400);
@@ -387,7 +392,7 @@ test('private meetings are delivered, ownership-scoped, time-gated and manually 
 });
 test('private evidence quarantines, uses a real scanner, enforces ownership and gates current-revision screening',async()=>{
  const account=await db.account.create({data:{phone:'+910000008801',name:'Synthetic applicant',role:'TEACHER',verified:true}}),applicant=await login(account.id);
- const profile={name:'Synthetic applicant',headline:'Class 8 Maths',bio:'Synthetic screening fixture only',subjects:['Maths'],boards:['CBSE'],grades:[8],languages:['English'],modes:['HOME'],localities:['Shankar Nagar'],monthlyPaise:250000,experience:3,consultationOptIn:false,feeTermsAccepted:true};
+ const profile={...teacherDetails,name:'Synthetic applicant',headline:'Class 8 Maths',bio:'Synthetic screening fixture only',subjects:['Maths'],boards:['CBSE'],grades:[8],languages:['English'],modes:['HOME'],localities:['Shankar Nagar'],monthlyPaise:250000,experience:3,consultationOptIn:false,feeTermsAccepted:true};
  const applied=await applicant.call('/teacher-applications',profile);assert.equal(applied.status,201,JSON.stringify(applied.data));const id=applied.data.id;
  assert(applied.data.feeTermsAcceptedAt);assert.equal(applied.data.feePolicyVersion,'pilot-v1');
  assert.equal((await operator.call(`/admin/teachers/${id}/reviews`,{expectedVersion:1,status:'APPROVED',reason:'Missing screening'})).status,409);
@@ -668,7 +673,7 @@ test('onboarding drafts resume safely and atomically complete once without dupli
 });
 test('teacher drafts submit a pending application without self-approval or duplicate application',async()=>{
  const account=await db.account.create({data:{phone:'+910000009921',name:'Synthetic onboarding teacher',verified:true}}),client=await login(account.id);
- const draft={name:'Test teacher',headline:'Subject tutor',bio:'Synthetic profile only',subjects:['Maths'],boards:['CBSE'],grades:[8],languages:['English'],modes:['ONLINE'],localities:[],monthlyPaise:300000,experience:2,consultationOptIn:false,feeTermsAccepted:true};
+ const draft={...teacherDetails,name:'Test teacher',headline:'Subject tutor',bio:'Synthetic profile only',subjects:['Maths'],boards:['CBSE'],grades:[8],languages:['English'],modes:['ONLINE'],localities:[],monthlyPaise:300000,experience:2,consultationOptIn:false,feeTermsAccepted:true};
  assert.equal((await client.call('/onboarding/teacher/drafts',{expectedVersion:0,draft:{...draft,status:'APPROVED'}})).status,400);
  const saved=await client.call('/onboarding/teacher/drafts',{expectedVersion:0,draft});assert.equal(saved.status,201);
  const key=randomUUID(),done=await client.call('/onboarding/teacher/completions',{expectedVersion:1},{key});assert.equal(done.status,201,JSON.stringify(done.data));assert.equal(done.data.state,'SUBMITTED');
@@ -903,4 +908,11 @@ test('hiring opportunities exclude unpublished/expired/paused families and admin
  await db.privacyRequest.create({data:{accountId:owner.id,kind:'DELETION',scope:'ACCOUNT',resourceId:owner.id,reason:'Synthetic pause'}});assert.equal((await client.call('/dashboard/hiring')).data.counts.enquiries,0);assert.equal((await new Client().call('/dashboard/hiring')).status,401);for(const q of ['?role=ADMIN','?section=INVALID','?limit=51','?cursor=invalid'])assert.equal((await client.call('/dashboard/hiring'+q)).status,400);
  const empty=await db.account.create({data:{name:'Synthetic profileless hiring teacher',role:'TEACHER'}});assert.equal((await (await dashboardLogin(empty.id)).call('/dashboard/hiring')).data.profile,null);
  const staff=await db.account.create({data:{name:'Synthetic hiring admin',role:'ADMIN',verified:true}}),service=new AppService();service.db=db;const state=await service.issueSession(staff,randomUUID(),db),a=new Client();a.cookies='bcs_access='+state.access;assert.equal((await a.call('/dashboard/hiring')).status,403);await db.session.update({where:{accessHash:createHash('sha256').update(state.access).digest('hex')},data:{mfaVerifiedAt:new Date()}});const view=await a.call('/dashboard/hiring');assert.equal(view.status,200);assert(operationValidator('/dashboard/hiring','get','200')(view.data));assert.equal(view.data.operations.pendingPrivacy>0,true);assert.deepEqual(view.data.learners,[]);assert.deepEqual(view.data.enquiries,[]);assert(!JSON.stringify(view.data).includes('Private candidate alias'));assert.equal(await db.audit.count({where:{actorId:staff.id,action:'HIRING_OVERVIEW_READ'}}),1);assert.equal((await a.call('/dashboard/hiring?cursor='+reqs[0].id)).status,400);
+});
+
+test('new onboarding requires private teacher milestones and protects school and qualification data',async()=>{
+ const account=await db.account.create({data:{name:'Synthetic detailed applicant',role:'TEACHER'}}),a=await dashboardLogin(account.id),body={...teacherDetails,name:account.name,headline:'Subject teacher',bio:'Synthetic detailed application',subjects:['Maths'],boards:['CBSE'],grades:[8],languages:['English'],modes:['ONLINE'],localities:[],monthlyPaise:300000,experience:3,consultationOptIn:false,feeTermsAccepted:true,demoOptIn:false};
+ const missing={...body};delete (missing as any).address;assert.equal((await a.call('/teacher-applications',missing)).status,400);const invalid={...body,education:body.education.map((r,i)=>i===0?{...r,grading:'MARKS',score:501,outOf:500}:r)};assert.equal((await a.call('/teacher-applications',invalid)).status,400);const applied=await a.call('/teacher-applications',body);assert.equal(applied.status,201,JSON.stringify(applied.data));assert.equal(applied.data.education.length,4);assert.equal(applied.data.address.postalCode,'492001');assert.equal(applied.data.demoOptIn,false);assert(operationValidator('/teacher-applications','post','201')(applied.data));const revised=await a.call(`/teacher-applications/${applied.data.id}/revisions`,{...body,expectedVersion:applied.data.version,demoOptIn:true});assert.equal(revised.status,201);assert.equal(revised.data.profileRevision,2);assert.equal(revised.data.screeningComplete,false);
+ const guardian=await db.account.create({data:{name:'Synthetic school guardian',verified:true}});await db.consent.create({data:{guardianId:guardian.id}});const g=await dashboardLogin(guardian.id),school=intake({schoolName:'Synthetic private school',schoolSubjects:['Maths','Science','English','Hindi','Social studies']}),noSchool={...school};delete (noSchool as any).schoolName;assert.equal((await g.call('/requests',noSchool)).status,400);assert.equal((await g.call('/requests',{...school,schoolSubjects:['Maths','maths']})).status,400);const saved=await g.call('/requests',school);assert.equal(saved.status,201);const child=await db.child.findUniqueOrThrow({where:{id:saved.data.childId}});assert.equal(child.schoolName,school.schoolName);assert.equal(child.schoolSubjects.length,5);const device=await db.account.create({data:{name:'Synthetic school student',role:'STUDENT'}});await db.child.update({where:{id:child.id},data:{studentAccountId:device.id}});const view=await (await dashboardLogin(device.id)).call('/dashboard/hiring');assert.equal(view.data.learners[0].schoolName,school.schoolName);assert.equal(view.data.learners[0].schoolSubjects.length,5);assert.equal((await other.call('/requests',{...school,childId:child.id})).status,403);
+ const blocked=await db.account.create({data:{name:'Unverified school guardian'}}),u=await dashboardLogin(blocked.id);assert.equal((await u.call('/onboarding/parent/drafts',{expectedVersion:0,draft:{schoolName:'Private school',schoolSubjects:['Maths']}})).status,403);
 });

@@ -3968,6 +3968,27 @@
                   "feeTermsAccepted": {
                     "type": "boolean",
                     "const": true
+                  },
+                  "address": {
+                    "$ref": "#/components/schemas/TeacherAddress"
+                  },
+                  "education": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/TeacherEducation"
+                    },
+                    "minItems": 4,
+                    "maxItems": 4
+                  },
+                  "employment": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/TeacherEmployment"
+                    },
+                    "maxItems": 10
+                  },
+                  "demoOptIn": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -3983,7 +4004,11 @@
                   "monthlyPaise",
                   "experience",
                   "consultationOptIn",
-                  "feeTermsAccepted"
+                  "feeTermsAccepted",
+                  "address",
+                  "education",
+                  "employment",
+                  "demoOptIn"
                 ],
                 "additionalProperties": false
               }
@@ -19047,6 +19072,9 @@
           },
           "consultationOptIn": {
             "type": "boolean"
+          },
+          "demoAvailable": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -19320,6 +19348,22 @@
           "preferredTeacherId": {
             "type": "string",
             "format": "uuid"
+          },
+          "schoolName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "schoolSubjects": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "uniqueItems": true
           }
         },
         "required": [
@@ -20196,6 +20240,27 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "schoolName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schoolSubjects": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "maxItems": 20
           }
         },
         "required": [
@@ -20319,6 +20384,27 @@
           "expectedVersion": {
             "type": "integer",
             "minimum": 1
+          },
+          "address": {
+            "$ref": "#/components/schemas/TeacherAddress"
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeacherEducation"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "employment": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeacherEmployment"
+            },
+            "maxItems": 10
+          },
+          "demoOptIn": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -20335,7 +20421,11 @@
           "experience",
           "consultationOptIn",
           "feeTermsAccepted",
-          "expectedVersion"
+          "expectedVersion",
+          "address",
+          "education",
+          "employment",
+          "demoOptIn"
         ],
         "additionalProperties": false
       },
@@ -20458,6 +20548,55 @@
           "version": {
             "type": "integer",
             "minimum": 1
+          },
+          "address": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TeacherAddress"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "education": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeacherEducation"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "employment": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeacherEmployment"
+                },
+                "maxItems": 10
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "demoOptIn": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -21901,6 +22040,22 @@
               "preferredTeacherId": {
                 "type": "string",
                 "format": "uuid"
+              },
+              "schoolName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "schoolSubjects": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                },
+                "minItems": 1,
+                "maxItems": 20,
+                "uniqueItems": true
               }
             },
             "required": [],
@@ -21966,6 +22121,27 @@
               "feeTermsAccepted": {
                 "type": "boolean",
                 "const": true
+              },
+              "address": {
+                "$ref": "#/components/schemas/TeacherAddress"
+              },
+              "education": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeacherEducation"
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "employment": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeacherEmployment"
+                },
+                "maxItems": 10
+              },
+              "demoOptIn": {
+                "type": "boolean"
               }
             },
             "required": [],
@@ -26810,6 +26986,18 @@
                 },
                 "board": {
                   "type": "string"
+                },
+                "schoolName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "schoolSubjects": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               },
               "required": [
@@ -27011,6 +27199,176 @@
           "learners",
           "learnersLimited",
           "nextCursor"
+        ]
+      },
+      "TeacherAddress": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "line1": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1
+          },
+          "line2": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "locality": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1
+          },
+          "postalCode": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^[1-9][0-9]{5}$"
+          },
+          "country": {
+            "const": "India"
+          }
+        },
+        "required": [
+          "line1",
+          "line2",
+          "locality",
+          "city",
+          "state",
+          "postalCode",
+          "country"
+        ]
+      },
+      "TeacherEducation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "milestone": {
+            "enum": [
+              "CLASS_10",
+              "CLASS_12",
+              "UNDERGRADUATE",
+              "POSTGRADUATE"
+            ]
+          },
+          "status": {
+            "enum": [
+              "COMPLETED",
+              "PURSUING",
+              "NOT_APPLICABLE"
+            ]
+          },
+          "institution": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "qualification": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1950,
+            "maximum": 2100
+          },
+          "grading": {
+            "enum": [
+              "PERCENTAGE",
+              "MARKS",
+              "CGPA",
+              null
+            ]
+          },
+          "score": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "outOf": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0,
+            "maximum": 100000
+          },
+          "percentage": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "milestone",
+          "status",
+          "institution",
+          "qualification",
+          "year",
+          "grading",
+          "score",
+          "outOf",
+          "percentage"
+        ]
+      },
+      "TeacherEmployment": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "organization": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "fromYear": {
+            "type": "integer",
+            "minimum": 1950,
+            "maximum": 2100
+          },
+          "toYear": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1950,
+            "maximum": 2100
+          },
+          "proof": {
+            "enum": [
+              "CERTIFICATE_AVAILABLE",
+              "REFERENCE_AVAILABLE",
+              "NOT_AVAILABLE"
+            ]
+          }
+        },
+        "required": [
+          "organization",
+          "role",
+          "fromYear",
+          "toYear",
+          "proof"
         ]
       }
     },

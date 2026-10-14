@@ -1,12 +1,13 @@
 import {Module,Controller,Get,Post,Param,Query,Body,Req,Inject} from '@nestjs/common';
 import {z} from 'zod';
+import {Prisma} from '@prisma/client';
 import {AppService,PersistenceModule,HttpRequest,DB,uuid,version,text,fail,parse} from '../../shared';
 
 async function erase(db:DB,scope:string,resourceId:string,accountId:string){
  if(scope==='NOTE'){await db.note.updateMany({where:{id:resourceId,guardianId:accountId},data:{text:'[deleted]',sharedTeacherId:null,version:{increment:1}}});return;}
  const children=await db.child.findMany({where:scope==='CHILD'?{id:resourceId,guardianId:accountId}:{guardianId:accountId}}),childIds=children.map(c=>c.id),students=children.flatMap(c=>c.studentAccountId?[c.studentAccountId]:[]);
  await db.note.updateMany({where:{childId:{in:childIds}},data:{text:'[deleted]',sharedTeacherId:null,version:{increment:1}}});
- await db.child.updateMany({where:{id:{in:childIds}},data:{alias:'Deleted learner',studentAccessRevokedAt:new Date(),version:{increment:1}}});
+ await db.child.updateMany({where:{id:{in:childIds}},data:{schoolName:null,schoolSubjects:[],alias:'Deleted learner',studentAccessRevokedAt:new Date(),version:{increment:1}}});
  await db.invitation.deleteMany({where:{childId:{in:childIds}}});
  await db.session.updateMany({where:{accountId:{in:students}},data:{revoked:true}});
  await db.account.updateMany({where:{id:{in:students}},data:{name:'Deleted student',email:null,phone:null,disabled:true}});
@@ -15,7 +16,7 @@ async function erase(db:DB,scope:string,resourceId:string,accountId:string){
  if(scope==='ACCOUNT'){
   await db.session.updateMany({where:{accountId},data:{revoked:true}});await db.account.update({where:{id:accountId},data:{name:'Deleted account',email:null,phone:null,disabled:true,verified:false}});
   const teacher=await db.teacher.findUnique({where:{accountId}});if(teacher)await db.note.updateMany({where:{sharedTeacherId:teacher.id},data:{sharedTeacherId:null,version:{increment:1}}});
-  await db.teacher.updateMany({where:{accountId},data:{name:'Deleted teacher',headline:'',bio:'',status:'SUSPENDED',screeningComplete:false,version:{increment:1}}});
+  await db.teacher.updateMany({where:{accountId},data:{address:Prisma.DbNull,education:Prisma.DbNull,employment:Prisma.DbNull,demoOptIn:false,name:'Deleted teacher',headline:'',bio:'',status:'SUSPENDED',screeningComplete:false,version:{increment:1}}});
  }
 }
 @Controller('api/v1')

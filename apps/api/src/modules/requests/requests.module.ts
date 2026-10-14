@@ -10,11 +10,12 @@ import helmet from 'helmet';
 import {z} from 'zod';
 import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} from '../../policies';
 
+import {schoolSubjects} from '../teachers/details';
 import {matched} from '../matching/eligibility';
 import {preferenceSchema,normalizedPreferences} from './request-schedule';
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
 
-export const intakeSchema=z.object({discoveryMethod:z.enum(['MANUAL','ASSISTED']).default('ASSISTED'),preferredTeacherId:uuid.optional(),childId:uuid.optional(),alias:text(40),grade:z.number().int().min(6).max(10),board:z.enum(['CBSE','CGBSE']),subject:z.enum(['Maths','Science']),mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000),schedule:text(300),preferences:preferenceSchema.optional()}).strict();
+export const intakeSchema=z.object({schoolName:text(160).optional(),schoolSubjects:schoolSubjects.optional(),discoveryMethod:z.enum(['MANUAL','ASSISTED']).default('ASSISTED'),preferredTeacherId:uuid.optional(),childId:uuid.optional(),alias:text(40),grade:z.number().int().min(6).max(10),board:z.enum(['CBSE','CGBSE']),subject:z.enum(['Maths','Science']),mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000),schedule:text(300),preferences:preferenceSchema.optional()}).strict();
 export async function createIntake(db:DB,service:AppService,account:Account,req:HttpRequest,data:z.infer<typeof intakeSchema>) {
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${account.id},0))`;
       await service.guardian(db,account.id);
@@ -22,8 +23,14 @@ export async function createIntake(db:DB,service:AppService,account:Account,req:
       const region=await db.region.findUnique({where:{id:account.region}});if(!region?.enabled)fail(409,'UNSUPPORTED_REGION','This city is not enabled; use the unsupported-scope waitlist.');
       const preferences=data.preferences?normalizedPreferences(data.preferences):null;if(data.preferences&&!preferences)fail(400,'INVALID_SCHEDULE','Preferences must be nonoverlapping 20–120 minute windows between one hour and 60 days ahead.');
       if(data.preferredTeacherId&&!((await service.publicTeachers({id:data.preferredTeacherId},1))[0]))fail(404,'NOT_FOUND','Selected teacher is unavailable.');
-      const child=data.childId?await service.child(db,account,data.childId):await db.child.create({data:{guardianId:account.id,alias:data.alias,grade:data.grade,board:data.board}});
+      if(!data.childId&&(!data.schoolName||!data.schoolSubjects))fail(400,'LEARNER_DETAILS_REQUIRED','Enter the school and subjects studied in the class.');
+      const child=data.childId?await service.child(db,account,data.childId):await db.child.create({data:{guardianId:account.id,alias:data.alias,grade:data.grade,board:data.board,schoolName:data.schoolName,schoolSubjects:data.schoolSubjects}});
       if(child.grade!==data.grade||child.board!==data.board)fail(409,"CHILD_CHANGED","The linked learner grade or board differs from this request.");
+      if(data.childId&&(data.schoolName||data.schoolSubjects)){
+       if(!data.schoolName||!data.schoolSubjects)fail(400,'LEARNER_DETAILS_REQUIRED','Supply both school and class subjects.');
+       if(child.schoolName&&(child.schoolName!==data.schoolName||JSON.stringify(child.schoolSubjects)!==JSON.stringify(data.schoolSubjects)))fail(409,'CHILD_CHANGED','The learner school details changed; review the current record.');
+       if(!child.schoolName)await db.child.update({where:{id:child.id},data:{schoolName:data.schoolName,schoolSubjects:data.schoolSubjects,version:{increment:1}}});
+      }
       const request=await db.tuitionRequest.create({data:{discoveryMethod:data.discoveryMethod,preferredTeacherId:data.preferredTeacherId,region:account.region,...(preferences?{schedulePreferences:preferences,scheduleStatus:'CONFIRMED'}:{}),guardianId:account.id,childId:child.id,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,schedule:data.schedule}});
       await service.audit(db,account,req,'REQUEST_CREATED',request.id,'Guardian submitted supported tuition need',undefined,{region:request.region,scheduleStatus:request.scheduleStatus});await service.event(db,'request.created',request.id);return request;
 }
