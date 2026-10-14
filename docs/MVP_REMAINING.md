@@ -16,6 +16,8 @@ F10 and B11’s owner-safe lesson metadata are implemented. Feedback remains pri
 
 The owner-requested detailed onboarding increment is implemented: private teacher address, education/results and work declarations, learner school/class subjects, private review summaries and optional demo badges. Eligible terms no longer require a new demo. Broad enquiry simplification, separation of timetable/start evidence and other H2/H3 acceptance remain open in `remaing.md`.
 
+Primary hiring dashboards also support private guardian/teacher review and acceptance of hiring terms without class timetable controls. Waiting/both-confirmed states and write recovery are implemented; service-start/receipt evidence stays separate. H2 enquiry simplification and complete H3 enquiry-to-confirmation navigation remain open.
+
 ## Frontend work still open
 
 | # | Work remaining | Backend position |

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Users, ShieldCheck, ArrowUpRight } from "lucide-react";
@@ -14,6 +14,7 @@ import {
 import { Notice, Feedback, useDecision } from "./tuition-workflow";
 type View = components["schemas"]["HiringDashboard"];
 type Enquiry = components["schemas"]["HiringEnquiry"];
+type Arrangement = components["schemas"]["HiringArrangement"];
 const label = (s: string) => s.toLowerCase().replaceAll("_", " ");
 const date = (s: string) =>
   new Intl.DateTimeFormat("en-IN", {
@@ -25,7 +26,8 @@ const money = (n: number) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(n / 100);
 export function HiringOverview({ session }: { session: Session }) {
   const role = session.account.role,
@@ -38,8 +40,13 @@ export function HiringOverview({ session }: { session: Session }) {
     ),
     [cursors, setCursors] = useState<string[]>([]),
     [selected, setSelected] = useState<Enquiry | null>(null),
+    [terms, setTerms] = useState<Arrangement | null>(null),
     [response, setResponse] = useState("ACCEPTED"),
     [ack, setAck] = useState(false);
+  const termsHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (terms) termsHeading.current?.focus();
+  }, [terms?.id]);
   const params = new URLSearchParams({ section });
   if (cursors.at(-1)) params.set("cursor", cursors.at(-1)!);
   const query = useQuery({
@@ -52,6 +59,10 @@ export function HiringOverview({ session }: { session: Session }) {
   async function refresh() {
     const r = await query.refetch();
     if (r.error) throw r.error;
+    if (terms) {
+      setTerms(r.data?.arrangements.find((p) => p.id === terms.id) || null);
+      setAck(false);
+    }
     if (selected) {
       setSelected(r.data?.enquiries.find((e) => e.id === selected.id) || null);
       setAck(false);
@@ -59,7 +70,7 @@ export function HiringOverview({ session }: { session: Session }) {
   }
   const decision = useDecision(session, refresh),
     data = query.data,
-    locked = !!selected || decision.locked;
+    locked = !!selected || !!terms || decision.locked;
   return (
     <div className="care-workspace hiring-overview">
       <section className="hiring-intro">
@@ -188,7 +199,7 @@ export function HiringOverview({ session }: { session: Session }) {
                   ? data.counts.pendingResponses
                   : data.counts.openEnquiries,
               ],
-              ["Terms pending", data.counts.termsPending],
+              ["Awaiting tuition start", data.counts.termsPending],
               ["Active arrangements", data.counts.activeArrangements],
             ].map(([name, value]) => (
               <div key={name}>
@@ -466,7 +477,11 @@ export function HiringOverview({ session }: { session: Session }) {
                             <div className="hiring-section-heading">
                               <h4>{p.teacher.name}</h4>
                               <span className="hiring-state">
-                                {label(p.status)}
+                                {p.status === "CLOSED"
+                                  ? "Closed"
+                                  : p.guardianAccepted && p.teacherAccepted
+                                    ? "Hiring terms confirmed"
+                                    : "Hiring terms pending"}
                               </span>
                             </div>
                             <p>
@@ -511,13 +526,31 @@ export function HiringOverview({ session }: { session: Session }) {
                                 </div>
                               )}
                             </dl>
-                            {guardian && (
-                              <Link
-                                href="/dashboard/requests"
-                                className="inline-link"
+                            <p className="hiring-next">
+                              {p.status === "CLOSED"
+                                ? "This arrangement is closed. Its recorded terms remain available for reference."
+                                : p.guardianAccepted && p.teacherAccepted
+                                  ? "Both parties have confirmed the hiring terms. This does not confirm a lesson, tuition payment or service start."
+                                  : student
+                                    ? "Your guardian and teacher review and confirm the hiring terms."
+                                    : (guardian && p.guardianAccepted) ||
+                                        (teacher && p.teacherAccepted)
+                                      ? "Your acceptance is recorded. Waiting for the other party to confirm the same terms."
+                                      : "Review the monthly terms and policy before accepting. A demo and class timetable are not required to accept hiring terms."}
+                            </p>
+                            {(guardian || teacher) && (
+                              <Button
+                                variant="outline"
+                                disabled={
+                                  locked || !!query.error || query.isFetching
+                                }
+                                onClick={() => {
+                                  setTerms(p);
+                                  setAck(false);
+                                }}
                               >
-                                Review arrangement terms
-                              </Link>
+                                Review hiring terms
+                              </Button>
                             )}
                             {guardian && (
                               <Link
@@ -565,6 +598,155 @@ export function HiringOverview({ session }: { session: Session }) {
                   </div>
                 )}
               </section>
+              {terms && (
+                <section
+                  className="care-card hiring-terms-review"
+                  aria-label="Hiring terms review"
+                >
+                  <h3 ref={termsHeading} tabIndex={-1}>
+                    Review hiring terms
+                  </h3>
+                  <p>
+                    {terms.teacher.name} · {terms.learner.alias} ·{" "}
+                    {terms.subject} ·{" "}
+                    {terms.mode === "HOME" ? "Home tuition" : "Online tuition"}
+                  </p>
+                  <dl className="hiring-details">
+                    <div>
+                      <dt>Monthly tuition</dt>
+                      <dd>
+                        {terms.monthlyPaise !== undefined
+                          ? money(terms.monthlyPaise)
+                          : "Unavailable"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Recorded policy</dt>
+                      <dd>{terms.policyVersion || "Unavailable"}</dd>
+                    </div>
+                    <div>
+                      <dt>Guardian acceptance</dt>
+                      <dd>{terms.guardianAccepted ? "Recorded" : "Pending"}</dd>
+                    </div>
+                    <div>
+                      <dt>Teacher acceptance</dt>
+                      <dd>{terms.teacherAccepted ? "Recorded" : "Pending"}</dd>
+                    </div>
+                  </dl>
+                  <p>
+                    Tuition is paid directly to the teacher. Accepting these
+                    terms does not charge either party or confirm that teaching
+                    has started.
+                  </p>
+                  <p className="care-help">
+                    Proposed teacher placement fee:{" "}
+                    {terms.placementFeePaise !== undefined
+                      ? money(terms.placementFeePaise)
+                      : "Unavailable"}
+                    , only after separate service-start and tuition-receipt
+                    evidence. Final live commercial terms remain under review.
+                  </p>
+                  <p className="hiring-next">
+                    A demo is optional. You can confirm hiring terms without
+                    booking a class or agreeing a class timetable.
+                  </p>
+                  {terms.status === "CLOSED" ? (
+                    <p>
+                      This arrangement is closed. Further acceptances are
+                      unavailable.
+                    </p>
+                  ) : (
+                      guardian ? terms.guardianAccepted : terms.teacherAccepted
+                    ) ? (
+                    <p>
+                      Your acceptance is already recorded.
+                      {terms.guardianAccepted && terms.teacherAccepted
+                        ? " Both parties have confirmed the hiring terms."
+                        : " Waiting for the other party."}
+                    </p>
+                  ) : (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!ack) {
+                          decision.invalid(
+                            "Review and acknowledge the hiring terms before accepting.",
+                          );
+                          return;
+                        }
+                        if (
+                          !terms.version ||
+                          !terms.policyVersion ||
+                          terms.monthlyPaise === undefined ||
+                          terms.placementFeePaise === undefined ||
+                          (guardian &&
+                            (!data.gate?.verified ||
+                              !data.gate.consent ||
+                              data.gate.privacyPaused))
+                        ) {
+                          decision.invalid(
+                            "Current terms and guardian permission are required. Refresh the overview before accepting.",
+                          );
+                          return;
+                        }
+                        void decision.run({
+                          path: `/placements/${terms.id}/acceptances`,
+                          body: {
+                            expectedVersion: terms.version,
+                            action: "ACCEPT_TERMS",
+                          },
+                          message: "Your hiring-term acceptance was recorded.",
+                          onSaved: () => {
+                            setTerms(null);
+                            setAck(false);
+                          },
+                        });
+                      }}
+                    >
+                      <label className="care-ack">
+                        <input
+                          type="checkbox"
+                          checked={ack}
+                          disabled={decision.locked}
+                          onChange={(e) => setAck(e.target.checked)}
+                        />{" "}
+                        I have reviewed the monthly tuition and policy and agree
+                        to these hiring terms.
+                      </label>
+                      <Button
+                        type="submit"
+                        disabled={
+                          !ack ||
+                          decision.locked ||
+                          !!query.error ||
+                          !terms.version ||
+                          !terms.policyVersion ||
+                          terms.monthlyPaise === undefined ||
+                          terms.placementFeePaise === undefined ||
+                          (guardian &&
+                            (!data.gate?.verified ||
+                              !data.gate.consent ||
+                              data.gate.privacyPaused))
+                        }
+                      >
+                        Accept hiring terms
+                      </Button>
+                    </form>
+                  )}
+                  <div className="action-row">
+                    <Button
+                      variant="outline"
+                      disabled={decision.locked}
+                      onClick={() => {
+                        setTerms(null);
+                        setAck(false);
+                      }}
+                    >
+                      Close terms review
+                    </Button>
+                  </div>
+                </section>
+              )}
               {selected?.candidate && (
                 <section
                   className="care-card hiring-response"
@@ -656,7 +838,9 @@ export function HiringOverview({ session }: { session: Session }) {
                   disabled={decision.busy}
                   onClick={() => decision.reload()}
                 >
-                  Reload current enquiries
+                  {section === "ARRANGEMENTS"
+                    ? "Reload current hiring terms"
+                    : "Reload current enquiries"}
                 </Button>
               )}
               {data.learners.length > 0 && (

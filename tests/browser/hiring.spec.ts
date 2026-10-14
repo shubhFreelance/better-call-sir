@@ -16,6 +16,12 @@ async function mock(page: Page, role = "GUARDIAN", mode = "normal") {
     unknown = mode === "unknown",
     stale = mode === "stale",
     version = 1;
+  let termVersion = 1,
+    guardianAccepted =
+      !mode.startsWith("terms-") &&
+      !["withdrawn", "paused", "unverified"].includes(mode),
+    teacherAccepted = false;
+  const acceptedKeys = new Map<string, unknown>();
   await page.route("**/api/v1/**", async (route) => {
     const req = route.request(),
       u = new URL(req.url()),
@@ -115,9 +121,9 @@ async function mock(page: Page, role = "GUARDIAN", mode = "normal") {
                   id: ids.placement,
                   subject: "Maths",
                   mode: "HOME",
-                  status: "TERMS_PENDING",
-                  guardianAccepted: true,
-                  teacherAccepted: false,
+                  status: mode === "terms-closed" ? "CLOSED" : "TERMS_PENDING",
+                  guardianAccepted,
+                  teacherAccepted,
                   guardianStarted: false,
                   teacherReceiptConfirmed: false,
                   learner: { alias: "Mira", grade: 8, board: "CBSE" },
@@ -126,7 +132,18 @@ async function mock(page: Page, role = "GUARDIAN", mode = "normal") {
                     name: "Synthetic reviewed teacher",
                     status: "APPROVED",
                   },
-                  ...(role !== "STUDENT" ? { monthlyPaise: 300000 } : {}),
+                  ...(role !== "STUDENT"
+                    ? {
+                        monthlyPaise: 300029,
+                        ...(mode !== "terms-missing"
+                          ? {
+                              version: termVersion,
+                              policyVersion: "development-v1",
+                              placementFeePaise: 75007,
+                            }
+                          : {}),
+                      }
+                    : {}),
                 },
               ]
             : [],
@@ -187,6 +204,48 @@ async function mock(page: Page, role = "GUARDIAN", mode = "normal") {
       const check = validator("HiringDashboard");
       expect(check(result), JSON.stringify(check.errors)).toBe(true);
       return route.fulfill({ json: result });
+    }
+    if (path === `/api/v1/placements/${ids.placement}/acceptances`) {
+      expect(req.method()).toBe("POST");
+      expect(req.headers()["x-csrf-token"]).toBe("synthetic-csrf");
+      const key = req.headers()["idempotency-key"],
+        body = req.postDataJSON();
+      writes.push({ key, body });
+      if (acceptedKeys.has(key))
+        return route.fulfill({ status: 201, json: acceptedKeys.get(key) });
+      if (mode === "terms-stale" && termVersion === 1) {
+        termVersion = 2;
+        return route.fulfill({
+          status: 409,
+          json: { code: "CONFLICT", message: "Synthetic stale hiring terms" },
+        });
+      }
+      expect(body).toEqual({
+        expectedVersion: termVersion,
+        action: "ACCEPT_TERMS",
+      });
+      if (role === "GUARDIAN") guardianAccepted = true;
+      else teacherAccepted = true;
+      termVersion++;
+      const result = {
+        id: ids.placement,
+        version: termVersion,
+        guardianAccepted,
+        teacherAccepted,
+      };
+      acceptedKeys.set(key, result);
+      if (mode === "terms-saved-refresh") fail = true;
+      if (
+        mode === "terms-unknown" &&
+        acceptedKeys.size === 1 &&
+        writes.length === 1
+      )
+        return route.fulfill({
+          status: 201,
+          contentType: "application/json",
+          body: "unreadable hiring result",
+        });
+      return route.fulfill({ status: 201, json: result });
     }
     if (path.endsWith("/responses")) {
       expect(req.method()).toBe("POST");
@@ -620,4 +679,180 @@ test("an expired scoped page can return to the first page without retrying a for
   await expect(
     page.getByRole("article", { name: "Maths enquiry" }),
   ).toBeVisible();
+});
+
+async function openTerms(page: Page) {
+  await page.goto("/dashboard");
+  await page
+    .getByRole("tab", { name: "Teaching arrangements", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Review hiring terms", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Review hiring terms", exact: true }),
+  ).toBeFocused();
+}
+const termsAck = (page: Page) =>
+  page.getByRole("checkbox", {
+    name: /reviewed the monthly tuition and policy/,
+  });
+
+test("teacher confirms hiring terms from the primary dashboard without classes or financial execution", async ({
+  page,
+}) => {
+  const state = await mock(page, "TEACHER");
+  await openTerms(page);
+  const review = page.getByRole("region", { name: "Hiring terms review" });
+  await expect(review.getByText("₹3,000.29", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Accept hiring terms", exact: true }),
+  ).toBeDisabled();
+  await termsAck(page).check();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await review.screenshot({
+    path: "test-results/hiring-terms-desktop.png",
+    style: "nextjs-portal{display:none!important}",
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await review.screenshot({
+    path: "test-results/hiring-terms-mobile.png",
+    style: "nextjs-portal{display:none!important}",
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const findings = await new AxeBuilder({ page }).analyze();
+  expect(
+    findings.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+  await page
+    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .click();
+  await expect(
+    page.getByText("Hiring terms confirmed", { exact: true }),
+  ).toBeVisible();
+  expect(state.writes).toHaveLength(1);
+  expect(state.writes[0].body).toEqual({
+    expectedVersion: 1,
+    action: "ACCEPT_TERMS",
+  });
+  expect(
+    state.reads.some(
+      (p) =>
+        p.includes("/schedules") ||
+        p.includes("/demos") ||
+        p.includes("/invoices") ||
+        p === "/api/v1/dashboard",
+    ),
+  ).toBe(false);
+});
+
+test("guardian accepts hiring terms and waits for the teacher; student never gets financial or acceptance controls", async ({
+  page,
+}) => {
+  const state = await mock(page, "GUARDIAN", "terms-first");
+  await openTerms(page);
+  await termsAck(page).check();
+  await page
+    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .click();
+  await expect(
+    page.getByText(/Your acceptance is recorded\. Waiting for the other party/),
+  ).toBeVisible();
+  expect(state.writes).toHaveLength(1);
+  await page.unrouteAll();
+  await mock(page, "STUDENT");
+  await page.reload();
+  await page.getByRole("tab", { name: "Your teacher", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Review hiring terms", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Recorded monthly terms", { exact: true }),
+  ).toHaveCount(0);
+});
+
+for (const mode of ["terms-missing", "terms-closed", "withdrawn", "paused"])
+  test(`hiring acceptance stays unavailable for ${mode}`, async ({ page }) => {
+    await mock(page, "GUARDIAN", mode);
+    await openTerms(page);
+    if (mode === "terms-closed")
+      await expect(
+        page.getByRole("button", { name: "Accept hiring terms", exact: true }),
+      ).toHaveCount(0);
+    else if (await termsAck(page).isVisible()) {
+      await termsAck(page).check();
+      await expect(
+        page.getByRole("button", { name: "Accept hiring terms", exact: true }),
+      ).toBeDisabled();
+    } else
+      await expect(
+        page.getByText(/Your acceptance is already recorded/),
+      ).toBeVisible();
+  });
+
+test("uncertain hiring acceptance freezes controls and retries the identical body and key", async ({
+  page,
+}) => {
+  const state = await mock(page, "GUARDIAN", "terms-unknown");
+  await openTerms(page);
+  await termsAck(page).check();
+  await page
+    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Close terms review", exact: true }),
+  ).toBeDisabled();
+  await expect(termsAck(page)).toBeDisabled();
+  await page
+    .getByRole("button", { name: "Retry same decision", exact: true })
+    .click();
+  await expect(
+    page.getByText(/Your hiring-term acceptance was recorded/),
+  ).toBeVisible();
+  expect(state.writes).toHaveLength(2);
+  expect(state.writes[1]).toEqual(state.writes[0]);
+});
+
+test("stale hiring terms refresh current version and require renewed acknowledgement", async ({
+  page,
+}) => {
+  const state = await mock(page, "GUARDIAN", "terms-stale");
+  await openTerms(page);
+  await termsAck(page).check();
+  await page
+    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Reload current hiring terms", exact: true })
+    .click();
+  await expect(termsAck(page)).not.toBeChecked();
+  await termsAck(page).check();
+  await page
+    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .click();
+  expect(state.writes.map((w) => w.body.expectedVersion)).toEqual([1, 2]);
+});
+
+test("saved hiring acceptance with a failed refresh prevents a duplicate write", async ({
+  page,
+}) => {
+  const state = await mock(page, "GUARDIAN", "terms-saved-refresh");
+  await openTerms(page);
+  await termsAck(page).check();
+  await page
+    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .click();
+  await expect(
+    page.getByText(/saved, but current details could not be loaded/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Review hiring terms", exact: true }),
+  ).toBeDisabled();
+  expect(state.writes).toHaveLength(1);
 });

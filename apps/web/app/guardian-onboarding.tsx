@@ -579,7 +579,8 @@ function Wizard({
           <h2>What happens next?</h2>
           <p>
             Fit and availability are reviewed before suitable options are
-            presented. You choose after a demo and agreement.
+            presented. You choose a teacher and review hiring terms together. A
+            demo is optional.
           </p>
         </div>
         <Link className="button" href="/dashboard/requests">
