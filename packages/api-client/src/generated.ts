@@ -325,7 +325,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Read current unpublished/published candidates with current eligibility
+         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
+         */
+        get: operations["get_admin_request_candidates"];
         put?: never;
         /**
          * postAdminRequestsIdRecommendations
@@ -3559,6 +3563,34 @@ export interface components {
         NoteRecords: {
             items: components["schemas"]["NoteRecord"][];
         };
+        OperatorCandidate: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            requestId: string;
+            /** Format: uuid */
+            teacherId: string;
+            score: number;
+            reasons: string[];
+            rankerVersion: string;
+            /** @enum {string} */
+            response: "PENDING" | "ACCEPTED" | "DECLINED";
+            version?: number;
+            /** Format: uuid */
+            runId?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            /** Format: date-time */
+            presentedAt?: string | null;
+            position?: number | null;
+            teacherName: string;
+            eligibleNow: boolean;
+        };
+        OperatorCandidateList: {
+            /** Format: uuid */
+            runId: string | null;
+            items: components["schemas"]["OperatorCandidate"][];
+        };
     };
     responses: never;
     parameters: never;
@@ -5076,6 +5108,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TuitionRequestDetails"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_admin_request_candidates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperatorCandidateList"];
                 };
             };
             /** @description Validation */
