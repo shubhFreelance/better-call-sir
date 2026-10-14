@@ -18705,6 +18705,143 @@
         },
         "parameters": []
       }
+    },
+    "/dashboard/learning": {
+      "get": {
+        "operationId": "getLearningDashboard",
+        "tags": [
+          "dashboard"
+        ],
+        "summary": "Role-scoped recorded lesson metrics, learner summaries and current assignments; completed counts do not imply improvement or settlement",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningDashboard"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ],
+        "description": "Defaults to rolling 30 days. from/to must both be supplied when filtering; interval [from,to), at most 366 days, selected by lesson/demo reservation start. Counts reflect current records as of lastUpdated. Classes taken exclude cancelled, absent, future and disputed records; completed lessons remain a separate status count. Attendance completeness uses ended non-cancelled lessons and current undisputed completed attendance. Pending confirmations require a current-version family confirmation. Feedback aggregates only for teachers and currently valid attended lessons, never students. Demos have independent outcome counts and are not added to lesson counts. noShow counts guardian/teacher NO_SHOW reports, which may overlap disputed outcomes; it never infers teacher responsibility. Learners paginate independently of full scoped totals; current assignments and next lessons are outside the selected interval. Assignment previews are limited to 20 and flagged. Teacher cancellation/absence/demo no-show counts describe assigned records, not responsibility attribution. No contacts, private feedback text or financial records are returned; guardian-only membership metadata is a recorded development allowance."
+      }
     }
   },
   "components": {
@@ -25836,6 +25973,421 @@
           "immature"
         ],
         "additionalProperties": false
+      },
+      "LearningMetrics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lessons": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "classesTaken": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "completedLessons": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "uniqueStudentsTaught": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "cancelled": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "absent": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "disputed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "attendanceDue": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "attendanceRecorded": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "pendingAttendance": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "pendingConfirmations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "feedbackSampleSize": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "feedbackAverage": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 5
+          }
+        },
+        "required": [
+          "lessons",
+          "classesTaken",
+          "completedLessons",
+          "uniqueStudentsTaught",
+          "cancelled",
+          "absent",
+          "disputed",
+          "attendanceDue",
+          "attendanceRecorded",
+          "pendingAttendance",
+          "pendingConfirmations"
+        ]
+      },
+      "DemoMetrics": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "scheduled": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "completed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "cancelled": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "noShow": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "disputed": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "scheduled",
+          "completed",
+          "cancelled",
+          "noShow",
+          "disputed"
+        ]
+      },
+      "LearningAssignment": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "teacherId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "teacherId",
+          "name",
+          "subject",
+          "status"
+        ]
+      },
+      "NextLearningLesson": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "teacherName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "subject",
+          "startsAt",
+          "endsAt",
+          "teacherName"
+        ]
+      },
+      "LearnerSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "learner": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "alias": {
+                "type": "string"
+              },
+              "grade": {
+                "type": "integer"
+              },
+              "board": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "alias",
+              "grade",
+              "board"
+            ]
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/LearningMetrics"
+          },
+          "assignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LearningAssignment"
+            }
+          },
+          "assignmentsLimited": {
+            "type": "boolean"
+          },
+          "nextLesson": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NextLearningLesson"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "demos": {
+            "$ref": "#/components/schemas/DemoMetrics"
+          }
+        },
+        "required": [
+          "learner",
+          "metrics",
+          "assignments",
+          "assignmentsLimited",
+          "nextLesson",
+          "demos"
+        ]
+      },
+      "LearningDashboard": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "GUARDIAN",
+              "STUDENT",
+              "TEACHER"
+            ]
+          },
+          "window": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "from": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "to": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timezone": {
+                "const": "Asia/Kolkata"
+              },
+              "metricVersion": {
+                "const": "learning-dashboard-v2"
+              },
+              "basis": {
+                "const": "LESSON_STARTS_AT"
+              },
+              "endExclusive": {
+                "const": true
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "timezone",
+              "metricVersion",
+              "basis",
+              "endExclusive"
+            ]
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/LearningMetrics"
+          },
+          "activeStudents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "demos": {
+            "$ref": "#/components/schemas/DemoMetrics"
+          },
+          "serviceKinds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "type": "string"
+                },
+                "metrics": {
+                  "$ref": "#/components/schemas/LearningMetrics"
+                }
+              },
+              "required": [
+                "kind",
+                "metrics"
+              ]
+            }
+          },
+          "learners": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LearnerSummary"
+            }
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "subjects": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "status",
+                  "subjects"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "membership": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  },
+                  "allowance": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "used": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reserved": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "periodEnd": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "status",
+                  "allowance",
+                  "used",
+                  "reserved",
+                  "periodEnd"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "role",
+          "window",
+          "lastUpdated",
+          "metrics",
+          "activeStudents",
+          "demos",
+          "serviceKinds",
+          "learners",
+          "nextCursor"
+        ]
       }
     },
     "securitySchemes": {
