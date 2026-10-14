@@ -8,7 +8,7 @@ import {Request, Response} from 'express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import {z} from 'zod';
-import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} from '../../policies';
+import {eligible, placementFee, verifiedAttendance, revisionRefund, window30, revisionPrice} from '../../policies';
 
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
 
@@ -44,7 +44,7 @@ class RevisionController {
       const localHour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',hour:'2-digit',hourCycle:'h23'}).format(startsAt));
       if (localHour<9 || localHour>=20) fail(400,'OUTSIDE_WINDOW','Development revision slots run from 9am to 8pm IST.');
       await db.reservation.updateMany({where:{teacherId:teacher.id,status:'HOLD',expiresAt:{lt:new Date()}},data:{status:'EXPIRED'}});
-      const price=data.duration*1500;const reservation=await db.reservation.create({data:{teacherId:teacher.id,guardianId:actor.id,childId:child.id,kind:'REVISION',source:'ADVERTISED',sourceId:pattern.id,startsAt,endsAt:new Date(startsAt.getTime()+data.duration*60_000),expiresAt:new Date(Date.now()+600_000),topic:data.topic,subject:data.subject,language:data.language,amountPaise:price,payablePaise:price}});
+      const price=revisionPrice(data.duration);const reservation=await db.reservation.create({data:{teacherId:teacher.id,guardianId:actor.id,childId:child.id,kind:'REVISION',source:'ADVERTISED',sourceId:pattern.id,startsAt,endsAt:new Date(startsAt.getTime()+data.duration*60_000),expiresAt:new Date(Date.now()+600_000),topic:data.topic,subject:data.subject,language:data.language,amountPaise:price,payablePaise:price}});
       await this.service.audit(db,actor,req,'REVISION_HELD',reservation.id,'Guardian reserved declared expert availability');
       await this.service.event(db,'revision.scope_requested',reservation.id);return reservation;
     });

@@ -1,3 +1,4 @@
+export const revisionPrice = (minutes: number) => minutes * 1500;
 export const placementFee = (monthlyPaise: number) => Math.min(Math.round(monthlyPaise * 0.25), 150_000);
 export const verifiedAttendance = (lesson: {status: string; attendance: string; disputed: boolean}) =>
   lesson.status === 'COMPLETED' && ['PRESENT', 'LATE'].includes(lesson.attendance) && !lesson.disputed;

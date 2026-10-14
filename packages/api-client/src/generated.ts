@@ -2067,6 +2067,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/console": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** MFA-protected administrator AdminConsole */
+        get: operations["get_AdminConsole"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** MFA-protected administrator AdminAccountList */
+        get: operations["get_AdminAccountList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/accounts/{id}/linkage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** MFA-protected administrator AdminLinkage */
+        get: operations["get_AdminLinkage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** MFA-protected administrator AdminAuditList */
+        get: operations["get_AdminAuditList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/privacy-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** MFA-protected administrator AdminPrivacyQueue */
+        get: operations["get_AdminPrivacyQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3713,6 +3798,123 @@ export interface components {
             order: "ID_DESC";
             /** @constant */
             providerSettlementVerified: false;
+        };
+        ConsoleFlag: {
+            /** @enum {string} */
+            name: "revision" | "checkout" | "proCalls" | "ai";
+            enabled: boolean;
+            version: number;
+        };
+        AdminAccount: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            role: string;
+            region: string;
+            verified: boolean;
+            disabled: boolean;
+        };
+        AdminAccountList: {
+            items: components["schemas"]["AdminAccount"][];
+            /** Format: uuid */
+            nextCursor: string | null;
+        };
+        AdminLinkage: {
+            account: components["schemas"]["AdminAccount"];
+            children: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                guardianId: string;
+                /** Format: uuid */
+                studentAccountId: string | null;
+                /** Format: date-time */
+                studentAccessRevokedAt: string | null;
+                alias: string;
+                grade: number;
+                board: string;
+            }[];
+            teacher: {
+                /** Format: uuid */
+                id: string;
+                status: string;
+                region: string;
+                profileRevision: number;
+            } | null;
+            /** @constant */
+            limit: 50;
+            /** @constant */
+            editable: false;
+        };
+        AdminConsole: {
+            /** Format: date-time */
+            asOf: string;
+            /** @enum {string} */
+            mode: "SYNTHETIC_DEVELOPMENT" | "PRODUCTION";
+            flags: components["schemas"]["ConsoleFlag"][];
+            accounts: number;
+            pendingPrivacy: number;
+            supply: {
+                region: string;
+                status: string;
+                count: number;
+            }[];
+            /** @constant */
+            supplyLimit: 50;
+            commercial: {
+                placementExamples: {
+                    monthlyPaise: number;
+                    feePaise: number;
+                }[];
+                revisionPrices: {
+                    minutes: number;
+                    amountPaise: number;
+                }[];
+                /** @constant */
+                currency: "INR";
+                /** @constant */
+                editable: false;
+            };
+            integrations: {
+                name: string;
+                /** @enum {string} */
+                mode: "LIVE_CONFIGURED" | "SANDBOX" | "DEVELOPMENT_ONLY" | "DISABLED";
+            }[];
+            release: {
+                /** @constant */
+                authorized: false;
+                /** @constant */
+                status: "BLOCKED";
+                /** @constant */
+                providerQualification: "PENDING";
+            };
+            /** @constant */
+            staffAdministration: "PENDING_INDEPENDENT_APPROVAL_WORKFLOW";
+        };
+        AdminAuditList: {
+            items: {
+                /** Format: uuid */
+                id: string;
+                action: string;
+                aggregateId: string;
+                reason: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            /** Format: uuid */
+            nextCursor: string | null;
+        };
+        AdminPrivacyQueue: {
+            items: components["schemas"]["PrivacyRequest"][];
+            /** Format: uuid */
+            nextCursor: string | null;
+        };
+        FlagChangeInput: {
+            enabled: boolean;
+            expectedVersion: number;
+            reason: string;
+            /** @constant */
+            confirmed: true;
         };
     };
     responses: never;
@@ -7652,6 +7854,7 @@ export interface operations {
             query?: never;
             header: {
                 "X-CSRF-Token": string;
+                "Idempotency-Key": string;
             };
             path: {
                 name: string;
@@ -7660,13 +7863,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    expectedVersion: number;
-                    enabled: boolean;
-                    reason: string;
-                    /** @constant */
-                    confirmed: true;
-                };
+                "application/json": components["schemas"]["FlagChangeInput"];
             };
         };
         responses: {
@@ -7676,7 +7873,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Resource"];
+                    "application/json": components["schemas"]["ConsoleFlag"];
                 };
             };
             /** @description Validation */
@@ -14313,6 +14510,436 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FinanceRecordList"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_AdminConsole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminConsole"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_AdminAccountList: {
+        parameters: {
+            query?: {
+                id?: string;
+                role?: "GUARDIAN" | "STUDENT" | "TEACHER" | "OPERATOR" | "REVIEWER" | "FINANCE" | "ADMIN";
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAccountList"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_AdminLinkage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminLinkage"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_AdminAuditList: {
+        parameters: {
+            query?: {
+                action?: string;
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuditList"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_AdminPrivacyQueue: {
+        parameters: {
+            query?: {
+                status?: "PENDING" | "COMPLETED" | "REJECTED";
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPrivacyQueue"];
                 };
             };
             /** @description Validation */
