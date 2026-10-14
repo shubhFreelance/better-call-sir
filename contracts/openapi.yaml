@@ -26883,6 +26883,18 @@
           "monthlyPaise": {
             "type": "integer",
             "minimum": 0
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "policyVersion": {
+            "type": "string"
+          },
+          "placementFeePaise": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Proposed teacher placement fee under the recorded development policy, payable only after separate start and receipt evidence; not collected by accepting terms."
           }
         },
         "required": [
