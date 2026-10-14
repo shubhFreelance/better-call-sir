@@ -1,4 +1,5 @@
 "use client";
+import { ReportsWorkspace } from "./reports-workspace";
 import { AdminConsole } from "./admin-console";
 import { FinanceWorkspace } from "./finance-workspace";
 import { RefreshCw, Landmark } from "lucide-react";
@@ -1284,6 +1285,15 @@ function DashboardShell({
           ],
         ]
       : []),
+    ...(["ADMIN", "OPERATOR", "FINANCE"].includes(role || "")
+      ? [
+          ["/dashboard/reports", "Reports & cohorts", LayoutDashboard] as [
+            string,
+            string,
+            LucideIcon,
+          ],
+        ]
+      : []),
     ["/support", "Help & safety", LifeBuoy],
     ...(role && staffRole(role)
       ? [
@@ -1396,31 +1406,33 @@ function DashboardPage({ tab }: { tab: string }) {
                 ? `Hello, ${session.account.name.split(" · ")[0]}.`
                 : tab.endsWith("lessons")
                   ? "Every class, accounted for."
-                  : tab.endsWith("finance")
-                    ? "Financial records, with their evidence."
-                    : tab.endsWith("support")
-                      ? "Support, with a clear next step."
-                      : tab.endsWith("matching")
-                        ? "A considered shortlist, ready for review."
-                        : tab.endsWith("review")
-                          ? "A careful review, recorded."
-                          : tab.endsWith("privacy")
-                            ? "Your information and privacy."
-                            : tab.endsWith("arrangements")
-                              ? "A clear next step for your tuition."
-                              : tab.endsWith("requests")
-                                ? "Your path to a good fit."
-                                : tab.endsWith("family")
-                                  ? "Your learners, your control."
-                                  : tab.endsWith("bookings")
-                                    ? "A little clarity, on the calendar."
-                                    : tab.endsWith("pro")
-                                      ? "A conversation can help."
-                                      : tab.endsWith("notes")
-                                        ? session.account.role === "TEACHER"
-                                          ? "Learning context, shared with you."
-                                          : "Your thoughts, kept private."
-                                        : "A thoughtful control room."
+                  : tab.endsWith("reports")
+                    ? "Progress, backed by records."
+                    : tab.endsWith("finance")
+                      ? "Financial records, with their evidence."
+                      : tab.endsWith("support")
+                        ? "Support, with a clear next step."
+                        : tab.endsWith("matching")
+                          ? "A considered shortlist, ready for review."
+                          : tab.endsWith("review")
+                            ? "A careful review, recorded."
+                            : tab.endsWith("privacy")
+                              ? "Your information and privacy."
+                              : tab.endsWith("arrangements")
+                                ? "A clear next step for your tuition."
+                                : tab.endsWith("requests")
+                                  ? "Your path to a good fit."
+                                  : tab.endsWith("family")
+                                    ? "Your learners, your control."
+                                    : tab.endsWith("bookings")
+                                      ? "A little clarity, on the calendar."
+                                      : tab.endsWith("pro")
+                                        ? "A conversation can help."
+                                        : tab.endsWith("notes")
+                                          ? session.account.role === "TEACHER"
+                                            ? "Learning context, shared with you."
+                                            : "Your thoughts, kept private."
+                                          : "A thoughtful control room."
             }
             subtitle={
               tab === "/dashboard"
@@ -1599,6 +1611,12 @@ function DashboardPage({ tab }: { tab: string }) {
                 </Link>
               </section>
             ))}
+          {tab.endsWith("reports") && (
+            <ReportsWorkspace
+              key={`${session.account.id}:${session.account.role}`}
+              session={session}
+            />
+          )}
           {tab.endsWith("finance") && (
             <FinanceWorkspace
               key={`${session.account.id}:${session.account.role}`}

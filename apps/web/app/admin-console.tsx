@@ -239,6 +239,9 @@ function ConsoleWorkspace({ session }: { session: Session }) {
                   </Link>
                   <Link href="/dashboard/matching">Matching & publication</Link>
                   <Link href="/dashboard/support">Support & disputes</Link>
+                  <Link href="/dashboard/reports">
+                    Operational reports & cohorts
+                  </Link>
                   <Link href="/dashboard/finance">
                     Finance & recorded obligations
                   </Link>

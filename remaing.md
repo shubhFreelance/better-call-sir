@@ -2,7 +2,7 @@
 
 Updated 14 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
-Next sprint: **F20 operational charts and reports**. F14–F19 are implemented in development. Features are tested and pushed separately.
+Next sprint: **F21 dedicated role dashboards**. F14–F20 are implemented in development. Features are tested and pushed separately.
 
 
 ## Frontend features
@@ -13,7 +13,7 @@ Next sprint: **F20 operational charts and reports**. F14–F19 are implemented i
 - [x] **F17** Operator support/rematch queues, scoped demo and attendance dispute review, assignments/status/replies
 - [x] **F18** Finance/admin screens for invoice/payment/refund/payable states and reconciliation, with explicit captured-versus-settled money
 - [x] **F19** Super-admin console: people/linkage inspection, regional supply snapshot, read-only commercial rules, privacy review/evidence routing, recovery jobs/deletion replay, integration modes, reviewed flags, audit and blocked release state. Staff grants and commercial editing remain B2/B3.
-- [ ] **F20** Real operational charts/reports: manual/assisted funnel, denominators, mature continuation cohorts, unknown/missing observations and separate finance obligations
+- [x] **F20** Operational charts/reports: scoped manual/assisted request cohorts, exact denominators, mature continuation outcomes with unknown/missing evidence, IST date presets/custom ranges and separate finance capture modes/obligations. Live settlement remains unverified.
 - [ ] **F21** Finish dedicated role dashboards: per-learner summaries, assigned-teacher details, date presets, service-kind breakdown, teacher activity/completeness/cancellation and feedback sample size
 - [ ] **F22** Complete age-appropriate student notice/preferences and remaining guardian/student/teacher onboarding recovery details
 - [ ] **F23** Unsupported-scope waitlist intake/status and useful out-of-pilot recovery
@@ -82,5 +82,7 @@ Next sprint: **F20 operational charts and reports**. F14–F19 are implemented i
 - F18: implemented; 14 finance browser checks, 80 API checks and nine contract checks pass; frontend/backend pushes remain separate. Refund/payout execution stays open above.
 
 - F19: console implemented; 17 console browser checks, 39 related browser regressions and 82 API checks pass. Staff grants/configuration editing remain B2/B3; live release stays blocked.
+
+- F20: reporting endpoints and charts implemented; 84 API, nine contract and 39 report/finance/navigation browser checks pass. Dedicated role dashboards remain F21/B10.
 
 Full context: [MVP remaining inventory](docs/MVP_REMAINING.md) and [sprint evidence](docs/SPRINTS.md).
