@@ -6,7 +6,7 @@ Owner direction, 14 October 2026: prioritize finding a teacher and booking/hirin
 
 Search manually or choose “Let us search for you” → review screened teacher profiles and fit → send a tuition enquiry → receive teacher/operator responses → choose a teacher → review and mutually confirm the teaching arrangement → see hiring status and get support or a replacement when needed.
 
-“Book a teacher” means requesting or confirming a teaching arrangement. It does not mean automatically booking an individual lesson, charging money or claiming that teaching has started. Preserve teacher availability, capacity, eligibility and mutual acceptance checks. A fee quote or hiring acceptance is distinct from captured payment and verified service delivery. Introductions/demos may help assess fit, but the next implementation must review whether any existing mandatory demo or timetable step unnecessarily blocks hiring.
+“Book a teacher” means requesting or confirming a teaching arrangement. It does not mean automatically booking an individual lesson, charging money or claiming that teaching has started. Preserve teacher availability, capacity, eligibility and mutual acceptance checks. A fee quote or hiring acceptance is distinct from captured payment and verified service delivery. Demos are explicitly optional per teacher. An opted-in teacher gets a public “Demo available” badge. Eligible accepted recommendations may open hiring terms without requesting a demo; already requested demos retain outcome/cancellation/dispute safeguards. Timetable separation from hiring confirmation remains H3 work.
 
 ## Prioritized increments
 
@@ -33,3 +33,10 @@ If payments are introduced for hiring, their particular checkout, refunds and se
 ## Delivery and evidence
 
 Continue with separate tested backend/frontend commits and pushes. Active phase remains frontend development; this scope change is not phase acceptance, a production release, or approval to merge/deploy. Original PRD and sprint history are preserved as the broader reference. H1 discovery/profile emphasis and H4 hiring dashboards are implemented in development. Next is H2 simplified enquiry/onboarding, followed by H3 review and separation of mandatory demo/timetable dependencies from hiring confirmation. Existing read-only arrangement progress does not complete that separation.
+
+
+## Complete but manageable onboarding
+
+Teacher onboarding uses five steps: teaching introduction and experience; private full address; four education milestones plus previous work; teaching formats/coverage/fees and explicit demo preference; final review. Class 10, Class 12, undergraduate and postgraduate milestones record completed/pursuing/not-applicable status as appropriate, institution, board/degree, completion year and official marks/percentage/CGPA. Work history records institution/practice, role, dates and certificate/reference availability. Evidence is uploaded privately after submission and must pass existing scan/reviewer controls. Neither declarations nor badges imply independent verification of every claim.
+
+Guardian-authorized learner onboarding collects school, class/board and all subjects studied in class separately from the tuition subject requested. Existing recorded school details are protected from silent replacement; legacy blanks can be filled. Full teacher address/results/work and learner school details are excluded from public teacher discovery. Demo copy explains assessment of fit without promising hiring outcomes. Nullable legacy records need details before current approval; no real data is invented. Required application changes need coordinated API/web rollout; image/schema compatibility is still a release gate.

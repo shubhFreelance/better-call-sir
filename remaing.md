@@ -9,6 +9,8 @@ Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides
 ## Current priorities
 
 - [x] **H1** Teacher discovery, manual/assisted primary navigation and enquiry-focused profile action implemented. Individual class-booking promotion removed; existing direct routes retained.
+- [x] **H2 details increment** Teacher private address, education/results, work and certificate/reference declarations; learner school/class subjects; five-step teacher review and private owner/reviewer summaries. Actual evidence uses the existing private scanned upload workflow.
+- [x] **H3 optional demo increment** Explicit teacher choice, public opt-in badge, opt-out proposal/slot protection and eligible terms without a demo. Already requested demos retain cancellation/outcome/dispute handling.
 - [ ] **H2** Simplify and recover guardian/teacher onboarding and tuition enquiries; broad availability preferences instead of individual class management
 - [ ] **H3** Teacher responses, selection and mutually confirmed hiring terms/status; review and decouple mandatory demo/timetable dependencies
 - [x] **H4** Hiring overview for student, guardian, teacher and superadmin: scoped enquiry/arrangement records, counts, learner/application metadata, reviewed teacher responses, operational drill-downs and recovery states. H2/H3 journey simplification remains pending.

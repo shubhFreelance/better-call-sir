@@ -679,6 +679,13 @@ export function HiringOverview({ session }: { session: Session }) {
                           <span>
                             Class {c.grade} · {c.board}
                           </span>
+                          {c.schoolName && <span>{c.schoolName}</span>}
+                          {!!c.schoolSubjects?.length && (
+                            <span>
+                              {c.schoolSubjects.length} class subjects:{" "}
+                              {c.schoolSubjects.join(", ")}
+                            </span>
+                          )}
                         </div>
                         {guardian && (
                           <Link

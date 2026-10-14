@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { teacherDetails } from "../../packages/test-fixtures/src";
 import AxeBuilder from "@axe-core/playwright";
 import { validator, contract } from "../helpers/contract";
 import Ajv from "ajv/dist/2020";
@@ -30,6 +31,7 @@ const eid = (i: number) =>
   future = () => new Date(Date.now() + 30 * 86400000).toISOString();
 async function mock(page: Page, mode = "normal", role = "REVIEWER") {
   let t: any = {
+    ...teacherDetails,
     id: teacher,
     accountId: mode === "self" ? actor : owner,
     slug: "synthetic-teacher",
@@ -291,6 +293,18 @@ test("quarantined evidence has no download and scan retry stays quarantined", as
 }) => {
   const s = await mock(page, "quarantine");
   await page.goto("/dashboard/review");
+  const details = page.getByRole("region", {
+    name: "Private onboarding details",
+    exact: true,
+  });
+  await expect(
+    details.getByRole("heading", { name: "Complete address", exact: true }),
+  ).toBeVisible();
+  await expect(
+    details
+      .getByText(teacherDetails.education[0].institution, { exact: false })
+      .first(),
+  ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Download private identity evidence" }),
   ).toHaveCount(0);

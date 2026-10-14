@@ -1,4 +1,5 @@
 "use client";
+import { TeacherDetailsSummary } from "./teacher-details-form";
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -375,6 +376,9 @@ function TeacherReview({
             required.
           </Notice>
         )}
+      </section>
+      <section className="care-card">
+        <TeacherDetailsSummary profile={t} />
       </section>
       <Feedback decision={decision} />
       {decision.conflict && (

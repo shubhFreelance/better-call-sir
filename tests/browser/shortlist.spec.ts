@@ -677,3 +677,31 @@ test("a completed demo can open pending tuition terms after its shortlist is emp
     state.paths.filter((p) => p === "POST /api/v1/placements"),
   ).toHaveLength(1);
 });
+
+test("an accepted teacher can open terms without a demo", async ({ page }) => {
+  const state = await mock(page);
+  await page.goto("/dashboard/requests");
+  await expect(
+    page.getByRole("button", { name: "Choose & arrange optional demo" }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", {
+      name: "Review tuition terms without a demo",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByText(/A demo is optional\. Opening terms/),
+  ).toBeVisible();
+  await page
+    .getByRole("checkbox", { name: /open a pending tuition agreement/ })
+    .check();
+  await page.getByRole("button", { name: "Open tuition agreement" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Recurring tuition terms" }),
+  ).toBeVisible();
+  expect(
+    state.paths.filter((p) => p === "POST /api/v1/placements"),
+  ).toHaveLength(1);
+  expect(state.paths.filter((p) => p === "POST /api/v1/demos")).toHaveLength(0);
+});

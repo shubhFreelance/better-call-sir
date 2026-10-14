@@ -32,6 +32,8 @@ type Preferences = {
   slots: { startsAt: string; endsAt: string }[];
 };
 type Draft = {
+  schoolName?: string;
+  schoolSubjects?: string[];
   discoveryMethod: "MANUAL" | "ASSISTED";
   preferredTeacherId?: string;
   childId?: string;
@@ -54,6 +56,8 @@ type Progress = {
   completedResourceId: string | null;
 };
 type Values = {
+  schoolName: string;
+  schoolSubjects: string;
   childId: string;
   alias: string;
   grade: string;
@@ -68,6 +72,23 @@ type Values = {
 export type Window = { start: string; duration: string };
 const steps = ["Permission", "Learner", "Tuition needs", "Schedule", "Review"];
 const learnerSchema = z.object({
+  schoolName: z.string().trim().min(1, "Enter the school name.").max(160),
+  schoolSubjects: z
+    .string()
+    .trim()
+    .min(1, "List the subjects studied in class.")
+    .refine((v) => {
+      const a = v
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      return (
+        a.length > 0 &&
+        a.length <= 20 &&
+        a.every((s) => s.length <= 60) &&
+        new Set(a.map((s) => s.toLowerCase())).size === a.length
+      );
+    }, "List 1–20 unique subjects, separated by commas."),
   alias: z
     .string()
     .trim()
@@ -319,6 +340,8 @@ function Wizard({
   const submission = useRef<{ path: string; body: unknown } | null>(null);
   const initialValues = (): Values => ({
     childId: initial.draft.childId || "",
+    schoolName: initial.draft.schoolName || "",
+    schoolSubjects: initial.draft.schoolSubjects?.join(", ") || "",
     alias: initial.draft.alias || "",
     grade: String(initial.draft.grade || 8),
     board: initial.draft.board || "CBSE",
@@ -375,6 +398,17 @@ function Wizard({
       discoveryMethod: teacherId ? "MANUAL" : "ASSISTED",
       ...(teacherId ? { preferredTeacherId: teacherId } : {}),
       ...(values.childId ? { childId: values.childId } : {}),
+      ...(values.schoolName.trim()
+        ? { schoolName: values.schoolName.trim() }
+        : {}),
+      ...(values.schoolSubjects.trim()
+        ? {
+            schoolSubjects: values.schoolSubjects
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean),
+          }
+        : {}),
       alias: values.alias.trim(),
       grade: Number(values.grade),
       board: values.board,
@@ -560,6 +594,8 @@ function Wizard({
             setValues({
               ...initialValues(),
               childId: "",
+              schoolName: "",
+              schoolSubjects: "",
               alias: "",
               schedule: "",
             });
@@ -692,8 +728,8 @@ function Wizard({
                     <ShieldCheck size={18} /> Guardian account verified
                   </div>
                   <p>
-                    We use a learner alias, class and tuition need to review
-                    teacher fit and manage learning records.
+                    We use a learner alias, school, class subjects and tuition
+                    need to review teacher fit and manage learning records.
                   </p>
                   <ul>
                     <li>
@@ -769,6 +805,9 @@ function Wizard({
                           setValues((old) => ({
                             ...old,
                             childId: child?.id || "",
+                            schoolName: child?.schoolName || "",
+                            schoolSubjects:
+                              child?.schoolSubjects?.join(", ") || "",
                             alias: child?.alias || "",
                             grade: String(child?.grade || 8),
                             board: child?.board || "CBSE",
@@ -800,6 +839,54 @@ function Wizard({
                       {...errorProps("alias")}
                     />
                   </Field>
+                  <Field
+                    id="schoolName"
+                    label="School name"
+                    error={errors.schoolName}
+                    hint="Kept private for onboarding and tuition coordination; never listed publicly."
+                  >
+                    <Input
+                      id="schoolName"
+                      value={values.schoolName}
+                      maxLength={160}
+                      onChange={(e) => change("schoolName", e.target.value)}
+                      readOnly={
+                        !!children.data?.items.find(
+                          (c) => c.id === values.childId,
+                        )?.schoolName
+                      }
+                      {...errorProps("schoolName")}
+                    />
+                  </Field>
+                  <Field
+                    id="schoolSubjects"
+                    label="Subjects studied in this class"
+                    error={errors.schoolSubjects}
+                    hint="Separate subjects with commas, for example Maths, Science, English, Hindi, Social studies."
+                  >
+                    <Textarea
+                      id="schoolSubjects"
+                      value={values.schoolSubjects}
+                      maxLength={1220}
+                      onChange={(e) => change("schoolSubjects", e.target.value)}
+                      readOnly={
+                        !!children.data?.items.find(
+                          (c) => c.id === values.childId,
+                        )?.schoolName
+                      }
+                      {...errorProps("schoolSubjects")}
+                    />
+                  </Field>
+                  <p className="wizard-help">
+                    {
+                      values.schoolSubjects
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean).length
+                    }{" "}
+                    class subjects listed. Choose the tuition subject separately
+                    in the next step.
+                  </p>
                   <div className="form-row">
                     <Field id="grade" label="Class" error={errors.grade}>
                       <select
@@ -1029,7 +1116,7 @@ function Wizard({
                     {
                       title: "Learner",
                       edit: 1,
-                      content: `${values.alias} · Class ${values.grade} · ${values.board}`,
+                      content: `${values.alias} · Class ${values.grade} · ${values.board}\n${values.schoolName}\nClass subjects: ${values.schoolSubjects}`,
                     },
                     {
                       title: "Tuition needs",

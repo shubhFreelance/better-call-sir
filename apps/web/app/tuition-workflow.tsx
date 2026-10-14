@@ -218,8 +218,8 @@ export function TuitionRequests({
           </Link>
         </div>
         <p>
-          Compare the reviewed teacher options, arrange a demo, then review
-          tuition terms. Your choices stay with you.
+          Compare teacher options and review tuition terms. A demo is optional
+          when the teacher offers one. Your choices stay with you.
         </p>
         {!permitted && (
           <Notice>
@@ -440,7 +440,15 @@ function RequestReview({
     if (
       !form ||
       !agreed ||
-      !completedDemos.some((d) => d.teacherId === form.teacherId)
+      !(
+        completedDemos.some((d) => d.teacherId === form.teacherId) ||
+        request?.candidates.some(
+          (c) =>
+            c.teacherId === form.teacherId &&
+            c.response === "ACCEPTED" &&
+            current(c),
+        )
+      )
     ) {
       decision.invalid(
         "Confirm that you want to open tuition terms for this teacher.",
@@ -670,7 +678,7 @@ function RequestReview({
           <h3>Reviewed teacher options</h3>
           <p className="wizard-help">
             Options are reviewed using your criteria. Teacher acceptance, your
-            choice and a completed demo are separate steps; no automatic
+            choice and an optional demo are separate steps; no automatic
             assignment is made.
           </p>
           {profiles.isPending && request.candidates.length > 0 && (
@@ -766,17 +774,33 @@ function RequestReview({
                         >
                           Review demo · {demo.status.toLowerCase()}
                         </Link>
-                      ) : (
+                      ) : profile?.demoAvailable ? (
                         <Button
                           className="button"
                           disabled={blocked}
                           onClick={() => open("demo", c)}
                         >
-                          Choose & arrange demo
+                          Choose & arrange optional demo
                         </Button>
+                      ) : (
+                        <p className="wizard-help">
+                          Demo not currently offered. You can review tuition
+                          terms without a demo.
+                        </p>
                       )}
                     </>
                   )}
+                  {current(c) &&
+                    c.response === "ACCEPTED" &&
+                    (!demo || demo.status === "CANCELLED") && (
+                      <Button
+                        variant="outline"
+                        disabled={blocked || demos.isPending || !!demos.error}
+                        onClick={() => open("terms", c)}
+                      >
+                        Review tuition terms without a demo
+                      </Button>
+                    )}
                   {!current(c) && (
                     <p className="wizard-help">
                       Refresh the shortlist before choosing this option.
@@ -886,7 +910,7 @@ function RequestReview({
               <p>
                 {form.kind === "choice"
                   ? "This saves your preferred teacher. It does not assign a teacher, confirm a demo or start paid tuition."
-                  : "A completed demo is required. Opening terms creates a pending agreement; neither party has accepted it yet."}
+                  : "A demo is optional. Opening terms creates a pending agreement; neither party has accepted it yet."}
               </p>
               <fieldset disabled={blocked} className="wizard-fields">
                 <label className="wizard-checkbox">

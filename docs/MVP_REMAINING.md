@@ -14,6 +14,8 @@ Email OTP UI/transport boundary; guardian consent and saved onboarding; teacher 
 
 F10 and B11’s owner-safe lesson metadata are implemented. Feedback remains private; there is no public review publication. Any future public use requires moderation. Attendance review/feedback correction still uses support escalation, with no self-service overwrite.
 
+The owner-requested detailed onboarding increment is implemented: private teacher address, education/results and work declarations, learner school/class subjects, private review summaries and optional demo badges. Eligible terms no longer require a new demo. Broad enquiry simplification, separation of timetable/start evidence and other H2/H3 acceptance remain open in `remaing.md`.
+
 ## Frontend work still open
 
 | # | Work remaining | Backend position |

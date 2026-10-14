@@ -10,6 +10,18 @@ export async function beginGuardian(page: Page) {
 }
 export async function existingLearner(page: Page, label = "Aarav · Class 8") {
   await page.getByLabel("Link an existing learner").selectOption({ label });
+  if (await page.getByLabel("School name", { exact: true }).isEditable())
+    await page
+      .getByLabel("School name", { exact: true })
+      .fill("Synthetic school");
+  if (
+    await page
+      .getByLabel("Subjects studied in this class", { exact: true })
+      .isEditable()
+  )
+    await page
+      .getByLabel("Subjects studied in this class", { exact: true })
+      .fill("Maths, Science, English, Hindi");
   await page.getByRole("button", { name: "Continue to tuition needs" }).click();
   await expect(page.getByLabel("Subject", { exact: true })).toBeVisible();
 }

@@ -38,6 +38,14 @@ test("public discovery, filters and teacher profile work against the real API", 
   ).toBeVisible();
   await page.getByRole("link", { name: "Meet all teachers" }).click();
   await expect(page.getByText("4 teachers to get to know")).toBeVisible();
+  await expect(page.getByText("Demo available", { exact: true })).toHaveCount(
+    2,
+  );
+  await page.getByRole("textbox", { name: "Search teachers" }).fill("Arjun");
+  await expect(page.getByText("1 teachers to get to know")).toBeVisible();
+  await expect(page.getByText("Demo available", { exact: true })).toHaveCount(
+    0,
+  );
   await page.getByRole("textbox", { name: "Search teachers" }).fill("Ananya");
   await expect(page.getByText("1 teachers to get to know")).toBeVisible();
   await page.getByRole("link", { name: "Ananya Sharma", exact: true }).click();
@@ -47,6 +55,13 @@ test("public discovery, filters and teacher profile work against the real API", 
   await expect(
     page.getByText("Recurring tuition is paid directly"),
   ).toBeVisible();
+  await expect(
+    page.getByText("Demo available · optional before hiring", { exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/teacher-demo-profile-desktop.png",
+    fullPage: true,
+  });
 });
 test("parent intake persists and appears on the private dashboard", async ({
   page,
@@ -365,7 +380,9 @@ test("guardian arranges and reschedules a demo; no-show reaches operator review"
     ).json();
     expect(selected.selectedCandidateId).toBe(candidate.id);
     expect(selected.status).toBe("OPEN");
-    await panel.getByRole("button", { name: "Choose & arrange demo" }).click();
+    await panel
+      .getByRole("button", { name: "Choose & arrange optional demo" })
+      .click();
     const slot = new Date();
     slot.setUTCDate(slot.getUTCDate() + 40);
     slot.setUTCHours(11, Date.now() % 50, 0, 0);

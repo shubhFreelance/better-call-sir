@@ -1,20 +1,75 @@
 import { test, expect, type Page } from "@playwright/test";
+import { teacherDetails } from "../../packages/test-fixtures/src";
 import AxeBuilder from "@axe-core/playwright";
 import { operationValidator, validator } from "../helpers/contract";
+async function privateDetails(page: Page) {
+  await expect(
+    page.getByRole("heading", { name: "Private address", exact: true }),
+  ).toBeVisible();
+  for (const [name, value] of Object.entries({
+    "House / office and street address": "12 Synthetic Road",
+    "Address locality": "Shankar Nagar",
+    City: "Raipur",
+    State: "Chhattisgarh",
+    "PIN code": "492001",
+  }))
+    await page.getByLabel(name, { exact: true }).fill(value);
+  await page
+    .getByRole("button", {
+      name: "Continue to education & previous work",
+      exact: true,
+    })
+    .click();
+  for (const name of ["Class 10", "Class 12"]) {
+    const row = page.getByRole("region", { name, exact: true });
+    await row.getByLabel("Milestone status").selectOption("COMPLETED");
+    await row
+      .getByLabel("School / college / university")
+      .fill("Synthetic school");
+    await row.getByLabel("Board and stream").fill("CBSE");
+    await row
+      .getByLabel("Completion year", { exact: true })
+      .fill(name === "Class 10" ? "2010" : "2012");
+    await row.getByLabel("Official result format").selectOption("PERCENTAGE");
+    await row.getByLabel("Percentage (%)").fill("80");
+  }
+  await page
+    .getByRole("button", {
+      name: "Continue to teaching preferences",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByLabel("Monthly tuition (₹)")).toBeVisible();
+}
 async function teaching(page: Page) {
   await page.getByLabel("Teaching headline").fill("Patient Maths guidance");
   await page
     .getByLabel("About your teaching")
     .fill("I explain concepts with worked examples and regular practice.");
   await page.getByLabel("Years of teaching experience").fill("4");
-  await page.getByRole("button", { name: "Continue to coverage" }).click();
+  await page
+    .getByRole("button", { name: "Continue to private address", exact: true })
+    .click();
+  const address = page.getByRole("heading", {
+      name: "Private address",
+      exact: true,
+    }),
+    error = page.getByText("The application draft changed elsewhere.", {
+      exact: true,
+    });
+  await expect(address.or(error)).toBeVisible();
+  if (await address.isVisible()) await privateDetails(page);
 }
 async function coverage(page: Page) {
   for (const label of ["Maths", "CBSE", "Class 8", "Hindi", "Online"])
     await page.getByRole("checkbox", { name: label, exact: true }).check();
   await page.getByLabel("Monthly tuition (₹)").fill("2500.50");
+  await page.getByRole("radio", { name: "Yes, I can offer a demo" }).check();
   await page
-    .getByRole("button", { name: "Review application", exact: true })
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
     .click();
 }
 async function mock(
@@ -43,6 +98,7 @@ async function mock(
   const uploadKeys: string[] = [],
     uploadBodies: unknown[] = [];
   const privateProfile = () => ({
+    ...teacherDetails,
     id: "30000000-0000-4000-8000-000000000091",
     slug: "synthetic-teacher",
     name: "Synthetic Teacher",
@@ -239,9 +295,15 @@ test("real teacher application resumes, switches role and uploads private quaran
   await expect(page.getByLabel("Teaching headline")).toHaveValue(
     "Patient Maths guidance",
   );
-  await page.getByRole("button", { name: "Continue to coverage" }).click();
   await page
-    .getByRole("button", { name: "Review application", exact: true })
+    .getByRole("button", { name: "Continue to private address" })
+    .click();
+  await privateDetails(page);
+  await page
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
     .click();
   await expect(page.getByText("Choose at least one subject.")).toBeVisible();
   await coverage(page);
@@ -388,7 +450,7 @@ test("stale teacher draft preserves changes until explicit reload", async ({
     "Patient Maths guidance",
   );
   await expect(
-    page.getByRole("button", { name: "Continue to coverage" }),
+    page.getByRole("button", { name: "Continue to private address" }),
   ).toBeDisabled();
   await page.getByRole("button", { name: "Reload saved application" }).click();
   await expect(page.getByLabel("Teaching headline")).toHaveValue(
@@ -405,7 +467,10 @@ test("approved profile edits require explicit resubmission and reopen screening"
   await page.getByRole("button", { name: "Edit application" }).click();
   await teaching(page);
   await page
-    .getByRole("button", { name: "Review application", exact: true })
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
     .click();
   await expect(page.getByText(/Resubmitting reopens screening/)).toBeVisible();
   await page.getByRole("checkbox").check();
@@ -431,15 +496,22 @@ test("home locality is explicit and uncertain private uploads keep their retry k
   for (const label of ["Maths", "CBSE", "Class 8", "Hindi", "At home"])
     await page.getByRole("checkbox", { name: label, exact: true }).check();
   await page.getByLabel("Monthly tuition (₹)").fill("2500.50");
+  await page.getByRole("radio", { name: "Yes, I can offer a demo" }).check();
   await page
-    .getByRole("button", { name: "Review application", exact: true })
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
     .click();
   await expect(
     page.getByText("Choose at least one locality for home tuition."),
   ).toBeVisible();
   await page.getByRole("checkbox", { name: "Mowa", exact: true }).check();
   await page
-    .getByRole("button", { name: "Review application", exact: true })
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
     .click();
   await page.getByRole("checkbox").check();
   await page
@@ -479,4 +551,146 @@ test("home locality is explicit and uncertain private uploads keep their retry k
   expect(state.uploadKeys).toHaveLength(2);
   expect(state.uploadKeys[0]).toBe(state.uploadKeys[1]);
   expect(state.uploadBodies[0]).toEqual(state.uploadBodies[1]);
+});
+
+test("private education records and a declined demo survive review and submission", async ({
+  page,
+}) => {
+  const state = await mock(page);
+  await page.goto("/onboarding/teacher");
+  await teaching(page);
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  const school = page.getByRole("region", { name: "Class 10", exact: true });
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  await page.getByLabel("PIN code", { exact: true }).fill("123");
+  await page
+    .getByRole("button", {
+      name: "Continue to education & previous work",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByText("Enter a valid six-digit Indian PIN code."),
+  ).toBeVisible();
+  await page.getByLabel("PIN code", { exact: true }).fill("492001");
+  await page.screenshot({
+    path: "test-results/teacher-private-address-desktop.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", {
+      name: "Continue to education & previous work",
+      exact: true,
+    })
+    .click();
+  await school.getByLabel("Official result format").selectOption("MARKS");
+  await school.getByLabel("Marks obtained", { exact: true }).fill("560");
+  await school.getByLabel("Total marks", { exact: true }).fill("500");
+  await page
+    .getByRole("button", {
+      name: "Continue to teaching preferences",
+      exact: true,
+    })
+    .click();
+  await expect(
+    school.getByText("Enter a valid total or CGPA scale."),
+  ).toBeVisible();
+  await school.getByLabel("Marks obtained", { exact: true }).fill("420");
+  await expect(
+    school.getByText("Enter a valid total or CGPA scale."),
+  ).toHaveCount(0);
+  await expect(school.getByText("Calculated percentage: 84%.")).toBeVisible();
+  const college = page.getByRole("region", {
+    name: "College / undergraduate",
+    exact: true,
+  });
+  await college.getByLabel("Milestone status").selectOption("PURSUING");
+  await college
+    .getByLabel("School / college / university")
+    .fill("Synthetic University");
+  await college
+    .getByLabel("Degree and specialization")
+    .fill("B.Sc. Mathematics");
+  await college
+    .getByLabel("Expected completion year")
+    .fill(String(new Date().getFullYear() + 1));
+  await expect(college.getByLabel("Official result format")).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Add previous work", exact: true })
+    .click();
+  const work = page.getByRole("region", {
+    name: "Previous work 1",
+    exact: true,
+  });
+  await work
+    .getByLabel("Institution / employer / tuition practice")
+    .fill("Synthetic Tuition Practice");
+  await work.getByLabel("Your role").fill("Independent teacher");
+  await work.getByLabel("Start year", { exact: true }).fill("2020");
+  await work
+    .getByLabel("Experience certificate or reference")
+    .selectOption("CERTIFICATE_AVAILABLE");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({
+    path: "test-results/teacher-education-desktop.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", {
+      name: "Continue to teaching preferences",
+      exact: true,
+    })
+    .click();
+  for (const label of ["Maths", "CBSE", "Class 8", "Hindi", "Online"])
+    await page.getByRole("checkbox", { name: label, exact: true }).check();
+  await page.getByLabel("Monthly tuition (₹)").fill("2500");
+  await page
+    .getByRole("radio", {
+      name: "No, I prefer to discuss tuition without a demo",
+    })
+    .check();
+  await page.screenshot({
+    path: "test-results/teacher-demo-preference-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "test-results/teacher-demo-preference-mobile.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByText(/12 Synthetic Road/)).toBeVisible();
+  await page.getByRole("checkbox").check();
+  await page
+    .getByRole("button", { name: "Submit teacher application", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Your teacher workspace." }),
+  ).toBeVisible();
+  expect(state.getProfile()).toMatchObject({
+    demoOptIn: false,
+    address: { line1: "12 Synthetic Road" },
+    education: expect.arrayContaining([
+      {
+        ...state.getProfile().education[0],
+        grading: "MARKS",
+        score: 420,
+        outOf: 500,
+        percentage: 84,
+      },
+    ]),
+    employment: [
+      expect.objectContaining({
+        organization: "Synthetic Tuition Practice",
+        role: "Independent teacher",
+        fromYear: 2020,
+        toYear: null,
+      }),
+    ],
+  });
 });

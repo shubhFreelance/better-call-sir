@@ -10,6 +10,14 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Alert, AlertDescription } from "../components/ui/alert";
 
+import {
+  TeacherDetailsSummary,
+  TeacherDetailsForm,
+  detailsErrors,
+  emptyDetails,
+  milestones,
+  type TeacherDetails,
+} from "./teacher-details-form";
 import { TeacherSchedule } from "./teacher-schedule";
 
 type Profile = components["schemas"]["PrivateTeacher"];
@@ -48,13 +56,17 @@ const coverageSchema = z
       .min(50000, "Enter ₹500–₹20,000, with up to two decimal places.")
       .max(2000000, "Enter ₹500–₹20,000, with up to two decimal places."),
     consultationOptIn: z.boolean(),
+    demoOptIn: z.boolean({
+      error: "Choose whether you offer an optional demo.",
+    }),
   })
   .refine((v) => !v.modes.includes("HOME") || v.localities.length > 0, {
     path: ["localities"],
     message: "Choose at least one locality for home tuition.",
   });
 type Application = z.infer<typeof profileSchema> &
-  z.infer<typeof coverageSchema> & { feeTermsAccepted?: true };
+  z.infer<typeof coverageSchema> &
+  TeacherDetails & { feeTermsAccepted?: true };
 type Progress = {
   kind: string;
   state: string;
@@ -62,7 +74,13 @@ type Progress = {
   version: number;
   completedResourceId: string | null;
 };
-const steps = ["Your teaching", "Coverage & tuition", "Review application"];
+const steps = [
+  "Your teaching",
+  "Private address",
+  "Education & previous work",
+  "Teaching preferences",
+  "Review application",
+];
 const localities = [
   "Shankar Nagar",
   "Avanti Vihar",
@@ -229,10 +247,16 @@ function ApplicationWizard({
     experience: 0,
     consultationOptIn: false,
     ...draft,
+    address: draft.address || emptyDetails.address,
+    education: draft.education || emptyDetails.education,
+    employment: draft.employment || [],
+    demoOptIn:
+      typeof draft.demoOptIn === "boolean" ? draft.demoOptIn : undefined,
   });
   const [price, setPrice] = useState(
     draft.monthlyPaise !== undefined ? String(draft.monthlyPaise / 100) : "",
   );
+  const [savedDraft, setSavedDraft] = useState(initial?.draft || {});
   const [years, setYears] = useState(String(draft.experience ?? 0));
   const [step, setStep] = useState(0),
     [version, setVersion] = useState(initial?.version || 0);
@@ -254,7 +278,13 @@ function ApplicationWizard({
   function change(key: keyof Application, value: unknown) {
     setValues((v) => ({ ...v, [key]: value }));
     setSaved(false);
-    setErrors((e) => ({ ...e, [key]: "" }));
+    setErrors((e) =>
+      Object.fromEntries(
+        Object.entries(e).filter(
+          ([field]) => field !== key && !field.startsWith(key + "."),
+        ),
+      ),
+    );
   }
   function data(): Partial<Application> {
     const result: Partial<Application> = {
@@ -263,7 +293,30 @@ function ApplicationWizard({
       bio: values.bio?.trim(),
       experience: years.trim() ? Number(years) : NaN,
     };
-    if (step > 0)
+    if (step >= 1) result.address = values.address;
+    if (step >= 2) {
+      result.education = values.education?.map((row) =>
+        row.status === "COMPLETED"
+          ? {
+              ...row,
+              percentage:
+                row.grading === "PERCENTAGE"
+                  ? row.score
+                  : row.grading === "MARKS" && row.score !== null && row.outOf
+                    ? Math.round((row.score / row.outOf) * 10000) / 100
+                    : row.percentage,
+            }
+          : {
+              ...row,
+              grading: null,
+              score: null,
+              outOf: null,
+              percentage: null,
+            },
+      );
+      result.employment = values.employment || [];
+    }
+    if (step >= 3)
       Object.assign(result, {
         subjects: values.subjects || [],
         boards: values.boards || [],
@@ -277,16 +330,36 @@ function ApplicationWizard({
           ? Math.round(Number(price) * 100)
           : NaN,
         consultationOptIn: !!values.consultationOptIn,
+        demoOptIn: values.demoOptIn,
       });
     if (terms) result.feeTermsAccepted = true;
     return result;
   }
   function validate(all = false) {
     const payload = data();
+    const detailIssues = all
+      ? {
+          ...detailsErrors(values, "address"),
+          ...detailsErrors(values, "education"),
+        }
+      : step === 1
+        ? detailsErrors(values, "address")
+        : step === 2
+          ? detailsErrors(values, "education")
+          : {};
+    if (Object.keys(detailIssues).length) {
+      setErrors(detailIssues);
+      requestAnimationFrame(() =>
+        document
+          .querySelector<HTMLElement>(".wizard-card [aria-invalid='true']")
+          ?.focus(),
+      );
+      return false;
+    }
     const result = (
       all
         ? profileSchema.and(coverageSchema)
-        : step === 0
+        : step < 3
           ? profileSchema
           : coverageSchema
     ).safeParse(payload);
@@ -335,13 +408,17 @@ function ApplicationWizard({
         const result = await post<Progress>("/onboarding/teacher/drafts", {
           expectedVersion: version,
           draft: {
-            ...initial?.draft,
-            ...values,
+            ...savedDraft,
             ...data(),
             feeTermsAccepted: undefined,
           },
         });
         setVersion(result.version);
+        setSavedDraft({
+          ...savedDraft,
+          ...data(),
+          feeTermsAccepted: undefined,
+        });
         setSaved(true);
       }
       setStep((s) => s + 1);
@@ -542,12 +619,14 @@ function ApplicationWizard({
           noValidate
           onSubmit={(e) => {
             e.preventDefault();
-            if (step < 2) advance();
+            if (step < 4) advance();
             else submit();
           }}
         >
           <div className="wizard-topline">
-            <span>Step {step + 1} of 3</span>
+            <span>
+              Step {step + 1} of {steps.length}
+            </span>
             <span role="status">
               {profile
                 ? "Changes saved on resubmission"
@@ -614,7 +693,15 @@ function ApplicationWizard({
                 )}
               </>
             )}
-            {step === 1 && (
+            {(step === 1 || step === 2) && (
+              <TeacherDetailsForm
+                part={step === 1 ? "address" : "education"}
+                values={values}
+                onChange={change}
+                errors={errors}
+              />
+            )}
+            {step === 3 && (
               <>
                 {choices("subjects", "Subjects", ["Maths", "Science"])}
                 {choices("boards", "School boards", ["CBSE", "CGBSE"])}
@@ -652,6 +739,40 @@ function ApplicationWizard({
                   />,
                   "₹500–₹20,000. This is your proposed tuition, not a payment collected now.",
                 )}
+                <fieldset className="teacher-demo-choice">
+                  <legend>
+                    Are you comfortable offering an optional demo?
+                  </legend>
+                  <p className="wizard-help">
+                    A demo helps families assess teaching fit before deciding.
+                    It is optional and does not guarantee hiring. “Demo
+                    available” is highlighted on your approved public profile
+                    when you opt in.
+                  </p>
+                  <label>
+                    <input
+                      type="radio"
+                      name="teacher-demo"
+                      checked={values.demoOptIn === true}
+                      onChange={() => change("demoOptIn", true)}
+                    />{" "}
+                    Yes, I can offer a demo
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="teacher-demo"
+                      checked={values.demoOptIn === false}
+                      onChange={() => change("demoOptIn", false)}
+                    />{" "}
+                    No, I prefer to discuss tuition without a demo
+                  </label>
+                  {errors.demoOptIn && (
+                    <small role="alert" className="field-error">
+                      {errors.demoOptIn}
+                    </small>
+                  )}
+                </fieldset>
                 <label className="wizard-checkbox">
                   <input
                     type="checkbox"
@@ -667,13 +788,52 @@ function ApplicationWizard({
                 </label>
               </>
             )}
-            {step === 2 && (
+            {step === 4 && (
               <div className="wizard-review">
                 {[
                   [
                     "Your teaching",
                     `${values.name} · ${years} years`,
                     `${values.headline}\n${values.bio}`,
+                  ],
+                  [
+                    "Private address",
+                    `${values.address?.line1} ${values.address?.line2 || ""}`,
+                    `${values.address?.locality}, ${values.address?.city}, ${values.address?.state} ${values.address?.postalCode} · India
+Not shown publicly`,
+                  ],
+                  [
+                    "Education milestones",
+                    values.education
+                      ?.map(
+                        (r) =>
+                          `${milestones[r.milestone]}: ${r.status.toLowerCase().replaceAll("_", " ")}`,
+                      )
+                      .join(" · "),
+                    values.education
+                      ?.filter((r) => r.status !== "NOT_APPLICABLE")
+                      .map(
+                        (r) =>
+                          `${r.institution} · ${r.qualification} · ${r.year}${r.score !== null ? " · " + r.score + (r.grading === "PERCENTAGE" ? "%" : r.outOf ? " / " + r.outOf : "") : ""}`,
+                      )
+                      .join("\n"),
+                  ],
+                  [
+                    "Previous teaching work",
+                    `${values.employment?.length || 0} previous work records`,
+                    values.employment
+                      ?.map(
+                        (r) =>
+                          `${r.organization} · ${r.role} · ${r.fromYear}–${r.toYear || "current"} · ${r.proof.toLowerCase().replaceAll("_", " ")}`,
+                      )
+                      .join("\n") || "No previous work recorded.",
+                  ],
+                  [
+                    "Optional demo",
+                    values.demoOptIn ? "Demo available" : "Demo not offered",
+                    values.demoOptIn
+                      ? "Families will see a demo-availability highlight."
+                      : "Families can discuss tuition without requesting a demo.",
                   ],
                   [
                     "Coverage & tuition",
@@ -690,9 +850,19 @@ function ApplicationWizard({
                     <Button
                       variant="ghost"
                       type="button"
-                      onClick={() => setStep(i)}
+                      onClick={() => setStep([0, 1, 2, 2, 3, 3][i])}
                     >
-                      Edit {i === 0 ? "teaching profile" : "coverage"}
+                      Edit{" "}
+                      {
+                        [
+                          "teaching profile",
+                          "private address",
+                          "education",
+                          "previous work",
+                          "demo preference",
+                          "coverage",
+                        ][i]
+                      }
                     </Button>
                   </div>
                 ))}
@@ -766,19 +936,17 @@ function ApplicationWizard({
             <Button
               type="submit"
               className="button"
-              disabled={busy || conflict || (uncertain && step < 2)}
+              disabled={busy || conflict || (uncertain && step < 4)}
             >
               {busy
                 ? "Saving…"
-                : step === 0
-                  ? "Continue to coverage"
-                  : step === 1
-                    ? "Review application"
-                    : profile
-                      ? "Resubmit for review"
-                      : "Submit teacher application"}
+                : step < 4
+                  ? `Continue to ${steps[step + 1].toLowerCase()}`
+                  : profile
+                    ? "Resubmit for review"
+                    : "Submit teacher application"}
             </Button>
-            {uncertain && step < 2 && (
+            {uncertain && step < 4 && (
               <Button
                 type="button"
                 className="button"
@@ -902,12 +1070,21 @@ function TeacherWorkspace({
             </div>
           </section>
           <section className="wizard-card">
+            <TeacherDetailsSummary profile={profile} />
+          </section>
+          <section className="wizard-card">
             <h2>Private screening evidence</h2>
             <p>
               Upload only documents needed for your checks. Files are stored
               privately and must pass a safety scan before they can be
               downloaded. A clean scan does not mean your application is
               approved.
+            </p>
+            <p className="wizard-help">
+              Use Qualifications for Class 10/12 marksheets, college and
+              postgraduate certificates. Use References for previous-work
+              experience certificates or reference evidence. Upload each
+              document separately.
             </p>
             <EvidenceUpload
               session={session}

@@ -460,6 +460,11 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
         <ArrowUpRight size={19} />
       </Link>
       <p className="teacher-headline">{teacher.headline}</p>
+      {teacher.demoAvailable && (
+        <span className="teacher-demo-badge">
+          <Check size={14} aria-hidden="true" /> Demo available
+        </span>
+      )}
       <div className="teacher-tags">
         {teacher.subjects.map((s) => (
           <span key={s}>{s}</span>
@@ -474,8 +479,10 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
         <span>
           <MapPin size={15} />
           {teacher.modes.includes("HOME")
-            ? "Raipur · At home & online"
-            : "Online lessons"}
+            ? teacher.modes.includes("ONLINE")
+              ? "Raipur · At home & online"
+              : "Raipur · Home tuition"
+            : "Online tuition"}
         </span>
         <span>
           <Languages size={15} />
@@ -974,6 +981,12 @@ function Profile({ slug }: { slug: string }) {
               {rupees(t.monthlyPaise)}
               <small> / month</small>
             </h2>
+            {t.demoAvailable && (
+              <p className="teacher-demo-badge">
+                <Check size={16} aria-hidden="true" /> Demo available · optional
+                before hiring
+              </p>
+            )}
             <p>
               Recurring tuition is paid directly to your teacher. Ordinary
               matching and safety support are free for families.

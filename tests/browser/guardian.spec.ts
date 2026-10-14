@@ -15,12 +15,50 @@ test("real draft resumes privately, validates money and schedules, and preserves
   await page.goto("/onboarding/parent");
   await beginGuardian(page);
   await page.getByLabel("Learner alias", { exact: true }).fill("Draft Learner");
+  if (await page.getByLabel("School name", { exact: true }).isEditable())
+    await page
+      .getByLabel("School name", { exact: true })
+      .fill("Synthetic school");
+  if (
+    await page
+      .getByLabel("Subjects studied in this class", { exact: true })
+      .isEditable()
+  )
+    await page
+      .getByLabel("Subjects studied in this class", { exact: true })
+      .fill("Maths, Science, English, Hindi");
+  await page
+    .getByLabel("Subjects studied in this class", { exact: true })
+    .fill("Maths, maths");
+  await page.getByRole("button", { name: "Continue to tuition needs" }).click();
+  await expect(
+    page.getByText("List 1–20 unique subjects, separated by commas."),
+  ).toBeVisible();
+  await page
+    .getByLabel("Subjects studied in this class", { exact: true })
+    .fill("Maths, Science, English, Hindi");
+  await page.screenshot({
+    path: "test-results/learner-school-desktop.png",
+    fullPage: true,
+  });
   await page.getByRole("button", { name: "Continue to tuition needs" }).click();
   await page.reload();
   await beginGuardian(page);
   await expect(page.getByLabel("Learner alias", { exact: true })).toHaveValue(
     "Draft Learner",
   );
+  if (await page.getByLabel("School name", { exact: true }).isEditable())
+    await page
+      .getByLabel("School name", { exact: true })
+      .fill("Synthetic school");
+  if (
+    await page
+      .getByLabel("Subjects studied in this class", { exact: true })
+      .isEditable()
+  )
+    await page
+      .getByLabel("Subjects studied in this class", { exact: true })
+      .fill("Maths, Science, English, Hindi");
   await page.getByRole("button", { name: "Continue to tuition needs" }).click();
   await page.getByLabel("Monthly tuition budget (₹)").fill("499");
   await page.getByRole("button", { name: "Continue to schedule" }).click();
@@ -73,6 +111,8 @@ test("real draft resumes privately, validates money and schedules, and preserves
   ).json();
   expect(progress.draft).toMatchObject({
     alias: "Draft Learner",
+    schoolName: "Synthetic school",
+    schoolSubjects: ["Maths", "Science", "English", "Hindi"],
     budgetPaise: 50029,
     preferences: { timezone: "Asia/Kolkata" },
   });
@@ -197,6 +237,18 @@ test("mobile wizard protects an uncertain submission and retries the same operat
   await page
     .getByLabel("Learner alias", { exact: true })
     .fill("Synthetic Learner");
+  if (await page.getByLabel("School name", { exact: true }).isEditable())
+    await page
+      .getByLabel("School name", { exact: true })
+      .fill("Synthetic school");
+  if (
+    await page
+      .getByLabel("Subjects studied in this class", { exact: true })
+      .isEditable()
+  )
+    await page
+      .getByLabel("Subjects studied in this class", { exact: true })
+      .fill("Maths, Science, English, Hindi");
   await page.getByRole("button", { name: "Continue to tuition needs" }).click();
   await reviewGuardian(page, "After school works best");
   await inspect("review");
@@ -286,6 +338,18 @@ test("a stale draft keeps local edits until the guardian explicitly reloads", as
   await page.goto("/onboarding/parent");
   await beginGuardian(page);
   await page.getByLabel("Learner alias", { exact: true }).fill("Local learner");
+  if (await page.getByLabel("School name", { exact: true }).isEditable())
+    await page
+      .getByLabel("School name", { exact: true })
+      .fill("Synthetic school");
+  if (
+    await page
+      .getByLabel("Subjects studied in this class", { exact: true })
+      .isEditable()
+  )
+    await page
+      .getByLabel("Subjects studied in this class", { exact: true })
+      .fill("Maths, Science, English, Hindi");
   await page.getByRole("button", { name: "Continue to tuition needs" }).click();
   await expect(
     page.getByText("The draft was updated elsewhere."),
