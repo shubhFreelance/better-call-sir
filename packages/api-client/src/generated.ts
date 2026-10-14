@@ -2209,6 +2209,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/onboarding/enquiry/restarts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start another enquiry after the previous saved draft was submitted
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["restartEnquiryDraft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3002,7 +3022,7 @@ export interface components {
         };
         OnboardingProgress: {
             /** @enum {string} */
-            kind: "PARENT" | "TEACHER" | "STUDENT";
+            kind: "PARENT" | "TEACHER" | "STUDENT" | "ENQUIRY";
             /** @enum {string} */
             state: "DRAFT" | "VERIFICATION_PENDING" | "CONSENT_PENDING" | "READY" | "SUBMITTED" | "CHANGES_REQUESTED" | "APPROVED" | "SUSPENDED" | "ACTIVE";
             draft: components["schemas"]["OnboardingDraft"];
@@ -10879,7 +10899,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                kind: "parent" | "teacher" | "student";
+                kind: "parent" | "teacher" | "student" | "enquiry";
             };
             cookie?: never;
         };
@@ -10968,7 +10988,7 @@ export interface operations {
                 "Idempotency-Key": string;
             };
             path: {
-                kind: "parent" | "teacher" | "student";
+                kind: "parent" | "teacher" | "student" | "enquiry";
             };
             cookie?: never;
         };
@@ -11061,7 +11081,7 @@ export interface operations {
                 "Idempotency-Key": string;
             };
             path: {
-                kind: "parent" | "teacher" | "student";
+                kind: "parent" | "teacher" | "student" | "enquiry";
             };
             cookie?: never;
         };
@@ -15569,6 +15589,97 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HiringDashboard"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    restartEnquiryDraft: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnboardingProgress"];
                 };
             };
             /** @description Validation */
