@@ -282,19 +282,15 @@ test("completed and rejected requests show review outcomes and policy with mobil
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page
-    .locator(".care-workspace")
-    .screenshot({
-      path: "test-results/privacy-mobile.png",
-      style: "nextjs-portal{display:none!important}",
-    });
+  await page.locator(".care-workspace").screenshot({
+    path: "test-results/privacy-mobile.png",
+    style: "nextjs-portal{display:none!important}",
+  });
   await page.setViewportSize({ width: 1440, height: 1100 });
-  await page
-    .locator(".care-workspace")
-    .screenshot({
-      path: "test-results/privacy-desktop.png",
-      style: "nextjs-portal{display:none!important}",
-    });
+  await page.locator(".care-workspace").screenshot({
+    path: "test-results/privacy-desktop.png",
+    style: "nextjs-portal{display:none!important}",
+  });
 });
 test("real guardian note deletion stays pending and immediately revokes only that note sharing", async ({
   page,
@@ -328,9 +324,8 @@ test("real guardian note deletion stays pending and immediately revokes only tha
     await page.getByLabel("Request type").selectOption("DELETION");
     await page.getByLabel("Record type").selectOption("NOTE");
     await page.getByLabel("Owned learning note").selectOption(n.id);
-    await page
-      .getByLabel("Reason for request")
-      .fill("Delete the synthetic browser note.");
+    const requestReason = "Delete synthetic browser note " + n.id;
+    await page.getByLabel("Reason for request").fill(requestReason);
     await page
       .getByRole("button", { name: "Review privacy request", exact: true })
       .click();
@@ -339,9 +334,7 @@ test("real guardian note deletion stays pending and immediately revokes only tha
       .getByRole("button", { name: "Send privacy request", exact: true })
       .click();
     await expect(
-      page
-        .locator(".privacy-record")
-        .filter({ hasText: "Delete the synthetic browser note." }),
+      page.locator(".privacy-record").filter({ hasText: requestReason }),
     ).toContainText("Awaiting review");
     expect(
       (await db.note.findUniqueOrThrow({ where: { id: n.id } }))
@@ -349,9 +342,7 @@ test("real guardian note deletion stays pending and immediately revokes only tha
     ).toBeNull();
     await page.reload();
     await expect(
-      page
-        .locator(".privacy-record")
-        .filter({ hasText: "Delete the synthetic browser note." }),
+      page.locator(".privacy-record").filter({ hasText: requestReason }),
     ).toContainText("Awaiting review");
   } finally {
     await db.$disconnect();

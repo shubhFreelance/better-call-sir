@@ -1,5 +1,6 @@
 "use client";
 import { RefreshCw } from "lucide-react";
+import { ReviewerWorkspace } from "./reviewer-workspace";
 import { PrivacyWorkspace } from "./privacy-workspace";
 import { PlacementCare } from "./placement-care";
 import { SupportWorkspace } from "./support-workspace";
@@ -1243,6 +1244,15 @@ function DashboardShell({
               LucideIcon,
             ][])
           : []),
+    ...(["ADMIN", "REVIEWER"].includes(role || "")
+      ? [
+          ["/dashboard/review", "Teacher screening", ShieldCheck] as [
+            string,
+            string,
+            LucideIcon,
+          ],
+        ]
+      : []),
     ["/support", "Help & safety", LifeBuoy],
     ...(role && staffRole(role)
       ? [
@@ -1355,23 +1365,25 @@ function DashboardPage({ tab }: { tab: string }) {
                 ? `Hello, ${session.account.name.split(" · ")[0]}.`
                 : tab.endsWith("lessons")
                   ? "Every class, accounted for."
-                  : tab.endsWith("privacy")
-                    ? "Your information and privacy."
-                    : tab.endsWith("arrangements")
-                      ? "A clear next step for your tuition."
-                      : tab.endsWith("requests")
-                        ? "Your path to a good fit."
-                        : tab.endsWith("family")
-                          ? "Your learners, your control."
-                          : tab.endsWith("bookings")
-                            ? "A little clarity, on the calendar."
-                            : tab.endsWith("pro")
-                              ? "A conversation can help."
-                              : tab.endsWith("notes")
-                                ? session.account.role === "TEACHER"
-                                  ? "Learning context, shared with you."
-                                  : "Your thoughts, kept private."
-                                : "A thoughtful control room."
+                  : tab.endsWith("review")
+                    ? "A careful review, recorded."
+                    : tab.endsWith("privacy")
+                      ? "Your information and privacy."
+                      : tab.endsWith("arrangements")
+                        ? "A clear next step for your tuition."
+                        : tab.endsWith("requests")
+                          ? "Your path to a good fit."
+                          : tab.endsWith("family")
+                            ? "Your learners, your control."
+                            : tab.endsWith("bookings")
+                              ? "A little clarity, on the calendar."
+                              : tab.endsWith("pro")
+                                ? "A conversation can help."
+                                : tab.endsWith("notes")
+                                  ? session.account.role === "TEACHER"
+                                    ? "Learning context, shared with you."
+                                    : "Your thoughts, kept private."
+                                  : "A thoughtful control room."
             }
             subtitle={
               tab === "/dashboard"
@@ -1550,6 +1562,12 @@ function DashboardPage({ tab }: { tab: string }) {
                 </Link>
               </section>
             ))}
+          {tab.endsWith("review") && (
+            <ReviewerWorkspace
+              key={`${session.account.id}:${session.account.role}`}
+              session={session}
+            />
+          )}
           {tab.endsWith("privacy") && (
             <PrivacyWorkspace
               key={`${session.account.id}:${session.account.role}`}
@@ -1801,11 +1819,6 @@ function Pro({
 }
 function AdminPanel({ dashboard: d, act }: { dashboard: Dashboard; act: Act }) {
   const { session } = useAuth();
-  const teachers = useQuery({
-    queryKey: ["admin-teachers", session?.account.id],
-    queryFn: () => api<{ items: Teacher[] }>("/admin/teachers"),
-    enabled: session?.account.role === "ADMIN",
-  });
   const requests = useQuery({
     queryKey: ["admin-requests", session?.account.id],
     queryFn: () => api<{ items: TuitionRequest[] }>("/requests"),
@@ -1863,41 +1876,13 @@ function AdminPanel({ dashboard: d, act }: { dashboard: Dashboard; act: Act }) {
       </div>
       <div className="panel">
         <h3>Teacher review queue</h3>
-        <State loading={teachers.isPending} error={teachers.error} />
-        {teachers.data?.items.map((t) => (
-          <div className="control-row" key={t.id}>
-            <span>
-              <strong>{t.name}</strong>
-              <small>
-                {t.screeningComplete
-                  ? "Capability checks complete"
-                  : "Screening & private evidence pending"}
-              </small>
-            </span>
-            <Badge>{pretty(t.status || "pending")}</Badge>
-            <Button
-              secondary
-              onClick={() => {
-                const reason = prompt(
-                  "Reason for this teacher review decision?",
-                );
-                if (reason && confirm("Confirm this audited review action?"))
-                  void act(
-                    `/admin/teachers/${t.id}/reviews`,
-                    {
-                      expectedVersion: t.version,
-                      status:
-                        t.status === "APPROVED" ? "SUSPENDED" : "APPROVED",
-                      reason,
-                    },
-                    true,
-                  ).then(() => teachers.refetch());
-              }}
-            >
-              {t.status === "APPROVED" ? "Suspend" : "Review approval"}
-            </Button>
-          </div>
-        ))}
+        <p>
+          Review private evidence and current screening checks in the dedicated
+          workspace.
+        </p>
+        <Link href="/dashboard/review" className="inline-link">
+          Open teacher screening
+        </Link>
       </div>
       <div className="panel">
         <h3>Requests awaiting fit review</h3>

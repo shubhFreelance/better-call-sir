@@ -58,7 +58,9 @@ export function Notice({
       variant={error ? "destructive" : "default"}
       role={error ? "alert" : "status"}
     >
-      <AlertDescription>{children}</AlertDescription>
+      <AlertDescription>
+        <div>{children}</div>
+      </AlertDescription>
     </Alert>
   );
 }
