@@ -210,6 +210,20 @@ class MatchingController {
       };
     });
   }
+  @Get("admin/requests/:id/recommendations") async candidates(@Req() req:HttpRequest,@Param('id') id:string){
+    parse(uuid,id);const actor=await this.service.actor(req,['ADMIN','OPERATOR']);
+    return this.service.db.$transaction(async db=>{
+      const request=await this.request(db,actor,id),child=await db.child.findUniqueOrThrow({where:{id:request.childId}});
+      const run=await db.recommendationRun.findFirst({where:{requestId:id},orderBy:[{requestVersion:'desc'},{createdAt:'desc'},{id:'desc'}]});
+      const items=[];
+      if(run)for(const c of await db.recommendation.findMany({where:{requestId:id,runId:run.id},orderBy:[{score:'desc'},{teacherId:'asc'}],take:10})){
+        const teacher=await db.teacher.findUniqueOrThrow({where:{id:c.teacherId}});
+        items.push({...c,teacherName:teacher.name,eligibleNow:!!c.expiresAt&&c.expiresAt>new Date()&&c.response!=='DECLINED'&&!!await matched(db,request,child,teacher)});
+      }
+      await this.service.audit(db,actor,req,'OPERATOR_SHORTLIST_READ',id,'Authorized current matching shortlist read');
+      return {runId:run?.id||null,items};
+    });
+  }
   @Get("admin/requests/:id/recommendation-runs") async history(
     @Req() req: HttpRequest,
     @Param("id") id: string,
@@ -221,7 +235,7 @@ class MatchingController {
       return {
         items: await db.recommendationRun.findMany({
           where: { requestId: id },
-          orderBy: { createdAt: "desc" },
+          orderBy: [{requestVersion:"desc"},{createdAt:"desc"},{id:"desc"}],
           take: 50,
         }),
       };
@@ -265,7 +279,7 @@ class MatchingController {
           }),
           latest = await db.recommendationRun.findFirst({
             where: { requestId: id },
-            orderBy: { createdAt: "desc" },
+            orderBy: [{requestVersion:"desc"},{createdAt:"desc"},{id:"desc"}],
           });
         if (!run || run.requestId !== id || latest?.id !== run.id)
           fail(
@@ -290,6 +304,7 @@ class MatchingController {
           ...new Set(owned.map((c) => c.teacherId)),
         ].sort())
           await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${teacherId},0))`;
+        await db.recommendation.updateMany({where:{requestId:id,runId:run.id,presentedAt:{not:null}},data:{presentedAt:null,position:null,version:{increment:1}}});
         for (const [position, candidateId] of data.candidateIds.entries()) {
           const candidate = await db.recommendation.findUnique({
             where: { id: candidateId },
