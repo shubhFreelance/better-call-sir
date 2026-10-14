@@ -1,4 +1,5 @@
 "use client";
+import { NotesWorkspace } from "./notes-workspace";
 import {
   useEffect,
   useState,
@@ -56,7 +57,6 @@ import {
   Users,
   Video,
   Phone,
-  LockKeyhole,
   LayoutDashboard,
   NotebookPen,
   LifeBuoy,
@@ -82,7 +82,6 @@ import {
   TuitionRequest,
   Reservation,
   Dashboard,
-  Note,
   Candidate,
   rupees,
 } from "@bcs/api-client";
@@ -1227,6 +1226,7 @@ function DashboardShell({
       : role === "TEACHER"
         ? ([
             ["/dashboard/bookings", "Bookings & opportunities", ClipboardList],
+            ["/dashboard/notes", "Shared learning notes", NotebookPen],
             ["/onboarding/teacher", "Profile & schedule", Settings],
           ] as [string, string, LucideIcon][])
         : role === "ADMIN"
@@ -1357,7 +1357,9 @@ function DashboardPage({ tab }: { tab: string }) {
                         : tab.endsWith("pro")
                           ? "A conversation can help."
                           : tab.endsWith("notes")
-                            ? "Your thoughts, kept private."
+                            ? session.account.role === "TEACHER"
+                              ? "Learning context, shared with you."
+                              : "Your thoughts, kept private."
                             : "A thoughtful control room."
             }
             subtitle={
@@ -1612,7 +1614,13 @@ function DashboardPage({ tab }: { tab: string }) {
             </>
           )}
           {tab.endsWith("pro") && <Pro dashboard={d} act={act} busy={busy} />}
-          {tab.endsWith("notes") && <Notes dashboard={d} />}
+          {tab.endsWith("notes") && (
+            <NotesWorkspace
+              key={session.account.id}
+              session={session}
+              dashboard={d}
+            />
+          )}
           {tab.endsWith("admin") && (
             <>
               <DemoJourney session={session} act={act} />
@@ -1763,123 +1771,6 @@ function Pro({
           <Badge>{pretty(c.status)}</Badge>
         </div>
       ))}
-    </>
-  );
-}
-function Notes({ dashboard: d }: { dashboard: Dashboard }) {
-  const { session } = useAuth();
-  const query = useQuery({
-    queryKey: ["notes", session?.account.id],
-    queryFn: () => api<{ items: Note[] }>("/notes"),
-  });
-  const [error, setError] = useState("");
-  async function save(path: string, body: unknown) {
-    try {
-      setError("");
-      await api(path, {
-        method: "POST",
-        body,
-        csrf: session?.csrfToken,
-        key: crypto.randomUUID(),
-      });
-      await query.refetch();
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  }
-  return (
-    <>
-      <Notice>
-        Notes start private. Sharing grants only the named active teacher
-        access. Revoking sharing stops new access; it cannot recall what a
-        person already read.
-      </Notice>
-      {error && <Notice error>{error}</Notice>}
-      <form
-        className="panel form-panel"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const form = e.currentTarget,
-            f = new FormData(form);
-          void save("/notes", {
-            childId: f.get("child"),
-            text: f.get("text"),
-          }).then(() => form.reset());
-        }}
-      >
-        <Field label="Learner">
-          <select name="child" required>
-            {d.children?.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.alias}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Private note">
-          <textarea
-            name="text"
-            required
-            rows={4}
-            maxLength={5000}
-            placeholder="Something that would help you support their learning…"
-          />
-        </Field>
-        <Button type="submit">
-          Save privately <LockKeyhole size={16} />
-        </Button>
-      </form>
-      <State loading={query.isPending} error={query.error} />
-      {query.data?.items.map((n) => (
-        <article className="panel note-card" key={n.id}>
-          <Badge>
-            {n.sharedTeacherId
-              ? "Shared with named teacher"
-              : "Private · only you"}
-          </Badge>
-          <p>{n.text}</p>
-          <small>{date(n.createdAt)}</small>
-          <div className="action-row">
-            {n.sharedTeacherId ? (
-              <Button
-                secondary
-                onClick={() =>
-                  void save(`/notes/${n.id}/shares`, {
-                    expectedVersion: n.version,
-                    teacherId: null,
-                  })
-                }
-              >
-                Revoke sharing
-              </Button>
-            ) : (
-              d.placements
-                ?.filter(
-                  (p) => p.status === "ACTIVE" && p.childId === n.childId,
-                )
-                .map((p) => (
-                  <Button
-                    secondary
-                    key={p.id}
-                    onClick={() =>
-                      void save(`/notes/${n.id}/shares`, {
-                        expectedVersion: n.version,
-                        teacherId: p.teacherId,
-                      })
-                    }
-                  >
-                    Share with{" "}
-                    {d.teachers?.find((t) => t.id === p.teacherId)?.name ||
-                      "active teacher"}
-                  </Button>
-                ))
-            )}
-          </div>
-        </article>
-      ))}
-      {query.data?.items.length === 0 && (
-        <Empty>No notes yet. Your first note stays private.</Empty>
-      )}
     </>
   );
 }
