@@ -15894,6 +15894,17 @@
               "type": "string",
               "format": "date-time"
             }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "description": "ADMIN may filter a region; OPERATOR may name only its assigned region."
           }
         ]
       }
@@ -18533,6 +18544,166 @@
             }
           }
         ]
+      }
+    },
+    "/admin/reports/regions": {
+      "get": {
+        "operationId": "get_ReportRegions",
+        "tags": [
+          "reports"
+        ],
+        "summary": "Report region choices constrained by staff role",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportRegions"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": []
       }
     }
   },
@@ -24000,55 +24171,101 @@
             }
           },
           "continuation": {
-            "type": "object",
-            "properties": {
-              "mature": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "observed": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "continued": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "missingStartEvidence": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "unobserved": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "denominator": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "rate": {
-                "type": [
-                  "number",
-                  "null"
-                ],
-                "minimum": 0,
-                "maximum": 1
-              }
-            },
-            "required": [
-              "mature",
-              "observed",
-              "continued",
-              "missingStartEvidence",
-              "unobserved",
-              "denominator",
-              "rate"
-            ],
-            "additionalProperties": false
+            "$ref": "#/components/schemas/ContinuationMetrics"
           },
           "asOf": {
             "type": "string",
             "format": "date-time"
+          },
+          "definitionVersion": {
+            "type": "string",
+            "const": "funnel-v2"
+          },
+          "cohortBasis": {
+            "type": "string",
+            "const": "REQUEST_CREATED_AT"
+          },
+          "outcomeBasis": {
+            "type": "string",
+            "const": "CURRENT_RECORDED_EVIDENCE"
+          },
+          "continuationByMethod": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "mature": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "observed": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "continued": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "missingStartEvidence": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "unobserved": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "denominator": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "rate": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "stopped": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "unknown": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "missingObservation": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "immature": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "discoveryMethod": {
+                  "type": "string",
+                  "enum": [
+                    "MANUAL",
+                    "ASSISTED"
+                  ]
+                }
+              },
+              "required": [
+                "mature",
+                "observed",
+                "continued",
+                "missingStartEvidence",
+                "unobserved",
+                "denominator",
+                "rate",
+                "stopped",
+                "unknown",
+                "missingObservation",
+                "immature",
+                "discoveryMethod"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "required": [
@@ -24056,9 +24273,14 @@
           "region",
           "items",
           "continuation",
-          "asOf"
+          "asOf",
+          "definitionVersion",
+          "cohortBasis",
+          "outcomeBasis",
+          "continuationByMethod"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Request-created cohorts with current recorded milestones; continuation rate uses only qualified known mature outcomes. Missing and unknown are separate."
       },
       "ReportMoney": {
         "type": "object",
@@ -24149,6 +24371,37 @@
           "asOf": {
             "type": "string",
             "format": "date-time"
+          },
+          "captureModes": {
+            "type": "array",
+            "description": "Recorded provider mode classification, not provider settlement. Additive for existing finance clients.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "providerMode": {
+                  "type": "string",
+                  "enum": [
+                    "LIVE",
+                    "SANDBOX",
+                    "UNRECORDED"
+                  ]
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "amountPaise": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "providerMode",
+                "count",
+                "amountPaise"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "required": [
@@ -25478,6 +25731,109 @@
           "expectedVersion",
           "reason",
           "confirmed"
+        ],
+        "additionalProperties": false
+      },
+      "ReportRegions": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "region": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "region"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "limited": {
+            "type": "boolean"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "REGION"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "limited",
+          "scope"
+        ],
+        "additionalProperties": false
+      },
+      "ContinuationMetrics": {
+        "type": "object",
+        "properties": {
+          "mature": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "observed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "continued": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "missingStartEvidence": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unobserved": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "denominator": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "stopped": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unknown": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "missingObservation": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "immature": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "mature",
+          "observed",
+          "continued",
+          "missingStartEvidence",
+          "unobserved",
+          "denominator",
+          "rate",
+          "stopped",
+          "unknown",
+          "missingObservation",
+          "immature"
         ],
         "additionalProperties": false
       }

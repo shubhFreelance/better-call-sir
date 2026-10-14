@@ -2152,6 +2152,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/reports/regions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Report region choices constrained by staff role */
+        get: operations["get_ReportRegions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3539,6 +3556,7 @@ export interface components {
             /** @constant */
             metricVersion: "operations-v1";
         };
+        /** @description Request-created cohorts with current recorded milestones; continuation rate uses only qualified known mature outcomes. Missing and unknown are separate. */
         FunnelReport: {
             window: components["schemas"]["ReportWindow"];
             region: string | null;
@@ -3556,7 +3574,16 @@ export interface components {
                     denominator: number;
                 };
             }[];
-            continuation: {
+            continuation: components["schemas"]["ContinuationMetrics"];
+            /** Format: date-time */
+            asOf: string;
+            /** @constant */
+            definitionVersion: "funnel-v2";
+            /** @constant */
+            cohortBasis: "REQUEST_CREATED_AT";
+            /** @constant */
+            outcomeBasis: "CURRENT_RECORDED_EVIDENCE";
+            continuationByMethod: {
                 mature: number;
                 observed: number;
                 continued: number;
@@ -3564,9 +3591,13 @@ export interface components {
                 unobserved: number;
                 denominator: number;
                 rate: number | null;
-            };
-            /** Format: date-time */
-            asOf: string;
+                stopped: number;
+                unknown: number;
+                missingObservation: number;
+                immature: number;
+                /** @enum {string} */
+                discoveryMethod: "MANUAL" | "ASSISTED";
+            }[];
         };
         ReportMoney: {
             count: number;
@@ -3593,6 +3624,13 @@ export interface components {
             providerSettlementVerified: false;
             /** Format: date-time */
             asOf: string;
+            /** @description Recorded provider mode classification, not provider settlement. Additive for existing finance clients. */
+            captureModes?: {
+                /** @enum {string} */
+                providerMode: "LIVE" | "SANDBOX" | "UNRECORDED";
+                count: number;
+                amountPaise: number;
+            }[];
         };
         JobQueue: {
             items: {
@@ -3915,6 +3953,27 @@ export interface components {
             reason: string;
             /** @constant */
             confirmed: true;
+        };
+        ReportRegions: {
+            items: {
+                region: string;
+            }[];
+            limited: boolean;
+            /** @enum {string} */
+            scope: "GLOBAL" | "REGION";
+        };
+        ContinuationMetrics: {
+            mature: number;
+            observed: number;
+            continued: number;
+            missingStartEvidence: number;
+            unobserved: number;
+            denominator: number;
+            rate: number | null;
+            stopped: number;
+            unknown: number;
+            missingObservation: number;
+            immature: number;
         };
     };
     responses: never;
@@ -13552,6 +13611,8 @@ export interface operations {
             query: {
                 from: string;
                 to: string;
+                /** @description ADMIN may filter a region; OPERATOR may name only its assigned region. */
+                region?: string;
             };
             header?: never;
             path?: never;
@@ -14940,6 +15001,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminPrivacyQueue"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_ReportRegions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportRegions"];
                 };
             };
             /** @description Validation */
