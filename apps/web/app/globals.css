@@ -4718,3 +4718,14 @@ footer {
 .notes-card {display:grid;gap:1rem;}
 .notes-card .notes-text,.notes-card .notes-actions {margin:0;}
 .notes-intro p {margin:0;}
+/* One outer gutter and matching content insets across the notes screen. */
+.notes-workspace {padding:1.5rem;gap:1.5rem;min-width:0;}
+.notes-intro {padding:1.5rem;}
+.notes-toolbar {padding:.25rem 1.5rem;}
+.notes-workspace > [data-slot="alert"] {padding:1rem 1.5rem;}
+@media(max-width:700px) {
+  .notes-workspace {padding:1rem;gap:1.25rem;}
+  .notes-intro {padding:1.25rem;}
+  .notes-toolbar {padding:.25rem 1.25rem;}
+  .notes-workspace > [data-slot="alert"] {padding:1rem 1.25rem;}
+}
