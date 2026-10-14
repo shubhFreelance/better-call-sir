@@ -2169,6 +2169,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dashboard/learning": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Role-scoped recorded lesson metrics, learner summaries and current assignments; completed counts do not imply improvement or settlement
+         * @description Defaults to rolling 30 days. from/to must both be supplied when filtering; interval [from,to), at most 366 days, selected by lesson/demo reservation start. Counts reflect current records as of lastUpdated. Classes taken exclude cancelled, absent, future and disputed records; completed lessons remain a separate status count. Attendance completeness uses ended non-cancelled lessons and current undisputed completed attendance. Pending confirmations require a current-version family confirmation. Feedback aggregates only for teachers and currently valid attended lessons, never students. Demos have independent outcome counts and are not added to lesson counts. noShow counts guardian/teacher NO_SHOW reports, which may overlap disputed outcomes; it never infers teacher responsibility. Learners paginate independently of full scoped totals; current assignments and next lessons are outside the selected interval. Assignment previews are limited to 20 and flagged. Teacher cancellation/absence/demo no-show counts describe assigned records, not responsibility attribution. No contacts, private feedback text or financial records are returned; guardian-only membership metadata is a recorded development allowance.
+         */
+        get: operations["getLearningDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3974,6 +3994,104 @@ export interface components {
             unknown: number;
             missingObservation: number;
             immature: number;
+        };
+        LearningMetrics: {
+            lessons: number;
+            classesTaken: number;
+            completedLessons: number;
+            uniqueStudentsTaught: number;
+            cancelled: number;
+            absent: number;
+            disputed: number;
+            attendanceDue: number;
+            attendanceRecorded: number;
+            pendingAttendance: number;
+            pendingConfirmations: number;
+            feedbackSampleSize?: number;
+            feedbackAverage?: number | null;
+        };
+        DemoMetrics: {
+            scheduled: number;
+            completed: number;
+            cancelled: number;
+            noShow: number;
+            disputed: number;
+        };
+        LearningAssignment: {
+            /** Format: uuid */
+            teacherId: string;
+            name: string;
+            subject: string;
+            status: string;
+        };
+        NextLearningLesson: {
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            subject: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            teacherName: string;
+        };
+        LearnerSummary: {
+            learner: {
+                /** Format: uuid */
+                id: string;
+                alias: string;
+                grade: number;
+                board: string;
+            };
+            metrics: components["schemas"]["LearningMetrics"];
+            assignments: components["schemas"]["LearningAssignment"][];
+            assignmentsLimited: boolean;
+            nextLesson: components["schemas"]["NextLearningLesson"] | null;
+            demos: components["schemas"]["DemoMetrics"];
+        };
+        LearningDashboard: {
+            /** @enum {string} */
+            role: "GUARDIAN" | "STUDENT" | "TEACHER";
+            window: {
+                /** Format: date-time */
+                from: string;
+                /** Format: date-time */
+                to: string;
+                /** @constant */
+                timezone: "Asia/Kolkata";
+                /** @constant */
+                metricVersion: "learning-dashboard-v2";
+                /** @constant */
+                basis: "LESSON_STARTS_AT";
+                /** @constant */
+                endExclusive: true;
+            };
+            /** Format: date-time */
+            lastUpdated: string;
+            metrics: components["schemas"]["LearningMetrics"];
+            activeStudents: number;
+            demos: components["schemas"]["DemoMetrics"];
+            serviceKinds: {
+                kind: string;
+                metrics: components["schemas"]["LearningMetrics"];
+            }[];
+            learners: components["schemas"]["LearnerSummary"][];
+            nextCursor: string | null;
+            profile?: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                status: string;
+                subjects: string[];
+            } | null;
+            membership?: {
+                status: string;
+                allowance: number;
+                used: number;
+                reserved: number;
+                /** Format: date-time */
+                periodEnd: string;
+            } | null;
         };
     };
     responses: never;
@@ -15084,6 +15202,94 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReportRegions"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getLearningDashboard: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningDashboard"];
                 };
             };
             /** @description Validation */
