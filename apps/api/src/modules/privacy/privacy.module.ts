@@ -42,10 +42,11 @@ class PrivacyController{
   });
  }
  @Get('privacy-requests') async list(@Req() req:HttpRequest){const actor=await this.service.actor(req,['GUARDIAN','TEACHER','ADMIN']);return {items:await this.service.db.privacyRequest.findMany({where:actor.role==='ADMIN'?{}:{accountId:actor.id},orderBy:{createdAt:'desc'},take:50})};}
+ @Get('admin/privacy-requests') async queue(@Req() req:HttpRequest,@Query() query:unknown){const actor=await this.service.actor(req,['ADMIN']),data=parse(z.object({status:z.enum(['PENDING','COMPLETED','REJECTED']).optional(),limit:z.coerce.number().int().min(1).max(50).default(20),cursor:uuid.optional()}).strict(),query),where={...(data.status?{status:data.status}:{})};if(data.cursor&&!await this.service.db.privacyRequest.count({where:{...where,id:data.cursor}}))fail(404,'NOT_FOUND','Privacy cursor is outside this queue.');const rows=await this.service.db.privacyRequest.findMany({where,orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1,...(data.cursor?{cursor:{id:data.cursor},skip:1}:{})}),items=rows.slice(0,data.limit);await this.service.audit(this.service.db,actor,req,'ADMIN_PRIVACY_QUEUE_READ','privacy','Administrator accessed private request evidence');return {items,nextCursor:rows.length>data.limit?items.at(-1)!.id:null};}
  @Post('admin/privacy-requests/:id/reviews') async review(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
   parse(uuid,id);const actor=await this.service.actor(req,['ADMIN']),data=parse(z.object({expectedVersion:version,action:z.enum(['FULFIL','REJECT']),reason:text(1000),policyVersion:text(100),retentionReason:text(1000).optional(),confirmed:z.literal(true)}).strict(),body);
   return this.service.once(req,actor,'privacy.review',data,async db=>{
-   const item=await db.privacyRequest.findUnique({where:{id}});if(!item)fail(404,'NOT_FOUND','Privacy request not found.');await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${item.accountId},0))`;
+   const item=await db.privacyRequest.findUnique({where:{id}});if(!item)fail(404,'NOT_FOUND','Privacy request not found.');if(item.accountId===actor.id)fail(403,'SELF_REVIEW','Another administrator must review this privacy request.');await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${item.accountId},0))`;
    const current=await db.privacyRequest.findUniqueOrThrow({where:{id}});if(current.version!==data.expectedVersion||current.status!=='PENDING')fail(409,'CONFLICT','Privacy request changed.');
    if(data.action==='FULFIL'){
     if(item.kind==='DELETION'){
