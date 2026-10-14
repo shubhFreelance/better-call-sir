@@ -2189,6 +2189,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dashboard/hiring": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Role-scoped discovery, enquiry and arrangement dashboard
+         * @description Current-record counts are independent of the requested page. Lists use stable ID-descending order, not chronological order, and a scope-validated cursor. Student projection excludes budget, price, other learners, candidate decisions and administrative data. Teacher enquiries require current presented unexpired recommendations and active verified family consent with no pending deletion; eligibility is rechecked per displayed opportunity. Interest/selection/terms are distinct from an active teaching start or financial settlement. Admin receives audited global aggregates only and uses dedicated queues for details. Learner preview is limited to 20 with an explicit flag. Existing demo/timetable dependencies are not removed by this read endpoint.
+         */
+        get: operations["getHiringDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4092,6 +4112,117 @@ export interface components {
                 /** Format: date-time */
                 periodEnd: string;
             } | null;
+        };
+        HiringLearner: {
+            alias: string | null;
+            grade: number;
+            board: string;
+        };
+        HiringEnquiry: {
+            /** Format: uuid */
+            id: string;
+            subject: string;
+            mode: string;
+            language: string;
+            locality: string;
+            discoveryMethod: string;
+            status: string;
+            matchStatus: string;
+            scheduleStatus: string;
+            /** Format: date-time */
+            createdAt: string;
+            learner: components["schemas"]["HiringLearner"];
+            hasSelection: boolean;
+            budgetPaise?: number;
+            candidate?: {
+                /** Format: uuid */
+                id: string;
+                version: number;
+                response: string;
+                expiresAt: string | null;
+                selected: boolean;
+                eligible: boolean;
+            };
+        };
+        HiringArrangement: {
+            /** Format: uuid */
+            id: string;
+            subject: string;
+            mode: string;
+            status: string;
+            guardianAccepted: boolean;
+            teacherAccepted: boolean;
+            guardianStarted: boolean;
+            teacherReceiptConfirmed: boolean;
+            learner: components["schemas"]["HiringLearner"];
+            teacher: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                status: string;
+            };
+            monthlyPaise?: number;
+        };
+        HiringDashboard: {
+            /** @enum {unknown} */
+            role: "GUARDIAN" | "STUDENT" | "TEACHER" | "ADMIN";
+            /** Format: date-time */
+            asOf: string;
+            /** @constant */
+            definitionVersion: "hiring-v1";
+            /** @enum {unknown} */
+            section: "ENQUIRIES" | "ARRANGEMENTS";
+            counts: {
+                enquiries: number;
+                openEnquiries: number;
+                pendingResponses: number;
+                termsPending: number;
+                activeArrangements: number;
+            };
+            enquiries: components["schemas"]["HiringEnquiry"][];
+            arrangements: components["schemas"]["HiringArrangement"][];
+            learners: {
+                /** Format: uuid */
+                id: string;
+                alias: string;
+                grade: number;
+                board: string;
+            }[];
+            learnersLimited: boolean;
+            nextCursor: string | null;
+            gate?: {
+                verified: boolean;
+                consent: boolean;
+                privacyPaused: boolean;
+            };
+            profile?: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                status: string;
+                subjects: string[];
+                screeningComplete: boolean;
+                screeningValidUntil: string | null;
+                feeTermsAccepted: boolean;
+            } | null;
+            operations?: {
+                requests: {
+                    status: string;
+                    matchStatus: string;
+                    count: number;
+                }[];
+                teachers: {
+                    status: string;
+                    count: number;
+                }[];
+                arrangements: {
+                    status: string;
+                    count: number;
+                }[];
+                openSupport: number;
+                pendingPrivacy: number;
+                failedJobs: number;
+            };
         };
     };
     responses: never;
@@ -15290,6 +15421,93 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LearningDashboard"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getHiringDashboard: {
+        parameters: {
+            query?: {
+                section?: "ENQUIRIES" | "ARRANGEMENTS";
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HiringDashboard"];
                 };
             };
             /** @description Validation */
