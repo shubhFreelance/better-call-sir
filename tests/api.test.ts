@@ -783,3 +783,12 @@ test('privacy correction and deletion require owner scope, reviewed retention an
 });
 
 test('consent withdrawal blocks new intake, note sharing and student sessions',async()=>{assert.equal((await parent.call('/consents/withdraw',{})).status,201);assert.equal((await parent.call('/requests',intake())).status,403);assert.equal((await student.call('/dashboard')).status,401);assert.equal((await student.call('/auth/refresh',{})).status,401);assert.equal((await teacher.call('/notes')).data.items.length,0);});
+
+
+test('failed screening is immutable within a revision and blocks approval despite the other passed kinds',async()=>{
+ const a=await db.account.create({data:{name:'Synthetic failed-screening applicant',role:'TEACHER'}}),t=await db.teacher.create({data:{accountId:a.id,slug:'synthetic-failed-'+randomUUID(),name:a.name,headline:'Synthetic',bio:'Test only',subjects:['Maths'],boards:['CBSE'],grades:[8],languages:['English'],modes:['ONLINE'],localities:[],monthlyPaise:100000,experience:1,feeTermsAcceptedAt:new Date()}}),validUntil=new Date(Date.now()+30*86400000);
+ let identity='';
+ for(const kind of ['IDENTITY','QUALIFICATIONS','CAPABILITY','REFERENCES']){const e=await db.evidence.create({data:{teacherId:t.id,kind,mediaType:'application/pdf',size:20,sha256:'a'.repeat(64),status:'CLEAN',scannerVersion:'synthetic-scanner',scannedAt:new Date()}});if(kind==='IDENTITY')identity=e.id;await db.verificationCheck.create({data:{teacherId:t.id,reviewerId:ids.admin,profileRevision:1,kind,evidenceId:e.id,result:kind==='IDENTITY'?'FAILED':'PASSED',reason:'Synthetic immutable assessment',validUntil}});}
+ const overwritten=await operator.call(`/admin/teachers/${t.id}/checks`,{expectedVersion:1,kind:'IDENTITY',evidenceId:identity,result:'PASSED',reason:'Try to overwrite failed check',validUntil:validUntil.toISOString()});assert.equal(overwritten.status,409);assert.equal((await db.verificationCheck.findFirstOrThrow({where:{teacherId:t.id,kind:'IDENTITY'}})).result,'FAILED');
+ const denied=await operator.call(`/admin/teachers/${t.id}/reviews`,{expectedVersion:1,status:'APPROVED',reason:'Try to ignore the failed check'});assert.equal(denied.status,409);assert.equal(denied.data.code,'SCREENING_REQUIRED');assert.equal((await db.teacher.findUniqueOrThrow({where:{id:t.id}})).screeningComplete,false);
+});
