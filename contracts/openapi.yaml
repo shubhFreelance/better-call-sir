@@ -11201,7 +11201,8 @@
               "enum": [
                 "parent",
                 "teacher",
-                "student"
+                "student",
+                "enquiry"
               ]
             }
           }
@@ -11332,7 +11333,8 @@
               "enum": [
                 "parent",
                 "teacher",
-                "student"
+                "student",
+                "enquiry"
               ]
             }
           }
@@ -11473,7 +11475,8 @@
               "enum": [
                 "parent",
                 "teacher",
-                "student"
+                "student",
+                "enquiry"
               ]
             }
           }
@@ -18998,6 +19001,134 @@
         ],
         "description": "Current-record counts are independent of the requested page. Lists use stable ID-descending order, not chronological order, and a scope-validated cursor. Student projection excludes budget, price, other learners, candidate decisions and administrative data. Teacher enquiries require current presented unexpired recommendations and active verified family consent with no pending deletion; eligibility is rechecked per displayed opportunity. Interest/selection/terms are distinct from an active teaching start or financial settlement. Admin receives audited global aggregates only and uses dedicated queues for details. Learner preview is limited to 20 with an explicit flag. Existing demo/timetable dependencies are not removed by this read endpoint."
       }
+    },
+    "/onboarding/enquiry/restarts": {
+      "post": {
+        "operationId": "restartEnquiryDraft",
+        "tags": [
+          "placements"
+        ],
+        "summary": "Start another enquiry after the previous saved draft was submitted",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingProgress"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -22187,7 +22318,8 @@
             "enum": [
               "PARENT",
               "TEACHER",
-              "STUDENT"
+              "STUDENT",
+              "ENQUIRY"
             ]
           },
           "state": {
