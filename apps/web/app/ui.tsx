@@ -1,5 +1,6 @@
 "use client";
-import { RefreshCw } from "lucide-react";
+import { FinanceWorkspace } from "./finance-workspace";
+import { RefreshCw, Landmark } from "lucide-react";
 import { SupportOperations } from "./support-operations";
 import { MatchingWorkspace } from "./matching-workspace";
 import { ReviewerWorkspace } from "./reviewer-workspace";
@@ -1273,6 +1274,15 @@ function DashboardShell({
           ],
         ]
       : []),
+    ...(["ADMIN", "FINANCE"].includes(role || "")
+      ? [
+          ["/dashboard/finance", "Finance & records", Landmark] as [
+            string,
+            string,
+            LucideIcon,
+          ],
+        ]
+      : []),
     ["/support", "Help & safety", LifeBuoy],
     ...(role && staffRole(role)
       ? [
@@ -1385,29 +1395,31 @@ function DashboardPage({ tab }: { tab: string }) {
                 ? `Hello, ${session.account.name.split(" · ")[0]}.`
                 : tab.endsWith("lessons")
                   ? "Every class, accounted for."
-                  : tab.endsWith("support")
-                    ? "Support, with a clear next step."
-                    : tab.endsWith("matching")
-                      ? "A considered shortlist, ready for review."
-                      : tab.endsWith("review")
-                        ? "A careful review, recorded."
-                        : tab.endsWith("privacy")
-                          ? "Your information and privacy."
-                          : tab.endsWith("arrangements")
-                            ? "A clear next step for your tuition."
-                            : tab.endsWith("requests")
-                              ? "Your path to a good fit."
-                              : tab.endsWith("family")
-                                ? "Your learners, your control."
-                                : tab.endsWith("bookings")
-                                  ? "A little clarity, on the calendar."
-                                  : tab.endsWith("pro")
-                                    ? "A conversation can help."
-                                    : tab.endsWith("notes")
-                                      ? session.account.role === "TEACHER"
-                                        ? "Learning context, shared with you."
-                                        : "Your thoughts, kept private."
-                                      : "A thoughtful control room."
+                  : tab.endsWith("finance")
+                    ? "Financial records, with their evidence."
+                    : tab.endsWith("support")
+                      ? "Support, with a clear next step."
+                      : tab.endsWith("matching")
+                        ? "A considered shortlist, ready for review."
+                        : tab.endsWith("review")
+                          ? "A careful review, recorded."
+                          : tab.endsWith("privacy")
+                            ? "Your information and privacy."
+                            : tab.endsWith("arrangements")
+                              ? "A clear next step for your tuition."
+                              : tab.endsWith("requests")
+                                ? "Your path to a good fit."
+                                : tab.endsWith("family")
+                                  ? "Your learners, your control."
+                                  : tab.endsWith("bookings")
+                                    ? "A little clarity, on the calendar."
+                                    : tab.endsWith("pro")
+                                      ? "A conversation can help."
+                                      : tab.endsWith("notes")
+                                        ? session.account.role === "TEACHER"
+                                          ? "Learning context, shared with you."
+                                          : "Your thoughts, kept private."
+                                        : "A thoughtful control room."
             }
             subtitle={
               tab === "/dashboard"
@@ -1586,6 +1598,12 @@ function DashboardPage({ tab }: { tab: string }) {
                 </Link>
               </section>
             ))}
+          {tab.endsWith("finance") && (
+            <FinanceWorkspace
+              key={`${session.account.id}:${session.account.role}`}
+              session={session}
+            />
+          )}
           {tab.endsWith("support") && (
             <SupportOperations
               key={`${session.account.id}:${session.account.role}`}
@@ -1945,6 +1963,9 @@ function AdminPanel({ dashboard: d, act }: { dashboard: Dashboard; act: Act }) {
         </div>
         <div className="panel">
           <h3>Integration health</h3>
+          <Link href="/dashboard/finance" className="inline-link">
+            Open finance records and provider query
+          </Link>
           <div className="control-row">
             <span>Synthetic outbox pending</span>
             <strong>{d.jobs?.pending || 0}</strong>

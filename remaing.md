@@ -2,7 +2,7 @@
 
 Updated 14 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
-Next sprint: **F18 finance/admin screens**. F14–F17 are implemented in development. Features are tested and pushed separately.
+Next sprint: **F19 super-admin control console**. F14–F18 are implemented in development. Features are tested and pushed separately.
 
 
 ## Frontend features
@@ -11,7 +11,7 @@ Next sprint: **F18 finance/admin screens**. F14–F17 are implemented in develop
 - [x] **F15** Reviewer workbench: private evidence, scan status, current-revision screening checks, changes requested, approval/suspension and reasons
 - [x] **F16** Operator matching workbench: request criteria, run history, hard-filter explanations, adjustments, reviewed publication, teacher response and no-match recovery
 - [x] **F17** Operator support/rematch queues, scoped demo and attendance dispute review, assignments/status/replies
-- [ ] **F18** Finance/admin screens for invoice/payment/refund/payable states and reconciliation, with explicit captured-versus-settled money
+- [x] **F18** Finance/admin screens for invoice/payment/refund/payable states and reconciliation, with explicit captured-versus-settled money
 - [ ] **F19** Super-admin control console: people/linkage, supply/regions, commercial configuration, privacy/evidence queues, failed jobs, integration health, flags, audit and release state
 - [ ] **F20** Real operational charts/reports: manual/assisted funnel, denominators, mature continuation cohorts, unknown/missing observations and separate finance obligations
 - [ ] **F21** Finish dedicated role dashboards: per-learner summaries, assigned-teacher details, date presets, service-kind breakdown, teacher activity/completeness/cancellation and feedback sample size
@@ -78,5 +78,7 @@ Next sprint: **F18 finance/admin screens**. F14–F17 are implemented in develop
 
 - F16: implemented; nine browser checks and 78 API checks, with separate tested backend/frontend pushes.
 - F17: implemented; 11 staff support/dispute checks, 79 API checks and journey/learning/support regression verified.
+
+- F18: implemented; 14 finance browser checks, 80 API checks and nine contract checks pass; frontend/backend pushes remain separate. Refund/payout execution stays open above.
 
 Full context: [MVP remaining inventory](docs/MVP_REMAINING.md) and [sprint evidence](docs/SPRINTS.md).
