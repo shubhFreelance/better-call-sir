@@ -3216,6 +3216,16 @@ export interface components {
             expectedVersion: number;
             reason: string;
             preferences: components["schemas"]["SchedulePreferences"];
+            criteria?: {
+                /** @enum {string} */
+                subject: "Maths" | "Science";
+                /** @enum {string} */
+                mode: "ONLINE" | "HOME";
+                /** @enum {string} */
+                language: "English" | "Hindi";
+                locality: string;
+                budgetPaise: number;
+            };
         };
         PlacementCloseResult: {
             placement: components["schemas"]["Placement"];
