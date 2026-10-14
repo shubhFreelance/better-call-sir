@@ -1,5 +1,6 @@
 "use client";
 import { RefreshCw } from "lucide-react";
+import { MatchingWorkspace } from "./matching-workspace";
 import { ReviewerWorkspace } from "./reviewer-workspace";
 import { PrivacyWorkspace } from "./privacy-workspace";
 import { PlacementCare } from "./placement-care";
@@ -1253,6 +1254,15 @@ function DashboardShell({
           ],
         ]
       : []),
+    ...(["ADMIN", "OPERATOR"].includes(role || "")
+      ? [
+          ["/dashboard/matching", "Matching review", Users] as [
+            string,
+            string,
+            LucideIcon,
+          ],
+        ]
+      : []),
     ["/support", "Help & safety", LifeBuoy],
     ...(role && staffRole(role)
       ? [
@@ -1365,25 +1375,27 @@ function DashboardPage({ tab }: { tab: string }) {
                 ? `Hello, ${session.account.name.split(" · ")[0]}.`
                 : tab.endsWith("lessons")
                   ? "Every class, accounted for."
-                  : tab.endsWith("review")
-                    ? "A careful review, recorded."
-                    : tab.endsWith("privacy")
-                      ? "Your information and privacy."
-                      : tab.endsWith("arrangements")
-                        ? "A clear next step for your tuition."
-                        : tab.endsWith("requests")
-                          ? "Your path to a good fit."
-                          : tab.endsWith("family")
-                            ? "Your learners, your control."
-                            : tab.endsWith("bookings")
-                              ? "A little clarity, on the calendar."
-                              : tab.endsWith("pro")
-                                ? "A conversation can help."
-                                : tab.endsWith("notes")
-                                  ? session.account.role === "TEACHER"
-                                    ? "Learning context, shared with you."
-                                    : "Your thoughts, kept private."
-                                  : "A thoughtful control room."
+                  : tab.endsWith("matching")
+                    ? "A considered shortlist, ready for review."
+                    : tab.endsWith("review")
+                      ? "A careful review, recorded."
+                      : tab.endsWith("privacy")
+                        ? "Your information and privacy."
+                        : tab.endsWith("arrangements")
+                          ? "A clear next step for your tuition."
+                          : tab.endsWith("requests")
+                            ? "Your path to a good fit."
+                            : tab.endsWith("family")
+                              ? "Your learners, your control."
+                              : tab.endsWith("bookings")
+                                ? "A little clarity, on the calendar."
+                                : tab.endsWith("pro")
+                                  ? "A conversation can help."
+                                  : tab.endsWith("notes")
+                                    ? session.account.role === "TEACHER"
+                                      ? "Learning context, shared with you."
+                                      : "Your thoughts, kept private."
+                                    : "A thoughtful control room."
             }
             subtitle={
               tab === "/dashboard"
@@ -1562,6 +1574,12 @@ function DashboardPage({ tab }: { tab: string }) {
                 </Link>
               </section>
             ))}
+          {tab.endsWith("matching") && (
+            <MatchingWorkspace
+              key={`${session.account.id}:${session.account.role}`}
+              session={session}
+            />
+          )}
           {tab.endsWith("review") && (
             <ReviewerWorkspace
               key={`${session.account.id}:${session.account.role}`}
@@ -1819,11 +1837,6 @@ function Pro({
 }
 function AdminPanel({ dashboard: d, act }: { dashboard: Dashboard; act: Act }) {
   const { session } = useAuth();
-  const requests = useQuery({
-    queryKey: ["admin-requests", session?.account.id],
-    queryFn: () => api<{ items: TuitionRequest[] }>("/requests"),
-    enabled: session?.account.role === "ADMIN",
-  });
   if (session?.account.role !== "ADMIN")
     return (
       <Notice error>
@@ -1886,35 +1899,13 @@ function AdminPanel({ dashboard: d, act }: { dashboard: Dashboard; act: Act }) {
       </div>
       <div className="panel">
         <h3>Requests awaiting fit review</h3>
-        {requests.data?.items
-          .filter((r) => r.status === "OPEN")
-          .map((r) => (
-            <div className="control-row" key={r.id}>
-              <span>
-                <strong>
-                  {r.subject} · {r.locality}
-                </strong>
-                <small>
-                  {r.language} · {rupees(r.budgetPaise)}/month · {r.schedule}
-                </small>
-              </span>
-              <Button
-                secondary
-                onClick={() =>
-                  void act(
-                    `/admin/requests/${r.id}/recommendations`,
-                    { expectedVersion: r.version },
-                    true,
-                  )
-                }
-              >
-                Build eligible shortlist
-              </Button>
-            </div>
-          ))}
-        {!requests.data?.items.some((r) => r.status === "OPEN") && (
-          <Empty>No open requests.</Empty>
-        )}
+        <p>
+          Review matching history, eligibility and publication in the dedicated
+          workspace.
+        </p>
+        <Link href="/dashboard/matching" className="inline-link">
+          Open matching review
+        </Link>
       </div>
       <div className="dashboard-columns">
         <div className="panel">

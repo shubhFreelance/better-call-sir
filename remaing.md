@@ -2,14 +2,14 @@
 
 Updated 14 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
-Current sprint: **F16 operator matching**, then **F17 support/dispute handling**. F14 and F15 are implemented in development. Features are tested and pushed separately.
+Current sprint: **F17 support/dispute handling**. F14 and F15 are implemented in development. Features are tested and pushed separately.
 
 
 ## Frontend features
 
 - [x] **F14** Guardian/teacher correction and deletion requests, processing-pause status, retention explanation and progress
 - [x] **F15** Reviewer workbench: private evidence, scan status, current-revision screening checks, changes requested, approval/suspension and reasons
-- [ ] **F16** Operator matching workbench: request criteria, run history, hard-filter explanations, adjustments, reviewed publication, teacher response and no-match recovery
+- [x] **F16** Operator matching workbench: request criteria, run history, hard-filter explanations, adjustments, reviewed publication, teacher response and no-match recovery
 - [ ] **F17** Operator support/rematch queues, scoped demo and attendance dispute review, assignments/status/replies
 - [ ] **F18** Finance/admin screens for invoice/payment/refund/payable states and reconciliation, with explicit captured-versus-settled money
 - [ ] **F19** Super-admin control console: people/linkage, supply/regions, commercial configuration, privacy/evidence queues, failed jobs, integration health, flags, audit and release state
@@ -74,6 +74,7 @@ Current sprint: **F16 operator matching**, then **F17 support/dispute handling**
 
 - F1–F13 development UI and existing API foundation are implemented; live gates above remain open.
 - F14: implemented; seven browser checks, 77 API checks and production/security validation passed.
+- F16: implemented; nine browser checks and 78 API checks, with separate tested backend/frontend pushes.
 - F15: implemented; 11 reviewer checks, 78 API checks, privacy/support/journey regression and production/security validation passed.
 
 Full context: [MVP remaining inventory](docs/MVP_REMAINING.md) and [sprint evidence](docs/SPRINTS.md).

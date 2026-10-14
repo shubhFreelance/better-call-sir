@@ -4770,3 +4770,4 @@ footer {
 @media(max-width:700px){.care-workspace {padding:16px;gap:20px;}.care-intro,.care-card,.care-review {padding:20px;}.care-toolbar {padding:0 20px;}.care-fields,.care-window {grid-template-columns:1fr;}.care-actions>button {flex:1 1 100%;}.care-workspace>[data-slot="alert"] {padding:16px 20px;}}
 .privacy-record {padding:20px 0;border-bottom:1px solid var(--line);}.privacy-record:last-child {border-bottom:0;padding-bottom:0;}.privacy-record p {white-space:pre-wrap;overflow-wrap:anywhere;}.privacy-record h4 {margin:12px 0 8px;}.privacy-record small {color:var(--muted);}
 .reviewer-coverage {display:flex;align-items:flex-start;gap:12px;}.reviewer-coverage input {width:18px;height:18px;flex-shrink:0;margin-top:5px;accent-color:var(--primary);}
+.matching-order {display:grid;gap:16px;padding-left:24px;}.matching-order>li {padding:16px;background:var(--soft);border-radius:12px;}.matching-order .care-actions {margin-top:12px;}
