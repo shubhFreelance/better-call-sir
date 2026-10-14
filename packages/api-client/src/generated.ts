@@ -2033,6 +2033,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/lessons/disputes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read region-scoped attendance disputes without private feedback */
+        get: operations["get_admin_lesson_disputes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3590,6 +3607,63 @@ export interface components {
             /** Format: uuid */
             runId: string | null;
             items: components["schemas"]["OperatorCandidate"][];
+        };
+        LessonDispute: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            placementId: string | null;
+            /** Format: uuid */
+            recurringScheduleId: string | null;
+            /** Format: uuid */
+            reservationId: string | null;
+            /** Format: uuid */
+            teacherId: string;
+            /** Format: uuid */
+            childId: string;
+            kind: string;
+            subject: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            status: string;
+            /** @enum {string} */
+            attendance: "PENDING" | "PRESENT" | "LATE" | "ABSENT";
+            disputed: boolean;
+            version: number;
+            recap: string | null;
+            /** Format: date-time */
+            recapSubmittedAt: string | null;
+            learner: {
+                alias: string;
+                grade: number;
+                board: string;
+            };
+            teacher: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            };
+            participantReviews: {
+                /** @enum {string} */
+                action: "CONFIRMED" | "DISPUTED";
+                reason: string;
+                lessonVersion: number;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            cases: {
+                /** Format: uuid */
+                id: string;
+                status: string;
+                version: number;
+            }[];
+        };
+        LessonDisputeList: {
+            items: components["schemas"]["LessonDispute"][];
+            /** Format: uuid */
+            nextCursor: string | null;
         };
     };
     responses: never;
@@ -6795,6 +6869,9 @@ export interface operations {
                 status?: "OPEN" | "IN_PROGRESS" | "WAITING_OWNER" | "RESOLVED" | "CLOSED";
                 limit?: number;
                 cursor?: string;
+                category?: string;
+                /** @description Staff only; owner/region checks still apply. */
+                assignment?: "ME" | "UNASSIGNED";
             };
             header?: never;
             path?: never;
@@ -14088,6 +14165,74 @@ export interface operations {
             };
             /** @description Provider unavailable or feature paused */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_admin_lesson_disputes: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonDisputeList"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

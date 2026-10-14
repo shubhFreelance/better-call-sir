@@ -125,13 +125,14 @@ class DemosController {
           })
         : null;
     if (actor.role === "TEACHER" && !teacher) return { items: [] };
+    const regionalRequests=actor.role==="OPERATOR"?await this.service.db.tuitionRequest.findMany({where:{region:actor.region},select:{id:true}}):null;
     const demos = await this.service.db.demo.findMany({
       where:
         actor.role === "GUARDIAN"
           ? { guardianId: actor.id }
           : actor.role === "TEACHER"
             ? { teacherId: teacher!.id }
-            : {},
+            : actor.role === "OPERATOR" ? {requestId:{in:regionalRequests!.map(r=>r.id)}} : {},
       orderBy: { createdAt: "desc" },
       take: 100,
     });
@@ -458,10 +459,11 @@ class DemosController {
         where: { id },
         data: { status: data.resolution, version: { increment: 1 } },
       });
-      await db.supportCase.update({
-        where: { id: demo.supportCaseId },
-        data: { status: "RESOLVED" },
-      });
+      const support=await db.supportCase.findUniqueOrThrow({where:{id:demo.supportCaseId}});
+      const changed=await db.supportCase.updateMany({where:{id:support.id,version:support.version,status:{not:'CLOSED'}},data:{status:'RESOLVED',resolution:data.reason,version:{increment:1}}});
+      if(!changed.count)fail(409,'CONFLICT','Linked support case changed or is closed.');
+      await db.caseUpdate.create({data:{caseId:support.id,actorId:actor.id,message:data.reason,internal:false}});
+      await this.service.event(db,'case.triaged',support.id,support.version+1);
       await this.service.audit(
         db,
         actor,

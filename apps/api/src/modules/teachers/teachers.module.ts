@@ -69,7 +69,7 @@ class TeachersController {
         const bookings=await db.reservation.findMany({where:{teacherId:id,status:'CONFIRMED',endsAt:{gt:new Date()}},select:{id:true}});
         const paid=await db.payment.findMany({where:{reservationId:{in:bookings.map(b=>b.id)}},select:{reservationId:true}});
         if (paid.length) {
-          const support=await db.supportCase.create({data:{accountId:actor.id,category:'PAID_BOOKING_REVIEW',description:`Suspended teacher ${id}; ${paid.length} paid confirmed bookings require review. First 50 booking IDs: ${paid.slice(0,50).map(p=>p.reservationId).join(',')}`}});
+          const support=await db.supportCase.create({data:{accountId:actor.id,region:before.region,category:'PAID_BOOKING_REVIEW',description:`Suspended teacher ${id}; ${paid.length} paid confirmed bookings require review. First 50 booking IDs: ${paid.slice(0,50).map(p=>p.reservationId).join(',')}`}});
           await this.service.audit(db,actor,req,'SUSPENDED_TEACHER_BOOKINGS_FLAGGED',support.id,data.reason,undefined,{teacherId:id,bookingCount:paid.length});
           await this.service.event(db,'support.booking_review_requested',support.id);
         }

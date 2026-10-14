@@ -13,6 +13,28 @@ class LearningRecordsController {
     }else await this.service.child(db,actor,lesson.childId);
     return lesson;
   }
+  async region(db:DB,lesson:{placementId:string|null;childId:string}){
+    if(lesson.placementId){const p=await db.placement.findUnique({where:{id:lesson.placementId}}),r=p?await db.tuitionRequest.findUnique({where:{id:p.requestId}}):null;return r?.region||null;}
+    const child=await db.child.findUnique({where:{id:lesson.childId}}),owner=child?await db.account.findUnique({where:{id:child.guardianId}}):null;return owner?.region||null;
+  }
+  async cases(db:DB,lesson:{id:string;childId:string}){
+    const child=await db.child.findUniqueOrThrow({where:{id:lesson.childId}});
+    // shortcut: owner-bound legacy descriptions link cases; add a lesson FK when migrating support histories.
+    return db.supportCase.findMany({where:{category:'ATTENDANCE',accountId:{in:[child.guardianId,...(child.studentAccountId?[child.studentAccountId]:[])]},description:{startsWith:`Lesson ${lesson.id}:`,mode:'insensitive'}},select:{id:true,status:true,version:true}});
+  }
+  @Get('admin/lessons/disputes') async disputes(@Req() req:HttpRequest,@Query() query:unknown){
+    const actor=await this.service.actor(req,['ADMIN','OPERATOR']),data=parse(z.object({limit:z.coerce.number().int().min(1).max(50).default(20),cursor:uuid.optional()}).strict(),query);
+    return this.service.db.$transaction(async db=>{
+      let scope={};if(actor.role==='OPERATOR'){
+        const requests=await db.tuitionRequest.findMany({where:{region:actor.region},select:{id:true}}),placements=await db.placement.findMany({where:{requestId:{in:requests.map(r=>r.id)}},select:{id:true}}),accounts=await db.account.findMany({where:{region:actor.region},select:{id:true}}),children=await db.child.findMany({where:{guardianId:{in:accounts.map(a=>a.id)}},select:{id:true}});
+        scope={OR:[{placementId:{in:placements.map(p=>p.id)}},{placementId:null,childId:{in:children.map(c=>c.id)}}]};
+      }
+      const where={disputed:true,...scope};if(data.cursor&&!await db.lesson.findFirst({where:{...where,id:data.cursor},select:{id:true}}))fail(404,'NOT_FOUND','Dispute cursor not found.');
+      const rows=await db.lesson.findMany({where,orderBy:[{startsAt:'desc'},{id:'desc'}],take:data.limit+1,...(data.cursor?{cursor:{id:data.cursor},skip:1}:{})}),page=rows.slice(0,data.limit),items=[];
+      for(const lesson of page){const learner=await db.child.findUniqueOrThrow({where:{id:lesson.childId},select:{alias:true,grade:true,board:true}}),teacher=await db.teacher.findUniqueOrThrow({where:{id:lesson.teacherId},select:{id:true,name:true}}),participantReviews=await db.lessonConfirmation.findMany({where:{lessonId:lesson.id},select:{action:true,reason:true,lessonVersion:true,createdAt:true},orderBy:{createdAt:'asc'}});items.push({...lesson,learner,teacher,participantReviews,cases:await this.cases(db,lesson)});}
+      await this.service.audit(db,actor,req,'ATTENDANCE_DISPUTES_READ','lessons','Authorized scoped dispute queue read');return {items,nextCursor:rows.length>data.limit?page.at(-1)!.id:null};
+    });
+  }
   @Get('lessons') async lessons(@Req() req:HttpRequest,@Query() query:unknown){
     const actor=await this.service.actor(req,['GUARDIAN','STUDENT','TEACHER']);
     const data=parse(z.object({from:z.iso.datetime({offset:true}),to:z.iso.datetime({offset:true}),limit:z.coerce.number().int().min(1).max(50).default(20),cursor:uuid.optional()}).strict(),query);
@@ -36,7 +58,7 @@ class LearningRecordsController {
   @Post('lessons/:id/attendance') async attendance(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
     parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']);const data=parse(z.object({expectedVersion:version,attendance:z.enum(['PRESENT','LATE','ABSENT']),reason:text(300),recap:z.string().trim().min(1).max(2000).optional()}).strict(),body);
     return this.service.once(req,actor,'lesson.attendance',data,async db=>{
-      const before=await this.visible(db,actor,id);if(before.startsAt>new Date()||before.status==='CANCELLED')fail(409,'LESSON_NOT_READY','Only a past, non-cancelled lesson can be completed.');if(before.kind==='REVISION'&&['PRESENT','LATE'].includes(data.attendance)&&!data.recap)fail(400,'RECAP_REQUIRED','A short expert recap is required for a delivered revision session.');
+      const before=await this.visible(db,actor,id);if(before.endsAt>new Date()||before.status==='CANCELLED')fail(409,'LESSON_NOT_READY','Only a past, non-cancelled lesson can be completed.');if(before.kind==='REVISION'&&['PRESENT','LATE'].includes(data.attendance)&&!data.recap)fail(400,'RECAP_REQUIRED','A short expert recap is required for a delivered revision session.');
       const changed=await db.lesson.updateMany({where:{id,version:data.expectedVersion},data:{attendance:data.attendance,status:'COMPLETED',recap:data.recap,recapSubmittedAt:data.recap?new Date():undefined,version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Attendance has changed.');
       if(before.kind==='REVISION')await db.teacherPayable.updateMany({where:{lessonId:id},data:{status:'HELD_CONFIRMATION',eligibleAt:null,version:{increment:1}}});
       await this.service.audit(db,actor,req,'ATTENDANCE_CHANGED',id,data.reason,{attendance:before.attendance},{attendance:data.attendance});await this.service.event(db,'attendance.changed',id);return db.lesson.findUniqueOrThrow({where:{id}});
@@ -48,7 +70,7 @@ class LearningRecordsController {
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;const lesson=await this.visible(db,actor,id);
       if(lesson.version!==data.expectedVersion||lesson.status!=='COMPLETED'||lesson.attendance==='PENDING')fail(409,'CONFLICT','Attendance is not ready or changed.');
       const record=await db.lessonConfirmation.create({data:{lessonId:id,actorId:actor.id,action:data.action,reason:data.reason,lessonVersion:lesson.version}});
-      if(data.action==='DISPUTED'){await db.lesson.update({where:{id},data:{disputed:true,version:{increment:1}}});await db.teacherPayable.updateMany({where:{lessonId:id},data:{status:'HELD_DISPUTE',eligibleAt:null,version:{increment:1}}});await db.supportCase.create({data:{accountId:actor.id,category:'ATTENDANCE',description:`Lesson ${id}: ${data.reason}`}});}
+      if(data.action==='DISPUTED'){await db.lesson.update({where:{id},data:{disputed:true,version:{increment:1}}});await db.teacherPayable.updateMany({where:{lessonId:id},data:{status:'HELD_DISPUTE',eligibleAt:null,version:{increment:1}}});await db.supportCase.create({data:{accountId:actor.id,region:await this.region(db,lesson)||actor.region,placementId:lesson.placementId,reservationId:lesson.reservationId,category:'ATTENDANCE',description:`Lesson ${lesson.id}: ${data.reason}`}});}
       else {const child=await db.child.findUniqueOrThrow({where:{id:lesson.childId}});if(actor.id===child.guardianId){const delivered=['PRESENT','LATE'].includes(lesson.attendance)&&!!lesson.recap;await db.teacherPayable.updateMany({where:{lessonId:id,status:'HELD_CONFIRMATION'},data:{status:delivered?'ELIGIBLE':'REVIEW_REQUIRED',eligibleAt:delivered?new Date():null,version:{increment:1}}});}}
       await this.service.audit(db,actor,req,'ATTENDANCE_'+data.action,id,data.reason,undefined,{lessonVersion:lesson.version});await this.service.event(db,'attendance.'+data.action.toLowerCase(),id);return record;
     });
@@ -62,10 +84,10 @@ class LearningRecordsController {
     return this.service.once(req,actor,'lesson.dispute.resolve',data,async db=>{
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;const before=await db.lesson.findUnique({where:{id}});if(!before)fail(404,'NOT_FOUND','Lesson not found.');
       if(actor.role==='OPERATOR'){
-        const placement=before.placementId?await db.placement.findUnique({where:{id:before.placementId}}):null,request=placement?await db.tuitionRequest.findUnique({where:{id:placement.requestId}}):null;if(!request||request.region!==actor.region)fail(404,'NOT_FOUND','Lesson not found.');
+        if(await this.region(db,before)!==actor.region)fail(404,'NOT_FOUND','Lesson not found.');
       }
       if(before.version!==data.expectedVersion||!before.disputed)fail(409,'CONFLICT','Dispute is no longer open.');
-      const updated=await db.lesson.update({where:{id},data:{attendance:data.attendance,disputed:false,version:{increment:1}}});await db.supportCase.updateMany({where:{category:'ATTENDANCE',status:'OPEN',description:{contains:id}},data:{status:'RESOLVED'}});await db.teacherPayable.updateMany({where:{lessonId:id,status:'HELD_DISPUTE'},data:{status:['PRESENT','LATE'].includes(data.attendance)&&before.recap?'ELIGIBLE':'REVIEW_REQUIRED',eligibleAt:['PRESENT','LATE'].includes(data.attendance)&&before.recap?new Date():null,version:{increment:1}}});
+      const updated=await db.lesson.update({where:{id},data:{attendance:data.attendance,disputed:false,version:{increment:1}}});for(const c of await this.cases(db,before)){if(['CLOSED','RESOLVED'].includes(c.status))continue;const changed=await db.supportCase.updateMany({where:{id:c.id,version:c.version,status:{in:['OPEN','IN_PROGRESS','WAITING_OWNER']}},data:{status:'RESOLVED',resolution:data.reason,version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Linked support case changed.');await db.caseUpdate.create({data:{caseId:c.id,actorId:actor.id,message:data.reason,internal:false}});await this.service.event(db,'case.triaged',c.id,c.version+1);}await db.teacherPayable.updateMany({where:{lessonId:id,status:'HELD_DISPUTE'},data:{status:['PRESENT','LATE'].includes(data.attendance)&&before.recap?'ELIGIBLE':'REVIEW_REQUIRED',eligibleAt:['PRESENT','LATE'].includes(data.attendance)&&before.recap?new Date():null,version:{increment:1}}});
       await this.service.audit(db,actor,req,'ATTENDANCE_DISPUTE_RESOLVED',id,data.reason,{attendance:before.attendance},{attendance:data.attendance});await this.service.event(db,'attendance.dispute_resolved',id);return updated;
     });
   }
