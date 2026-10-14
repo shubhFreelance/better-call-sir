@@ -2050,6 +2050,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/finance/records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read paginated global finance records for MFA-verified ADMIN/FINANCE */
+        get: operations["get_FinanceRecords"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3664,6 +3681,38 @@ export interface components {
             items: components["schemas"]["LessonDispute"][];
             /** Format: uuid */
             nextCursor: string | null;
+        };
+        FinanceRecord: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "INVOICES" | "CHECKOUTS" | "PAYMENTS" | "REFUNDS" | "PAYABLES";
+            amountPaise: number;
+            /** @constant */
+            currency: "INR";
+            status: string;
+            version: number | null;
+            /** Format: date-time */
+            createdAt: string | null;
+            /** Format: uuid */
+            referenceId: string | null;
+            /** Format: uuid */
+            checkoutOrderId: string | null;
+            /** @enum {string|null} */
+            providerMode: "SANDBOX" | "LIVE" | null;
+            reason: string | null;
+            policyVersion: string | null;
+            /** Format: date-time */
+            eligibleAt: string | null;
+        };
+        FinanceRecordList: {
+            items: components["schemas"]["FinanceRecord"][];
+            /** Format: uuid */
+            nextCursor: string | null;
+            /** @constant */
+            order: "ID_DESC";
+            /** @constant */
+            providerSettlementVerified: false;
         };
     };
     responses: never;
@@ -14233,6 +14282,95 @@ export interface operations {
             };
             /** @description Version, eligibility, reservation or retry conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    get_FinanceRecords: {
+        parameters: {
+            query: {
+                kind: "INVOICES" | "CHECKOUTS" | "PAYMENTS" | "REFUNDS" | "PAYABLES";
+                id?: string;
+                status?: string;
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceRecordList"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

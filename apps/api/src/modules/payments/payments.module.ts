@@ -10,6 +10,20 @@ import {createRevisionFulfillment} from '../revision/fulfillment';
 @Controller('api/v1')
 class PaymentsController{
   constructor(@Inject(AppService) private readonly service:AppService){}
+  @Get('admin/finance/records') async records(@Req() req:HttpRequest,@Query() query:unknown){
+    const actor=await this.service.actor(req,['FINANCE','ADMIN']);const data=parse(z.object({kind:z.enum(['INVOICES','CHECKOUTS','PAYMENTS','REFUNDS','PAYABLES']),id:uuid.optional(),status:z.string().trim().min(1).max(60).optional(),limit:z.coerce.number().int().min(1).max(50).default(20),cursor:uuid.optional()}).strict(),query);
+    const db=this.service.db,where={...(data.id?{id:data.id}:{}),...(data.status?{status:data.status}:{})};
+    const cursorWhere={...where,id:data.cursor};
+    if(data.cursor&&((data.id&&data.id!==data.cursor)||!await ({INVOICES:()=>db.invoice.count({where:cursorWhere}),CHECKOUTS:()=>db.checkoutOrder.count({where:cursorWhere}),PAYMENTS:()=>db.payment.count({where:cursorWhere}),REFUNDS:()=>db.refund.count({where:cursorWhere}),PAYABLES:()=>db.teacherPayable.count({where:cursorWhere})}[data.kind])()))fail(404,'NOT_FOUND','Financial cursor is outside this filtered queue.');
+    // Invoice rows have no recorded creation date; ID ordering keeps every queue stable without inventing chronology.
+    const args={where,orderBy:{id:'desc' as const},take:data.limit+1,...(data.cursor?{cursor:{id:data.cursor},skip:1}:{})};
+    const rows=await ({INVOICES:()=>db.invoice.findMany(args),CHECKOUTS:()=>db.checkoutOrder.findMany(args),PAYMENTS:()=>db.payment.findMany(args),REFUNDS:()=>db.refund.findMany(args),PAYABLES:()=>db.teacherPayable.findMany(args)}[data.kind])(),page=rows.slice(0,data.limit);
+    const paymentIds=page.flatMap(row=>'paymentId' in row?[row.paymentId]:[]),payments=await db.payment.findMany({where:{id:{in:paymentIds}},select:{id:true,checkoutOrderId:true}}),paymentOrders=new Map(payments.map(p=>[p.id,p.checkoutOrderId]));
+    const orderId=(row:typeof page[number])=>'checkoutOrderId' in row?row.checkoutOrderId:'paymentId' in row?paymentOrders.get(row.paymentId)||null:data.kind==='CHECKOUTS'?row.id:null;
+    const orders=await db.checkoutOrder.findMany({where:{id:{in:page.map(orderId).filter((id):id is string=>!!id)}},select:{id:true,providerMode:true}}),modes=new Map(orders.map(o=>[o.id,o.providerMode]));
+    const items=page.map(row=>({id:row.id,kind:data.kind,amountPaise:row.amountPaise,currency:'currency' in row?row.currency:'INR',status:row.status,version:'version' in row?row.version:null,createdAt:'createdAt' in row?row.createdAt:null,referenceId:'placementId' in row?row.placementId:'resourceId' in row?row.resourceId:'lessonId' in row?row.lessonId:'paymentId' in row?row.paymentId:'invoiceId' in row?row.invoiceId||row.reservationId:null,checkoutOrderId:orderId(row),providerMode:modes.get(orderId(row)||'')||null,reason:'reason' in row?row.reason:null,policyVersion:'policyVersion' in row?row.policyVersion:null,eligibleAt:'eligibleAt' in row?row.eligibleAt:null}));
+    await this.service.audit(db,actor,req,'FINANCE_RECORDS_READ','finance','Staff accessed scoped financial records',undefined,{kind:data.kind,count:items.length});return {items,nextCursor:rows.length>data.limit?items.at(-1)!.id:null,order:'ID_DESC',providerSettlementVerified:false};
+  }
   @Get('payables') async payables(@Req() req:HttpRequest,@Query() query:unknown){
     const actor=await this.service.actor(req,['TEACHER','FINANCE','ADMIN']);const data=parse(z.object({status:z.enum(['HELD_SERVICE','HELD_CONFIRMATION','HELD_DISPUTE','ELIGIBLE','REFUND_PENDING','REVIEW_REQUIRED']).optional()}).strict(),query),teacher=actor.role==='TEACHER'?await this.service.db.teacher.findUnique({where:{accountId:actor.id}}):null;
     if(actor.role==='TEACHER'&&!teacher)fail(404,'NOT_FOUND','Teacher profile not found.');
@@ -85,7 +99,7 @@ class PaymentsController{
     parse(uuid,id);const actor=await this.service.actor(req,['ADMIN','FINANCE']);const data=parse(z.object({expectedVersion:version,reason:text(500)}).strict(),body);
     return this.service.once(req,actor,'checkout.reconcile',data,async db=>{
       const order=await db.checkoutOrder.findUnique({where:{id}});if(!order)fail(404,'NOT_FOUND','Checkout order not found.');if(order.version!==data.expectedVersion)fail(409,'CONFLICT','Checkout order changed.');
-      if(order.providerMode==='SANDBOX')return {order,status:'LOCAL_SANDBOX_ONLY'};if(!order.providerOrderId)fail(409,'ORDER_NOT_CREATED','Provider order was not created.');
+      if(order.providerMode==='SANDBOX'){await this.service.audit(db,actor,req,'CHECKOUT_RECONCILED',id,data.reason,undefined,{providerStatus:'LOCAL_SANDBOX_ONLY'});return {order,status:'LOCAL_SANDBOX_ONLY'};}if(!order.providerOrderId)fail(409,'ORDER_NOT_CREATED','Provider order was not created.');
       let provider;try{provider=await fetchRazorpayOrder(order.providerOrderId);}catch{fail(503,'PAYMENT_PROVIDER_UNAVAILABLE','Provider reconciliation is unavailable.');}
       if(provider.amount!==order.amountPaise||provider.currency!==order.currency){await db.supportCase.create({data:{accountId:order.accountId,category:'PAYMENT',description:`Checkout ${order.id} provider reconciliation mismatch.`}});}
       await this.service.audit(db,actor,req,'CHECKOUT_RECONCILED',id,data.reason,undefined,{providerStatus:provider.status});return {order,status:provider.status};
