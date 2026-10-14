@@ -4780,3 +4780,11 @@ footer {
 @media(max-width:700px){.finance-amounts,.finance-ledger>article,.finance-detail {grid-template-columns:1fr;gap:16px;}.finance-detail dd {margin-bottom:12px;}.finance-ledger>article>div:last-child {display:grid;gap:8px;}.finance-workspace .care-card>form>button {width:100%;}.finance-detail dt {margin-bottom:-8px;}}
 
 .finance-amounts dd:last-child {font-size:13px;letter-spacing:normal;margin:0;line-height:1.6;}
+
+.admin-controls {display:grid;gap:16px;margin:20px 0;}.admin-controls>article {display:flex;justify-content:space-between;align-items:center;gap:24px;padding:20px 0;border-bottom:1px solid var(--line);min-width:0;}.admin-controls>article>div {min-width:0;}.admin-controls p,.admin-controls small,.admin-workspace li {overflow-wrap:anywhere;}.admin-controls small,.admin-workspace .care-help {color:var(--muted);}.admin-controls>article>button {flex-shrink:0;}.admin-workspace .care-card>form {margin:20px 0;align-items:end;}.admin-workspace .care-card>form>button {justify-self:start;}.admin-workspace .care-card>select {margin:12px 0;}.admin-policy {display:grid;grid-template-columns:1fr 1fr;gap:24px;}.admin-supply {list-style:none;padding:0;display:grid;gap:12px;}.admin-supply>li {display:flex;justify-content:space-between;gap:16px;}.admin-workspace ul {line-height:1.7;}.admin-audit {display:grid;gap:24px;padding-left:20px;}.admin-workspace .care-actions>a {min-height:44px;display:inline-flex;align-items:center;color:var(--primary);text-decoration:underline;text-underline-offset:4px;}.admin-workspace .care-editor form {margin:24px 0;}.admin-workspace .care-editor fieldset>div {display:grid;gap:8px;}.admin-workspace .care-card>h4 {margin-top:24px;}
+@media(max-width:700px){.admin-controls>article,.admin-supply>li {flex-direction:column;align-items:stretch;gap:12px;}.admin-policy {grid-template-columns:1fr;gap:16px;}.admin-controls>article>button {width:100%;}.admin-controls>article {padding:16px 0;}}
+
+.care-tabs [data-slot="tabs-trigger"] {color:var(--ink);background:transparent;}.care-tabs [data-slot="tabs-trigger"][data-state="active"] {background:white;color:var(--primary);}
+
+.admin-workspace .care-editor>[data-slot="alert"] {margin:24px 0;}
+@media(max-width:700px){.admin-workspace .care-editor>[data-slot="alert"] {margin:20px 0;}}

@@ -714,6 +714,7 @@ function DisputeQueue({
           {rows.map((r) => (
             <Button
               key={r.id}
+              data-dispute-id={r.id}
               variant={selected?.id === r.id ? "default" : "outline"}
               disabled={locked || !!query.error}
               onClick={() => {

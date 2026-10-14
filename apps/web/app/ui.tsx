@@ -1,4 +1,5 @@
 "use client";
+import { AdminConsole } from "./admin-console";
 import { FinanceWorkspace } from "./finance-workspace";
 import { RefreshCw, Landmark } from "lucide-react";
 import { SupportOperations } from "./support-operations";
@@ -1719,10 +1720,10 @@ function DashboardPage({ tab }: { tab: string }) {
             />
           )}
           {tab.endsWith("admin") && (
-            <>
-              <DemoJourney session={session} act={act} />
-              <AdminPanel dashboard={d} act={act} />
-            </>
+            <AdminConsole
+              key={`${session.account.id}:${session.account.role}`}
+              session={session}
+            />
           )}
         </>
       )}
@@ -1871,132 +1872,21 @@ function Pro({
     </>
   );
 }
-function AdminPanel({ dashboard: d, act }: { dashboard: Dashboard; act: Act }) {
-  const { session } = useAuth();
-  if (session?.account.role !== "ADMIN")
-    return (
-      <Notice error>
-        The control console is restricted to authorized operators.
-      </Notice>
-    );
+function AdminPanel({ dashboard: d }: { dashboard: Dashboard; act: Act }) {
   return (
-    <>
-      <Notice>
-        This synthetic console is development-only. Live privileged access is
-        blocked pending provider and release qualification. Staff records
-        require a current authenticator verification.
-      </Notice>
-      <div className="panel">
-        <h3>Feature controls</h3>
-        <p>Kill switches pause new transactions and retain existing records.</p>
-        {d.flags?.map((f) => (
-          <div className="control-row" key={f.name}>
-            <span>
-              <strong>{pretty(f.name)}</strong>
-              <small>Version {f.version}</small>
-            </span>
-            <Badge>{f.enabled ? "Enabled" : "Paused"}</Badge>
-            <Button
-              secondary
-              onClick={() => {
-                const reason = prompt(
-                  `Reason to ${f.enabled ? "pause" : "enable"} ${f.name}?`,
-                );
-                if (
-                  reason &&
-                  confirm("Confirm this audited configuration change?")
-                )
-                  void act(
-                    `/admin/flags/${f.name}`,
-                    {
-                      enabled: !f.enabled,
-                      expectedVersion: f.version,
-                      reason,
-                      confirmed: true,
-                    },
-                    false,
-                  );
-              }}
-            >
-              {f.enabled ? "Pause" : "Enable"}
-            </Button>
-          </div>
-        ))}
-      </div>
-      <div className="panel">
-        <h3>Teacher review queue</h3>
-        <p>
-          Review private evidence and current screening checks in the dedicated
-          workspace.
-        </p>
-        <Link href="/dashboard/review" className="inline-link">
-          Open teacher screening
-        </Link>
-      </div>
-      <div className="panel">
-        <h3>Requests awaiting fit review</h3>
-        <p>
-          Review matching history, eligibility and publication in the dedicated
-          workspace.
-        </p>
-        <Link href="/dashboard/matching" className="inline-link">
-          Open matching review
-        </Link>
-      </div>
-      <div className="dashboard-columns">
-        <div className="panel">
-          <h3>Support & safety queue</h3>
-          <Link href="/dashboard/support" className="inline-link">
-            Open support and dispute operations
-          </Link>
-          {d.cases?.length ? (
-            d.cases.map((c) => (
-              <div className="case-item" key={c.id}>
-                <Badge>{c.category}</Badge>
-                <p>{c.description}</p>
-                <small>{pretty(c.status)}</small>
-              </div>
-            ))
-          ) : (
-            <Empty>No open support cases.</Empty>
-          )}
-        </div>
-        <div className="panel">
-          <h3>Integration health</h3>
-          <Link href="/dashboard/finance" className="inline-link">
-            Open finance records and provider query
-          </Link>
-          <div className="control-row">
-            <span>Synthetic outbox pending</span>
-            <strong>{d.jobs?.pending || 0}</strong>
-          </div>
-          <div className="control-row">
-            <span>Failed jobs</span>
-            <strong>{d.jobs?.failed || 0}</strong>
-          </div>
-          <p className="muted">
-            OTP, verification, payments, masked audio, private media and
-            reconciliation: live adapters unconfigured.
-          </p>
-        </div>
-      </div>
-      <div className="panel">
-        <h3>Append-only audit history</h3>
-        {d.audit?.length ? (
-          d.audit.map((a) => (
-            <div className="audit-item" key={a.id}>
-              <strong>{pretty(a.action)}</strong>
-              <span>{a.reason}</span>
-              <small>{date(a.createdAt)}</small>
-            </div>
-          ))
-        ) : (
-          <Empty>No privileged actions recorded yet.</Empty>
-        )}
-      </div>
-    </>
+    <section className="panel">
+      <h3>Administrator workspaces</h3>
+      <p>
+        Review controls, private queues and recorded outcomes in the dedicated
+        console.
+      </p>
+      <Link href="/dashboard/admin" className="inline-link">
+        Open administrator console
+      </Link>
+    </section>
   );
 }
+
 function Support() {
   const { session } = useAuth();
   return (

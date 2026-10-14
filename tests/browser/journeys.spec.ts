@@ -172,7 +172,10 @@ test("admin console reads real queues and failed provider controls stay explicit
   await expect(
     page.getByRole("heading", { name: "Feature controls" }),
   ).toBeVisible();
-  await expect(page.getByText(/live adapters unconfigured/)).toBeVisible();
+  await expect(
+    page.getByText(/Current live adapters remain unqualified/),
+  ).toBeVisible();
+  await expect(page.getByText(/Live release: blocked/)).toBeVisible();
 });
 test("360px layout has no overflow and labelled keyboard-accessible forms", async ({
   page,
@@ -450,16 +453,35 @@ test("guardian arranges and reschedules a demo; no-show reaches operator review"
     await expect(card.getByText(/awaiting operator review/)).toBeVisible();
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await login(page, "Operator");
-    await page.goto("/dashboard/admin");
-    const review = page.locator(`[data-demo-id="${demo.id}"]`);
-    await expect(review.getByText("disputed", { exact: true })).toBeVisible();
-    await review
-      .getByLabel("Review evidence and reason")
+    await page.goto("/dashboard/support");
+    await page.getByRole("tab", { name: "Demo disputes", exact: true }).click();
+    const queued = page.locator(`[data-dispute-id="${demo.id}"]`);
+    await expect(queued).toBeVisible();
+    await queued.click();
+    await expect(
+      page.getByRole("heading", { name: "Linked case evidence", exact: true }),
+    ).toBeVisible();
+    await page
+      .getByLabel("Reviewed outcome", { exact: true })
+      .selectOption("NOT_COMPLETED");
+    await page
+      .getByLabel("Evidence and reason for resolution")
       .fill(
         "Reviewed guardian report and synthetic teacher evidence: no demo took place",
       );
-    await review.getByRole("button", { name: "Resolve demo dispute" }).click();
-    await expect(review).toHaveCount(0);
+    await page
+      .getByRole("button", { name: "Review dispute outcome", exact: true })
+      .click();
+    await page
+      .getByRole("checkbox", { name: /I reviewed the participant evidence/ })
+      .check();
+    await page
+      .getByRole("button", { name: "Confirm dispute resolution", exact: true })
+      .click();
+    await expect(
+      page.getByText(/Dispute outcome recorded. Linked support progress/),
+    ).toBeVisible();
+    await expect(queued).toHaveCount(0);
   } finally {
     await operator.dispose();
     await teacher.dispose();

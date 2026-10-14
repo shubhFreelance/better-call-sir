@@ -2,7 +2,7 @@
 
 Updated 14 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
-Next sprint: **F19 super-admin control console**. F14–F18 are implemented in development. Features are tested and pushed separately.
+Next sprint: **F20 operational charts and reports**. F14–F19 are implemented in development. Features are tested and pushed separately.
 
 
 ## Frontend features
@@ -12,7 +12,7 @@ Next sprint: **F19 super-admin control console**. F14–F18 are implemented in d
 - [x] **F16** Operator matching workbench: request criteria, run history, hard-filter explanations, adjustments, reviewed publication, teacher response and no-match recovery
 - [x] **F17** Operator support/rematch queues, scoped demo and attendance dispute review, assignments/status/replies
 - [x] **F18** Finance/admin screens for invoice/payment/refund/payable states and reconciliation, with explicit captured-versus-settled money
-- [ ] **F19** Super-admin control console: people/linkage, supply/regions, commercial configuration, privacy/evidence queues, failed jobs, integration health, flags, audit and release state
+- [x] **F19** Super-admin console: people/linkage inspection, regional supply snapshot, read-only commercial rules, privacy review/evidence routing, recovery jobs/deletion replay, integration modes, reviewed flags, audit and blocked release state. Staff grants and commercial editing remain B2/B3.
 - [ ] **F20** Real operational charts/reports: manual/assisted funnel, denominators, mature continuation cohorts, unknown/missing observations and separate finance obligations
 - [ ] **F21** Finish dedicated role dashboards: per-learner summaries, assigned-teacher details, date presets, service-kind breakdown, teacher activity/completeness/cancellation and feedback sample size
 - [ ] **F22** Complete age-appropriate student notice/preferences and remaining guardian/student/teacher onboarding recovery details
@@ -80,5 +80,7 @@ Next sprint: **F19 super-admin control console**. F14–F18 are implemented in d
 - F17: implemented; 11 staff support/dispute checks, 79 API checks and journey/learning/support regression verified.
 
 - F18: implemented; 14 finance browser checks, 80 API checks and nine contract checks pass; frontend/backend pushes remain separate. Refund/payout execution stays open above.
+
+- F19: console implemented; 17 console browser checks, 39 related browser regressions and 82 API checks pass. Staff grants/configuration editing remain B2/B3; live release stays blocked.
 
 Full context: [MVP remaining inventory](docs/MVP_REMAINING.md) and [sprint evidence](docs/SPRINTS.md).
