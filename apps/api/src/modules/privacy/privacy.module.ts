@@ -52,7 +52,7 @@ class PrivacyController{
      if(!data.retentionReason)fail(400,'RETENTION_REQUIRED','Record the approved exception for retained financial, learning, safety and audit evidence.');
      await erase(db,item.scope,item.resourceId,item.accountId);await db.deletionRecord.create({data:{privacyRequestId:id,accountId:item.accountId,scope:item.scope,resourceId:item.resourceId,policyVersion:data.policyVersion,retentionReason:data.retentionReason}});
      if(item.scope==='ACCOUNT'){const teacher=await db.teacher.findUnique({where:{accountId:item.accountId}});if(teacher){for(const evidence of await db.evidence.findMany({where:{teacherId:teacher.id}}))await this.service.event(db,'privacy.evidence_delete_requested',evidence.id);await db.evidence.updateMany({where:{teacherId:teacher.id},data:{status:'DELETED',version:{increment:1}}});}}
-    }else if(item.scope==='NOTE')await db.note.update({where:{id:item.resourceId},data:{text:item.correction!,acknowledgedAt:null,version:{increment:1}}});
+    }else if(item.scope==='NOTE')await db.note.update({where:{id:item.resourceId},data:{text:item.correction!,sharedTeacherId:null,acknowledgedAt:null,version:{increment:1}}});
     else if(item.scope==='CHILD')await db.child.update({where:{id:item.resourceId},data:{alias:item.correction!,version:{increment:1}}});
     else await db.account.update({where:{id:item.accountId},data:{name:item.correction!}});
    }
