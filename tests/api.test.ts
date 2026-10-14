@@ -714,6 +714,15 @@ test('guardian rematching closes the old placement, revokes notes and preserves 
  const closeBody={expectedVersion:1,reason:'End remaining terms'},closedPlacement=await db.placement.create({data:{guardianId:ids.otherGuardian,childId:ids.otherChild,teacherId:ids.teacher,requestId:result.data.request.id,monthlyPaise:300000}});assert.equal((await other.call(`/placements/${closedPlacement.id}/closures`,closeBody)).status,201);assert.equal((await other.call(`/placements/${closedPlacement.id}/closures`,closeBody)).status,409);
 });
 
+test('case detail paginates recent visible updates and refuses foreign or internal cursors without exposing authors',async()=>{
+ const created=await parent.call('/cases',{category:'GENERAL',description:'Synthetic paginated case'});assert.equal(created.status,201);const id=created.data.id,updates=[];
+ for(let i=0;i<4;i++)updates.push(await db.caseUpdate.create({data:{caseId:id,actorId:ids.guardian,message:'Visible update '+i,internal:false,createdAt:new Date(Date.now()+i*1000)}}));
+ const hidden=await db.caseUpdate.create({data:{caseId:id,actorId:ids.admin,message:'Private staff update',internal:true}}),foreignCase=await other.call('/cases',{category:'GENERAL',description:'Foreign case'}),foreign=await db.caseUpdate.create({data:{caseId:foreignCase.data.id,actorId:ids.otherGuardian,message:'Foreign update'}});
+ const first=await parent.call(`/cases/${id}?updatesLimit=2`);assert.equal(first.status,200);assert.equal(first.data.updates[0].message,'Visible update 3');assert.equal(first.data.updates[0].author,'YOU');assert(!('actorId' in first.data.updates[0]));assert(first.data.updatesNextCursor);
+ const next=await parent.call(`/cases/${id}?updatesLimit=2&updatesCursor=${first.data.updatesNextCursor}`);assert.equal(next.status,200);assert.equal(next.data.updates.length,2);assert.equal(next.data.updatesNextCursor,null);assert(!next.data.updates.some((u:any)=>u.internal));
+ for(const cursor of [hidden.id,foreign.id])assert.equal((await parent.call(`/cases/${id}?updatesCursor=${cursor}`)).status,404);
+ const check=operationValidator('/cases/{id}','get','200');assert(check(first.data),JSON.stringify(check.errors));assert.equal((await parent.call(`/cases/${id}?updatesLimit=51`)).status,400);
+});
 test('named teacher acknowledgement is versioned, retry-safe and loses access after revocation',async()=>{
  const note=await parent.call('/notes',{childId:ids.child,text:'Synthetic note requiring acknowledgement'});assert.equal(note.status,201);const shared=await parent.call(`/notes/${note.data.id}/shares`,{teacherId:ids.teacher,expectedVersion:1});assert.equal(shared.status,201);
  assert.equal((await other.call(`/notes/${note.data.id}/acknowledgements`,{expectedVersion:2})).status,403);

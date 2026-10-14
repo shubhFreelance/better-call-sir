@@ -1608,7 +1608,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** /cases/{id} */
+        /** Read an owned case and the latest visible updates, with cursor pagination */
         get: operations["get__cases__id_"];
         put?: never;
         post?: never;
@@ -3160,6 +3160,8 @@ export interface components {
             internal: boolean;
             /** Format: date-time */
             createdAt: string;
+            /** @enum {string} */
+            author: "YOU" | "CASE_OWNER" | "SUPPORT";
         };
         SupportCaseDetail: {
             /** Format: uuid */
@@ -3184,6 +3186,8 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             updates: components["schemas"]["CaseUpdate"][];
+            /** Format: uuid */
+            updatesNextCursor: string | null;
         };
         SupportCaseList: {
             items: components["schemas"]["SupportCase"][];
@@ -11830,7 +11834,10 @@ export interface operations {
     };
     get__cases__id_: {
         parameters: {
-            query?: never;
+            query?: {
+                updatesCursor?: string;
+                updatesLimit?: number;
+            };
             header?: never;
             path: {
                 id: string;
