@@ -1,4 +1,6 @@
 "use client";
+import { RefreshCw } from "lucide-react";
+import { PlacementCare } from "./placement-care";
 import { SupportWorkspace } from "./support-workspace";
 import { NotesWorkspace } from "./notes-workspace";
 import {
@@ -1219,6 +1221,7 @@ function DashboardShell({
     ...(role === "GUARDIAN"
       ? ([
           ["/dashboard/requests", "Tuition requests", Users],
+          ["/dashboard/arrangements", "Arrangements & replacement", RefreshCw],
           ["/dashboard/bookings", "Revision bookings", Clock],
           ["/dashboard/pro", "Parent Pro", Phone],
           ["/dashboard/notes", "Private notes", NotebookPen],
@@ -1349,19 +1352,21 @@ function DashboardPage({ tab }: { tab: string }) {
                 ? `Hello, ${session.account.name.split(" · ")[0]}.`
                 : tab.endsWith("lessons")
                   ? "Every class, accounted for."
-                  : tab.endsWith("requests")
-                    ? "Your path to a good fit."
-                    : tab.endsWith("family")
-                      ? "Your learners, your control."
-                      : tab.endsWith("bookings")
-                        ? "A little clarity, on the calendar."
-                        : tab.endsWith("pro")
-                          ? "A conversation can help."
-                          : tab.endsWith("notes")
-                            ? session.account.role === "TEACHER"
-                              ? "Learning context, shared with you."
-                              : "Your thoughts, kept private."
-                            : "A thoughtful control room."
+                  : tab.endsWith("arrangements")
+                    ? "A clear next step for your tuition."
+                    : tab.endsWith("requests")
+                      ? "Your path to a good fit."
+                      : tab.endsWith("family")
+                        ? "Your learners, your control."
+                        : tab.endsWith("bookings")
+                          ? "A little clarity, on the calendar."
+                          : tab.endsWith("pro")
+                            ? "A conversation can help."
+                            : tab.endsWith("notes")
+                              ? session.account.role === "TEACHER"
+                                ? "Learning context, shared with you."
+                                : "Your thoughts, kept private."
+                              : "A thoughtful control room."
             }
             subtitle={
               tab === "/dashboard"
@@ -1540,6 +1545,13 @@ function DashboardPage({ tab }: { tab: string }) {
                 </Link>
               </section>
             ))}
+          {tab.endsWith("arrangements") && (
+            <PlacementCare
+              key={session.account.id}
+              session={session}
+              dashboard={d}
+            />
+          )}
           {tab.endsWith("lessons") && (
             <LearningWorkspace session={session} dashboard={d} />
           )}
