@@ -768,11 +768,11 @@ test('media recovery queue hides payloads and retries exhausted work with audit 
 });
 
 test('privacy correction and deletion require owner scope, reviewed retention and replay evidence',async()=>{
- const note=await db.note.create({data:{guardianId:ids.otherGuardian,childId:ids.otherChild,text:'Private synthetic note'}});
+ const note=await db.note.create({data:{guardianId:ids.otherGuardian,childId:ids.otherChild,text:'Private synthetic note',sharedTeacherId:ids.teacher,acknowledgedAt:new Date()}});
  assert.equal((await parent.call('/privacy-requests',{kind:'DELETION',scope:'NOTE',resourceId:note.id,reason:'Wrong family'})).status,404);
  const correction=await other.call('/privacy-requests',{kind:'CORRECTION',scope:'NOTE',resourceId:note.id,reason:'Correct a typo',correction:'Corrected synthetic note'});assert.equal(correction.status,201);
  const review={expectedVersion:1,action:'FULFIL',reason:'Owner correction verified',policyVersion:'synthetic-privacy-v1',confirmed:true};assert.equal((await other.call(`/admin/privacy-requests/${correction.data.id}/reviews`,review)).status,403);
- assert.equal((await operator.call(`/admin/privacy-requests/${correction.data.id}/reviews`,review)).status,201);assert.equal((await db.note.findUniqueOrThrow({where:{id:note.id}})).text,'Corrected synthetic note');assert.equal((await operator.call(`/admin/privacy-requests/${correction.data.id}/reviews`,review)).status,409);
+ assert.equal((await operator.call(`/admin/privacy-requests/${correction.data.id}/reviews`,review)).status,201);assert.equal((await db.note.findUniqueOrThrow({where:{id:note.id}})).text,'Corrected synthetic note');assert.equal((await db.note.findUniqueOrThrow({where:{id:note.id}})).sharedTeacherId,null);assert.equal((await db.note.findUniqueOrThrow({where:{id:note.id}})).acknowledgedAt,null);assert.equal((await operator.call(`/admin/privacy-requests/${correction.data.id}/reviews`,review)).status,409);
  const deletion=await other.call('/privacy-requests',{kind:'DELETION',scope:'CHILD',resourceId:ids.otherChild,reason:'Delete learner personal content'});assert.equal(deletion.status,201);
  assert.equal((await other.call('/requests',intake({childId:ids.otherChild,grade:9,board:'CGBSE'}))).status,403);
  assert.equal((await operator.call(`/admin/privacy-requests/${deletion.data.id}/reviews`,review)).status,400);
