@@ -2,16 +2,16 @@
 
 Updated 14 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
-Next sprint: **H1 teacher discovery and profile journey**, followed by simplified enquiries and hiring confirmation. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
+Next sprint: **H2 simplified, recoverable enquiries and onboarding**, followed by H3 hiring confirmation without mandatory class-management steps. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
 
 Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides broader class-management launch requirements in the original PRD. Existing security, privacy and release controls remain required for the focused journey.
 
 ## Current priorities
 
-- [ ] **H1** Make manual/assisted teacher discovery, profiles and enquiry the primary experience
+- [x] **H1** Teacher discovery, manual/assisted primary navigation and enquiry-focused profile action implemented. Individual class-booking promotion removed; existing direct routes retained.
 - [ ] **H2** Simplify and recover guardian/teacher onboarding and tuition enquiries; broad availability preferences instead of individual class management
 - [ ] **H3** Teacher responses, selection and mutually confirmed hiring terms/status; review and decouple mandatory demo/timetable dependencies
-- [ ] **H4** Prioritize enquiry, shortlist, teacher response and confirmed-arrangement status in role dashboards
+- [x] **H4** Hiring overview for student, guardian, teacher and superadmin: scoped enquiry/arrangement records, counts, learner/application metadata, reviewed teacher responses, operational drill-downs and recovery states. H2/H3 journey simplification remains pending.
 - [ ] **H5** Finish no-match/waitlist, support/replacement, privacy, mobile/keyboard/recovery and localization for the hiring journey
 
 
@@ -84,6 +84,8 @@ Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides
 - [ ] AWS migration/high availability/national operational rollout follow demonstrated demand, load/recovery evidence and a separate infrastructure plan.
 
 ## Delivery record
+
+- H1/H4: discovery and the four hiring overviews implemented. 89 API, nine contract and 46 hiring/family/navigation/history browser checks pass; all 15 focused hiring checks passed after final recovery refinement. Class management is secondary; H2/H3 remain open.
 
 - F1–F13 development UI and existing API foundation are implemented; live gates above remain open.
 - F14: implemented; seven browser checks, 77 API checks and production/security validation passed.

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   useInfiniteQuery,
   useQuery,
@@ -199,7 +200,10 @@ export function TuitionRequests({
   session: Session;
   dashboard: Dashboard;
 }) {
-  const [selected, setSelected] = useState(d.requests?.[0]?.id || ""),
+  const params = useSearchParams();
+  const [selected, setSelected] = useState(
+      params.get("request") || d.requests?.[0]?.id || "",
+    ),
     [locked, setLocked] = useState(false);
   const request = d.requests?.find((r) => r.id === selected) || d.requests?.[0];
   const permitted =

@@ -208,3 +208,19 @@ Teacher: period -> teaching activity + completeness / feedback sample -> profile
 Use the typed role-scoped learning read rather than computing totals from a bounded lesson preview. Default rolling 30 days has a server-owned read-time end; calendar/custom dates apply explicitly and map whole IST days to an exclusive next-day boundary. Show exact timestamps, update time and current-record basis. Recurring/revision lesson tables and demo outcomes have independent counts. Completed status differs from completed, ended, undisputed PRESENT/LATE classes taken. Teacher completeness uses recorded undisputed attendance over ended non-cancelled lessons; feedback must show its sample size and a null/unestimable state. Do not invent quality/improvement or teacher-responsibility claims from absence/cancellation/no-show reports.
 
 Per-learner activity is period-bound; current assignment and next scheduled class are current evidence outside that period. Learner pagination preserves full scoped totals, resets on changed applied dates and is absent when one page suffices. Student screens and responses omit membership/financial/feedback data and supervised family controls. Guardian recorded Pro allowance includes used/reserved/unreserved evidence and an explicit disabled-calling limitation. Errors distinguish unavailable, empty and last-successful retained records, with labelled refresh/retry.
+
+
+## Hiring overviews and discovery emphasis
+
+Use a white introduction with the role's next action, a single teal bar for current recorded counts, lavender for selected views/status and teacher response effects, and cream for acknowledged review. Manrope, existing 24px/16px outer gutters and 24px/20px evidence-card insets remain. Keep headings and labels left aligned. Manual search and assisted search are primary navigation actions; the profile action starts an enquiry and explains that it does not hire or charge. The homepage no longer promotes individual revision booking.
+
+```text
+Student:  explore teachers -> own enquiry / teacher arrangement -> learner profile -> support
+Guardian: find teacher    -> enquiries / arrangements -> learner permissions -> privacy / support
+Teacher:  application     -> screening status -> assigned enquiries / arrangements -> response review
+Admin:    marketplace     -> aggregate queues -> screening / matching / governance drill-downs
+```
+
+The primary overview uses /dashboard/hiring, avoiding automatic legacy lesson/financial dashboard reads. Student projections omit budgets, prices, candidate responses and other-family records. Teacher previews omit child aliases before an arrangement, require current presented opportunities and active family permission, and recheck fit. ADMIN aggregates require MFA and audit, and route detailed actions to the existing protected workspaces. Application status, screening currency and fee acceptance are separate evidence fields. Interest, choice, terms acceptance and independent start confirmations must remain visibly distinct.
+
+Teacher response reviews require acknowledgement. Unknown results reuse their exact body/key, stale versions need a fresh read and renewed acknowledgement, and saved-refresh failures prevent a second write. Read errors distinguish unavailable, empty and retained previous records; invalid scoped pagination can return to the first page. Enquiry links select the matching owned request. Preserve deferred class/history routes; keep class booking, attendance and Pro tools out of the primary navigation. H2/H3 still own enquiry simplification and separation of mandatory demo/timetable dependencies.

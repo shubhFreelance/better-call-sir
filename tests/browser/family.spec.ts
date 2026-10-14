@@ -69,6 +69,45 @@ async function mock(
           csrfToken: "synthetic-csrf",
         },
       });
+    if (path.endsWith("/dashboard/hiring")) {
+      const result = {
+        role,
+        asOf: new Date().toISOString(),
+        definitionVersion: "hiring-v1",
+        section: new URL(req.url()).searchParams.get("section") || "ENQUIRIES",
+        counts: {
+          enquiries: 0,
+          openEnquiries: 0,
+          pendingResponses: 0,
+          termsPending: 0,
+          activeArrangements: 0,
+        },
+        enquiries: [],
+        arrangements: [],
+        learners: [
+          {
+            id: child.id,
+            alias: child.alias,
+            grade: child.grade,
+            board: child.board,
+          },
+        ],
+        learnersLimited: false,
+        nextCursor: null,
+        ...(role === "GUARDIAN"
+          ? {
+              gate: {
+                verified: mode !== "unverified",
+                consent: !consentWithdrawn,
+                privacyPaused: false,
+              },
+            }
+          : {}),
+      };
+      const check = validator("HiringDashboard");
+      expect(check(result), JSON.stringify(check.errors)).toBe(true);
+      return route.fulfill({ json: result });
+    }
     if (path.endsWith("/dashboard/learning")) {
       const metrics = {
         lessons: 4,

@@ -1,4 +1,5 @@
 "use client";
+import { HiringOverview } from "./hiring-overview";
 import { ReportsWorkspace } from "./reports-workspace";
 import { AdminConsole } from "./admin-console";
 import { FinanceWorkspace } from "./finance-workspace";
@@ -276,9 +277,8 @@ function Header() {
             <Link href="/teachers" onClick={() => setOpen(false)}>
               {hindi ? "शिक्षक खोजें" : "Find a teacher"}
             </Link>
-            <Link href="/revision" onClick={() => setOpen(false)}>
-              {hindi ? "रिवीज़न सत्र" : "Revision sessions"}
-              <span className="tiny-tag">NEW</span>
+            <Link href="/teachers?tab=assisted" onClick={() => setOpen(false)}>
+              {hindi ? "हमें आपके लिए खोजने दें" : "Let us search for you"}
             </Link>
             <Link href="/onboarding/teacher" onClick={() => setOpen(false)}>
               {hindi ? "शिक्षक बनें" : "Become a teacher"}
@@ -643,40 +643,30 @@ function Home() {
           ))}
         </div>
       </section>
-      <section className="container revision-banner">
+      <section className="container hiring-discovery-banner">
         <div>
-          <span className="eyebrow">ONE TOPIC. A LITTLE MORE CLARITY.</span>
-          <h2>
-            Stuck on a chapter?
-            <br />
-            Let’s work through it.
-          </h2>
+          <h2>Let us help you find the right fit.</h2>
           <p>
-            Scheduled 20 or 40 minute revision with a clear topic scope.
-            <br />
-            Expert acceptance first. Transparent pricing next.
+            Share the subject, class, location and budget that work for your
+            family. Our team reviews suitable teacher options for you.
           </p>
-          <Link className="button dark" href="/revision">
-            Explore revision sessions <ArrowUpRight size={18} />
+          <Link className="button" href="/teachers?tab=assisted">
+            Let us search for you <ArrowUpRight size={18} />
           </Link>
         </div>
-        <div className="revision-art">
-          <div>
-            20<span>min</span>
-          </div>
-          <div>
-            40<span>min</span>
-          </div>
-          <div>
-            60<span>min</span>
-          </div>
-          <Sparkles size={36} />
+        <div>
+          <h3>You keep the choice.</h3>
+          <p>
+            Review profiles, ask about fit and agree the arrangement with the
+            teacher. A shortlist is the start of a decision.
+          </p>
         </div>
       </section>
     </>
   );
 }
 function Teachers() {
+  const discoveryParams = useSearchParams();
   const [q, setQ] = useState(""),
     [subject, setSubject] = useState(""),
     [mode, setMode] = useState(""),
@@ -685,7 +675,12 @@ function Teachers() {
     [language, setLanguage] = useState(""),
     [locality, setLocality] = useState(""),
     [maxMonthly, setMaxMonthly] = useState(""),
-    [tab, setTab] = useState<"manual" | "assisted">("manual");
+    [tab, setTab] = useState<"manual" | "assisted">(
+      discoveryParams.get("tab") === "assisted" ? "assisted" : "manual",
+    );
+  useEffect(() => {
+    setTab(discoveryParams.get("tab") === "assisted" ? "assisted" : "manual");
+  }, [discoveryParams]);
   const params = new URLSearchParams();
   if (q.trim()) params.set("q", q.trim());
   if (subject) params.set("subject", subject);
@@ -987,16 +982,14 @@ function Profile({ slug }: { slug: string }) {
               className="button"
               href={`/onboarding/parent?teacher=${t.id}&profile=${encodeURIComponent(t.slug)}`}
             >
-              Find a recurring teacher <ArrowUpRight size={18} />
+              Enquire about this teacher <ArrowUpRight size={18} />
             </Link>
-            <Link
-              className="button secondary"
-              href={`/revision?teacher=${t.id}`}
-            >
-              Book a revision session <Clock size={17} />
-            </Link>
+            <p className="care-help">
+              An enquiry starts a conversation about fit and terms. It does not
+              hire the teacher or charge you.
+            </p>
             <div className="subtle-line">
-              <ShieldCheck size={16} /> Guardian-managed booking
+              <ShieldCheck size={16} /> Guardian-managed enquiry
             </div>
           </aside>
         </div>
@@ -1224,22 +1217,18 @@ function DashboardShell({
   const role = session?.account.role;
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
-    ["/dashboard/lessons", "Classes & attendance", CalendarDays],
+    ["/teachers", "Find a teacher", Search],
     ...(role === "GUARDIAN"
       ? ([
-          ["/dashboard/requests", "Tuition requests", Users],
+          ["/dashboard/requests", "Enquiries & teacher choices", Users],
           ["/dashboard/arrangements", "Arrangements & replacement", RefreshCw],
-          ["/dashboard/bookings", "Revision bookings", Clock],
-          ["/dashboard/pro", "Parent Pro", Phone],
-          ["/dashboard/notes", "Private notes", NotebookPen],
           ["/dashboard/family", "Learners & access", ShieldCheck],
           ["/dashboard/privacy", "Privacy & data", ShieldCheck],
         ] as [string, string, LucideIcon][])
       : role === "TEACHER"
         ? ([
-            ["/dashboard/bookings", "Bookings & opportunities", ClipboardList],
-            ["/dashboard/notes", "Shared learning notes", NotebookPen],
-            ["/onboarding/teacher", "Profile & schedule", Settings],
+            ["/dashboard/enquiries", "Assigned enquiries", ClipboardList],
+            ["/onboarding/teacher", "Profile & evidence", Settings],
             ["/dashboard/privacy", "Privacy & data", ShieldCheck],
           ] as [string, string, LucideIcon][])
         : role === "ADMIN"
@@ -1308,7 +1297,7 @@ function DashboardShell({
   return (
     <main className="container dashboard-layout">
       <aside className="dashboard-sidebar">
-        <span className="eyebrow">YOUR LEARNING SPACE</span>
+        <span className="eyebrow">YOUR TEACHER CONNECTIONS</span>
         <div className="sidebar-person">
           <span className="avatar small-avatar">
             {initials(session?.account.name || "You")}
@@ -1333,9 +1322,9 @@ function DashboardShell({
         <div className="sidebar-tip">
           <Heart size={21} />
           <p>
-            Small steps count.
+            A good fit starts
             <br />
-            Keep showing up.
+            with a clear conversation.
           </p>
         </div>
       </aside>
@@ -1355,7 +1344,14 @@ function DashboardPage({ tab }: { tab: string }) {
   const query = useQuery({
     queryKey: ["dashboard", session?.account.id],
     queryFn: ({ signal }) => api<Dashboard>("/dashboard", { signal }),
-    enabled: !!session,
+    enabled:
+      !!session &&
+      !(
+        ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
+          session.account.role,
+        ) &&
+        (tab === "/dashboard" || tab === "/dashboard/enquiries")
+      ),
   });
   const [message, setMessage] = useState(""),
     [error, setError] = useState(""),
@@ -1383,6 +1379,25 @@ function DashboardPage({ tab }: { tab: string }) {
   }
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (
+    ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
+      session.account.role,
+    ) &&
+    (tab === "/dashboard" || tab === "/dashboard/enquiries")
+  )
+    return (
+      <DashboardShell tab={tab}>
+        <PageTitle
+          eyebrow=""
+          title={`Hello, ${session.account.name.split(" · ")[0]}.`}
+          subtitle="Your teacher connections, with a clear next step."
+        />
+        <HiringOverview
+          key={`${session.account.id}:${session.account.role}`}
+          session={session}
+        />
+      </DashboardShell>
+    );
   const d = query.data;
   return (
     <DashboardShell tab={tab}>
@@ -1450,7 +1465,7 @@ function DashboardPage({ tab }: { tab: string }) {
           />
           {error && <Notice error>{error}</Notice>}
           {message && <Notice>{message}</Notice>}
-          {tab === "/dashboard" &&
+          {tab === "/dashboard/history" &&
             (["GUARDIAN", "STUDENT", "TEACHER"].includes(
               session.account.role,
             ) ? (

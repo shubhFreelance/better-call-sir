@@ -90,7 +90,7 @@ test("discovery tabs support keyboard navigation and preserve manual teacher cho
     .selectOption("Shankar Nagar");
   await expect(page.getByText("1 teachers to get to know")).toBeVisible();
   await page.getByRole("link", { name: "Ananya Sharma", exact: true }).click();
-  await page.getByRole("link", { name: "Find a recurring teacher" }).click();
+  await page.getByRole("link", { name: "Enquire about this teacher" }).click();
   await expect(page).toHaveURL(/\/onboarding\/parent\?teacher=/);
   const teacherId = new URL(page.url()).searchParams.get("teacher");
   expect(teacherId).toBeTruthy();
@@ -116,7 +116,7 @@ test("chosen teacher capabilities prefill the guardian request", async ({
 }) => {
   await login(page, "Kavita");
   await page.goto("/teachers/arjun-deshmukh");
-  await page.getByRole("link", { name: "Find a recurring teacher" }).click();
+  await page.getByRole("link", { name: "Enquire about this teacher" }).click();
   await beginGuardian(page);
   await existingLearner(page);
   await expect(
@@ -137,7 +137,7 @@ test("student principal has own classes and no parent finance navigation", async
   await expect(
     page.getByRole("link", { name: "Private notes", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("link", { name: "Classes & attendance" }).click();
+  await page.goto("/dashboard/lessons");
   await expect(
     page.getByRole("heading", { name: "Every class, accounted for." }),
   ).toBeVisible();
@@ -155,7 +155,7 @@ test("role switch and logout clear private pages", async ({ page }) => {
   ).toBeVisible();
   await login(page, "Ananya");
   await expect(
-    page.getByRole("heading", { name: "Your teaching profile" }),
+    page.getByRole("heading", { name: "Your teaching application" }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Private notes", exact: true }),
@@ -165,7 +165,10 @@ test("admin console reads real queues and failed provider controls stay explicit
   page,
 }) => {
   await login(page, "Operator");
-  await page.getByRole("link", { name: "Control console" }).click();
+  await page
+    .getByRole("navigation", { name: "Dashboard" })
+    .getByRole("link", { name: "Control console", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "A thoughtful control room." }),
   ).toBeVisible();

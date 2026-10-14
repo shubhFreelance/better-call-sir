@@ -275,7 +275,7 @@ test("guardian sees per-learner activity, current teacher, upcoming class and se
   page,
 }) => {
   await mock(page);
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/history");
   await ready(page);
   const family = page.getByRole("region", { name: "Family activity" });
   await expect(family).toContainText("Classes taken");
@@ -308,7 +308,7 @@ test("student own learner view has no family purchase, membership or feedback co
   page,
 }) => {
   const state = await mock(page, "STUDENT");
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/history");
   await ready(page);
   await expect(
     page.getByRole("article", { name: "Mira’s learning" }),
@@ -330,7 +330,7 @@ test("teacher reports denominators and feedback sample alongside recorded cancel
   page,
 }) => {
   await mock(page, "TEACHER");
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/history");
   await ready(page);
   await expect(
     page.getByRole("region", { name: "Teaching activity" }),
@@ -359,7 +359,7 @@ test("previous calendar month applies only after submit and maps whole IST days 
   page,
 }) => {
   const state = await mock(page);
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/history");
   await ready(page);
   await page.getByLabel("Date preset").selectOption("PREVIOUS");
   expect(
@@ -385,7 +385,7 @@ test("custom range rejects reversed and excessive dates while preserving the app
   page,
 }) => {
   const state = await mock(page);
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/history");
   await ready(page);
   await page.getByLabel("Date preset").selectOption("CUSTOM");
   await page.getByLabel("Activity from (IST)").fill("2026-10-14");
@@ -409,7 +409,7 @@ test("empty teacher shows unestimable completeness and no eligible feedback inst
   page,
 }) => {
   await mock(page, "TEACHER", "empty");
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/history");
   await ready(page);
   await expect(page.getByText("Not estimable", { exact: true })).toBeVisible();
   await expect(
@@ -426,7 +426,7 @@ test("unavailable report is not shown as zero and can be explicitly retried", as
   page,
 }) => {
   const state = await mock(page, "GUARDIAN", "error");
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/history");
   await expect(page.locator(".role-overview").getByRole("alert")).toContainText(
     "not a zero-activity result",
   );
@@ -441,7 +441,7 @@ test("failed refresh retains marked previous records rather than replacing them 
   page,
 }) => {
   const state = await mock(page);
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/history");
   await ready(page);
   state.fail();
   await page.getByRole("button", { name: "Refresh activity" }).click();
@@ -454,7 +454,7 @@ test("learner pagination retains global totals and resets when report dates chan
   page,
 }) => {
   const state = await mock(page, "GUARDIAN", "pages");
-  await page.goto("/dashboard");
+  await page.goto("/dashboard/history");
   await ready(page);
   await page.getByRole("button", { name: "Next learners" }).click();
   await expect(
@@ -479,7 +479,7 @@ test("guardian, student and teacher layouts pass mobile accessibility and have n
     await page.unroute("**/api/v1/**");
     await mock(page, role);
     await page.setViewportSize({ width: 1365, height: 950 });
-    await page.goto("/dashboard");
+    await page.goto("/dashboard/history");
     await ready(page);
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({
@@ -518,7 +518,7 @@ test("real development guardian, student and teacher get their scoped dashboard 
       headers: { Origin: "http://localhost:3000" },
     });
     expect(signed.status()).toBe(201);
-    await page.goto("/dashboard");
+    await page.goto("/dashboard/history");
     await ready(page);
     const r = await page.request.get("/api/v1/dashboard/learning"),
       body = await r.json();

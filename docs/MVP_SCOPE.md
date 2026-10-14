@@ -32,4 +32,4 @@ If payments are introduced for hiring, their particular checkout, refunds and se
 
 ## Delivery and evidence
 
-Continue with separate tested backend/frontend commits and pushes. Active phase remains frontend development; this scope change is not phase acceptance, a production release, or approval to merge/deploy. Original PRD and sprint history are preserved as the broader reference. The next implementation increment is H1, followed by H2/H3 dependency review.
+Continue with separate tested backend/frontend commits and pushes. Active phase remains frontend development; this scope change is not phase acceptance, a production release, or approval to merge/deploy. Original PRD and sprint history are preserved as the broader reference. H1 discovery/profile emphasis and H4 hiring dashboards are implemented in development. Next is H2 simplified enquiry/onboarding, followed by H3 review and separation of mandatory demo/timetable dependencies from hiring confirmation. Existing read-only arrangement progress does not complete that separation.

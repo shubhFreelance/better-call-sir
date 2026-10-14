@@ -4,7 +4,7 @@ Reviewed against the owner's Version 3 PRD, the delivery board and implementatio
 
 ## Current owner-directed scope
 
-The owner narrowed the next MVP on 14 October 2026 to teacher discovery, enquiries and hiring. [Current scope and priorities](MVP_SCOPE.md) supersede the original class-management launch requirements. Next is H1 discovery/profiles, then simplified enquiries, mutually confirmed hiring and dashboards focused on hiring status. Individual class booking, timetables, attendance/lesson feedback and related provider qualification move to later scale. Existing implementations and their limits remain recorded below. Authentication, consent, teacher screening, privacy, support and applicable security/release requirements still apply.
+The owner narrowed the next MVP on 14 October 2026 to teacher discovery, enquiries and hiring. [Current scope and priorities](MVP_SCOPE.md) supersede the original class-management launch requirements. H1 discovery/profile emphasis and H4 dashboards focused on hiring are implemented in development. Next is H2 simplified enquiries/onboarding, then H3 mutually confirmed hiring without mandatory class-management steps. Individual class booking, timetables, attendance/lesson feedback and related provider qualification move to later scale. Existing implementations and their limits remain recorded below. Authentication, consent, teacher screening, privacy, support and applicable security/release requirements still apply.
 
 The inventory below preserves the broader backlog; it is not an instruction to complete every class-management item before the focused hiring MVP. F22–F25/B12 are reprioritized by relevance to the current journey; class-specific finance/Meet items are deferred unless separately required by an approved hiring payment flow.
 
@@ -23,7 +23,7 @@ F10 and B11’s owner-safe lesson metadata are implemented. Feedback remains pri
 | F24 | Full English/Hindi localization: all forms, notices, validation, dashboard/console copy and typography | Existing language toggle covers only part of the product. |
 | F25 | Finish remaining legacy screens/components and demo booking-detail forms using the shared shadcn controls and deliberate palette; review every loading/error/empty/retry state on mobile and keyboard | Incremental migration is underway. Initial demo controls and service/console screens are not all at the new standard. |
 
-The next practical sprint is H1 teacher discovery/profiles under the current scope, followed by enquiry/onboarding recovery and hiring confirmation. F9 checkout/provider qualification is tracked below rather than described as live-ready.
+The next practical sprint is H2 enquiry/onboarding simplification and recovery under the current scope, followed by H3 hiring confirmation and dependency separation. F9 checkout/provider qualification is tracked below rather than described as live-ready.
 
 ## Backend implementation and contract gaps
 
