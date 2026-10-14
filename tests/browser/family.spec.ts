@@ -69,6 +69,64 @@ async function mock(
           csrfToken: "synthetic-csrf",
         },
       });
+    if (path.endsWith("/dashboard/learning")) {
+      const metrics = {
+        lessons: 4,
+        classesTaken: 3,
+        completedLessons: 3,
+        uniqueStudentsTaught: 1,
+        cancelled: 0,
+        absent: 0,
+        disputed: 0,
+        attendanceDue: 4,
+        attendanceRecorded: 3,
+        pendingAttendance: 1,
+        pendingConfirmations: 1,
+      };
+      const demos = {
+        scheduled: 0,
+        completed: 0,
+        cancelled: 0,
+        noShow: 0,
+        disputed: 0,
+      };
+      const result = {
+        role,
+        window: {
+          from: new Date(Date.now() - 30 * 86400000).toISOString(),
+          to: new Date().toISOString(),
+          timezone: "Asia/Kolkata",
+          metricVersion: "learning-dashboard-v2",
+          basis: "LESSON_STARTS_AT",
+          endExclusive: true,
+        },
+        lastUpdated: new Date().toISOString(),
+        metrics,
+        activeStudents: 0,
+        demos,
+        serviceKinds: [{ kind: "RECURRING", metrics }],
+        learners: [
+          {
+            learner: {
+              id: child.id,
+              alias: child.alias,
+              grade: child.grade,
+              board: child.board,
+            },
+            metrics,
+            demos,
+            assignments: [],
+            assignmentsLimited: false,
+            nextLesson: null,
+          },
+        ],
+        nextCursor: null,
+        ...(role === "GUARDIAN" ? { membership: null } : {}),
+      };
+      const check = validator("LearningDashboard");
+      expect(check(result), JSON.stringify(check.errors)).toBe(true);
+      return route.fulfill({ json: result });
+    }
     if (path.endsWith("/dashboard"))
       return route.fulfill({
         json: {
@@ -570,6 +628,9 @@ test("guardian overview and access confirmation work on mobile with no serious a
   await page.goto("/dashboard");
   await expect(
     page.getByRole("heading", { name: "Your family’s learning, together." }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Manage Synthetic Learner’s access" }),
   ).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({

@@ -2,7 +2,7 @@
 
 Updated 14 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
-Next sprint: **F21 dedicated role dashboards**. F14–F20 are implemented in development. Features are tested and pushed separately.
+Next sprint: **F22 onboarding notice, preferences and recovery**. F14–F21 are implemented in development. Features are tested and pushed separately.
 
 
 ## Frontend features
@@ -14,7 +14,7 @@ Next sprint: **F21 dedicated role dashboards**. F14–F20 are implemented in dev
 - [x] **F18** Finance/admin screens for invoice/payment/refund/payable states and reconciliation, with explicit captured-versus-settled money
 - [x] **F19** Super-admin console: people/linkage inspection, regional supply snapshot, read-only commercial rules, privacy review/evidence routing, recovery jobs/deletion replay, integration modes, reviewed flags, audit and blocked release state. Staff grants and commercial editing remain B2/B3.
 - [x] **F20** Operational charts/reports: scoped manual/assisted request cohorts, exact denominators, mature continuation outcomes with unknown/missing evidence, IST date presets/custom ranges and separate finance capture modes/obligations. Live settlement remains unverified.
-- [ ] **F21** Finish dedicated role dashboards: per-learner summaries, assigned-teacher details, date presets, service-kind breakdown, teacher activity/completeness/cancellation and feedback sample size
+- [x] **F21** Dedicated guardian/student/teacher dashboards: paginated authorized learner summaries, current teacher/next class, rolling/calendar/custom periods, recurring/revision/demo separation, exact teaching/attendance denominators, cancellations/absence/disputes, pending confirmations and private feedback sample size. Live acceptance stays open.
 - [ ] **F22** Complete age-appropriate student notice/preferences and remaining guardian/student/teacher onboarding recovery details
 - [ ] **F23** Unsupported-scope waitlist intake/status and useful out-of-pilot recovery
 - [ ] **F24** Full English/Hindi localization: all forms, notices, validation, dashboard/console copy and typography
@@ -31,7 +31,7 @@ Next sprint: **F21 dedicated role dashboards**. F14–F20 are implemented in dev
 - [ ] **B7** Durable unique provider-attempt claims now run after the committed local order, outside the retry transaction; concurrency/crash/failure and current consent/eligibility rechecks are tested. Remaining: qualify live receipt/order recovery and reconciliation before charging; uncertain outcomes never automatically create another provider order.
 - [ ] **B8** Actual notification delivery, status/receipt history, duplicate-safe retry and staff-visible failure recovery for scope requests, demos, bookings and follow-ups. Worker development delivery is still synthetic.
 - [ ] **B9** Durable Google Meet credentials/OAuth lifecycle, participant/Workspace admission policy and recovery handling; current adapter uses an injected short-lived token.
-- [ ] **B10** Richer role/date-filtered dashboard metrics and contracts: previous-calendar-month/custom ranges, recurring/demo/revision separation, denominators/sample sizes, pending confirmations and last-updated metadata.
+- [x] **B10** Role/date-filtered learning dashboard metrics and contracts: rolling/default and previous-calendar-month/custom ranges, recurring/revision lessons and separate demo outcomes, denominators/sample sizes, pending confirmations, current assignments/next lessons, learner pagination and lastUpdated metadata. Live/release qualification stays open.
 - [ ] **B12** Durable per-request/revised-application/timetable drafts where required; invitation recovery/idempotency/device labels and complete pagination for bounded notes (latest 50), calendar/leave, demo/timetable, session, payable and administrative histories. Preserve owned data and uncertainty during recovery.
 - [ ] **B13** Complete follow-up/service-operation read models and queues not covered by existing cases and immutable continuation observations.
 - [ ] **B14** Production private-object storage and upload/download/deletion lifecycle; current-signature malware scanning; approved retention rules and external-backup deletion replay. Existing local private files and application scrubbing are development infrastructure.
@@ -84,5 +84,7 @@ Next sprint: **F21 dedicated role dashboards**. F14–F20 are implemented in dev
 - F19: console implemented; 17 console browser checks, 39 related browser regressions and 82 API checks pass. Staff grants/configuration editing remain B2/B3; live release stays blocked.
 
 - F20: reporting endpoints and charts implemented; 84 API, nine contract and 39 report/finance/navigation browser checks pass. Dedicated role dashboards remain F21/B10.
+
+- F21: role dashboards and metric contract implemented; 87 API, nine contract and 32 dashboard/family/navigation browser checks pass. Personal dashboards exclude student finance and feedback.
 
 Full context: [MVP remaining inventory](docs/MVP_REMAINING.md) and [sprint evidence](docs/SPRINTS.md).

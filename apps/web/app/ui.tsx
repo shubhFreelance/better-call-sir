@@ -29,7 +29,7 @@ import {
 } from "../components/ui/tabs";
 import { GuardianOnboarding } from "./guardian-onboarding";
 import { TeacherSetup } from "./teacher-onboarding";
-import { FamilyOverview } from "./family-overview";
+import { RoleOverview } from "./role-overview";
 import { TuitionRequests, TuitionTerms } from "./tuition-workflow";
 import { LearningWorkspace } from "./learning-workspace";
 import {
@@ -1397,7 +1397,9 @@ function DashboardPage({ tab }: { tab: string }) {
             eyebrow={
               session.account.role === "ADMIN"
                 ? "OPERATIONS"
-                : ["GUARDIAN", "STUDENT"].includes(session.account.role)
+                : ["GUARDIAN", "STUDENT", "TEACHER"].includes(
+                      session.account.role,
+                    )
                   ? ""
                   : "A LITTLE PROGRESS, EVERY DAY"
             }
@@ -1436,7 +1438,7 @@ function DashboardPage({ tab }: { tab: string }) {
             }
             subtitle={
               tab === "/dashboard"
-                ? `Here’s your learning picture · ${date(d.window.start, false)}–${date(d.window.end, false)} · IST`
+                ? "Your recorded activity, current assignments and next steps."
                 : tab.endsWith("family")
                   ? "Manage student devices and the permissions you grant."
                   : tab.endsWith("requests")
@@ -1449,8 +1451,14 @@ function DashboardPage({ tab }: { tab: string }) {
           {error && <Notice error>{error}</Notice>}
           {message && <Notice>{message}</Notice>}
           {tab === "/dashboard" &&
-            (["GUARDIAN", "STUDENT"].includes(session.account.role) ? (
-              <FamilyOverview dashboard={d} session={session} />
+            (["GUARDIAN", "STUDENT", "TEACHER"].includes(
+              session.account.role,
+            ) ? (
+              <RoleOverview
+                key={`${session.account.id}:${session.account.role}`}
+                dashboard={d}
+                session={session}
+              />
             ) : (
               <>
                 <div className="stats-grid">

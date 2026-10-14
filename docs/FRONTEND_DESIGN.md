@@ -189,3 +189,18 @@ Use teal for manual-search/live-mode series and principal recorded totals, laven
 Report date drafts apply explicitly. Presets use whole IST calendar dates, with the displayed through-date mapped to the exclusive next-day boundary. Preserve region selection between views; ADMIN chooses regions and OPERATOR is server-scoped to the assigned region. Request creation selects the cohort and current recorded evidence supplies independent milestones; a chart must not imply ordered stage transitions or a historical snapshot at the range end. Empty cohorts have no estimable rate.
 
 Day-30 continuation requires mature starts and qualified observations. Display continued, stopped, unknown, missing observation, immature and missing-start evidence separately, with known-outcome denominators and observed/mature coverage. Finance reports belong to ADMIN/FINANCE global scope and separate capture modes from refund requests, current-all-time invoice dues and dated payable obligations. Never combine these into a cash balance or claim settlement. Missing classification and failed reads need explicit notices and retry; charts and data tables must derive from the same response.
+
+
+## Dedicated role overviews
+
+Keep Manrope and the approved tokens: teal #034F46 carries recorded activity, lavender #F0D7FF is the next-class rail, cream #FFFFEB marks the overall service total/canvas, white #FFFFFF holds forms and evidence, charcoal #17201F holds text and muted #586562 explains boundaries. Use the established card gutters/insets. The memorable element is the lavender upcoming-class block inside each learner record; other measures remain quiet and left aligned. A single learner fills the width, multiple learners form two desktop columns and stack on mobile.
+
+```text
+Family:  period -> family activity -> learner [next class / current teacher] -> family next steps
+Student: period -> own activity   -> own learner [next class / teacher]
+Teacher: period -> teaching activity + completeness / feedback sample -> profile -> assigned learners
+```
+
+Use the typed role-scoped learning read rather than computing totals from a bounded lesson preview. Default rolling 30 days has a server-owned read-time end; calendar/custom dates apply explicitly and map whole IST days to an exclusive next-day boundary. Show exact timestamps, update time and current-record basis. Recurring/revision lesson tables and demo outcomes have independent counts. Completed status differs from completed, ended, undisputed PRESENT/LATE classes taken. Teacher completeness uses recorded undisputed attendance over ended non-cancelled lessons; feedback must show its sample size and a null/unestimable state. Do not invent quality/improvement or teacher-responsibility claims from absence/cancellation/no-show reports.
+
+Per-learner activity is period-bound; current assignment and next scheduled class are current evidence outside that period. Learner pagination preserves full scoped totals, resets on changed applied dates and is absent when one page suffices. Student screens and responses omit membership/financial/feedback data and supervised family controls. Guardian recorded Pro allowance includes used/reserved/unreserved evidence and an explicit disabled-calling limitation. Errors distinguish unavailable, empty and last-successful retained records, with labelled refresh/retry.
