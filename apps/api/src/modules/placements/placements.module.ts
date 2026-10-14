@@ -47,8 +47,8 @@ class PlacementsController {
       const child=await db.child.findUniqueOrThrow({where:{id:request.childId}}),teacher=await db.teacher.findUnique({where:{id:data.teacherId}});
       const candidate=await db.recommendation.findUnique({where:{requestId_teacherId:{requestId:request.id,teacherId:data.teacherId}}});
       if (!teacher || !candidate || candidate.response!=='ACCEPTED' || !await matched(db,request,child,teacher)) fail(409,'INELIGIBLE','An eligible, accepted recommendation is required.');
-      const demo=await db.demo.findFirst({where:{requestId:request.id,teacherId:teacher.id,status:'COMPLETED'}});
-      if (!demo) fail(409,'DEMO_REQUIRED','A completed demo, confirmed by both parties or resolved by an operator, is required before tuition terms.');
+      const existingDemo=await db.demo.findFirst({where:{requestId:request.id,teacherId:teacher.id},orderBy:{createdAt:'desc'}});
+      if(existingDemo&&!['COMPLETED','CANCELLED'].includes(existingDemo.status))fail(409,'DEMO_PENDING_REVIEW','An already requested demo must be completed, cancelled or resolved before opening terms.');
       const placement=await db.placement.create({data:{guardianId:actor.id,teacherId:teacher.id,childId:child.id,requestId:request.id,monthlyPaise:teacher.monthlyPaise}});
       await this.service.event(db,'placement.terms_requested',placement.id);return placement;
     });

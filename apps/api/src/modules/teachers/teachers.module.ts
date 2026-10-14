@@ -10,10 +10,11 @@ import helmet from 'helmet';
 import {z} from 'zod';
 import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} from '../../policies';
 
+import {detailsShape} from './details';
 import {reviewed} from '../verification/verification.module';
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
 
-export const applicationSchema=z.object({name:text(80),headline:text(120),bio:text(1500),subjects:z.array(z.enum(['Maths','Science'])).min(1).max(2),boards:z.array(z.enum(['CBSE','CGBSE'])).min(1).max(2),grades:z.array(z.number().int().min(6).max(10)).min(1).max(5),languages:z.array(z.enum(['English','Hindi'])).min(1).max(2),modes:z.array(z.enum(['ONLINE','HOME'])).min(1).max(2),localities:z.array(text(80)).max(20),monthlyPaise:z.number().int().min(50_000).max(2_000_000),experience:z.number().int().min(0).max(60),consultationOptIn:z.boolean(),feeTermsAccepted:z.literal(true)}).strict();
+export const applicationSchema=z.object({...detailsShape,name:text(80),headline:text(120),bio:text(1500),subjects:z.array(z.enum(['Maths','Science'])).min(1).max(2),boards:z.array(z.enum(['CBSE','CGBSE'])).min(1).max(2),grades:z.array(z.number().int().min(6).max(10)).min(1).max(5),languages:z.array(z.enum(['English','Hindi'])).min(1).max(2),modes:z.array(z.enum(['ONLINE','HOME'])).min(1).max(2),localities:z.array(text(80)).max(20),monthlyPaise:z.number().int().min(50_000).max(2_000_000),experience:z.number().int().min(0).max(60),consultationOptIn:z.boolean(),feeTermsAccepted:z.literal(true)}).strict();
 export async function submitTeacher(db:DB,service:AppService,account:Account,data:z.infer<typeof applicationSchema>) {
   await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${account.id},0))`;
   const {feeTermsAccepted,...profile}=data;
@@ -38,7 +39,7 @@ class TeachersController {
 
   @Post('teacher-applications/:id/revisions') async revise(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown) {
     parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']);
-    const data=parse(z.object({expectedVersion:version,name:text(80),headline:text(120),bio:text(1500),subjects:z.array(z.enum(['Maths','Science'])).min(1).max(2),boards:z.array(z.enum(['CBSE','CGBSE'])).min(1).max(2),grades:z.array(z.number().int().min(6).max(10)).min(1).max(5),languages:z.array(z.enum(['English','Hindi'])).min(1).max(2),modes:z.array(z.enum(['ONLINE','HOME'])).min(1).max(2),localities:z.array(text(80)).max(20),monthlyPaise:z.number().int().min(50000).max(2000000),experience:z.number().int().min(0).max(60),consultationOptIn:z.boolean(),feeTermsAccepted:z.literal(true)}).strict(),body);
+    const data=parse(applicationSchema.extend({expectedVersion:version}),body);
     return this.service.once(req,actor,'teacher.revise',data,async db=>{
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
       const teacher=await db.teacher.findUnique({where:{id}});if(!teacher||teacher.accountId!==actor.id)fail(404,'NOT_FOUND','Application not found.');
@@ -62,6 +63,7 @@ class TeachersController {
       if (before.accountId===actor.id) fail(403,'SELF_REVIEW','You cannot review your own application.');
       const validUntil=data.status==='APPROVED'?await reviewed(db,before):null;
       if (data.status==='APPROVED' && (!validUntil || !before.feeTermsAcceptedAt)) fail(409,'SCREENING_REQUIRED','Current identity, qualification, capability and reference checks with clean evidence and accepted fee terms are required.');
+      if(data.status==='APPROVED'&&!z.object(detailsShape).safeParse({address:before.address,education:before.education,employment:before.employment,demoOptIn:before.demoOptIn}).success)fail(409,'PROFILE_DETAILS_REQUIRED','Complete the private address, education, work history and demo preference before approval.');
       const changed=await db.teacher.updateMany({where:{id,version:data.expectedVersion},data:{status:data.status,screeningComplete:data.status==='APPROVED',screeningValidUntil:validUntil,version:{increment:1}}});
       if (!changed.count) fail(409,'CONFLICT','The application has changed.');
       if (data.status==='SUSPENDED') {

@@ -5,7 +5,7 @@ import {AppService,PersistenceModule,HttpRequest,DB,parse,fail,text,version} fro
 import {intakeSchema,createIntake} from '../requests/requests.module';
 import {applicationSchema,submitTeacher} from '../teachers/teachers.module';
 const kindSchema=z.enum(['parent','teacher','student']);
-const childFields=['alias','grade','board','childId'];
+const childFields=['alias','grade','board','childId','schoolName','schoolSubjects'];
 const studentDraft=z.object({subjects:z.array(z.enum(['Maths','Science'])).max(2).optional(),language:z.enum(['English','Hindi']).optional(),learningPreferences:text(500).optional()}).strict();
 @Controller('api/v1')
 class OnboardingController {

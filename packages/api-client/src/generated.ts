@@ -2231,6 +2231,7 @@ export interface components {
             avatarColor: string;
             capabilityLabel: string;
             consultationOptIn: boolean;
+            demoAvailable?: boolean;
         };
         Account: {
             /** Format: uuid */
@@ -2305,6 +2306,8 @@ export interface components {
             discoveryMethod: "MANUAL" | "ASSISTED";
             /** Format: uuid */
             preferredTeacherId?: string;
+            schoolName?: string;
+            schoolSubjects?: string[];
         };
         Error: {
             code: string;
@@ -2535,6 +2538,8 @@ export interface components {
             version?: number;
             /** Format: date-time */
             studentAccessRevokedAt?: string | null;
+            schoolName?: string | null;
+            schoolSubjects?: string[];
         };
         Children: {
             items: components["schemas"]["Child"][];
@@ -2564,6 +2569,10 @@ export interface components {
             /** @constant */
             feeTermsAccepted: true;
             expectedVersion: number;
+            address: components["schemas"]["TeacherAddress"];
+            education: components["schemas"]["TeacherEducation"][];
+            employment: components["schemas"]["TeacherEmployment"][];
+            demoOptIn: boolean;
         };
         PrivateTeacher: {
             /** Format: uuid */
@@ -2597,6 +2606,10 @@ export interface components {
             maxActiveStudents: number;
             travelAccepted: boolean;
             version: number;
+            address?: components["schemas"]["TeacherAddress"] | null;
+            education?: components["schemas"]["TeacherEducation"][] | null;
+            employment?: components["schemas"]["TeacherEmployment"][] | null;
+            demoOptIn?: boolean | null;
         };
         PrivateTeacherList: {
             items: components["schemas"]["PrivateTeacher"][];
@@ -2960,6 +2973,8 @@ export interface components {
             discoveryMethod: "MANUAL" | "ASSISTED";
             /** Format: uuid */
             preferredTeacherId?: string;
+            schoolName?: string;
+            schoolSubjects?: string[];
         } | {
             name?: string;
             headline?: string;
@@ -2975,6 +2990,10 @@ export interface components {
             consultationOptIn?: boolean;
             /** @constant */
             feeTermsAccepted?: true;
+            address?: components["schemas"]["TeacherAddress"];
+            education?: components["schemas"]["TeacherEducation"][];
+            employment?: components["schemas"]["TeacherEmployment"][];
+            demoOptIn?: boolean;
         } | {
             subjects?: ("Maths" | "Science")[];
             /** @enum {string} */
@@ -4187,6 +4206,8 @@ export interface components {
                 alias: string;
                 grade: number;
                 board: string;
+                schoolName?: string | null;
+                schoolSubjects?: string[];
             }[];
             learnersLimited: boolean;
             nextCursor: string | null;
@@ -4223,6 +4244,38 @@ export interface components {
                 pendingPrivacy: number;
                 failedJobs: number;
             };
+        };
+        TeacherAddress: {
+            line1: string;
+            line2: string;
+            locality: string;
+            city: string;
+            state: string;
+            postalCode: string;
+            /** @constant */
+            country: "India";
+        };
+        TeacherEducation: {
+            /** @enum {unknown} */
+            milestone: "CLASS_10" | "CLASS_12" | "UNDERGRADUATE" | "POSTGRADUATE";
+            /** @enum {unknown} */
+            status: "COMPLETED" | "PURSUING" | "NOT_APPLICABLE";
+            institution: string;
+            qualification: string;
+            year: number | null;
+            /** @enum {unknown} */
+            grading: "PERCENTAGE" | "MARKS" | "CGPA" | null;
+            score: number | null;
+            outOf: number | null;
+            percentage: number | null;
+        };
+        TeacherEmployment: {
+            organization: string;
+            role: string;
+            fromYear: number;
+            toYear: number | null;
+            /** @enum {unknown} */
+            proof: "CERTIFICATE_AVAILABLE" | "REFERENCE_AVAILABLE" | "NOT_AVAILABLE";
         };
     };
     responses: never;
@@ -6015,6 +6068,10 @@ export interface operations {
                     consultationOptIn: boolean;
                     /** @constant */
                     feeTermsAccepted: true;
+                    address: components["schemas"]["TeacherAddress"];
+                    education: components["schemas"]["TeacherEducation"][];
+                    employment: components["schemas"]["TeacherEmployment"][];
+                    demoOptIn: boolean;
                 };
             };
         };

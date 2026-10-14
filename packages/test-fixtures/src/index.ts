@@ -17,3 +17,9 @@ export const teachers = [
   {name:'Meera Sahu',slug:'meera-sahu',headline:'Clear concepts, at your own pace.',bio:'Friendly bilingual support for students who want a stronger foundation. Lessons include space to ask questions and work through difficult topics together.',subjects:['Maths','Science'],experience:11,monthlyPaise:250000,languages:['Hindi','English'],modes:['HOME','ONLINE'],localities:['Avanti Vihar','Telibandha','Mowa'],avatarColor:'#d6e7e9'},
   {name:'Arjun Deshmukh',slug:'arjun-deshmukh',headline:'Turn “I don’t get it” into “I can do this.”',bio:'Focused online science lessons with visual explanations and practical questions. Revision sessions cover a clear topic, with a recap and next steps.',subjects:['Science'],experience:5,monthlyPaise:280000,languages:['English'],modes:['ONLINE'],localities:[],avatarColor:'#e9ddeb'}
 ];
+
+export const teacherDetails = {
+ address:{line1:'12 Synthetic Road',line2:'',locality:'Shankar Nagar',city:'Raipur',state:'Chhattisgarh',postalCode:'492001',country:'India'},
+ education:['CLASS_10','CLASS_12','UNDERGRADUATE','POSTGRADUATE'].map((milestone,i)=>({milestone,status:i===3?'NOT_APPLICABLE':'COMPLETED',institution:i===3?'':'Synthetic institution',qualification:i===3?'':i===2?'BSc Maths':'CBSE',year:i===3?null:2010+i*2,grading:i===3?null:'PERCENTAGE',score:i===3?null:80,outOf:null,percentage:i===3?null:80})),
+ employment:[{organization:'Synthetic teaching institution',role:'Tutor',fromYear:2016,toYear:null,proof:'REFERENCE_AVAILABLE'}],demoOptIn:true
+};

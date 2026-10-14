@@ -164,6 +164,8 @@ class DemosController {
         requestId: data.requestId,
         teacherId: data.teacherId,
       });
+      const preference=await db.teacher.findUniqueOrThrow({where:{id:data.teacherId},select:{demoOptIn:true}});
+      if(preference.demoOptIn!==true)fail(409,'DEMO_NOT_OFFERED','This teacher has not opted in to demos. Review tuition terms instead.');
       const time=interval(data);
       const pattern=await available(db,data.teacherId,"DEMO",time.startsAt,time.endsAt);
       if (!pattern) fail(409,"SLOT_UNAVAILABLE","Choose a currently advertised free demo slot.");

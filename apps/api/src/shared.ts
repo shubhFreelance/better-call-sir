@@ -111,7 +111,7 @@ export class AppService {
     const teachers=await this.db.teacher.findMany({where:{AND:[where,{accountId:{in:active.map(a=>a.id)},status:'APPROVED',screeningComplete:true,screeningValidUntil:{gt:new Date()}}]},orderBy:[{name:'asc'},{id:'asc'}],take:limit,...(cursor?{cursor:{id:cursor},skip:1}:{})});
     return teachers.map(t=>this.publicProjection(t));
   }
-  publicProjection(t:Teacher) {return {id:t.id,slug:t.slug,name:t.name,headline:t.headline,bio:t.bio,subjects:t.subjects,boards:t.boards,grades:t.grades,languages:t.languages,modes:t.modes,localities:t.localities,monthlyPaise:t.monthlyPaise,experience:t.experience,avatarColor:t.avatarColor,capabilityLabel:'Reviewed subject coverage',consultationOptIn:t.consultationOptIn};}
+  publicProjection(t:Teacher) {return {id:t.id,slug:t.slug,name:t.name,headline:t.headline,bio:t.bio,subjects:t.subjects,boards:t.boards,grades:t.grades,languages:t.languages,modes:t.modes,localities:t.localities,monthlyPaise:t.monthlyPaise,experience:t.experience,avatarColor:t.avatarColor,demoAvailable:t.demoOptIn===true,capabilityLabel:'Reviewed subject coverage',consultationOptIn:t.consultationOptIn};}
 
 }
 
