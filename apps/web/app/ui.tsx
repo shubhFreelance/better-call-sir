@@ -1,5 +1,6 @@
 "use client";
 import { RefreshCw } from "lucide-react";
+import { SupportOperations } from "./support-operations";
 import { MatchingWorkspace } from "./matching-workspace";
 import { ReviewerWorkspace } from "./reviewer-workspace";
 import { PrivacyWorkspace } from "./privacy-workspace";
@@ -1263,6 +1264,15 @@ function DashboardShell({
           ],
         ]
       : []),
+    ...(["ADMIN", "OPERATOR"].includes(role || "")
+      ? [
+          ["/dashboard/support", "Support & disputes", LifeBuoy] as [
+            string,
+            string,
+            LucideIcon,
+          ],
+        ]
+      : []),
     ["/support", "Help & safety", LifeBuoy],
     ...(role && staffRole(role)
       ? [
@@ -1375,27 +1385,29 @@ function DashboardPage({ tab }: { tab: string }) {
                 ? `Hello, ${session.account.name.split(" · ")[0]}.`
                 : tab.endsWith("lessons")
                   ? "Every class, accounted for."
-                  : tab.endsWith("matching")
-                    ? "A considered shortlist, ready for review."
-                    : tab.endsWith("review")
-                      ? "A careful review, recorded."
-                      : tab.endsWith("privacy")
-                        ? "Your information and privacy."
-                        : tab.endsWith("arrangements")
-                          ? "A clear next step for your tuition."
-                          : tab.endsWith("requests")
-                            ? "Your path to a good fit."
-                            : tab.endsWith("family")
-                              ? "Your learners, your control."
-                              : tab.endsWith("bookings")
-                                ? "A little clarity, on the calendar."
-                                : tab.endsWith("pro")
-                                  ? "A conversation can help."
-                                  : tab.endsWith("notes")
-                                    ? session.account.role === "TEACHER"
-                                      ? "Learning context, shared with you."
-                                      : "Your thoughts, kept private."
-                                    : "A thoughtful control room."
+                  : tab.endsWith("support")
+                    ? "Support, with a clear next step."
+                    : tab.endsWith("matching")
+                      ? "A considered shortlist, ready for review."
+                      : tab.endsWith("review")
+                        ? "A careful review, recorded."
+                        : tab.endsWith("privacy")
+                          ? "Your information and privacy."
+                          : tab.endsWith("arrangements")
+                            ? "A clear next step for your tuition."
+                            : tab.endsWith("requests")
+                              ? "Your path to a good fit."
+                              : tab.endsWith("family")
+                                ? "Your learners, your control."
+                                : tab.endsWith("bookings")
+                                  ? "A little clarity, on the calendar."
+                                  : tab.endsWith("pro")
+                                    ? "A conversation can help."
+                                    : tab.endsWith("notes")
+                                      ? session.account.role === "TEACHER"
+                                        ? "Learning context, shared with you."
+                                        : "Your thoughts, kept private."
+                                      : "A thoughtful control room."
             }
             subtitle={
               tab === "/dashboard"
@@ -1574,6 +1586,12 @@ function DashboardPage({ tab }: { tab: string }) {
                 </Link>
               </section>
             ))}
+          {tab.endsWith("support") && (
+            <SupportOperations
+              key={`${session.account.id}:${session.account.role}`}
+              session={session}
+            />
+          )}
           {tab.endsWith("matching") && (
             <MatchingWorkspace
               key={`${session.account.id}:${session.account.role}`}
@@ -1910,6 +1928,9 @@ function AdminPanel({ dashboard: d, act }: { dashboard: Dashboard; act: Act }) {
       <div className="dashboard-columns">
         <div className="panel">
           <h3>Support & safety queue</h3>
+          <Link href="/dashboard/support" className="inline-link">
+            Open support and dispute operations
+          </Link>
           {d.cases?.length ? (
             d.cases.map((c) => (
               <div className="case-item" key={c.id}>

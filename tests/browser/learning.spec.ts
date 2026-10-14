@@ -835,6 +835,7 @@ test("real guardian and teacher agree a timetable, review attendance and share p
     .filter({
       has: page.getByRole("heading", { name: "Ananya Sharma", exact: true }),
     })
+    .filter({ has: page.getByText("Aarav", { exact: true }) })
     .first();
   await expect(card).toBeVisible();
   await card.getByRole("button", { name: /Propose/ }).click();
@@ -881,6 +882,11 @@ test("real guardian and teacher agree a timetable, review attendance and share p
       .filter({
         has: teacherPage.getByRole("heading", {
           name: "Ananya Sharma",
+          exact: true,
+        }),
+      })
+      .filter({
+        has: teacherPage.getByText(`Agreement ${ids.placement.slice(0, 8)}`, {
           exact: true,
         }),
       })
