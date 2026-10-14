@@ -21899,6 +21899,50 @@
           },
           "preferences": {
             "$ref": "#/components/schemas/SchedulePreferences"
+          },
+          "criteria": {
+            "type": "object",
+            "properties": {
+              "subject": {
+                "type": "string",
+                "enum": [
+                  "Maths",
+                  "Science"
+                ]
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "ONLINE",
+                  "HOME"
+                ]
+              },
+              "language": {
+                "type": "string",
+                "enum": [
+                  "English",
+                  "Hindi"
+                ]
+              },
+              "locality": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "budgetPaise": {
+                "type": "integer",
+                "minimum": 50000,
+                "maximum": 2000000
+              }
+            },
+            "required": [
+              "subject",
+              "mode",
+              "language",
+              "locality",
+              "budgetPaise"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
