@@ -24,8 +24,11 @@ class SupportController {
   if(data.cursor)await this.owned(this.service.db,actor,data.cursor);
   const rows=await this.service.db.supportCase.findMany({where:{...this.scope(actor),...(data.status?{status:data.status}:{})},orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1,...(data.cursor?{cursor:{id:data.cursor},skip:1}:{})});return {items:rows.slice(0,data.limit),nextCursor:rows.length>data.limit?rows[data.limit-1].id:null};
  }
- @Get('cases/:id') async detail(@Req() req:HttpRequest,@Param('id') id:string){
-  parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT','ADMIN','OPERATOR']),item=await this.owned(this.service.db,actor,id);const updates=await this.service.db.caseUpdate.findMany({where:{caseId:id,...(staff(actor)?{}:{internal:false})},orderBy:{createdAt:'asc'},take:50,select:{id:true,message:true,internal:true,createdAt:true}});return {...item,updates};
+ @Get('cases/:id') async detail(@Req() req:HttpRequest,@Param('id') id:string,@Query() query:unknown){
+  parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT','ADMIN','OPERATOR']),data=parse(z.object({updatesCursor:uuid.optional(),updatesLimit:z.coerce.number().int().min(1).max(50).default(20)}).strict(),query),item=await this.owned(this.service.db,actor,id);
+  const where={caseId:id,...(staff(actor)?{}:{internal:false})};if(data.updatesCursor&&!await this.service.db.caseUpdate.findFirst({where:{...where,id:data.updatesCursor}}))fail(404,'NOT_FOUND','Case update not found.');
+  const rows=await this.service.db.caseUpdate.findMany({where,orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.updatesLimit+1,...(data.updatesCursor?{cursor:{id:data.updatesCursor},skip:1}:{}),select:{id:true,actorId:true,message:true,internal:true,createdAt:true}}),page=rows.slice(0,data.updatesLimit);
+  const updates=page.map(({actorId,...update})=>({...update,author:actorId===actor.id?'YOU':actorId===item.accountId?'CASE_OWNER':'SUPPORT'}));return {...item,updates,updatesNextCursor:rows.length>data.updatesLimit?page.at(-1)!.id:null};
  }
  @Post('cases/:id/updates') async reply(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
   parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT','ADMIN','OPERATOR']),data=parse(z.object({expectedVersion:version,message:text(3000),internal:z.boolean().default(false)}).strict(),body);if(data.internal&&!staff(actor))fail(403,'FORBIDDEN','Only staff can add internal updates.');

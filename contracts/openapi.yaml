@@ -13583,7 +13583,7 @@
         "tags": [
           "support"
         ],
-        "summary": "/cases/{id}",
+        "summary": "Read an owned case and the latest visible updates, with cursor pagination",
         "security": [
           {
             "cookieSession": []
@@ -13742,6 +13742,24 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "updatesCursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "updatesLimit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
             }
           }
         ]
@@ -21644,13 +21662,22 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "author": {
+            "type": "string",
+            "enum": [
+              "YOU",
+              "CASE_OWNER",
+              "SUPPORT"
+            ]
           }
         },
         "required": [
           "id",
           "message",
           "internal",
-          "createdAt"
+          "createdAt",
+          "author"
         ],
         "additionalProperties": false
       },
@@ -21728,6 +21755,13 @@
             "items": {
               "$ref": "#/components/schemas/CaseUpdate"
             }
+          },
+          "updatesNextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
           }
         },
         "required": [
@@ -21744,7 +21778,8 @@
           "version",
           "createdAt",
           "updatedAt",
-          "updates"
+          "updates",
+          "updatesNextCursor"
         ],
         "additionalProperties": false
       },
