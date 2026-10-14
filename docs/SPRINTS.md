@@ -281,3 +281,7 @@ Validation: 77 isolated real-database API tests, nine contract tests, types and 
 F14 backend privacy dependency / US13: fulfilled note corrections now revoke named teacher sharing as well as clearing acknowledgement, keeping corrected content private until a separate owner sharing decision. Existing owner, reviewed retention, immutable evidence and replay controls are preserved.
 
 Validation: 77 isolated database API tests, type checks and source secret scanning pass. The privacy regression starts with an acknowledged shared note and confirms that corrected text is private with acknowledgement cleared. Separately pushed backend fix; owner privacy UI follows independently. Live retention/storage/backup qualification remains open.
+
+F15 backend screening regression / US04: added a real-database check proving that a failed kind is immutable on its application revision, a later passed replacement is rejected, and the other three passed kinds cannot permit approval. The existing unique/append-only check constraints already enforce this rule; no redundant application restriction was added.
+
+Validation: all 78 isolated API tests, nine contract tests, types and source secret scanning pass. Initial synthetic evidence lacked mandatory scanner metadata, and an attempted same-revision reassessment was correctly rejected; the final fixture exercises the actual immutable contract. Reviewer UI follows separately; live reviewer staffing and independent screening remain qualification work.
