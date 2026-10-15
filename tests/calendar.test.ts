@@ -18,3 +18,14 @@ test('existing holds can confirm inside the initial lead time without bypassing 
  assert.equal(availableIn({patterns:[pattern],blocks:[]},start,end,now,0)?.id,pattern.id);
  assert.equal(availableIn({patterns:[pattern],blocks:[{startsAt:start,endsAt:end}]},start,end,now,0),null);
 });
+
+import {weeklyFit} from '../apps/api/src/modules/matching/weekly-fit';
+import {preferenceSchema,normalizedPreferences} from '../apps/api/src/modules/requests/request-schedule';
+test('weekly enquiry ranges validate without mixing dated input or overlapping weekdays',()=>{
+ const p={timezone:'Asia/Kolkata' as const,weekly:[{weekday:1,startMinute:900,endMinute:1200}]};assert(preferenceSchema.safeParse(p).success);assert(normalizedPreferences(p));assert(!preferenceSchema.safeParse({...p,slots:[]}).success);assert(!preferenceSchema.safeParse({...p,weekly:[{...p.weekly[0],weekday:7}]}).success);assert.equal(normalizedPreferences({...p,weekly:[...p.weekly,{weekday:1,startMinute:1000,endMinute:1050}]}),null);assert.equal(normalizedPreferences({...p,weekly:[{weekday:1,startMinute:1200,endMinute:900}]}),null);
+});
+test('broad weekly fit finds odd-minute overlap after occupancy without inventing a timetable',()=>{
+ const p={...pattern,kind:'RECURRING',startMinute:905,endMinute:965},now=new Date('2026-10-12T00:00:00Z'),blocks=[{startsAt:new Date('2026-10-12T09:35:00Z'),endsAt:new Date('2026-10-12T09:57:00Z')}],weekly=[{weekday:1,startMinute:900,endMinute:1200}];
+ const fit=weeklyFit({patterns:[p],blocks},weekly,now);assert.equal(fit.length,1);assert.equal(fit[0].startsAt,'2026-10-12T09:57:00.000Z');assert.equal(fit[0].endsAt,'2026-10-12T10:17:00.000Z');assert.equal(weeklyFit({patterns:[{...p,active:false}],blocks},weekly,now).length,0);
+ assert.equal(weeklyFit({patterns:[{...p,validUntil:new Date('2026-10-12')}],blocks:[{startsAt:new Date('2026-10-12T09:00:00Z'),endsAt:new Date('2026-10-12T15:00:00Z')}]},weekly,now).length,0);
+});

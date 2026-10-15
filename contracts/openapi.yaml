@@ -21606,83 +21606,111 @@
         "additionalProperties": false
       },
       "SchedulePreferences": {
-        "type": "object",
-        "properties": {
-          "timezone": {
-            "type": "string",
-            "const": "Asia/Kolkata"
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/DatedPreferences"
           },
-          "slots": {
-            "type": "array",
-            "minItems": 1,
-            "maxItems": 6,
-            "items": {
-              "type": "object",
-              "properties": {
-                "startsAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "endsAt": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              },
-              "required": [
-                "startsAt",
-                "endsAt"
-              ],
-              "additionalProperties": false
-            }
+          {
+            "$ref": "#/components/schemas/WeeklyPreferences"
           }
-        },
-        "required": [
-          "timezone",
-          "slots"
-        ],
-        "additionalProperties": false
+        ]
       },
       "RequestScheduleInput": {
-        "type": "object",
-        "properties": {
-          "timezone": {
-            "type": "string",
-            "const": "Asia/Kolkata"
-          },
-          "slots": {
-            "type": "array",
-            "minItems": 1,
-            "maxItems": 6,
-            "items": {
-              "type": "object",
-              "properties": {
-                "startsAt": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "endsAt": {
-                  "type": "string",
-                  "format": "date-time"
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "timezone": {
+                "type": "string",
+                "const": "Asia/Kolkata"
+              },
+              "slots": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 6,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "startsAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "endsAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "startsAt",
+                    "endsAt"
+                  ],
+                  "additionalProperties": false
                 }
               },
-              "required": [
-                "startsAt",
-                "endsAt"
-              ],
-              "additionalProperties": false
-            }
+              "expectedVersion": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "timezone",
+              "slots",
+              "expectedVersion"
+            ],
+            "additionalProperties": false
           },
-          "expectedVersion": {
-            "type": "integer",
-            "minimum": 1
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "timezone": {
+                "type": "string",
+                "const": "Asia/Kolkata"
+              },
+              "weekly": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 14,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "weekday": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 6,
+                      "description": "0 Sunday through 6 Saturday"
+                    },
+                    "startMinute": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1439
+                    },
+                    "endMinute": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 1440
+                    }
+                  },
+                  "required": [
+                    "weekday",
+                    "startMinute",
+                    "endMinute"
+                  ]
+                }
+              },
+              "expectedVersion": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "timezone",
+              "weekly",
+              "expectedVersion"
+            ]
           }
-        },
-        "required": [
-          "timezone",
-          "slots",
-          "expectedVersion"
-        ],
-        "additionalProperties": false
+        ]
       },
       "WaitlistInput": {
         "type": "object",
@@ -27677,6 +27705,89 @@
         "required": [
           "expectedVersion",
           "acknowledged"
+        ]
+      },
+      "DatedPreferences": {
+        "type": "object",
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Kolkata"
+          },
+          "slots": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "properties": {
+                "startsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "endsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "startsAt",
+                "endsAt"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "timezone",
+          "slots"
+        ],
+        "additionalProperties": false
+      },
+      "WeeklyPreferences": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Kolkata"
+          },
+          "weekly": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 14,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "weekday": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 6,
+                  "description": "0 Sunday through 6 Saturday"
+                },
+                "startMinute": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1439
+                },
+                "endMinute": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1440
+                }
+              },
+              "required": [
+                "weekday",
+                "startMinute",
+                "endMinute"
+              ]
+            }
+          }
+        },
+        "required": [
+          "timezone",
+          "weekly"
         ]
       }
     },

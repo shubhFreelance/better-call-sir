@@ -1,5 +1,5 @@
 import { z } from "zod";
-export const preferenceSchema = z
+export const datedPreferenceSchema = z
   .object({
     timezone: z.literal("Asia/Kolkata"),
     slots: z
@@ -15,10 +15,55 @@ export const preferenceSchema = z
       .max(6),
   })
   .strict();
+export const weeklyPreferenceSchema = z
+  .object({
+    timezone: z.literal("Asia/Kolkata"),
+    weekly: z
+      .array(
+        z
+          .object({
+            weekday: z.number().int().min(0).max(6),
+            startMinute: z.number().int().min(0).max(1439),
+            endMinute: z.number().int().min(1).max(1440),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(14),
+  })
+  .strict();
+export const preferenceSchema = z.union([
+  datedPreferenceSchema,
+  weeklyPreferenceSchema,
+]);
+export const preferenceUpdateSchema = z.union([
+  datedPreferenceSchema
+    .extend({ expectedVersion: z.number().int().positive() })
+    .strict(),
+  weeklyPreferenceSchema
+    .extend({ expectedVersion: z.number().int().positive() })
+    .strict(),
+]);
 export function normalizedPreferences(
   data: z.infer<typeof preferenceSchema>,
   now = new Date(),
 ) {
+  if ("weekly" in data) {
+    const weekly = [...data.weekly].sort(
+      (a, b) => a.weekday - b.weekday || a.startMinute - b.startMinute,
+    );
+    if (
+      weekly.some(
+        (w, i) =>
+          w.endMinute - w.startMinute < 20 ||
+          (i > 0 &&
+            weekly[i - 1].weekday === w.weekday &&
+            weekly[i - 1].endMinute > w.startMinute),
+      )
+    )
+      return null;
+    return { timezone: data.timezone, weekly };
+  }
   const slots = data.slots
     .map((s) => ({
       startsAt: new Date(s.startsAt),

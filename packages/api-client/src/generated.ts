@@ -2825,16 +2825,7 @@ export interface components {
             /** @constant */
             timezone: "Asia/Kolkata";
         };
-        SchedulePreferences: {
-            /** @constant */
-            timezone: "Asia/Kolkata";
-            slots: {
-                /** Format: date-time */
-                startsAt: string;
-                /** Format: date-time */
-                endsAt: string;
-            }[];
-        };
+        SchedulePreferences: components["schemas"]["DatedPreferences"] | components["schemas"]["WeeklyPreferences"];
         RequestScheduleInput: {
             /** @constant */
             timezone: "Asia/Kolkata";
@@ -2843,6 +2834,16 @@ export interface components {
                 startsAt: string;
                 /** Format: date-time */
                 endsAt: string;
+            }[];
+            expectedVersion: number;
+        } | {
+            /** @constant */
+            timezone: "Asia/Kolkata";
+            weekly: {
+                /** @description 0 Sunday through 6 Saturday */
+                weekday: number;
+                startMinute: number;
+                endMinute: number;
             }[];
             expectedVersion: number;
         };
@@ -4325,6 +4326,26 @@ export interface components {
             expectedVersion: number;
             /** @constant */
             acknowledged: true;
+        };
+        DatedPreferences: {
+            /** @constant */
+            timezone: "Asia/Kolkata";
+            slots: {
+                /** Format: date-time */
+                startsAt: string;
+                /** Format: date-time */
+                endsAt: string;
+            }[];
+        };
+        WeeklyPreferences: {
+            /** @constant */
+            timezone: "Asia/Kolkata";
+            weekly: {
+                /** @description 0 Sunday through 6 Saturday */
+                weekday: number;
+                startMinute: number;
+                endMinute: number;
+            }[];
         };
     };
     responses: never;
