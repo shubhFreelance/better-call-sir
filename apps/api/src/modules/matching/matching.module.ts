@@ -145,7 +145,7 @@ class MatchingController {
           reasons: [
             `${request.subject} · Class ${child.grade} · ${child.board}`,
             `${request.language} instruction`,
-            "Within budget, capacity and confirmed schedule",
+            "Within budget and capacity, with overlapping availability",
             ...(request.mode === "HOME"
               ? [`Accepted travel to ${request.locality}`]
               : ["Online lessons"]),

@@ -1,7 +1,8 @@
 import type { Teacher, TuitionRequest, Child } from "@prisma/client";
 import type { DB } from "../../shared";
 import { eligible } from "../../policies";
-import { available, capacity } from "../scheduling/calendar";
+import { weeklyFit } from "./weekly-fit";
+import { available, capacity, calendarSnapshot } from "../scheduling/calendar";
 import {
   preferenceSchema,
   normalizedPreferences,
@@ -12,7 +13,12 @@ export async function matched(
   child: Child,
   teacher: Teacher,
 ) {
-  if(request.rematchFromPlacementId){const old=await db.placement.findUnique({where:{id:request.rematchFromPlacementId}});if(old?.teacherId===teacher.id)return null;}
+  if (request.rematchFromPlacementId) {
+    const old = await db.placement.findUnique({
+      where: { id: request.rematchFromPlacementId },
+    });
+    if (old?.teacherId === teacher.id) return null;
+  }
   if (
     (request.preferredTeacherId && request.preferredTeacherId !== teacher.id) ||
     !eligible(request, child, teacher) ||
@@ -29,8 +35,22 @@ export async function matched(
   if (request.scheduleStatus !== "CONFIRMED" || !parsed.success) return null;
   const preferences = normalizedPreferences(parsed.data);
   if (!preferences) return null;
-  const windows = [];
-  for (const slot of preferences.slots) {
+  const now = new Date();
+  const windows =
+    "weekly" in preferences
+      ? weeklyFit(
+          await calendarSnapshot(
+            db,
+            teacher.id,
+            "RECURRING",
+            new Date(now.getTime() + 3600000),
+            new Date(now.getTime() + 60 * 86400000),
+          ),
+          preferences.weekly!,
+          now,
+        )
+      : [];
+  for (const slot of preferences.slots || []) {
     const pattern = await available(
       db,
       teacher.id,
