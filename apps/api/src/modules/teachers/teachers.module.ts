@@ -25,6 +25,17 @@ export async function submitTeacher(db:DB,service:AppService,account:Account,dat
       await service.event(db,'teacher.submitted',teacher.id);return teacher;
 }
 
+export async function reviseTeacher(db:DB,service:AppService,actor:Account,req:HttpRequest,id:string,data:z.infer<typeof applicationSchema>&{expectedVersion:number}) {
+  await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
+  const teacher=await db.teacher.findUnique({where:{id}});if(!teacher||teacher.accountId!==actor.id)fail(404,'NOT_FOUND','Application not found.');
+  if(teacher.version!==data.expectedVersion)fail(409,'CONFLICT','Application changed. Reload it before resubmitting.');
+  const {expectedVersion,feeTermsAccepted,...profile}=data;
+  const updated=await db.teacher.update({where:{id},data:{...profile,feeTermsAcceptedAt:new Date(),status:'SUBMITTED',screeningComplete:false,screeningValidUntil:null,profileRevision:{increment:1},version:{increment:1}}});
+  await db.onboardingProgress.updateMany({where:{accountId:actor.id,kind:'TEACHER_REVISION'},data:{draft:{},version:{increment:1}}});
+  await db.note.updateMany({where:{sharedTeacherId:id},data:{sharedTeacherId:null}});
+  await service.audit(db,actor,req,'TEACHER_REVIEW_REOPENED',id,'Material profile resubmission',undefined,{profileRevision:updated.profileRevision});await service.event(db,'teacher.review_reopened',id,updated.version);return updated;
+}
+
 @Controller('api/v1')
 class TeachersController {
   constructor(@Inject(AppService) private readonly service: AppService) {}
@@ -41,13 +52,54 @@ class TeachersController {
     parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']);
     const data=parse(applicationSchema.extend({expectedVersion:version}),body);
     return this.service.once(req,actor,'teacher.revise',data,async db=>{
+      return reviseTeacher(db,this.service,actor,req,id,data);
+    });
+  }
+
+  async revisionDraft(db:DB,actor:Account,id:string) {
+    const teacher=await db.teacher.findUnique({where:{id}});if(!teacher||teacher.accountId!==actor.id)fail(404,'NOT_FOUND','Application not found.');
+    const progress=await db.onboardingProgress.findUnique({where:{accountId_kind:{accountId:actor.id,kind:'TEACHER_REVISION'}}});
+    const saved=progress?.draft as {profile?:unknown;applicationVersion?:number}|undefined;
+    return {draft:saved?.profile||{},version:progress?.version||0,applicationVersion:saved?.applicationVersion||teacher.version,stale:!!saved?.applicationVersion&&saved.applicationVersion!==teacher.version};
+  }
+  @Get('teacher-applications/:id/revision-draft') async getRevisionDraft(@Req() req:HttpRequest,@Param('id') id:string) {
+    parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']);return this.db.$transaction(db=>this.revisionDraft(db,actor,id));
+  }
+  @Post('teacher-applications/:id/revision-drafts') async saveRevisionDraft(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown) {
+    parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']);
+    const data=parse(z.object({expectedVersion:z.number().int().nonnegative(),expectedApplicationVersion:version,draft:applicationSchema.omit({feeTermsAccepted:true}).partial()}).strict(),body);
+    return this.service.once(req,actor,'teacher.revision_draft.save',data,async db=>{
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
-      const teacher=await db.teacher.findUnique({where:{id}});if(!teacher||teacher.accountId!==actor.id)fail(404,'NOT_FOUND','Application not found.');
-      if(teacher.version!==data.expectedVersion)fail(409,'CONFLICT','Application changed.');
-      const {expectedVersion,feeTermsAccepted,...profile}=data;
-      const updated=await db.teacher.update({where:{id},data:{...profile,feeTermsAcceptedAt:new Date(),status:'SUBMITTED',screeningComplete:false,screeningValidUntil:null,profileRevision:{increment:1},version:{increment:1}}});
-      await db.note.updateMany({where:{sharedTeacherId:id},data:{sharedTeacherId:null}});
-      await this.service.audit(db,actor,req,'TEACHER_REVIEW_REOPENED',id,'Material profile resubmission',undefined,{profileRevision:updated.profileRevision});await this.service.event(db,'teacher.review_reopened',id,updated.version);return updated;
+      const current=await this.revisionDraft(db,actor,id);
+      const teacher=await db.teacher.findUniqueOrThrow({where:{id}});
+      if(current.version!==data.expectedVersion||teacher.version!==data.expectedApplicationVersion||current.stale)fail(409,'CONFLICT','The application or saved revision changed. Reload before editing.');
+      const draft={applicationVersion:teacher.version,profile:data.draft};
+      await db.onboardingProgress.upsert({where:{accountId_kind:{accountId:actor.id,kind:'TEACHER_REVISION'}},create:{accountId:actor.id,kind:'TEACHER_REVISION',draft},update:{draft,version:{increment:1}}});
+      await this.service.audit(db,actor,req,'TEACHER_REVISION_DRAFT_SAVED',id,'Owner saved private revision progress');
+      return this.revisionDraft(db,actor,id);
+    });
+  }
+  @Post('teacher-applications/:id/revision-draft-discards') async discardRevisionDraft(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown) {
+    parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']);
+    const data=parse(z.object({expectedVersion:version,expectedApplicationVersion:version,acknowledged:z.literal(true)}).strict(),body);
+    return this.service.once(req,actor,'teacher.revision_draft.discard',data,async db=>{
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
+      const current=await this.revisionDraft(db,actor,id),teacher=await db.teacher.findUniqueOrThrow({where:{id}});
+      if(current.version!==data.expectedVersion||teacher.version!==data.expectedApplicationVersion)fail(409,'CONFLICT','The application or saved revision changed. Reload before discarding.');
+      const changed=await db.onboardingProgress.updateMany({where:{accountId:actor.id,kind:'TEACHER_REVISION',version:data.expectedVersion},data:{draft:{},version:{increment:1}}});
+      if(!changed.count)fail(409,'CONFLICT','There is no current saved revision to discard.');
+      await this.service.audit(db,actor,req,'TEACHER_REVISION_DRAFT_DISCARDED',id,'Owner explicitly discarded revision progress');
+      return this.revisionDraft(db,actor,id);
+    });
+  }
+  @Post('teacher-applications/:id/revision-draft-submissions') async submitRevisionDraft(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown) {
+    parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']);
+    const data=parse(z.object({expectedVersion:version,expectedApplicationVersion:version,feeTermsAccepted:z.literal(true)}).strict(),body);
+    return this.service.once(req,actor,'teacher.revision_draft.submit',data,async db=>{
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
+      const current=await this.revisionDraft(db,actor,id);
+      if(current.version!==data.expectedVersion||current.applicationVersion!==data.expectedApplicationVersion||current.stale)fail(409,'CONFLICT','The application or saved revision changed. Reload before resubmitting.');
+      return reviseTeacher(db,this.service,actor,req,id,{...parse(applicationSchema,{...current.draft,feeTermsAccepted:true}),expectedVersion:data.expectedApplicationVersion});
     });
   }
 

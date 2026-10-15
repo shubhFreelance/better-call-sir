@@ -17,7 +17,7 @@
         "tags": [
           "health"
         ],
-        "summary": "health · live",
+        "summary": "health \u00b7 live",
         "security": [],
         "responses": {
           "200": {
@@ -109,7 +109,7 @@
         "tags": [
           "health"
         ],
-        "summary": "health · ready",
+        "summary": "health \u00b7 ready",
         "security": [],
         "responses": {
           "200": {
@@ -551,7 +551,7 @@
                         {
                           "name": "Arjun Deshmukh",
                           "slug": "arjun-deshmukh",
-                          "headline": "Turn “I don’t get it” into “I can do this.”",
+                          "headline": "Turn \u201cI don\u2019t get it\u201d into \u201cI can do this.\u201d",
                           "bio": "Focused online science lessons with visual explanations and practical questions. Revision sessions cover a clear topic, with a recap and next steps.",
                           "subjects": [
                             "Science"
@@ -843,7 +843,7 @@
         "tags": [
           "teachers"
         ],
-        "summary": "teachers · :slug",
+        "summary": "teachers \u00b7 :slug",
         "security": [],
         "responses": {
           "200": {
@@ -1052,7 +1052,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev · accounts",
+        "summary": "dev \u00b7 accounts",
         "security": [],
         "responses": {
           "200": {
@@ -1227,7 +1227,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev · session",
+        "summary": "dev \u00b7 session",
         "security": [],
         "responses": {
           "201": {
@@ -1810,7 +1810,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth · session",
+        "summary": "auth \u00b7 session",
         "security": [
           {
             "cookieSession": []
@@ -1983,7 +1983,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth · refresh",
+        "summary": "auth \u00b7 refresh",
         "security": [
           {
             "cookieSession": []
@@ -2177,7 +2177,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "auth · logout",
+        "summary": "auth \u00b7 logout",
         "security": [
           {
             "cookieSession": []
@@ -2588,7 +2588,7 @@
         "tags": [
           "consents"
         ],
-        "summary": "consents · withdraw",
+        "summary": "consents \u00b7 withdraw",
         "security": [
           {
             "cookieSession": []
@@ -3352,7 +3352,7 @@
         "tags": [
           "requests"
         ],
-        "summary": "requests · :id",
+        "summary": "requests \u00b7 :id",
         "security": [
           {
             "cookieSession": []
@@ -4023,7 +4023,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin · teachers",
+        "summary": "admin \u00b7 teachers",
         "security": [
           {
             "cookieSession": []
@@ -4119,7 +4119,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin · teachers · :id · reviews",
+        "summary": "admin \u00b7 teachers \u00b7 :id \u00b7 reviews",
         "security": [
           {
             "cookieSession": []
@@ -4267,7 +4267,7 @@
         "tags": [
           "revision"
         ],
-        "summary": "revision · holds",
+        "summary": "revision \u00b7 holds",
         "security": [
           {
             "cookieSession": []
@@ -4444,7 +4444,7 @@
         "tags": [
           "reservations"
         ],
-        "summary": "reservations · :id · scope",
+        "summary": "reservations \u00b7 :id \u00b7 scope",
         "security": [
           {
             "cookieSession": []
@@ -4579,7 +4579,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev · reservations · :id · capture",
+        "summary": "dev \u00b7 reservations \u00b7 :id \u00b7 capture",
         "security": [
           {
             "cookieSession": []
@@ -4735,7 +4735,7 @@
         "tags": [
           "reservations"
         ],
-        "summary": "reservations · :id · cancel",
+        "summary": "reservations \u00b7 :id \u00b7 cancel",
         "security": [
           {
             "cookieSession": []
@@ -5174,7 +5174,7 @@
         "tags": [
           "placements"
         ],
-        "summary": "placements · :id · acceptances",
+        "summary": "placements \u00b7 :id \u00b7 acceptances",
         "security": [
           {
             "cookieSession": []
@@ -5328,7 +5328,7 @@
         "tags": [
           "lessons"
         ],
-        "summary": "lessons · :id · attendance",
+        "summary": "lessons \u00b7 :id \u00b7 attendance",
         "security": [
           {
             "cookieSession": []
@@ -5492,7 +5492,7 @@
         "tags": [
           "lessons"
         ],
-        "summary": "lessons · :id · disputes",
+        "summary": "lessons \u00b7 :id \u00b7 disputes",
         "security": [
           {
             "cookieSession": []
@@ -5865,7 +5865,7 @@
         "tags": [
           "notes"
         ],
-        "summary": "notes · :id · shares",
+        "summary": "notes \u00b7 :id \u00b7 shares",
         "security": [
           {
             "cookieSession": []
@@ -6378,7 +6378,7 @@
         "tags": [
           "children"
         ],
-        "summary": "children · :id · invitations",
+        "summary": "children \u00b7 :id \u00b7 invitations",
         "security": [
           {
             "cookieSession": []
@@ -6494,7 +6494,7 @@
         "tags": [
           "invitations"
         ],
-        "summary": "invitations · activate",
+        "summary": "invitations \u00b7 activate",
         "security": [
           {
             "cookieSession": []
@@ -6620,7 +6620,7 @@
         "tags": [
           "pro"
         ],
-        "summary": "pro · calls",
+        "summary": "pro \u00b7 calls",
         "security": [
           {
             "cookieSession": []
@@ -6763,7 +6763,7 @@
         "tags": [
           "pro"
         ],
-        "summary": "pro · calls · :id · accept",
+        "summary": "pro \u00b7 calls \u00b7 :id \u00b7 accept",
         "security": [
           {
             "cookieSession": []
@@ -6898,7 +6898,7 @@
         "tags": [
           "dev"
         ],
-        "summary": "dev · pro · calls · :id · outcome",
+        "summary": "dev \u00b7 pro \u00b7 calls \u00b7 :id \u00b7 outcome",
         "security": [
           {
             "cookieSession": []
@@ -7145,7 +7145,7 @@
         "tags": [
           "admin"
         ],
-        "summary": "admin · flags · :name",
+        "summary": "admin \u00b7 flags \u00b7 :name",
         "security": [
           {
             "cookieSession": []
@@ -19275,6 +19275,552 @@
           }
         }
       }
+    },
+    "/teacher-applications/{id}/revision-draft": {
+      "get": {
+        "operationId": "getTeacherRevisionDraft",
+        "tags": [
+          "backend-core"
+        ],
+        "summary": "getTeacherRevisionDraft",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Owner-scoped revision result. Saving does not change review status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherRevisionProgress"
+                }
+              }
+            }
+          }
+        },
+        "description": "Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/teacher-applications/{id}/revision-drafts": {
+      "post": {
+        "operationId": "saveTeacherRevisionDraft",
+        "tags": [
+          "backend-core"
+        ],
+        "summary": "saveTeacherRevisionDraft",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Owner-scoped revision result. Saving does not change review status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherRevisionProgress"
+                }
+              }
+            }
+          }
+        },
+        "description": "Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeacherRevisionSave"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teacher-applications/{id}/revision-draft-submissions": {
+      "post": {
+        "operationId": "submitTeacherRevisionDraft",
+        "tags": [
+          "backend-core"
+        ],
+        "summary": "submitTeacherRevisionDraft",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Owner-scoped revision result. Saving does not change review status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivateTeacher"
+                }
+              }
+            }
+          }
+        },
+        "description": "Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeacherRevisionSubmit"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teacher-applications/{id}/revision-draft-discards": {
+      "post": {
+        "operationId": "discardTeacherRevisionDraft",
+        "tags": [
+          "backend-core"
+        ],
+        "summary": "discardTeacherRevisionDraft",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Owner-scoped revision result. Saving does not change review status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherRevisionProgress"
+                }
+              }
+            }
+          }
+        },
+        "description": "Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeacherRevisionDiscard"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -27789,6 +28335,181 @@
           "timezone",
           "weekly"
         ]
+      },
+      "TeacherRevisionDraft": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "headline": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "subjects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "boards": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "grades": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "modes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "localities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "monthlyPaise": {
+            "type": "integer"
+          },
+          "experience": {
+            "type": "integer"
+          },
+          "consultationOptIn": {
+            "type": "boolean"
+          },
+          "address": {
+            "$ref": "#/components/schemas/TeacherAddress"
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeacherEducation"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "employment": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeacherEmployment"
+            },
+            "maxItems": 10
+          },
+          "demoOptIn": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TeacherRevisionProgress": {
+        "type": "object",
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/TeacherRevisionDraft"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "applicationVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "stale": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "draft",
+          "version",
+          "applicationVersion",
+          "stale"
+        ],
+        "additionalProperties": false
+      },
+      "TeacherRevisionSave": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "expectedApplicationVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "draft": {
+            "$ref": "#/components/schemas/TeacherRevisionDraft"
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "expectedApplicationVersion",
+          "draft"
+        ],
+        "additionalProperties": false
+      },
+      "TeacherRevisionSubmit": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "expectedApplicationVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "feeTermsAccepted": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "expectedApplicationVersion",
+          "feeTermsAccepted"
+        ],
+        "additionalProperties": false
+      },
+      "TeacherRevisionDiscard": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "expectedApplicationVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "acknowledged": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "expectedApplicationVersion",
+          "acknowledged"
+        ],
+        "additionalProperties": false
       }
     },
     "securitySchemes": {
