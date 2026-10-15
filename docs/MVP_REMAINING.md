@@ -18,6 +18,8 @@ The owner-requested detailed onboarding increment is implemented: private teache
 
 Primary hiring dashboards also support private guardian/teacher review and acceptance of hiring terms without class timetable controls. Waiting/both-confirmed states and write recovery are implemented; service-start/receipt evidence stays separate. H2 enquiry simplification and complete H3 enquiry-to-confirmation navigation remain open.
 
+Guardian draft management now includes an explicit acknowledged discard for unfinished initial/additional enquiries and safe continuation to a different teacher. It preserves submitted records and learner profiles, with stale/uncertain recovery. Broad availability and remaining H2/H3 navigation are still open.
+
 ## Frontend work still open
 
 | # | Work remaining | Backend position |

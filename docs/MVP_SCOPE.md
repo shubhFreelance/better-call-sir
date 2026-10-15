@@ -50,3 +50,6 @@ Owning guardians and teachers can review recorded monthly tuition, policy, propo
 ## Saved additional enquiries
 
 The guardian wizard retains the original onboarding completion and supports a separate private additional-enquiry draft. Successful Continue actions save its criteria; returning resumes the saved learner/school/tuition details after the permission step. Submission creates exactly one enquiry for a retry key and preserves previous submitted requests. Starting another enquiry is an explicit versioned action after completion. Only one unfinished additional draft is supported at a time; a different teacher link preserves that draft and routes the guardian back to it. Broad availability and other H2/H3 simplification remain open.
+
+
+Unfinished initial/additional guardian drafts can now be explicitly discarded after consequence review and acknowledgement. Version and consent checks protect against stale or unauthorized changes. Submitted enquiries, learner profiles and arrangements are preserved. Guardians may keep their draft or clear it to choose again; a conflicting teacher link can continue to that teacher after confirmed discard. This is workflow draft management, separate from a privacy deletion request.

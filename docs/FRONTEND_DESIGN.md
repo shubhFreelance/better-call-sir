@@ -241,3 +241,8 @@ The primary guardian/teacher dashboard now opens a focused white review surface 
 ## Additional enquiry recovery
 
 Use the existing five-step guardian form, white surfaces, cream canvas, teal actions and lavender progress markers. A visible saved-progress notice explains that current-step edits persist on Continue. Initial onboarding stays separate from additional enquiries; an explicit action starts another draft only after the preceding one is submitted. Unknown submissions/restarts retry the same body/key, while version conflicts preserve local edits until explicit reload. A conflicting teacher link offers a route back to the existing saved draft instead of overwriting criteria. No learner data is placed in browser storage.
+
+
+## Explicit draft discard and teacher choice
+
+An unfinished initial/additional enquiry offers a separate review panel before discarding criteria. The lavender surface, teal actions and existing Manrope hierarchy distinguish this temporary-draft decision from account deletion or arrangement cancellation. Consequences explicitly include saved criteria and unsaved form edits; submitted enquiries and learner profiles stay intact. A required acknowledgement precedes the write. The review receives keyboard focus and locks the underlying wizard; cancellation preserves edits. Unknown responses freeze controls and retry the identical body/key; stale versions require reload and renewed acknowledgement. A conflicting teacher link offers the same review and continues to that selected teacher only after a confirmed discard. Navigation uses fixed internal paths.

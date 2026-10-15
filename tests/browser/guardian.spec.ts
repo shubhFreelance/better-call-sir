@@ -465,6 +465,10 @@ async function additionalDraftMock(
             completedResourceId: "40000000-0000-4000-8000-000000000082",
           };
         }
+        if (path.endsWith("/discards")) {
+          expect(body.acknowledged).toBe(true);
+          progress = { ...progress, draft: {}, version: progress.version + 1 };
+        }
         if (path.endsWith("/restarts")) {
           restarts++;
           progress = {
@@ -481,6 +485,7 @@ async function additionalDraftMock(
           (mode === "uncertain" &&
             path.endsWith("/completions") &&
             resources === 1) ||
+          (mode === "discard-unknown" && path.endsWith("/discards")) ||
           (mode === "restart-unknown" &&
             path.endsWith("/restarts") &&
             restarts === 1)
@@ -711,4 +716,164 @@ test("a different teacher link cannot silently replace an active saved enquiry",
     fullPage: true,
     style: "nextjs-portal{display:none!important}",
   });
+});
+
+async function openDiscard(page: import("@playwright/test").Page) {
+  await page
+    .getByRole("button", { name: "Discard draft & choose again", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Discard this unfinished enquiry?",
+      exact: true,
+    }),
+  ).toBeFocused();
+}
+const discardAck = (page: import("@playwright/test").Page) =>
+  page.getByRole("checkbox", {
+    name: "I understand that this unfinished draft and my unsaved edits will be lost.",
+    exact: true,
+  });
+
+test("discard review preserves edits on cancel and clears only the acknowledged draft", async ({
+  page,
+}) => {
+  const state = await additionalDraftMock(page);
+  await page.goto("/onboarding/parent");
+  await additionalLearner(page);
+  await page.getByLabel("Monthly tuition budget (₹)").fill("3800.29");
+  await openDiscard(page);
+  await expect(
+    page.getByRole("button", {
+      name: "Confirm discard & continue",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await expect(page.getByLabel("Monthly tuition budget (₹)")).toBeDisabled();
+  await page.getByRole("button", { name: "Keep draft", exact: true }).click();
+  await expect(page.getByLabel("Monthly tuition budget (₹)")).toHaveValue(
+    "3800.29",
+  );
+  expect(state.writes.filter((w) => w.path.endsWith("/discards"))).toHaveLength(
+    0,
+  );
+  await openDiscard(page);
+  await discardAck(page).check();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page
+    .getByRole("region", { name: "Discard draft review" })
+    .screenshot({ path: "test-results/draft-discard-desktop.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByRole("region", { name: "Discard draft review" })
+    .screenshot({ path: "test-results/draft-discard-mobile.png" });
+  const findings = await new AxeBuilder({ page }).analyze();
+  expect(
+    findings.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page
+    .getByRole("button", { name: "Confirm discard & continue", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/teachers$/);
+  expect(state.getProgress().draft).toEqual({});
+  expect(state.getResources()).toBe(0);
+  const writes = state.writes.filter((w) => w.path.endsWith("/discards"));
+  expect(writes).toHaveLength(1);
+  expect(writes[0].body).toEqual({ expectedVersion: 2, acknowledged: true });
+});
+
+test("uncertain discard freezes editing and reuses the same key and version", async ({
+  page,
+}) => {
+  const state = await additionalDraftMock(page, "discard-unknown");
+  await page.goto("/onboarding/parent");
+  await additionalLearner(page);
+  await openDiscard(page);
+  await discardAck(page).check();
+  await page
+    .getByRole("button", { name: "Confirm discard & continue", exact: true })
+    .click();
+  await expect(page.getByText(/couldn’t confirm the discard/)).toBeVisible();
+  await expect(discardAck(page)).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Keep draft", exact: true }),
+  ).toBeDisabled();
+  await page
+    .getByRole("button", { name: "Retry same discard", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/teachers$/);
+  const writes = state.writes.filter((w) => w.path.endsWith("/discards"));
+  expect(writes).toHaveLength(2);
+  expect(writes[1]).toEqual(writes[0]);
+  expect(state.getProgress().version).toBe(3);
+});
+
+test("stale discard reloads the current version and requires a new acknowledgement", async ({
+  page,
+}) => {
+  const state = await additionalDraftMock(page);
+  await page.goto("/onboarding/parent");
+  await additionalLearner(page);
+  await openDiscard(page);
+  await discardAck(page).check();
+  state.changeRemote();
+  await page
+    .getByRole("button", { name: "Confirm discard & continue", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Reload saved draft", exact: true })
+    .click();
+  await expect(discardAck(page)).not.toBeChecked();
+  await expect(
+    page.getByRole("button", {
+      name: "Confirm discard & continue",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await discardAck(page).check();
+  await page
+    .getByRole("button", { name: "Confirm discard & continue", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/teachers$/);
+  expect(
+    state.writes
+      .filter((w) => w.path.endsWith("/discards"))
+      .map((w) => w.body.expectedVersion),
+  ).toEqual([2, 3]);
+});
+
+test("explicit discard continues to the newly chosen teacher without submitting the old enquiry", async ({
+  page,
+}) => {
+  const state = await additionalDraftMock(page);
+  await page.goto("/onboarding/parent");
+  await additionalLearner(page);
+  await page.goto(
+    "/onboarding/parent?teacher=30000000-0000-4000-8000-000000000001",
+  );
+  await page
+    .getByRole("button", {
+      name: "Discard draft & use this teacher",
+      exact: true,
+    })
+    .click();
+  await discardAck(page).check();
+  await page
+    .getByRole("button", { name: "Confirm discard & continue", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Agree and continue", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Your chosen teacher", { exact: true }),
+  ).toBeVisible();
+  expect(state.getResources()).toBe(0);
+  expect(state.getProgress().draft).toEqual({});
 });

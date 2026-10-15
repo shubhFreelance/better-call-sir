@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import { GuardianDraftDiscard } from "./guardian-draft-discard";
 import {
   ArrowRight,
   Check,
@@ -297,18 +298,18 @@ export function GuardianOnboarding({
       </main>
     );
   if (
-    enquiry.data?.version &&
-    !enquiry.data.completedResourceId &&
-    Object.keys(enquiry.data.draft).length &&
+    initial?.version &&
+    !initial.completedResourceId &&
+    Object.keys(initial.draft).length &&
     params.get("teacher") &&
-    params.get("teacher") !== enquiry.data.draft.preferredTeacherId
+    params.get("teacher") !== initial.draft.preferredTeacherId
   )
     return (
       <main className="container narrow section">
         <h1>A saved enquiry is already in progress.</h1>
         <p>
-          Resume your saved criteria before starting a different teacher
-          enquiry. Your existing draft has been preserved.
+          Your existing draft has been preserved. Resume it, or review an
+          explicit discard before continuing with this teacher.
         </p>
         <Link className="button" href="/onboarding/parent">
           Resume saved enquiry
@@ -316,6 +317,13 @@ export function GuardianOnboarding({
         <Link className="inline-link" href="/teachers">
           Back to teacher search
         </Link>
+        <GuardianDraftDiscard
+          session={session}
+          kind={initial.kind === "ENQUIRY" ? "enquiry" : "parent"}
+          version={initial.version}
+          destination={"/onboarding/parent?" + params.toString()}
+          label="Discard draft & use this teacher"
+        />
       </main>
     );
   if (teacher.data && teacher.data.id !== teacherId)
@@ -372,6 +380,7 @@ function Wizard({
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [draftLocked, setDraftLocked] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState("");
   const [conflict, setConflict] = useState(false);
@@ -802,6 +811,19 @@ function Wizard({
               </AlertDescription>
             </Alert>
           )}
+          {!uncertain &&
+            !busy &&
+            !conflict &&
+            progress.version > 0 &&
+            Object.keys(progress.draft).length > 0 && (
+              <GuardianDraftDiscard
+                key={`${progress.kind}:${progress.version}`}
+                session={session}
+                kind={additional ? "enquiry" : "parent"}
+                version={progress.version}
+                onLockChange={setDraftLocked}
+              />
+            )}
           <form
             noValidate
             onSubmit={(event) => {
@@ -810,7 +832,7 @@ function Wizard({
               else advance();
             }}
           >
-            <fieldset disabled={busy}>
+            <fieldset disabled={busy || draftLocked}>
               {step === 0 && (
                 <div className="wizard-permission">
                   <div className="wizard-verified">
@@ -1276,7 +1298,7 @@ function Wizard({
                   type="button"
                   variant="outline"
                   className="button secondary"
-                  disabled={busy || uncertain}
+                  disabled={busy || uncertain || draftLocked}
                   onClick={() => {
                     setStep((v) => v - 1);
                     setServerError("");
@@ -1289,7 +1311,7 @@ function Wizard({
               <Button
                 className="button"
                 type="submit"
-                disabled={busy || conflict}
+                disabled={busy || conflict || draftLocked}
               >
                 {busy ? (
                   <>

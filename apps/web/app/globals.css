@@ -4810,3 +4810,5 @@ footer {
 .hiring-terms-review{margin-top:24px;background:var(--white);max-width:760px}.hiring-terms-review h3{color:var(--primary);font-size:26px;margin-top:0}.hiring-terms-review .hiring-next{background:var(--green)}.hiring-terms-review form{display:flex;flex-direction:column;align-items:flex-start;gap:20px;margin:24px 0}.hiring-terms-review .care-ack{max-width:62ch}.hiring-terms-review .action-row{margin-top:20px}
 
 .hiring-terms-review input[type="checkbox"]{accent-color:var(--primary)}
+
+.guardian-draft-discard{padding:24px;margin:20px 0;border-radius:16px;background:var(--green);color:var(--ink)}.guardian-draft-discard h3{font-size:22px;line-height:1.3;margin:0 0 16px;color:var(--primary)}.guardian-draft-discard p{max-width:65ch;line-height:1.6}.guardian-draft-discard .care-ack{margin:20px 0;display:flex;align-items:flex-start;gap:10px}.guardian-draft-discard input{accent-color:var(--primary);margin-top:6px;flex-shrink:0}.guardian-draft-discard .wizard-actions{flex-wrap:wrap;gap:12px}@media(max-width:640px){.guardian-draft-discard{padding:20px}}
