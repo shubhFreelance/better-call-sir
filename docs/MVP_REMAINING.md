@@ -4,7 +4,7 @@ Reviewed against the owner's Version 3 PRD, the delivery board and implementatio
 
 ## Current owner-directed scope
 
-The owner narrowed the next MVP on 14 October 2026 to teacher discovery, enquiries and hiring. [Current scope and priorities](MVP_SCOPE.md) supersede the original class-management launch requirements. H1 discovery/profile emphasis and H4 dashboards focused on hiring are implemented in development. Next is H2 simplified enquiries/onboarding, then H3 mutually confirmed hiring without mandatory class-management steps. Individual class booking, timetables, attendance/lesson feedback and related provider qualification move to later scale. Existing implementations and their limits remain recorded below. Authentication, consent, teacher screening, privacy, support and applicable security/release requirements still apply.
+The owner narrowed the next MVP on 14 October 2026 to teacher discovery, enquiries and hiring. [Current scope and priorities](MVP_SCOPE.md) supersede the original class-management launch requirements. H1 discovery/profile emphasis and H4 dashboards focused on hiring are implemented in development. Guardian enquiry drafts, weekly availability and dashboard hiring-term confirmation are implemented. Remaining H2/H3 work covers other onboarding recovery and complete enquiry-to-confirmation navigation. Individual class booking, timetables, attendance/lesson feedback and related provider qualification move to later scale. Existing implementations and their limits remain recorded below. Authentication, consent, teacher screening, privacy, support and applicable security/release requirements still apply.
 
 The inventory below preserves the broader backlog; it is not an instruction to complete every class-management item before the focused hiring MVP. F22–F25/B12 are reprioritized by relevance to the current journey; class-specific finance/Meet items are deferred unless separately required by an approved hiring payment flow.
 
@@ -18,7 +18,9 @@ The owner-requested detailed onboarding increment is implemented: private teache
 
 Primary hiring dashboards also support private guardian/teacher review and acceptance of hiring terms without class timetable controls. Waiting/both-confirmed states and write recovery are implemented; service-start/receipt evidence stays separate. H2 enquiry simplification and complete H3 enquiry-to-confirmation navigation remain open.
 
-Guardian draft management now includes an explicit acknowledged discard for unfinished initial/additional enquiries and safe continuation to a different teacher. It preserves submitted records and learner profiles, with stale/uncertain recovery. Broad availability and remaining H2/H3 navigation are still open.
+Guardian draft management now includes an explicit acknowledged discard for unfinished initial/additional enquiries and safe continuation to a different teacher. It preserves submitted records and learner profiles, with stale/uncertain recovery. Weekly availability is now implemented; remaining H2/H3 recovery/navigation stays open.
+
+Weekly enquiry availability is implemented across intake, draft recovery, family updates and operator summaries. New enquiries default to weekday/time ranges; legacy dated windows remain supported. Current overlap matching retains leave/reservation/capacity checks without class creation. Teacher-revision drafts and other recovery/navigation work remain open.
 
 ## Frontend work still open
 
@@ -29,7 +31,7 @@ Guardian draft management now includes an explicit acknowledged discard for unfi
 | F24 | Full English/Hindi localization: all forms, notices, validation, dashboard/console copy and typography | Existing language toggle covers only part of the product. |
 | F25 | Finish remaining legacy screens/components and demo booking-detail forms using the shared shadcn controls and deliberate palette; review every loading/error/empty/retry state on mobile and keyboard | Incremental migration is underway. Initial demo controls and service/console screens are not all at the new standard. |
 
-The next practical sprint is H2 enquiry/onboarding simplification and recovery under the current scope, followed by H3 hiring confirmation and dependency separation. F9 checkout/provider qualification is tracked below rather than described as live-ready.
+The next practical sprint is remaining teacher/student/invitation recovery and H3 navigation under the current hiring scope. F9 checkout/provider qualification is tracked below rather than described as live-ready.
 
 ## Backend implementation and contract gaps
 

@@ -66,6 +66,9 @@ test("real draft resumes privately, validates money and schedules, and preserves
   await page.getByLabel("Monthly tuition budget (₹)").fill("500.29");
   await page.getByRole("button", { name: "Continue to schedule" }).click();
   await page
+    .getByRole("radio", { name: "Specific dates (optional)", exact: true })
+    .check();
+  await page
     .getByLabel("Preferred start time 1 (IST)", { exact: true })
     .fill("");
   await page.getByRole("button", { name: "Review request" }).click();
@@ -876,4 +879,106 @@ test("explicit discard continues to the newly chosen teacher without submitting 
   ).toBeVisible();
   expect(state.getResources()).toBe(0);
   expect(state.getProgress().draft).toEqual({});
+});
+
+test("weekly enquiry preferences save, resume and review without choosing class dates", async ({
+  page,
+}) => {
+  const state = await additionalDraftMock(page);
+  await page.goto("/onboarding/parent");
+  await additionalLearner(page);
+  await page
+    .getByRole("button", { name: "Continue to schedule", exact: true })
+    .click();
+  await expect(
+    page.getByRole("radio", { name: "Weekly preferences", exact: true }),
+  ).toBeChecked();
+  await expect(page.locator('input[type="datetime-local"]')).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Review request", exact: true })
+    .click();
+  await expect(
+    page.getByText(/Choose a weekday and nonoverlapping time ranges/),
+  ).toBeVisible();
+  await page.getByLabel("Preferred day 1", { exact: true }).selectOption("1");
+  await page
+    .getByLabel("Available from 1 (IST)", { exact: true })
+    .fill("16:00");
+  await page
+    .getByLabel("Available until 1 (IST)", { exact: true })
+    .fill("20:00");
+  await page
+    .getByRole("button", { name: "Add another day/time range", exact: true })
+    .click();
+  await page.getByLabel("Preferred day 2", { exact: true }).selectOption("1");
+  await page
+    .getByRole("button", { name: "Review request", exact: true })
+    .click();
+  await expect(
+    page.getByText(/Choose a weekday and nonoverlapping time ranges/),
+  ).toBeVisible();
+  await page.getByLabel("Preferred day 2", { exact: true }).selectOption("3");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({
+    path: "test-results/weekly-enquiry-desktop.png",
+    fullPage: true,
+    style: "nextjs-portal{display:none!important}",
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "test-results/weekly-enquiry-mobile.png",
+    fullPage: true,
+    style: "nextjs-portal{display:none!important}",
+  });
+  const findings = await new AxeBuilder({ page }).analyze();
+  expect(
+    findings.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page
+    .getByRole("button", { name: "Review request", exact: true })
+    .click();
+  await expect(
+    page.getByText("Monday · 16:00–20:00 IST", { exact: true }),
+  ).toBeVisible();
+  expect(state.getProgress().draft.preferences).toEqual({
+    timezone: "Asia/Kolkata",
+    weekly: [
+      { weekday: 1, startMinute: 960, endMinute: 1200 },
+      { weekday: 3, startMinute: 960, endMinute: 1200 },
+    ],
+  });
+  await page.reload();
+  await beginGuardian(page);
+  await page
+    .getByRole("button", { name: "Continue to tuition needs", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Continue to schedule", exact: true })
+    .click();
+  await expect(page.getByLabel("Preferred day 2", { exact: true })).toHaveValue(
+    "3",
+  );
+  await expect(
+    page.getByRole("radio", { name: "Weekly preferences", exact: true }),
+  ).toBeChecked();
+  await page
+    .getByRole("button", { name: "Review request", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Submit tuition request", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Your tuition request is saved.",
+      exact: true,
+    }),
+  ).toBeVisible();
+  expect(state.getResources()).toBe(1);
 });

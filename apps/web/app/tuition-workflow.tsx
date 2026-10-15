@@ -1,4 +1,12 @@
 "use client";
+import {
+  WeeklyAvailability,
+  WeeklySummary,
+  AvailabilityMode,
+  weeklyPreferences,
+  weeklyRows,
+  emptyWeekly,
+} from "./weekly-availability";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -300,6 +308,8 @@ function RequestReview({
     } | null>(null),
     [agreed, setAgreed] = useState(false),
     [scheduleOpen, setScheduleOpen] = useState(false);
+  const [weeklyMode, setWeeklyMode] = useState(true),
+    [weekly, setWeekly] = useState(emptyWeekly);
   const [windows, setWindows] = useState<PreferenceWindow[]>([
     { start: "", duration: "60" },
   ]);
@@ -464,10 +474,14 @@ function RequestReview({
     });
   }
   async function saveWindows() {
-    const preferences = buildPreferences(windows);
+    const preferences = weeklyMode
+      ? weeklyPreferences(weekly)
+      : buildPreferences(windows);
     if (!preferences || !agreed) {
       decision.invalid(
-        "Confirm nonoverlapping 20–120 minute windows, at least one hour ahead and within 60 days, and acknowledge the shortlist reset.",
+        weeklyMode
+          ? "Confirm valid nonoverlapping weekly time ranges and acknowledge the shortlist reset."
+          : "Confirm nonoverlapping 20–120 minute windows, at least one hour ahead and within 60 days, and acknowledge the shortlist reset.",
       );
       return;
     }
@@ -520,7 +534,10 @@ function RequestReview({
       </dl>
       <p>{request.schedule}</p>
       <h3>Your availability preferences</h3>
-      {request.schedulePreferences?.slots.length ? (
+      {request.schedulePreferences &&
+      "weekly" in request.schedulePreferences ? (
+        <WeeklySummary preferences={request.schedulePreferences} />
+      ) : request.schedulePreferences?.slots.length ? (
         <ul className="tuition-windows">
           {request.schedulePreferences.slots.map((w) => (
             <li key={w.startsAt}>
@@ -543,11 +560,25 @@ function RequestReview({
           variant="outline"
           disabled={blocked}
           onClick={() => {
+            setWeeklyMode(
+              !request.schedulePreferences ||
+                "weekly" in request.schedulePreferences,
+            );
+            setWeekly(
+              request.schedulePreferences &&
+                "weekly" in request.schedulePreferences
+                ? weeklyRows(request.schedulePreferences)
+                : emptyWeekly(),
+            );
             setScheduleOpen(true);
             setForm(null);
             setAgreed(false);
             setWindows(
-              request.schedulePreferences?.slots.map((w) => ({
+              (request.schedulePreferences &&
+              "slots" in request.schedulePreferences
+                ? request.schedulePreferences.slots
+                : undefined
+              )?.map((w) => ({
                 start: localTime(w.startsAt),
                 duration: String(
                   (new Date(w.endsAt).getTime() -
@@ -577,71 +608,90 @@ function RequestReview({
             teacher choice. Existing demo reservations are not cancelled.
           </p>
           <fieldset disabled={blocked} className="wizard-fields">
-            {windows.map((w, i) => (
-              <div className="tuition-window" key={i}>
-                <div className="field">
-                  <label htmlFor={`request-window-${i}`}>
-                    Preferred start {i + 1} (IST)
-                  </label>
-                  <Input
-                    id={`request-window-${i}`}
-                    type="datetime-local"
-                    value={w.start}
-                    onChange={(e) =>
-                      setWindows((v) =>
-                        v.map((x, j) =>
-                          j === i ? { ...x, start: e.target.value } : x,
-                        ),
-                      )
-                    }
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor={`request-duration-${i}`}>
-                    Window duration {i + 1}
-                  </label>
-                  <select
-                    id={`request-duration-${i}`}
-                    value={w.duration}
-                    onChange={(e) =>
-                      setWindows((v) =>
-                        v.map((x, j) =>
-                          j === i ? { ...x, duration: e.target.value } : x,
-                        ),
-                      )
-                    }
-                  >
-                    {[20, 30, 40, 60, 90, 120].map((n) => (
-                      <option key={n} value={n}>
-                        {n} minutes
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {windows.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    type="button"
-                    onClick={() =>
-                      setWindows((v) => v.filter((_, j) => j !== i))
-                    }
-                    aria-label={`Remove availability window ${i + 1}`}
-                  >
-                    Remove
-                  </Button>
-                )}
-              </div>
-            ))}
-            <Button
-              variant="outline"
-              type="button"
-              disabled={windows.length >= 6}
-              onClick={() =>
-                setWindows((v) => [...v, { start: "", duration: "60" }])
-              }
-            >
-              Add availability window
-            </Button>
+            <AvailabilityMode
+              weekly={weeklyMode}
+              onChange={(v) => {
+                setWeeklyMode(v);
+                setAgreed(false);
+              }}
+            />
+            {weeklyMode ? (
+              <WeeklyAvailability
+                rows={weekly}
+                onChange={(v) => {
+                  setWeekly(v);
+                  setAgreed(false);
+                }}
+              />
+            ) : (
+              <>
+                {windows.map((w, i) => (
+                  <div className="tuition-window" key={i}>
+                    <div className="field">
+                      <label htmlFor={`request-window-${i}`}>
+                        Preferred start {i + 1} (IST)
+                      </label>
+                      <Input
+                        id={`request-window-${i}`}
+                        type="datetime-local"
+                        value={w.start}
+                        onChange={(e) =>
+                          setWindows((v) =>
+                            v.map((x, j) =>
+                              j === i ? { ...x, start: e.target.value } : x,
+                            ),
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor={`request-duration-${i}`}>
+                        Window duration {i + 1}
+                      </label>
+                      <select
+                        id={`request-duration-${i}`}
+                        value={w.duration}
+                        onChange={(e) =>
+                          setWindows((v) =>
+                            v.map((x, j) =>
+                              j === i ? { ...x, duration: e.target.value } : x,
+                            ),
+                          )
+                        }
+                      >
+                        {[20, 30, 40, 60, 90, 120].map((n) => (
+                          <option key={n} value={n}>
+                            {n} minutes
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {windows.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        type="button"
+                        onClick={() =>
+                          setWindows((v) => v.filter((_, j) => j !== i))
+                        }
+                        aria-label={`Remove availability window ${i + 1}`}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  type="button"
+                  disabled={windows.length >= 6}
+                  onClick={() =>
+                    setWindows((v) => [...v, { start: "", duration: "60" }])
+                  }
+                >
+                  Add availability window
+                </Button>
+              </>
+            )}
             <label className="wizard-checkbox">
               <input
                 type="checkbox"

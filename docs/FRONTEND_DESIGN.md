@@ -246,3 +246,8 @@ Use the existing five-step guardian form, white surfaces, cream canvas, teal act
 ## Explicit draft discard and teacher choice
 
 An unfinished initial/additional enquiry offers a separate review panel before discarding criteria. The lavender surface, teal actions and existing Manrope hierarchy distinguish this temporary-draft decision from account deletion or arrangement cancellation. Consequences explicitly include saved criteria and unsaved form edits; submitted enquiries and learner profiles stay intact. A required acknowledgement precedes the write. The review receives keyboard focus and locks the underlying wizard; cancellation preserves edits. Unknown responses freeze controls and retry the identical body/key; stale versions require reload and renewed acknowledgement. A conflicting teacher link offers the same review and continues to that selected teacher only after a confirmed discard. Navigation uses fixed internal paths.
+
+
+## Broad enquiry availability
+
+New enquiries default to weekly preferences: explicit weekdays and broad from/until times in IST, with no lesson date or duration. The lavender mode selector offers optional specific dates; existing dated drafts retain that mode. The shared weekly editor/summary is used in guardian intake and family preference updates, and operator review displays the same criteria. Ranges validate before review/save; duplicate or overlapping weekday ranges fail. Midnight end times mean the end of the selected day. Saved drafts retain their original format. Changes to an existing enquiry still require acknowledgement of shortlist/choice invalidation. These are family preferences and current overlap evidence, never a confirmed class timetable.

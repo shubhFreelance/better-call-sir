@@ -4,6 +4,15 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import {
+  WeeklyAvailability,
+  WeeklySummary,
+  AvailabilityMode,
+  weeklyPreferences,
+  weeklyRows,
+  emptyWeekly,
+  type Weekly,
+} from "./weekly-availability";
 import { GuardianDraftDiscard } from "./guardian-draft-discard";
 import {
   ArrowRight,
@@ -47,7 +56,7 @@ type Draft = {
   locality: string;
   budgetPaise: number;
   schedule: string;
-  preferences?: Preferences;
+  preferences?: Preferences | Weekly;
 };
 type Progress = {
   kind: string;
@@ -408,7 +417,10 @@ function Wizard({
   const [values, setValues] = useState<Values>(initialValues);
   const [windows, setWindows] = useState<Window[]>(
     () =>
-      initial.draft.preferences?.slots.map((s) => ({
+      (initial.draft.preferences && "slots" in initial.draft.preferences
+        ? initial.draft.preferences.slots
+        : undefined
+      )?.map((s) => ({
         start: localTime(s.startsAt),
         duration: String(
           (new Date(s.endsAt).getTime() - new Date(s.startsAt).getTime()) /
@@ -416,6 +428,16 @@ function Wizard({
         ),
       })) || [{ start: "", duration: "40" }],
   );
+  const [weeklyMode, setWeeklyMode] = useState(
+    !initial.draft.preferences || "weekly" in initial.draft.preferences,
+  );
+  const [weekly, setWeekly] = useState(() =>
+    initial.draft.preferences && "weekly" in initial.draft.preferences
+      ? weeklyRows(initial.draft.preferences)
+      : emptyWeekly(),
+  );
+  const currentPreferences = () =>
+    weeklyMode ? weeklyPreferences(weekly) : preferences(windows);
   const children = useQuery({
     queryKey: ["children", session.account.id],
     queryFn: () => api<{ items: Child[] }>("/children"),
@@ -443,7 +465,7 @@ function Wizard({
     });
   }
   function payload(): Draft {
-    const times = preferences(windows);
+    const times = currentPreferences();
     return {
       discoveryMethod: teacherId ? "MANUAL" : "ASSISTED",
       ...(teacherId ? { preferredTeacherId: teacherId } : {}),
@@ -469,7 +491,7 @@ function Wizard({
       budgetPaise: Math.round(Number(values.budget) * 100),
       schedule:
         values.schedule.trim() ||
-        `${windows.length} preferred availability windows in Asia/Kolkata.`,
+        `${weeklyMode ? weekly.length : windows.length} ${weeklyMode ? "weekly availability ranges" : "dated availability windows"} in Asia/Kolkata.`,
       ...(times ? { preferences: times } : {}),
     };
   }
@@ -499,11 +521,12 @@ function Wizard({
     }
     if (
       (step === 3 || step === 4) &&
-      (!preferences(windows) || values.schedule.trim().length > 300)
+      (!currentPreferences() || values.schedule.trim().length > 300)
     ) {
       setErrors({
-        schedule:
-          "Choose nonoverlapping 20–120 minute windows, at least one hour ahead and within 60 days. Notes must be 300 characters or fewer.",
+        schedule: weeklyMode
+          ? "Choose a weekday and nonoverlapping time ranges of at least 20 minutes. End times must be later on the same day."
+          : "Choose nonoverlapping 20–120 minute windows, at least one hour ahead and within 60 days. Notes must be 300 characters or fewer.",
       });
       return false;
     }
@@ -536,7 +559,7 @@ function Wizard({
       {
         const draft = payload() as Partial<Draft>;
         if (!draft.alias) delete draft.alias;
-        if (!preferences(windows)) delete draft.preferences;
+        if (!currentPreferences()) delete draft.preferences;
         if (!values.schedule.trim() && !draft.preferences)
           delete draft.schedule;
         const result = await post<Progress>(draftPath + "/drafts", {
@@ -689,6 +712,8 @@ function Wizard({
                 schedule: "",
               });
               setWindows([{ start: "", duration: "40" }]);
+              setWeeklyMode(true);
+              setWeekly(emptyWeekly());
               setAccepted(false);
               setStep(0);
               setServerError("");
@@ -1118,90 +1143,120 @@ function Wizard({
               )}
               {step === 3 && (
                 <div className="wizard-fields">
-                  <p>
-                    All times are in India Standard Time (Asia/Kolkata). Add up
-                    to six preferred availability windows, at least one hour
-                    ahead and within the next 60 days.
-                  </p>
-                  {windows.map((window, i) => (
-                    <div className="wizard-window" key={i}>
-                      <Field
-                        id={`window-${i}`}
-                        label={`Preferred start time ${i + 1} (IST)`}
-                      >
-                        <Input
-                          id={`window-${i}`}
-                          type="datetime-local"
-                          value={window.start}
-                          onChange={(e) => {
-                            setWindows((old) =>
-                              old.map((w, n) =>
-                                n === i ? { ...w, start: e.target.value } : w,
-                              ),
-                            );
-                            setSaved(false);
-                          }}
-                        />
-                      </Field>
-                      <Field
-                        id={`duration-${i}`}
-                        label={`Window length ${i + 1}`}
-                      >
-                        <select
-                          id={`duration-${i}`}
-                          value={window.duration}
-                          onChange={(e) => {
-                            setWindows((old) =>
-                              old.map((w, n) =>
-                                n === i
-                                  ? { ...w, duration: e.target.value }
-                                  : w,
-                              ),
-                            );
-                            setSaved(false);
-                          }}
-                        >
-                          {[20, 30, 40, 60, 90, 120].map((n) => (
-                            <option value={n} key={n}>
-                              {n} minutes
-                            </option>
-                          ))}
-                        </select>
-                      </Field>
-                      {windows.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          aria-label={`Remove availability window ${i + 1}`}
-                          onClick={() => {
-                            setWindows((old) => old.filter((_, n) => n !== i));
-                            setSaved(false);
-                          }}
-                        >
-                          <X size={18} />
-                        </Button>
+                  <AvailabilityMode
+                    weekly={weeklyMode}
+                    onChange={(v) => {
+                      setWeeklyMode(v);
+                      setSaved(false);
+                      setErrors({});
+                    }}
+                  />
+                  {weeklyMode ? (
+                    <WeeklyAvailability
+                      rows={weekly}
+                      onChange={(v) => {
+                        setWeekly(v);
+                        setSaved(false);
+                        setErrors({});
+                      }}
+                    />
+                  ) : (
+                    <>
+                      <p>
+                        All times are in India Standard Time (Asia/Kolkata). Add
+                        up to six preferred availability windows, at least one
+                        hour ahead and within the next 60 days.
+                      </p>
+                      {windows.map((window, i) => (
+                        <div className="wizard-window" key={i}>
+                          <Field
+                            id={`window-${i}`}
+                            label={`Preferred start time ${i + 1} (IST)`}
+                          >
+                            <Input
+                              id={`window-${i}`}
+                              type="datetime-local"
+                              value={window.start}
+                              onChange={(e) => {
+                                setWindows((old) =>
+                                  old.map((w, n) =>
+                                    n === i
+                                      ? { ...w, start: e.target.value }
+                                      : w,
+                                  ),
+                                );
+                                setSaved(false);
+                              }}
+                            />
+                          </Field>
+                          <Field
+                            id={`duration-${i}`}
+                            label={`Window length ${i + 1}`}
+                          >
+                            <select
+                              id={`duration-${i}`}
+                              value={window.duration}
+                              onChange={(e) => {
+                                setWindows((old) =>
+                                  old.map((w, n) =>
+                                    n === i
+                                      ? { ...w, duration: e.target.value }
+                                      : w,
+                                  ),
+                                );
+                                setSaved(false);
+                              }}
+                            >
+                              {[20, 30, 40, 60, 90, 120].map((n) => (
+                                <option value={n} key={n}>
+                                  {n} minutes
+                                </option>
+                              ))}
+                            </select>
+                          </Field>
+                          {windows.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              aria-label={`Remove availability window ${i + 1}`}
+                              onClick={() => {
+                                setWindows((old) =>
+                                  old.filter((_, n) => n !== i),
+                                );
+                                setSaved(false);
+                              }}
+                            >
+                              <X size={18} />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      {errors.schedule && (
+                        <p role="alert" className="auth-field-error">
+                          {errors.schedule}
+                        </p>
                       )}
-                    </div>
-                  ))}
-                  {errors.schedule && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={windows.length >= 6}
+                        onClick={() => {
+                          setWindows((old) => [
+                            ...old,
+                            { start: "", duration: "40" },
+                          ]);
+                          setSaved(false);
+                        }}
+                      >
+                        <Plus size={17} /> Add another window
+                      </Button>
+                    </>
+                  )}
+                  {weeklyMode && errors.schedule && (
                     <p role="alert" className="auth-field-error">
                       {errors.schedule}
                     </p>
                   )}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={windows.length >= 6}
-                    onClick={() => {
-                      setWindows((old) => [
-                        ...old,
-                        { start: "", duration: "40" },
-                      ]);
-                      setSaved(false);
-                    }}
-                  >
-                    <Plus size={17} /> Add another window
-                  </Button>
                   <Field
                     id="schedule"
                     label="Schedule notes (optional)"
@@ -1262,11 +1317,18 @@ function Wizard({
                   <div className="wizard-review-row">
                     <div>
                       <h3>Preferred availability · IST</h3>
-                      {preferences(windows)?.slots.map((s) => (
-                        <p key={s.startsAt}>
-                          {formatTime(s.startsAt)} – {formatTime(s.endsAt)}
-                        </p>
-                      ))}
+                      {weeklyMode && weeklyPreferences(weekly) && (
+                        <WeeklySummary
+                          preferences={weeklyPreferences(weekly)!}
+                        />
+                      )}
+
+                      {!weeklyMode &&
+                        preferences(windows)?.slots.map((s) => (
+                          <p key={s.startsAt}>
+                            {formatTime(s.startsAt)} – {formatTime(s.endsAt)}
+                          </p>
+                        ))}
                       {values.schedule && <p>{values.schedule}</p>}
                     </div>
                     <Button

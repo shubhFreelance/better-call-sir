@@ -32,7 +32,7 @@ If payments are introduced for hiring, their particular checkout, refunds and se
 
 ## Delivery and evidence
 
-Continue with separate tested backend/frontend commits and pushes. Active phase remains frontend development; this scope change is not phase acceptance, a production release, or approval to merge/deploy. Original PRD and sprint history are preserved as the broader reference. H1 discovery/profile emphasis and H4 hiring dashboards are implemented in development. Next is H2 simplified enquiry/onboarding, followed by H3 review and separation of mandatory demo/timetable dependencies from hiring confirmation. Existing read-only arrangement progress does not complete that separation.
+Continue with separate tested backend/frontend commits and pushes. Active phase remains frontend development; this scope change is not phase acceptance, a production release, or approval to merge/deploy. Original PRD and sprint history are preserved as the broader reference. H1 discovery/profile emphasis and H4 hiring dashboards are implemented in development. Guardian draft recovery/discard, weekly availability and dashboard hiring-term confirmation are implemented. Next is remaining teacher/student/invitation recovery and complete H3 enquiry-to-confirmation navigation. Legacy service-start evidence stays separate from hiring-term acceptance.
 
 
 ## Complete but manageable onboarding
@@ -49,7 +49,12 @@ Owning guardians and teachers can review recorded monthly tuition, policy, propo
 
 ## Saved additional enquiries
 
-The guardian wizard retains the original onboarding completion and supports a separate private additional-enquiry draft. Successful Continue actions save its criteria; returning resumes the saved learner/school/tuition details after the permission step. Submission creates exactly one enquiry for a retry key and preserves previous submitted requests. Starting another enquiry is an explicit versioned action after completion. Only one unfinished additional draft is supported at a time; a different teacher link preserves that draft and routes the guardian back to it. Broad availability and other H2/H3 simplification remain open.
+The guardian wizard retains the original onboarding completion and supports a separate private additional-enquiry draft. Successful Continue actions save its criteria; returning resumes the saved learner/school/tuition details after the permission step. Submission creates exactly one enquiry for a retry key and preserves previous submitted requests. Starting another enquiry is an explicit versioned action after completion. Only one unfinished additional draft is supported at a time; a different teacher link preserves that draft and routes the guardian back to it. Weekly availability is implemented; other H2/H3 recovery/navigation remains open.
 
 
 Unfinished initial/additional guardian drafts can now be explicitly discarded after consequence review and acknowledgement. Version and consent checks protect against stale or unauthorized changes. Submitted enquiries, learner profiles and arrangements are preserved. Guardians may keep their draft or clear it to choose again; a conflicting teacher link can continue to that teacher after confirmed discard. This is workflow draft management, separate from a privacy deletion request.
+
+
+## Weekly availability for enquiries
+
+Families can provide weekly IST weekday/time ranges instead of planning individual classes. The API also retains existing dated preferences. Matching checks approved/current teacher coverage, account, travel and capacity, then finds a real free overlap against current patterns, leave and held/confirmed reservations within 60 days. A minimum 20-minute overlap is initial fit evidence only: the family has not agreed lesson duration, dates or a timetable. Preferences are rechecked when matching/choosing; no lesson/reservation is created by saving them. Guardian drafts, family edits and operator summaries preserve weekly intent. Remaining H2 work concerns other recovery/navigation gaps rather than requiring class planning.

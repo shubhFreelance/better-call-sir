@@ -49,6 +49,11 @@ async function mock(page: Page, mode = "normal", role = "OPERATOR") {
     matchStatus: "MATCHED",
     selectedCandidateId: null,
   };
+  if (mode === "weekly")
+    r.schedulePreferences = {
+      timezone: "Asia/Kolkata",
+      weekly: [{ weekday: 1, startMinute: 960, endMinute: 1200 }],
+    };
   let items: any[] = [candidate, second].map((id, i) => ({
     id,
     requestId: request,
@@ -395,19 +400,15 @@ test("mobile order controls and review are accessible with no overflow", async (
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page
-    .locator(".care-workspace")
-    .screenshot({
-      path: "test-results/matching-mobile.png",
-      style: "nextjs-portal{display:none!important}",
-    });
+  await page.locator(".care-workspace").screenshot({
+    path: "test-results/matching-mobile.png",
+    style: "nextjs-portal{display:none!important}",
+  });
   await page.setViewportSize({ width: 1440, height: 1100 });
-  await page
-    .locator(".care-workspace")
-    .screenshot({
-      path: "test-results/matching-desktop.png",
-      style: "nextjs-portal{display:none!important}",
-    });
+  await page.locator(".care-workspace").screenshot({
+    path: "test-results/matching-desktop.png",
+    style: "nextjs-portal{display:none!important}",
+  });
 });
 test("real MFA staff reloads an unpublished manual shortlist and publishes it", async ({
   page,
@@ -559,4 +560,17 @@ test("real MFA staff reloads an unpublished manual shortlist and publishes it", 
       });
     await db.$disconnect();
   }
+});
+
+test("operator review displays weekly family criteria without claiming a confirmed class timetable", async ({
+  page,
+}) => {
+  await mock(page, "weekly");
+  await page.goto("/dashboard/matching");
+  await expect(
+    page.getByText("Monday · 16:00–20:00 IST", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/available capacity and a current availability overlap/),
+  ).toBeVisible();
 });

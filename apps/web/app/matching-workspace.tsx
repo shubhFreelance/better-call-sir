@@ -1,4 +1,5 @@
 "use client";
+import { WeeklySummary } from "./weekly-availability";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -329,7 +330,7 @@ function MatchRequest({
           <p>
             Current screening and fee acceptance; learner class/board;
             subject/language/format; budget; home travel/locality where
-            relevant; available capacity and confirmed future schedule.
+            relevant; available capacity and a current availability overlap.
             Replacement requests exclude the previous teacher. These
             requirements cannot be overridden.
           </p>
@@ -339,11 +340,16 @@ function MatchRequest({
               ? "Confirmed preferences"
               : "Needs confirmation"}
           </p>
-          {request.schedulePreferences?.slots.map((s, i) => (
-            <p key={i}>
-              {when(s.startsAt)}–{when(s.endsAt)} IST
-            </p>
-          ))}
+          {request.schedulePreferences &&
+          "weekly" in request.schedulePreferences ? (
+            <WeeklySummary preferences={request.schedulePreferences} />
+          ) : (
+            request.schedulePreferences?.slots.map((s, i) => (
+              <p key={i}>
+                {when(s.startsAt)}–{when(s.endsAt)} IST
+              </p>
+            ))
+          )}
         </section>
       )}
       <div className="care-actions">

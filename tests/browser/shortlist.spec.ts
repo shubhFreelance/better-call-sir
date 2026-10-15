@@ -16,6 +16,7 @@ async function mock(
   page: Page,
   mode:
     | "normal"
+    | "weekly"
     | "uncertain"
     | "stale"
     | "terms"
@@ -95,6 +96,11 @@ async function mock(
       ? []
       : [candidate],
   };
+  if (mode === "weekly")
+    request.schedulePreferences = {
+      timezone: "Asia/Kolkata",
+      weekly: [{ weekday: 1, startMinute: 960, endMinute: 1200 }],
+    };
   let p: any =
     mode === "terms" || mode === "uncertain-terms"
       ? {
@@ -341,10 +347,14 @@ async function mock(
       const body = req.postDataJSON();
       expect(body.expectedVersion).toBe(request.version);
       expect(body.timezone).toBe("Asia/Kolkata");
+      expect(validator("RequestScheduleInput")(body)).toBe(true);
       request = {
         ...request,
         version: request.version + 1,
-        schedulePreferences: { timezone: body.timezone, slots: body.slots },
+        schedulePreferences:
+          "weekly" in body
+            ? { timezone: body.timezone, weekly: body.weekly }
+            : { timezone: body.timezone, slots: body.slots },
         scheduleStatus: "CONFIRMED",
         matchStatus: "PENDING",
         selectedCandidateId: null,
@@ -704,4 +714,40 @@ test("an accepted teacher can open terms without a demo", async ({ page }) => {
     state.paths.filter((p) => p === "POST /api/v1/placements"),
   ).toHaveLength(1);
   expect(state.paths.filter((p) => p === "POST /api/v1/demos")).toHaveLength(0);
+});
+
+test("family reads and updates weekly availability without changing to dated class windows", async ({
+  page,
+}) => {
+  const state = await mock(page, "weekly");
+  await page.goto("/dashboard/requests");
+  await expect(
+    page.getByText("Monday · 16:00–20:00 IST", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", {
+      name: "Update availability preferences",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("radio", { name: "Weekly preferences", exact: true }),
+  ).toBeChecked();
+  await expect(page.locator('input[type="datetime-local"]')).toHaveCount(0);
+  await page.getByLabel("Preferred day 1", { exact: true }).selectOption("3");
+  await page
+    .getByRole("checkbox", {
+      name: /reviewed shortlist and teacher choice will be reset/,
+    })
+    .check();
+  await page
+    .getByRole("button", { name: "Save availability preferences", exact: true })
+    .click();
+  await expect(
+    page.getByText("Wednesday · 16:00–20:00 IST", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("[data-candidate-id]")).toHaveCount(0);
+  expect(
+    state.paths.filter((p) => p.endsWith("/schedules") && p.startsWith("POST")),
+  ).toHaveLength(1);
 });

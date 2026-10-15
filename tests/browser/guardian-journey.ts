@@ -30,6 +30,9 @@ export async function reviewGuardian(
   notes = "Tuesday and Thursday after 5pm",
 ) {
   await page.getByRole("button", { name: "Continue to schedule" }).click();
+  await page
+    .getByRole("radio", { name: "Specific dates (optional)", exact: true })
+    .check();
   const local = new Date(Date.now() + 2 * 86400000 + 330 * 60000)
     .toISOString()
     .slice(0, 16);
