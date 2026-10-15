@@ -45,3 +45,8 @@ Guardian-authorized learner onboarding collects school, class/board and all subj
 ## Hiring-term confirmation in dashboards
 
 Owning guardians and teachers can review recorded monthly tuition, policy, proposed teacher placement fee and each party’s acceptance directly in the hiring dashboard. Both recorded acceptances show “Hiring terms confirmed”; this is independent of the persisted class-start lifecycle and does not imply a lesson, payment or verified service start. The “Awaiting tuition start” count retains the existing TERMS_PENDING lifecycle denominator, including mutually accepted terms awaiting later start evidence. Students see scoped progress without money, policy/write metadata or acceptance controls. Stale details require refresh and a new acknowledgement; uncertain responses retry the same body/key. No new class schedule, invoice or live provider action is created by this review.
+
+
+## Saved additional enquiries
+
+The guardian wizard retains the original onboarding completion and supports a separate private additional-enquiry draft. Successful Continue actions save its criteria; returning resumes the saved learner/school/tuition details after the permission step. Submission creates exactly one enquiry for a retry key and preserves previous submitted requests. Starting another enquiry is an explicit versioned action after completion. Only one unfinished additional draft is supported at a time; a different teacher link preserves that draft and routes the guardian back to it. Broad availability and other H2/H3 simplification remain open.

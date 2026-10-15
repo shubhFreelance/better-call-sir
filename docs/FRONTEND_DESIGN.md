@@ -61,7 +61,7 @@ Use five focused steps: permission, learner, tuition needs, schedule and review.
 
 Verification and purpose-specific consent come before editable learner fields. Existing learners retain their saved class/board; new learners use an alias. Budget review preserves paise precision. Availability windows use labelled IST inputs and serialize as UTC; they remain preferences until a timetable is agreed. Guardian confirmation precedes submission, with an API-confirmed success and a link to the private request list.
 
-The initial draft is saved on each successful Continue action and can resume after reload. Version conflicts keep local edits until an explicit reload. Uncertain submissions keep the original payload/retry key and disable editing until the same submission is confirmed. The current API has one initial onboarding draft per guardian; later requests use the same steps with an explicit keep-page-open notice until submitted. Per-request draft persistence remains open.
+The initial draft is saved on each successful Continue action and can resume after reload. Version conflicts keep local edits until an explicit reload. Uncertain submissions keep the original payload/retry key and disable editing until the same submission is confirmed. The API preserves initial onboarding separately from one active additional-enquiry draft per guardian. Later enquiries save privately on successful Continue actions and resume after return/reload. Completed additional drafts restart explicitly with version checks; unfinished drafts cannot be silently replaced by a different teacher link. Multiple simultaneous unfinished drafts remain outside this increment.
 
 ## Teacher application and private evidence
 
@@ -236,3 +236,8 @@ Learner school and class subjects appear beside class/board, behind guardian ver
 ## Hiring-term review
 
 The primary guardian/teacher dashboard now opens a focused white review surface beneath the arrangement list, with keyboard focus on its heading. Existing Manrope/cream/white/teal tokens remain; lavender highlights the optional-demo/no-timetable explanation and a teal button performs the acknowledged acceptance. The review uses recorded monthly tuition (including paise), policy, proposed teacher placement fee and two acceptance states. It closes after a confirmed save, preserves uncertain writes and refreshes stale versions with a renewed acknowledgement. Student cards stay read-only without financial or write metadata. Confirmed hiring terms remain distinct from verified teaching/payment/start evidence and the retained class lifecycle.
+
+
+## Additional enquiry recovery
+
+Use the existing five-step guardian form, white surfaces, cream canvas, teal actions and lavender progress markers. A visible saved-progress notice explains that current-step edits persist on Continue. Initial onboarding stays separate from additional enquiries; an explicit action starts another draft only after the preceding one is submitted. Unknown submissions/restarts retry the same body/key, while version conflicts preserve local edits until explicit reload. A conflicting teacher link offers a route back to the existing saved draft instead of overwriting criteria. No learner data is placed in browser storage.

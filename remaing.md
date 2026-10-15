@@ -1,6 +1,6 @@
 # Remaining MVP work
 
-Updated 14 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
+Updated 15 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
 Next sprint: **H2 simplified, recoverable enquiries and onboarding**, followed by H3 hiring confirmation without mandatory class-management steps. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
 
@@ -11,7 +11,8 @@ Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides
 - [x] **H1** Teacher discovery, manual/assisted primary navigation and enquiry-focused profile action implemented. Individual class-booking promotion removed; existing direct routes retained.
 - [x] **H2 details increment** Teacher private address, education/results, work and certificate/reference declarations; learner school/class subjects; five-step teacher review and private owner/reviewer summaries. Actual evidence uses the existing private scanned upload workflow.
 - [x] **H3 optional demo increment** Explicit teacher choice, public opt-in badge, opt-out proposal/slot protection and eligible terms without a demo. Already requested demos retain cancellation/outcome/dispute handling.
-- [ ] **H2** Simplify and recover guardian/teacher onboarding and tuition enquiries; broad availability preferences instead of individual class management
+- [x] **H2 enquiry-draft increment** Initial onboarding and one active additional enquiry have separate private, versioned saved drafts; resume, duplicate-safe submit, explicit post-submission restart, stale/uncertain recovery and protection from a different teacher link. Multiple simultaneous unfinished enquiry drafts remain outside this increment.
+- [ ] **H2** Simplify and recover guardian/teacher onboarding and tuition enquiries; explicit draft discard/change of discovery choice and broad availability preferences instead of individual class management
 - [x] **H3 dashboard terms increment** Guardian/teacher hiring-term review and versioned acceptance in primary dashboards; explicit waiting/both-confirmed states, policy/fee review, private financial scope and stale/uncertain recovery. Acceptance is independent of class timetables, service start and payment.
 - [ ] **H3** Teacher responses, selection and mutually confirmed hiring terms/status; review and decouple mandatory demo/timetable dependencies
 - [x] **H4** Hiring overview for student, guardian, teacher and superadmin: scoped enquiry/arrangement records, counts, learner/application metadata, reviewed teacher responses, operational drill-downs and recovery states. H2/H3 journey simplification remains pending.
@@ -45,7 +46,7 @@ Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides
 - [ ] **B8** Actual notification delivery, status/receipt history, duplicate-safe retry and staff-visible failure recovery for scope requests, demos, bookings and follow-ups. Worker development delivery is still synthetic.
 - [ ] **B9** Durable Google Meet credentials/OAuth lifecycle, participant/Workspace admission policy and recovery handling; current adapter uses an injected short-lived token.
 - [x] **B10** Role/date-filtered learning dashboard metrics and contracts: rolling/default and previous-calendar-month/custom ranges, recurring/revision lessons and separate demo outcomes, denominators/sample sizes, pending confirmations, current assignments/next lessons, learner pagination and lastUpdated metadata. Live/release qualification stays open.
-- [ ] **B12** Durable per-request/revised-application/timetable drafts where required; invitation recovery/idempotency/device labels and complete pagination for bounded notes (latest 50), calendar/leave, demo/timetable, session, payable and administrative histories. Preserve owned data and uncertainty during recovery.
+- [ ] **B12** One active additional-enquiry draft is implemented. Remaining: multiple concurrent enquiry drafts if required, revised-application/timetable drafts; invitation recovery/idempotency/device labels and complete pagination for bounded notes (latest 50), calendar/leave, demo/timetable, session, payable and administrative histories. Preserve owned data and uncertainty during recovery.
 - [ ] **B13** Complete follow-up/service-operation read models and queues not covered by existing cases and immutable continuation observations.
 - [ ] **B14** Production private-object storage and upload/download/deletion lifecycle; current-signature malware scanning; approved retention rules and external-backup deletion replay. Existing local private files and application scrubbing are development infrastructure.
 - [ ] **B15** Contract/schema review for the completed UI: missing response metadata, remaining annotations/warnings, backward-compatible changes and web/API image compatibility evidence. Generated-client consistency checks already exist; they must cover the final contract.

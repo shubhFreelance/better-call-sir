@@ -6,9 +6,74 @@ import {
   submitGuardian,
 } from "./guardian-journey";
 import AxeBuilder from "@axe-core/playwright";
+import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { parseEnv } from "node:util";
+import { Pool } from "pg";
+const guardianFixtureIds: string[] = [];
+async function guardianFixture() {
+  const config = parseEnv(readFileSync(".env", "utf8")),
+    url = new URL(config.DATABASE_URL);
+  expect(config.APP_MODE).toBe("development");
+  expect(["localhost", "127.0.0.1"]).toContain(url.hostname);
+  const pool = new Pool({ connectionString: url.href }),
+    id = randomUUID(),
+    email = `enquiry-${id}@example.test`;
+  try {
+    await pool.query(
+      'INSERT INTO "Account" (id,name,email,role,verified,phone) VALUES ($1,$2,$3,$4,true,$5)',
+      [
+        id,
+        "Synthetic enquiry guardian",
+        email,
+        "GUARDIAN",
+        "+91000000" + id.replaceAll("-", ""),
+      ],
+    );
+    guardianFixtureIds.push(id);
+    await pool.query(
+      'INSERT INTO "Child" (id,"guardianId",alias,grade,board,"schoolName","schoolSubjects") VALUES ($1,$2,$3,8,$4,$5,$6)',
+      [
+        randomUUID(),
+        id,
+        "Aarav",
+        "CBSE",
+        "Synthetic school",
+        ["Maths", "Science", "English", "Hindi"],
+      ],
+    );
+  } finally {
+    await pool.end();
+  }
+  return { id, email };
+}
+async function guardianSession(
+  page: import("@playwright/test").Page,
+  id: string,
+) {
+  const response = await page.request.post("/api/v1/dev/session", {
+    headers: { Origin: "http://localhost:3000" },
+    data: { accountId: id },
+  });
+  expect(response.status()).toBe(201);
+}
+
 import { ids } from "../../packages/test-fixtures/src";
 import { verifiedStaffSession, cleanupStaffFixtures } from "./staff-fixture";
-test.afterEach(async () => cleanupStaffFixtures());
+test.afterEach(async () => {
+  await cleanupStaffFixtures();
+  if (!guardianFixtureIds.length) return;
+  const config = parseEnv(readFileSync(".env", "utf8")),
+    pool = new Pool({ connectionString: config.DATABASE_URL });
+  try {
+    await pool.query(
+      'UPDATE "Account" SET phone=NULL WHERE id=ANY($1::uuid[])',
+      [guardianFixtureIds.splice(0)],
+    );
+  } finally {
+    await pool.end();
+  }
+});
 async function login(page: import("@playwright/test").Page, name: string) {
   if (name === "Operator") {
     await verifiedStaffSession(page.request);
@@ -66,7 +131,8 @@ test("public discovery, filters and teacher profile work against the real API", 
 test("parent intake persists and appears on the private dashboard", async ({
   page,
 }) => {
-  await login(page, "Kavita");
+  const owner = await guardianFixture();
+  await guardianSession(page, owner.id);
   await page.goto("/onboarding/parent");
   await beginGuardian(page);
   await existingLearner(page);
@@ -74,7 +140,22 @@ test("parent intake persists and appears on the private dashboard", async ({
   const id = await submitGuardian(page);
   const request = await page.request.get(`/api/v1/requests/${id}`);
   expect((await request.json()).discoveryMethod).toBe("ASSISTED");
-  await page.goto("/dashboard/requests");
+  await page.goto("/onboarding/parent");
+  await beginGuardian(page);
+  await existingLearner(page);
+  await reviewGuardian(page, "Synthetic additional enquiry");
+  const additional = await submitGuardian(page);
+  expect(additional).not.toBe(id);
+  expect(
+    (await (await page.request.get("/api/v1/onboarding/parent")).json())
+      .completedResourceId,
+  ).toBe(id);
+  expect(
+    (await (await page.request.get("/api/v1/onboarding/enquiry")).json())
+      .completedResourceId,
+  ).toBe(additional);
+
+  await page.goto(`/dashboard/requests?request=${id}`);
   await expect(
     page.getByText(/Tuesday and Thursday after 5pm/).first(),
   ).toBeVisible();
@@ -85,6 +166,7 @@ test("parent intake persists and appears on the private dashboard", async ({
 test("discovery tabs support keyboard navigation and preserve manual teacher choice", async ({
   page,
 }) => {
+  const owner = await guardianFixture();
   await page.goto("/teachers");
   const manual = page.getByRole("tab", { name: /^Search Browse/ });
   const assisted = page.getByRole("tab", { name: /^Let us search for you/ });
@@ -110,12 +192,23 @@ test("discovery tabs support keyboard navigation and preserve manual teacher cho
   const teacherId = new URL(page.url()).searchParams.get("teacher");
   expect(teacherId).toBeTruthy();
   await page.getByRole("link", { name: "Sign in with email" }).click();
-  await page.getByText("Development accounts", { exact: true }).click();
-  await page.getByRole("button", { name: /Kavita/ }).click();
+  await page.getByLabel("Your name").fill("Synthetic enquiry guardian");
+  await page.getByLabel("Email address").fill(owner.email);
+  const pendingOtp = page.waitForResponse((r) =>
+    r.url().endsWith("/auth/otp/request"),
+  );
+  await page
+    .getByRole("button", { name: "Send sign-in code", exact: true })
+    .click();
+  const otp = await (await pendingOtp).json();
+  await page.getByLabel("Six-digit code").fill(otp.developmentCode);
+  await page
+    .getByRole("button", { name: "Verify and continue", exact: true })
+    .click();
+  await beginGuardian(page);
   await expect(
     page.getByText("Your chosen teacher", { exact: true }),
   ).toBeVisible();
-  await beginGuardian(page);
   await existingLearner(page);
   await reviewGuardian(page, "Monday and Wednesday after 5pm");
   const id = await submitGuardian(page);
@@ -129,7 +222,8 @@ test("discovery tabs support keyboard navigation and preserve manual teacher cho
 test("chosen teacher capabilities prefill the guardian request", async ({
   page,
 }) => {
-  await login(page, "Kavita");
+  const owner = await guardianFixture();
+  await guardianSession(page, owner.id);
   await page.goto("/teachers/arjun-deshmukh");
   await page.getByRole("link", { name: "Enquire about this teacher" }).click();
   await beginGuardian(page);

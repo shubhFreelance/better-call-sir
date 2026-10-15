@@ -50,7 +50,7 @@ export async function submitGuardian(page: Page) {
   const pending = page.waitForResponse(
     (r) =>
       r.request().method() === "POST" &&
-      (/\/onboarding\/parent\/completions$/.test(r.url()) ||
+      (/\/onboarding\/(?:parent|enquiry)\/completions$/.test(r.url()) ||
         /\/api\/v1\/requests$/.test(r.url())),
   );
   await page.getByRole("button", { name: "Submit tuition request" }).click();

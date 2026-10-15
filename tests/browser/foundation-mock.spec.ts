@@ -50,6 +50,16 @@ for (const consentFailure of [false, true])
       const request = route.request(),
         url = new URL(request.url());
       requests.push(request.method() + " " + url.pathname);
+      if (url.pathname === "/api/v1/onboarding/enquiry")
+        return route.fulfill({
+          json: {
+            kind: "ENQUIRY",
+            state: "DRAFT",
+            draft: {},
+            version: 0,
+            completedResourceId: null,
+          },
+        });
       if (url.pathname.startsWith("/api/v1/onboarding/parent")) {
         if (request.method() === "POST") {
           if (url.pathname.endsWith("/drafts"))

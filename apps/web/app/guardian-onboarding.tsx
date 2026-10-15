@@ -201,9 +201,22 @@ export function GuardianOnboarding({
     retry: false,
     refetchOnWindowFocus: false,
   });
+  const enquiry = useQuery({
+    queryKey: ["guardian-enquiry-draft", session.account.id],
+    queryFn: () => api<Progress>("/onboarding/enquiry"),
+    enabled: session.account.verified,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const initial =
+    progress.data?.completedResourceId &&
+    enquiry.data &&
+    (enquiry.data.version > 0 || params.get("teacher"))
+      ? enquiry.data
+      : progress.data;
   const profile = params.get("profile"),
     teacherId =
-      params.get("teacher") || progress.data?.draft.preferredTeacherId || "";
+      params.get("teacher") || initial?.draft.preferredTeacherId || "";
   const teacher = useQuery({
     queryKey: ["teacher", profile],
     queryFn: () => api<Teacher>(`/teachers/${encodeURIComponent(profile!)}`),
@@ -249,7 +262,11 @@ export function GuardianOnboarding({
         </Link>
       </main>
     );
-  if (progress.isPending || (profile && teacherId && teacher.isPending))
+  if (
+    progress.isPending ||
+    enquiry.isPending ||
+    (profile && teacherId && teacher.isPending)
+  )
     return (
       <main className="container section">
         <p role="status">
@@ -257,7 +274,7 @@ export function GuardianOnboarding({
         </p>
       </main>
     );
-  const error = progress.error || teacher.error;
+  const error = progress.error || enquiry.error || teacher.error;
   if (error)
     return (
       <main className="container narrow section">
@@ -268,6 +285,7 @@ export function GuardianOnboarding({
           className="button"
           onClick={() => {
             progress.refetch();
+            enquiry.refetch();
             if (profile) teacher.refetch();
           }}
         >
@@ -275,6 +293,28 @@ export function GuardianOnboarding({
         </Button>
         <Link className="inline-link" href="/teachers">
           Choose a teacher
+        </Link>
+      </main>
+    );
+  if (
+    enquiry.data?.version &&
+    !enquiry.data.completedResourceId &&
+    Object.keys(enquiry.data.draft).length &&
+    params.get("teacher") &&
+    params.get("teacher") !== enquiry.data.draft.preferredTeacherId
+  )
+    return (
+      <main className="container narrow section">
+        <h1>A saved enquiry is already in progress.</h1>
+        <p>
+          Resume your saved criteria before starting a different teacher
+          enquiry. Your existing draft has been preserved.
+        </p>
+        <Link className="button" href="/onboarding/parent">
+          Resume saved enquiry
+        </Link>
+        <Link className="inline-link" href="/teachers">
+          Back to teacher search
         </Link>
       </main>
     );
@@ -288,17 +328,22 @@ export function GuardianOnboarding({
         </Link>
       </main>
     );
-  if (!progress.data) return null;
+  if (!initial) return null;
   return (
     <Wizard
       key={`${session.account.id}:${reload}`}
       session={session}
-      initial={progress.data}
+      initial={initial}
+      enquiry={enquiry.data}
       teacherId={teacherId}
       teacher={teacher.data}
       onReload={async () => {
         const result = await progress.refetch();
-        if (result.data) setReload((v) => v + 1);
+        const next = result.data?.completedResourceId
+          ? await enquiry.refetch()
+          : null;
+        if (result.data && !result.error && !next?.error)
+          setReload((v) => v + 1);
       }}
     />
   );
@@ -306,27 +351,23 @@ export function GuardianOnboarding({
 function Wizard({
   session,
   initial,
+  enquiry,
   teacherId,
   teacher,
   onReload,
 }: {
   session: Session;
   initial: Progress;
+  enquiry?: Progress;
   teacherId: string;
   teacher?: Teacher;
   onReload: () => Promise<void>;
 }) {
   const client = useQueryClient();
   const [progress, setProgress] = useState(initial);
-  const [additional, setAdditional] = useState(
-    !!initial.completedResourceId && !!teacherId,
-  );
-  // shortcut: only first onboarding supports saved drafts; additional requests use /requests until per-request drafts exist.
-  const [success, setSuccess] = useState(
-    initial.completedResourceId && !teacherId
-      ? initial.completedResourceId
-      : "",
-  );
+  const [additional, setAdditional] = useState(initial.kind === "ENQUIRY");
+  const [success, setSuccess] = useState(initial.completedResourceId || "");
+  const draftPath = additional ? "/onboarding/enquiry" : "/onboarding/parent";
   const [step, setStep] = useState(0);
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -483,17 +524,24 @@ function Wizard({
           },
           signal: AbortSignal.timeout(12000),
         });
-      if (!additional) {
+      {
         const draft = payload() as Partial<Draft>;
         if (!draft.alias) delete draft.alias;
         if (!preferences(windows)) delete draft.preferences;
         if (!values.schedule.trim() && !draft.preferences)
           delete draft.schedule;
-        const result = await post<Progress>("/onboarding/parent/drafts", {
+        const result = await post<Progress>(draftPath + "/drafts", {
           expectedVersion: progress.version,
           draft,
         });
         setProgress(result);
+        client.setQueryData(
+          [
+            additional ? "guardian-enquiry-draft" : "guardian-onboarding",
+            session.account.id,
+          ],
+          result,
+        );
         setSaved(true);
       }
       setStep((v) => v + 1);
@@ -514,12 +562,10 @@ function Wizard({
     setServerError("");
     try {
       if (!uncertain || !submission.current)
-        submission.current = additional
-          ? { path: "/requests", body: payload() }
-          : {
-              path: "/onboarding/parent/completions",
-              body: { expectedVersion: progress.version },
-            };
+        submission.current = {
+          path: draftPath + "/completions",
+          body: { expectedVersion: progress.version },
+        };
       const result = await post<TuitionRequest | Progress>(
         submission.current.path,
         submission.current.body,
@@ -532,11 +578,13 @@ function Wizard({
         throw new Error(
           "The service did not confirm your request. Retry to check the result.",
         );
+      if ("completedResourceId" in result) setProgress(result);
       setSuccess(id);
       setUncertain(false);
       client.invalidateQueries({ queryKey: ["dashboard"] });
       client.invalidateQueries({ queryKey: ["children"] });
       client.invalidateQueries({ queryKey: ["guardian-onboarding"] });
+      client.invalidateQueries({ queryKey: ["guardian-enquiry-draft"] });
     } catch (error) {
       const unknown =
         !(error instanceof ApiError) ||
@@ -586,29 +634,71 @@ function Wizard({
         <Link className="button" href="/dashboard/requests">
           View tuition requests
         </Link>
+        {serverError && (
+          <Alert variant="destructive">
+            <AlertDescription>
+              {serverError}{" "}
+              <Button variant="outline" disabled={busy} onClick={onReload}>
+                Reload saved progress
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         <Button
           variant="outline"
           className="button secondary"
-          onClick={() => {
-            setSuccess("");
-            setAdditional(true);
-            setValues({
-              ...initialValues(),
-              childId: "",
-              schoolName: "",
-              schoolSubjects: "",
-              alias: "",
-              schedule: "",
-            });
-            setWindows([{ start: "", duration: "40" }]);
-            setAccepted(false);
-            setStep(0);
-            setServerError("");
-            setConflict(false);
-            retry.current = null;
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            try {
+              const next = additional
+                ? await post<Progress>("/onboarding/enquiry/restarts", {
+                    expectedVersion: progress.version,
+                  })
+                : enquiry || (await api<Progress>("/onboarding/enquiry"));
+              if (next.completedResourceId)
+                throw new Error(
+                  "Refresh saved progress before starting another enquiry.",
+                );
+              if (Object.keys(next.draft).length) {
+                await onReload();
+                return;
+              }
+              client.setQueryData(
+                ["guardian-enquiry-draft", session.account.id],
+                next,
+              );
+              setProgress(next);
+              setSuccess("");
+              setAdditional(true);
+              setValues({
+                ...initialValues(),
+                childId: "",
+                schoolName: "",
+                schoolSubjects: "",
+                alias: "",
+                schedule: "",
+              });
+              setWindows([{ start: "", duration: "40" }]);
+              setAccepted(false);
+              setStep(0);
+              setServerError("");
+              setConflict(false);
+              retry.current = null;
+              submission.current = null;
+              setSaved(false);
+            } catch (error) {
+              setServerError(
+                error instanceof ApiError
+                  ? error.message
+                  : "We couldn’t confirm the new draft. Try again to check the same action.",
+              );
+            } finally {
+              setBusy(false);
+            }
           }}
         >
-          Create another request
+          {busy ? "Starting enquiry…" : "Create another request"}
         </Button>
       </main>
     );
@@ -666,13 +756,11 @@ function Wizard({
               Step {step + 1} of {steps.length}
             </span>
             <span role="status">
-              {additional
-                ? "Additional request"
-                : saved
-                  ? "Progress saved"
-                  : initial.version > 0
-                    ? "Saved draft available"
-                    : "New request"}
+              {saved
+                ? "Progress saved"
+                : initial.version > 0
+                  ? "Saved draft available"
+                  : "New request"}
             </span>
           </div>
           <h2 id="wizard-step-title" ref={heading} tabIndex={-1}>
@@ -691,15 +779,15 @@ function Wizard({
               ? `Manual search: ${teacher?.name || "your previously chosen teacher"}.`
               : "Assisted search: a shortlist based on your criteria."}
           </p>
-          {initial.version > 0 && step === 0 && !additional && (
+          {progress.version > 0 && step === 0 && (
             <p className="wizard-help">
               We found your saved progress. Review your details as you continue.
             </p>
           )}
           {additional && (
             <p className="wizard-help">
-              For this additional request, keep this page open until you submit.
-              Your previous request is already saved.
+              This is an additional enquiry. Your submitted enquiries stay
+              saved; this draft is saved privately each time you continue.
             </p>
           )}
           {serverError && (
@@ -1220,9 +1308,8 @@ function Wizard({
               </Button>
             </div>
             <p className="wizard-save-note">
-              {additional
-                ? "Your request is saved when you submit."
-                : "Your progress is saved securely as you continue."}
+              Your progress is saved securely as you continue. Changes on the
+              current step are saved when you select Continue.
             </p>
           </form>
         </section>
