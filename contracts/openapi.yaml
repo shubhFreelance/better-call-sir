@@ -19129,6 +19129,152 @@
           }
         ]
       }
+    },
+    "/onboarding/{kind}/discards": {
+      "post": {
+        "operationId": "discardGuardianDraft",
+        "tags": [
+          "placements"
+        ],
+        "summary": "Discard only the current unfinished guardian draft after explicit acknowledgement",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingProgress"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "parent",
+                "enquiry"
+              ]
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "parent",
+                "teacher",
+                "student",
+                "enquiry"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnboardingDiscard"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -27513,6 +27659,24 @@
           "fromYear",
           "toYear",
           "proof"
+        ]
+      },
+      "OnboardingDiscard": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "acknowledged": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "acknowledged"
         ]
       }
     },

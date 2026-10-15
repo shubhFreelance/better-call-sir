@@ -2229,6 +2229,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/onboarding/{kind}/discards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Discard only the current unfinished guardian draft after explicit acknowledgement
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["discardGuardianDraft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4300,6 +4320,11 @@ export interface components {
             toYear: number | null;
             /** @enum {unknown} */
             proof: "CERTIFICATE_AVAILABLE" | "REFERENCE_AVAILABLE" | "NOT_AVAILABLE";
+        };
+        OnboardingDiscard: {
+            expectedVersion: number;
+            /** @constant */
+            acknowledged: true;
         };
     };
     responses: never;
@@ -15670,6 +15695,99 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["VersionInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnboardingProgress"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    discardGuardianDraft: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": "parent" | "enquiry";
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                kind: "parent" | "teacher" | "student" | "enquiry";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OnboardingDiscard"];
             };
         };
         responses: {

@@ -40,6 +40,19 @@ class OnboardingController {
    return this.result(db,actor,'ENQUIRY');
   });
  }
+ @Post('onboarding/:kind/discards') async discard(@Req() req:HttpRequest,@Param('kind') route:string,@Body() body:unknown){
+  const kind=parse(z.enum(['parent','enquiry']),route).toUpperCase(),actor=await this.service.actor(req,['GUARDIAN']),data=parse(z.object({expectedVersion:version,acknowledged:z.literal(true)}).strict(),body);
+  await this.service.guardian(this.service.db,actor.id);
+  return this.service.once(req,actor,'onboarding.discard',data,async db=>{
+   await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
+   await this.service.guardian(db,actor.id);
+   const current=await db.onboardingProgress.findUnique({where:{accountId_kind:{accountId:actor.id,kind}}});
+   if(!current||current.version!==data.expectedVersion||current.completedResourceId)fail(409,'CONFLICT','The saved draft changed or was submitted. Reload it before deciding.');
+   await db.onboardingProgress.update({where:{id:current.id},data:{draft:{},version:{increment:1}}});
+   await this.service.audit(db,actor,req,'ONBOARDING_DRAFT_DISCARDED',actor.id,'Owner explicitly discarded an unfinished draft',undefined,{kind});
+   return this.result(db,actor,kind);
+  });
+ }
  @Get('onboarding/:kind') async get(@Req() req:HttpRequest,@Param('kind') route:string){
   const {kind,actor}=await this.principal(req,route);return this.service.db.$transaction(db=>this.result(db,actor,kind));
  }
