@@ -1319,7 +1319,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Persisted owner-authorized /children/{id}/student-sessions */
+        /**
+         * List current owned student devices with stable cursor pagination
+         * @description Guardian-only session-family metadata; no credentials. Default 20, maximum 50 items. Cursor must belong to this learner, including expired/revoked/rotated history so a boundary survives access changes. Results are current at each read, ordered by stable family ID; refresh restarts the current page.
+         */
         get: operations["getChildrenIdStudentSessions"];
         put?: never;
         /**
@@ -3397,6 +3400,8 @@ export interface components {
             }[];
             childVersion: number;
             accessRevoked: boolean;
+            /** Format: uuid */
+            nextCursor: string | null;
         };
         StudentAccessRevocation: {
             expectedVersion: number;
@@ -11833,7 +11838,10 @@ export interface operations {
     };
     getChildrenIdStudentSessions: {
         parameters: {
-            query?: never;
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
             header?: never;
             path: {
                 id: string;

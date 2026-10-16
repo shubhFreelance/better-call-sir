@@ -1,4 +1,4 @@
-import {Module,Controller,Get,Post,Param,Req,Res,Body,Inject} from '@nestjs/common';
+import {Module,Controller,Get,Post,Param,Query,Req,Res,Body,Inject} from '@nestjs/common';
 import {Response} from 'express';
 import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
@@ -6,11 +6,16 @@ import {AppService,PersistenceModule,HttpRequest,uuid,version,parse,fail,text} f
 @Controller('api/v1')
 class StudentAccessController {
  constructor(@Inject(AppService) private readonly service:AppService){}
- @Get('children/:id/student-sessions') async sessions(@Req() req:HttpRequest,@Param('id') id:string){
+ @Get('children/:id/student-sessions') async sessions(@Req() req:HttpRequest,@Param('id') id:string,@Query() input:unknown){
   parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);
-  const child=await this.service.child(this.service.db,actor,id);
-  const items=child.studentAccountId?await this.service.db.session.findMany({where:{accountId:child.studentAccountId,revoked:false,rotated:false,expiresAt:{gt:new Date()}},select:{familyId:true,expiresAt:true,deviceLabel:true},orderBy:[{expiresAt:'desc'},{familyId:'asc'}],take:50}):[];
-  return {items,childVersion:child.version,accessRevoked:!!child.studentAccessRevokedAt};
+  const data=parse(z.object({cursor:uuid.optional(),limit:z.coerce.number().int().min(1).max(50).default(20)}).strict(),input);
+  return this.service.db.$transaction(async db=>{
+   const child=await this.service.child(db,actor,id);
+   if(data.cursor&&(!child.studentAccountId||!await db.session.count({where:{accountId:child.studentAccountId,familyId:data.cursor}})))fail(404,'NOT_FOUND','Student device cursor is unavailable.');
+   // Family IDs survive refresh rotation, expiry and revocation, keeping page boundaries stable.
+   const rows=child.studentAccountId?await db.session.findMany({where:{accountId:child.studentAccountId,revoked:false,rotated:false,expiresAt:{gt:new Date()},...(data.cursor?{familyId:{gt:data.cursor}}:{})},select:{familyId:true,expiresAt:true,deviceLabel:true},orderBy:{familyId:'asc'},take:data.limit+1}):[];
+   return {items:rows.slice(0,data.limit),childVersion:child.version,accessRevoked:!!child.studentAccessRevokedAt,nextCursor:rows.length>data.limit?rows[data.limit-1].familyId:null};
+  },{isolationLevel:'RepeatableRead'});
  }
  @Post('children/:id/student-session-labels') async label(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
   parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);
