@@ -3989,6 +3989,19 @@
                   },
                   "demoOptIn": {
                     "type": "boolean"
+                  },
+                  "lockInDays": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "enum": [
+                      0,
+                      15,
+                      30,
+                      null
+                    ],
+                    "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
                   }
                 },
                 "required": [
@@ -20352,6 +20365,19 @@
           },
           "demoAvailable": {
             "type": "boolean"
+          },
+          "lockInDays": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "enum": [
+              0,
+              15,
+              30,
+              null
+            ],
+            "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
           }
         },
         "required": [
@@ -21682,6 +21708,19 @@
           },
           "demoOptIn": {
             "type": "boolean"
+          },
+          "lockInDays": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "enum": [
+              0,
+              15,
+              30,
+              null
+            ],
+            "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
           }
         },
         "required": [
@@ -21874,6 +21913,19 @@
                 "type": "null"
               }
             ]
+          },
+          "lockInDays": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "enum": [
+              0,
+              15,
+              30,
+              null
+            ],
+            "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
           }
         },
         "required": [
@@ -23447,6 +23499,19 @@
               },
               "demoOptIn": {
                 "type": "boolean"
+              },
+              "lockInDays": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "enum": [
+                  0,
+                  15,
+                  30,
+                  null
+                ],
+                "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
               }
             },
             "required": [],
@@ -28881,6 +28946,19 @@
           },
           "demoOptIn": {
             "type": "boolean"
+          },
+          "lockInDays": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "enum": [
+              0,
+              15,
+              30,
+              null
+            ],
+            "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
           }
         },
         "additionalProperties": false
