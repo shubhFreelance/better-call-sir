@@ -2409,6 +2409,11 @@ export interface components {
             capabilityLabel: string;
             consultationOptIn: boolean;
             demoAvailable?: boolean;
+            /**
+             * @description Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions.
+             * @enum {integer|null}
+             */
+            lockInDays?: 0 | 15 | 30 | null;
         };
         Account: {
             /** Format: uuid */
@@ -2750,6 +2755,11 @@ export interface components {
             education: components["schemas"]["TeacherEducation"][];
             employment: components["schemas"]["TeacherEmployment"][];
             demoOptIn: boolean;
+            /**
+             * @description Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions.
+             * @enum {integer|null}
+             */
+            lockInDays?: 0 | 15 | 30 | null;
         };
         PrivateTeacher: {
             /** Format: uuid */
@@ -2787,6 +2797,11 @@ export interface components {
             education?: components["schemas"]["TeacherEducation"][] | null;
             employment?: components["schemas"]["TeacherEmployment"][] | null;
             demoOptIn?: boolean | null;
+            /**
+             * @description Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions.
+             * @enum {integer|null}
+             */
+            lockInDays?: 0 | 15 | 30 | null;
         };
         PrivateTeacherList: {
             items: components["schemas"]["PrivateTeacher"][];
@@ -3172,6 +3187,11 @@ export interface components {
             education?: components["schemas"]["TeacherEducation"][];
             employment?: components["schemas"]["TeacherEmployment"][];
             demoOptIn?: boolean;
+            /**
+             * @description Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions.
+             * @enum {integer|null}
+             */
+            lockInDays?: 0 | 15 | 30 | null;
         } | {
             subjects?: ("Maths" | "Science")[];
             /** @enum {string} */
@@ -4505,6 +4525,11 @@ export interface components {
             education?: components["schemas"]["TeacherEducation"][];
             employment?: components["schemas"]["TeacherEmployment"][];
             demoOptIn?: boolean;
+            /**
+             * @description Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions.
+             * @enum {integer|null}
+             */
+            lockInDays?: 0 | 15 | 30 | null;
         };
         TeacherRevisionProgress: {
             draft: components["schemas"]["TeacherRevisionDraft"];
@@ -6359,6 +6384,11 @@ export interface operations {
                     education: components["schemas"]["TeacherEducation"][];
                     employment: components["schemas"]["TeacherEmployment"][];
                     demoOptIn: boolean;
+                    /**
+                     * @description Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions.
+                     * @enum {integer|null}
+                     */
+                    lockInDays?: 0 | 15 | 30 | null;
                 };
             };
         };
