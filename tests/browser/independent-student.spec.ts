@@ -182,10 +182,9 @@ test("real email OTP creates and resumes a private independent student account, 
     page.getByText("BSc Physics · Year 2", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText(
-      "Student-owned enquiries and optional guardian invitations are coming",
-      { exact: false },
-    ),
+    page.getByText("Student enquiries record your criteria for staff review.", {
+      exact: false,
+    }),
   ).toBeVisible();
   await page
     .getByRole("link", { name: "Edit my education", exact: true })
@@ -260,17 +259,16 @@ test("real email OTP creates and resumes a private independent student account, 
   ).toBeVisible();
   await page.goto("/teachers?tab=assisted");
   await expect(
-    page.getByText(
-      "Student-owned enquiries and assisted shortlists are coming next.",
-      { exact: false },
-    ),
+    page.getByText("Tell us what would work for your learning.", {
+      exact: false,
+    }),
   ).toBeVisible();
   const catalog = await (
     await page.request.get("/api/v1/teachers?limit=1")
   ).json();
   await page.goto("/teachers/" + catalog.items[0].slug);
   await expect(
-    page.getByText("Student-owned enquiries are coming next.", {
+    page.getByText("Your teacher interest is recorded for staff review.", {
       exact: false,
     }),
   ).toBeVisible();
@@ -279,7 +277,7 @@ test("real email OTP creates and resumes a private independent student account, 
       name: "Enquire about this teacher",
       exact: false,
     }),
-  ).toHaveCount(0);
+  ).toHaveAttribute("href", /\/dashboard\/enquiries\?new=1&teacher=/);
   expect(forbiddenReads).toEqual([]);
   expect(
     await page.evaluate(() =>

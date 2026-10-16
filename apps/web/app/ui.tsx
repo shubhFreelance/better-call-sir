@@ -1,4 +1,5 @@
 "use client";
+import { StudentEnquiries } from "./student-enquiries";
 import {
   IndependentStudentSetup,
   IndependentStudentHome,
@@ -778,14 +779,19 @@ function Teachers() {
         </TabsList>
         <TabsContent value="assisted">
           {independent ? (
-            <Notice>
-              Student-owned enquiries and assisted shortlists are coming next.
-              You can browse reviewed teacher profiles now and keep your
-              education profile up to date.{" "}
-              <Link className="inline-link" href="/dashboard">
-                Open my student dashboard
+            <section className="assisted-search panel">
+              <div>
+                <h2>Tell us what would work for your learning.</h2>
+                <p>
+                  Share your subject, availability and budget. Your criteria are
+                  recorded for staff review; this does not book or hire a
+                  teacher.
+                </p>
+              </div>
+              <Link className="button" href="/dashboard/enquiries?new=1">
+                Share my criteria <ArrowRight size={18} />
               </Link>
-            </Notice>
+            </section>
           ) : (
             <section className="assisted-search panel">
               <div>
@@ -1047,7 +1053,14 @@ function Teachers() {
                 options.
               </p>
             </div>
-            <Link href="/onboarding/parent" className="button secondary">
+            <Link
+              href={
+                independent
+                  ? "/dashboard/enquiries?new=1"
+                  : "/onboarding/parent"
+              }
+              className="button secondary"
+            >
               Help me choose <ArrowRight size={17} />
             </Link>
           </div>
@@ -1153,13 +1166,18 @@ function Profile({ slug }: { slug: string }) {
               matching and safety support are free for families.
             </p>
             {independent ? (
-              <Notice>
-                Student-owned enquiries are coming next. You can browse this
-                teacher’s reviewed profile now.{" "}
-                <Link className="inline-link" href="/dashboard">
-                  Return to my student dashboard
+              <>
+                <Link
+                  className="button"
+                  href={`/dashboard/enquiries?new=1&teacher=${t.id}&profile=${encodeURIComponent(t.slug)}`}
+                >
+                  Enquire about this teacher <ArrowUpRight size={18} />
                 </Link>
-              </Notice>
+                <p className="care-help">
+                  Your teacher interest is recorded for staff review. It does
+                  not reserve, hire or charge you.
+                </p>
+              </>
             ) : (
               <>
                 <Link
@@ -1579,6 +1597,11 @@ function DashboardShell({
             string,
             LucideIcon,
           ],
+          [
+            "/dashboard/student-enquiries",
+            "Student enquiries",
+            GraduationCap,
+          ] as [string, string, LucideIcon],
         ]
       : []),
     ...(["ADMIN", "OPERATOR"].includes(role || "")
@@ -1710,6 +1733,7 @@ function DashboardPage({ tab }: { tab: string }) {
     enabled:
       !!session &&
       session.account.role !== "INDEPENDENT_STUDENT" &&
+      tab !== "/dashboard/student-enquiries" &&
       !(
         ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
           session.account.role,
@@ -1743,6 +1767,15 @@ function DashboardPage({ tab }: { tab: string }) {
   }
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (
+    tab === "/dashboard/student-enquiries" &&
+    session.account.role !== "INDEPENDENT_STUDENT"
+  )
+    return (
+      <DashboardShell tab={tab}>
+        <StudentEnquiries session={session} />
+      </DashboardShell>
+    );
   if (session.account.role === "INDEPENDENT_STUDENT")
     return (
       <main
@@ -1765,13 +1798,23 @@ function DashboardPage({ tab }: { tab: string }) {
           </Link>
           <Link
             className="inline-link"
+            href="/dashboard/enquiries"
+            aria-current={tab === "/dashboard/enquiries" ? "page" : undefined}
+          >
+            {hindi ? "मेरी पूछताछ" : "My enquiries"}
+          </Link>
+          <Link
+            className="inline-link"
             href="/dashboard/privacy"
             aria-current={tab === "/dashboard/privacy" ? "page" : undefined}
           >
             {hindi ? "खाते की गोपनीयता" : "Account privacy"}
           </Link>
         </nav>
-        {tab === "/dashboard/privacy" ? (
+        {tab === "/dashboard/enquiries" ||
+        tab === "/dashboard/student-enquiries" ? (
+          <StudentEnquiries key={session.account.id} session={session} />
+        ) : tab === "/dashboard/privacy" ? (
           <div lang="en">
             <PrivacyWorkspace session={session} />
           </div>

@@ -916,10 +916,16 @@ export function IndependentStudentHome({
             </Link>
             <p>
               {t(
-                "Student-owned enquiries and optional guardian invitations are coming in separate steps. They are not enabled by signup yet.",
-                "विद्यार्थी की अपनी पूछताछ और वैकल्पिक अभिभावक आमंत्रण अलग चरणों में आएँगे। साइनअप से अभी ये शुरू नहीं होते।",
+                "Student enquiries record your criteria for staff review. Matching, teacher replies, hiring and optional guardian invitations are separate steps.",
+                "विद्यार्थी की पूछताछ में आपकी ज़रूरतें स्टाफ़ की समीक्षा के लिए सहेजी जाती हैं। मिलान, शिक्षक के जवाब, नियुक्ति और वैकल्पिक अभिभावक आमंत्रण अलग चरण हैं।",
               )}
             </p>
+            <Link
+              className="button secondary"
+              href="/dashboard/enquiries?new=1"
+            >
+              {t("Let us search for you", "हमें आपके लिए खोजने दें")}
+            </Link>
             <Link className="inline-link" href="/dashboard/privacy">
               {t(
                 "Account privacy and deletion",
