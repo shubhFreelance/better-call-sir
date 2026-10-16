@@ -34,6 +34,7 @@ class PrivacyController{
    const item=await db.privacyRequest.create({data:{...data,accountId:actor.id}});
    if(data.kind==='DELETION'){
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
+    if(data.scope==='ACCOUNT')await db.studentEnquiry.updateMany({where:{studentAccountId:actor.id,status:'SUBMITTED'},data:{status:'WITHDRAWN',version:{increment:1}}});
     if(data.scope==='NOTE')await db.note.update({where:{id:data.resourceId},data:{sharedTeacherId:null,version:{increment:1}}});
     else {
      await db.consent.updateMany({where:{guardianId:actor.id},data:{withdrawnAt:new Date()}});const children=await db.child.findMany({where:{guardianId:actor.id}});await db.session.updateMany({where:{accountId:{in:children.flatMap(c=>c.studentAccountId?[c.studentAccountId]:[])}},data:{revoked:true}});await db.note.updateMany({where:{guardianId:actor.id},data:{sharedTeacherId:null,version:{increment:1}}});
