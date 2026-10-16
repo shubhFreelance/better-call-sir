@@ -540,8 +540,9 @@ function LearnerAccess({
                       locked || conflict || !consentActive || query.isFetching
                     }
                     onClick={() => choose("authorize")}
+                    aria-label={`Authorize this device for ${child.alias}`}
                   >
-                    Authorize this device for {child.alias}
+                    Authorize this device
                   </Button>
                   <Button
                     variant="outline"

@@ -4853,3 +4853,88 @@ footer {
 .family-device-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; }
 .family-device-pagination > p { margin: 0; font-size: 14px; }
 .family-device-pagination > .wizard-help { flex-basis: 100%; }
+
+.dashboard-mobile-nav { display: none; }
+.student-welcome-layout { grid-template-areas: "guide form"; }
+.student-welcome-main { grid-area: form; min-width: 0; }
+.student-welcome-notice { grid-area: guide; }
+@media (max-width: 800px) {
+  .dashboard-sidebar .dashboard-desktop-nav { display: none; }
+  .dashboard-mobile-nav { display: block; background: var(--white); border: 1px solid var(--line); border-radius: 12px; }
+  .dashboard-mobile-nav > .dashboard-mobile-trigger { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; padding: 12px 16px; color: var(--primary); cursor: pointer; list-style: none; }
+  .dashboard-mobile-nav > .dashboard-mobile-trigger small { display: block; color: var(--muted); font-size: 12px; }
+  .dashboard-mobile-nav > .dashboard-mobile-trigger strong { display: block; font-size: 15px; line-height: 1.4; }
+  .dashboard-mobile-nav > .dashboard-mobile-trigger > svg { flex-shrink: 0; }
+  .dashboard-mobile-nav > .dashboard-mobile-trigger[aria-expanded="true"] > svg { transform: rotate(180deg); }
+  .dashboard-sidebar .dashboard-mobile-nav nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 12px; border-bottom: 0; border-top: 1px solid var(--line); max-height: 60dvh; overflow-y: auto; }
+  .dashboard-sidebar .dashboard-mobile-nav nav a { display: flex; align-items: center; min-height: 48px; gap: 10px; padding: 12px; font-size: 13px; line-height: 1.4; white-space: normal; }
+  .dashboard-mobile-nav nav a > svg { flex-shrink: 0; }
+  .student-welcome-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "form" "guide"; }
+}
+@media (max-width: 640px) {
+  .container { width: calc(100% - 32px); }
+  [data-slot="button"]:not([data-variant="link"]), .button { min-height: 44px; height: auto; max-width: 100%; white-space: normal; text-align: center; font-size: 14px; line-height: 1.4; padding: 11px 16px; }
+  [data-slot="button"][data-size^="icon"] { width: 44px; min-width: 44px; height: 44px; padding: 10px; }
+  .field input:not([type="checkbox"]):not([type="radio"]), .field select, .field textarea { font-size: 16px; min-height: 44px; }
+  .wizard-actions, .action-row { display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: 12px; }
+  .wizard-actions > *, .action-row > * { width: 100%; min-width: 0; }
+  .wizard-actions [data-slot="button"], .wizard-actions .button, .action-row [data-slot="button"], .action-row .button { min-height: 48px; height: auto; padding: 12px 16px; font-size: 14px; line-height: 1.4; }
+  .wizard-actions .button:last-child { margin-left: 0; }
+  :is(.student-setup-form, .guardian-setup) .wizard-actions { gap: 12px; }
+  .dashboard-layout { padding-top: 20px; gap: 24px; padding-bottom: 32px; }
+  .dashboard-content .page-title h1 { font-size: 28px; line-height: 1.2; letter-spacing: -.9px; }
+  .family-access, .family-overview { gap: 20px; }
+  .family-access .panel, .family-overview .panel { padding: 20px; margin-bottom: 0; }
+  .family-access .panel-title { flex-direction: column; align-items: stretch; gap: 16px; }
+  .family-access .panel-title h2 { margin-bottom: 0; font-size: 22px; line-height: 1.3; }
+  .family-access .panel-title > button { width: 100%; }
+  .family-session-list li { display: grid; grid-template-columns: minmax(0, 1fr); padding: 20px 0; gap: 16px; }
+  .family-device-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; gap: 10px; }
+  .family-device-actions:has(> :only-child) { grid-template-columns: minmax(0, 1fr); }
+  .family-device-actions > button { width: 100%; }
+  .family-device-pagination { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .family-confirm, .family-invitation { padding: 16px; margin: 20px 0 0; }
+  .student-welcome-layout { gap: 20px; }
+  .student-welcome-notice { padding: 20px; font-size: 14px; }
+  .student-welcome-notice h2 { font-size: 22px; }
+  .student-setup-form [data-slot="button"] { min-height: 44px; }
+}
+@media (max-width: 359px) {
+  .dashboard-sidebar .dashboard-mobile-nav nav, .family-device-actions { grid-template-columns: minmax(0, 1fr); }
+}
+
+.header-action-mobile { display: none; }
+@media (max-width: 640px) {
+  .header-inner { gap: 8px; }
+  .header-actions { gap: 8px; }
+  .header-action-desktop, .header-actions > .button > svg, .header-actions > .language, .header-actions > .icon-button:not(.mobile-menu) { display: none; }
+  .header-action-mobile { display: inline; }
+  .header-actions > .button { min-height: 44px; padding: 10px 12px; font-size: 14px; }
+  .header-actions > .mobile-menu { width: 44px; min-width: 44px; height: 44px; }
+}
+@media (max-width: 359px) {
+  .header-inner .logo { font-size: 19px; }
+  .header-inner .logo-mark { width: 26px; height: 26px; }
+}
+
+.dashboard-mobile-nav nav[hidden] { display: none; }
+@media (max-width: 800px) {
+  .dashboard-mobile-nav > .dashboard-mobile-trigger { width: 100%; height: auto; min-height: 64px; text-align: left; border-radius: 12px; background: var(--white); }
+}
+@media (max-width: 640px) {
+  .wizard-actions > .inline-link { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 12px; margin: 0; font-size: 14px; }
+}
+
+@media (max-width: 640px) {
+  .family-access .panel > button { width: 100%; }
+  .family-confirm .wizard-fields { gap: 16px; }
+  .family-confirm .wizard-actions { margin-top: 0; }
+  .auth-recovery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .auth-recovery > button { width: 100%; }
+}
+@media (max-width: 359px) {
+  .auth-recovery { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .auth-form input:not(.auth-code) { font-size: 16px; }
+}

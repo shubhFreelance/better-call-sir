@@ -532,6 +532,29 @@ test("student setup and review have accessible desktop/mobile layouts with curre
     path: "test-results/student-setup-desktop.png",
     fullPage: true,
   });
+  for (const width of [320, 360, 390, 430, 768]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    const form = await page.locator(".student-welcome-main").boundingBox(),
+      guidance = await page.locator(".student-welcome-notice").boundingBox();
+    expect(form!.y).toBeLessThan(guidance!.y);
+    if (width <= 640) {
+      for (const button of await page
+        .locator(".student-setup-form button:visible")
+        .all())
+        expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      const actions = await page
+        .locator(".student-setup-form .wizard-actions > *")
+        .evaluateAll((buttons) =>
+          buttons.map((b) => b.getBoundingClientRect().width),
+        );
+      expect(Math.abs(actions[0] - actions[1])).toBeLessThan(1);
+    }
+  }
   await page.setViewportSize({ width: 390, height: 844 });
   expect(
     (await new AxeBuilder({ page }).include(".student-welcome").analyze())
@@ -542,6 +565,7 @@ test("student setup and review have accessible desktop/mobile layouts with curre
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  await page.addStyleTag({ content: "nextjs-portal { display: none; }" });
   await page.screenshot({
     path: "test-results/student-setup-mobile.png",
     fullPage: true,

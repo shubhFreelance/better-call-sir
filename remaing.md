@@ -42,6 +42,7 @@ Delivery order: T1, L1a, L1, L2a and L2b are implemented in development. L3a act
 - [x] **H3 hiring journey increment** Enquiry detail/teacher replies → explicit selection → terms → exact owned hiring confirmation, with mutual acceptance states and no mandatory class timetable/demo. Legacy start controls remain secondary; live acceptance stays open.
 - [x] **H4** Hiring overview for student, guardian, teacher and superadmin: scoped enquiry/arrangement records, counts, learner/application metadata, reviewed teacher responses, operational drill-downs and recovery states. Remaining H2/H5 polish and live qualification stay open.
 - [x] **H5 support/replacement increment** Owned enquiry/arrangement help context, private related-case progress, exact replacement links and weekly replacement preferences; current consent/version/retry/closure review remains enforced.
+- [x] **H5 mobile-controls increment** Consistent phone tap targets and full-width form actions, aligned device controls, compact accessible dashboard navigation, readable sign-in inputs and form-first student setup. Phone widths 320/360/390/430px, tablet setup, mobile keyboard/axe/overflow and representative role/onboarding/hiring screens are tested. Full legacy-screen and physical-device review remains open below.
 - [ ] **H5** Finish remaining cross-flow privacy/mobile/keyboard/recovery review and full localization; no-match/waitlist and contextual support/replacement are implemented
 
 

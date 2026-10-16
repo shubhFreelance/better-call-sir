@@ -42,6 +42,54 @@ export function StudentWelcome({ session }: { session: Session }) {
         </p>
       </header>
       <div className="student-welcome-layout">
+        <div className="student-welcome-main">
+          {query.isPending ? (
+            <p role="status">Loading your student setup…</p>
+          ) : !query.data || denied ? (
+            <section className="wizard-card">
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {denied
+                    ? "Your student access or guardian permission needs review. Ask your guardian for help before continuing."
+                    : "We couldn’t load your saved student setup. Try again before entering details."}
+                </AlertDescription>
+              </Alert>
+              <Button onClick={() => query.refetch()}>
+                Retry loading student setup
+              </Button>
+              <Link href="/dashboard" className="inline-link">
+                Open dashboard
+              </Link>
+            </section>
+          ) : (
+            <div>
+              {query.error && (
+                <Alert variant="destructive">
+                  <AlertDescription>
+                    We couldn’t refresh your setup. Your edits are retained;
+                    reload the latest details before saving.
+                    <Button
+                      variant="outline"
+                      disabled={query.isFetching}
+                      onClick={() => query.refetch()}
+                    >
+                      Retry loading student setup
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+              <StudentSetupForm
+                key={
+                  query.data.progress.version + ":" + query.data.learner.version
+                }
+                session={session}
+                context={query.data}
+                readBlocked={!!query.error || query.isFetching}
+                onReload={() => query.refetch()}
+              />
+            </div>
+          )}
+        </div>
         <aside className="student-welcome-notice">
           <h2>Your learning, with support.</h2>
           <p>
@@ -65,52 +113,6 @@ export function StudentWelcome({ session }: { session: Session }) {
             Explore teacher profiles
           </Link>
         </aside>
-        {query.isPending ? (
-          <p role="status">Loading your student setup…</p>
-        ) : !query.data || denied ? (
-          <section className="wizard-card">
-            <Alert variant="destructive">
-              <AlertDescription>
-                {denied
-                  ? "Your student access or guardian permission needs review. Ask your guardian for help before continuing."
-                  : "We couldn’t load your saved student setup. Try again before entering details."}
-              </AlertDescription>
-            </Alert>
-            <Button onClick={() => query.refetch()}>
-              Retry loading student setup
-            </Button>
-            <Link href="/dashboard" className="inline-link">
-              Open dashboard
-            </Link>
-          </section>
-        ) : (
-          <div>
-            {query.error && (
-              <Alert variant="destructive">
-                <AlertDescription>
-                  We couldn’t refresh your setup. Your edits are retained;
-                  reload the latest details before saving.
-                  <Button
-                    variant="outline"
-                    disabled={query.isFetching}
-                    onClick={() => query.refetch()}
-                  >
-                    Retry loading student setup
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            )}
-            <StudentSetupForm
-              key={
-                query.data.progress.version + ":" + query.data.learner.version
-              }
-              session={session}
-              context={query.data}
-              readBlocked={!!query.error || query.isFetching}
-              onReload={() => query.refetch()}
-            />
-          </div>
-        )}
       </div>
     </main>
   );

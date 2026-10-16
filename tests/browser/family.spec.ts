@@ -1606,3 +1606,117 @@ test("device page controls support mobile keyboard and accessible recovery", asy
   await page.keyboard.press("Enter");
   await expect(page.getByText("Tablet 1", { exact: true })).toBeVisible();
 });
+
+test("phone access controls have comfortable tap targets and aligned actions at four widths", async ({
+  page,
+}) => {
+  await mock(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/dashboard/family");
+  await page.getByRole("button", { name: "Name device 90000000" }).click();
+  await page.getByLabel("Device label (optional)").fill("Study tablet");
+  for (const width of [320, 360, 390, 430]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.evaluate(() => document.fonts.ready);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    for (const control of await page
+      .locator(".family-access button:visible")
+      .all()) {
+      const box = await control.boundingBox();
+      expect(box!.height, await control.textContent()).toBeGreaterThanOrEqual(
+        44,
+      );
+      expect(box!.x).toBeGreaterThanOrEqual(12);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width - 12);
+    }
+    const actions = await page
+      .locator(".family-confirm .wizard-actions button")
+      .evaluateAll((buttons) =>
+        buttons.map((b) => ({
+          x: b.getBoundingClientRect().x,
+          width: b.getBoundingClientRect().width,
+        })),
+      );
+    expect(Math.abs(actions[0].x - actions[1].x)).toBeLessThan(1);
+    expect(Math.abs(actions[0].width - actions[1].width)).toBeLessThan(1);
+    const paired = await page
+      .locator(".family-session-list .family-device-actions button")
+      .evaluateAll((buttons) =>
+        buttons.map((b) => ({
+          width: b.getBoundingClientRect().width,
+          height: b.getBoundingClientRect().height,
+        })),
+      );
+    expect(Math.abs(paired[0].width - paired[1].width)).toBeLessThan(1);
+    expect(Math.abs(paired[0].height - paired[1].height)).toBeLessThan(1);
+    const menu = page.getByRole("button", {
+      name: "Dashboard menu: Learners & access",
+      exact: true,
+    });
+    await expect(menu).toBeVisible();
+    expect((await menu.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    expect(
+      (await page
+        .getByRole("button", { name: "Toggle navigation" })
+        .boundingBox())!.width,
+    ).toBeGreaterThanOrEqual(44);
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(
+      results.violations.filter((v) =>
+        ["serious", "critical"].includes(v.impact || ""),
+      ),
+    ).toEqual([]);
+    if (width === 390) {
+      await page.addStyleTag({ content: "nextjs-portal { display: none; }" });
+      await page.screenshot({
+        path: "test-results/mobile-access-refined.png",
+        fullPage: true,
+      });
+    }
+  }
+});
+test("mobile dashboard menu shows the current section and supports keyboard navigation", async ({
+  page,
+}) => {
+  await mock(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/dashboard/family");
+  const menu = page.getByRole("button", {
+    name: "Dashboard menu: Learners & access",
+    exact: true,
+  });
+  await menu.focus();
+  await page.keyboard.press("Enter");
+  const navigation = page.getByRole("navigation", {
+    name: "Dashboard sections",
+    exact: true,
+  });
+  await expect(
+    navigation.getByRole("link", { name: "Learners & access", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    navigation.getByRole("link", { name: "Help & safety", exact: true }),
+  ).toBeVisible();
+  const result = await new AxeBuilder({ page }).analyze();
+  expect(
+    result.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+  await page.addStyleTag({ content: "nextjs-portal { display: none; }" });
+  await page.screenshot({
+    path: "test-results/mobile-dashboard-menu-refined.png",
+    fullPage: true,
+  });
+  await navigation.getByRole("link", { name: "Overview", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Dashboard menu: Overview", exact: true }),
+  ).toBeVisible();
+  await expect(
+    navigation.getByRole("link", { name: "Learners & access", exact: true }),
+  ).toBeHidden();
+});

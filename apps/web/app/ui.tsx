@@ -307,7 +307,9 @@ function Header() {
             {session ? (
               <>
                 <Link className="button small secondary" href="/dashboard">
-                  My dashboard <ArrowUpRight size={16} />
+                  <span className="header-action-desktop">My dashboard</span>
+                  <span className="header-action-mobile">Dashboard</span>{" "}
+                  <ArrowUpRight size={16} />
                 </Link>
                 <button
                   className="icon-button"
@@ -319,7 +321,9 @@ function Header() {
               </>
             ) : (
               <Link className="button small" href="/login">
-                Get started <ArrowUpRight size={16} />
+                <span className="header-action-desktop">Get started</span>
+                <span className="header-action-mobile">Sign in</span>{" "}
+                <ArrowUpRight size={16} />
               </Link>
             )}
             <button
@@ -1398,6 +1402,7 @@ function DashboardShell({
   tab: string;
 }) {
   const { session } = useAuth();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const role = session?.account.role;
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
@@ -1510,18 +1515,55 @@ function DashboardShell({
             <small>{pretty(role || "account")}</small>
           </div>
         </div>
-        <nav aria-label="Dashboard">
+        <nav className="dashboard-desktop-nav" aria-label="Dashboard">
           {links.map(([href, label, Icon]) => (
             <Link
               key={href}
               href={href}
               className={tab === href ? "active" : ""}
+              aria-current={tab === href ? "page" : undefined}
             >
               <Icon size={18} />
               {label}
             </Link>
           ))}
         </nav>
+        <div className="dashboard-mobile-nav">
+          <UiButton
+            variant="ghost"
+            className="dashboard-mobile-trigger"
+            aria-label={`Dashboard menu: ${links.find(([href]) => href === tab)?.[1] || "Overview"}`}
+            aria-expanded={mobileNavOpen}
+            aria-controls="dashboard-mobile-sections"
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+          >
+            <span>
+              <small>Dashboard menu</small>
+              <strong>
+                {links.find(([href]) => href === tab)?.[1] || "Overview"}
+              </strong>
+            </span>
+            <ChevronDown size={20} aria-hidden="true" />
+          </UiButton>
+          <nav
+            id="dashboard-mobile-sections"
+            aria-label="Dashboard sections"
+            hidden={!mobileNavOpen}
+          >
+            {links.map(([href, label, Icon]) => (
+              <Link
+                key={href}
+                href={href}
+                className={tab === href ? "active" : ""}
+                aria-current={tab === href ? "page" : undefined}
+                onClick={() => setMobileNavOpen(false)}
+              >
+                <Icon size={18} />
+                {label}
+              </Link>
+            ))}
+          </nav>
+        </div>
         <div className="sidebar-tip">
           <Heart size={21} />
           <p>

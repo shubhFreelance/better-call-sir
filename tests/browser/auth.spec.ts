@@ -152,6 +152,26 @@ test("mobile email and code forms fit and have no serious accessibility findings
   );
   await page.goto("/login");
   for (const step of ["email", "code"]) {
+    for (const width of [320, 360, 390, 430]) {
+      await page.setViewportSize({ width, height: 850 });
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      for (const button of await page
+        .locator(".auth-card button:visible")
+        .all())
+        expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      for (const input of await page.locator(".auth-card input:visible").all())
+        expect(
+          await input.evaluate((el) =>
+            parseFloat(getComputedStyle(el).fontSize),
+          ),
+        ).toBeGreaterThanOrEqual(16);
+    }
+    await page.setViewportSize({ width: 390, height: 850 });
+    await page.addStyleTag({ content: "nextjs-portal { display: none; }" });
     await page.evaluate(() => document.fonts.ready.then(() => true));
     expect(
       await page.evaluate(
