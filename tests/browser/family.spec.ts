@@ -475,26 +475,58 @@ test("real guardian invitation and student device access stay owner-bound and re
       .getByRole("button", { name: "Authorize student access" })
       .click();
     await expect(
-      device.getByRole("heading", { name: "Your student space is ready." }),
+      device.getByRole("heading", { name: "Set up your student space." }),
     ).toBeVisible();
     await device
       .getByLabel("How do you like to learn? (optional)")
       .fill("More worked examples, please.");
     await device
-      .getByRole("button", { name: "Save preferences", exact: true })
+      .getByRole("checkbox", {
+        name: "These education details are correct",
+        exact: true,
+      })
+      .check();
+    await device.getByRole("radio", { name: /I need guardian help/ }).check();
+    await device
+      .getByRole("button", { name: "Review student setup", exact: true })
+      .click();
+    await device
+      .getByRole("button", {
+        name: "Confirm and save student setup",
+        exact: true,
+      })
       .click();
     await expect(
-      device.getByText("Your learning preferences are saved."),
+      device.getByRole("heading", {
+        name: "Your student setup is saved.",
+        exact: true,
+      }),
     ).toBeVisible();
     await device.reload();
     await expect(
       device.getByLabel("How do you like to learn? (optional)"),
     ).toHaveValue("More worked examples, please.");
     await device
-      .getByRole("button", { name: "Save preferences", exact: true })
+      .getByRole("checkbox", {
+        name: "These education details are correct",
+        exact: true,
+      })
+      .check();
+    await device.getByRole("radio", { name: /I need guardian help/ }).check();
+    await device
+      .getByRole("button", { name: "Review student setup", exact: true })
+      .click();
+    await device
+      .getByRole("button", {
+        name: "Confirm and save student setup",
+        exact: true,
+      })
       .click();
     await expect(
-      device.getByText("Your learning preferences are saved."),
+      device.getByRole("heading", {
+        name: "Your student setup is saved.",
+        exact: true,
+      }),
     ).toBeVisible();
     await device
       .getByRole("link", { name: "Open dashboard", exact: true })
@@ -757,7 +789,7 @@ test("private invitation stays out of storage and links; activation rejects inva
   await expect(page.getByText(/We couldn’t confirm activation/)).toBeVisible();
   await page.getByRole("button", { name: "Check device access" }).click();
   await expect(
-    page.getByRole("heading", { name: "Your student space is ready." }),
+    page.getByRole("heading", { name: "Set up your student space." }),
   ).toBeVisible();
   expect(state.getActivations()).toBe(2);
 });

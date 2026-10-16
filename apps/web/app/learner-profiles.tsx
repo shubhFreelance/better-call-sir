@@ -777,7 +777,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
     </main>
   );
 }
-function EducationSummary({
+export function EducationSummary({
   education: e,
 }: {
   education: Profile["education"];
