@@ -2533,13 +2533,13 @@ export interface paths {
         };
         /**
          * getIndependentStudentSignup
-         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.
+         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. Independent enquiries, hiring and optional scoped supporter access have separate endpoints.
          */
         get: operations["getIndependentStudentSignup"];
         put?: never;
         /**
          * signupIndependentStudent
-         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.
+         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. Independent enquiries, hiring and optional scoped supporter access have separate endpoints.
          */
         post: operations["signupIndependentStudent"];
         delete?: never;
@@ -2557,7 +2557,7 @@ export interface paths {
         };
         /**
          * getIndependentStudentProfile
-         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.
+         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. Independent enquiries, hiring and optional scoped supporter access have separate endpoints.
          */
         get: operations["getIndependentStudentProfile"];
         put?: never;
@@ -2579,7 +2579,7 @@ export interface paths {
         put?: never;
         /**
          * updateIndependentStudentProfile
-         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.
+         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. Independent enquiries, hiring and optional scoped supporter access have separate endpoints.
          */
         post: operations["updateIndependentStudentProfile"];
         delete?: never;
@@ -2926,6 +2926,190 @@ export interface paths {
          * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
          */
         post: operations["createStudentSupportCase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-guardian-grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listStudentGuardianGrants
+         * @description Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.
+         */
+        get: operations["listStudentGuardianGrants"];
+        put?: never;
+        /**
+         * inviteStudentGuardian
+         * @description Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.
+         */
+        post: operations["inviteStudentGuardian"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-guardian-grants/{id}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * decideStudentGuardianAccess
+         * @description Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.
+         */
+        post: operations["decideStudentGuardianAccess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/delegated-students/{id}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * readDelegatedStudentProfile
+         * @description Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.
+         */
+        get: operations["readDelegatedStudentProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/delegated-students/{id}/profile/updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * updateDelegatedStudentProfile
+         * @description Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.
+         */
+        post: operations["updateDelegatedStudentProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/delegated-students/{id}/enquiry-context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * delegatedStudentEnquiryContext
+         * @description Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.
+         */
+        get: operations["delegatedStudentEnquiryContext"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/delegated-students/{id}/enquiries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * createDelegatedStudentEnquiry
+         * @description Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.
+         */
+        post: operations["createDelegatedStudentEnquiry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/independent-student/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listIndependentStudentDevices
+         * @description Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.
+         */
+        get: operations["listIndependentStudentDevices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/independent-student/session-labels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * labelIndependentStudentDevice
+         * @description Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.
+         */
+        post: operations["labelIndependentStudentDevice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/independent-student/session-revocations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * revokeIndependentStudentDevice
+         * @description Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.
+         */
+        post: operations["revokeIndependentStudentDevice"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5719,6 +5903,67 @@ export interface components {
             /** Format: email */
             email: string | null;
             available: boolean;
+        };
+        StudentGuardianGrant: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            studentAccountId: string;
+            /** Format: email */
+            recipientEmail: string;
+            /** @enum {string} */
+            supportMode: "ADVICE" | "MANAGE";
+            /** @enum {string} */
+            status: "PENDING" | "ACTIVE" | "DECLINED" | "REVOKED" | "EXPIRED";
+            acceptedById: string | null;
+            /** Format: date-time */
+            expiresAt: string;
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            studentName?: string;
+        };
+        StudentGuardianInvitation: {
+            /** Format: email */
+            email: string;
+            /** @enum {string} */
+            supportMode: "ADVICE" | "MANAGE";
+            expectedPendingVersion: number;
+            /** @constant */
+            confirmed: true;
+        };
+        StudentGuardianDecision: {
+            /** @enum {string} */
+            action: "ACCEPT" | "DECLINE" | "REVOKE";
+            expectedVersion: number;
+            /** @constant */
+            confirmed: true;
+        };
+        DelegatedStudentProfile: {
+            /** Format: uuid */
+            accountId: string;
+            education: components["schemas"]["IndependentStudentEducation"];
+            /** @enum {string} */
+            managementPreference: "SELF_DIRECTED";
+            /** @enum {string} */
+            adultStatus: "SELF_DECLARED_18_PLUS";
+            /** @enum {string} */
+            policyVersion: "independent-student-development-v1";
+            /** Format: date-time */
+            consentedAt: string;
+            version: number;
+            /** @enum {string} */
+            editStatus: "EDITABLE" | "PRIVACY_PAUSED";
+            /** @enum {string} */
+            supportMode: "ADVICE" | "MANAGE";
+        };
+        StudentDevice: {
+            /** Format: uuid */
+            familyId: string;
+            deviceLabel: string | null;
+            /** Format: date-time */
+            expiresAt: string;
+            current: boolean;
         };
     };
     responses: never;
@@ -19059,6 +19304,8 @@ export interface operations {
                 cursor?: string;
                 limit?: number;
                 status?: "SUBMITTED" | "WITHDRAWN";
+                /** @description Required for accepted guardian delegation; unavailable to other roles. */
+                studentId?: string;
             };
             header?: never;
             path?: never;
@@ -19969,6 +20216,8 @@ export interface operations {
             query?: {
                 cursor?: string;
                 limit?: number;
+                /** @description Required for accepted guardian delegation; unavailable to other roles. */
+                studentId?: string;
             };
             header?: never;
             path?: never;
@@ -20533,6 +20782,938 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StudentResourceId"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listStudentGuardianGrants: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Private account-owned result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StudentGuardianGrant"][];
+                        nextCursor: string | null;
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    inviteStudentGuardian: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentGuardianInvitation"];
+            };
+        };
+        responses: {
+            /** @description Private account-owned result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentGuardianGrant"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    decideStudentGuardianAccess: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentGuardianDecision"];
+            };
+        };
+        responses: {
+            /** @description Private account-owned result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentGuardianGrant"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    readDelegatedStudentProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Private account-owned result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DelegatedStudentProfile"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateDelegatedStudentProfile: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IndependentStudentProfileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Private account-owned result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DelegatedStudentProfile"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    delegatedStudentEnquiryContext: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Private account-owned result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentEnquiryContext"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createDelegatedStudentEnquiry: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentEnquiryInput"];
+            };
+        };
+        responses: {
+            /** @description Private account-owned result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentEnquiry"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listIndependentStudentDevices: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Private account-owned result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StudentDevice"][];
+                        nextCursor: string | null;
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    labelIndependentStudentDevice: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    familyId: string;
+                    label: string | null;
+                    /** @constant */
+                    confirmed: true;
+                };
+            };
+        };
+        responses: {
+            /** @description Private account-owned result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        familyId: string;
+                        label: string | null;
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    revokeIndependentStudentDevice: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    familyId: string;
+                    /** @constant */
+                    confirmed: true;
+                };
+            };
+        };
+        responses: {
+            /** @description Private account-owned result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        familyId: string;
+                        /** @constant */
+                        status: "REVOKED";
+                    };
                 };
             };
             /** @description Validation */
