@@ -2427,6 +2427,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/learner-profiles/{id}/updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update an owned learner profile before it is linked to enquiry or learning history
+         * @description Requires verified guardian and active consent; idempotent creation only. Supports early years, Classes 1–12 and college without broadening current enquiry coverage.
+         */
+        post: operations["updateLearnerProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4751,6 +4771,11 @@ export interface components {
             version: number;
             /** @description Current academic pilot eligibility only; region, consent, teacher supply and request fit are checked separately. */
             enquiryEligible: boolean;
+            /**
+             * @description Included on exact detail and updates. Editing also requires current guardian verification, consent and privacy authorization.
+             * @enum {string}
+             */
+            editStatus?: "EDITABLE" | "HISTORY_LINKED" | "DELETED" | "READ_ONLY";
         };
         LearnerProfiles: {
             items: components["schemas"]["LearnerProfile"][];
@@ -4795,6 +4820,13 @@ export interface components {
             boardKey?: string;
             /** @description Derived comparison key; recomputed by the server. */
             courseKey?: string;
+        };
+        LearnerProfileUpdate: {
+            alias: string;
+            education: components["schemas"]["LearnerEducationInput"];
+            expectedVersion: number;
+            /** @constant */
+            confirmed: true;
         };
     };
     responses: never;
@@ -17173,6 +17205,101 @@ export interface operations {
         responses: {
             /** @description Private owned learner education profile; does not create an enquiry or authorize independent student access. */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerProfile"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateLearnerProfile: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LearnerProfileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Versioned, duplicate-safe guardian update; historical and deleted profiles reject edits. */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };

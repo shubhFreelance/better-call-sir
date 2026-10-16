@@ -20829,6 +20829,216 @@
           }
         ]
       }
+    },
+    "/learner-profiles/{id}/updates": {
+      "post": {
+        "operationId": "updateLearnerProfile",
+        "tags": [
+          "learner-profiles"
+        ],
+        "summary": "Update an owned learner profile before it is linked to enquiry or learning history",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Versioned, duplicate-safe guardian update; historical and deleted profiles reject edits.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerProfile"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires verified guardian and active consent; idempotent creation only. Supports early years, Classes 1\u201312 and college without broadening current enquiry coverage.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearnerProfileUpdate"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -30629,6 +30839,16 @@
           "enquiryEligible": {
             "type": "boolean",
             "description": "Current academic pilot eligibility only; region, consent, teacher supply and request fit are checked separately."
+          },
+          "editStatus": {
+            "type": "string",
+            "enum": [
+              "EDITABLE",
+              "HISTORY_LINKED",
+              "DELETED",
+              "READ_ONLY"
+            ],
+            "description": "Included on exact detail and updates. Editing also requires current guardian verification, consent and privacy authorization."
           }
         },
         "required": [
@@ -30818,6 +31038,34 @@
             "additionalProperties": false
           }
         ]
+      },
+      "LearnerProfileUpdate": {
+        "type": "object",
+        "properties": {
+          "alias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "education": {
+            "$ref": "#/components/schemas/LearnerEducationInput"
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "alias",
+          "education",
+          "expectedVersion",
+          "confirmed"
+        ],
+        "additionalProperties": false
       }
     },
     "securitySchemes": {
