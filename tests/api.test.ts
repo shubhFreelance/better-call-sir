@@ -475,6 +475,7 @@ test('unsupported scope waitlist is retry-safe, private and does not create a ch
  const children=await db.child.count({where:{guardianId:ids.guardian}}),body={grade:11,board:'CBSE',subject:'Physics',language:'English',mode:'ONLINE',region:'Raipur'},key=randomUUID();
  assert.equal((await student.call('/waitlist',body)).status,403);const created=await parent.call('/waitlist',body,{key});assert.equal(created.status,201);const validate=operationValidator('/waitlist','post','201');assert(validate(created.data),JSON.stringify(validate.errors));assert.equal(created.data.status,'PENDING');assert.equal((await parent.call('/waitlist',body,{key})).data.id,created.data.id);assert.equal((await parent.call('/waitlist',{...body,subject:'Chemistry'},{key})).status,409);assert.equal(await db.child.count({where:{guardianId:ids.guardian}}),children);assert.equal((await other.call('/waitlist')).data.items.some((x:any)=>x.id===created.data.id),false);
  assert.equal((await parent.call('/waitlist',{...body,grade:8,subject:'Maths'})).status,409);
+ assert.equal((await parent.call('/waitlist',{...body,region:'raipur',board:'cbse',grade:8,subject:'maths',language:'english'})).status,409);
  assert.equal((await parent.call('/waitlist',{...body,alias:'Unnecessary child data'})).status,400);
 });
 
