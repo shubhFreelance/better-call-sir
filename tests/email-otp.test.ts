@@ -11,6 +11,8 @@ test('email OTP normalizes addresses, requires delivery configuration and never 
   process.env.RESEND_API_KEY='synthetic-provider-key';process.env.EMAIL_FROM='signin@example.test';
   globalThis.fetch=async(input,init)=>{assert.equal(input,'https://api.resend.com/emails');assert.equal(init?.redirect,'error');assert(init?.signal);const payload=JSON.parse(init!.body as string);assert.deepEqual(payload.to,['guardian@example.test']);assert.match(payload.text,/123456/);return new Response(JSON.stringify({id:'synthetic-delivery'}),{status:200});};
   assert.deepEqual(await sendEmailOtp('guardian@example.test','123456','fixture'),{status:'SENT',expiresIn:300});
+  globalThis.fetch=async(_input,init)=>{const payload=JSON.parse(init!.body as string);assert.equal(payload.subject,'आपका Better Call Sir साइन-इन कोड');assert.match(payload.text,/123456/);assert.match(payload.text,/5 मिनट/);assert.match(payload.text,/साझा न करें/);return new Response(JSON.stringify({id:'synthetic-hindi-delivery'}),{status:200});};
+  assert.deepEqual(await sendEmailOtp('guardian@example.test','123456','fixture-hi','hi'),{status:'SENT',expiresIn:300});
   globalThis.fetch=async()=>new Response('{}',{status:500});await assert.rejects(sendEmailOtp('guardian@example.test','123456','fixture'));
   globalThis.fetch=async()=>new Response('{}',{status:200});await assert.rejects(sendEmailOtp('guardian@example.test','123456','fixture'));
  }finally{globalThis.fetch=original;for(const [key,value] of Object.entries({EMAIL_DELIVERY_MODE:oldMode,RESEND_API_KEY:oldKey,EMAIL_FROM:oldFrom})){if(value===undefined)delete process.env[key];else process.env[key]=value;}}

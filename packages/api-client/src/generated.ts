@@ -2758,6 +2758,12 @@ export interface components {
         OtpRequest: {
             /** Format: email */
             email: string;
+            /**
+             * @description Sign-in email language only. Does not affect role, verification or consent.
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "hi";
         };
         OtpVerify: {
             code: string;
