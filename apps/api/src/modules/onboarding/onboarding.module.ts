@@ -54,6 +54,22 @@ class OnboardingController {
    return this.result(db,actor,kind);
   });
  }
+ @Get('onboarding/guardian') async guardianSetup(@Req() req:HttpRequest){
+  const actor=await this.service.actor(req,['GUARDIAN']);
+  return this.service.db.$transaction(async db=>{
+   const account=await db.account.findUniqueOrThrow({where:{id:actor.id}}),consent=await db.consent.findUnique({where:{guardianId:actor.id}});
+   const paused=!!await db.privacyRequest.findFirst({where:{accountId:actor.id,kind:'DELETION',scope:{in:['ACCOUNT','CHILD']},status:'PENDING'},select:{id:true}});
+   const gate=!account.verified?'VERIFICATION_REQUIRED':paused?'PRIVACY_PAUSED':!consent||consent.withdrawnAt?'CONSENT_REQUIRED':'READY';
+   if(gate!=='READY')return {name:account.name,gate,learnerCount:null,enquiryStatus:null};
+   const [learnerCount,progress,requests]=await Promise.all([
+    db.child.count({where:{guardianId:actor.id,schoolName:{not:null},schoolSubjects:{isEmpty:false},OR:[{educationStage:{not:'COLLEGE'}},{courseName:{not:null},university:{not:null},studyYear:{not:null}}]}}),
+    db.onboardingProgress.findMany({where:{accountId:actor.id,kind:{in:['PARENT','ENQUIRY']}},select:{draft:true,completedResourceId:true}}),
+    db.tuitionRequest.count({where:{guardianId:actor.id}}),
+   ]);
+   const enquiryStatus=progress.some(p=>!p.completedResourceId&&Object.keys(p.draft as object).length)?'DRAFT':requests?'SUBMITTED':'NOT_STARTED';
+   return {name:account.name,gate,learnerCount,enquiryStatus};
+  },{isolationLevel:'RepeatableRead'});
+ }
  @Get('onboarding/:kind') async get(@Req() req:HttpRequest,@Param('kind') route:string){
   const {kind,actor}=await this.principal(req,route);return this.service.db.$transaction(db=>this.result(db,actor,kind));
  }
