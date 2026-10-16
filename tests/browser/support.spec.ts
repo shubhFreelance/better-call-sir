@@ -14,6 +14,8 @@ const account = "10000000-0000-4000-8000-000000000081",
   caseId = "20000000-0000-4000-8000-000000000081",
   otherId = "20000000-0000-4000-8000-000000000082",
   updateId = "30000000-0000-4000-8000-000000000081";
+const linkedRequest = "40000000-0000-4000-8000-000000000081",
+  linkedPlacement = "50000000-0000-4000-8000-000000000081";
 const timestamp = "2026-10-14T08:30:00.000Z";
 async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
   let item: components["schemas"]["SupportCase"] = {
@@ -75,6 +77,27 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
       });
     if (req.method() === "GET") {
       reads.push(url.pathname + url.search);
+      if (path.endsWith("/support/context")) {
+        if (mode === "bad-context")
+          return route.fulfill({
+            status: 404,
+            json: { code: "NOT_FOUND", message: "Context unavailable" },
+          });
+        return route.fulfill({
+          json: check("SupportContext", {
+            kind: url.searchParams.has("placementId")
+              ? "ARRANGEMENT"
+              : "ENQUIRY",
+            id: url.searchParams.get("placementId") || linkedRequest,
+            requestId: linkedRequest,
+            placementId: linkedPlacement,
+            subject: "Maths",
+            mode: "ONLINE",
+            status: "OPEN",
+            canRequestReplacement: role === "GUARDIAN",
+          }),
+        });
+      }
       if (failRead) {
         failRead = false;
         return route.fulfill({
@@ -175,6 +198,8 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
         ...item,
         category: body.category,
         description: body.description,
+        requestId: body.requestId || null,
+        placementId: body.placementId || null,
         status: "OPEN",
         version: 1,
       };
@@ -481,4 +506,110 @@ test("empty requests stay editable and composing beside an existing case never p
   await expect(page.getByLabel("Tell us what happened")).toHaveValue(
     "A new separate request.",
   );
+});
+
+test("enquiry help preserves owned context through case creation and status filtering", async ({
+  page,
+}) => {
+  const state = await mock(page);
+  await page.goto("/support?request=" + linkedRequest);
+  await expect(
+    page.getByRole("heading", { name: "Help with this enquiry" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Review replacement options" }),
+  ).toHaveAttribute(
+    "href",
+    "/dashboard/arrangements?placement=" + linkedPlacement,
+  );
+  await create(page);
+  await page
+    .getByRole("button", { name: "Send support request", exact: true })
+    .click();
+  await expect(page).toHaveURL(
+    new RegExp("request=" + linkedRequest + ".*case=" + caseId),
+  );
+  expect(state.writes[0].body.requestId).toBe(linkedRequest);
+  await expect(page.getByLabel("Add a reply", { exact: true })).toBeVisible();
+  await page.getByLabel("Case status", { exact: true }).selectOption("OPEN");
+  await expect(page).toHaveURL(new RegExp("request=" + linkedRequest));
+  await expect(page).not.toHaveURL(/case=/);
+  expect(
+    state.reads
+      .filter((p) => p.startsWith("/cases?"))
+      .every(
+        (p) =>
+          new URL(p, "http://local.test").searchParams.get("requestId") ===
+          linkedRequest,
+      ),
+  ).toBe(true);
+});
+test("unavailable support context never opens an unlinked case or unfiltered history", async ({
+  page,
+}) => {
+  const state = await mock(page, "bad-context");
+  await page.goto("/support?request=" + linkedRequest + "&case=" + caseId);
+  await expect(
+    page.getByText(/This support link could not be verified/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Create a case", exact: true }),
+  ).toBeDisabled();
+  expect(state.reads.some((p) => p.startsWith("/cases?"))).toBe(false);
+  expect(state.reads.some((p) => p.startsWith("/cases/"))).toBe(false);
+  await expect(page.getByLabel("Add a reply", { exact: true })).toHaveCount(0);
+  expect(state.writes).toHaveLength(0);
+});
+test("unknown contextual support create locks context and replays the same owned body", async ({
+  page,
+}) => {
+  const state = await mock(page, "uncertain-context");
+  await page.goto("/support?placement=" + linkedPlacement);
+  await expect(
+    page.getByRole("heading", { name: "Help with this arrangement" }),
+  ).toBeVisible();
+  await create(page);
+  await page
+    .getByRole("button", { name: "Send support request", exact: true })
+    .click();
+  await expect(
+    page.getByText(/We couldn’t confirm this decision/),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Retry same decision" }).click();
+  await expect(page).toHaveURL(
+    new RegExp("placement=" + linkedPlacement + ".*case=" + caseId),
+  );
+  expect(state.writes).toHaveLength(2);
+  expect(state.writes[0].body).toEqual(state.writes[1].body);
+  expect(state.writes[0].key).toBe(state.writes[1].key);
+  expect(state.writes[0].body.placementId).toBe(linkedPlacement);
+});
+test("contextual support is clear and accessible on mobile", async ({
+  page,
+}) => {
+  await mock(page);
+  await page.goto("/support?request=" + linkedRequest);
+  await expect(
+    page.getByRole("heading", { name: "Help with this enquiry" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/context-support-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "test-results/context-support-mobile.png",
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const result = await new AxeBuilder({ page }).analyze();
+  expect(
+    result.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
 });

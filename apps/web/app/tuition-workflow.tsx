@@ -859,7 +859,7 @@ function RequestReview({
                   <Link className="inline-link" href="/teachers">
                     Browse teachers manually
                   </Link>
-                  <Link className="inline-link" href="/support">
+                  <Link className="inline-link" href={`/support?request=${request.id}`}>
                     Ask for search support
                   </Link>
                 </div>
@@ -1112,7 +1112,7 @@ function RequestReview({
         </div>
       )}
       <Feedback decision={decision} />
-      <Link href="/support" className="inline-link">
+      <Link href={`/support?request=${request.id}`} className="inline-link">
         Get help with this request
       </Link>
     </section>

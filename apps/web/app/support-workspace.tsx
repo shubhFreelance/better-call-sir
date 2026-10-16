@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { LifeBuoy, ShieldCheck, MessageSquare } from "lucide-react";
 import { api, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
@@ -39,6 +39,35 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
     canUse =
       !!session &&
       ["GUARDIAN", "TEACHER", "STUDENT"].includes(session.account.role);
+  const requestLink = params.get("request"),
+    placementLink = params.get("placement"),
+    hasContext = !!(requestLink || placementLink);
+  const contextParams = new URLSearchParams({
+    ...(requestLink ? { requestId: requestLink } : {}),
+    ...(placementLink ? { placementId: placementLink } : {}),
+  });
+  const context = useQuery({
+    queryKey: [
+      "support-context",
+      session?.account.id,
+      contextParams.toString(),
+    ],
+    queryFn: () =>
+      api<components["schemas"]["SupportContext"]>(
+        "/support/context?" + contextParams,
+      ),
+    enabled: canUse && hasContext,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  function caseUrl(id = "") {
+    const next = new URLSearchParams({
+      ...(requestLink ? { request: requestLink } : {}),
+      ...(placementLink ? { placement: placementLink } : {}),
+      ...(id ? { case: id } : {}),
+    });
+    return "/support" + (next.size ? "?" + next : "");
+  }
   const [selected, setSelected] = useState(() =>
     /^[a-f0-9-]{36}$/i.test(params.get("case") || "")
       ? params.get("case")!
@@ -54,15 +83,20 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
   const sending = useRef(false),
     form = useRef<HTMLDivElement>(null);
   const list = useInfiniteQuery({
-    queryKey: ["support-cases", session?.account.id, filter],
+    queryKey: [
+      "support-cases",
+      session?.account.id,
+      filter,
+      contextParams.toString(),
+    ],
     initialPageParam: "",
     queryFn: ({ pageParam, signal }) =>
       api<components["schemas"]["SupportCaseList"]>(
-        `/cases?${new URLSearchParams({ limit: "20", ...(filter ? { status: filter } : {}), ...(pageParam ? { cursor: pageParam } : {}) })}`,
+        `/cases?${new URLSearchParams({ limit: "20", ...Object.fromEntries(contextParams), ...(filter ? { status: filter } : {}), ...(pageParam ? { cursor: pageParam } : {}) })}`,
         { signal },
       ),
     getNextPageParam: (page) => page.nextCursor || undefined,
-    enabled: canUse,
+    enabled: canUse && (!hasContext || (!!context.data && !context.error)),
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -75,7 +109,10 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
         { signal },
       ),
     getNextPageParam: (page) => page.updatesNextCursor || undefined,
-    enabled: canUse && !!selected,
+    enabled:
+      canUse &&
+      !!selected &&
+      (!hasContext || (!!context.data && !context.error)),
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -94,12 +131,28 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
       },
       refresh,
     ),
-    item = detail.data?.pages[0],
+    loaded = detail.data?.pages[0],
+    item =
+      hasContext &&
+      (!context.data ||
+        context.error ||
+        (loaded &&
+          !(
+            loaded.requestId === context.data.requestId ||
+            (!!context.data.placementId &&
+              loaded.placementId === context.data.placementId)
+          )))
+        ? undefined
+        : loaded,
     draft = composing || !!reply.trim(),
     locked = decision.locked || draft;
+  const lastUrl = useRef(params.toString());
   useEffect(() => {
-    const value = params.get("case") || "";
-    if (!locked && /^[a-f0-9-]{36}$/i.test(value)) setSelected(value);
+    if (!locked && lastUrl.current !== params.toString()) {
+      lastUrl.current = params.toString();
+      const value = params.get("case") || "";
+      setSelected(/^[a-f0-9-]{36}$/i.test(value) ? value : "");
+    }
   }, [params, locked]);
   useEffect(() => {
     if (composing) {
@@ -113,13 +166,21 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
     setReply("");
     setReview(false);
     setAgreed(false);
-    router.replace("/support?case=" + encodeURIComponent(id), {
+    router.replace(caseUrl(id), {
       scroll: false,
     });
     decision.invalid("");
   }
   async function save(create: boolean) {
     if (!canUse || sending.current || decision.locked) return;
+    if (
+      create &&
+      hasContext &&
+      (context.isPending || context.error || !context.data)
+    ) {
+      decision.invalid("Refresh the linked support context before sending.");
+      return;
+    }
     const message = (create ? description : reply).trim();
     if (!message || message.length > 3000 || !agreed) {
       decision.invalid(
@@ -141,7 +202,15 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
       await decision.run({
         path: create ? "/cases" : `/cases/${item!.id}/updates`,
         body: create
-          ? { category, description: message }
+          ? {
+              category,
+              description: message,
+              ...(hasContext && context.data
+                ? placementLink
+                  ? { placementId: context.data.placementId! }
+                  : { requestId: context.data.requestId }
+                : {}),
+            }
           : { expectedVersion: item!.version, message, internal: false },
         message: create
           ? "Your support request is recorded. This development service has no live support operator or notification delivery."
@@ -156,7 +225,7 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
             const id = (result as Case).id;
             setSelected(id);
             setFilter("");
-            router.replace("/support?case=" + encodeURIComponent(id), {
+            router.replace(caseUrl(id), {
               scroll: false,
             });
           }
@@ -218,7 +287,11 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
                 Refresh cases
               </Button>
               <Button
-                disabled={locked}
+                disabled={
+                  locked ||
+                  (hasContext &&
+                    (context.isPending || !!context.error || !context.data))
+                }
                 onClick={() => {
                   setComposing(true);
                   setReview(false);
@@ -230,6 +303,75 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
               </Button>
             </div>
           </div>
+          {hasContext && (
+            <section
+              className="support-linked-context"
+              aria-label="Linked support context"
+            >
+              {context.isPending ? (
+                <p role="status">Loading the linked enquiry or arrangement…</p>
+              ) : context.error || !context.data ? (
+                <>
+                  <Notice error>
+                    This support link could not be verified. No case will be
+                    sent against an unavailable enquiry or arrangement.
+                  </Notice>
+                  <Button
+                    disabled={decision.locked}
+                    variant="outline"
+                    onClick={() => context.refetch()}
+                  >
+                    Retry support context
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <h2>
+                    {context.data.kind === "ENQUIRY"
+                      ? "Help with this enquiry"
+                      : "Help with this arrangement"}
+                  </h2>
+                  <p>
+                    {context.data.subject} ·{" "}
+                    {context.data.mode === "HOME" ? "At home" : "Online"} ·
+                    Reference {context.data.id.slice(0, 8)}
+                  </p>
+                  <p>
+                    Your related cases and their progress appear below. Other
+                    participants’ conversations stay private.
+                  </p>
+                  <div className="wizard-actions">
+                    <Link
+                      className="inline-link"
+                      href={
+                        session?.account.role === "GUARDIAN"
+                          ? `/dashboard/requests?request=${context.data.requestId}`
+                          : "/dashboard/enquiries"
+                      }
+                    >
+                      Return to enquiry progress
+                    </Link>
+                    {context.data.placementId && (
+                      <Link
+                        className="inline-link"
+                        href={`/dashboard?arrangement=${context.data.placementId}`}
+                      >
+                        Review hiring confirmation
+                      </Link>
+                    )}
+                    {context.data.canRequestReplacement && (
+                      <Link
+                        className="inline-link"
+                        href={`/dashboard/arrangements?placement=${context.data.placementId}`}
+                      >
+                        Review replacement options
+                      </Link>
+                    )}
+                  </div>
+                </>
+              )}
+            </section>
+          )}
           <Feedback decision={decision} />
           {decision.conflict && (
             <Button
@@ -356,7 +498,7 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
                 onChange={(e) => {
                   setFilter(e.target.value);
                   setSelected("");
-                  router.replace("/support", { scroll: false });
+                  router.replace(caseUrl(), { scroll: false });
                 }}
               >
                 <option value="">All statuses</option>
@@ -367,7 +509,11 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
                 ))}
               </select>
               {list.isPending && (
-                <p role="status">Loading your case history…</p>
+                <p role="status">
+                  {hasContext && context.error
+                    ? "A verified context is needed to load related history."
+                    : "Loading your case history…"}
+                </p>
               )}
               {list.error && (
                 <Notice error>
@@ -433,7 +579,11 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
               ) : (
                 <>
                   {detail.isPending && (
-                    <p role="status">Loading case details…</p>
+                    <p role="status">
+                      {hasContext && context.error
+                        ? "Resolve the support context before opening this case."
+                        : "Loading case details…"}
+                    </p>
                   )}
                   {detail.error && (
                     <Notice error>

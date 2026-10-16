@@ -1,6 +1,7 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import {
@@ -15,6 +16,14 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Notice, Feedback, useDecision } from "./tuition-workflow";
 import { preferences, type Window } from "./guardian-onboarding";
+import {
+  AvailabilityMode,
+  WeeklyAvailability,
+  WeeklySummary,
+  emptyWeekly,
+  weeklyRows,
+  weeklyPreferences,
+} from "./weekly-availability";
 type Request = components["schemas"]["TuitionRequest"];
 const money = (paise: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -38,6 +47,8 @@ export function PlacementCare({
   session: Session;
   dashboard: Dashboard;
 }) {
+  const linkedPlacement = useSearchParams().get("placement"),
+    lastLink = useRef(linkedPlacement);
   const client = useQueryClient(),
     canUse = session.account.role === "GUARDIAN";
   const requests = useQuery({
@@ -47,7 +58,9 @@ export function PlacementCare({
     retry: false,
     refetchOnWindowFocus: false,
   });
-  const [selected, setSelected] = useState(d.placements?.[0]?.id || ""),
+  const [selected, setSelected] = useState(
+      linkedPlacement || d.placements?.[0]?.id || "",
+    ),
     [action, setAction] = useState<"close" | "replace" | "">(""),
     [reason, setReason] = useState(""),
     [review, setReview] = useState(false),
@@ -59,6 +72,8 @@ export function PlacementCare({
       locality: "",
       budget: "",
     }),
+    [weeklyMode, setWeeklyMode] = useState(true),
+    [weekly, setWeekly] = useState(emptyWeekly),
     [windows, setWindows] = useState<Window[]>([{ start: "", duration: "60" }]),
     [result, setResult] = useState<{
       caseId: string;
@@ -100,6 +115,12 @@ export function PlacementCare({
     locked = decision.locked || !!action,
     permitted =
       session.account.verified && !!d.consent && !d.consent.withdrawnAt;
+  useEffect(() => {
+    if (lastLink.current !== linkedPlacement && !locked) {
+      lastLink.current = linkedPlacement;
+      setSelected(linkedPlacement || d.placements?.[0]?.id || "");
+    }
+  }, [linkedPlacement, locked, d.placements]);
   function begin(value: "close" | "replace") {
     if (!p || decision.locked || action) return;
     setAction(value);
@@ -108,6 +129,14 @@ export function PlacementCare({
     setResult(null);
     setReason("");
     setWindows([{ start: "", duration: "60" }]);
+    setWeeklyMode(
+      !source?.schedulePreferences || "weekly" in source.schedulePreferences,
+    );
+    setWeekly(
+      source?.schedulePreferences && "weekly" in source.schedulePreferences
+        ? weeklyRows(source.schedulePreferences)
+        : emptyWeekly(),
+    );
     if (source)
       setCriteria({
         subject: source.subject,
@@ -131,7 +160,9 @@ export function PlacementCare({
     }
     const base = { expectedVersion: p.version, reason: reason.trim() };
     if (action === "close") return base;
-    const availability = preferences(windows),
+    const availability = weeklyMode
+        ? weeklyPreferences(weekly)
+        : preferences(windows),
       amount = Number(criteria.budget) * 100;
     if (
       !source ||
@@ -144,7 +175,9 @@ export function PlacementCare({
       criteria.locality.trim().length > 80
     ) {
       decision.invalid(
-        "Check the locality, ₹500–₹20,000 budget and 1–6 nonoverlapping IST windows, 20–120 minutes long, from one hour to 60 days ahead.",
+        weeklyMode
+          ? "Check the locality, ₹500–₹20,000 budget and nonoverlapping weekly day/time ranges of at least 20 minutes."
+          : "Check the locality, ₹500–₹20,000 budget and 1–6 nonoverlapping IST windows, 20–120 minutes long, from one hour to 60 days ahead.",
       );
       return null;
     }
@@ -280,6 +313,13 @@ export function PlacementCare({
               Refresh arrangements
             </Button>
           </div>
+          {selected && !p && (
+            <Notice error>
+              The linked arrangement is unavailable in this view. Return to your
+              hiring dashboard or contact support; another arrangement has not
+              been substituted.
+            </Notice>
+          )}
           {p && (
             <section className="care-card">
               <header>
@@ -299,6 +339,9 @@ export function PlacementCare({
                   </p>
                 </div>
               </header>
+              <Link className="inline-link" href={`/support?placement=${p.id}`}>
+                Help and case progress for this arrangement
+              </Link>
               {source && (
                 <p>
                   {source.subject} ·{" "}
@@ -317,7 +360,9 @@ export function PlacementCare({
                         replacement.matchStatus ||
                         "Matching status unavailable"}
                       .{" "}
-                      <Link href="/dashboard/requests">
+                      <Link
+                        href={`/dashboard/requests?request=${replacement.id}`}
+                      >
                         Review replacement progress
                       </Link>
                       .
@@ -325,7 +370,10 @@ export function PlacementCare({
                   ) : (
                     "No linked replacement is shown in the latest request history."
                   )}{" "}
-                  <Link href="/support">View support history</Link>.
+                  <Link href={`/support?placement=${p.id}`}>
+                    View support history
+                  </Link>
+                  .
                 </Notice>
               ) : (
                 !action && (
@@ -362,7 +410,9 @@ export function PlacementCare({
                 <>
                   {" "}
                   ·{" "}
-                  <Link href="/dashboard/requests">
+                  <Link
+                    href={`/dashboard/requests?request=${result.requestId}`}
+                  >
                     Review your replacement request
                   </Link>
                 </>
@@ -487,78 +537,96 @@ export function PlacementCare({
                             </div>
                           </div>
                           <h4>Fresh availability in IST</h4>
-                          <p>
-                            Choose 1–6 windows of 20–120 minutes, from one hour
-                            to 60 days ahead. These are preferences, not
-                            confirmed bookings.
-                          </p>
-                          {windows.map((w, i) => (
-                            <div className="care-window" key={i}>
-                              <div>
-                                <label htmlFor={"care-time-" + i}>
-                                  Window {i + 1} starts (IST)
-                                </label>
-                                <Input
-                                  id={"care-time-" + i}
-                                  type="datetime-local"
-                                  value={w.start}
-                                  onChange={(e) =>
-                                    setWindows(
-                                      windows.map((x, j) =>
-                                        j === i
-                                          ? { ...x, start: e.target.value }
-                                          : x,
-                                      ),
-                                    )
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <label htmlFor={"care-duration-" + i}>
-                                  Duration {i + 1} (minutes)
-                                </label>
-                                <Input
-                                  id={"care-duration-" + i}
-                                  type="number"
-                                  min={20}
-                                  max={120}
-                                  value={w.duration}
-                                  onChange={(e) =>
-                                    setWindows(
-                                      windows.map((x, j) =>
-                                        j === i
-                                          ? { ...x, duration: e.target.value }
-                                          : x,
-                                      ),
-                                    )
-                                  }
-                                />
-                              </div>
+                          <AvailabilityMode
+                            weekly={weeklyMode}
+                            onChange={setWeeklyMode}
+                          />
+                          {weeklyMode ? (
+                            <WeeklyAvailability
+                              rows={weekly}
+                              onChange={setWeekly}
+                            />
+                          ) : (
+                            <>
+                              <p>
+                                Choose 1–6 windows of 20–120 minutes, from one
+                                hour to 60 days ahead. These are preferences,
+                                not confirmed bookings.
+                              </p>
+                              {windows.map((w, i) => (
+                                <div className="care-window" key={i}>
+                                  <div>
+                                    <label htmlFor={"care-time-" + i}>
+                                      Window {i + 1} starts (IST)
+                                    </label>
+                                    <Input
+                                      id={"care-time-" + i}
+                                      type="datetime-local"
+                                      value={w.start}
+                                      onChange={(e) =>
+                                        setWindows(
+                                          windows.map((x, j) =>
+                                            j === i
+                                              ? { ...x, start: e.target.value }
+                                              : x,
+                                          ),
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <div>
+                                    <label htmlFor={"care-duration-" + i}>
+                                      Duration {i + 1} (minutes)
+                                    </label>
+                                    <Input
+                                      id={"care-duration-" + i}
+                                      type="number"
+                                      min={20}
+                                      max={120}
+                                      value={w.duration}
+                                      onChange={(e) =>
+                                        setWindows(
+                                          windows.map((x, j) =>
+                                            j === i
+                                              ? {
+                                                  ...x,
+                                                  duration: e.target.value,
+                                                }
+                                              : x,
+                                          ),
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <Button
+                                    variant="outline"
+                                    type="button"
+                                    disabled={windows.length === 1}
+                                    onClick={() =>
+                                      setWindows(
+                                        windows.filter((_, j) => j !== i),
+                                      )
+                                    }
+                                  >
+                                    Remove window {i + 1}
+                                  </Button>
+                                </div>
+                              ))}
                               <Button
-                                variant="outline"
                                 type="button"
-                                disabled={windows.length === 1}
+                                variant="outline"
+                                disabled={windows.length === 6}
                                 onClick={() =>
-                                  setWindows(windows.filter((_, j) => j !== i))
+                                  setWindows([
+                                    ...windows,
+                                    { start: "", duration: "60" },
+                                  ])
                                 }
                               >
-                                Remove window {i + 1}
+                                Add availability window
                               </Button>
-                            </div>
-                          ))}
-                          <Button
-                            type="button"
-                            variant="outline"
-                            disabled={windows.length === 6}
-                            onClick={() =>
-                              setWindows([
-                                ...windows,
-                                { start: "", duration: "60" },
-                              ])
-                            }
-                          >
-                            Add availability window
-                          </Button>
+                            </>
+                          )}
                         </>
                       )}
                     </>
@@ -597,18 +665,25 @@ export function PlacementCare({
                             {money(Math.round(Number(criteria.budget) * 100))}{" "}
                             budget
                           </p>
-                          <ul>
-                            {windows.map((w, i) => (
-                              <li key={i}>
-                                {w.start.replace("T", " ")} IST · {w.duration}{" "}
-                                minutes
-                              </li>
-                            ))}
-                          </ul>
+                          {weeklyMode && weeklyPreferences(weekly) ? (
+                            <WeeklySummary
+                              preferences={weeklyPreferences(weekly)!}
+                            />
+                          ) : (
+                            <ul>
+                              {windows.map((w, i) => (
+                                <li key={i}>
+                                  {w.start.replace("T", " ")} IST · {w.duration}{" "}
+                                  minutes
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                           <p>
                             The previous teacher is excluded. A replacement
-                            follows the ordinary shortlist, demo, terms and
-                            timetable process.
+                            follows the teacher shortlist and mutually reviewed
+                            hiring terms. A demo is optional; no class timetable
+                            is required to accept hiring terms.
                           </p>
                         </>
                       )}

@@ -194,6 +194,7 @@ async function replacementReview(page: Page) {
   await page.getByLabel("Teaching format").selectOption("ONLINE");
   await page.getByLabel("Language", { exact: true }).selectOption("Hindi");
   await page.getByLabel("Monthly budget (₹)").fill("4500.50");
+  await page.getByRole("radio", { name: "Specific dates (optional)" }).check();
   await page.getByLabel("Window 1 starts (IST)").fill(time());
   await page
     .getByRole("button", { name: "Review decision", exact: true })
@@ -512,4 +513,70 @@ test("real guardian replacement persists for an isolated synthetic learner", asy
   } finally {
     await db.$disconnect();
   }
+});
+
+test("arrangement links target the exact replacement record and never substitute another arrangement", async ({
+  page,
+}) => {
+  const state = await mock(page);
+  await page.goto("/dashboard/arrangements?placement=" + placement);
+  await expect(
+    page.getByRole("link", {
+      name: "Help and case progress for this arrangement",
+    }),
+  ).toHaveAttribute("href", "/support?placement=" + placement);
+  await page.goto(
+    "/dashboard/arrangements?placement=40000000-0000-4000-8000-000000000099",
+  );
+  await expect(
+    page.getByText(/The linked arrangement is unavailable/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Request a replacement", exact: true }),
+  ).toHaveCount(0);
+  expect(state.writes).toHaveLength(0);
+});
+
+test("replacement accepts broad weekly preferences and links to exact recorded progress", async ({
+  page,
+}) => {
+  const state = await mock(page);
+  await page.goto("/dashboard/arrangements?placement=" + placement);
+  await page
+    .getByRole("button", { name: "Request a replacement", exact: true })
+    .click();
+  await expect(
+    page.getByRole("radio", { name: "Weekly preferences" }),
+  ).toBeChecked();
+  await expect(page.locator('input[type="datetime-local"]')).toHaveCount(0);
+  await page
+    .getByLabel("Reason for replacement")
+    .fill("A different teaching approach is needed.");
+  await page.getByLabel("Preferred day 1", { exact: true }).selectOption("1");
+  await page
+    .getByRole("button", { name: "Review decision", exact: true })
+    .click();
+  await expect(
+    page.getByText("Monday · 16:00–20:00 IST", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("checkbox", { name: /I reviewed these effects/ })
+    .check();
+  await page
+    .getByRole("button", {
+      name: "Confirm closure and replacement",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("link", { name: "Review your replacement request" }),
+  ).toHaveAttribute("href", "/dashboard/requests?request=" + replacement);
+  expect(state.writes[0].body.preferences).toEqual({
+    timezone: "Asia/Kolkata",
+    weekly: [{ weekday: 1, startMinute: 960, endMinute: 1200 }],
+  });
+  await page.reload();
+  await expect(
+    page.getByRole("link", { name: "Review replacement progress" }),
+  ).toHaveAttribute("href", "/dashboard/requests?request=" + replacement);
 });

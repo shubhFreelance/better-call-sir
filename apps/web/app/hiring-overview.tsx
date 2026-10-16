@@ -414,6 +414,12 @@ export function HiringOverview({ session }: { session: Session }) {
                             <p className="care-help">
                               Submitted {date(e.createdAt)} IST
                             </p>
+                            <Link
+                              className="inline-link"
+                              href={`/support?request=${e.id}`}
+                            >
+                              Help and case progress for this enquiry
+                            </Link>
                             {e.candidate ? (
                               <>
                                 <p className="hiring-next">
@@ -564,9 +570,15 @@ export function HiringOverview({ session }: { session: Session }) {
                                 Review hiring terms
                               </Button>
                             )}
+                            <Link
+                              className="inline-link"
+                              href={`/support?placement=${p.id}`}
+                            >
+                              Help and case progress
+                            </Link>
                             {guardian && (
                               <Link
-                                href="/dashboard/arrangements"
+                                href={`/dashboard/arrangements?placement=${p.id}`}
                                 className="inline-link"
                               >
                                 Support or replacement
