@@ -640,3 +640,15 @@ model DeletionRecord {
  retentionReason String
  createdAt DateTime @default(now())
 }
+
+model IndependentStudentProfile {
+  accountId String @id @db.Uuid
+  education Json
+  managementPreference String @default("SELF_DIRECTED")
+  adultDeclarationAt DateTime @default(now())
+  consentedAt DateTime @default(now())
+  policyVersion String @default("independent-student-development-v1")
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

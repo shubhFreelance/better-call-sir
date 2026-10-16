@@ -179,3 +179,8 @@ test("OTP locale is optional, bounded to English/Hindi and cannot assign account
  for(const locale of ["en","hi"]) assert(check({email:"guardian@example.test",locale}));
  for(const patch of [{locale:"fr"},{locale:null},{locale:"hi",role:"ADMIN"}]) assert.equal(check({email:"guardian@example.test",...patch}),false);
 });
+
+test('independent signup contract requires explicit declarations and forbids authority assignment',()=>{
+ const validate=validator('IndependentStudentSignup'),body={education:{stage:'COLLEGE',institutionName:'Synthetic college',subjects:['Physics'],courseName:'BSc',university:'Synthetic university',studyYear:1},managementPreference:'SELF_DIRECTED',adultDeclaration:true,consentAccepted:true,policyVersion:'independent-student-development-v1'};
+ assert(validate(body));for(const patch of [{adultDeclaration:false},{consentAccepted:false},{managementPreference:'GUARDIAN_GUIDED'},{role:'ADMIN'},{guardianId:ids.guardian},{education:{...body.education,studyYear:0}}])assert.equal(validate({...body,...patch}),false);
+});

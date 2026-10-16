@@ -18,6 +18,8 @@ import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,sam
 export const applicationSchema=z.object({...detailsShape,name:text(80),headline:text(120),bio:text(1500),teachingCoverage:teachingScopes.optional(),subjects:z.array(subjectSchema).min(1).max(40),boards:z.array(boardSchema).max(20),grades:z.array(z.number().int().min(1).max(12)).max(12),languages:z.array(z.enum(['English','Hindi'])).min(1).max(2),modes:z.array(z.enum(['ONLINE','HOME'])).min(1).max(2),localities:z.array(text(80)).max(20),monthlyPaise:z.number().int().min(50_000).max(2_000_000),experience:z.number().int().min(0).max(60),consultationOptIn:z.boolean(),feeTermsAccepted:z.literal(true)}).strict();
 export async function submitTeacher(db:DB,service:AppService,account:Account,data:z.infer<typeof applicationSchema>) {
   await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${account.id},0))`;
+  const current=await db.account.findUniqueOrThrow({where:{id:account.id}});
+  if(current.disabled||!['GUARDIAN','TEACHER'].includes(current.role))fail(403,'FORBIDDEN','This account cannot submit a teacher application.');
   const {feeTermsAccepted,...declared}=data;
   if(!declaredScopes(declared).length)fail(400,'INVALID_COVERAGE','Declare at least one valid teaching scope, up to 200 combinations.');const profile=coverageProfile(declared);
       const existing=await db.teacher.findUnique({where:{accountId:account.id}});
