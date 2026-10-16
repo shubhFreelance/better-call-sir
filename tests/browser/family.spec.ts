@@ -29,6 +29,12 @@ async function mock(
     | "invitation-status-error"
     | "uncertain-consent"
     | "switch-not-committed"
+    | "label-unknown"
+    | "label-unreadable"
+    | "label-stale"
+    | "label-gone"
+    | "label-read-error"
+    | "label-denied"
     | "unverified" = "normal",
 ) {
   let role = mode === "student" ? "STUDENT" : "GUARDIAN",
@@ -47,8 +53,17 @@ async function mock(
     invitationBodies: any[] = [];
   let invitationConflict = mode === "invitation-stale";
   const invitationExpiry = new Date(Date.now() + 86400000).toISOString();
+  const labelKeys: string[] = [],
+    labelBodies: any[] = [];
+  let labelWrites = 0,
+    labelReadFailed = false;
+  const labelResults = new Map<string, any>();
   let sessions = [
-    { familyId, expiresAt: new Date(Date.now() + 86400000).toISOString() },
+    {
+      familyId,
+      deviceLabel: null as string | null,
+      expiresAt: new Date(Date.now() + 86400000).toISOString(),
+    },
   ];
   const child = {
     id: childId,
@@ -208,8 +223,76 @@ async function mock(
       expect(check(result), JSON.stringify(check.errors)).toBe(true);
       return route.fulfill({ json: result });
     }
+    if (path.endsWith("/student-session-labels")) {
+      const body = req.postDataJSON(),
+        key = req.headers()["idempotency-key"];
+      labelKeys.push(key);
+      labelBodies.push(body);
+      expect(validator("StudentDeviceLabel")(body)).toBe(true);
+      if (mode === "label-denied")
+        return route.fulfill({
+          status: 403,
+          json: {
+            code: "CONSENT_REQUIRED",
+            message: "Guardian permission needs review.",
+          },
+        });
+      if (mode === "label-gone") {
+        sessions = [];
+        return route.fulfill({
+          status: 404,
+          json: {
+            code: "NOT_FOUND",
+            message: "Active student device not found.",
+          },
+        });
+      }
+      if (mode === "label-stale" && labelKeys.length === 1) {
+        version++;
+        return route.fulfill({
+          status: 409,
+          json: { code: "CONFLICT", message: "Student access has changed." },
+        });
+      }
+      if (!labelResults.has(key)) {
+        expect(body.expectedVersion).toBe(version);
+        expect(body.familyId).toBe(familyId);
+        version++;
+        labelWrites++;
+        sessions = sessions.map((d) => ({ ...d, deviceLabel: body.label }));
+        labelResults.set(key, {
+          familyId,
+          label: body.label,
+          childVersion: version,
+        });
+      }
+      if (labelKeys.length === 1 && mode === "label-unknown")
+        return route.fulfill({
+          status: 503,
+          json: { code: "UNAVAILABLE", message: "Synthetic lost response" },
+        });
+      if (labelKeys.length === 1 && mode === "label-unreadable")
+        return route.fulfill({
+          status: 201,
+          contentType: "application/json",
+          body: "unreadable save",
+        });
+      const result = labelResults.get(key);
+      expect(validator("StudentDeviceLabelSaved")(result)).toBe(true);
+      return route.fulfill({ status: 201, json: result });
+    }
     if (path.endsWith("/student-sessions")) {
       if (req.method() === "GET") {
+        if (mode === "label-read-error" && labelWrites && !labelReadFailed) {
+          labelReadFailed = true;
+          return route.fulfill({
+            status: 503,
+            json: {
+              code: "UNAVAILABLE",
+              message: "Could not refresh session list.",
+            },
+          });
+        }
         const result = {
           items: sessions,
           childVersion: version,
@@ -377,6 +460,9 @@ async function mock(
     paths,
     invitationKeys,
     invitationBodies,
+    labelKeys,
+    labelBodies,
+    getLabelWrites: () => labelWrites,
     getSwitches: () => switches,
     getInvitations: () => invitations,
     getActivations: () => activations,
@@ -552,6 +638,38 @@ test("real guardian invitation and student device access stay owner-bound and re
     await page.getByRole("button", { name: "Refresh student access" }).click();
     await expect(
       page.getByRole("button", { name: `Authorize this device for ${alias}` }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: /^Name device / }).click();
+    await page.getByLabel("Device label (optional)").fill("Study tablet");
+    await page
+      .getByRole("button", { name: "Save device label", exact: true })
+      .click();
+    await expect(
+      page.getByText("Device label saved. Student access is unchanged."),
+    ).toBeVisible();
+    const studentSession = await (
+      await device.request.get("/api/v1/auth/session")
+    ).json();
+    expect(
+      (
+        await device.request.post("/api/v1/auth/refresh", {
+          headers: {
+            Origin: "http://localhost:3000",
+            "X-CSRF-Token": studentSession.csrfToken,
+          },
+          data: {},
+        })
+      ).status(),
+    ).toBe(201);
+    await page.reload();
+    await expect(page.getByText("Study tablet", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: /^Rename device / }).click();
+    await page.getByLabel("Device label (optional)").fill("");
+    await page
+      .getByRole("button", { name: "Save device label", exact: true })
+      .click();
+    await expect(
+      page.getByText("Device label cleared. Student access is unchanged."),
     ).toBeVisible();
     await page
       .getByRole("button", { name: "Revoke all student access", exact: true })
@@ -1103,4 +1221,186 @@ test("invitation status failure blocks creation and replacement", async ({
       exact: true,
     }),
   ).toHaveCount(0);
+});
+
+test("device labels save, reload and clear without changing student access", async ({
+  page,
+}) => {
+  const state = await mock(page);
+  await page.goto("/dashboard/family");
+  await page.getByRole("button", { name: "Name device 90000000" }).click();
+  await expect(page.getByLabel("Device label (optional)")).toBeFocused();
+  await page.getByLabel("Device label (optional)").fill("Study tablet");
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  expect(state.getLabelWrites()).toBe(0);
+  await page.getByRole("button", { name: "Name device 90000000" }).click();
+  await page.getByLabel("Device label (optional)").fill("Study tablet");
+  await page
+    .getByRole("button", { name: "Save device label", exact: true })
+    .click();
+  await expect(
+    page.getByText("Device label saved. Student access is unchanged."),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("Study tablet", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Rename device 90000000" }).click();
+  await expect(page.getByLabel("Device label (optional)")).toHaveValue(
+    "Study tablet",
+  );
+  await page.getByLabel("Device label (optional)").fill("");
+  await page
+    .getByRole("button", { name: "Save device label", exact: true })
+    .click();
+  await expect(
+    page.getByText("Device label cleared. Student access is unchanged."),
+  ).toBeVisible();
+  expect(state.labelBodies[1]).toMatchObject({
+    label: null,
+    expectedVersion: 2,
+    familyId,
+  });
+  expect(state.getSwitches()).toBe(0);
+});
+for (const mode of ["label-unknown", "label-unreadable"] as const)
+  test(`${mode} freezes edits and replays the same device label`, async ({
+    page,
+  }) => {
+    const state = await mock(page, mode);
+    await page.goto("/dashboard/family");
+    await page.getByRole("button", { name: "Name device 90000000" }).click();
+    await page.getByLabel("Device label (optional)").fill("Shared tablet");
+    await page
+      .getByRole("button", { name: "Save device label", exact: true })
+      .click();
+    await expect(
+      page.getByText(/We couldn’t confirm the device label/),
+    ).toBeVisible();
+    await expect(page.getByLabel("Device label (optional)")).toBeDisabled();
+    await expect(page.getByLabel("Choose a learner")).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Withdraw guardian consent" }),
+    ).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Refresh student access" }),
+    ).toBeDisabled();
+    await page.getByRole("button", { name: "Retry device label" }).click();
+    await expect(
+      page.getByText("Device label saved. Student access is unchanged."),
+    ).toBeVisible();
+    expect(state.labelKeys[1]).toBe(state.labelKeys[0]);
+    expect(state.labelBodies[1]).toEqual(state.labelBodies[0]);
+    expect(state.getLabelWrites()).toBe(1);
+  });
+test("stale device naming retains input and saves only after explicit refresh", async ({
+  page,
+}) => {
+  const state = await mock(page, "label-stale");
+  await page.goto("/dashboard/family");
+  await page.getByRole("button", { name: "Name device 90000000" }).click();
+  await page.getByLabel("Device label (optional)").fill("Desk browser");
+  await page
+    .getByRole("button", { name: "Save device label", exact: true })
+    .click();
+  await expect(
+    page.getByText("Student access has changed.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Save device label", exact: true }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Refresh student access" }).click();
+  await expect(page.getByLabel("Device label (optional)")).toHaveValue(
+    "Desk browser",
+  );
+  await page
+    .getByRole("button", { name: "Save device label", exact: true })
+    .click();
+  await expect(
+    page.getByText("Device label saved. Student access is unchanged."),
+  ).toBeVisible();
+  expect(state.labelBodies[1].expectedVersion).toBe(2);
+  expect(state.labelKeys[1]).not.toBe(state.labelKeys[0]);
+});
+test("confirmed device label cannot save twice when the subsequent list refresh fails", async ({
+  page,
+}) => {
+  const state = await mock(page, "label-read-error");
+  await page.goto("/dashboard/family");
+  await page.getByRole("button", { name: "Name device 90000000" }).click();
+  await page.getByLabel("Device label (optional)").fill("Study tablet");
+  await page
+    .getByRole("button", { name: "Save device label", exact: true })
+    .click();
+  await expect(
+    page.getByText("Device label saved. Student access is unchanged."),
+  ).toBeVisible();
+  await expect(page.getByText("Could not refresh session list.")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Save device label", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Refresh student access" }).click();
+  await expect(page.getByText("Study tablet", { exact: true })).toBeVisible();
+  expect(state.getLabelWrites()).toBe(1);
+});
+for (const mode of ["label-gone", "label-denied"] as const)
+  test(`${mode} keeps device naming failures visible`, async ({ page }) => {
+    const state = await mock(page, mode);
+    await page.goto("/dashboard/family");
+    await page.getByRole("button", { name: "Name device 90000000" }).click();
+    await page.getByLabel("Device label (optional)").fill("Study tablet");
+    await page
+      .getByRole("button", { name: "Save device label", exact: true })
+      .click();
+    await expect(
+      page.getByText(
+        mode === "label-gone"
+          ? "Active student device not found."
+          : "Guardian permission needs review.",
+      ),
+    ).toBeVisible();
+    await expect(page.getByLabel("Device label (optional)")).toHaveValue(
+      "Study tablet",
+    );
+    expect(state.getLabelWrites()).toBe(0);
+    if (mode === "label-gone") {
+      await page
+        .getByRole("button", { name: "Refresh student access" })
+        .click();
+      await expect(page.getByText("No active student sessions.")).toBeVisible();
+      await page
+        .getByRole("button", { name: "Save device label", exact: true })
+        .click();
+      await expect(
+        page.getByText(
+          "This session is no longer listed. Refresh student access before continuing.",
+        ),
+      ).toBeVisible();
+      expect(state.labelBodies).toHaveLength(1);
+    }
+  });
+test("device naming stays accessible on desktop and mobile", async ({
+  page,
+}) => {
+  await mock(page);
+  await page.goto("/dashboard/family");
+  await page.getByRole("button", { name: "Name device 90000000" }).click();
+  await page.getByLabel("Device label (optional)").fill("Study tablet");
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.evaluate(() => document.fonts.ready);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    const result = await new AxeBuilder({ page }).analyze();
+    expect(
+      result.violations.filter((v) =>
+        ["serious", "critical"].includes(v.impact || ""),
+      ),
+    ).toEqual([]);
+    await page.screenshot({
+      path: `test-results/student-device-label-${width}.png`,
+      fullPage: true,
+    });
+  }
 });

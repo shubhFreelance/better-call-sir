@@ -1569,7 +1569,7 @@ footer {
 .sidebar-tip p {
   font: italic 19px/1.5 var(--font-family);
   margin: 12px 0 0;
-  color: #647752;
+  color: var(--primary);
 }
 .dashboard-content {
   min-width: 0;
@@ -4846,3 +4846,6 @@ footer {
 @media(max-width:760px){.guardian-setup-layout{grid-template-columns:1fr;gap:1.25rem}.guardian-setup-path,.guardian-setup-panel{padding:1.25rem}.guardian-setup-path>p{margin-bottom:1.25rem}.guardian-setup-path ol{gap:1rem}.guardian-setup-account{flex-wrap:wrap}.guardian-setup-account button{margin-left:0}.guardian-setup-discovery{padding:1.25rem}.guardian-setup-panel h2{font-size:1.5rem}.guardian-setup .wizard-actions{gap:1rem}}
 
 .student-setup-steps{display:flex;gap:1rem;list-style:none;padding:0;margin:0 0 1.5rem;flex-wrap:wrap;color:var(--muted);font-size:.875rem}.student-setup-steps [aria-current=step]{font-weight:700;color:var(--primary)}.student-education-review{background:var(--paper);border-radius:.75rem;padding:1.25rem}.student-education-review h3{margin:0 0 1rem}.student-support-choices legend{font-weight:700}.student-support-choice{display:flex;gap:.75rem;align-items:flex-start;border:1px solid var(--line);border-radius:.75rem;padding:1.25rem;margin:.75rem 0;background:var(--white);cursor:pointer}.student-support-choice.selected{background:var(--green);border-color:var(--primary)}.student-support-choice input{flex-shrink:0;margin-top:.3rem;accent-color:var(--primary)}.student-support-choice strong,.student-support-choice small{display:block}.student-support-choice small{color:var(--muted);line-height:1.6;margin-top:.4rem}.student-setup-form .wizard-checkbox{margin:1rem 0}.student-setup-form .field-error{color:#b42318}.student-setup-review h3{margin-top:1.5rem}.student-welcome-notice>.inline-link{display:block;margin-top:1rem}.student-setup-form .teacher-choice span{overflow-wrap:anywhere}.student-setup-form [data-slot=button]{height:auto;min-height:2.5rem;white-space:normal}.student-setup-form .wizard-actions{gap:1rem}.student-setup-review p{white-space:pre-wrap;overflow-wrap:anywhere}
+
+.family-device-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.family-student-access .family-confirm:has(#student-device-label) { background: var(--green); }

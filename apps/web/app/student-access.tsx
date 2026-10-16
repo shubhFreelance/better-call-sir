@@ -192,13 +192,17 @@ function LearnerAccess({
   const client = useQueryClient();
   const query = useQuery({
     queryKey: ["student-sessions", session.account.id, child.id],
+    refetchOnReconnect: false,
     queryFn: () => api<Sessions>(`/children/${child.id}/student-sessions`),
     retry: false,
     refetchOnWindowFocus: false,
   });
-  const [action, setAction] = useState<"authorize" | "revoke" | null>(null),
+  const [action, setAction] = useState<"authorize" | "revoke" | "label" | null>(
+      null,
+    ),
     [familyId, setFamilyId] = useState<string | null>(null),
     [reason, setReason] = useState(""),
+    [deviceLabel, setDeviceLabel] = useState(""),
     [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false),
     [uncertain, setUncertain] = useState(false),
@@ -207,6 +211,10 @@ function LearnerAccess({
     [success, setSuccess] = useState("");
   const retry = useRef<{
     body: components["schemas"]["StudentAccessRevocation"];
+    key: string;
+  } | null>(null);
+  const labelRetry = useRef<{
+    body: components["schemas"]["StudentDeviceLabel"];
     key: string;
   } | null>(null);
   const locked = busy || uncertain || blocked;
@@ -221,6 +229,14 @@ function LearnerAccess({
     setError("");
     setSuccess("");
     retry.current = null;
+    labelRetry.current = null;
+    setDeviceLabel(
+      query.data?.items.find((d) => d.familyId === id)?.deviceLabel || "",
+    );
+    if (next === "label")
+      requestAnimationFrame(() =>
+        document.getElementById("student-device-label")?.focus(),
+      );
   }
   function finish(next: Session) {
     if (
@@ -320,6 +336,81 @@ function LearnerAccess({
       setBusy(false);
     }
   }
+  async function saveLabel() {
+    if (
+      busy ||
+      conflict ||
+      blocked ||
+      query.error ||
+      query.isFetching ||
+      !query.data
+    )
+      return;
+    if (!labelRetry.current) {
+      const label = deviceLabel.trim() || null;
+      if (label && (label.length > 60 || /[\u0000-\u001f\u007f]/.test(label))) {
+        setError(
+          "Use up to 60 characters without line breaks or control characters.",
+        );
+        document.getElementById("student-device-label")?.focus();
+        return;
+      }
+      if (!familyId || !query.data.items.some((d) => d.familyId === familyId)) {
+        setConflict(true);
+        setError(
+          "This session is no longer listed. Refresh student access before continuing.",
+        );
+        return;
+      }
+      labelRetry.current = {
+        key: crypto.randomUUID(),
+        body: { expectedVersion: query.data.childVersion, familyId, label },
+      };
+    }
+    const attempt = labelRetry.current;
+    setBusy(true);
+    setError("");
+    setSuccess("");
+    try {
+      const result = await api<
+        components["schemas"]["StudentDeviceLabelSaved"]
+      >(`/children/${child.id}/student-session-labels`, {
+        method: "POST",
+        body: attempt.body,
+        key: attempt.key,
+        csrf: session.csrfToken,
+        signal: AbortSignal.timeout(15000),
+      });
+      if (
+        result.familyId !== attempt.body.familyId ||
+        result.label !== attempt.body.label ||
+        result.childVersion !== attempt.body.expectedVersion + 1
+      )
+        throw new Error("The service did not confirm the device label.");
+      labelRetry.current = null;
+      setUncertain(false);
+      setAction(null);
+      setSuccess(
+        result.label
+          ? "Device label saved. Student access is unchanged."
+          : "Device label cleared. Student access is unchanged.",
+      );
+      await query.refetch();
+      client.invalidateQueries({ queryKey: ["family-children"] });
+    } catch (e) {
+      const unsure = unknown(e);
+      setUncertain(unsure);
+      if (!unsure) labelRetry.current = null;
+      setConflict(e instanceof ApiError && [404, 409].includes(e.status));
+      setError(
+        unsure
+          ? "We couldn’t confirm the device label. Retry the same change before editing."
+          : (e as Error).message,
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
   async function refresh() {
     setBusy(true);
     setError("");
@@ -342,9 +433,7 @@ function LearnerAccess({
           Refresh student access
         </Button>
       </div>
-      <p>
-        {educationLabel(child)}
-      </p>
+      <p>{educationLabel(child)}</p>
       {query.isPending ? (
         <p role="status">Loading student access…</p>
       ) : query.error ? (
@@ -363,25 +452,47 @@ function LearnerAccess({
               <>
                 <h3>Authorized student sessions</h3>
                 <p className="wizard-help">
-                  Sessions have an identifier and expiry; device names are not
-                  recorded. Up to 50 current session groups are shown.
+                  Give each session a name you recognize, such as “Study
+                  tablet”. Labels are private reminders, not verified device
+                  information. Up to 50 current session groups are shown.
                 </p>
                 {query.data.items.length ? (
                   <ul className="family-session-list">
                     {query.data.items.map((device) => (
                       <li key={device.familyId}>
                         <div>
-                          <strong>Session {device.familyId.slice(0, 8)}</strong>
+                          <strong>
+                            {device.deviceLabel || "Unnamed student device"}
+                          </strong>
+                          <p>Session {device.familyId.slice(0, 8)}</p>
                           <p>Expires {date(device.expiresAt)} IST</p>
                         </div>
-                        <Button
-                          variant="outline"
-                          disabled={locked || conflict}
-                          onClick={() => choose("revoke", device.familyId)}
-                          aria-label={`Revoke session ${device.familyId.slice(0, 8)}`}
-                        >
-                          Revoke session
-                        </Button>
+                        <div className="family-device-actions">
+                          <Button
+                            variant="outline"
+                            disabled={
+                              locked ||
+                              conflict ||
+                              !consentActive ||
+                              query.isFetching ||
+                              query.data.accessRevoked
+                            }
+                            onClick={() => choose("label", device.familyId)}
+                            aria-label={`${device.deviceLabel ? "Rename" : "Name"} device ${device.familyId.slice(0, 8)}`}
+                          >
+                            {device.deviceLabel
+                              ? "Rename device"
+                              : "Name device"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            disabled={locked || conflict}
+                            onClick={() => choose("revoke", device.familyId)}
+                            aria-label={`Revoke session ${device.familyId.slice(0, 8)}`}
+                          >
+                            Revoke session
+                          </Button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -426,24 +537,54 @@ function LearnerAccess({
           onSubmit={(e) => {
             e.preventDefault();
             if (action === "authorize") authorize();
+            else if (action === "label") saveLabel();
             else revoke();
           }}
         >
           <h3>
             {action === "authorize"
               ? `Switch this device to ${child.alias}?`
-              : familyId
-                ? `Revoke session ${familyId.slice(0, 8)}?`
-                : `Revoke all access for ${child.alias}?`}
+              : action === "label"
+                ? "Name this student device"
+                : familyId
+                  ? `Revoke session ${familyId.slice(0, 8)}?`
+                  : `Revoke all access for ${child.alias}?`}
           </h3>
           <p>
             {action === "authorize"
               ? "This browser will switch from your guardian account to a restricted student session. Other guardian devices stay signed in. Use the device intended for the learner."
-              : familyId
-                ? "This session and its refresh access will stop. Other student sessions remain authorized."
-                : "All student sessions and their refresh access will stop. Access stays blocked until a guardian authorizes a device again."}
+              : action === "label"
+                ? `Label session ${familyId?.slice(0, 8)} so you can recognize it later. Naming it does not change who can sign in.`
+                : familyId
+                  ? "This session and its refresh access will stop. Other student sessions remain authorized."
+                  : "All student sessions and their refresh access will stop. Access stays blocked until a guardian authorizes a device again."}
           </p>
-          <fieldset className="wizard-fields" disabled={locked || conflict}>
+          <fieldset
+            className="wizard-fields"
+            disabled={
+              locked ||
+              conflict ||
+              (action === "label" && (!!query.error || query.isFetching))
+            }
+          >
+            {action === "label" && (
+              <div className="field">
+                <label htmlFor="student-device-label">
+                  Device label (optional)
+                </label>
+                <Input
+                  id="student-device-label"
+                  value={deviceLabel}
+                  maxLength={60}
+                  aria-describedby="student-device-label-help"
+                  onChange={(e) => setDeviceLabel(e.target.value)}
+                />
+                <p id="student-device-label-help" className="wizard-help">
+                  Use a simple name. Leave blank to clear the label. Avoid
+                  names, contact details and passwords.
+                </p>
+              </div>
+            )}
             {action === "revoke" && (
               <div className="field">
                 <label htmlFor="student-revocation-reason">
@@ -458,18 +599,20 @@ function LearnerAccess({
                 />
               </div>
             )}
-            <label className="wizard-checkbox">
-              <input
-                type="checkbox"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-              />
-              <span>
-                {action === "revoke"
-                  ? "I understand which student access will be revoked."
-                  : "I am the learner’s guardian and will authorize only the intended student device."}
-              </span>
-            </label>
+            {action !== "label" && (
+              <label className="wizard-checkbox">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                />
+                <span>
+                  {action === "revoke"
+                    ? "I understand which student access will be revoked."
+                    : "I am the learner’s guardian and will authorize only the intended student device."}
+                </span>
+              </label>
+            )}
             <div className="wizard-actions">
               <Button
                 variant="outline"
@@ -482,7 +625,9 @@ function LearnerAccess({
               <Button className="button" type="submit">
                 {action === "authorize"
                   ? "Confirm student device switch"
-                  : "Confirm access revocation"}
+                  : action === "label"
+                    ? "Save device label"
+                    : "Confirm access revocation"}
               </Button>
             </div>
           </fieldset>
@@ -492,14 +637,20 @@ function LearnerAccess({
       {success && <Notice>{success}</Notice>}
       {busy && <p role="status">Updating student access…</p>}
       {uncertain && (
-        <Button className="button" disabled={busy} onClick={revoke}>
-          Retry access revocation
+        <Button
+          className="button"
+          disabled={busy || blocked}
+          onClick={action === "label" ? saveLabel : revoke}
+        >
+          {action === "label"
+            ? "Retry device label"
+            : "Retry access revocation"}
         </Button>
       )}
       {conflict && (
         <p className="wizard-help">
           Refresh student access to load the current learner version. Your
-          reason and confirmation remain here.
+          entered details remain here. Review them again before saving.
         </p>
       )}
     </section>
