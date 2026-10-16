@@ -334,6 +334,8 @@ test("real guardian invitation and student device access stay owner-bound and re
       "Idempotency-Key": crypto.randomUUID(),
     },
     data: {
+      schoolName: "Synthetic school",
+      schoolSubjects: ["Maths", "Science", "English"],
       alias,
       grade: 8,
       board: "CBSE",
@@ -395,6 +397,13 @@ test("real guardian invitation and student device access stay owner-bound and re
     await expect(
       device.getByRole("heading", { name: "Your student space is ready." }),
     ).toBeVisible();
+    await device.getByLabel("How do you like to learn? (optional)").fill("More worked examples, please.");
+    await device.getByRole("button", { name: "Save preferences", exact: true }).click();
+    await expect(device.getByText("Your learning preferences are saved.")).toBeVisible();
+    await device.reload();
+    await expect(device.getByLabel("How do you like to learn? (optional)")).toHaveValue("More worked examples, please.");
+    await device.getByRole("button", { name: "Save preferences", exact: true }).click();
+    await expect(device.getByText("Your learning preferences are saved.")).toBeVisible();
     await device
       .getByRole("link", { name: "Open dashboard", exact: true })
       .click();
@@ -719,6 +728,7 @@ test("student overview and guardian-only access route never fetch family control
 }) => {
   const state = await mock(page, "student");
   await page.goto("/dashboard");
+  await expect(page.getByRole("link", {name:"Learning preferences",exact:true})).toHaveAttribute("href","/onboarding/student");
   await expect(
     page.getByRole("heading", { name: "Your next step in learning." }),
   ).toBeVisible();

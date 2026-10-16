@@ -38,6 +38,7 @@ import {
   ReservationBookings,
   PlacementInvoices,
 } from "./revision-booking";
+import { StudentWelcome } from "./student-welcome";
 import { FamilyAccess, StudentActivation } from "./student-access";
 import { EmailLogin } from "./email-login";
 import { DemoJourney } from "./demo-journey";
@@ -1189,13 +1190,12 @@ function StudentOnboarding() {
   } = useAuth();
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (session.account.role === "STUDENT") return <StudentWelcome session={session} />;
   if (session.account.role !== "GUARDIAN")
     return (
       <main className="container narrow section">
         <h1>
-          {session.account.role === "STUDENT"
-            ? "Your student space is ready."
-            : "A guardian must authorize student access."}
+          A guardian must authorize student access.
         </h1>
         <Link href="/dashboard" className="button">
           Open dashboard
@@ -1231,6 +1231,7 @@ function DashboardShell({
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
     ["/teachers", "Find a teacher", Search],
+    ...(role === "STUDENT" ? [["/onboarding/student", "Learning preferences", Settings] as [string, string, LucideIcon]] : []),
     ...(role === "GUARDIAN"
       ? ([
           ["/dashboard/requests", "Enquiries & teacher choices", Users],
