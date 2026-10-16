@@ -131,18 +131,47 @@ class IdentityController {
     return {items:await this.db.child.findMany({where:account.role==='GUARDIAN'?{guardianId:account.id}:{studentAccountId:account.id}})};
   }
 
-  @Post('children/:id/invitations') async invitation(@Req() req: HttpRequest,@Param('id') id: string) {
+  async issueInvitation(db:DB,actor:Account,req:HttpRequest,id:string,secret:string,expectedVersion?:number) {
+    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
+    await this.service.guardian(db,actor.id);const child=await this.service.child(db,actor,id);
+    if(child.studentAccountId)fail(409,'ALREADY_LINKED','Student access is already active. Authorize or manage its devices instead.');
+    if(expectedVersion!==undefined&&child.version!==expectedVersion)fail(409,'CONFLICT','Learner access changed. Refresh before replacing the invitation.');
+    await db.invitation.updateMany({where:{childId:id,usedAt:null,expiresAt:{gt:new Date()}},data:{expiresAt:new Date()}});
+    const invite=await db.invitation.create({data:{childId:id,guardianId:actor.id,tokenHash:hash(secret),expiresAt:new Date(Date.now()+86_400_000)}});
+    const updated=await db.child.update({where:{id},data:{version:{increment:1}}});
+    await this.service.audit(db,actor,req,'STUDENT_INVITATION_ISSUED',id,'Guardian issued an invitation and invalidated earlier codes');
+    return {expiresAt:invite.expiresAt.toISOString(),childVersion:updated.version};
+  }
+  @Get('children/:id/invitation') async invitationStatus(@Req() req:HttpRequest,@Param('id') id:string) {
     parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);
-    const secret=token();return this.db.$transaction(async db=>{
-      await this.service.guardian(db,actor.id);await this.service.child(db,actor,id);
-      const invite=await db.invitation.create({data:{childId:id,guardianId:actor.id,tokenHash:hash(secret),expiresAt:new Date(Date.now()+86_400_000)}});
-      return {token:secret,expiresAt:invite.expiresAt};
+    return this.db.$transaction(async db=>{
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
+      await this.service.guardian(db,actor.id);const child=await this.service.child(db,actor,id);
+      const latest=await db.invitation.findFirst({where:{childId:id},orderBy:{expiresAt:'desc'}});
+      return {state:child.studentAccountId?'ACTIVATED':!latest?'NONE':latest.usedAt||latest.expiresAt<=new Date()?'EXPIRED':'ACTIVE',expiresAt:latest?.expiresAt.toISOString()||null,childVersion:child.version};
     });
+  }
+  @Post('children/:id/invitation-replacements') async replaceInvitation(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown) {
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);
+    const data=parse(z.object({expectedVersion:version,acknowledged:z.literal(true)}).strict(),body);
+    await this.service.guardian(this.db,actor.id);await this.service.child(this.db,actor,id);
+    // Replay confirms issuance without persisting or returning a recoverable code.
+    let secret:string|null=null;
+    const result=await this.service.once(req,actor,'invitation.replace',data,async db=>{
+      secret=token();return this.issueInvitation(db,actor,req,id,secret,data.expectedVersion);
+    });
+    return {...result,status:secret?'ISSUED':'CODE_UNAVAILABLE',token:secret};
+  }
+  @Post('children/:id/invitations') async invitation(@Req() req: HttpRequest,@Param('id') id: string) {
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']),secret=token();
+    const result=await this.db.$transaction(db=>this.issueInvitation(db,actor,req,id,secret));
+    return {token:secret,expiresAt:result.expiresAt};
   }
 
   @Post('invitations/activate') async activate(@Req() req: HttpRequest,@Body() body: unknown,@Res({passthrough:true}) res: Response) {
     const guardian=await this.service.actor(req,['GUARDIAN']);const {token:secret}=parse(z.object({token:text(100)}).strict(),body);
     const account=await this.db.$transaction(async db=>{
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${guardian.id},0))`;
       const invite=await db.invitation.findUnique({where:{tokenHash:hash(secret)}});
       if (!invite || invite.guardianId!==guardian.id || invite.usedAt || invite.expiresAt<new Date()) fail(409,'INVITATION_INVALID','Invitation expired, used, or belongs to another guardian.');
       await this.service.guardian(db,guardian.id);
