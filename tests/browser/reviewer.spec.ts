@@ -554,6 +554,15 @@ test.describe("real scoped reviewer flow", () => {
     });
     try {
       const region = "Synthetic reviewer " + randomUUID();
+      await db.region.create({
+        data: {
+          id: region,
+          countryCode: "IN",
+          stateCode: "CG",
+          cityName: region,
+          enabled: false,
+        },
+      });
       const account = await db.account.create({
           data: {
             name: "Synthetic reviewer browser applicant",
