@@ -14,6 +14,7 @@ async function erase(db:DB,scope:string,resourceId:string,accountId:string){
  await db.onboardingProgress.updateMany({where:{accountId:{in:[accountId,...students]}},data:{draft:{},version:{increment:1}}});
  await db.idempotency.deleteMany({where:{accountId:{in:[accountId,...students]}}});
  if(scope==='ACCOUNT'){
+  const erasedAccount=await db.account.findUniqueOrThrow({where:{id:accountId}});await db.studentGuardianGrant.deleteMany({where:{OR:[{acceptedById:accountId},...(erasedAccount.email?[{recipientEmail:erasedAccount.email.toLowerCase()}]:[])]}});
   await db.independentStudentProfile.deleteMany({where:{accountId}});
   await db.session.updateMany({where:{accountId},data:{revoked:true}});await db.account.update({where:{id:accountId},data:{name:'Deleted account',email:null,phone:null,disabled:true,verified:false}});
   const teacher=await db.teacher.findUnique({where:{accountId}});if(teacher)await db.note.updateMany({where:{sharedTeacherId:teacher.id},data:{sharedTeacherId:null,version:{increment:1}}});
@@ -35,6 +36,7 @@ class PrivacyController{
    if(data.kind==='DELETION'){
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
     if(data.scope==='ACCOUNT'){const arrangements=await db.studentArrangement.findMany({where:{studentAccountId:actor.id,status:{not:'CLOSED'}}});for(const teacherId of [...new Set(arrangements.map(a=>a.teacherId))].sort())await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${teacherId},0))`;await db.studentArrangement.updateMany({where:{studentAccountId:actor.id,status:{not:'CLOSED'}},data:{status:'CLOSED',closedAt:new Date(),closureReason:'Privacy deletion requested',version:{increment:1}}});}
+    if(data.scope==='ACCOUNT')await db.studentGuardianGrant.updateMany({where:{OR:[{studentAccountId:actor.id},{acceptedById:actor.id}],status:{in:['PENDING','ACTIVE']}},data:{status:'REVOKED',version:{increment:1}}});
     if(data.scope==='ACCOUNT')await db.studentEnquiry.updateMany({where:{studentAccountId:actor.id,status:'SUBMITTED'},data:{status:'WITHDRAWN',version:{increment:1}}});
     if(data.scope==='NOTE')await db.note.update({where:{id:data.resourceId},data:{sharedTeacherId:null,version:{increment:1}}});
     else {

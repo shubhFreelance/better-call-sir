@@ -712,3 +712,17 @@ model StudentArrangement {
  @@index([studentAccountId,id])
  @@index([teacherId,status])
 }
+
+model StudentGuardianGrant {
+ id String @id @default(uuid()) @db.Uuid
+ studentAccountId String @db.Uuid
+ recipientEmail String
+ supportMode String
+ status String @default("PENDING")
+ acceptedById String? @db.Uuid
+ expiresAt DateTime
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ @@index([studentAccountId,id])
+ @@index([recipientEmail,id])
+}

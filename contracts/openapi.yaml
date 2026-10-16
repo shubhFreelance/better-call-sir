@@ -21808,7 +21808,7 @@
             }
           }
         },
-        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation."
+        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. Independent enquiries, hiring and optional scoped supporter access have separate endpoints."
       },
       "post": {
         "operationId": "signupIndependentStudent",
@@ -21966,7 +21966,7 @@
             }
           }
         },
-        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.",
+        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. Independent enquiries, hiring and optional scoped supporter access have separate endpoints.",
         "parameters": [
           {
             "name": "X-CSRF-Token",
@@ -22167,7 +22167,7 @@
             }
           }
         },
-        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation."
+        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. Independent enquiries, hiring and optional scoped supporter access have separate endpoints."
       }
     },
     "/independent-student/profile/updates": {
@@ -22327,7 +22327,7 @@
             }
           }
         },
-        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.",
+        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. Independent enquiries, hiring and optional scoped supporter access have separate endpoints.",
         "parameters": [
           {
             "name": "X-CSRF-Token",
@@ -22916,6 +22916,15 @@
                 "SUBMITTED",
                 "WITHDRAWN"
               ]
+            }
+          },
+          {
+            "name": "studentId",
+            "in": "query",
+            "description": "Required for accepted guardian delegation; unavailable to other roles.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ]
@@ -24669,6 +24678,15 @@
               "maximum": 50,
               "default": 10
             }
+          },
+          {
+            "name": "studentId",
+            "in": "query",
+            "description": "Required for accepted guardian delegation; unavailable to other roles.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ]
       }
@@ -25849,6 +25867,2063 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/StudentSupportInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/student-guardian-grants": {
+      "get": {
+        "operationId": "listStudentGuardianGrants",
+        "tags": [
+          "independent-support"
+        ],
+        "summary": "listStudentGuardianGrants",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StudentGuardianGrant"
+                      }
+                    },
+                    "nextCursor": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "inviteStudentGuardian",
+        "tags": [
+          "independent-support"
+        ],
+        "summary": "inviteStudentGuardian",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentGuardianGrant"
+                }
+              }
+            }
+          }
+        },
+        "description": "Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentGuardianInvitation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/student-guardian-grants/{id}/decisions": {
+      "post": {
+        "operationId": "decideStudentGuardianAccess",
+        "tags": [
+          "independent-support"
+        ],
+        "summary": "decideStudentGuardianAccess",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentGuardianGrant"
+                }
+              }
+            }
+          }
+        },
+        "description": "Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentGuardianDecision"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/delegated-students/{id}/profile": {
+      "get": {
+        "operationId": "readDelegatedStudentProfile",
+        "tags": [
+          "independent-support"
+        ],
+        "summary": "readDelegatedStudentProfile",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DelegatedStudentProfile"
+                }
+              }
+            }
+          }
+        },
+        "description": "Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/delegated-students/{id}/profile/updates": {
+      "post": {
+        "operationId": "updateDelegatedStudentProfile",
+        "tags": [
+          "independent-support"
+        ],
+        "summary": "updateDelegatedStudentProfile",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DelegatedStudentProfile"
+                }
+              }
+            }
+          }
+        },
+        "description": "Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IndependentStudentProfileUpdate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/delegated-students/{id}/enquiry-context": {
+      "get": {
+        "operationId": "delegatedStudentEnquiryContext",
+        "tags": [
+          "independent-support"
+        ],
+        "summary": "delegatedStudentEnquiryContext",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentEnquiryContext"
+                }
+              }
+            }
+          }
+        },
+        "description": "Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/delegated-students/{id}/enquiries": {
+      "post": {
+        "operationId": "createDelegatedStudentEnquiry",
+        "tags": [
+          "independent-support"
+        ],
+        "summary": "createDelegatedStudentEnquiry",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentEnquiry"
+                }
+              }
+            }
+          }
+        },
+        "description": "Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentEnquiryInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/independent-student/sessions": {
+      "get": {
+        "operationId": "listIndependentStudentDevices",
+        "tags": [
+          "independent-support"
+        ],
+        "summary": "listIndependentStudentDevices",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StudentDevice"
+                      }
+                    },
+                    "nextCursor": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          }
+        ]
+      }
+    },
+    "/independent-student/session-labels": {
+      "post": {
+        "operationId": "labelIndependentStudentDevice",
+        "tags": [
+          "independent-support"
+        ],
+        "summary": "labelIndependentStudentDevice",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "familyId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "label": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "familyId",
+                    "label"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "familyId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "label": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "confirmed": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "familyId",
+                  "label",
+                  "confirmed"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/independent-student/session-revocations": {
+      "post": {
+        "operationId": "revokeIndependentStudentDevice",
+        "tags": [
+          "independent-support"
+        ],
+        "summary": "revokeIndependentStudentDevice",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "familyId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "const": "REVOKED"
+                    }
+                  },
+                  "required": [
+                    "familyId",
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "description": "Optional adult support uses explicit email-bound acceptance. ADVICE permits shared learning reads; MANAGE additionally permits education edits, enquiries and learning/hiring decisions including coordination-email consent. No account identity, sessions, privacy controls, legal guardianship or child verification is delegated. Revocation removes delegated access immediately. Device endpoints remain account-owner only.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "familyId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "confirmed": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "familyId",
+                  "confirmed"
+                ]
               }
             }
           }
@@ -37547,6 +39622,232 @@
           "available"
         ],
         "additionalProperties": false
+      },
+      "StudentGuardianGrant": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studentAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recipientEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "supportMode": {
+            "type": "string",
+            "enum": [
+              "ADVICE",
+              "MANAGE"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "DECLINED",
+              "REVOKED",
+              "EXPIRED"
+            ]
+          },
+          "acceptedById": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "studentName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "studentAccountId",
+          "recipientEmail",
+          "supportMode",
+          "status",
+          "acceptedById",
+          "expiresAt",
+          "version",
+          "createdAt"
+        ]
+      },
+      "StudentGuardianInvitation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "supportMode": {
+            "type": "string",
+            "enum": [
+              "ADVICE",
+              "MANAGE"
+            ]
+          },
+          "expectedPendingVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "confirmed": {
+            "const": true
+          }
+        },
+        "required": [
+          "email",
+          "supportMode",
+          "expectedPendingVersion",
+          "confirmed"
+        ]
+      },
+      "StudentGuardianDecision": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "ACCEPT",
+              "DECLINE",
+              "REVOKE"
+            ]
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "confirmed": {
+            "const": true
+          }
+        },
+        "required": [
+          "action",
+          "expectedVersion",
+          "confirmed"
+        ]
+      },
+      "DelegatedStudentProfile": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "education": {
+            "$ref": "#/components/schemas/IndependentStudentEducation"
+          },
+          "managementPreference": {
+            "type": "string",
+            "enum": [
+              "SELF_DIRECTED"
+            ]
+          },
+          "adultStatus": {
+            "type": "string",
+            "enum": [
+              "SELF_DECLARED_18_PLUS"
+            ]
+          },
+          "policyVersion": {
+            "type": "string",
+            "enum": [
+              "independent-student-development-v1"
+            ]
+          },
+          "consentedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "editStatus": {
+            "type": "string",
+            "enum": [
+              "EDITABLE",
+              "PRIVACY_PAUSED"
+            ]
+          },
+          "supportMode": {
+            "type": "string",
+            "enum": [
+              "ADVICE",
+              "MANAGE"
+            ]
+          }
+        },
+        "required": [
+          "accountId",
+          "education",
+          "managementPreference",
+          "adultStatus",
+          "policyVersion",
+          "consentedAt",
+          "version",
+          "editStatus",
+          "supportMode"
+        ],
+        "additionalProperties": false
+      },
+      "StudentDevice": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "familyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "current": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "familyId",
+          "deviceLabel",
+          "expiresAt",
+          "current"
+        ]
       }
     },
     "securitySchemes": {

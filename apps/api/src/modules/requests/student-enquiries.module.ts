@@ -1,3 +1,4 @@
+import {studentAuthority} from '../learners/student-authority';
 import {Module,Controller,Get,Post,Param,Query,Req,Body,Inject} from '@nestjs/common';
 import {z} from 'zod';
 import type {Account,StudentEnquiry} from '@prisma/client';
@@ -7,7 +8,7 @@ import {subjectSchema} from '../../coverage';
 import {eligible} from '../../policies';
 import {weeklyPreferenceSchema,normalizedPreferences} from './request-schedule';
 export const studentEnquiryInput=z.object({expectedProfileVersion:version,discoveryMethod:z.enum(['MANUAL','ASSISTED']),preferredTeacherId:uuid.optional(),subject:subjectSchema,mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000),preferences:weeklyPreferenceSchema,confirmed:z.literal(true)}).strict();
-const page=z.object({cursor:uuid.optional(),limit:z.coerce.number().int().min(1).max(50).default(10),status:z.enum(['SUBMITTED','HIRED','WITHDRAWN']).optional()}).strict();
+const page=z.object({cursor:uuid.optional(),limit:z.coerce.number().int().min(1).max(50).default(10),status:z.enum(['SUBMITTED','HIRED','WITHDRAWN']).optional(),studentId:uuid.optional()}).strict();
 export async function studentContext(db:DB,id:string){
  const account=await db.account.findUniqueOrThrow({where:{id}}),profile=await db.independentStudentProfile.findUnique({where:{accountId:id}});
  if(account.disabled||account.role!=='INDEPENDENT_STUDENT'||!profile)fail(403,'FORBIDDEN','An active independent student profile is required.');
@@ -28,12 +29,15 @@ class StudentEnquiriesController {
   const actor=await this.service.actor(req,['INDEPENDENT_STUDENT']);
   return this.service.db.$transaction(db=>studentContext(db,actor.id),{isolationLevel:'RepeatableRead'});
  }
- @Post('student-enquiries') async create(@Req() req:HttpRequest,@Body() body:unknown){
-  const actor=await this.service.actor(req,['INDEPENDENT_STUDENT']),data=parse(studentEnquiryInput,body);
-  if((await studentContext(this.service.db,actor.id)).gate!=='READY')fail(403,'ENQUIRY_PAUSED','Enquiries are paused for privacy review or this region is not enabled.');
+ @Post('delegated-students/:id/enquiries') async delegatedCreate(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){parse(uuid,id);await this.service.actor(req,['GUARDIAN']);return this.create(req,body,id);}
+ @Post('student-enquiries') async create(@Req() req:HttpRequest,@Body() body:unknown,targetId?:string){
+  const actor=await this.service.actor(req,targetId?['GUARDIAN']:['INDEPENDENT_STUDENT']),data=parse(studentEnquiryInput,body),ownerId=targetId??actor.id;
+  await this.service.db.$transaction(db=>studentAuthority(db,actor,ownerId,true));
+  if((await studentContext(this.service.db,ownerId)).gate!=='READY')fail(403,'ENQUIRY_PAUSED','Enquiries are paused for privacy review or this region is not enabled.');
   const result=await this.service.once(req,actor,'student-enquiry.create',data,async db=>{
-   await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
-   const current=await studentContext(db,actor.id);
+   await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${ownerId},0))`;
+   await studentAuthority(db,actor,ownerId,true);
+   const current=await studentContext(db,ownerId);
    if(current.gate!=='READY')fail(403,current.gate,'Enquiries are paused for privacy review or this region is not enabled.');
    if(current.profileVersion!==data.expectedProfileVersion)fail(409,'PROFILE_CHANGED','Your education profile changed. Reload and review it again.');
    if(data.discoveryMethod==='MANUAL'?!data.preferredTeacherId:!!data.preferredTeacherId)fail(400,'INVALID_DISCOVERY_PATH','Manual enquiries require a teacher; assisted enquiries use your criteria.');
@@ -44,15 +48,15 @@ class StudentEnquiriesController {
     const learner={educationStage:current.educationScope.stage,grade:'grade' in current.educationScope?current.educationScope.grade??null:null,board:'board' in current.educationScope?current.educationScope.board??null:null,...('courseName' in current.educationScope?{courseName:current.educationScope.courseName,studyYear:current.educationScope.studyYear}:{})};
     if(!teacher||!owner||owner.disabled||owner.role!=='TEACHER'||!eligible(data,learner,teacher)||(data.mode==='HOME'&&(teacher.region!==current.region||!teacher.travelAccepted)))fail(409,'TEACHER_UNAVAILABLE','This teacher does not currently fit the reviewed criteria. Use assisted search or choose another teacher.');
    }
-   const row=await db.studentEnquiry.create({data:{studentAccountId:actor.id,profileVersion:current.profileVersion,educationScope:current.educationScope,region:current.region,discoveryMethod:data.discoveryMethod,preferredTeacherId:data.preferredTeacherId,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,preferences}});
+   const row=await db.studentEnquiry.create({data:{studentAccountId:ownerId,profileVersion:current.profileVersion,educationScope:current.educationScope,region:current.region,discoveryMethod:data.discoveryMethod,preferredTeacherId:data.preferredTeacherId,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,preferences}});
    await this.service.audit(db,actor,req,'STUDENT_ENQUIRY_SUBMITTED',row.id,'Student submitted criteria for staff review; no match, hire or booking created',undefined,{discoveryMethod:data.discoveryMethod,profileVersion:current.profileVersion});
    return {id:row.id};
   });
-  const row=await this.service.db.studentEnquiry.findFirst({where:{id:result.id,studentAccountId:actor.id}});if(!row)fail(404,'NOT_FOUND','Enquiry is no longer available.');
+  const row=await this.service.db.studentEnquiry.findFirst({where:{id:result.id,studentAccountId:ownerId}});if(!row)fail(404,'NOT_FOUND','Enquiry is no longer available.');
   return studentEnquiryProjection(row);
  }
  @Get('student-enquiries') async list(@Req() req:HttpRequest,@Query() query:unknown){
-  const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','ADMIN','OPERATOR']),data=parse(page,query),where={...scope(actor),...(data.status?{status:data.status}:{})};
+  const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','GUARDIAN','ADMIN','OPERATOR','TEACHER']),data=parse(page,query);if(actor.role==='TEACHER')fail(403,'FORBIDDEN','Use assigned opportunities.');if(actor.role==='GUARDIAN'){if(!data.studentId)fail(400,'STUDENT_REQUIRED','Choose a supported student.');await studentAuthority(this.service.db,actor,data.studentId);}else if(data.studentId)fail(400,'INVALID_QUERY','Student scope is only for delegated access.');const where={...(actor.role==='GUARDIAN'?{studentAccountId:data.studentId}:scope(actor)),...(data.status?{status:data.status}:{})};
   return this.service.db.$transaction(async db=>{
    if(data.cursor&&!await db.studentEnquiry.count({where:{...where,id:data.cursor}}))fail(404,'NOT_FOUND','Enquiry cursor is outside this queue.');
    const rows=await db.studentEnquiry.findMany({where,orderBy:{id:'asc'},take:data.limit+1,...(data.cursor?{cursor:{id:data.cursor},skip:1}:{})});
@@ -61,16 +65,17 @@ class StudentEnquiriesController {
   },{isolationLevel:'RepeatableRead'});
  }
  @Get('student-enquiries/:id') async detail(@Req() req:HttpRequest,@Param('id') id:string){
-  parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','ADMIN','OPERATOR']);
-  const row=await this.service.db.studentEnquiry.findFirst({where:{id,...scope(actor)}});if(!row)fail(404,'NOT_FOUND','Enquiry not found.');
+  parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','GUARDIAN','ADMIN','OPERATOR','TEACHER']);
+  const row=await this.service.db.studentEnquiry.findUnique({where:{id}});if(!row)fail(404,'NOT_FOUND','Enquiry not found.');if(actor.role==='GUARDIAN')await studentAuthority(this.service.db,actor,row.studentAccountId);else if(actor.role==='TEACHER'){const t=await this.service.db.teacher.findUnique({where:{accountId:actor.id}});if(!t||!await this.service.db.studentCandidate.count({where:{enquiryId:id,teacherId:t.id,position:{not:null},expiresAt:{gt:new Date()}}})&&!await this.service.db.studentArrangement.count({where:{enquiryId:id,teacherId:t.id}}))fail(404,'NOT_FOUND','Enquiry not found.');}else if(actor.role==='INDEPENDENT_STUDENT'&&row.studentAccountId!==actor.id||actor.role==='OPERATOR'&&row.region!==actor.region)fail(404,'NOT_FOUND','Enquiry not found.');
   if(actor.role!=='INDEPENDENT_STUDENT')await this.service.audit(this.service.db,actor,req,'STUDENT_ENQUIRY_READ',id,'Staff read scoped student enquiry criteria');
   return studentEnquiryProjection(row);
  }
  @Post('student-enquiries/:id/withdrawals') async withdraw(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
-  parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT']),data=parse(z.object({expectedVersion:version,confirmed:z.literal(true)}).strict(),body);
+  parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','GUARDIAN']),data=parse(z.object({expectedVersion:version,confirmed:z.literal(true)}).strict(),body);
+  const initial=await this.service.db.studentEnquiry.findUnique({where:{id}});if(!initial)fail(404,'NOT_FOUND','Enquiry not found.');await this.service.db.$transaction(db=>studentAuthority(db,actor,initial.studentAccountId,true));
   return this.service.once(req,actor,'student-enquiry.withdraw',data,async db=>{
-   await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
-   const row=await db.studentEnquiry.findFirst({where:{id,studentAccountId:actor.id}});if(!row)fail(404,'NOT_FOUND','Enquiry not found.');
+   await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${initial.studentAccountId},0))`;await studentAuthority(db,actor,initial.studentAccountId,true);
+   const row=await db.studentEnquiry.findUnique({where:{id}});if(!row)fail(404,'NOT_FOUND','Enquiry not found.');
    if(row.version!==data.expectedVersion||row.status!=='SUBMITTED')fail(409,'CONFLICT','Enquiry changed or was already withdrawn.');
    const arrangement=await db.studentArrangement.findUnique({where:{enquiryId:id}});
    if(arrangement){await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${arrangement.teacherId},0))`;await db.studentArrangement.update({where:{id:arrangement.id},data:{status:'CLOSED',closedAt:new Date(),closureReason:'Enquiry withdrawn',version:{increment:1}}});}
