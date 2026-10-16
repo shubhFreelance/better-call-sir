@@ -1,3 +1,4 @@
+import {learnerProjection} from '../learners/learners.module';
 import {subjectSchema} from '../../coverage';
 import {Module,Controller,Get,Post,Param,Req,Body,Inject} from '@nestjs/common';
 import {Account} from '@prisma/client';
@@ -7,7 +8,8 @@ import {intakeSchema,createIntake} from '../requests/requests.module';
 import {applicationSchema,submitTeacher} from '../teachers/teachers.module';
 const kindSchema=z.enum(['parent','teacher','student','enquiry']);
 const childFields=['alias','grade','board','childId','schoolName','schoolSubjects'];
-const studentDraft=z.object({subjects:z.array(subjectSchema).max(20).optional(),language:z.enum(['English','Hindi']).optional(),learningPreferences:text(500).optional()}).strict();
+const managementPreference=z.enum(['SELF_DIRECTED','GUARDIAN_GUIDED']);
+const studentDraft=z.object({managementPreference:managementPreference.optional(),subjects:z.array(subjectSchema).max(20).refine(a=>new Set(a.map(s=>s.toLowerCase())).size===a.length,'Choose distinct subjects.').optional(),language:z.enum(['English','Hindi']).optional(),learningPreferences:text(500).optional()}).strict();
 @Controller('api/v1')
 class OnboardingController {
  constructor(@Inject(AppService) private readonly service:AppService){}
@@ -24,7 +26,7 @@ class OnboardingController {
    if(!actor.verified||!consent||consent.withdrawnAt){draft=Object.fromEntries(Object.entries(draft as Record<string,unknown>).filter(([k])=>!childFields.includes(k)));}
   } else if(kind==='TEACHER'){
    const teacher=await db.teacher.findUnique({where:{accountId:actor.id}});state=teacher?.status||'DRAFT';
-  } else state='ACTIVE';
+  } else state=progress?.completedResourceId?'READY':'ACTIVE';
   return {kind,state,draft,version:progress?.version||0,completedResourceId:progress?.completedResourceId||null};
  }
 
@@ -52,6 +54,31 @@ class OnboardingController {
    await db.onboardingProgress.update({where:{id:current.id},data:{draft:{},version:{increment:1}}});
    await this.service.audit(db,actor,req,'ONBOARDING_DRAFT_DISCARDED',actor.id,'Owner explicitly discarded an unfinished draft',undefined,{kind});
    return this.result(db,actor,kind);
+  });
+ }
+ @Get('onboarding/student/context') async studentContext(@Req() req:HttpRequest){
+  const actor=await this.service.actor(req,['STUDENT']);
+  return this.service.db.$transaction(async db=>{
+   const child=await db.child.findUniqueOrThrow({where:{studentAccountId:actor.id}});
+   await this.service.guardian(db,child.guardianId);
+   return {learner:learnerProjection(child),progress:await this.result(db,actor,'STUDENT'),authority:'GUARDIAN_MANAGED'};
+  });
+ }
+ @Post('onboarding/student/confirmations') async confirmStudent(@Req() req:HttpRequest,@Body() body:unknown){
+  const actor=await this.service.actor(req,['STUDENT']),data=parse(z.object({expectedVersion:z.number().int().nonnegative(),educationVersion:version,confirmed:z.literal(true),draft:studentDraft.extend({managementPreference})}).strict(),body);
+  return this.service.once(req,actor,'student.onboarding.confirm',data,async db=>{
+   const linked=await db.child.findUniqueOrThrow({where:{studentAccountId:actor.id}});
+   await this.service.guardian(db,linked.guardianId);
+   const child=await db.child.findUniqueOrThrow({where:{id:linked.id}});
+   if(child.studentAccountId!==actor.id||child.studentAccessRevokedAt)fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
+   if(child.version!==data.educationVersion)fail(409,'LEARNER_CHANGED','Your education profile changed. Reload and review the current details.');
+   if(!learnerProjection(child).enquiryEligible)fail(409,'EDUCATION_INCOMPLETE','Ask your guardian to complete your education details before confirming setup.');
+   const current=await db.onboardingProgress.findUnique({where:{accountId_kind:{accountId:actor.id,kind:'STUDENT'}}});
+   if((current?.version||0)!==data.expectedVersion)fail(409,'CONFLICT','Your saved setup changed. Reload and review it again.');
+   const saved={draft:data.draft,completedResourceId:child.id};
+   const progress=current?await db.onboardingProgress.update({where:{id:current.id},data:{...saved,version:{increment:1}}}):await db.onboardingProgress.create({data:{accountId:actor.id,kind:'STUDENT',...saved}});
+   await this.service.audit(db,actor,req,'STUDENT_ONBOARDING_CONFIRMED',child.id,'Student reviewed education and learning support preferences',undefined,{educationVersion:child.version,setupVersion:progress.version,managementPreference:data.draft.managementPreference,authority:'GUARDIAN_MANAGED'});
+   return this.result(db,actor,'STUDENT');
   });
  }
  @Get('onboarding/guardian') async guardianSetup(@Req() req:HttpRequest){
@@ -85,11 +112,12 @@ class OnboardingController {
    if((kind==='PARENT'||kind==='ENQUIRY')&&'childId' in data.draft&&data.draft.childId)await this.service.child(db,actor,data.draft.childId as string);
    if(kind==='STUDENT'){
     const child=await db.child.findUniqueOrThrow({where:{studentAccountId:actor.id}});await this.service.guardian(db,child.guardianId);
+    const currentChild=await db.child.findUniqueOrThrow({where:{id:child.id}});if(currentChild.studentAccessRevokedAt||currentChild.studentAccountId!==actor.id)fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
    }
    const current=await db.onboardingProgress.findUnique({where:{accountId_kind:{accountId:actor.id,kind}}});
-   if((current?.version||0)!==data.expectedVersion||current?.completedResourceId)fail(409,'CONFLICT','The onboarding draft changed or was already submitted.');
+   if((current?.version||0)!==data.expectedVersion||(kind!=='STUDENT'&&current?.completedResourceId))fail(409,'CONFLICT','The onboarding draft changed or was already submitted.');
    if(kind==='TEACHER'&&await db.teacher.findUnique({where:{accountId:actor.id}}))fail(409,'USE_PROFILE_REVISION','Use a versioned profile revision for an existing application.');
-   if(current)await db.onboardingProgress.update({where:{id:current.id},data:{draft:data.draft,version:{increment:1}}});
+   if(current)await db.onboardingProgress.update({where:{id:current.id},data:{draft:data.draft,...(kind==='STUDENT'?{completedResourceId:null}:{}),version:{increment:1}}});
    else await db.onboardingProgress.create({data:{accountId:actor.id,kind,draft:data.draft}});
    await this.service.audit(db,actor,req,'ONBOARDING_DRAFT_SAVED',actor.id,'Owner saved onboarding progress',undefined,{kind});
    return this.result(db,actor,kind);

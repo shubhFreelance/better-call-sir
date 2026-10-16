@@ -2464,6 +2464,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/onboarding/student/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the activated student own education profile, saved preferences and current guardian-managed authority */
+        get: operations["getStudentSetupContext"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/onboarding/student/confirmations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Atomically confirm current education review and student learning support preferences without granting account authority
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["confirmStudentSetup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3312,12 +3349,7 @@ export interface components {
              */
             lockInDays?: 0 | 15 | 30 | null;
             teachingCoverage?: components["schemas"]["TeachingScope"][];
-        } | {
-            subjects?: ("Maths" | "Science")[];
-            /** @enum {string} */
-            language?: "English" | "Hindi";
-            learningPreferences?: string;
-        };
+        } | components["schemas"]["StudentLearningPreferences"];
         OnboardingProgress: {
             /** @enum {string} */
             kind: "PARENT" | "TEACHER" | "STUDENT" | "ENQUIRY";
@@ -4853,6 +4885,40 @@ export interface components {
             learnerCount: number | null;
             /** @enum {string|null} */
             enquiryStatus: "NOT_STARTED" | "DRAFT" | "SUBMITTED" | null;
+        };
+        StudentLearningPreferences: {
+            /**
+             * @description Requested learning support; does not grant authority or establish adulthood.
+             * @enum {string}
+             */
+            managementPreference?: "SELF_DIRECTED" | "GUARDIAN_GUIDED";
+            subjects?: string[];
+            /** @enum {string} */
+            language?: "English" | "Hindi";
+            learningPreferences?: string;
+        };
+        StudentSetupContext: {
+            learner: components["schemas"]["LearnerProfile"];
+            progress: components["schemas"]["OnboardingProgress"];
+            /** @constant */
+            authority: "GUARDIAN_MANAGED";
+        };
+        StudentSetupConfirmation: {
+            expectedVersion: number;
+            educationVersion: number;
+            /** @constant */
+            confirmed: true;
+            draft: {
+                /**
+                 * @description Requested learning support; does not grant authority or establish adulthood.
+                 * @enum {string}
+                 */
+                managementPreference: "SELF_DIRECTED" | "GUARDIAN_GUIDED";
+                subjects?: string[];
+                /** @enum {string} */
+                language?: "English" | "Hindi";
+                learningPreferences?: string;
+            };
         };
     };
     responses: never;
@@ -17414,6 +17480,180 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GuardianSetup"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getStudentSetupContext: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentSetupContext"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    confirmStudentSetup: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentSetupConfirmation"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnboardingProgress"];
                 };
             };
             /** @description Validation */
