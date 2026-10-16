@@ -1,4 +1,8 @@
 "use client";
+import {
+  IndependentStudentSetup,
+  IndependentStudentHome,
+} from "./independent-student";
 import { TeachingCoverageSummary } from "./teaching-coverage";
 import {
   CurriculumChoice,
@@ -699,6 +703,8 @@ function Home() {
   );
 }
 function Teachers() {
+  const { session } = useAuth();
+  const independent = session?.account.role === "INDEPENDENT_STUDENT";
   const discoveryParams = useSearchParams();
   const [filterReset, setFilterReset] = useState(0);
   const [stage, setStage] = useState(""),
@@ -771,23 +777,34 @@ function Teachers() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="assisted">
-          <section className="assisted-search panel">
-            <div>
-              <span className="eyebrow">PERSONALIZED HELP</span>
-              <h2>Tell us what would work for your family.</h2>
-              <p>
-                Share your learner’s education, subject, availability and
-                budget. We’ll review suitable teachers and prepare options for
-                your guardian account.
-              </p>
-            </div>
-            <Link
-              className="button"
-              href="/onboarding/parent?discovery=ASSISTED"
-            >
-              Share your criteria <ArrowRight size={18} />
-            </Link>
-          </section>
+          {independent ? (
+            <Notice>
+              Student-owned enquiries and assisted shortlists are coming next.
+              You can browse reviewed teacher profiles now and keep your
+              education profile up to date.{" "}
+              <Link className="inline-link" href="/dashboard">
+                Open my student dashboard
+              </Link>
+            </Notice>
+          ) : (
+            <section className="assisted-search panel">
+              <div>
+                <span className="eyebrow">PERSONALIZED HELP</span>
+                <h2>Tell us what would work for your family.</h2>
+                <p>
+                  Share your learner’s education, subject, availability and
+                  budget. We’ll review suitable teachers and prepare options for
+                  your guardian account.
+                </p>
+              </div>
+              <Link
+                className="button"
+                href="/onboarding/parent?discovery=ASSISTED"
+              >
+                Share your criteria <ArrowRight size={18} />
+              </Link>
+            </section>
+          )}
         </TabsContent>
         <TabsContent value="manual">
           <div className="filter-bar catalog-filters">
@@ -1046,6 +1063,8 @@ function Teachers() {
   );
 }
 function Profile({ slug }: { slug: string }) {
+  const { session } = useAuth();
+  const independent = session?.account.role === "INDEPENDENT_STUDENT";
   const query = useQuery({
     queryKey: ["teacher", slug],
     queryFn: ({ signal }) => api<Teacher>(`/teachers/${slug}`, { signal }),
@@ -1133,19 +1152,31 @@ function Profile({ slug }: { slug: string }) {
               Recurring tuition is paid directly to your teacher. Ordinary
               matching and safety support are free for families.
             </p>
-            <Link
-              className="button"
-              href={`/onboarding/parent?teacher=${t.id}&profile=${encodeURIComponent(t.slug)}`}
-            >
-              Enquire about this teacher <ArrowUpRight size={18} />
-            </Link>
-            <p className="care-help">
-              An enquiry starts a conversation about fit and terms. It does not
-              hire the teacher or charge you.
-            </p>
-            <div className="subtle-line">
-              <ShieldCheck size={16} /> Guardian-managed enquiry
-            </div>
+            {independent ? (
+              <Notice>
+                Student-owned enquiries are coming next. You can browse this
+                teacher’s reviewed profile now.{" "}
+                <Link className="inline-link" href="/dashboard">
+                  Return to my student dashboard
+                </Link>
+              </Notice>
+            ) : (
+              <>
+                <Link
+                  className="button"
+                  href={`/onboarding/parent?teacher=${t.id}&profile=${encodeURIComponent(t.slug)}`}
+                >
+                  Enquire about this teacher <ArrowUpRight size={18} />
+                </Link>
+                <p className="care-help">
+                  An enquiry starts a conversation about fit and terms. It does
+                  not hire the teacher or charge you.
+                </p>
+                <div className="subtle-line">
+                  <ShieldCheck size={16} /> Guardian-managed enquiry
+                </div>
+              </>
+            )}
           </aside>
         </div>
       )}
@@ -1170,7 +1201,7 @@ function Login() {
     const next = searchParams.get("next");
     router.push(
       next &&
-        (/^\/onboarding\/(parent|guardian|teacher|student)(?:\?|$)/.test(
+        (/^\/onboarding\/(parent|guardian|teacher|student|independent-student)(?:\?|$)/.test(
           next,
         ) ||
           (session.account.role === "GUARDIAN" &&
@@ -1203,6 +1234,13 @@ function Login() {
         hindi={hindi}
         onLanguageChange={setHindi}
       />
+      <p className="independent-signup-link">
+        <Link href="/onboarding/independent-student" className="inline-link">
+          {hindi
+            ? "अपनी पढ़ाई सँभालते हैं? स्वतंत्र विद्यार्थी के रूप में खाता बनाएँ (18+)"
+            : "Managing your own learning? Sign up as an independent student (18+)"}
+        </Link>
+      </p>
       {!!query.data?.length && (
         <details className="auth-demo-accounts">
           <summary>{hindi ? "डेवलपमेंट खाते" : "Development accounts"}</summary>
@@ -1368,6 +1406,72 @@ function WaitlistPage() {
   const { session, loading } = useAuth();
   if (loading) return <State loading />;
   return <WaitlistWorkspace session={session} />;
+}
+function IndependentStudentPage() {
+  const { session, setSession, loading, hindi, setHindi } = useAuth(),
+    client = useQueryClient(),
+    params = useSearchParams();
+  if (loading) return <State loading />;
+  if (!session)
+    return (
+      <main className="container auth-section" lang={hindi ? "hi" : "en"}>
+        <header className="wizard-title">
+          <h1>
+            {hindi
+              ? "अपना विद्यार्थी खाता बनाएँ"
+              : "Create your own student account"}
+          </h1>
+          <p>
+            {hindi
+              ? "पहले अपने ईमेल की पुष्टि करें। फिर तैयारी, उम्र की घोषणा और पढ़ाई की जानकारी की समीक्षा करें। स्वतंत्र सेटअप फ़िलहाल 18 वर्ष या अधिक के विद्यार्थियों के लिए है।"
+              : "Start by verifying your own email. Then review your readiness, age declaration and education details. Independent setup is currently for students aged 18+."}
+          </p>
+        </header>
+        <EmailLogin
+          hindi={hindi}
+          onLanguageChange={setHindi}
+          onSignedIn={(next) => {
+            client.clear();
+            setSession(next);
+          }}
+        />
+      </main>
+    );
+  if (!["GUARDIAN", "INDEPENDENT_STUDENT"].includes(session.account.role))
+    return (
+      <main className="container narrow section">
+        <h1>
+          {hindi
+            ? "इस खाते का सेटअप पहले से है"
+            : "This account already has a setup"}
+        </h1>
+        <p>
+          {hindi
+            ? "मौजूदा खाते को स्वतंत्र विद्यार्थी खाते में नहीं बदला जा सकता।"
+            : "An existing managed student, teacher or staff account cannot become an independent student account."}
+        </p>
+        <Link
+          className="button"
+          href={
+            session.account.role === "STUDENT"
+              ? "/onboarding/student"
+              : "/dashboard"
+          }
+        >
+          {hindi ? "अपने खाते पर लौटें" : "Return to my account"}
+        </Link>
+      </main>
+    );
+  return (
+    <IndependentStudentSetup
+      key={session.account.id}
+      session={session}
+      onSessionChange={setSession}
+      hindi={hindi}
+      onLanguageChange={setHindi}
+      editing={params.get("edit") === "1"}
+    />
+  );
 }
 function StudentOnboarding() {
   const {
@@ -1597,6 +1701,7 @@ function DashboardPage({ tab }: { tab: string }) {
       loading,
       beginStudentSwitch,
       failStudentSwitch,
+      hindi,
     } = useAuth(),
     client = useQueryClient();
   const query = useQuery({
@@ -1604,6 +1709,7 @@ function DashboardPage({ tab }: { tab: string }) {
     queryFn: ({ signal }) => api<Dashboard>("/dashboard", { signal }),
     enabled:
       !!session &&
+      session.account.role !== "INDEPENDENT_STUDENT" &&
       !(
         ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
           session.account.role,
@@ -1637,6 +1743,43 @@ function DashboardPage({ tab }: { tab: string }) {
   }
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (session.account.role === "INDEPENDENT_STUDENT")
+    return (
+      <main
+        className="container section independent-student"
+        lang={hindi ? "hi" : "en"}
+      >
+        <nav
+          className="independent-navigation"
+          aria-label={hindi ? "विद्यार्थी खाता" : "Student account"}
+        >
+          <Link
+            className="inline-link"
+            href="/dashboard"
+            aria-current={tab === "/dashboard" ? "page" : undefined}
+          >
+            {hindi ? "मेरी पढ़ाई" : "My learning"}
+          </Link>
+          <Link className="inline-link" href="/teachers">
+            {hindi ? "शिक्षक खोजें" : "Find a teacher"}
+          </Link>
+          <Link
+            className="inline-link"
+            href="/dashboard/privacy"
+            aria-current={tab === "/dashboard/privacy" ? "page" : undefined}
+          >
+            {hindi ? "खाते की गोपनीयता" : "Account privacy"}
+          </Link>
+        </nav>
+        {tab === "/dashboard/privacy" ? (
+          <div lang="en">
+            <PrivacyWorkspace session={session} />
+          </div>
+        ) : (
+          <IndependentStudentHome session={session} hindi={hindi} />
+        )}
+      </main>
+    );
   if (
     ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
       session.account.role,
@@ -2220,6 +2363,8 @@ function Routes() {
     <IntakeForm />
   ) : path === "/onboarding/teacher" ? (
     <TeacherOnboarding />
+  ) : path === "/onboarding/independent-student" ? (
+    <IndependentStudentPage />
   ) : path === "/onboarding/student" ? (
     <StudentOnboarding />
   ) : path === "/revision" ? (

@@ -23,9 +23,11 @@ export function PrivacyWorkspace({
   dashboard: d,
 }: {
   session: Session;
-  dashboard: Dashboard;
+  dashboard?: Dashboard;
 }) {
-  const allowed = ["GUARDIAN", "TEACHER"].includes(session.account.role),
+  const allowed = ["GUARDIAN", "TEACHER", "INDEPENDENT_STUDENT"].includes(
+      session.account.role,
+    ),
     guardian = session.account.role === "GUARDIAN",
     client = useQueryClient();
   const history = useQuery({
@@ -58,10 +60,14 @@ export function PrivacyWorkspace({
   async function refresh() {
     const [records, next] = await Promise.all([
       history.refetch(),
-      api<Dashboard>("/dashboard"),
+      session.account.role === "INDEPENDENT_STUDENT"
+        ? Promise.resolve(null)
+        : api<Dashboard>("/dashboard"),
     ]);
     if (records.error) throw records.error;
-    client.setQueryData(["dashboard", session.account.id], next);
+    if (next) client.setQueryData(["dashboard", session.account.id], next);
+    await client.invalidateQueries({ queryKey: ["independent-profile"] });
+    await client.invalidateQueries({ queryKey: ["independent-signup"] });
   }
   const decision = useDecision(session, refresh),
     duplicate = history.data?.items.some(
@@ -76,7 +82,7 @@ export function PrivacyWorkspace({
     scope === "ACCOUNT"
       ? "Your account"
       : scope === "CHILD"
-        ? d.children?.find((c) => c.id === resource)?.alias || "Learner"
+        ? d?.children?.find((c) => c.id === resource)?.alias || "Learner"
         : notes.data?.items.find((n) => n.id === resource)?.learner.alias ||
           "Learning note";
   function body() {
@@ -165,7 +171,7 @@ export function PrivacyWorkspace({
           Refresh privacy records
         </Button>
       )}
-      {guardian && (pause || d.consent?.withdrawnAt) && (
+      {guardian && (pause || d?.consent?.withdrawnAt) && (
         <Notice>
           Family processing is paused or guardian consent is withdrawn.
           Learner/account deletion requests withdraw family consent, revoke
@@ -173,13 +179,20 @@ export function PrivacyWorkspace({
           or rejection does not automatically restore consent or access.
         </Notice>
       )}
-      {!guardian && (pause || d.profile?.status === "SUSPENDED") && (
+      {session.account.role === "INDEPENDENT_STUDENT" && pause && (
         <Notice>
-          Your teacher profile is suspended. Account deletion requests
-          immediately pause discovery; a rejected request does not automatically
-          restore approval.
+          Profile changes are paused while your account deletion request is
+          reviewed.
         </Notice>
       )}
+      {session.account.role === "TEACHER" &&
+        (pause || d?.profile?.status === "SUSPENDED") && (
+          <Notice>
+            Your teacher profile is suspended. Account deletion requests
+            immediately pause discovery; a rejected request does not
+            automatically restore approval.
+          </Notice>
+        )}
       <div className="care-actions">
         <Button
           disabled={
@@ -296,7 +309,7 @@ export function PrivacyWorkspace({
                       >
                         <option value="">Choose a record</option>
                         {scope === "CHILD"
-                          ? d.children?.map((c) => (
+                          ? d?.children?.map((c) => (
                               <option key={c.id} value={c.id}>
                                 {c.alias}
                               </option>
@@ -372,9 +385,11 @@ export function PrivacyWorkspace({
                   ) : (
                     <>
                       <p>
-                        {scope === "NOTE"
-                          ? "This note stops being shared immediately."
-                          : "This request immediately pauses processing: family consent is withdrawn, student sessions are revoked and shared note access is removed. Teacher account requests also suspend discovery."}
+                        {session.account.role === "INDEPENDENT_STUDENT"
+                          ? "This request immediately pauses education profile changes. Account deletion and session revocation happen only after authorized review."
+                          : scope === "NOTE"
+                            ? "This note stops being shared immediately."
+                            : "This request immediately pauses processing: family consent is withdrawn, student sessions are revoked and shared note access is removed. Teacher account requests also suspend discovery."}
                       </p>
                       <p>
                         Deletion requires review. Financial, learning,

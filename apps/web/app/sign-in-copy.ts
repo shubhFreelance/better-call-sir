@@ -25,7 +25,7 @@ export const signInCopy = {
     resend: "Resend code",
     changeEmail: "Change email",
     permission:
-      "A verified email gives access to your account. Guardian verification and consent are separate steps before learner details are collected.",
+      "Email verification confirms access to your inbox. Student consent and guardian permissions are handled separately.",
     guideTitle: "A space for your learning journey.",
     guideIntro:
       "Find a teacher who fits. Keep enquiries, conversations and tuition choices together.",
@@ -33,7 +33,7 @@ export const signInCopy = {
     enquiries: "Manage enquiries and teacher choices",
     privacy: "Stay in control of your family’s information",
     guardian:
-      "Students join through their guardian. Email sign-in is for adult accounts.",
+      "Students aged 18+ can choose independent signup. Younger learners join through their guardian.",
     errors: {
       nameRequired: "Enter your name.",
       nameLong: "Use 80 characters or fewer.",
@@ -81,7 +81,7 @@ export const signInCopy = {
     resend: "कोड फिर भेजें",
     changeEmail: "ईमेल बदलें",
     permission:
-      "ईमेल की पुष्टि से आपको अपने खाते तक पहुँच मिलती है। विद्यार्थी की जानकारी लेने से पहले अभिभावक का सत्यापन और सहमति अलग चरण हैं।",
+      "ईमेल की पुष्टि से आपके इनबॉक्स तक पहुँच की पुष्टि होती है। विद्यार्थी की सहमति और अभिभावक की अनुमति अलग चरणों में ली जाती हैं।",
     guideTitle: "आपकी पढ़ाई के सफ़र के लिए एक जगह।",
     guideIntro:
       "अपनी ज़रूरत के अनुसार शिक्षक खोजें। पूछताछ, बातचीत और ट्यूशन के विकल्प एक जगह रखें।",
@@ -89,7 +89,7 @@ export const signInCopy = {
     enquiries: "पूछताछ और शिक्षक के विकल्प सँभालें",
     privacy: "अपने परिवार की जानकारी पर नियंत्रण रखें",
     guardian:
-      "विद्यार्थी अपने अभिभावक के ज़रिए जुड़ते हैं। ईमेल से साइन इन वयस्क खातों के लिए है।",
+      "18 वर्ष या अधिक के विद्यार्थी स्वतंत्र साइनअप चुन सकते हैं। कम उम्र के विद्यार्थी अभिभावक के ज़रिए जुड़ते हैं।",
     errors: {
       nameRequired: "अपना नाम डालें।",
       nameLong: "नाम 80 अक्षरों तक रखें।",
