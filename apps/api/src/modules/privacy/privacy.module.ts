@@ -7,7 +7,7 @@ async function erase(db:DB,scope:string,resourceId:string,accountId:string){
  if(scope==='NOTE'){await db.note.updateMany({where:{id:resourceId,guardianId:accountId},data:{text:'[deleted]',sharedTeacherId:null,version:{increment:1}}});return;}
  const children=await db.child.findMany({where:scope==='CHILD'?{id:resourceId,guardianId:accountId}:{guardianId:accountId}}),childIds=children.map(c=>c.id),students=children.flatMap(c=>c.studentAccountId?[c.studentAccountId]:[]);
  await db.note.updateMany({where:{childId:{in:childIds}},data:{text:'[deleted]',sharedTeacherId:null,version:{increment:1}}});
- await db.child.updateMany({where:{id:{in:childIds}},data:{schoolName:null,schoolSubjects:[],alias:'Deleted learner',studentAccessRevokedAt:new Date(),version:{increment:1}}});
+ await db.child.updateMany({where:{id:{in:childIds}},data:{schoolName:null,schoolSubjects:[],courseName:null,university:null,studyYear:null,alias:'Deleted learner',studentAccessRevokedAt:new Date(),version:{increment:1}}});
  await db.invitation.deleteMany({where:{childId:{in:childIds}}});
  await db.session.updateMany({where:{accountId:{in:students}},data:{revoked:true}});
  await db.account.updateMany({where:{id:{in:students}},data:{name:'Deleted student',email:null,phone:null,disabled:true}});

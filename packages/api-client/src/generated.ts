@@ -2386,6 +2386,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/learner-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List owned learner education profiles */
+        get: operations["getLearnerProfiles"];
+        put?: never;
+        /**
+         * Create guardian-managed learner education profile
+         * @description Requires verified guardian and active consent; idempotent creation only. Supports early years, Classes 1–12 and college without broadening current enquiry coverage.
+         */
+        post: operations["createLearnerProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/learner-profiles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read an owned learner education profile
+         * @description Guardian owner or the explicitly linked student only; foreign and missing IDs return 404.
+         */
+        get: operations["getLearnerProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2712,9 +2753,8 @@ export interface components {
             /** Format: uuid */
             guardianId: string;
             alias: string;
-            grade: number;
-            /** @enum {string} */
-            board: "CBSE" | "CGBSE";
+            grade: number | null;
+            board: string | null;
             /** Format: uuid */
             studentAccountId: string | null;
             version?: number;
@@ -2722,6 +2762,13 @@ export interface components {
             studentAccessRevokedAt?: string | null;
             schoolName?: string | null;
             schoolSubjects?: string[];
+            /** @enum {string} */
+            educationStage?: "EARLY_YEARS" | "SCHOOL" | "COLLEGE";
+            /** @enum {string|null} */
+            earlyYearsLevel?: "NURSERY" | "KG1" | "KG2" | null;
+            courseName?: string | null;
+            university?: string | null;
+            studyYear?: number | null;
         };
         Children: {
             items: components["schemas"]["Child"][];
@@ -3392,8 +3439,8 @@ export interface components {
                 version: number;
                 learner: {
                     alias: string;
-                    grade: number;
-                    board: string;
+                    grade: number | null;
+                    board: string | null;
                 };
                 teacher: {
                     /** Format: uuid */
@@ -3968,8 +4015,8 @@ export interface components {
             createdAt: string;
             learner: {
                 alias: string;
-                grade: number;
-                board: string;
+                grade: number | null;
+                board: string | null;
             };
             sharedTeacher: {
                 /** Format: uuid */
@@ -4038,8 +4085,8 @@ export interface components {
             recapSubmittedAt: string | null;
             learner: {
                 alias: string;
-                grade: number;
-                board: string;
+                grade: number | null;
+                board: string | null;
             };
             teacher: {
                 /** Format: uuid */
@@ -4130,8 +4177,13 @@ export interface components {
                 /** Format: date-time */
                 studentAccessRevokedAt: string | null;
                 alias: string;
-                grade: number;
-                board: string;
+                grade: number | null;
+                board: string | null;
+                /** @enum {string} */
+                educationStage?: "EARLY_YEARS" | "SCHOOL" | "COLLEGE";
+                /** @enum {string|null} */
+                earlyYearsLevel?: "NURSERY" | "KG1" | "KG2" | null;
+                courseName?: string | null;
             }[];
             teacher: {
                 /** Format: uuid */
@@ -4281,8 +4333,13 @@ export interface components {
                 /** Format: uuid */
                 id: string;
                 alias: string;
-                grade: number;
-                board: string;
+                grade: number | null;
+                board: string | null;
+                /** @enum {string} */
+                educationStage?: "EARLY_YEARS" | "SCHOOL" | "COLLEGE";
+                /** @enum {string|null} */
+                earlyYearsLevel?: "NURSERY" | "KG1" | "KG2" | null;
+                courseName?: string | null;
             };
             metrics: components["schemas"]["LearningMetrics"];
             assignments: components["schemas"]["LearningAssignment"][];
@@ -4336,8 +4393,8 @@ export interface components {
         };
         HiringLearner: {
             alias: string | null;
-            grade: number;
-            board: string;
+            grade: number | null;
+            board: string | null;
         };
         HiringEnquiry: {
             /** Format: uuid */
@@ -4410,10 +4467,15 @@ export interface components {
                 /** Format: uuid */
                 id: string;
                 alias: string;
-                grade: number;
-                board: string;
+                grade: number | null;
+                board: string | null;
                 schoolName?: string | null;
                 schoolSubjects?: string[];
+                /** @enum {string} */
+                educationStage?: "EARLY_YEARS" | "SCHOOL" | "COLLEGE";
+                /** @enum {string|null} */
+                earlyYearsLevel?: "NURSERY" | "KG1" | "KG2" | null;
+                courseName?: string | null;
             }[];
             learnersLimited: boolean;
             nextCursor: string | null;
@@ -4588,6 +4650,72 @@ export interface components {
             mode: "HOME" | "ONLINE";
             status: string;
             canRequestReplacement: boolean;
+        };
+        LearnerEducationInput: {
+            /** @enum {string} */
+            stage: "EARLY_YEARS";
+            institutionName: string;
+            subjects: string[];
+            /** @enum {string} */
+            level: "NURSERY" | "KG1" | "KG2";
+        } | {
+            /** @enum {string} */
+            stage: "SCHOOL";
+            institutionName: string;
+            subjects: string[];
+            grade: number;
+            board: string;
+        } | {
+            /** @enum {string} */
+            stage: "COLLEGE";
+            institutionName: string;
+            subjects: string[];
+            courseName: string;
+            university: string;
+            studyYear: number;
+        };
+        LearnerEducation: {
+            /** @enum {string} */
+            stage: "EARLY_YEARS";
+            institutionName: string | null;
+            subjects: string[];
+            /** @enum {string|null} */
+            level: "NURSERY" | "KG1" | "KG2" | null;
+        } | {
+            /** @enum {string} */
+            stage: "SCHOOL";
+            institutionName: string | null;
+            subjects: string[];
+            grade: number | null;
+            board: string | null;
+        } | {
+            /** @enum {string} */
+            stage: "COLLEGE";
+            institutionName: string | null;
+            subjects: string[];
+            courseName: string | null;
+            university: string | null;
+            studyYear: number | null;
+        };
+        LearnerProfileInput: {
+            alias: string;
+            education: components["schemas"]["LearnerEducationInput"];
+        };
+        LearnerProfile: {
+            /** Format: uuid */
+            id: string;
+            alias: string;
+            education: components["schemas"]["LearnerEducation"];
+            version: number;
+            /** @description Current academic pilot eligibility only; region, consent, teacher supply and request fit are checked separately. */
+            enquiryEligible: boolean;
+        };
+        LearnerProfiles: {
+            items: components["schemas"]["LearnerProfile"][];
+            /** Format: uuid */
+            nextCursor: string | null;
+            /** @enum {string} */
+            creationStatus: "READY" | "READ_ONLY" | "VERIFICATION_REQUIRED" | "CONSENT_REQUIRED" | "PRIVACY_PAUSED";
         };
     };
     responses: never;
@@ -16702,6 +16830,270 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SupportContext"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getLearnerProfiles: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Private owned learner education profile; does not create an enquiry or authorize independent student access. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerProfiles"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createLearnerProfile: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LearnerProfileInput"];
+            };
+        };
+        responses: {
+            /** @description Private owned learner education profile; does not create an enquiry or authorize independent student access. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerProfile"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getLearnerProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Private owned learner education profile; does not create an enquiry or authorize independent student access. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerProfile"];
                 };
             };
             /** @description Validation */

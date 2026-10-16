@@ -64,7 +64,7 @@ class MatchingController {
         request.scheduleStatus === "CONFIRMED" &&
         parsed.success &&
         !!normalizedPreferences(parsed.data);
-      const teachers = scheduleReady
+      const teachers = scheduleReady && child.grade!==null && child.board!==null
         ? await db.teacher.findMany({
             where: {
               ...(request.preferredTeacherId ? {id:request.preferredTeacherId} : {}),
