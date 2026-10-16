@@ -15802,6 +15802,8 @@ export interface operations {
                 section?: "ENQUIRIES" | "ARRANGEMENTS";
                 cursor?: string;
                 limit?: number;
+                /** @description Exact owned arrangement, only with section=ARRANGEMENTS and no cursor. */
+                arrangementId?: string;
             };
             header?: never;
             path?: never;
