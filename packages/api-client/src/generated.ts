@@ -2447,6 +2447,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/onboarding/guardian": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read guardian setup gates and owned education/enquiry progress without returning learner identities */
+        get: operations["getGuardianSetup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4827,6 +4844,15 @@ export interface components {
             expectedVersion: number;
             /** @constant */
             confirmed: true;
+        };
+        GuardianSetup: {
+            name: string;
+            /** @enum {string} */
+            gate: "VERIFICATION_REQUIRED" | "CONSENT_REQUIRED" | "PRIVACY_PAUSED" | "READY";
+            /** @description Owned profiles with complete education details; null while gated. Does not promise available teachers. */
+            learnerCount: number | null;
+            /** @enum {string|null} */
+            enquiryStatus: "NOT_STARTED" | "DRAFT" | "SUBMITTED" | null;
         };
     };
     responses: never;
@@ -17305,6 +17331,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LearnerProfile"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getGuardianSetup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianSetup"];
                 };
             };
             /** @description Validation */
