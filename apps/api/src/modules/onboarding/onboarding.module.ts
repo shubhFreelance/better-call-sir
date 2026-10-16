@@ -35,6 +35,7 @@ class OnboardingController {
   await this.service.guardian(this.service.db,actor.id);
   return this.service.once(req,actor,'enquiry.restart',data,async db=>{
    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
+   if((await db.account.findUniqueOrThrow({where:{id:actor.id}})).role!==actor.role)fail(409,'ACCOUNT_CHANGED','Your account changed. Sign in again before continuing.');
    await this.service.guardian(db,actor.id);
    const current=await db.onboardingProgress.findUnique({where:{accountId_kind:{accountId:actor.id,kind:'ENQUIRY'}}});
    if(!current||current.version!==data.expectedVersion||!current.completedResourceId)fail(409,'CONFLICT','The enquiry changed or has an unfinished draft. Resume it before starting another.');
@@ -48,6 +49,7 @@ class OnboardingController {
   await this.service.guardian(this.service.db,actor.id);
   return this.service.once(req,actor,'onboarding.discard',data,async db=>{
    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
+   if((await db.account.findUniqueOrThrow({where:{id:actor.id}})).role!==actor.role)fail(409,'ACCOUNT_CHANGED','Your account changed. Sign in again before continuing.');
    await this.service.guardian(db,actor.id);
    const current=await db.onboardingProgress.findUnique({where:{accountId_kind:{accountId:actor.id,kind}}});
    if(!current||current.version!==data.expectedVersion||current.completedResourceId)fail(409,'CONFLICT','The saved draft changed or was submitted. Reload it before deciding.');
@@ -107,6 +109,7 @@ class OnboardingController {
   if(kind==='ENQUIRY')await this.service.guardian(this.service.db,actor.id);
   return this.service.once(req,actor,'onboarding.save',data,async db=>{
    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
+   if((await db.account.findUniqueOrThrow({where:{id:actor.id}})).role!==actor.role)fail(409,'ACCOUNT_CHANGED','Your account changed. Sign in again before continuing.');
    if(kind==='ENQUIRY')await this.service.guardian(db,actor.id);
    if((kind==='PARENT'||kind==='ENQUIRY')&&childFields.some(k=>k in data.draft))await this.service.guardian(db,actor.id);
    if((kind==='PARENT'||kind==='ENQUIRY')&&'childId' in data.draft&&data.draft.childId)await this.service.child(db,actor,data.draft.childId as string);
@@ -129,6 +132,7 @@ class OnboardingController {
   if(kind==='ENQUIRY')await this.service.guardian(this.service.db,actor.id);
   return this.service.once(req,actor,'onboarding.complete',data,async db=>{
    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
+   if((await db.account.findUniqueOrThrow({where:{id:actor.id}})).role!==actor.role)fail(409,'ACCOUNT_CHANGED','Your account changed. Sign in again before continuing.');
    if(kind==='ENQUIRY')await this.service.guardian(db,actor.id);
    const progress=await db.onboardingProgress.findUnique({where:{accountId_kind:{accountId:actor.id,kind}}});
    if(!progress||progress.version!==data.expectedVersion||progress.completedResourceId)fail(409,'CONFLICT','The draft changed or was already submitted.');

@@ -18129,7 +18129,8 @@
                 "OPERATOR",
                 "REVIEWER",
                 "FINANCE",
-                "ADMIN"
+                "ADMIN",
+                "INDEPENDENT_STUDENT"
               ]
             }
           },
@@ -21641,6 +21642,726 @@
           }
         }
       }
+    },
+    "/independent-student/signup": {
+      "get": {
+        "operationId": "getIndependentStudentSignup",
+        "tags": [
+          "independent-student"
+        ],
+        "summary": "getIndependentStudentSignup",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndependentStudentSignupContext"
+                }
+              }
+            }
+          }
+        },
+        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation."
+      },
+      "post": {
+        "operationId": "signupIndependentStudent",
+        "tags": [
+          "independent-student"
+        ],
+        "summary": "signupIndependentStudent",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndependentStudentProfile"
+                }
+              }
+            }
+          }
+        },
+        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IndependentStudentSignup"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/independent-student/profile": {
+      "get": {
+        "operationId": "getIndependentStudentProfile",
+        "tags": [
+          "independent-student"
+        ],
+        "summary": "getIndependentStudentProfile",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndependentStudentProfile"
+                }
+              }
+            }
+          }
+        },
+        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation."
+      }
+    },
+    "/independent-student/profile/updates": {
+      "post": {
+        "operationId": "updateIndependentStudentProfile",
+        "tags": [
+          "independent-student"
+        ],
+        "summary": "updateIndependentStudentProfile",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Private account-owned result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndependentStudentProfile"
+                }
+              }
+            }
+          }
+        },
+        "description": "Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IndependentStudentProfileUpdate"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -21790,7 +22511,8 @@
               "OPERATOR",
               "REVIEWER",
               "FINANCE",
-              "ADMIN"
+              "ADMIN",
+              "INDEPENDENT_STUDENT"
             ]
           },
           "verified": {
@@ -29706,7 +30428,8 @@
             "enum": [
               "GUARDIAN",
               "STUDENT",
-              "TEACHER"
+              "TEACHER",
+              "INDEPENDENT_STUDENT"
             ]
           },
           "window": {
@@ -30150,7 +30873,8 @@
               "GUARDIAN",
               "STUDENT",
               "TEACHER",
-              "ADMIN"
+              "ADMIN",
+              "INDEPENDENT_STUDENT"
             ]
           },
           "asOf": {
@@ -31884,6 +32608,252 @@
           "familyId",
           "label",
           "childVersion"
+        ],
+        "additionalProperties": false
+      },
+      "IndependentStudentEducation": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "SCHOOL"
+                ]
+              },
+              "institutionName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "subjects": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              },
+              "grade": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+              },
+              "board": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "stage",
+              "institutionName",
+              "subjects",
+              "grade",
+              "board"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "COLLEGE"
+                ]
+              },
+              "institutionName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "subjects": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              },
+              "courseName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "university": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "studyYear": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              }
+            },
+            "required": [
+              "stage",
+              "institutionName",
+              "subjects",
+              "courseName",
+              "university",
+              "studyYear"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "IndependentStudentSignup": {
+        "type": "object",
+        "properties": {
+          "education": {
+            "$ref": "#/components/schemas/IndependentStudentEducation"
+          },
+          "managementPreference": {
+            "type": "string",
+            "enum": [
+              "SELF_DIRECTED"
+            ]
+          },
+          "adultDeclaration": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "consentAccepted": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "policyVersion": {
+            "type": "string",
+            "enum": [
+              "independent-student-development-v1"
+            ]
+          }
+        },
+        "required": [
+          "education",
+          "managementPreference",
+          "adultDeclaration",
+          "consentAccepted",
+          "policyVersion"
+        ],
+        "additionalProperties": false
+      },
+      "IndependentStudentProfile": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "education": {
+            "$ref": "#/components/schemas/IndependentStudentEducation"
+          },
+          "managementPreference": {
+            "type": "string",
+            "enum": [
+              "SELF_DIRECTED"
+            ]
+          },
+          "adultStatus": {
+            "type": "string",
+            "enum": [
+              "SELF_DECLARED_18_PLUS"
+            ]
+          },
+          "policyVersion": {
+            "type": "string",
+            "enum": [
+              "independent-student-development-v1"
+            ]
+          },
+          "consentedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "editStatus": {
+            "type": "string",
+            "enum": [
+              "EDITABLE",
+              "PRIVACY_PAUSED"
+            ]
+          }
+        },
+        "required": [
+          "accountId",
+          "education",
+          "managementPreference",
+          "adultStatus",
+          "policyVersion",
+          "consentedAt",
+          "version",
+          "editStatus"
+        ],
+        "additionalProperties": false
+      },
+      "IndependentStudentSignupContext": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "READY",
+              "ACCOUNT_IN_USE",
+              "COMPLETE"
+            ]
+          },
+          "profile": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/IndependentStudentProfile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "profile"
+        ],
+        "additionalProperties": false
+      },
+      "IndependentStudentProfileUpdate": {
+        "type": "object",
+        "properties": {
+          "education": {
+            "$ref": "#/components/schemas/IndependentStudentEducation"
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "confirmed": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "education",
+          "expectedVersion",
+          "confirmed"
         ],
         "additionalProperties": false
       }

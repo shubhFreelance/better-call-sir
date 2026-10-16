@@ -2524,6 +2524,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/independent-student/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getIndependentStudentSignup
+         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.
+         */
+        get: operations["getIndependentStudentSignup"];
+        put?: never;
+        /**
+         * signupIndependentStudent
+         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.
+         */
+        post: operations["signupIndependentStudent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/independent-student/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getIndependentStudentProfile
+         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.
+         */
+        get: operations["getIndependentStudentProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/independent-student/profile/updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * updateIndependentStudentProfile
+         * @description Email-authenticated owner only. Explicit 18+ self-declaration and own-data consent are development declarations, not verified age or live qualification. This signup increment does not enable student-owned enquiries, hiring, or guardian delegation.
+         */
+        post: operations["updateIndependentStudentProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2559,7 +2623,7 @@ export interface components {
             id: string;
             name: string;
             /** @enum {string} */
-            role: "GUARDIAN" | "STUDENT" | "TEACHER" | "OPERATOR" | "REVIEWER" | "FINANCE" | "ADMIN";
+            role: "GUARDIAN" | "STUDENT" | "TEACHER" | "OPERATOR" | "REVIEWER" | "FINANCE" | "ADMIN" | "INDEPENDENT_STUDENT";
             verified: boolean;
         };
         Session: {
@@ -4485,7 +4549,7 @@ export interface components {
         };
         LearningDashboard: {
             /** @enum {string} */
-            role: "GUARDIAN" | "STUDENT" | "TEACHER";
+            role: "GUARDIAN" | "STUDENT" | "TEACHER" | "INDEPENDENT_STUDENT";
             window: {
                 /** Format: date-time */
                 from: string;
@@ -4589,7 +4653,7 @@ export interface components {
         };
         HiringDashboard: {
             /** @enum {unknown} */
-            role: "GUARDIAN" | "STUDENT" | "TEACHER" | "ADMIN";
+            role: "GUARDIAN" | "STUDENT" | "TEACHER" | "ADMIN" | "INDEPENDENT_STUDENT";
             /** Format: date-time */
             asOf: string;
             /** @constant */
@@ -4963,6 +5027,60 @@ export interface components {
             familyId: string;
             label: string | null;
             childVersion: number;
+        };
+        IndependentStudentEducation: {
+            /** @enum {string} */
+            stage: "SCHOOL";
+            institutionName: string;
+            subjects: string[];
+            grade: number;
+            board: string;
+        } | {
+            /** @enum {string} */
+            stage: "COLLEGE";
+            institutionName: string;
+            subjects: string[];
+            courseName: string;
+            university: string;
+            studyYear: number;
+        };
+        IndependentStudentSignup: {
+            education: components["schemas"]["IndependentStudentEducation"];
+            /** @enum {string} */
+            managementPreference: "SELF_DIRECTED";
+            /** @enum {boolean} */
+            adultDeclaration: true;
+            /** @enum {boolean} */
+            consentAccepted: true;
+            /** @enum {string} */
+            policyVersion: "independent-student-development-v1";
+        };
+        IndependentStudentProfile: {
+            /** Format: uuid */
+            accountId: string;
+            education: components["schemas"]["IndependentStudentEducation"];
+            /** @enum {string} */
+            managementPreference: "SELF_DIRECTED";
+            /** @enum {string} */
+            adultStatus: "SELF_DECLARED_18_PLUS";
+            /** @enum {string} */
+            policyVersion: "independent-student-development-v1";
+            /** Format: date-time */
+            consentedAt: string;
+            version: number;
+            /** @enum {string} */
+            editStatus: "EDITABLE" | "PRIVACY_PAUSED";
+        };
+        IndependentStudentSignupContext: {
+            /** @enum {string} */
+            status: "READY" | "ACCOUNT_IN_USE" | "COMPLETE";
+            profile: components["schemas"]["IndependentStudentProfile"] | null;
+        };
+        IndependentStudentProfileUpdate: {
+            education: components["schemas"]["IndependentStudentEducation"];
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
         };
     };
     responses: never;
@@ -15735,7 +15853,7 @@ export interface operations {
         parameters: {
             query?: {
                 id?: string;
-                role?: "GUARDIAN" | "STUDENT" | "TEACHER" | "OPERATOR" | "REVIEWER" | "FINANCE" | "ADMIN";
+                role?: "GUARDIAN" | "STUDENT" | "TEACHER" | "OPERATOR" | "REVIEWER" | "FINANCE" | "ADMIN" | "INDEPENDENT_STUDENT";
                 limit?: number;
                 cursor?: string;
             };
@@ -17794,6 +17912,358 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StudentDeviceLabelSaved"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getIndependentStudentSignup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Private account-owned result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndependentStudentSignupContext"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    signupIndependentStudent: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IndependentStudentSignup"];
+            };
+        };
+        responses: {
+            /** @description Private account-owned result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndependentStudentProfile"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getIndependentStudentProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Private account-owned result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndependentStudentProfile"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateIndependentStudentProfile: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IndependentStudentProfileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Private account-owned result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndependentStudentProfile"];
                 };
             };
             /** @description Validation */
