@@ -1,4 +1,7 @@
 "use client";
+import { StudentFeedback } from "./independent-journey";
+import { enquiryText } from "./student-enquiry-copy";
+import { IndependentJourney } from "./independent-journey";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -12,7 +15,7 @@ import {
 } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Notice, Feedback, useDecision } from "./tuition-workflow";
+import { Notice, useDecision } from "./tuition-workflow";
 import {
   WeeklyAvailability,
   WeeklySummary,
@@ -22,20 +25,59 @@ import {
 type Enquiry = components["schemas"]["StudentEnquiry"];
 type Context = components["schemas"]["StudentEnquiryContext"];
 type InputBody = components["schemas"]["StudentEnquiryInput"];
-function Scope({ value }: { value: Context["educationScope"] }) {
+function Scope({
+  value,
+  hindi = false,
+}: {
+  value: Context["educationScope"];
+  hindi?: boolean;
+}) {
   return (
     <span>
       {value.stage === "SCHOOL"
-        ? `Class ${value.grade} · ${value.board}`
-        : `${value.courseName} · Year ${value.studyYear}`}
+        ? `${hindi ? "कक्षा" : "Class"} ${value.grade} · ${value.board}`
+        : `${value.courseName} · ${hindi ? "वर्ष" : "Year"} ${value.studyYear}`}
     </span>
   );
 }
-export function StudentEnquiries({ session }: { session: Session }) {
-  const owner = session.account.role === "INDEPENDENT_STUDENT",
+export function StudentEnquiries({
+  session,
+  hindi = false,
+}: {
+  session: Session;
+  hindi?: boolean;
+}) {
+  const independent = session.account.role === "INDEPENDENT_STUDENT",
+    guardian = session.account.role === "GUARDIAN",
     staff = ["ADMIN", "OPERATOR"].includes(session.account.role),
     params = useSearchParams(),
     router = useRouter();
+  const studentId = guardian ? params.get("student") || "" : "";
+  const delegation = useQuery({
+    queryKey: ["student-delegation", session.account.id, studentId],
+    queryFn: () =>
+      api<components["schemas"]["DelegatedStudentProfile"]>(
+        "/delegated-students/" + encodeURIComponent(studentId) + "/profile",
+      ),
+    enabled: guardian && !!studentId,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const owner =
+    independent ||
+    (guardian &&
+      delegation.data?.supportMode === "MANAGE" &&
+      !delegation.error);
+  const base = guardian
+    ? "/dashboard/student-enquiries"
+    : "/dashboard/enquiries";
+  function url(extra: Record<string, string> = {}) {
+    const q = new URLSearchParams({
+      ...extra,
+      ...(studentId ? { student: studentId } : {}),
+    });
+    return base + (q.size ? "?" + q : "");
+  }
   const creating = owner && params.get("new") === "1",
     selected = params.get("enquiry") || "";
   const [cursor, setCursor] = useState<string | null>(null),
@@ -43,48 +85,74 @@ export function StudentEnquiries({ session }: { session: Session }) {
     [locked, setLocked] = useState(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const query = useQuery({
-    queryKey: ["student-enquiries", session.account.id, cursor],
+    queryKey: ["student-enquiries", session.account.id, studentId, cursor],
     queryFn: ({ signal }) =>
       api<components["schemas"]["StudentEnquiryList"]>(
-        "/student-enquiries?limit=10" + (cursor ? "&cursor=" + cursor : ""),
+        "/student-enquiries?limit=10" +
+          (studentId ? "&studentId=" + encodeURIComponent(studentId) : "") +
+          (cursor ? "&cursor=" + cursor : ""),
         { signal },
       ),
-    enabled: (owner || staff) && !creating,
+    enabled:
+      (independent ||
+        staff ||
+        (guardian && !!delegation.data && !delegation.error)) &&
+      !creating,
     retry: false,
     refetchOnWindowFocus: false,
   });
-  if (!owner && !staff)
+  if (guardian && delegation.isPending)
+    return (
+      <p role="status">
+        {enquiryText(hindi, "Checking shared learning access\u2026")}
+      </p>
+    );
+  if (
+    !independent &&
+    !staff &&
+    !(guardian && delegation.data && !delegation.error)
+  )
     return (
       <Notice>
-        Student enquiries belong to independent students and authorized review
-        staff.
+        {enquiryText(
+          hindi,
+          "Student enquiries belong to independent students and authorized review staff.",
+        )}
       </Notice>
     );
   function choose(id: string) {
     if (!locked)
       router.push(
-        (owner ? "/dashboard/enquiries" : "/dashboard/student-enquiries") +
-          "?enquiry=" +
-          id,
+        staff
+          ? "/dashboard/student-enquiries?enquiry=" + id
+          : url({ enquiry: id }),
         { scroll: false },
       );
   }
   return (
-    <section className="student-enquiries" lang="en">
+    <section className="student-enquiries" lang={hindi ? "hi" : "en"}>
       <header className="student-enquiry-heading">
         <div>
           <h1>
-            {staff ? "Independent student enquiries" : "My teacher enquiries"}
+            {staff
+              ? enquiryText(hindi, "Independent student enquiries")
+              : enquiryText(hindi, "My teacher enquiries")}
           </h1>
           <p>
             {staff
-              ? "Review student-owned criteria in your authorized region. Matching, teacher replies and hiring are separate steps."
-              : "Share the help you need, review your criteria, and keep a record of your request."}
+              ? enquiryText(
+                  hindi,
+                  "Review student-owned criteria in your authorized region. Matching, teacher replies and hiring are separate steps.",
+                )
+              : enquiryText(
+                  hindi,
+                  "Share the help you need, review your criteria, and keep a record of your request.",
+                )}
           </p>
         </div>
         {owner && !creating && !locked && (
-          <Link className="button" href="/dashboard/enquiries?new=1">
-            New teacher enquiry
+          <Link className="button" href={url({ new: "1" })}>
+            {enquiryText(hindi, "New teacher enquiry")}
           </Link>
         )}
       </header>
@@ -92,6 +160,8 @@ export function StudentEnquiries({ session }: { session: Session }) {
         <StudentEnquiryForm
           key={`${session.account.id}:${params.get("teacher") || "assisted"}:${params.get("profile") || ""}`}
           session={session}
+          studentId={studentId}
+          hindi={hindi}
         />
       ) : (
         <>
@@ -101,18 +171,30 @@ export function StudentEnquiries({ session }: { session: Session }) {
               id={selected}
               session={session}
               onLockChange={setLocked}
+              canManage={owner}
+              hindi={hindi}
+              studentId={studentId}
             />
           )}
           <div className="care-section student-enquiry-history">
             <h2 ref={heading} tabIndex={-1}>
-              {staff ? "Review queue" : "Enquiry history"}
+              {staff
+                ? enquiryText(hindi, "Review queue")
+                : enquiryText(hindi, "Enquiry history")}
             </h2>
-            {query.isPending && <p role="status">Loading enquiries…</p>}
+            {query.isPending && (
+              <p role="status">
+                {enquiryText(hindi, "Loading enquiries\u2026")}
+              </p>
+            )}
             {query.error && (
               <Notice error>
-                We couldn’t load this page of enquiries.{" "}
+                {enquiryText(
+                  hindi,
+                  "We couldn\u2019t load this page of enquiries.",
+                )}{" "}
                 <Button disabled={locked} onClick={() => query.refetch()}>
-                  Retry enquiry history
+                  {enquiryText(hindi, "Retry enquiry history")}
                 </Button>
                 <Button
                   disabled={locked}
@@ -123,7 +205,7 @@ export function StudentEnquiries({ session }: { session: Session }) {
                     query.refetch();
                   }}
                 >
-                  Return to first page
+                  {enquiryText(hindi, "Return to first page")}
                 </Button>
               </Notice>
             )}
@@ -132,10 +214,13 @@ export function StudentEnquiries({ session }: { session: Session }) {
                 {!query.data.items.length ? (
                   <Notice>
                     {cursor
-                      ? "No more enquiries on this page."
-                      : "No enquiries yet."}{" "}
+                      ? enquiryText(hindi, "No more enquiries on this page.")
+                      : enquiryText(hindi, "No enquiries yet.")}{" "}
                     {owner &&
-                      "Start with teacher search or share your criteria for staff review."}
+                      enquiryText(
+                        hindi,
+                        "Start with teacher search or share your criteria for staff review.",
+                      )}
                   </Notice>
                 ) : (
                   <ul className="student-enquiry-list">
@@ -144,14 +229,22 @@ export function StudentEnquiries({ session }: { session: Session }) {
                         <div>
                           <strong>{row.subject}</strong>
                           <p>
-                            <Scope value={row.educationScope} /> ·{" "}
-                            {row.mode === "HOME" ? "At home" : "Online"}
+                            <Scope value={row.educationScope} hindi={hindi} /> ·{" "}
+                            {row.mode === "HOME"
+                              ? enquiryText(hindi, "At home")
+                              : enquiryText(hindi, "Online")}
                           </p>
                           <p>
                             {row.status === "SUBMITTED"
-                              ? "Received · awaiting staff review"
-                              : "Withdrawn"}{" "}
-                            · Reference {row.id.slice(0, 8)}
+                              ? enquiryText(
+                                  hindi,
+                                  "Received \u00B7 awaiting staff review",
+                                )
+                              : row.status === "HIRED"
+                                ? enquiryText(hindi, "Both sides confirmed")
+                                : enquiryText(hindi, "Withdrawn")}{" "}
+                            {enquiryText(hindi, "\u00B7 Reference")}{" "}
+                            {row.id.slice(0, 8)}
                           </p>
                         </div>
                         <Button
@@ -160,7 +253,7 @@ export function StudentEnquiries({ session }: { session: Session }) {
                           onClick={() => choose(row.id)}
                           aria-label={`View enquiry ${row.id.slice(0, 8)}`}
                         >
-                          View details
+                          {enquiryText(hindi, "View details")}
                         </Button>
                       </li>
                     ))}
@@ -176,7 +269,7 @@ export function StudentEnquiries({ session }: { session: Session }) {
                       requestAnimationFrame(() => heading.current?.focus());
                     }}
                   >
-                    Previous page
+                    {enquiryText(hindi, "Previous page")}
                   </Button>
                   <Button
                     variant="outline"
@@ -189,7 +282,7 @@ export function StudentEnquiries({ session }: { session: Session }) {
                       requestAnimationFrame(() => heading.current?.focus());
                     }}
                   >
-                    Next page
+                    {enquiryText(hindi, "Next page")}
                   </Button>
                 </div>
               </>
@@ -200,16 +293,31 @@ export function StudentEnquiries({ session }: { session: Session }) {
     </section>
   );
 }
-function StudentEnquiryForm({ session }: { session: Session }) {
+function StudentEnquiryForm({
+  session,
+  studentId = "",
+  hindi = false,
+}: {
+  session: Session;
+  studentId?: string;
+  hindi?: boolean;
+}) {
   const params = useSearchParams(),
     router = useRouter(),
     client = useQueryClient(),
     teacherId = params.get("teacher"),
     slug = params.get("profile");
   const context = useQuery({
-    queryKey: ["student-enquiry-context", session.account.id],
+    queryKey: ["student-enquiry-context", session.account.id, studentId],
     queryFn: ({ signal }) =>
-      api<Context>("/independent-student/enquiry-context", { signal }),
+      api<Context>(
+        studentId
+          ? "/delegated-students/" +
+              encodeURIComponent(studentId) +
+              "/enquiry-context"
+          : "/independent-student/enquiry-context",
+        { signal },
+      ),
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -268,22 +376,33 @@ function StudentEnquiryForm({ session }: { session: Session }) {
     const next: Record<string, string> = {},
       preferences = weeklyPreferences(weekly);
     if (!subject.trim() || subject.trim().length > 60)
-      next.subject = "Enter a subject, up to 60 characters.";
-    if (!mode) next.mode = "Choose online or at-home teaching.";
-    if (!language) next.language = "Choose a teaching language.";
+      next.subject = enquiryText(
+        hindi,
+        "Enter a subject, up to 60 characters.",
+      );
+    if (!mode)
+      next.mode = enquiryText(hindi, "Choose online or at-home teaching.");
+    if (!language)
+      next.language = enquiryText(hindi, "Choose a teaching language.");
     if (!locality.trim() || locality.trim().length > 80)
-      next.locality =
-        "Enter a locality, up to 80 characters. Do not enter your full address.";
+      next.locality = enquiryText(
+        hindi,
+        "Enter a locality, up to 80 characters. Do not enter your full address.",
+      );
     if (
       !/^\d+(\.\d{1,2})?$/.test(budget) ||
       Number(budget) < 500 ||
       Number(budget) > 20000
     )
-      next.budget =
-        "Enter a monthly budget from ₹500 to ₹20,000, with up to two decimal places.";
+      next.budget = enquiryText(
+        hindi,
+        "Enter a monthly budget from \u20B9500 to \u20B920,000, with up to two decimal places.",
+      );
     if (!preferences)
-      next.weekly =
-        "Choose nonoverlapping weekly time ranges of at least 20 minutes.";
+      next.weekly = enquiryText(
+        hindi,
+        "Choose nonoverlapping weekly time ranges of at least 20 minutes.",
+      );
     setErrors(next);
     if (Object.keys(next).length) {
       requestAnimationFrame(() =>
@@ -322,56 +441,79 @@ function StudentEnquiryForm({ session }: { session: Session }) {
       <div className="wizard-card student-enquiry-form">
         <h2 ref={heading} tabIndex={-1}>
           {review
-            ? "Review your enquiry"
+            ? enquiryText(hindi, "Review your enquiry")
             : teacherId
-              ? "Enquire about this teacher"
-              : "Let us search for you"}
+              ? enquiryText(hindi, "Enquire about this teacher")
+              : enquiryText(hindi, "Let us search for you")}
         </h2>
-        <Feedback decision={decision} />
+        <StudentFeedback decision={decision} hindi={hindi} />
         {decision.error && !decision.uncertain && (
           <Button
             variant="outline"
             disabled={decision.busy}
             onClick={() => decision.reload()}
           >
-            Reload criteria and review again
+            {enquiryText(hindi, "Reload criteria and review again")}
           </Button>
         )}
         {context.isPending && (
-          <p role="status">Loading your education profile…</p>
+          <p role="status">
+            {enquiryText(hindi, "Loading your education profile\u2026")}
+          </p>
         )}
         {context.error && (
           <Notice error>
-            We couldn’t load your current education details. Your form stays on
-            this page.{" "}
+            {enquiryText(
+              hindi,
+              "We couldn\u2019t load your current education details. Your form stays on this page.",
+            )}{" "}
             <Button
               disabled={decision.locked}
               onClick={() => context.refetch()}
             >
-              Retry education details
+              {enquiryText(hindi, "Retry education details")}
             </Button>
           </Notice>
         )}
         {!context.error && context.data?.gate !== "READY" && context.data && (
           <Notice>
             {context.data.gate === "PRIVACY_PAUSED"
-              ? "New enquiries are paused while your deletion request is reviewed."
-              : "Your account region is not enabled for teacher enquiries yet."}
+              ? enquiryText(
+                  hindi,
+                  "New enquiries are paused while your deletion request is reviewed.",
+                )
+              : enquiryText(
+                  hindi,
+                  "Your account region is not enabled for teacher enquiries yet.",
+                )}
             <Link className="inline-link" href="/dashboard">
-              Return to my dashboard
+              {enquiryText(hindi, "Return to my dashboard")}
             </Link>
           </Notice>
         )}
         {teacherId && teacher.isPending && !unavailable && (
-          <p role="status">Checking the selected teacher…</p>
+          <p role="status">
+            {enquiryText(hindi, "Checking the selected teacher\u2026")}
+          </p>
         )}
         {unavailable && (
           <Notice error>
-            The selected teacher could not be confirmed. We have not substituted
-            another teacher.{" "}
+            {enquiryText(
+              hindi,
+              "The selected teacher could not be confirmed. We have not substituted another teacher.",
+            )}{" "}
             {!decision.locked && (
-              <Link className="inline-link" href="/dashboard/enquiries?new=1">
-                Use assisted search instead
+              <Link
+                className="inline-link"
+                href={
+                  studentId
+                    ? "/dashboard/student-enquiries?student=" +
+                      encodeURIComponent(studentId) +
+                      "&new=1"
+                    : "/dashboard/enquiries?new=1"
+                }
+              >
+                {enquiryText(hindi, "Use assisted search instead")}
               </Link>
             )}
           </Notice>
@@ -379,18 +521,21 @@ function StudentEnquiryForm({ session }: { session: Session }) {
         {!context.error && context.data && (
           <>
             <div className="student-enquiry-snapshot">
-              <strong>Your current education</strong>
+              <strong>{enquiryText(hindi, "Your current education")}</strong>
               <p>
-                <Scope value={context.data.educationScope} />
+                <Scope value={context.data.educationScope} hindi={hindi} />
               </p>
               <p>
-                {context.data.region} · Profile version{" "}
+                {context.data.region}{" "}
+                {enquiryText(hindi, "\u00B7 Profile version")}{" "}
                 {context.data.profileVersion}
               </p>
               {teacherId && teacher.data && (
                 <p>
-                  Requested teacher: <strong>{teacher.data.name}</strong> ·{" "}
-                  {rupees(teacher.data.monthlyPaise)} / month
+                  {enquiryText(hindi, "Requested teacher:")}{" "}
+                  <strong>{teacher.data.name}</strong> ·{" "}
+                  {rupees(teacher.data.monthlyPaise)}{" "}
+                  {enquiryText(hindi, "/ month")}
                 </p>
               )}
             </div>
@@ -406,7 +551,7 @@ function StudentEnquiryForm({ session }: { session: Session }) {
                   <div className="student-enquiry-fields">
                     <div className="field">
                       <label htmlFor="student-enquiry-subject">
-                        Subject you need help with
+                        {enquiryText(hindi, "Subject you need help with")}
                       </label>
                       <Input
                         id="student-enquiry-subject"
@@ -433,7 +578,7 @@ function StudentEnquiryForm({ session }: { session: Session }) {
                     </div>
                     <div className="field">
                       <label htmlFor="student-enquiry-mode">
-                        Teaching format
+                        {enquiryText(hindi, "Teaching format")}
                       </label>
                       <select
                         id="student-enquiry-mode"
@@ -447,15 +592,21 @@ function StudentEnquiryForm({ session }: { session: Session }) {
                           errors.mode ? "student-enquiry-mode-error" : undefined
                         }
                       >
-                        <option value="">Choose a format</option>
-                        <option value="ONLINE">Online</option>
-                        <option value="HOME">At home</option>
+                        <option value="">
+                          {enquiryText(hindi, "Choose a format")}
+                        </option>
+                        <option value="ONLINE">
+                          {enquiryText(hindi, "Online")}
+                        </option>
+                        <option value="HOME">
+                          {enquiryText(hindi, "At home")}
+                        </option>
                       </select>
                       {error("mode")}
                     </div>
                     <div className="field">
                       <label htmlFor="student-enquiry-language">
-                        Teaching language
+                        {enquiryText(hindi, "Teaching language")}
                       </label>
                       <select
                         id="student-enquiry-language"
@@ -471,15 +622,21 @@ function StudentEnquiryForm({ session }: { session: Session }) {
                             : undefined
                         }
                       >
-                        <option value="">Choose a language</option>
-                        <option value="English">English</option>
-                        <option value="Hindi">Hindi</option>
+                        <option value="">
+                          {enquiryText(hindi, "Choose a language")}
+                        </option>
+                        <option value="English">
+                          {enquiryText(hindi, "English")}
+                        </option>
+                        <option value="Hindi">
+                          {enquiryText(hindi, "Hindi")}
+                        </option>
                       </select>
                       {error("language")}
                     </div>
                     <div className="field">
                       <label htmlFor="student-enquiry-locality">
-                        Your locality
+                        {enquiryText(hindi, "Your locality")}
                       </label>
                       <Input
                         id="student-enquiry-locality"
@@ -497,14 +654,16 @@ function StudentEnquiryForm({ session }: { session: Session }) {
                         }
                       />
                       <p className="care-help" id="student-locality-help">
-                        Locality only. Keep your full address and contact
-                        details out of this form.
+                        {enquiryText(
+                          hindi,
+                          "Locality only. Keep your full address and contact details out of this form.",
+                        )}
                       </p>
                       {error("locality")}
                     </div>
                     <div className="field">
                       <label htmlFor="student-enquiry-budget">
-                        Monthly budget (₹)
+                        {enquiryText(hindi, "Monthly budget (\u20B9)")}
                       </label>
                       <Input
                         id="student-enquiry-budget"
@@ -532,7 +691,9 @@ function StudentEnquiryForm({ session }: { session: Session }) {
                       errors.weekly ? "student-enquiry-weekly-error" : undefined
                     }
                   >
-                    <h3>When are you usually available?</h3>
+                    <h3>
+                      {enquiryText(hindi, "When are you usually available?")}
+                    </h3>
                     <WeeklyAvailability
                       rows={weekly}
                       onChange={(rows) => {
@@ -544,7 +705,7 @@ function StudentEnquiryForm({ session }: { session: Session }) {
                   </div>
                   <div className="wizard-actions">
                     <Button key="criteria-review" type="submit">
-                      Review enquiry
+                      {enquiryText(hindi, "Review enquiry")}
                     </Button>
                   </div>
                 </fieldset>
@@ -552,27 +713,31 @@ function StudentEnquiryForm({ session }: { session: Session }) {
             ) : (
               <>
                 <dl className="independent-summary">
-                  <dt>Search approach</dt>
+                  <dt>{enquiryText(hindi, "Search approach")}</dt>
                   <dd>
                     {review.discoveryMethod === "MANUAL"
-                      ? "My selected teacher"
-                      : "Let us search for you"}
+                      ? enquiryText(hindi, "My selected teacher")
+                      : enquiryText(hindi, "Let us search for you")}
                   </dd>
-                  <dt>Subject and format</dt>
+                  <dt>{enquiryText(hindi, "Subject and format")}</dt>
                   <dd>
                     {review.subject} ·{" "}
-                    {review.mode === "HOME" ? "At home" : "Online"} ·{" "}
-                    {review.language}
+                    {review.mode === "HOME"
+                      ? enquiryText(hindi, "At home")
+                      : enquiryText(hindi, "Online")}{" "}
+                    · {review.language}
                   </dd>
-                  <dt>Locality</dt>
+                  <dt>{enquiryText(hindi, "Locality")}</dt>
                   <dd>{review.locality}</dd>
-                  <dt>Monthly budget</dt>
+                  <dt>{enquiryText(hindi, "Monthly budget")}</dt>
                   <dd>{rupees(review.budgetPaise)}</dd>
                 </dl>
                 <WeeklySummary preferences={review.preferences} />
                 <p>
-                  We will record these criteria for staff review. This does not
-                  reserve a teacher, confirm hiring, book classes or charge you.
+                  {enquiryText(
+                    hindi,
+                    "We will record these criteria for staff review. This does not reserve a teacher, confirm hiring, book classes or charge you.",
+                  )}
                 </p>
                 <label className="wizard-checkbox">
                   <input
@@ -582,8 +747,10 @@ function StudentEnquiryForm({ session }: { session: Session }) {
                     onChange={(event) => setAccepted(event.target.checked)}
                   />
                   <span>
-                    I reviewed my education and enquiry criteria and want to
-                    send this request.
+                    {enquiryText(
+                      hindi,
+                      "I reviewed my education and enquiry criteria and want to send this request.",
+                    )}
                   </span>
                 </label>
                 <div className="wizard-actions">
@@ -596,26 +763,36 @@ function StudentEnquiryForm({ session }: { session: Session }) {
                       setAccepted(false);
                     }}
                   >
-                    Edit criteria
+                    {enquiryText(hindi, "Edit criteria")}
                   </Button>
                   <Button
                     key="criteria-send"
                     disabled={locked || !accepted}
                     onClick={() =>
                       decision.run({
-                        path: "/student-enquiries",
+                        path: studentId
+                          ? "/delegated-students/" +
+                            encodeURIComponent(studentId) +
+                            "/enquiries"
+                          : "/student-enquiries",
                         body: review,
-                        message:
+                        message: enquiryText(
+                          hindi,
                           "Your enquiry was recorded. Check its current status in your history.",
+                        ),
                         onSaved: (result) =>
                           router.replace(
-                            "/dashboard/enquiries?enquiry=" +
+                            (studentId
+                              ? "/dashboard/student-enquiries?student=" +
+                                encodeURIComponent(studentId) +
+                                "&enquiry="
+                              : "/dashboard/enquiries?enquiry=") +
                               (result as Enquiry).id,
                           ),
                       })
                     }
                   >
-                    Send my enquiry
+                    {enquiryText(hindi, "Send my enquiry")}
                   </Button>
                 </div>
               </>
@@ -623,29 +800,44 @@ function StudentEnquiryForm({ session }: { session: Session }) {
           </>
         )}
         {!decision.locked && (
-          <Link className="inline-link" href="/dashboard/enquiries">
-            Return to enquiry history
+          <Link
+            className="inline-link"
+            href={
+              studentId
+                ? "/dashboard/student-enquiries?student=" +
+                  encodeURIComponent(studentId)
+                : "/dashboard/enquiries"
+            }
+          >
+            {enquiryText(hindi, "Return to enquiry history")}
           </Link>
         )}
       </div>
       <div className="independent-guide">
-        <h2>A clear brief. A better starting point.</h2>
+        <h2>{enquiryText(hindi, "A clear brief. A better starting point.")}</h2>
         <p>
-          Tell us the subject, format, budget and broad weekly times that work
-          for you.
+          {enquiryText(
+            hindi,
+            "Tell us the subject, format, budget and broad weekly times that work for you.",
+          )}
         </p>
         <p>
-          Your school name, university and account contact details are not
-          included in the staff queue. Only education criteria needed to review
-          teacher fit are saved with this enquiry.
+          {enquiryText(
+            hindi,
+            "Your school name, university and account contact details are not included in the staff queue. Only education criteria needed to review teacher fit are saved with this enquiry.",
+          )}
         </p>
         <p>
-          Matching results, teacher responses and hiring confirmation are not
-          enabled for student enquiries yet. A submitted enquiry means your
-          criteria have been recorded for staff review.
+          {enquiryText(
+            hindi,
+            "Staff review your criteria, publish a shortlist and ask teachers to respond. You choose an interested teacher and both sides review terms before hiring is confirmed.",
+          )}
         </p>
         <p>
-          Unsubmitted details stay on this page only. Reloading clears them.
+          {enquiryText(
+            hindi,
+            "Unsubmitted details stay on this page only. Reloading clears them.",
+          )}
         </p>
       </div>
     </div>
@@ -655,12 +847,18 @@ function StudentEnquiryDetail({
   id,
   session,
   onLockChange,
+  canManage,
+  hindi = false,
+  studentId = "",
 }: {
   id: string;
   session: Session;
   onLockChange: (v: boolean) => void;
+  canManage: boolean;
+  hindi?: boolean;
+  studentId?: string;
 }) {
-  const owner = session.account.role === "INDEPENDENT_STUDENT",
+  const owner = canManage,
     client = useQueryClient(),
     [reviewing, setReviewing] = useState(false),
     [accepted, setAccepted] = useState(false);
@@ -685,19 +883,26 @@ function StudentEnquiryDetail({
   }, [decision.locked, reviewing, onLockChange]);
   return (
     <section className="care-section student-enquiry-detail">
-      <h2>Enquiry details</h2>
-      <Feedback decision={decision} />
+      <h2>{enquiryText(hindi, "Enquiry details")}</h2>
+      <StudentFeedback decision={decision} hindi={hindi} />
       {decision.conflict && (
         <Button onClick={() => decision.reload()} disabled={decision.busy}>
-          Reload enquiry
+          {enquiryText(hindi, "Reload enquiry")}
         </Button>
       )}
-      {query.isPending && <p role="status">Loading enquiry details…</p>}
+      {query.isPending && (
+        <p role="status">
+          {enquiryText(hindi, "Loading enquiry details\u2026")}
+        </p>
+      )}
       {query.error && (
         <Notice error>
-          This enquiry could not be loaded for your account.{" "}
+          {enquiryText(
+            hindi,
+            "This enquiry could not be loaded for your account.",
+          )}{" "}
           <Button disabled={decision.locked} onClick={() => query.refetch()}>
-            Retry enquiry details
+            {enquiryText(hindi, "Retry enquiry details")}
           </Button>
         </Notice>
       )}
@@ -705,49 +910,79 @@ function StudentEnquiryDetail({
         <>
           <p className="student-enquiry-status">
             {query.data.status === "SUBMITTED"
-              ? "Received · awaiting staff review"
-              : "Withdrawn"}
+              ? enquiryText(hindi, "Received \u00B7 awaiting staff review")
+              : query.data.status === "HIRED"
+                ? enquiryText(hindi, "Both sides confirmed")
+                : enquiryText(hindi, "Withdrawn")}
           </p>
           <p>
-            Reference {query.data.id.slice(0, 8)} · Submitted{" "}
+            {enquiryText(hindi, "Reference")} {query.data.id.slice(0, 8)}{" "}
+            {enquiryText(hindi, "\u00B7 Submitted")}{" "}
             {new Date(query.data.createdAt).toLocaleDateString("en-IN")}
           </p>
-          <Scope value={query.data.educationScope} />
+          <Scope value={query.data.educationScope} hindi={hindi} />
           <dl className="independent-summary">
-            <dt>Subject</dt>
+            <dt>{enquiryText(hindi, "Subject")}</dt>
             <dd>{query.data.subject}</dd>
-            <dt>Search approach</dt>
+            <dt>{enquiryText(hindi, "Search approach")}</dt>
             <dd>
               {query.data.discoveryMethod === "MANUAL"
-                ? "Selected teacher · " +
+                ? enquiryText(hindi, "Selected teacher \u00B7 ") +
                   query.data.preferredTeacherId?.slice(0, 8)
-                : "Let us search for you"}
+                : enquiryText(hindi, "Let us search for you")}
             </dd>
-            <dt>Format and language</dt>
+            <dt>{enquiryText(hindi, "Format and language")}</dt>
             <dd>
-              {query.data.mode === "HOME" ? "At home" : "Online"} ·{" "}
-              {query.data.language}
+              {query.data.mode === "HOME"
+                ? enquiryText(hindi, "At home")
+                : enquiryText(hindi, "Online")}{" "}
+              · {query.data.language}
             </dd>
-            <dt>Locality</dt>
+            <dt>{enquiryText(hindi, "Locality")}</dt>
             <dd>{query.data.locality}</dd>
-            <dt>Monthly budget</dt>
+            <dt>{enquiryText(hindi, "Monthly budget")}</dt>
             <dd>{rupees(query.data.budgetPaise)}</dd>
           </dl>
-          <WeeklySummary preferences={query.data.preferences} />
+          <WeeklySummary preferences={query.data.preferences} hindi={hindi} />
           <p>
-            {query.data.status === "SUBMITTED"
-              ? "Your criteria are recorded for staff review. No teacher has been assigned and no hiring or payment is confirmed."
-              : "This enquiry is closed. It will not proceed to matching or hiring."}
+            {query.data.status !== "WITHDRAWN"
+              ? enquiryText(
+                  hindi,
+                  "Follow the reviewed shortlist below. A teacher is hired only after both sides accept the arrangement terms. No payment is taken here.",
+                )
+              : enquiryText(
+                  hindi,
+                  "This enquiry is closed. It will not proceed to matching or hiring.",
+                )}
           </p>
+          {query.data.status !== "WITHDRAWN" && (
+            <IndependentJourney
+              session={session}
+              id={id}
+              hindi={hindi}
+              canManage={canManage}
+              onSaved={refresh}
+            />
+          )}
+          {!["ADMIN", "OPERATOR"].includes(session.account.role) &&
+            !decision.locked && (
+              <Link
+                className="button secondary"
+                href={canManage ? "/support?studentEnquiry=" + id : "/support"}
+              >
+                {enquiryText(hindi, "Help and progress")}
+              </Link>
+            )}
           {owner &&
             query.data.status === "SUBMITTED" &&
             (reviewing ? (
               <div className="student-withdraw-review">
-                <h3>Withdraw this enquiry?</h3>
+                <h3>{enquiryText(hindi, "Withdraw this enquiry?")}</h3>
                 <p>
-                  Your submitted criteria stay in your private history. No
-                  booking or payment is cancelled because this enquiry has not
-                  created one.
+                  {enquiryText(
+                    hindi,
+                    "Your submitted criteria stay in your private history. No booking or payment is cancelled because this enquiry has not created one.",
+                  )}
                 </p>
                 <label className="wizard-checkbox">
                   <input
@@ -756,7 +991,9 @@ function StudentEnquiryDetail({
                     disabled={decision.locked}
                     onChange={(e) => setAccepted(e.target.checked)}
                   />
-                  <span>I want to withdraw this enquiry.</span>
+                  <span>
+                    {enquiryText(hindi, "I want to withdraw this enquiry.")}
+                  </span>
                 </label>
                 <div className="care-actions">
                   <Button
@@ -764,7 +1001,7 @@ function StudentEnquiryDetail({
                     disabled={decision.locked}
                     onClick={() => setReviewing(false)}
                   >
-                    Keep enquiry
+                    {enquiryText(hindi, "Keep enquiry")}
                   </Button>
                   <Button
                     disabled={decision.locked || !accepted}
@@ -775,11 +1012,11 @@ function StudentEnquiryDetail({
                           expectedVersion: query.data!.version,
                           confirmed: true,
                         },
-                        message: "Enquiry withdrawn.",
+                        message: enquiryText(hindi, "Enquiry withdrawn."),
                       })
                     }
                   >
-                    Confirm withdrawal
+                    {enquiryText(hindi, "Confirm withdrawal")}
                   </Button>
                 </div>
               </div>
@@ -792,7 +1029,7 @@ function StudentEnquiryDetail({
                   setAccepted(false);
                 }}
               >
-                Withdraw enquiry
+                {enquiryText(hindi, "Withdraw enquiry")}
               </Button>
             ))}
         </>

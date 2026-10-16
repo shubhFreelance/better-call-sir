@@ -13,6 +13,15 @@ export const weekdays = [
   "Friday",
   "Saturday",
 ];
+const hindiDays = [
+  "रविवार",
+  "सोमवार",
+  "मंगलवार",
+  "बुधवार",
+  "गुरुवार",
+  "शुक्रवार",
+  "शनिवार",
+];
 export const clock = (minute: number) =>
   minute === 1440
     ? "00:00"
@@ -61,12 +70,18 @@ export function weeklyPreferences(rows: WeeklyRange[]): Weekly | null {
     return null;
   return { timezone: "Asia/Kolkata", weekly };
 }
-export function WeeklySummary({ preferences }: { preferences: Weekly }) {
+export function WeeklySummary({
+  preferences,
+  hindi = false,
+}: {
+  preferences: Weekly;
+  hindi?: boolean;
+}) {
   return (
     <ul className="tuition-windows">
       {preferences.weekly.map((w, i) => (
         <li key={i}>
-          {weekdays[w.weekday]} · {clock(w.startMinute)}–
+          {(hindi ? hindiDays : weekdays)[w.weekday]} · {clock(w.startMinute)}–
           {w.endMinute === 1440 ? "24:00" : clock(w.endMinute)} IST
         </li>
       ))}
@@ -107,21 +122,25 @@ export function AvailabilityMode({
 export function WeeklyAvailability({
   rows,
   onChange,
+  hindi = false,
 }: {
   rows: WeeklyRange[];
+  hindi?: boolean;
   onChange: (rows: WeeklyRange[]) => void;
 }) {
   return (
     <div className="weekly-availability">
       <p>
-        Choose suitable weekdays and broad time ranges in India Standard Time.
-        These help us find a teacher; they do not book classes or set a lesson
-        length.
+        {hindi
+          ? "भारतीय समय के अनुसार सुविधाजनक दिन और समय चुनें। इनसे शिक्षक खोजने में मदद मिलेगी; कक्षा बुक या अवधि तय नहीं होगी।"
+          : "Choose suitable weekdays and broad time ranges in India Standard Time. These help us find a teacher; they do not book classes or set a lesson length."}
       </p>
       {rows.map((r, i) => (
         <div className="weekly-range" key={i}>
           <div className="field">
-            <label htmlFor={`weekly-day-${i}`}>Preferred day {i + 1}</label>
+            <label htmlFor={`weekly-day-${i}`}>
+              {hindi ? "पसंदीदा दिन" : "Preferred day"} {i + 1}
+            </label>
             <select
               id={`weekly-day-${i}`}
               value={r.weekday}
@@ -133,8 +152,8 @@ export function WeeklyAvailability({
                 )
               }
             >
-              <option value="">Choose a day</option>
-              {weekdays.map((d, n) => (
+              <option value="">{hindi ? "दिन चुनें" : "Choose a day"}</option>
+              {(hindi ? hindiDays : weekdays).map((d, n) => (
                 <option key={d} value={n}>
                   {d}
                 </option>
@@ -144,8 +163,14 @@ export function WeeklyAvailability({
           {(["start", "end"] as const).map((key) => (
             <div className="field" key={key}>
               <label htmlFor={`weekly-${key}-${i}`}>
-                {key === "start" ? "Available from" : "Available until"} {i + 1}{" "}
-                (IST)
+                {key === "start"
+                  ? hindi
+                    ? "कब से उपलब्ध"
+                    : "Available from"
+                  : hindi
+                    ? "कब तक उपलब्ध"
+                    : "Available until"}{" "}
+                {i + 1} (IST)
               </label>
               <Input
                 id={`weekly-${key}-${i}`}
@@ -166,9 +191,9 @@ export function WeeklyAvailability({
               type="button"
               variant="ghost"
               onClick={() => onChange(rows.filter((_, n) => n !== i))}
-              aria-label={`Remove weekly range ${i + 1}`}
+              aria-label={`${hindi ? "समय हटाएँ" : "Remove weekly range"} ${i + 1}`}
             >
-              Remove
+              {hindi ? "हटाएँ" : "Remove"}
             </Button>
           )}
         </div>
@@ -179,11 +204,12 @@ export function WeeklyAvailability({
         disabled={rows.length >= 14}
         onClick={() => onChange([...rows, ...emptyWeekly()])}
       >
-        Add another day/time range
+        {hindi ? "एक और दिन/समय जोड़ें" : "Add another day/time range"}
       </Button>
       <p className="wizard-help">
-        Ranges must not overlap on the same day. Use 00:00 as the end time for
-        midnight at the end of that day.
+        {hindi
+          ? "एक दिन के समय आपस में नहीं टकराने चाहिए। दिन के अंत की मध्यरात्रि के लिए 00:00 चुनें।"
+          : "Ranges must not overlap on the same day. Use 00:00 as the end time for midnight at the end of that day."}
       </p>
     </div>
   );

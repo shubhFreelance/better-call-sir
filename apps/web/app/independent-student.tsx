@@ -1,4 +1,5 @@
 "use client";
+import { StudentLearningSummary } from "./independent-journey";
 import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,7 +20,7 @@ function Message({ children }: { children: ReactNode }) {
     </Alert>
   );
 }
-function EducationSummary({
+export function EducationSummary({
   education: e,
   hindi,
 }: {
@@ -204,8 +205,8 @@ export function IndependentStudentSetup({
           </p>
           <p>
             {t(
-              "Optional guardian support will be added separately. No guardian receives access from this form.",
-              "वैकल्पिक अभिभावक सहायता अलग चरण में जुड़ेगी। इस फ़ॉर्म से किसी अभिभावक को पहुँच नहीं मिलती।",
+              "After setup, you can invite a trusted supporter with advice or learning-management permissions. No one receives access from this form.",
+              "खाता बनने के बाद भरोसेमंद मददगार को सलाह या पढ़ाई सँभालने की अनुमति दे सकते हैं। इस फ़ॉर्म से किसी को अनुमति नहीं मिलती।",
             )}
           </p>
           <Link href="/teachers" className="inline-link">
@@ -216,18 +217,22 @@ export function IndependentStudentSetup({
     </main>
   );
 }
-function StudentForm({
+export function StudentForm({
   session,
   profile,
   hindi,
   onSessionChange,
   reload,
+  updatePath,
+  onSaved,
 }: {
   session: Session;
   profile: Profile | null;
   hindi: boolean;
   onSessionChange: (s: Session) => void;
   reload: () => unknown;
+  updatePath?: string;
+  onSaved?: () => Promise<void>;
 }) {
   const t = (en: string, hi: string) => (hindi ? hi : en),
     router = useRouter(),
@@ -374,7 +379,7 @@ function StudentForm({
     if (!pending.current)
       pending.current = {
         path: profile
-          ? "/independent-student/profile/updates"
+          ? updatePath || "/independent-student/profile/updates"
           : "/independent-student/signup",
         key: crypto.randomUUID(),
         body: profile
@@ -398,6 +403,12 @@ function StudentForm({
         key: pending.current.key,
         csrf: session.csrfToken,
       });
+      if (onSaved) {
+        await onSaved();
+        setUncertain(false);
+        setSaved(true);
+        return;
+      }
       const next = await api<Session>("/auth/session");
       client.clear();
       onSessionChange(next);
@@ -874,6 +885,7 @@ export function IndependentStudentHome({
           </Button>
         </Message>
       )}
+      {query.data && <StudentLearningSummary session={session} hindi={hindi} />}
       {query.data && (
         <div className="independent-layout">
           <section className="wizard-card independent-profile">

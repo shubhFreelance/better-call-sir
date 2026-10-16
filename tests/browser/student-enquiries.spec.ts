@@ -15,6 +15,10 @@ const ctx = {
 };
 const row = {
   id,
+  matchStatus: "PENDING",
+  matchRunId: null,
+  selectedCandidateId: null,
+  rematchFromArrangementId: null,
   discoveryMethod: "ASSISTED",
   preferredTeacherId: null,
   educationScope: ctx.educationScope,
@@ -126,6 +130,17 @@ async function mock(page: Page, mode = "normal") {
     if (path.endsWith("/student-enquiries"))
       return route.fulfill({
         json: { items: record ? [row] : [], nextCursor: null },
+      });
+    if (path.endsWith("/shortlist"))
+      return route.fulfill({
+        json: {
+          id,
+          version: 1,
+          matchStatus: "PENDING",
+          runId: null,
+          selectedCandidateId: null,
+          items: [],
+        },
       });
     if (path.endsWith("/student-enquiries/" + id))
       return route.fulfill({ json: row });

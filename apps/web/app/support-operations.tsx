@@ -424,6 +424,16 @@ function StaffCase({
                 : "Unassigned"}{" "}
             · Version {c.version}
           </p>
+          {c.studentEnquiryId && (
+            <Link
+              className="inline-link"
+              href={
+                "/dashboard/student-enquiries?enquiry=" + c.studentEnquiryId
+              }
+            >
+              Review linked student enquiry
+            </Link>
+          )}
           {c.placementId && (
             <small>Linked arrangement {c.placementId.slice(0, 8)}</small>
           )}

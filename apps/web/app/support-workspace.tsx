@@ -38,11 +38,15 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
     params = useSearchParams(),
     canUse =
       !!session &&
-      ["GUARDIAN", "TEACHER", "STUDENT"].includes(session.account.role);
+      ["GUARDIAN", "TEACHER", "STUDENT", "INDEPENDENT_STUDENT"].includes(
+        session.account.role,
+      );
+  const studentLink = params.get("studentEnquiry");
   const requestLink = params.get("request"),
     placementLink = params.get("placement"),
-    hasContext = !!(requestLink || placementLink);
+    hasContext = !!(requestLink || placementLink || studentLink);
   const contextParams = new URLSearchParams({
+    ...(studentLink ? { studentEnquiryId: studentLink } : {}),
     ...(requestLink ? { requestId: requestLink } : {}),
     ...(placementLink ? { placementId: placementLink } : {}),
   });
@@ -52,16 +56,35 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
       session?.account.id,
       contextParams.toString(),
     ],
-    queryFn: () =>
-      api<components["schemas"]["SupportContext"]>(
+    queryFn: async () => {
+      if (studentLink) {
+        if (requestLink || placementLink)
+          throw new Error("Choose one support context.");
+        const e = await api<components["schemas"]["StudentEnquiry"]>(
+          "/student-enquiries/" + encodeURIComponent(studentLink),
+        );
+        return {
+          kind: "ENQUIRY" as const,
+          id: e.id,
+          requestId: e.id,
+          placementId: null,
+          subject: e.subject,
+          mode: e.mode,
+          status: e.status,
+          canRequestReplacement: false,
+        };
+      }
+      return api<components["schemas"]["SupportContext"]>(
         "/support/context?" + contextParams,
-      ),
+      );
+    },
     enabled: canUse && hasContext,
     retry: false,
     refetchOnWindowFocus: false,
   });
   function caseUrl(id = "") {
     const next = new URLSearchParams({
+      ...(studentLink ? { studentEnquiry: studentLink } : {}),
       ...(requestLink ? { request: requestLink } : {}),
       ...(placementLink ? { placement: placementLink } : {}),
       ...(id ? { case: id } : {}),
@@ -138,7 +161,9 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
         context.error ||
         (loaded &&
           !(
-            loaded.requestId === context.data.requestId ||
+            (studentLink
+              ? loaded.studentEnquiryId === studentLink
+              : loaded.requestId === context.data.requestId) ||
             (!!context.data.placementId &&
               loaded.placementId === context.data.placementId)
           )))
@@ -200,12 +225,16 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
     sending.current = true;
     try {
       await decision.run({
-        path: create ? "/cases" : `/cases/${item!.id}/updates`,
+        path: create
+          ? studentLink
+            ? "/student-enquiries/" + encodeURIComponent(studentLink) + "/cases"
+            : "/cases"
+          : `/cases/${item!.id}/updates`,
         body: create
           ? {
               category,
               description: message,
-              ...(hasContext && context.data
+              ...(!studentLink && hasContext && context.data
                 ? placementLink
                   ? { placementId: context.data.placementId! }
                   : { requestId: context.data.requestId }
@@ -344,9 +373,16 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
                     <Link
                       className="inline-link"
                       href={
-                        session?.account.role === "GUARDIAN"
-                          ? `/dashboard/requests?request=${context.data.requestId}`
-                          : "/dashboard/enquiries"
+                        studentLink
+                          ? session?.account.role === "TEACHER"
+                            ? "/dashboard/student-opportunities"
+                            : session?.account.role === "GUARDIAN"
+                              ? "/dashboard/supported-students"
+                              : "/dashboard/enquiries?enquiry=" +
+                                encodeURIComponent(studentLink)
+                          : session?.account.role === "GUARDIAN"
+                            ? `/dashboard/requests?request=${context.data.requestId}`
+                            : "/dashboard/enquiries"
                       }
                     >
                       Return to enquiry progress
@@ -423,11 +459,15 @@ export function SupportWorkspace({ session }: { session: Session | null }) {
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
                       >
-                        {Object.entries(categories).map(([key, title]) => (
-                          <option key={key} value={key}>
-                            {title}
-                          </option>
-                        ))}
+                        {Object.entries(categories)
+                          .filter(
+                            ([key]) => !studentLink || key !== "ATTENDANCE",
+                          )
+                          .map(([key, title]) => (
+                            <option key={key} value={key}>
+                              {title}
+                            </option>
+                          ))}
                       </select>
                       <label htmlFor="support-description">
                         Tell us what happened

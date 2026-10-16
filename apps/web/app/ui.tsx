@@ -1,4 +1,9 @@
 "use client";
+import { StudentSupporters, StudentDevices } from "./independent-access";
+import {
+  StudentArrangements,
+  StudentOpportunities,
+} from "./independent-journey";
 import { StudentEnquiries } from "./student-enquiries";
 import {
   IndependentStudentSetup,
@@ -1566,11 +1571,18 @@ function DashboardShell({
           ["/dashboard/requests", "Enquiries & teacher choices", Users],
           ["/dashboard/arrangements", "Arrangements & replacement", RefreshCw],
           ["/dashboard/family", "Learners & access", ShieldCheck],
+          ["/dashboard/supported-students", "Supported students", Users],
           ["/dashboard/privacy", "Privacy & data", ShieldCheck],
         ] as [string, string, LucideIcon][])
       : role === "TEACHER"
         ? ([
             ["/dashboard/enquiries", "Assigned enquiries", ClipboardList],
+            [
+              "/dashboard/student-opportunities",
+              "Independent students",
+              GraduationCap,
+            ],
+            ["/dashboard/student-arrangements", "Student arrangements", Users],
             ["/onboarding/teacher", "Profile & evidence", Settings],
             ["/dashboard/privacy", "Privacy & data", ShieldCheck],
           ] as [string, string, LucideIcon][])
@@ -1733,7 +1745,14 @@ function DashboardPage({ tab }: { tab: string }) {
     enabled:
       !!session &&
       session.account.role !== "INDEPENDENT_STUDENT" &&
-      tab !== "/dashboard/student-enquiries" &&
+      ![
+        "/dashboard/student-enquiries",
+        "/dashboard/student-arrangements",
+        "/dashboard/student-opportunities",
+        "/dashboard/supported-students",
+        "/dashboard/student-supporters",
+        "/dashboard/student-devices",
+      ].includes(tab) &&
       !(
         ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
           session.account.role,
@@ -1768,12 +1787,31 @@ function DashboardPage({ tab }: { tab: string }) {
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
   if (
+    session.account.role !== "INDEPENDENT_STUDENT" &&
+    [
+      "/dashboard/student-arrangements",
+      "/dashboard/student-opportunities",
+      "/dashboard/supported-students",
+    ].includes(tab)
+  )
+    return (
+      <DashboardShell tab={tab}>
+        {tab === "/dashboard/student-arrangements" ? (
+          <StudentArrangements session={session} hindi={hindi} />
+        ) : tab === "/dashboard/student-opportunities" ? (
+          <StudentOpportunities session={session} hindi={hindi} />
+        ) : (
+          <StudentSupporters session={session} hindi={hindi} />
+        )}
+      </DashboardShell>
+    );
+  if (
     tab === "/dashboard/student-enquiries" &&
     session.account.role !== "INDEPENDENT_STUDENT"
   )
     return (
       <DashboardShell tab={tab}>
-        <StudentEnquiries session={session} />
+        <StudentEnquiries session={session} hindi={hindi} />
       </DashboardShell>
     );
   if (session.account.role === "INDEPENDENT_STUDENT")
@@ -1803,6 +1841,30 @@ function DashboardPage({ tab }: { tab: string }) {
           >
             {hindi ? "मेरी पूछताछ" : "My enquiries"}
           </Link>
+          {[
+            [
+              "/dashboard/student-arrangements",
+              hindi ? "नियुक्ति और व्यवस्थाएँ" : "Hiring & arrangements",
+            ],
+            [
+              "/dashboard/student-supporters",
+              hindi ? "पढ़ाई में मदद" : "Learning support",
+            ],
+            [
+              "/dashboard/student-devices",
+              hindi ? "उपकरण और वापसी" : "Devices & recovery",
+            ],
+            ["/support", hindi ? "सहायता" : "Help"],
+          ].map(([href, label]) => (
+            <Link
+              key={href}
+              className="inline-link"
+              href={href}
+              aria-current={tab === href ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
           <Link
             className="inline-link"
             href="/dashboard/privacy"
@@ -1813,7 +1875,25 @@ function DashboardPage({ tab }: { tab: string }) {
         </nav>
         {tab === "/dashboard/enquiries" ||
         tab === "/dashboard/student-enquiries" ? (
-          <StudentEnquiries key={session.account.id} session={session} />
+          <StudentEnquiries
+            key={session.account.id}
+            session={session}
+            hindi={hindi}
+          />
+        ) : tab === "/dashboard/student-arrangements" ? (
+          <StudentArrangements session={session} hindi={hindi} />
+        ) : tab === "/dashboard/student-supporters" ? (
+          <StudentSupporters session={session} hindi={hindi} />
+        ) : tab === "/dashboard/student-devices" ? (
+          <StudentDevices
+            session={session}
+            hindi={hindi}
+            onSignedOut={() => {
+              client.clear();
+              setSession(null);
+              window.location.assign("/login");
+            }}
+          />
         ) : tab === "/dashboard/privacy" ? (
           <div lang="en">
             <PrivacyWorkspace session={session} />

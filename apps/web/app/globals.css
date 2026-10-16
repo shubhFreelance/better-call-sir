@@ -5027,3 +5027,51 @@ footer {
  .student-enquiry-form [type=time] { min-width: 0; width: 100%; }
 }
 .student-enquiry-form .field input:not([type="checkbox"]):not([type="radio"]) { min-height: 48px; }
+
+/* Learning decisions stay readable as one continuous flow on small devices. */
+.student-workspace { min-width: 0; max-width: 1120px; margin-inline: auto; }
+.student-workspace > p, .student-journey > p { max-width: 72ch; color: var(--muted); line-height: 1.7; }
+.student-progress { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 0; list-style: none; margin: 24px 0; }
+.student-progress li { padding: 14px; border-radius: 12px; background: #f1f3ef; font-size: .87rem; color: #586562; }
+.student-progress li[data-complete="true"] { background: #034f46; color: #fff; }
+.student-candidate-list { padding: 0; list-style: none; display: grid; gap: 16px; margin-block: 24px; }
+.student-candidate-list > li { min-width: 0; padding: 24px; background: #fff; border: 1px solid #d8e1dc; border-radius: 18px; overflow-wrap: anywhere; }
+.student-candidate-list h2, .student-candidate-list h3 { margin: 0 0 8px; }
+.student-candidate-heading { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.student-status-tag { background: #f0d7ff; color: #17201f; padding: 7px 12px; border-radius: 10px; font-size: .8rem; }
+.student-review-panel { padding: 24px; border-radius: 16px; background: #ffffeb; border: 1px solid #d9ddbd; margin-block: 24px; overflow-wrap: anywhere; }
+.student-review-panel h3, .student-review-panel h2 { margin-top: 0; }
+.student-review-panel fieldset { padding: 0; border: 0; min-width: 0; }
+.student-review-panel .field { display: grid; gap: 8px; margin-block: 16px; }
+.student-review-panel .field input:not([type="checkbox"]):not([type="radio"]), .student-review-panel select { width: 100%; min-height: 48px; padding: 12px; background: #fff; border: 1px solid #a8b4ad; border-radius: 10px; font: inherit; box-sizing: border-box; }
+.student-review-panel textarea { min-height: 112px; width: 100%; }
+.student-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }
+.student-terms-panel { padding: clamp(20px, 4vw, 40px); margin-block: 28px; background: #fff; border-radius: 24px; border: 1px solid #d8e1dc; }
+.student-terms-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 32px; }
+.student-terms-price { color: #034f46; font-size: 2rem; font-weight: 700; margin-block: 16px; }
+.student-terms-price span { font-size: .95rem; font-weight: 400; }
+.student-agreement-status { background: #034f46; color: #fff; border-radius: 18px; padding: 24px; align-self: start; }
+.student-agreement-status h3, .student-agreement-status p, .student-agreement-status strong { color: #fff; }
+.student-support-explainer { background: #f0d7ff; color: #17201f; padding: 24px; border-radius: 18px; margin-block: 24px; }
+.student-support-explainer dt { font-weight: 700; margin-top: 16px; }
+.student-support-explainer dd { margin: 6px 0 20px; max-width: 75ch; line-height: 1.7; }
+.student-contact { overflow-wrap: anywhere; }
+.student-workspace .care-actions, .student-review-panel .care-actions { flex-wrap: wrap; gap: 12px; margin-block: 16px; }
+.student-workspace button, .student-journey button { min-height: 44px; height: auto; white-space: normal; text-align: center; }
+@media (max-width: 640px) {
+ .student-progress { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .student-fields, .student-terms-layout { grid-template-columns: minmax(0,1fr); }
+ .student-candidate-list > li, .student-review-panel, .student-support-explainer { padding: 20px; }
+ .student-candidate-heading { flex-direction: column; }
+ .student-workspace .care-actions > *, .student-journey .care-actions > * { flex: 1 1 100%; max-width: 100%; }
+ .student-review-panel .weekly-range { grid-template-columns: minmax(0,1fr); }
+ .student-workspace .independent-summary { grid-template-columns: minmax(0,1fr); }
+ .student-workspace .independent-summary dd { margin: 0 0 12px; }
+}
+.student-workspace :is(h1, h2), .student-journey :is(h2, h3), .independent-student > h1 { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+ .student-workspace h1 { font-size: 34px; letter-spacing: -.8px; line-height: 1.2; }
+ .student-workspace h2 { font-size: 26px; letter-spacing: -.5px; line-height: 1.3; }
+}
+
+.student-workspace[lang="hi"] :is(h1, h2) { letter-spacing: 0; }
