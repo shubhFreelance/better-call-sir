@@ -734,6 +734,36 @@ test('concurrent device labels cannot overwrite a newer label or revive revoked 
  const winner=results.find(r=>r.status===201)!,revoke=await parent.call(`/children/${ids.child}/student-access-revocations`,{expectedVersion:winner.data.childVersion,familyId:body.familyId,reason:'Synthetic unused device'});assert.equal(revoke.status,201);
  assert.equal((await parent.call(path,{...body,expectedVersion:revoke.data.childVersion})).status,404);
 });
+test('student device pagination reaches every owned active family beyond fifty and preserves rotated and revoked boundaries',async()=>{
+ const owner=await db.account.create({data:{name:'Synthetic paged guardian',verified:true}}),learner=await db.account.create({data:{name:'Synthetic paged student',role:'STUDENT'}});await db.consent.create({data:{guardianId:owner.id}});
+ const child=await db.child.create({data:{guardianId:owner.id,studentAccountId:learner.id,alias:'Synthetic pagination learner',grade:8,board:'CBSE'}}),client=new Client(),ownerSession=await new AppService().issueSession(owner,randomUUID(),db),path=`/children/${child.id}/student-sessions`;
+ client.cookies='bcs_access='+ownerSession.access;client.csrf=ownerSession.csrf;
+ const families=Array.from({length:62},(_,i)=>`94000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`),expiresAt=new Date(Date.now()+86400000),rawRefresh=randomBytes(32).toString('base64url');
+ await db.session.createMany({data:families.map((familyId,i)=>({accountId:learner.id,familyId,accessHash:randomBytes(32).toString('hex'),refreshHash:i===19?createHash('sha256').update(rawRefresh).digest('hex'):randomBytes(32).toString('hex'),csrf:'synthetic-page-csrf',accessExpiresAt:expiresAt,expiresAt,deviceLabel:`Synthetic tablet ${i+1}`}))});
+ await db.session.createMany({data:[true,false].map(revoked=>({accountId:learner.id,familyId:randomUUID(),accessHash:randomBytes(32).toString('hex'),refreshHash:randomBytes(32).toString('hex'),csrf:'synthetic-inactive',accessExpiresAt:expiresAt,expiresAt:revoked?expiresAt:new Date(0),revoked}))});
+ const first=await client.call(path);assert.equal(first.status,200);assert.equal(first.data.items.length,20);assert.equal(first.data.nextCursor,families[19]);assert.deepEqual(first.data.items.map((x:any)=>x.familyId),families.slice(0,20));
+ const refresh=new Client();refresh.cookies='bcs_refresh='+rawRefresh;refresh.csrf='synthetic-page-csrf';assert.equal((await refresh.call('/auth/refresh',{})).status,201);assert.deepEqual((await client.call(path)).data.items.map((x:any)=>x.familyId),families.slice(0,20));
+ const revoke=await client.call(`/children/${child.id}/student-access-revocations`,{expectedVersion:first.data.childVersion,familyId:first.data.nextCursor,reason:'Synthetic boundary revocation'});assert.equal(revoke.status,201);
+ const seen=first.data.items.map((x:any)=>x.familyId);let cursor=first.data.nextCursor;
+ while(cursor){const page=await client.call(path+'?cursor='+cursor);assert.equal(page.status,200);const validate=operationValidator('/children/{id}/student-sessions','get','200');assert(validate(page.data),JSON.stringify(validate.errors));seen.push(...page.data.items.map((x:any)=>x.familyId));cursor=page.data.nextCursor;}
+ assert.deepEqual(seen,families);assert.equal(new Set(seen).size,62);
+ const tail=await client.call(path+'?cursor='+families[59]),selected=tail.data.items[1];assert.equal(selected.familyId,families[61]);
+ const label=await client.call(`/children/${child.id}/student-session-labels`,{expectedVersion:tail.data.childVersion,familyId:selected.familyId,label:'Later page tablet'});assert.equal(label.status,201);
+ assert.equal((await client.call(path+'?cursor='+families[59])).data.items[1].deviceLabel,'Later page tablet');
+ const ended=await client.call(`/children/${child.id}/student-access-revocations`,{expectedVersion:label.data.childVersion,familyId:selected.familyId,reason:'Synthetic tail device removed'});assert.equal(ended.status,201);
+ assert.deepEqual((await client.call(path+'?cursor='+families[60])).data.items,[]);assert.equal((await client.call(path+'?cursor='+families[60])).data.nextCursor,null);
+ assert.equal((await client.call(path+'?limit=50')).data.items.length,50);
+});
+test('student device cursors reject foreign learners, invalid queries and unauthorized roles',async()=>{
+ const first=await parent.call(`/children/${ids.child}/student-sessions`),family=first.data.items[0].familyId,path=`/children/${ids.child}/student-sessions`;
+ for(const query of ['?limit=0','?limit=51','?limit=1.5','?limit=no','?cursor=invalid','?cursor='+family+'&extra=true','?limit=1&limit=2'])assert.equal((await parent.call(path+query)).status,400,query);
+ const foreign=await db.session.findFirstOrThrow({where:{accountId:ids.otherGuardian}});assert.equal((await parent.call(path+'?cursor='+foreign.familyId)).status,404);assert.equal((await parent.call(path+'?cursor='+randomUUID())).status,404);
+ const siblingAccount=await db.account.create({data:{name:'Synthetic cursor sibling',role:'STUDENT'}}),sibling=await db.child.create({data:{guardianId:ids.guardian,studentAccountId:siblingAccount.id,alias:'Synthetic cursor sibling',grade:8,board:'CBSE'}});assert.equal((await parent.call(`/children/${sibling.id}/student-sessions?cursor=${family}`)).status,404);
+ assert.deepEqual((await parent.call(`/children/${sibling.id}/student-sessions`)).data.items,[]);assert.equal((await parent.call(`/children/${sibling.id}/student-sessions`)).data.nextCursor,null);
+ const siblingSession=await new AppService().issueSession(siblingAccount,randomUUID(),db);assert.equal((await parent.call(path+'?cursor='+siblingSession.familyId)).status,404);
+ assert.equal((await other.call(path+'?cursor='+family)).status,404);assert.equal((await student.call(path+'?cursor='+family)).status,403);assert.equal((await teacher.call(path+'?cursor='+family)).status,403);assert.equal((await new Client().call(path)).status,401);
+ const current=await parent.call(path+'?limit=1');assert.equal(current.data.items.length,1);assert.deepEqual(Object.keys(current.data.items[0]).sort(),['deviceLabel','expiresAt','familyId']);
+});
 test('support queues isolate owners and regions and hide internal staff updates',async()=>{
  const data={category:'SAFETY',description:'Synthetic safety concern',placementId:ids.placement},key=randomUUID();
  assert.equal((await other.call('/cases',data)).status,404);const created=await parent.call('/cases',data,{key});assert.equal(created.status,201);assert.equal((await parent.call('/cases',data,{key})).data.id,created.data.id);

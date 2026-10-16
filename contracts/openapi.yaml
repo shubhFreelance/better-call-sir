@@ -11589,7 +11589,7 @@
         "tags": [
           "children"
         ],
-        "summary": "Persisted owner-authorized /children/{id}/student-sessions",
+        "summary": "List current owned student devices with stable cursor pagination",
         "security": [
           {
             "cookieSession": []
@@ -11749,8 +11749,27 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
           }
-        ]
+        ],
+        "description": "Guardian-only session-family metadata; no credentials. Default 20, maximum 50 items. Cursor must belong to this learner, including expired/revoked/rotated history so a boundary survives access changes. Results are current at each read, ordered by stable family ID; refresh restarts the current page."
       },
       "post": {
         "operationId": "postChildrenIdStudentSessions",
@@ -25320,12 +25339,20 @@
           },
           "accessRevoked": {
             "type": "boolean"
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
           }
         },
         "required": [
           "items",
           "childVersion",
-          "accessRevoked"
+          "accessRevoked",
+          "nextCursor"
         ],
         "additionalProperties": false
       },
