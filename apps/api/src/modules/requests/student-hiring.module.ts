@@ -1,0 +1,122 @@
+import {Module,Controller,Get,Post,Param,Query,Req,Body,Inject} from '@nestjs/common';
+import {z} from 'zod';
+import type {Account,StudentEnquiry,StudentArrangement,Teacher} from '@prisma/client';
+import {AppService,PersistenceModule,HttpRequest,DB,uuid,version,text,parse,fail} from '../../shared';
+import {coverageWhere,type LearnerScope} from '../../coverage';
+import {eligible,placementFee} from '../../policies';
+import {calendarSnapshot,capacity} from '../scheduling/calendar';
+import {weeklyFit} from '../matching/weekly-fit';
+import {ruleRanker} from '../matching/eligibility';
+import {weeklyPreferenceSchema,normalizedPreferences} from './request-schedule';
+import {studentContext,studentEnquiryInput,studentEnquiryProjection} from './student-enquiries.module';
+const staff=(a:Account)=>['ADMIN','OPERATOR'].includes(a.role);
+const paging=z.object({cursor:uuid.optional(),limit:z.coerce.number().int().min(1).max(50).default(10)}).strict();
+const command=z.object({expectedVersion:version,confirmed:z.literal(true)}).strict();
+export async function studentReady(db:DB,id:string){
+ await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
+ const ctx=await studentContext(db,id);if(ctx.gate!=='READY')fail(403,'ENQUIRY_PAUSED','Learning decisions are paused for privacy or regional review.');return ctx;
+}
+export async function ownedStudentEnquiry(db:DB,actor:Account,id:string){
+ const e=await db.studentEnquiry.findUnique({where:{id}});if(!e)fail(404,'NOT_FOUND','Enquiry not found.');
+ let allowed=actor.role==='INDEPENDENT_STUDENT'&&e.studentAccountId===actor.id||actor.role==='ADMIN'||actor.role==='OPERATOR'&&actor.region===e.region;
+ if(actor.role==='TEACHER'){
+  const t=await db.teacher.findUnique({where:{accountId:actor.id}});
+  allowed=!!t&&(!!await db.studentCandidate.count({where:{enquiryId:id,teacherId:t.id,position:{not:null},expiresAt:{gt:new Date()}}})||!!await db.studentArrangement.count({where:{enquiryId:id,teacherId:t.id}}));
+ }
+ if(!allowed)fail(404,'NOT_FOUND','Enquiry not found.');return e;
+}
+export function studentLearner(e:StudentEnquiry):LearnerScope{
+ const s=e.educationScope as Record<string,any>;return {educationStage:s.stage,grade:s.grade??null,board:s.board??null,courseName:s.courseName??null,studyYear:s.studyYear??null};
+}
+export async function studentFit(db:DB,e:StudentEnquiry,t:Teacher,agreedPrice?:number){
+ const owner=await db.account.findUnique({where:{id:t.accountId}}),region=await db.region.findUnique({where:{id:e.region}});
+ if(!owner||owner.disabled||owner.role!=='TEACHER'||!region?.enabled||t.id===e.excludedTeacherId||e.preferredTeacherId&&e.preferredTeacherId!==t.id||!eligible(e,studentLearner(e),{...t,...(agreedPrice!==undefined?{monthlyPaise:agreedPrice}:{})})||e.mode==='HOME'&&(t.region!==e.region||!t.travelAccepted)||!await capacity(db,t,undefined,e.studentAccountId))return null;
+ const prefs=weeklyPreferenceSchema.safeParse(e.preferences);if(!prefs.success||!normalizedPreferences(prefs.data))return null;
+ const now=new Date(),windows=weeklyFit(await calendarSnapshot(db,t.id,'RECURRING',new Date(now.getTime()+3600000),new Date(now.getTime()+60*86400000)),prefs.data.weekly,now);
+ return windows.length?{teacherId:t.id,teacherVersion:t.version,monthlyPaise:agreedPrice??t.monthlyPaise,windows}:null;
+}
+async function arrangementOwner(db:DB,actor:Account,id:string){
+ const a=await db.studentArrangement.findUnique({where:{id}});if(!a)fail(404,'NOT_FOUND','Arrangement not found.');
+ const teacher=actor.role==='TEACHER'?await db.teacher.findUnique({where:{accountId:actor.id}}):null;
+ if(!(actor.role==='INDEPENDENT_STUDENT'&&a.studentAccountId===actor.id||teacher?.id===a.teacherId||actor.role==='ADMIN'||actor.role==='OPERATOR'&&actor.region===a.region))fail(404,'NOT_FOUND','Arrangement not found.');return a;
+}
+export function arrangementProjection(a:StudentArrangement){return {id:a.id,enquiryId:a.enquiryId,teacherId:a.teacherId,terms:a.terms,status:a.status,studentAcceptedAt:a.studentAcceptedAt,teacherAcceptedAt:a.teacherAcceptedAt,closedAt:a.closedAt,closureReason:a.closureReason,version:a.version,createdAt:a.createdAt};}
+@Controller('api/v1')
+class StudentHiringController{
+ constructor(@Inject(AppService) private readonly service:AppService){}
+ @Post('admin/student-enquiries/:id/matches') async match(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+  parse(uuid,id);const actor=await this.service.actor(req,['ADMIN','OPERATOR']),data=parse(command,body);
+  return this.service.once(req,actor,'student.match',data,async db=>{
+   const initial=await ownedStudentEnquiry(db,actor,id);await studentReady(db,initial.studentAccountId);const e=await db.studentEnquiry.findUniqueOrThrow({where:{id}});
+   if(e.version!==data.expectedVersion||e.status!=='SUBMITTED'||await db.studentArrangement.count({where:{enquiryId:id,status:{not:'CLOSED'}}}))fail(409,'CONFLICT','Enquiry changed or already has tuition terms.');
+   const l=studentLearner(e),pool=await db.teacher.findMany({where:{status:'APPROVED',screeningComplete:true,screeningValidUntil:{gt:new Date()},...(e.preferredTeacherId?{id:e.preferredTeacherId}:{}),...coverageWhere(l.educationStage==='COLLEGE'?{stage:'COLLEGE',courseName:l.courseName!,studyYear:l.studyYear!,subject:e.subject}:{stage:'SCHOOL',grade:l.grade!,board:l.board!,subject:e.subject}),monthlyPaise:{lte:e.budgetPaise},modes:{has:e.mode},languages:{has:e.language},...(e.mode==='HOME'?{region:e.region,travelAccepted:true,localities:{has:e.locality}}:{})},orderBy:{id:'asc'},take:201});
+   const fits=[];for(const t of pool.slice(0,200)){const f=await studentFit(db,e,t);if(f)fits.push(f);}const ranking=ruleRanker.rank(e,fits,{mode:e.mode}),result=fits.length?'MATCHED':'NO_MATCH';
+   const run=await this.service.audit(db,actor,req,'STUDENT_MATCHING_RUN',id,'Reviewed rules-based matching run',undefined,{enquiryVersion:e.version,rankerVersion:ranking.rankerVersion,featureVersion:ranking.featureVersion,eligiblePool:fits,ranking:ranking.items,poolLimited:pool.length>200,result});
+   await db.studentCandidate.updateMany({where:{enquiryId:id},data:{position:null,expiresAt:new Date(),version:{increment:1}}});const items=[];
+   for(const ranked of ranking.items.slice(0,10)){const values={runId:run.id,score:ranked.score,reasons:[e.subject,'Reviewed education coverage','Within budget','Overlapping availability'],position:null,response:'PENDING',expiresAt:new Date(Date.now()+48*3600000)};items.push(await db.studentCandidate.upsert({where:{enquiryId_teacherId:{enquiryId:id,teacherId:ranked.teacherId}},create:{enquiryId:id,teacherId:ranked.teacherId,...values},update:{...values,version:{increment:1}}}));}
+   const updated=await db.studentEnquiry.update({where:{id},data:{matchRunId:run.id,matchStatus:result,selectedCandidateId:null,version:{increment:1}}});return {id,runId:run.id,matchStatus:result,version:updated.version,items,poolLimited:pool.length>200};
+  });
+ }
+ @Get('student-enquiries/:id/shortlist') async shortlist(@Req() req:HttpRequest,@Param('id') id:string){
+  parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','ADMIN','OPERATOR','TEACHER']);
+  return this.service.db.$transaction(async db=>{const e=await ownedStudentEnquiry(db,actor,id),items=[];const teacher=actor.role==='TEACHER'?await db.teacher.findUnique({where:{accountId:actor.id}}):null;const owner=await db.account.findUniqueOrThrow({where:{id:e.studentAccountId}}),paused=owner.disabled||!!await db.privacyRequest.count({where:{accountId:owner.id,kind:'DELETION',scope:'ACCOUNT',status:'PENDING'}});
+   for(const c of await db.studentCandidate.findMany({where:{enquiryId:id,runId:e.matchRunId??'00000000-0000-4000-8000-000000000000',...(staff(actor)?{}:{position:{not:null}}),...(teacher?{teacherId:teacher.id}:{})},orderBy:[{position:'asc'},{score:'desc'},{id:'asc'}],take:10})){const t=await db.teacher.findUniqueOrThrow({where:{id:c.teacherId}});items.push({...c,teacherName:t.name,teacherSlug:t.slug,monthlyPaise:t.monthlyPaise,eligibleNow:!paused&&e.status==='SUBMITTED'&&c.expiresAt>new Date()&&c.response!=='DECLINED'&&!!await studentFit(db,e,t)});}
+   if(staff(actor))await this.service.audit(db,actor,req,'STUDENT_SHORTLIST_READ',id,'Staff read matching criteria and current shortlist');return {id,version:e.version,matchStatus:e.matchStatus,runId:e.matchRunId,selectedCandidateId:e.selectedCandidateId,items};
+  });
+ }
+ @Post('admin/student-enquiries/:id/presentations') async publish(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+  parse(uuid,id);const actor=await this.service.actor(req,['ADMIN','OPERATOR']),data=parse(command.extend({runId:uuid,candidateIds:z.array(uuid).min(1).max(10)}).refine(x=>new Set(x.candidateIds).size===x.candidateIds.length),body);
+  return this.service.once(req,actor,'student.publish',data,async db=>{const initial=await ownedStudentEnquiry(db,actor,id);await studentReady(db,initial.studentAccountId);const e=await db.studentEnquiry.findUniqueOrThrow({where:{id}});if(e.version!==data.expectedVersion||e.matchRunId!==data.runId||e.status!=='SUBMITTED'||e.selectedCandidateId)fail(409,'CONFLICT','Enquiry or matching run changed.');
+   const candidates=await db.studentCandidate.findMany({where:{id:{in:data.candidateIds},enquiryId:id,runId:data.runId}});if(candidates.length!==data.candidateIds.length)fail(409,'CONFLICT','Candidates must belong to the current run.');for(const teacherId of candidates.map(c=>c.teacherId).sort())await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${teacherId},0))`;
+   for(const c of candidates){const t=await db.teacher.findUniqueOrThrow({where:{id:c.teacherId}});if(c.expiresAt<=new Date()||c.response==='DECLINED'||!await studentFit(db,e,t))fail(409,'INELIGIBLE','A candidate changed. Rerun matching.');}
+   await db.studentCandidate.updateMany({where:{enquiryId:id},data:{position:null,version:{increment:1}}});for(const [position,candidateId] of data.candidateIds.entries())await db.studentCandidate.update({where:{id:candidateId},data:{position:position+1}});
+   await this.service.audit(db,actor,req,'STUDENT_SHORTLIST_PUBLISHED',id,'Staff confirmed shortlist order',undefined,{runId:data.runId,candidateIds:data.candidateIds});return studentEnquiryProjection(await db.studentEnquiry.update({where:{id},data:{version:{increment:1}}}));});
+ }
+ @Get('student-opportunities') async opportunities(@Req() req:HttpRequest,@Query() query:unknown){
+  const actor=await this.service.actor(req,['TEACHER']),data=parse(paging,query),teacher=await this.service.db.teacher.findUnique({where:{accountId:actor.id}});if(!teacher)fail(404,'NOT_FOUND','Teacher profile not found.');
+  const where={teacherId:teacher.id,position:{not:null},expiresAt:{gt:new Date()}};if(data.cursor&&!await this.service.db.studentCandidate.count({where:{id:data.cursor,...where}}))fail(404,'NOT_FOUND','Cursor not found.');const rows=await this.service.db.studentCandidate.findMany({where,orderBy:{id:'asc'},take:data.limit+1,...(data.cursor?{cursor:{id:data.cursor},skip:1}:{})}),items=[];
+  for(const c of rows.slice(0,data.limit)){const e=await this.service.db.studentEnquiry.findUniqueOrThrow({where:{id:c.enquiryId}}),owner=await this.service.db.account.findUniqueOrThrow({where:{id:e.studentAccountId}});if(e.status==='SUBMITTED'&&e.matchRunId===c.runId&&!owner.disabled&&!await this.service.db.privacyRequest.count({where:{accountId:owner.id,scope:'ACCOUNT',kind:'DELETION',status:'PENDING'}}))items.push({id:c.id,enquiryId:e.id,version:c.version,response:c.response,expiresAt:c.expiresAt,subject:e.subject,educationScope:e.educationScope,mode:e.mode,language:e.language,locality:e.locality,budgetPaise:e.budgetPaise,preferences:e.preferences});}return {items,nextCursor:rows.length>data.limit?rows[data.limit-1].id:null};
+ }
+ @Post('student-candidates/:id/responses') async respond(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+  parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']),data=parse(command.extend({response:z.enum(['ACCEPTED','DECLINED'])}),body);
+  return this.service.once(req,actor,'student.response',data,async db=>{const initial=await db.studentCandidate.findUnique({where:{id}}),teacher=await db.teacher.findUnique({where:{accountId:actor.id}});if(!initial||initial.teacherId!==teacher?.id)fail(404,'NOT_FOUND','Opportunity not found.');const e0=await db.studentEnquiry.findUniqueOrThrow({where:{id:initial.enquiryId}});await studentReady(db,e0.studentAccountId);await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${teacher.id},0))`;const c=await db.studentCandidate.findUniqueOrThrow({where:{id}}),e=await db.studentEnquiry.findUniqueOrThrow({where:{id:c.enquiryId}}),t=await db.teacher.findUniqueOrThrow({where:{id:teacher.id}});
+   if(c.version!==data.expectedVersion||!c.position||c.expiresAt<=new Date()||c.response!=='PENDING'||c.runId!==e.matchRunId||e.status!=='SUBMITTED'||!await studentFit(db,e,t))fail(409,'CONFLICT','Opportunity changed or is no longer eligible.');const updated=await db.studentCandidate.update({where:{id},data:{response:data.response,version:{increment:1}}});await this.service.audit(db,actor,req,'STUDENT_TEACHER_RESPONSE',e.id,'Teacher answered a published opportunity',undefined,{candidateId:id,response:data.response});return updated;});
+ }
+ @Post('student-enquiries/:id/selections') async select(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+  parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT']),data=parse(command.extend({candidateId:uuid,candidateVersion:version}),body);
+  return this.service.once(req,actor,'student.select',data,async db=>{const initial=await ownedStudentEnquiry(db,actor,id);await studentReady(db,initial.studentAccountId);const e=await db.studentEnquiry.findUniqueOrThrow({where:{id}}),c=await db.studentCandidate.findUnique({where:{id:data.candidateId}});
+   if(e.version!==data.expectedVersion||e.status!=='SUBMITTED'||!c||c.enquiryId!==id||c.version!==data.candidateVersion||!c.position||c.response!=='ACCEPTED'||c.expiresAt<=new Date()||c.runId!==e.matchRunId||await db.studentArrangement.count({where:{enquiryId:id}}))fail(409,'CONFLICT','Choose a current accepted teacher before opening terms.');await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${c.teacherId},0))`;const t=await db.teacher.findUniqueOrThrow({where:{id:c.teacherId}});if(!await studentFit(db,e,t))fail(409,'INELIGIBLE','Teacher availability or eligibility changed.');
+   const terms={policyVersion:'independent-hiring-development-v1',subject:e.subject,mode:e.mode,language:e.language,monthlyPaise:t.monthlyPaise,platformFeePaise:placementFee(t.monthlyPaise),currency:'INR',lockInDays:t.lockInDays,lockInEnforced:false,demoAvailable:!!t.demoOptIn,classesBooked:false,contactSharing:'EMAIL_AFTER_MUTUAL_CONFIRMATION'};
+   const a=await db.studentArrangement.create({data:{enquiryId:id,studentAccountId:e.studentAccountId,teacherId:t.id,region:e.region,terms}});await db.studentEnquiry.update({where:{id},data:{selectedCandidateId:c.id,version:{increment:1}}});await this.service.audit(db,actor,req,'STUDENT_TEACHER_SELECTED',id,'Student chose a teacher and opened immutable terms; neither party accepted automatically',undefined,{candidateId:c.id,arrangementId:a.id});return arrangementProjection(a);});
+ }
+ @Get('student-arrangements') async arrangements(@Req() req:HttpRequest,@Query() query:unknown){
+  const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','TEACHER','ADMIN','OPERATOR']),data=parse(paging,query),t=actor.role==='TEACHER'?await this.service.db.teacher.findUnique({where:{accountId:actor.id}}):null;
+  const where=actor.role==='INDEPENDENT_STUDENT'?{studentAccountId:actor.id}:actor.role==='TEACHER'?{teacherId:t?.id??'00000000-0000-4000-8000-000000000000'}:actor.role==='OPERATOR'?{region:actor.region}:{};
+  if(data.cursor&&!await this.service.db.studentArrangement.count({where:{...where,id:data.cursor}}))fail(404,'NOT_FOUND','Cursor not found.');const rows=await this.service.db.studentArrangement.findMany({where,orderBy:{id:'asc'},take:data.limit+1,...(data.cursor?{cursor:{id:data.cursor},skip:1}:{})});return {items:rows.slice(0,data.limit).map(arrangementProjection),nextCursor:rows.length>data.limit?rows[data.limit-1].id:null};
+ }
+ @Get('student-arrangements/:id') async arrangement(@Req() req:HttpRequest,@Param('id') id:string){parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','TEACHER','ADMIN','OPERATOR']);return arrangementProjection(await arrangementOwner(this.service.db,actor,id));}
+ @Post('student-arrangements/:id/acceptances') async accept(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+  parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','TEACHER']),data=parse(command.extend({policyVersion:z.literal('independent-hiring-development-v1'),contactShareAccepted:z.literal(true)}),body);
+  return this.service.once(req,actor,'student.terms.accept',data,async db=>{const initial=await arrangementOwner(db,actor,id);await studentReady(db,initial.studentAccountId);await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${initial.teacherId},0))`;const a=await db.studentArrangement.findUniqueOrThrow({where:{id}});if(a.version!==data.expectedVersion||a.status!=='TERMS_PENDING'||!a.enquiryId||actor.role==='TEACHER'&&a.teacherAcceptedAt||actor.role==='INDEPENDENT_STUDENT'&&a.studentAcceptedAt)fail(409,'CONFLICT','Terms changed or were already accepted.');const e=await db.studentEnquiry.findUniqueOrThrow({where:{id:a.enquiryId}}),t=await db.teacher.findUniqueOrThrow({where:{id:a.teacherId}});if(e.status!=='SUBMITTED'||!await studentFit(db,e,t,(a.terms as any).monthlyPaise))fail(409,'INELIGIBLE','Current safety, coverage, capacity or availability checks failed.');
+   const changes=actor.role==='TEACHER'?{teacherAcceptedAt:new Date()}:{studentAcceptedAt:new Date()},confirmed=actor.role==='TEACHER'?!!a.studentAcceptedAt:!!a.teacherAcceptedAt;
+   const updated=await db.studentArrangement.update({where:{id},data:{...changes,status:confirmed?'CONFIRMED':'TERMS_PENDING',version:{increment:1}}});if(confirmed)await db.studentEnquiry.update({where:{id:e.id},data:{status:'HIRED',version:{increment:1}}});await this.service.audit(db,actor,req,'STUDENT_TERMS_ACCEPTED',id,'Explicit tuition terms and post-confirmation email sharing accepted',undefined,{side:actor.role,confirmed,policyVersion:data.policyVersion});return arrangementProjection(updated);});
+ }
+ @Get('student-arrangements/:id/contact') async contact(@Req() req:HttpRequest,@Param('id') id:string){
+  parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','TEACHER']);return this.service.db.$transaction(async db=>{const a=await arrangementOwner(db,actor,id);if(a.status!=='CONFIRMED'||!a.studentAcceptedAt||!a.teacherAcceptedAt)fail(403,'TERMS_PENDING','Both parties must accept email sharing before contact details are available.');
+  await studentReady(db,a.studentAccountId);await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${a.teacherId},0))`;if((await db.studentArrangement.findUniqueOrThrow({where:{id}})).status!=='CONFIRMED')fail(403,'TERMS_PENDING','Contact sharing is closed.');const t=await db.teacher.findUniqueOrThrow({where:{id:a.teacherId}}),other=await db.account.findUniqueOrThrow({where:{id:actor.role==='TEACHER'?a.studentAccountId:t.accountId}});if(other.disabled||t.status!=='APPROVED'||!t.screeningComplete||!t.screeningValidUntil||t.screeningValidUntil<new Date())fail(403,'ACCESS_PAUSED','Contact sharing is paused. Use support.');await this.service.audit(db,actor,req,'STUDENT_CONTACT_READ',id,'Participant accessed mutually authorized coordination email');return {id,email:other.email,available:!!other.email};});
+ }
+ @Post('student-arrangements/:id/closures') async close(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+  parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','TEACHER']),data=parse(command.extend({reason:text(1000)}),body);return this.service.once(req,actor,'student.arrangement.close',data,async db=>{const initial=await arrangementOwner(db,actor,id);await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${initial.studentAccountId},0))`;await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${initial.teacherId},0))`;const a=await db.studentArrangement.findUniqueOrThrow({where:{id}});if(a.version!==data.expectedVersion||a.status==='CLOSED')fail(409,'CONFLICT','Arrangement changed or is closed.');const updated=await db.studentArrangement.update({where:{id},data:{status:'CLOSED',closedAt:new Date(),closureReason:data.reason,version:{increment:1}}});if(a.enquiryId){await db.studentEnquiry.update({where:{id:a.enquiryId},data:{status:'WITHDRAWN',selectedCandidateId:null,version:{increment:1}}});await db.studentCandidate.updateMany({where:{enquiryId:a.enquiryId},data:{position:null,expiresAt:new Date(),version:{increment:1}}});}await this.service.audit(db,actor,req,'STUDENT_ARRANGEMENT_CLOSED',id,data.reason);return arrangementProjection(updated);});
+ }
+ @Post('student-arrangements/:id/replacements') async replace(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+  parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT']),data=parse(command.extend({reason:text(1000),criteria:studentEnquiryInput.omit({discoveryMethod:true,preferredTeacherId:true,confirmed:true})}),body);
+  return this.service.once(req,actor,'student.arrangement.replace',data,async db=>{const initial=await arrangementOwner(db,actor,id),ctx=await studentReady(db,initial.studentAccountId);await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${initial.teacherId},0))`;const a=await db.studentArrangement.findUniqueOrThrow({where:{id}});if(a.status==='CLOSED'||a.version!==data.expectedVersion||!a.enquiryId||ctx.profileVersion!==data.criteria.expectedProfileVersion)fail(409,'CONFLICT','Arrangement or education changed.');const preferences=normalizedPreferences(data.criteria.preferences);if(!preferences)fail(400,'INVALID_SCHEDULE','Use nonoverlapping weekly availability.');
+   await db.studentArrangement.update({where:{id},data:{status:'CLOSED',closedAt:new Date(),closureReason:data.reason,version:{increment:1}}});await db.studentEnquiry.update({where:{id:a.enquiryId},data:{status:'WITHDRAWN',selectedCandidateId:null,version:{increment:1}}});await db.studentCandidate.updateMany({where:{enquiryId:a.enquiryId},data:{position:null,expiresAt:new Date(),version:{increment:1}}});
+   const {expectedProfileVersion,...criteria}=data.criteria;const e=await db.studentEnquiry.create({data:{...criteria,preferences,studentAccountId:a.studentAccountId,profileVersion:ctx.profileVersion,educationScope:ctx.educationScope,region:ctx.region,discoveryMethod:'ASSISTED',excludedTeacherId:a.teacherId,rematchFromArrangementId:a.id}});await db.supportCase.create({data:{accountId:actor.id,region:ctx.region,studentEnquiryId:e.id,category:'REPLACEMENT',description:data.reason}});await this.service.audit(db,actor,req,'STUDENT_REPLACEMENT_REQUESTED',id,data.reason,undefined,{enquiryId:e.id});return studentEnquiryProjection(e);});
+ }
+ @Post('student-enquiries/:id/cases') async support(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+  parse(uuid,id);const actor=await this.service.actor(req,['INDEPENDENT_STUDENT','TEACHER']),data=parse(z.object({category:z.enum(['SAFETY','REPLACEMENT','PAYMENT','PRIVACY','GENERAL']),description:text(3000)}).strict(),body);return this.service.once(req,actor,'student.support',data,async db=>{const e=await ownedStudentEnquiry(db,actor,id);const item=await db.supportCase.create({data:{...data,accountId:actor.id,region:e.region,studentEnquiryId:id}});await this.service.audit(db,actor,req,'STUDENT_SUPPORT_CREATED',item.id,'Participant opened a private contextual support request');return {id:item.id};});
+ }
+}
+@Module({imports:[PersistenceModule],controllers:[StudentHiringController]})
+export class StudentHiringModule{}

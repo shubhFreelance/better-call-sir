@@ -34,6 +34,7 @@ class PrivacyController{
    const item=await db.privacyRequest.create({data:{...data,accountId:actor.id}});
    if(data.kind==='DELETION'){
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
+    if(data.scope==='ACCOUNT'){const arrangements=await db.studentArrangement.findMany({where:{studentAccountId:actor.id,status:{not:'CLOSED'}}});for(const teacherId of [...new Set(arrangements.map(a=>a.teacherId))].sort())await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${teacherId},0))`;await db.studentArrangement.updateMany({where:{studentAccountId:actor.id,status:{not:'CLOSED'}},data:{status:'CLOSED',closedAt:new Date(),closureReason:'Privacy deletion requested',version:{increment:1}}});}
     if(data.scope==='ACCOUNT')await db.studentEnquiry.updateMany({where:{studentAccountId:actor.id,status:'SUBMITTED'},data:{status:'WITHDRAWN',version:{increment:1}}});
     if(data.scope==='NOTE')await db.note.update({where:{id:data.resourceId},data:{sharedTeacherId:null,version:{increment:1}}});
     else {

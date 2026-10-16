@@ -1,3 +1,4 @@
+import {ownedStudentEnquiry} from '../requests/student-hiring.module';
 import {Module,Controller,Get,Post,Param,Query,Body,Req,Inject} from '@nestjs/common';
 import {Account,Prisma} from '@prisma/client';
 import {z} from 'zod';
@@ -28,11 +29,11 @@ class SupportController {
   return {kind:input.placementId?'ARRANGEMENT':'ENQUIRY',id:input.placementId||request.id,requestId:request.id,placementId:related?.id||null,subject:request.subject,mode:request.mode,status:placement?.status||request.status,canRequestReplacement:actor.role==='GUARDIAN'&&!!related&&related.status!=='CLOSED'};
  }
  @Get('support/context') async getContext(@Req() req:HttpRequest,@Query() query:unknown){
-  const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT']),data=parse(z.object({requestId:uuid.optional(),placementId:uuid.optional()}).strict().refine(v=>!!v.requestId!==!!v.placementId),query);
+  const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT','INDEPENDENT_STUDENT']),data=parse(z.object({requestId:uuid.optional(),placementId:uuid.optional()}).strict().refine(v=>!!v.requestId!==!!v.placementId),query);
   return this.service.db.$transaction(db=>this.context(db,actor,data));
  }
  @Post('cases') async create(@Req() req:HttpRequest,@Body() body:unknown){
-  const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT']);const data=parse(z.object({category:z.enum(['SAFETY','REPLACEMENT','ATTENDANCE','PAYMENT','PRIVACY','GENERAL']),description:text(3000),placementId:uuid.optional(),reservationId:uuid.optional(),requestId:uuid.optional()}).strict(),body);
+  const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT','INDEPENDENT_STUDENT']);const data=parse(z.object({category:z.enum(['SAFETY','REPLACEMENT','ATTENDANCE','PAYMENT','PRIVACY','GENERAL']),description:text(3000),placementId:uuid.optional(),reservationId:uuid.optional(),requestId:uuid.optional()}).strict(),body);
   if(data.requestId&&data.reservationId)fail(400,'INVALID_CONTEXT','Choose enquiry or reservation context, not both.');
   return this.service.once(req,actor,'case.create',data,async db=>{
    const child=actor.role==='STUDENT'?await db.child.findUniqueOrThrow({where:{studentAccountId:actor.id}}):null,guardian=child?await db.account.findUniqueOrThrow({where:{id:child.guardianId}}):actor;
@@ -44,24 +45,25 @@ class SupportController {
   });
  }
  @Get('cases') async list(@Req() req:HttpRequest,@Query() query:unknown){
-  const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT','ADMIN','OPERATOR']),data=parse(z.object({status:statuses.optional(),category:text(80).optional(),assignment:z.enum(['ME','UNASSIGNED']).optional(),limit:z.coerce.number().int().min(1).max(50).default(20),cursor:uuid.optional(),requestId:uuid.optional(),placementId:uuid.optional()}).strict(),query);
+  const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT','INDEPENDENT_STUDENT','ADMIN','OPERATOR']),data=parse(z.object({status:statuses.optional(),category:text(80).optional(),assignment:z.enum(['ME','UNASSIGNED']).optional(),limit:z.coerce.number().int().min(1).max(50).default(20),cursor:uuid.optional(),studentEnquiryId:uuid.optional(),requestId:uuid.optional(),placementId:uuid.optional()}).strict(),query);
   if(data.assignment&&!staff(actor))fail(403,'FORBIDDEN','Assignment filters are restricted to support staff.');
   if((data.requestId||data.placementId)&&staff(actor))fail(400,'INVALID_CONTEXT','Use the regional support queue for staff case filters.');
   if(data.requestId&&data.placementId)fail(400,'INVALID_CONTEXT','Choose one support context.');
   const context=data.requestId||data.placementId?await this.service.db.$transaction(db=>this.context(db,actor,data)):null;
+  if(data.studentEnquiryId){if(data.requestId||data.placementId)fail(400,'INVALID_CONTEXT','Choose one support context.');await ownedStudentEnquiry(this.service.db,actor,data.studentEnquiryId);}
   const linked=context?(data.placementId?{placementId:context.placementId!}:{OR:[{requestId:context.requestId},...(context.placementId?[{placementId:context.placementId}]:[])]}):{};
-  const where={...this.scope(actor),...linked,...(data.status?{status:data.status}:{}),...(data.category?{category:data.category}:{}),...(data.assignment?{assignedToId:data.assignment==='ME'?actor.id:null}:{})};
+  const where={...this.scope(actor),...linked,...(data.studentEnquiryId?{studentEnquiryId:data.studentEnquiryId}:{}),...(data.status?{status:data.status}:{}),...(data.category?{category:data.category}:{}),...(data.assignment?{assignedToId:data.assignment==='ME'?actor.id:null}:{})};
   if(data.cursor&&!await this.service.db.supportCase.findFirst({where:{...where,id:data.cursor},select:{id:true}}))fail(404,'NOT_FOUND','Case cursor not found.');
   const rows=await this.service.db.supportCase.findMany({where,orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1,...(data.cursor?{cursor:{id:data.cursor},skip:1}:{})});return {items:rows.slice(0,data.limit),nextCursor:rows.length>data.limit?rows[data.limit-1].id:null};
  }
  @Get('cases/:id') async detail(@Req() req:HttpRequest,@Param('id') id:string,@Query() query:unknown){
-  parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT','ADMIN','OPERATOR']),data=parse(z.object({updatesCursor:uuid.optional(),updatesLimit:z.coerce.number().int().min(1).max(50).default(20)}).strict(),query),item=await this.owned(this.service.db,actor,id);
+  parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT','INDEPENDENT_STUDENT','ADMIN','OPERATOR']),data=parse(z.object({updatesCursor:uuid.optional(),updatesLimit:z.coerce.number().int().min(1).max(50).default(20)}).strict(),query),item=await this.owned(this.service.db,actor,id);
   const where={caseId:id,...(staff(actor)?{}:{internal:false})};if(data.updatesCursor&&!await this.service.db.caseUpdate.findFirst({where:{...where,id:data.updatesCursor}}))fail(404,'NOT_FOUND','Case update not found.');
   const rows=await this.service.db.caseUpdate.findMany({where,orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.updatesLimit+1,...(data.updatesCursor?{cursor:{id:data.updatesCursor},skip:1}:{}),select:{id:true,actorId:true,message:true,internal:true,createdAt:true}}),page=rows.slice(0,data.updatesLimit);
   const updates=page.map(({actorId,...update})=>({...update,author:actorId===actor.id?'YOU':actorId===item.accountId?'CASE_OWNER':'SUPPORT'}));return {...item,updates,updatesNextCursor:rows.length>data.updatesLimit?page.at(-1)!.id:null};
  }
  @Post('cases/:id/updates') async reply(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
-  parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT','ADMIN','OPERATOR']),data=parse(z.object({expectedVersion:version,message:text(3000),internal:z.boolean().default(false)}).strict(),body);if(data.internal&&!staff(actor))fail(403,'FORBIDDEN','Only staff can add internal updates.');
+  parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT','INDEPENDENT_STUDENT','ADMIN','OPERATOR']),data=parse(z.object({expectedVersion:version,message:text(3000),internal:z.boolean().default(false)}).strict(),body);if(data.internal&&!staff(actor))fail(403,'FORBIDDEN','Only staff can add internal updates.');
   return this.service.once(req,actor,'case.reply',data,async db=>{const item=await this.owned(db,actor,id);if(item.version!==data.expectedVersion||['RESOLVED','CLOSED'].includes(item.status))fail(409,'CONFLICT','Case changed or is resolved.');const changed=await db.supportCase.updateMany({where:{id,version:data.expectedVersion},data:{version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Case changed.');await db.caseUpdate.create({data:{caseId:id,actorId:actor.id,message:data.message,internal:data.internal}});await this.service.event(db,'case.updated',id,item.version+1);return db.supportCase.findUniqueOrThrow({where:{id}});});
  }
  @Post('admin/cases/:id/triage') async triage(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){

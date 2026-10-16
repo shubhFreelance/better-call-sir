@@ -359,6 +359,7 @@ model Note {
   @@index([guardianId])
 }
 model SupportCase {
+ studentEnquiryId String? @db.Uuid
   @@index([accountId, requestId])
   requestId String? @db.Uuid
   region String @default("Raipur")
@@ -654,6 +655,11 @@ model IndependentStudentProfile {
 }
 
 model StudentEnquiry {
+ matchStatus String @default("PENDING")
+ matchRunId String? @db.Uuid
+ selectedCandidateId String? @db.Uuid
+ excludedTeacherId String? @db.Uuid
+ rematchFromArrangementId String? @unique @db.Uuid
  id String @id @default(uuid()) @db.Uuid
  studentAccountId String @db.Uuid
  profileVersion Int
@@ -672,4 +678,37 @@ model StudentEnquiry {
  createdAt DateTime @default(now())
  @@index([studentAccountId,id])
  @@index([region,status,id])
+}
+
+model StudentCandidate {
+ id String @id @default(uuid()) @db.Uuid
+ enquiryId String @db.Uuid
+ teacherId String @db.Uuid
+ runId String @db.Uuid
+ score Int
+ reasons String[]
+ position Int?
+ response String @default("PENDING")
+ expiresAt DateTime
+ version Int @default(1)
+ @@unique([enquiryId,teacherId])
+ @@unique([id,enquiryId])
+ @@index([teacherId,expiresAt])
+}
+model StudentArrangement {
+ id String @id @default(uuid()) @db.Uuid
+ enquiryId String? @unique @db.Uuid
+ studentAccountId String @db.Uuid
+ teacherId String @db.Uuid
+ region String
+ terms Json
+ status String @default("TERMS_PENDING")
+ studentAcceptedAt DateTime?
+ teacherAcceptedAt DateTime?
+ closedAt DateTime?
+ closureReason String?
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ @@index([studentAccountId,id])
+ @@index([teacherId,status])
 }

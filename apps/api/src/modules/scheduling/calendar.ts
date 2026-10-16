@@ -144,6 +144,7 @@ export async function capacity(
   db: DB,
   teacher: Pick<Teacher, "id" | "maxActiveStudents">,
   childId?: string,
+  studentAccountId?: string,
 ) {
   const placements = await db.placement.findMany({
     where: {
@@ -152,9 +153,10 @@ export async function capacity(
     },
     select: { childId: true },
   });
-  const students = new Set(placements.map((p) => p.childId));
+  const independent = await db.studentArrangement.findMany({where:{teacherId:teacher.id,status:{in:["TERMS_PENDING","CONFIRMED"]}},select:{studentAccountId:true}});
+  const students = new Set([...placements.map(p=>p.childId),...independent.map(p=>p.studentAccountId)]);
   return (
-    (!!childId && students.has(childId)) ||
+    (!!childId && students.has(childId)) || (!!studentAccountId && students.has(studentAccountId)) ||
     students.size < teacher.maxActiveStudents
   );
 }

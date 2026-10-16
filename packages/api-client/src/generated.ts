@@ -2672,6 +2672,266 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/student-enquiries/{id}/matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * runStudentMatching
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        post: operations["runStudentMatching"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-enquiries/{id}/shortlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getStudentShortlist
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        get: operations["getStudentShortlist"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/student-enquiries/{id}/presentations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * publishStudentShortlist
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        post: operations["publishStudentShortlist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-opportunities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listStudentOpportunities
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        get: operations["listStudentOpportunities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-candidates/{id}/responses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * respondStudentCandidate
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        post: operations["respondStudentCandidate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-enquiries/{id}/selections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * selectStudentTeacher
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        post: operations["selectStudentTeacher"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-arrangements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listStudentArrangements
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        get: operations["listStudentArrangements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-arrangements/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getStudentArrangement
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        get: operations["getStudentArrangement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-arrangements/{id}/acceptances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * acceptStudentTerms
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        post: operations["acceptStudentTerms"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-arrangements/{id}/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getStudentContact
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        get: operations["getStudentContact"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-arrangements/{id}/closures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * closeStudentArrangement
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        post: operations["closeStudentArrangement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-arrangements/{id}/replacements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * replaceStudentTeacher
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        post: operations["replaceStudentTeacher"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-enquiries/{id}/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * createStudentSupportCase
+         * @description Private owner/assigned-teacher/regional staff scope as applicable. Current privacy, screening, availability, capacity and optimistic-version checks apply. Mutual hiring does not book classes or charge payments. Email sharing requires explicit mutual acceptance.
+         */
+        post: operations["createStudentSupportCase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3883,6 +4143,8 @@ export interface components {
             updatedAt: string;
             /** Format: uuid */
             requestId?: string | null;
+            /** Format: uuid */
+            studentEnquiryId?: string | null;
         };
         CaseUpdate: {
             /** Format: uuid */
@@ -3921,6 +4183,8 @@ export interface components {
             updatesNextCursor: string | null;
             /** Format: uuid */
             requestId?: string | null;
+            /** Format: uuid */
+            studentEnquiryId?: string | null;
         };
         SupportCaseList: {
             items: components["schemas"]["SupportCase"][];
@@ -5213,10 +5477,18 @@ export interface components {
             preferences: components["schemas"]["WeeklyPreferences"];
             region: string;
             /** @enum {string} */
-            status: "SUBMITTED" | "WITHDRAWN";
+            status: "SUBMITTED" | "HIRED" | "WITHDRAWN";
             version: number;
             /** Format: date-time */
             createdAt: string;
+            /** @enum {string} */
+            matchStatus: "PENDING" | "MATCHED" | "NO_MATCH";
+            /** Format: uuid */
+            matchRunId: string | null;
+            /** Format: uuid */
+            selectedCandidateId: string | null;
+            /** Format: uuid */
+            rematchFromArrangementId: string | null;
         };
         StudentEnquiryContext: {
             profileVersion: number;
@@ -5235,6 +5507,218 @@ export interface components {
             expectedVersion: number;
             /** @enum {boolean} */
             confirmed: true;
+        };
+        StudentCandidate: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            enquiryId: string;
+            /** Format: uuid */
+            teacherId: string;
+            /** Format: uuid */
+            runId: string;
+            score: number;
+            reasons: string[];
+            position: number | null;
+            /** @enum {string} */
+            response: "PENDING" | "ACCEPTED" | "DECLINED";
+            /** Format: date-time */
+            expiresAt: string;
+            version: number;
+        };
+        StudentShortlistCandidate: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            enquiryId: string;
+            /** Format: uuid */
+            teacherId: string;
+            /** Format: uuid */
+            runId: string;
+            score: number;
+            reasons: string[];
+            position: number | null;
+            /** @enum {string} */
+            response: "PENDING" | "ACCEPTED" | "DECLINED";
+            /** Format: date-time */
+            expiresAt: string;
+            version: number;
+            teacherName: string;
+            teacherSlug: string;
+            monthlyPaise: number;
+            eligibleNow: boolean;
+        };
+        StudentShortlist: {
+            /** Format: uuid */
+            id: string;
+            version: number;
+            /** @enum {string} */
+            matchStatus: "PENDING" | "MATCHED" | "NO_MATCH";
+            /** Format: uuid */
+            runId: string | null;
+            /** Format: uuid */
+            selectedCandidateId: string | null;
+            items: components["schemas"]["StudentShortlistCandidate"][];
+        };
+        StudentMatchResult: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            runId: string;
+            /** @enum {string} */
+            matchStatus: "MATCHED" | "NO_MATCH";
+            version: number;
+            items: components["schemas"]["StudentCandidate"][];
+            poolLimited: boolean;
+        };
+        StudentTerms: {
+            /** @enum {string} */
+            policyVersion: "independent-hiring-development-v1";
+            subject: string;
+            /** @enum {string} */
+            mode: "HOME" | "ONLINE";
+            /** @enum {string} */
+            language: "English" | "Hindi";
+            monthlyPaise: number;
+            platformFeePaise: number;
+            /** @enum {string} */
+            currency: "INR";
+            /** @enum {integer|null} */
+            lockInDays: 0 | 15 | 30 | null;
+            /** @enum {boolean} */
+            lockInEnforced: false;
+            demoAvailable: boolean;
+            /** @enum {boolean} */
+            classesBooked: false;
+            /** @enum {string} */
+            contactSharing: "EMAIL_AFTER_MUTUAL_CONFIRMATION";
+        };
+        StudentArrangement: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            enquiryId: string | null;
+            /** Format: uuid */
+            teacherId: string;
+            terms: components["schemas"]["StudentTerms"];
+            /** @enum {string} */
+            status: "TERMS_PENDING" | "CONFIRMED" | "CLOSED";
+            /** Format: date-time */
+            studentAcceptedAt: string | null;
+            /** Format: date-time */
+            teacherAcceptedAt: string | null;
+            /** Format: date-time */
+            closedAt: string | null;
+            closureReason: string | null;
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        StudentArrangementList: {
+            items: components["schemas"]["StudentArrangement"][];
+            /** Format: uuid */
+            nextCursor: string | null;
+        };
+        StudentOpportunity: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            enquiryId: string;
+            version: number;
+            /** @enum {string} */
+            response: "PENDING" | "ACCEPTED" | "DECLINED";
+            /** Format: date-time */
+            expiresAt: string;
+            subject: string;
+            educationScope: components["schemas"]["StudentEnquiryEducation"];
+            /** @enum {string} */
+            mode: "HOME" | "ONLINE";
+            /** @enum {string} */
+            language: "English" | "Hindi";
+            locality: string;
+            budgetPaise: number;
+            preferences: components["schemas"]["WeeklyPreferences"];
+        };
+        StudentOpportunityList: {
+            items: components["schemas"]["StudentOpportunity"][];
+            /** Format: uuid */
+            nextCursor: string | null;
+        };
+        StudentCommand: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+        };
+        StudentPublishInput: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            /** Format: uuid */
+            runId: string;
+            candidateIds: string[];
+        };
+        StudentResponseInput: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            /** @enum {string} */
+            response: "ACCEPTED" | "DECLINED";
+        };
+        StudentSelectionInput: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            /** Format: uuid */
+            candidateId: string;
+            candidateVersion: number;
+        };
+        StudentAcceptanceInput: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            /** @enum {string} */
+            policyVersion: "independent-hiring-development-v1";
+            /** @enum {boolean} */
+            contactShareAccepted: true;
+        };
+        StudentClosureInput: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            reason: string;
+        };
+        StudentReplacementInput: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            reason: string;
+            criteria: {
+                expectedProfileVersion: number;
+                subject: string;
+                /** @enum {string} */
+                mode: "ONLINE" | "HOME";
+                /** @enum {string} */
+                language: "English" | "Hindi";
+                locality: string;
+                budgetPaise: number;
+                preferences: components["schemas"]["WeeklyPreferences"];
+            };
+        };
+        StudentSupportInput: {
+            /** @enum {string} */
+            category: "SAFETY" | "REPLACEMENT" | "PAYMENT" | "PRIVACY" | "GENERAL";
+            description: string;
+        };
+        StudentResourceId: {
+            /** Format: uuid */
+            id: string;
+        };
+        StudentContact: {
+            /** Format: uuid */
+            id: string;
+            /** Format: email */
+            email: string | null;
+            available: boolean;
         };
     };
     responses: never;
@@ -8459,6 +8943,7 @@ export interface operations {
                 assignment?: "ME" | "UNASSIGNED";
                 requestId?: string;
                 placementId?: string;
+                studentEnquiryId?: string;
             };
             header?: never;
             path?: never;
@@ -18861,6 +19346,1193 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StudentEnquiry"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    runStudentMatching: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentCommand"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentMatchResult"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getStudentShortlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentShortlist"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    publishStudentShortlist: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentPublishInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentEnquiry"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listStudentOpportunities: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentOpportunityList"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    respondStudentCandidate: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentResponseInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentCandidate"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    selectStudentTeacher: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentSelectionInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentArrangement"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listStudentArrangements: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentArrangementList"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getStudentArrangement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentArrangement"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    acceptStudentTerms: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentAcceptanceInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentArrangement"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getStudentContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentContact"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    closeStudentArrangement: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentClosureInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentArrangement"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    replaceStudentTeacher: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentReplacementInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentEnquiry"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createStudentSupportCase: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentSupportInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed scoped result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentResourceId"];
                 };
             };
             /** @description Validation */
