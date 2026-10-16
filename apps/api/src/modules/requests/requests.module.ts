@@ -1,3 +1,4 @@
+import {subjectSchema,boardSchema,learnerScope} from '../../coverage';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
 import {Module, Controller, Get, Post, Param, Query, Body, Req, Res, Injectable, Inject, HttpException, Catch, ExceptionFilter, ArgumentsHost, Global} from '@nestjs/common';
@@ -15,7 +16,13 @@ import {matched} from '../matching/eligibility';
 import {preferenceSchema,preferenceUpdateSchema,normalizedPreferences} from './request-schedule';
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
 
-export const intakeSchema=z.object({schoolName:text(160).optional(),schoolSubjects:schoolSubjects.optional(),discoveryMethod:z.enum(['MANUAL','ASSISTED']).default('ASSISTED'),preferredTeacherId:uuid.optional(),childId:uuid.optional(),alias:text(40),grade:z.number().int().min(6).max(10),board:z.enum(['CBSE','CGBSE']),subject:z.enum(['Maths','Science']),mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000),schedule:text(300),preferences:preferenceSchema.optional()}).strict();
+const waitlistCommon={subject:subjectSchema,language:z.string().trim().transform(v=>v.toLowerCase()==='english'?'English':v.toLowerCase()==='hindi'?'Hindi':v).pipe(z.enum(['English','Hindi'])),mode:z.enum(['HOME','ONLINE']),region:text(80)};
+const waitlistSchema=z.preprocess(v=>v&&typeof v==='object'?{stage:'SCHOOL',...v}:v,z.discriminatedUnion('stage',[
+ z.object({...waitlistCommon,stage:z.literal('SCHOOL'),grade:z.number().int().min(1).max(12),board:boardSchema}).strict(),
+ z.object({...waitlistCommon,stage:z.literal('EARLY_YEARS'),level:z.enum(['NURSERY','KG1','KG2'])}).strict(),
+ z.object({...waitlistCommon,stage:z.literal('COLLEGE'),courseName:text(160),studyYear:z.number().int().min(1).max(10)}).strict(),
+]));
+export const intakeSchema=z.object({schoolName:text(160).optional(),schoolSubjects:schoolSubjects.optional(),discoveryMethod:z.enum(['MANUAL','ASSISTED']).default('ASSISTED'),preferredTeacherId:uuid.optional(),childId:uuid.optional(),alias:text(40),grade:z.number().int().min(1).max(12).nullable().optional(),board:boardSchema.nullable().optional(),subject:subjectSchema,mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000),schedule:text(300),preferences:preferenceSchema.optional()}).strict();
 export async function createIntake(db:DB,service:AppService,account:Account,req:HttpRequest,data:z.infer<typeof intakeSchema>) {
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${account.id},0))`;
       await service.guardian(db,account.id);
@@ -23,14 +30,15 @@ export async function createIntake(db:DB,service:AppService,account:Account,req:
       const region=await db.region.findUnique({where:{id:account.region}});if(!region?.enabled)fail(409,'UNSUPPORTED_REGION','This city is not enabled; use the unsupported-scope waitlist.');
       const preferences=data.preferences?normalizedPreferences(data.preferences):null;if(data.preferences&&!preferences)fail(400,'INVALID_SCHEDULE','Choose nonoverlapping weekly time ranges of at least 20 minutes, or dated 20–120 minute windows between one hour and 60 days ahead.');
       if(data.preferredTeacherId&&!((await service.publicTeachers({id:data.preferredTeacherId},1))[0]))fail(404,'NOT_FOUND','Selected teacher is unavailable.');
-      if(!data.childId&&(!data.schoolName||!data.schoolSubjects))fail(400,'LEARNER_DETAILS_REQUIRED','Enter the school and subjects studied in the class.');
+      if(!data.childId&&(!data.grade||!data.board||!data.schoolName||!data.schoolSubjects))fail(400,'LEARNER_DETAILS_REQUIRED','Enter the school and subjects studied in the class.');
       const child=data.childId?await service.child(db,account,data.childId):await db.child.create({data:{guardianId:account.id,alias:data.alias,grade:data.grade,board:data.board,schoolName:data.schoolName,schoolSubjects:data.schoolSubjects}});
-      if(child.educationStage!=='SCHOOL'||child.grade!==data.grade||child.board!==data.board)fail(409,"CHILD_CHANGED","The linked learner grade or board differs from this request.");
+      if((data.grade!==undefined&&child.grade!==data.grade)||(data.board!==undefined&&child.board!==data.board))fail(409,"CHILD_CHANGED","The linked learner grade or board differs from this request.");
       if(data.childId&&(data.schoolName||data.schoolSubjects)){
        if(!data.schoolName||!data.schoolSubjects)fail(400,'LEARNER_DETAILS_REQUIRED','Supply both school and class subjects.');
        if(child.schoolName&&(child.schoolName!==data.schoolName||JSON.stringify(child.schoolSubjects)!==JSON.stringify(data.schoolSubjects)))fail(409,'CHILD_CHANGED','The learner school details changed; review the current record.');
        if(!child.schoolName)await db.child.update({where:{id:child.id},data:{schoolName:data.schoolName,schoolSubjects:data.schoolSubjects,version:{increment:1}}});
       }
+      if(!learnerScope(child,data.subject))fail(409,'LEARNER_DETAILS_REQUIRED','Complete the learner education profile before requesting a teacher.');
       const request=await db.tuitionRequest.create({data:{discoveryMethod:data.discoveryMethod,preferredTeacherId:data.preferredTeacherId,region:account.region,...(preferences?{schedulePreferences:preferences,scheduleStatus:'CONFIRMED'}:{}),guardianId:account.id,childId:child.id,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,schedule:data.schedule}});
       await service.audit(db,account,req,'REQUEST_CREATED',request.id,'Guardian submitted supported tuition need',undefined,{region:request.region,scheduleStatus:request.scheduleStatus});await service.event(db,'request.created',request.id);return request;
 }
@@ -52,8 +60,8 @@ class RequestsController {
     return this.service.once(req,actor,'request.schedule',data,async db=>{await this.service.guardian(db,actor.id);const request=await db.tuitionRequest.findUnique({where:{id}});if(!request||request.guardianId!==actor.id)fail(404,'NOT_FOUND','Request not found.');const changed=await db.tuitionRequest.updateMany({where:{id,version:data.expectedVersion,status:'OPEN'},data:{schedulePreferences:preferences,scheduleStatus:'CONFIRMED',matchStatus:'PENDING',selectedCandidateId:null,version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Request changed or is not open.');await db.recommendation.updateMany({where:{requestId:id},data:{presentedAt:null,expiresAt:new Date(),version:{increment:1}}});await this.service.audit(db,actor,req,'REQUEST_SCHEDULE_CONFIRMED',id,'Guardian confirmed structured schedule',undefined,{timezone:preferences.timezone,windows:"weekly" in preferences?preferences.weekly!.length:preferences.slots!.length});await this.service.event(db,'request.schedule_confirmed',id,data.expectedVersion+1);return db.tuitionRequest.findUniqueOrThrow({where:{id}});});
   }
   @Post('waitlist') async waitlist(@Req() req:HttpRequest,@Body() body:unknown){
-    const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({grade:z.number().int().min(1).max(12),board:text(30).transform(v=>v.toUpperCase()),subject:text(40).transform(v=>["Maths","Science"].find(s=>s.toLowerCase()===v.toLowerCase())||v),language:text(30).transform(v=>["English","Hindi"].find(s=>s.toLowerCase()===v.toLowerCase())||v),mode:z.enum(['HOME','ONLINE']),region:text(80)}).strict(),body);
-    return this.service.once(req,actor,'waitlist.create',data,async db=>{await this.service.guardian(db,actor.id);const region=await db.region.findFirst({where:{id:{equals:data.region,mode:"insensitive"}}});if(region?.enabled&&data.grade>=6&&data.grade<=10&&['CBSE','CGBSE'].includes(data.board)&&['Maths','Science'].includes(data.subject)&&['English','Hindi'].includes(data.language))fail(409,'SUPPORTED_SCOPE','Use ordinary free tuition intake for supported scope.');const entry=await db.waitlist.create({data:{...data,region:region?.id||data.region,guardianId:actor.id}});await this.service.audit(db,actor,req,'WAITLIST_CREATED',entry.id,'Guardian requested unsupported scope without a child record');return entry;});
+    const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(waitlistSchema,body);
+    return this.service.once(req,actor,'waitlist.create',data,async db=>{await this.service.guardian(db,actor.id);const region=await db.region.findFirst({where:{id:{equals:data.region,mode:'insensitive'}}});if(region?.enabled)fail(409,'SUPPORTED_SCOPE','Use an ordinary tuition enquiry in supported regions. An enquiry does not promise teacher supply.');const entry=await db.waitlist.create({data:{guardianId:actor.id,educationStage:data.stage,grade:data.stage==='SCHOOL'?data.grade:null,board:data.stage==='SCHOOL'?data.board:null,earlyYearsLevel:data.stage==='EARLY_YEARS'?data.level:null,courseName:data.stage==='COLLEGE'?data.courseName:null,studyYear:data.stage==='COLLEGE'?data.studyYear:null,subject:data.subject,language:data.language,mode:data.mode,region:region?.id||data.region}});await this.service.audit(db,actor,req,'WAITLIST_CREATED',entry.id,'Guardian requested future region coverage without learner identity');return entry;});
   }
   @Get('waitlist') async listWaitlist(@Req() req:HttpRequest){const actor=await this.service.actor(req,['GUARDIAN']);return {items:await this.service.db.waitlist.findMany({where:{guardianId:actor.id},orderBy:{createdAt:'desc'},take:50})};}
 

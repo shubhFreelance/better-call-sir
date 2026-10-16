@@ -41,7 +41,7 @@ test("public teacher projection validates and private fields are rejected", () =
   assert(validate(sample), JSON.stringify(validate.errors));
   assert.equal(validate({ ...sample, phone: "+919999999999" }), false);
 });
-test("intake contract rejects extra role fields, unsupported taxonomy, fractional money and unsupported grade", () => {
+test("intake contract accepts expanded school subjects while rejecting role fields, invalid money and grades", () => {
   const validate = validator("Intake"),
     body = {
       alias: "Synthetic",
@@ -57,8 +57,8 @@ test("intake contract rejects extra role fields, unsupported taxonomy, fractiona
   assert(validate(body));
   for (const patch of [
     { role: "ADMIN" },
-    { grade: 11 },
-    { subject: "Physics" },
+    { grade: 13 },
+    { subject: "" },
     { budgetPaise: 100000.5 },
   ])
     assert.equal(validate({ ...body, ...patch }), false);

@@ -739,11 +739,8 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "Maths",
-                "Science",
-                ""
-              ]
+              "minLength": 1,
+              "maxLength": 60
             },
             "description": "Empty value is treated as no filter for compatibility with existing v1 callers."
           },
@@ -786,10 +783,8 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "CBSE",
-                "CGBSE"
-              ]
+              "minLength": 1,
+              "maxLength": 80
             }
           },
           {
@@ -798,8 +793,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "minimum": 6,
-              "maximum": 10
+              "minimum": 1,
+              "maximum": 12
             }
           },
           {
@@ -832,6 +827,48 @@
               "type": "integer",
               "minimum": 50000,
               "maximum": 2000000
+            }
+          },
+          {
+            "in": "query",
+            "name": "stage",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SCHOOL",
+                "EARLY_YEARS",
+                "COLLEGE"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "level",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NURSERY",
+                "KG1",
+                "KG2"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "courseName",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            }
+          },
+          {
+            "in": "query",
+            "name": "studyYear",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
             }
           }
         ]
@@ -3922,20 +3959,30 @@
                   },
                   "subjects": {
                     "type": "array",
+                    "minItems": 1,
+                    "maxItems": 40,
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60
                     }
                   },
                   "boards": {
                     "type": "array",
+                    "maxItems": 20,
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
                     }
                   },
                   "grades": {
                     "type": "array",
+                    "maxItems": 12,
                     "items": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 12
                     }
                   },
                   "languages": {
@@ -4002,6 +4049,14 @@
                       null
                     ],
                     "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
+                  },
+                  "teachingCoverage": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 200,
+                    "items": {
+                      "$ref": "#/components/schemas/TeachingScope"
+                    }
                   }
                 },
                 "required": [
@@ -20799,20 +20854,30 @@
           },
           "subjects": {
             "type": "array",
+            "minItems": 1,
+            "maxItems": 40,
             "items": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
             }
           },
           "boards": {
             "type": "array",
+            "maxItems": 20,
             "items": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
             }
           },
           "grades": {
             "type": "array",
+            "maxItems": 12,
             "items": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
             }
           },
           "languages": {
@@ -20864,6 +20929,14 @@
               null
             ],
             "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
+          },
+          "teachingCoverage": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/TeachingScope"
+            }
           }
         },
         "required": [
@@ -20953,10 +21026,8 @@
           },
           "subject": {
             "type": "string",
-            "enum": [
-              "Maths",
-              "Science"
-            ]
+            "minLength": 1,
+            "maxLength": 60
           },
           "mode": {
             "type": "string",
@@ -21076,23 +21147,24 @@
             "maxLength": 40
           },
           "grade": {
-            "type": "integer",
-            "minimum": 6,
-            "maximum": 10
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 12
           },
           "board": {
-            "type": "string",
-            "enum": [
-              "CBSE",
-              "CGBSE"
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 80
           },
           "subject": {
             "type": "string",
-            "enum": [
-              "Maths",
-              "Science"
-            ]
+            "minLength": 1,
+            "maxLength": 60
           },
           "mode": {
             "type": "string",
@@ -21157,8 +21229,6 @@
         },
         "required": [
           "alias",
-          "grade",
-          "board",
           "subject",
           "mode",
           "language",
@@ -21584,29 +21654,28 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": [
-                "Maths",
-                "Science"
-              ]
-            }
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "maxItems": 40
           },
           "boards": {
             "type": "array",
             "items": {
               "type": "string",
-              "enum": [
-                "CBSE",
-                "CGBSE"
-              ]
-            }
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "maxItems": 20
           },
           "grades": {
             "type": "array",
             "items": {
               "type": "integer",
-              "minimum": 6,
-              "maximum": 10
-            }
+              "minimum": 1,
+              "maximum": 12
+            },
+            "maxItems": 12
           },
           "languages": {
             "type": "array",
@@ -21637,6 +21706,56 @@
           "timezone": {
             "type": "string",
             "const": "Asia/Kolkata"
+          },
+          "teachingCoverage": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeachingScope"
+            },
+            "maxItems": 200,
+            "minItems": 1
+          },
+          "educationStages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "SCHOOL",
+                "EARLY_YEARS",
+                "COLLEGE"
+              ]
+            },
+            "maxItems": 3
+          },
+          "earlyYearsLevels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "NURSERY",
+                "KG1",
+                "KG2"
+              ]
+            },
+            "maxItems": 3
+          },
+          "studyYears": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            },
+            "maxItems": 10
+          },
+          "customSubjects": {
+            "type": "boolean"
+          },
+          "customBoards": {
+            "type": "boolean"
+          },
+          "customCourses": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -21853,10 +21972,8 @@
           },
           "subject": {
             "type": "string",
-            "enum": [
-              "Maths",
-              "Science"
-            ]
+            "minLength": 1,
+            "maxLength": 60
           },
           "mode": {
             "type": "string",
@@ -22171,20 +22288,30 @@
           },
           "subjects": {
             "type": "array",
+            "minItems": 1,
+            "maxItems": 40,
             "items": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
             }
           },
           "boards": {
             "type": "array",
+            "maxItems": 20,
             "items": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
             }
           },
           "grades": {
             "type": "array",
+            "maxItems": 12,
             "items": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
             }
           },
           "languages": {
@@ -22255,6 +22382,14 @@
               null
             ],
             "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
+          },
+          "teachingCoverage": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/TeachingScope"
+            }
           }
         },
         "required": [
@@ -22300,20 +22435,30 @@
           },
           "subjects": {
             "type": "array",
+            "minItems": 1,
+            "maxItems": 40,
             "items": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
             }
           },
           "boards": {
             "type": "array",
+            "maxItems": 20,
             "items": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
             }
           },
           "grades": {
             "type": "array",
+            "maxItems": 12,
             "items": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
             }
           },
           "languages": {
@@ -22460,6 +22605,21 @@
               null
             ],
             "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
+          },
+          "teachingCoverage": {
+            "anyOf": [
+              {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 200,
+                "items": {
+                  "$ref": "#/components/schemas/TeachingScope"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -22667,20 +22827,38 @@
         "properties": {
           "subjects": {
             "type": "array",
+            "minItems": 1,
+            "maxItems": 40,
             "items": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
             }
           },
           "boards": {
             "type": "array",
+            "maxItems": 20,
             "items": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
             }
           },
           "grades": {
             "type": "array",
+            "maxItems": 12,
             "items": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            }
+          },
+          "teachingCoverage": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/TeachingScope"
             }
           }
         },
@@ -23299,50 +23477,169 @@
         ]
       },
       "WaitlistInput": {
-        "type": "object",
-        "properties": {
-          "grade": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 12
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "subject": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              },
+              "language": {
+                "type": "string",
+                "enum": [
+                  "English",
+                  "Hindi"
+                ]
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "HOME",
+                  "ONLINE"
+                ]
+              },
+              "region": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "SCHOOL"
+                ]
+              },
+              "grade": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+              },
+              "board": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "subject",
+              "language",
+              "mode",
+              "region",
+              "grade",
+              "board"
+            ],
+            "additionalProperties": false
           },
-          "board": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 30
+          {
+            "type": "object",
+            "properties": {
+              "subject": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              },
+              "language": {
+                "type": "string",
+                "enum": [
+                  "English",
+                  "Hindi"
+                ]
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "HOME",
+                  "ONLINE"
+                ]
+              },
+              "region": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "EARLY_YEARS"
+                ]
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "NURSERY",
+                  "KG1",
+                  "KG2"
+                ]
+              }
+            },
+            "required": [
+              "subject",
+              "language",
+              "mode",
+              "region",
+              "stage",
+              "level"
+            ],
+            "additionalProperties": false
           },
-          "subject": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 40
-          },
-          "language": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 30
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "HOME",
-              "ONLINE"
-            ]
-          },
-          "region": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 80
+          {
+            "type": "object",
+            "properties": {
+              "subject": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              },
+              "language": {
+                "type": "string",
+                "enum": [
+                  "English",
+                  "Hindi"
+                ]
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "HOME",
+                  "ONLINE"
+                ]
+              },
+              "region": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "COLLEGE"
+                ]
+              },
+              "courseName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "studyYear": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              }
+            },
+            "required": [
+              "subject",
+              "language",
+              "mode",
+              "region",
+              "stage",
+              "courseName",
+              "studyYear"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "grade",
-          "board",
-          "subject",
-          "language",
-          "mode",
-          "region"
-        ],
-        "additionalProperties": false
+        ]
       },
       "Waitlist": {
         "type": "object",
@@ -23356,19 +23653,24 @@
             "format": "uuid"
           },
           "grade": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 1,
             "maximum": 12
           },
           "board": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 30
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 80
           },
           "subject": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 40
+            "maxLength": 60
           },
           "language": {
             "type": "string",
@@ -23394,6 +23696,36 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "educationStage": {
+            "type": "string",
+            "enum": [
+              "SCHOOL",
+              "EARLY_YEARS",
+              "COLLEGE"
+            ]
+          },
+          "earlyYearsLevel": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 10
+          },
+          "courseName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "studyYear": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10
           }
         },
         "required": [
@@ -23870,23 +24202,24 @@
                 "maxLength": 40
               },
               "grade": {
-                "type": "integer",
-                "minimum": 6,
-                "maximum": 10
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 12
               },
               "board": {
-                "type": "string",
-                "enum": [
-                  "CBSE",
-                  "CGBSE"
-                ]
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 80
               },
               "subject": {
                 "type": "string",
-                "enum": [
-                  "Maths",
-                  "Science"
-                ]
+                "minLength": 1,
+                "maxLength": 60
               },
               "mode": {
                 "type": "string",
@@ -23966,20 +24299,30 @@
               },
               "subjects": {
                 "type": "array",
+                "minItems": 1,
+                "maxItems": 40,
                 "items": {
-                  "type": "string"
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
                 }
               },
               "boards": {
                 "type": "array",
+                "maxItems": 20,
                 "items": {
-                  "type": "string"
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
                 }
               },
               "grades": {
                 "type": "array",
+                "maxItems": 12,
                 "items": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 12
                 }
               },
               "languages": {
@@ -24046,6 +24389,14 @@
                   null
                 ],
                 "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
+              },
+              "teachingCoverage": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 200,
+                "items": {
+                  "$ref": "#/components/schemas/TeachingScope"
+                }
               }
             },
             "required": [],
@@ -25734,10 +26085,8 @@
             "properties": {
               "subject": {
                 "type": "string",
-                "enum": [
-                  "Maths",
-                  "Science"
-                ]
+                "minLength": 1,
+                "maxLength": 60
               },
               "mode": {
                 "type": "string",
@@ -28749,6 +29098,41 @@
             ],
             "minLength": 1,
             "maxLength": 80
+          },
+          "educationStage": {
+            "type": "string",
+            "enum": [
+              "SCHOOL",
+              "EARLY_YEARS",
+              "COLLEGE"
+            ]
+          },
+          "earlyYearsLevel": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "NURSERY",
+              "KG1",
+              "KG2",
+              null
+            ]
+          },
+          "courseName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "studyYear": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10
           }
         },
         "required": [
@@ -28766,7 +29150,9 @@
             "format": "uuid"
           },
           "subject": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
           },
           "mode": {
             "type": "string"
@@ -29570,20 +29956,30 @@
           },
           "subjects": {
             "type": "array",
+            "minItems": 1,
+            "maxItems": 40,
             "items": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
             }
           },
           "boards": {
             "type": "array",
+            "maxItems": 20,
             "items": {
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
             }
           },
           "grades": {
             "type": "array",
+            "maxItems": 12,
             "items": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
             }
           },
           "languages": {
@@ -29646,6 +30042,14 @@
               null
             ],
             "description": "Teacher-declared minimum engagement preference: 0 means no lock-in; null or absent means not recorded. Does not by itself enforce cancellation or payment restrictions."
+          },
+          "teachingCoverage": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/TeachingScope"
+            }
           }
         },
         "additionalProperties": false
@@ -30269,6 +30673,151 @@
           "creationStatus"
         ],
         "additionalProperties": false
+      },
+      "TeachingScope": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "SCHOOL"
+                ]
+              },
+              "subject": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              },
+              "grade": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+              },
+              "board": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "subjectKey": {
+                "type": "string",
+                "maxLength": 400,
+                "description": "Derived comparison key; recomputed by the server."
+              },
+              "boardKey": {
+                "type": "string",
+                "maxLength": 400,
+                "description": "Derived comparison key; recomputed by the server."
+              },
+              "courseKey": {
+                "type": "string",
+                "maxLength": 400,
+                "description": "Derived comparison key; recomputed by the server."
+              }
+            },
+            "required": [
+              "stage",
+              "subject",
+              "grade",
+              "board"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "EARLY_YEARS"
+                ]
+              },
+              "subject": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "NURSERY",
+                  "KG1",
+                  "KG2"
+                ]
+              },
+              "subjectKey": {
+                "type": "string",
+                "maxLength": 400,
+                "description": "Derived comparison key; recomputed by the server."
+              },
+              "boardKey": {
+                "type": "string",
+                "maxLength": 400,
+                "description": "Derived comparison key; recomputed by the server."
+              },
+              "courseKey": {
+                "type": "string",
+                "maxLength": 400,
+                "description": "Derived comparison key; recomputed by the server."
+              }
+            },
+            "required": [
+              "stage",
+              "subject",
+              "level"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "COLLEGE"
+                ]
+              },
+              "subject": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              },
+              "courseName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "studyYear": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "subjectKey": {
+                "type": "string",
+                "maxLength": 400,
+                "description": "Derived comparison key; recomputed by the server."
+              },
+              "boardKey": {
+                "type": "string",
+                "maxLength": 400,
+                "description": "Derived comparison key; recomputed by the server."
+              },
+              "courseKey": {
+                "type": "string",
+                "maxLength": 400,
+                "description": "Derived comparison key; recomputed by the server."
+              }
+            },
+            "required": [
+              "stage",
+              "subject",
+              "courseName",
+              "studyYear"
+            ],
+            "additionalProperties": false
+          }
+        ]
       }
     },
     "securitySchemes": {

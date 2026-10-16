@@ -2455,6 +2455,7 @@ export interface components {
              * @enum {integer|null}
              */
             lockInDays?: 0 | 15 | 30 | null;
+            teachingCoverage?: components["schemas"]["TeachingScope"][];
         };
         Account: {
             /** Format: uuid */
@@ -2475,8 +2476,7 @@ export interface components {
             guardianId: string;
             /** Format: uuid */
             childId: string;
-            /** @enum {string} */
-            subject: "Maths" | "Science";
+            subject: string;
             /** @enum {string} */
             mode: "ONLINE" | "HOME";
             /** @enum {string} */
@@ -2509,11 +2509,9 @@ export interface components {
             /** Format: uuid */
             childId?: string;
             alias: string;
-            grade: number;
-            /** @enum {string} */
-            board: "CBSE" | "CGBSE";
-            /** @enum {string} */
-            subject: "Maths" | "Science";
+            grade?: number | null;
+            board?: string | null;
+            subject: string;
             /** @enum {string} */
             mode: "ONLINE" | "HOME";
             /** @enum {string} */
@@ -2644,14 +2642,21 @@ export interface components {
         Catalog: {
             /** @constant */
             city: "Raipur";
-            subjects: ("Maths" | "Science")[];
-            boards: ("CBSE" | "CGBSE")[];
+            subjects: string[];
+            boards: string[];
             grades: number[];
             languages: ("English" | "Hindi")[];
             modes: ("ONLINE" | "HOME")[];
             localities: string[];
             /** @constant */
             timezone: "Asia/Kolkata";
+            teachingCoverage?: components["schemas"]["TeachingScope"][];
+            educationStages?: ("SCHOOL" | "EARLY_YEARS" | "COLLEGE")[];
+            earlyYearsLevels?: ("NURSERY" | "KG1" | "KG2")[];
+            studyYears?: number[];
+            customSubjects?: boolean;
+            customBoards?: boolean;
+            customCourses?: boolean;
         };
         OtpRequest: {
             /** Format: email */
@@ -2713,8 +2718,7 @@ export interface components {
             guardianId: string;
             /** Format: uuid */
             childId: string;
-            /** @enum {string} */
-            subject: "Maths" | "Science";
+            subject: string;
             /** @enum {string} */
             mode: "ONLINE" | "HOME";
             /** @enum {string} */
@@ -2807,6 +2811,7 @@ export interface components {
              * @enum {integer|null}
              */
             lockInDays?: 0 | 15 | 30 | null;
+            teachingCoverage?: components["schemas"]["TeachingScope"][];
         };
         PrivateTeacher: {
             /** Format: uuid */
@@ -2849,6 +2854,7 @@ export interface components {
              * @enum {integer|null}
              */
             lockInDays?: 0 | 15 | 30 | null;
+            teachingCoverage?: components["schemas"]["TeachingScope"][] | null;
         };
         PrivateTeacherList: {
             items: components["schemas"]["PrivateTeacher"][];
@@ -2892,6 +2898,7 @@ export interface components {
             subjects: string[];
             boards: string[];
             grades: number[];
+            teachingCoverage?: components["schemas"]["TeachingScope"][];
         };
         VerificationInput: {
             expectedVersion: number;
@@ -3047,21 +3054,46 @@ export interface components {
             expectedVersion: number;
         };
         WaitlistInput: {
-            grade: number;
-            board: string;
             subject: string;
-            language: string;
+            /** @enum {string} */
+            language: "English" | "Hindi";
             /** @enum {string} */
             mode: "HOME" | "ONLINE";
             region: string;
+            /** @enum {string} */
+            stage?: "SCHOOL";
+            grade: number;
+            board: string;
+        } | {
+            subject: string;
+            /** @enum {string} */
+            language: "English" | "Hindi";
+            /** @enum {string} */
+            mode: "HOME" | "ONLINE";
+            region: string;
+            /** @enum {string} */
+            stage: "EARLY_YEARS";
+            /** @enum {string} */
+            level: "NURSERY" | "KG1" | "KG2";
+        } | {
+            subject: string;
+            /** @enum {string} */
+            language: "English" | "Hindi";
+            /** @enum {string} */
+            mode: "HOME" | "ONLINE";
+            region: string;
+            /** @enum {string} */
+            stage: "COLLEGE";
+            courseName: string;
+            studyYear: number;
         };
         Waitlist: {
             /** Format: uuid */
             id: string;
             /** Format: uuid */
             guardianId: string;
-            grade: number;
-            board: string;
+            grade: number | null;
+            board: string | null;
             subject: string;
             language: string;
             /** @enum {string} */
@@ -3071,6 +3103,11 @@ export interface components {
             status: "PENDING";
             /** Format: date-time */
             createdAt: string;
+            /** @enum {string} */
+            educationStage?: "SCHOOL" | "EARLY_YEARS" | "COLLEGE";
+            earlyYearsLevel?: string | null;
+            courseName?: string | null;
+            studyYear?: number | null;
         };
         WaitlistEntries: {
             items: components["schemas"]["Waitlist"][];
@@ -3193,11 +3230,9 @@ export interface components {
             /** Format: uuid */
             childId?: string;
             alias?: string;
-            grade?: number;
-            /** @enum {string} */
-            board?: "CBSE" | "CGBSE";
-            /** @enum {string} */
-            subject?: "Maths" | "Science";
+            grade?: number | null;
+            board?: string | null;
+            subject?: string;
             /** @enum {string} */
             mode?: "ONLINE" | "HOME";
             /** @enum {string} */
@@ -3239,6 +3274,7 @@ export interface components {
              * @enum {integer|null}
              */
             lockInDays?: 0 | 15 | 30 | null;
+            teachingCoverage?: components["schemas"]["TeachingScope"][];
         } | {
             subjects?: ("Maths" | "Science")[];
             /** @enum {string} */
@@ -3665,8 +3701,7 @@ export interface components {
             reason: string;
             preferences: components["schemas"]["SchedulePreferences"];
             criteria?: {
-                /** @enum {string} */
-                subject: "Maths" | "Science";
+                subject: string;
                 /** @enum {string} */
                 mode: "ONLINE" | "HOME";
                 /** @enum {string} */
@@ -4395,6 +4430,12 @@ export interface components {
             alias: string | null;
             grade: number | null;
             board: string | null;
+            /** @enum {string} */
+            educationStage?: "SCHOOL" | "EARLY_YEARS" | "COLLEGE";
+            /** @enum {string|null} */
+            earlyYearsLevel?: "NURSERY" | "KG1" | "KG2" | null;
+            courseName?: string | null;
+            studyYear?: number | null;
         };
         HiringEnquiry: {
             /** Format: uuid */
@@ -4592,6 +4633,7 @@ export interface components {
              * @enum {integer|null}
              */
             lockInDays?: 0 | 15 | 30 | null;
+            teachingCoverage?: components["schemas"]["TeachingScope"][];
         };
         TeacherRevisionProgress: {
             draft: components["schemas"]["TeacherRevisionDraft"];
@@ -4716,6 +4758,43 @@ export interface components {
             nextCursor: string | null;
             /** @enum {string} */
             creationStatus: "READY" | "READ_ONLY" | "VERIFICATION_REQUIRED" | "CONSENT_REQUIRED" | "PRIVACY_PAUSED";
+        };
+        TeachingScope: {
+            /** @enum {string} */
+            stage: "SCHOOL";
+            subject: string;
+            grade: number;
+            board: string;
+            /** @description Derived comparison key; recomputed by the server. */
+            subjectKey?: string;
+            /** @description Derived comparison key; recomputed by the server. */
+            boardKey?: string;
+            /** @description Derived comparison key; recomputed by the server. */
+            courseKey?: string;
+        } | {
+            /** @enum {string} */
+            stage: "EARLY_YEARS";
+            subject: string;
+            /** @enum {string} */
+            level: "NURSERY" | "KG1" | "KG2";
+            /** @description Derived comparison key; recomputed by the server. */
+            subjectKey?: string;
+            /** @description Derived comparison key; recomputed by the server. */
+            boardKey?: string;
+            /** @description Derived comparison key; recomputed by the server. */
+            courseKey?: string;
+        } | {
+            /** @enum {string} */
+            stage: "COLLEGE";
+            subject: string;
+            courseName: string;
+            studyYear: number;
+            /** @description Derived comparison key; recomputed by the server. */
+            subjectKey?: string;
+            /** @description Derived comparison key; recomputed by the server. */
+            boardKey?: string;
+            /** @description Derived comparison key; recomputed by the server. */
+            courseKey?: string;
         };
     };
     responses: never;
@@ -4980,16 +5059,20 @@ export interface operations {
             query?: {
                 q?: string;
                 /** @description Empty value is treated as no filter for compatibility with existing v1 callers. */
-                subject?: "Maths" | "Science" | "";
+                subject?: string;
                 /** @description Empty value is treated as no filter for compatibility with existing v1 callers. */
                 mode?: "HOME" | "ONLINE" | "";
                 limit?: number;
                 cursor?: string;
-                board?: "CBSE" | "CGBSE";
+                board?: string;
                 grade?: number;
                 language?: "English" | "Hindi";
                 locality?: string;
                 maxMonthlyPaise?: number;
+                stage?: "SCHOOL" | "EARLY_YEARS" | "COLLEGE";
+                level?: "NURSERY" | "KG1" | "KG2";
+                courseName?: string;
+                studyYear?: number;
             };
             header?: never;
             path?: never;
@@ -6517,6 +6600,7 @@ export interface operations {
                      * @enum {integer|null}
                      */
                     lockInDays?: 0 | 15 | 30 | null;
+                    teachingCoverage?: components["schemas"]["TeachingScope"][];
                 };
             };
         };

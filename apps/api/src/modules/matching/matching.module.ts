@@ -1,3 +1,4 @@
+import {coverageWhere,learnerScope,educationCaption} from '../../coverage';
 import {
   Module,
   Controller,
@@ -64,16 +65,14 @@ class MatchingController {
         request.scheduleStatus === "CONFIRMED" &&
         parsed.success &&
         !!normalizedPreferences(parsed.data);
-      const teachers = scheduleReady && child.grade!==null && child.board!==null
+      const teachers = scheduleReady && learnerScope(child,request.subject)
         ? await db.teacher.findMany({
             where: {
               ...(request.preferredTeacherId ? {id:request.preferredTeacherId} : {}),
               status: "APPROVED",
               screeningComplete: true,
               screeningValidUntil: { gt: new Date() },
-              subjects: { has: request.subject },
-              boards: { has: child.board },
-              grades: { has: child.grade },
+              ...coverageWhere(learnerScope(child,request.subject)!),
               languages: { has: request.language },
               modes: { has: request.mode },
               monthlyPaise: { lte: request.budgetPaise },
@@ -118,6 +117,7 @@ class MatchingController {
             budgetPaise: request.budgetPaise,
             region: request.region,
             locality: request.locality,
+            educationStage:child.educationStage,earlyYearsLevel:child.earlyYearsLevel,courseName:child.courseName,studyYear:child.studyYear,
             grade: child.grade,
             board: child.board,
             preferences: parsed.success ? parsed.data : null,
@@ -143,7 +143,7 @@ class MatchingController {
         const candidateData = {
           score: ranked.score,
           reasons: [
-            `${request.subject} · Class ${child.grade} · ${child.board}`,
+            `${request.subject} · ${educationCaption(child)}`,
             `${request.language} instruction`,
             "Within budget and capacity, with overlapping availability",
             ...(request.mode === "HOME"

@@ -83,7 +83,7 @@ export const ruleRanker = {
   ) {
     return {
       rankerVersion: "rules-v2",
-      featureVersion: "approved-fit-v1",
+      featureVersion: "education-scopes-v2",
       items: pool
         .map((t) => ({
           teacherId: t.teacherId,
