@@ -1,4 +1,5 @@
 "use client";
+import {WaitlistWorkspace} from "./waitlist-workspace";
 import { HiringOverview } from "./hiring-overview";
 import { ReportsWorkspace } from "./reports-workspace";
 import { AdminConsole } from "./admin-console";
@@ -888,10 +889,7 @@ function Teachers() {
             ))}
           </div>
           {query.data?.items.length === 0 && (
-            <Empty>
-              No teachers match these filters. Try another subject or ask us to
-              help.
-            </Empty>
+            !query.error && <section className="coverage-recovery" aria-label="Search recovery"><h2>No teachers match these filters right now.</h2><p>Try broader filters or let us review your needs. An empty search does not mean your class or subject is outside pilot coverage.</p><div className="wizard-actions"><UiButton variant="outline" onClick={()=>setTab("assisted")}>Let us search for you</UiButton><Link className="inline-link" href="/waitlist">Need another class, subject or city?</Link></div></section>
           )}
           <div className="help-card">
             <div>
@@ -907,6 +905,7 @@ function Teachers() {
           </div>
         </TabsContent>
       </Tabs>
+      <p className="coverage-discovery-link">Looking outside our current pilot coverage? <Link className="inline-link" href="/waitlist">Request future coverage</Link></p>
     </main>
   );
 }
@@ -1180,6 +1179,7 @@ function TeacherOnboarding() {
     );
   return <TeacherSetup session={session} onSessionChange={setSession} />;
 }
+function WaitlistPage(){const {session,loading}=useAuth();if(loading)return <State loading/>;return <WaitlistWorkspace session={session}/>;}
 function StudentOnboarding() {
   const {
     session,
@@ -1958,6 +1958,8 @@ function Routes() {
   const path = usePathname();
   return path === "/" ? (
     <Home />
+  ) : path === "/waitlist" ? (
+    <WaitlistPage />
   ) : path === "/teachers" ? (
     <Teachers />
   ) : path.startsWith("/teachers/") ? (

@@ -936,3 +936,30 @@ test("an unavailable enquiry link never falls back to another learner request", 
     state.paths.some((p) => p === "GET /api/v1/requests/" + requestId),
   ).toBe(false);
 });
+
+test("no-match recovery preserves the enquiry and offers availability, manual search and support", async ({
+  page,
+}) => {
+  const state = await mock(page, "no-match");
+  await page.goto("/dashboard/requests?request=" + requestId);
+  const recovery = page.getByRole("region", { name: "Enquiry recovery" });
+  await expect(
+    recovery.getByRole("heading", {
+      name: "Keep your enquiry. Explore another path.",
+    }),
+  ).toBeVisible();
+  await expect(
+    recovery.getByRole("link", { name: "Browse teachers manually" }),
+  ).toHaveAttribute("href", "/teachers");
+  await expect(
+    recovery.getByRole("link", { name: "Request future coverage" }),
+  ).toHaveAttribute("href", "/waitlist");
+  await recovery.getByRole("link", { name: "Review availability" }).click();
+  await expect(
+    page.getByRole("button", {
+      name: "Update availability preferences",
+      exact: true,
+    }),
+  ).toBeVisible();
+  expect(state.paths.filter((p) => p.startsWith("POST"))).toEqual([]);
+});

@@ -1,8 +1,8 @@
 # Remaining MVP work
 
-Updated 15 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
+Updated 16 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
-Next sprint: **remaining H2 teacher/student/invitation recovery and H3 enquiry-to-hiring navigation**. Guardian drafts, weekly availability, teacher-revision drafts and dashboard hiring-term confirmation are implemented. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
+Next sprint: **remaining H2 access polish, H5 localization and launch qualification**. Guardian drafts, weekly availability, teacher-revision drafts and dashboard hiring-term confirmation are implemented. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
 
 Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides broader class-management launch requirements in the original PRD. Existing security, privacy and release controls remain required for the focused journey.
 
@@ -17,10 +17,10 @@ Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides
 - [x] **H2 teacher-revision increment** Private saved application revisions, step-by-step resume, no publication before resubmission, fresh fee acknowledgement, retry/version protection and acknowledged stale-draft discard.
 - [x] **H2 student welcome increment** Optional private subject/language/learning preferences using existing student draft endpoints, with age-appropriate guardian/privacy guidance and save/recovery states.
 - [x] **H2 invitation-recovery increment** Private status, acknowledged versioned replacement, invalidation of earlier codes, metadata-only idempotent recovery, explicit refresh after lost responses and no readable code storage.
-- [ ] **H2** Finish other guardian/student recovery and enquiry-to-hiring navigation; weekly availability, guardian draft recovery/discard and teacher-revision drafts are implemented
+- [ ] **H2** Finish remaining access/recovery polish and history limits; guardian/teacher/student drafts, invitation recovery and the primary hiring handoff are implemented
 - [x] **H3 dashboard terms increment** Guardian/teacher hiring-term review and versioned acceptance in primary dashboards; explicit waiting/both-confirmed states, policy/fee review, private financial scope and stale/uncertain recovery. Acceptance is independent of class timetables, service start and payment.
 - [x] **H3 hiring journey increment** Enquiry detail/teacher replies → explicit selection → terms → exact owned hiring confirmation, with mutual acceptance states and no mandatory class timetable/demo. Legacy start controls remain secondary; live acceptance stays open.
-- [x] **H4** Hiring overview for student, guardian, teacher and superadmin: scoped enquiry/arrangement records, counts, learner/application metadata, reviewed teacher responses, operational drill-downs and recovery states. H2/H3 journey simplification remains pending.
+- [x] **H4** Hiring overview for student, guardian, teacher and superadmin: scoped enquiry/arrangement records, counts, learner/application metadata, reviewed teacher responses, operational drill-downs and recovery states. Remaining H2/H5 polish and live qualification stay open.
 - [ ] **H5** Finish no-match/waitlist, support/replacement, privacy, mobile/keyboard/recovery and localization for the hiring journey
 
 
@@ -35,8 +35,8 @@ Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides
 - [x] **F20** Operational charts/reports: scoped manual/assisted request cohorts, exact denominators, mature continuation outcomes with unknown/missing evidence, IST date presets/custom ranges and separate finance capture modes/obligations. Live settlement remains unverified.
 - [x] **F21** Dedicated guardian/student/teacher dashboards: paginated authorized learner summaries, current teacher/next class, rolling/calendar/custom periods, recurring/revision/demo separation, exact teaching/attendance denominators, cancellations/absence/disputes, pending confirmations and private feedback sample size. Live acceptance stays open.
 - [x] **F22 student welcome increment** Age-appropriate privacy/guardian guidance and optional private learning preferences, with save/resume, clearing, stale/uncertain recovery and skip/discovery routes.
-- [ ] **F22** Finish remaining guardian/student/teacher onboarding recovery and invitation management details
-- [ ] **F23** Unsupported-scope waitlist intake/status and useful out-of-pilot recovery
+- [ ] **F22** Remaining access polish, device labels and final cross-journey recovery review; primary onboarding/revision/invitation recovery is implemented
+- [x] **F23** Unsupported-scope waitlist intake/private recorded status, supported-scope recovery, retry-safe save/history and useful no-match/discovery alternatives. No future teacher supply or notifications are promised.
 - [ ] **F24** Full English/Hindi localization: all forms, notices, validation, dashboard/console copy and typography
 - [ ] **F25** Finish remaining legacy screens/components and demo booking-detail forms using the shared shadcn controls and deliberate palette; review every loading/error/empty/retry state on mobile and keyboard
 

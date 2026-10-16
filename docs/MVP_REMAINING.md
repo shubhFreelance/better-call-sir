@@ -4,7 +4,7 @@ Reviewed against the owner's Version 3 PRD, the delivery board and implementatio
 
 ## Current owner-directed scope
 
-The owner narrowed the next MVP on 14 October 2026 to teacher discovery, enquiries and hiring. [Current scope and priorities](MVP_SCOPE.md) supersede the original class-management launch requirements. H1 discovery/profile emphasis and H4 dashboards focused on hiring are implemented in development. Guardian enquiry drafts, weekly availability and dashboard hiring-term confirmation are implemented. Remaining H2/H3 work covers other onboarding recovery and complete enquiry-to-confirmation navigation. Individual class booking, timetables, attendance/lesson feedback and related provider qualification move to later scale. Existing implementations and their limits remain recorded below. Authentication, consent, teacher screening, privacy, support and applicable security/release requirements still apply.
+The owner narrowed the next MVP on 14 October 2026 to teacher discovery, enquiries and hiring. [Current scope and priorities](MVP_SCOPE.md) supersede the original class-management launch requirements. H1 discovery/profile emphasis and H4 dashboards focused on hiring are implemented in development. Guardian enquiry drafts, weekly availability, teacher revisions, student preferences, invitation recovery and connected enquiry-to-hiring confirmation are implemented. No-match and future-coverage recovery are implemented. Remaining work covers access polish, localization and launch qualification. Individual class booking, timetables, attendance/lesson feedback and related provider qualification move to later scale. Existing implementations and their limits remain recorded below. Authentication, consent, teacher screening, privacy, support and applicable security/release requirements still apply.
 
 The inventory below preserves the broader backlog; it is not an instruction to complete every class-management item before the focused hiring MVP. F22–F25/B12 are reprioritized by relevance to the current journey; class-specific finance/Meet items are deferred unless separately required by an approved hiring payment flow.
 
@@ -26,12 +26,11 @@ Weekly enquiry availability is implemented across intake, draft recovery, family
 
 | # | Work remaining | Backend position |
 | --- | --- | --- |
-| F22 | Complete age-appropriate student notice/preferences and remaining guardian/student/teacher onboarding recovery details | Parent-managed activation and initial saved drafts exist. One active additional-enquiry draft is implemented. Preference fields, revised-application drafts and invitation recovery remain. |
-| F23 | Unsupported-scope waitlist intake/status and useful out-of-pilot recovery | Waitlist API exists; the full user-facing flow is missing. |
+| F22 | Remaining access polish, device labels and final cross-journey recovery review | Primary onboarding, preferences, teacher revisions and invitation recovery are implemented. |
 | F24 | Full English/Hindi localization: all forms, notices, validation, dashboard/console copy and typography | Existing language toggle covers only part of the product. |
 | F25 | Finish remaining legacy screens/components and demo booking-detail forms using the shared shadcn controls and deliberate palette; review every loading/error/empty/retry state on mobile and keyboard | Incremental migration is underway. Initial demo controls and service/console screens are not all at the new standard. |
 
-The next practical sprint is remaining teacher/student/invitation recovery and H3 navigation under the current hiring scope. F9 checkout/provider qualification is tracked below rather than described as live-ready.
+The next practical sprint is remaining H5 localization/polish and focused launch qualification. F9 checkout/provider qualification is tracked below rather than described as live-ready.
 
 ## Backend implementation and contract gaps
 
@@ -46,7 +45,7 @@ The next practical sprint is remaining teacher/student/invitation recovery and H
 | B7 | Durable unique provider-attempt claims now run after the committed local order, outside the retry transaction; concurrency/crash/failure and current consent/eligibility rechecks are tested. Remaining: qualify live receipt/order recovery and reconciliation before charging; uncertain outcomes never automatically create another provider order. |
 | B8 | Actual notification delivery, status/receipt history, duplicate-safe retry and staff-visible failure recovery for scope requests, demos, bookings and follow-ups. Worker development delivery is still synthetic. |
 | B9 | Durable Google Meet credentials/OAuth lifecycle, participant/Workspace admission policy and recovery handling; current adapter uses an injected short-lived token. |
-| B12 | One active additional-enquiry draft is implemented. Remaining: multiple concurrent enquiry drafts if required, revised-application/timetable drafts; invitation recovery/idempotency/device labels and complete pagination for bounded notes (latest 50), calendar/leave, demo/timetable, session, payable and administrative histories. Preserve owned data and uncertainty during recovery. |
+| B12 | One active additional-enquiry draft is implemented. Remaining: multiple concurrent enquiry drafts if required, timetable drafts (deferred); device labels and complete pagination for bounded notes (latest 50), calendar/leave, demo/timetable, session, payable and administrative histories. Preserve owned data and uncertainty during recovery. |
 | B13 | Complete follow-up/service-operation read models and queues not covered by existing cases and immutable continuation observations. |
 | B14 | Production private-object storage and upload/download/deletion lifecycle; current-signature malware scanning; approved retention rules and external-backup deletion replay. Existing local private files and application scrubbing are development infrastructure. |
 | B15 | Contract/schema review for the completed UI: missing response metadata, remaining annotations/warnings, backward-compatible changes and web/API image compatibility evidence. Generated-client consistency checks already exist; they must cover the final contract. |
@@ -91,3 +90,5 @@ No arbitrary completion percentage is assigned: frontend screens, backend implem
 H2 teacher-revision recovery increment: saved private revision steps, reload/resume, current-application isolation, renewed fee acknowledgement, immutable uncertain retries and acknowledged stale-draft discard are implemented. Other guardian/student/invitation recovery and enquiry-to-hiring navigation remain open; this does not close H2 or launch qualification.
 
 H2 invitation recovery increment is implemented: private status, expiry, acknowledged replacement, stale/unknown recovery and metadata-only idempotent issuance. Codes remain one-time delivery and are not retrievable after reload. Device labels and remaining onboarding/navigation work stay open.
+
+H3 connected enquiry-to-hiring navigation and F23/H5 no-match/future-coverage recovery are now implemented in development. See the latest entries in remaing.md and SPRINTS.md; earlier open descriptions above preserve historical inventory. Waitlist status is recorded/pending only, with no teacher supply or notification promise. Other H5 and release qualification remain open.

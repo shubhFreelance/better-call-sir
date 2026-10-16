@@ -584,7 +584,9 @@ function RequestReview({
           </li>
         ))}
       </ol>
-      <h3>Your availability preferences</h3>
+      <h3 id="enquiry-availability" tabIndex={-1}>
+        Your availability preferences
+      </h3>
       {request.schedulePreferences &&
       "weekly" in request.schedulePreferences ? (
         <WeeklySummary preferences={request.schedulePreferences} />
@@ -829,6 +831,47 @@ function RequestReview({
                       : "Your shortlist is awaiting review or current teacher responses. Refresh later or contact support for help."}
             </Notice>
           )}
+          {request.status === "OPEN" &&
+            (request.matchStatus === "NO_MATCH" ||
+              (request.candidates.length > 0 &&
+                request.candidates.every(
+                  (c) => c.response === "DECLINED" || !current(c),
+                ))) && (
+              <section
+                className="coverage-recovery"
+                aria-label="Enquiry recovery"
+              >
+                <h3>
+                  {request.matchStatus === "NO_MATCH"
+                    ? "Keep your enquiry. Explore another path."
+                    : "These teacher options need another review."}
+                </h3>
+                <p>
+                  Your enquiry and learner details are preserved. Review your
+                  availability or ask support to review other eligible teachers.
+                  Changes to availability clear the old shortlist and choice
+                  only after your acknowledgement.
+                </p>
+                <div className="wizard-actions">
+                  <a className="inline-link" href="#enquiry-availability">
+                    Review availability
+                  </a>
+                  <Link className="inline-link" href="/teachers">
+                    Browse teachers manually
+                  </Link>
+                  <Link className="inline-link" href="/support">
+                    Ask for search support
+                  </Link>
+                </div>
+                <p className="wizard-help">
+                  The waitlist is for a class, subject, board or city outside
+                  pilot coverage—not a guarantee of teacher availability.
+                </p>
+                <Link className="inline-link" href="/waitlist">
+                  Request future coverage
+                </Link>
+              </section>
+            )}
           {request.candidates.map((c) => {
             const profile = teachers.find((t) => t.id === c.teacherId),
               demo = demos.data?.items
