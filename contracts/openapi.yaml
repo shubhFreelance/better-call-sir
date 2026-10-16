@@ -20288,6 +20288,492 @@
           }
         ]
       }
+    },
+    "/learner-profiles": {
+      "get": {
+        "operationId": "getLearnerProfiles",
+        "tags": [
+          "learner-profiles"
+        ],
+        "summary": "List owned learner education profiles",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Private owned learner education profile; does not create an enquiry or authorize independent student access.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerProfiles"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createLearnerProfile",
+        "tags": [
+          "learner-profiles"
+        ],
+        "summary": "Create guardian-managed learner education profile",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Private owned learner education profile; does not create an enquiry or authorize independent student access.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerProfile"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires verified guardian and active consent; idempotent creation only. Supports early years, Classes 1\u201312 and college without broadening current enquiry coverage.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Must match configured WEB_ORIGIN. Mock validates format only."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearnerProfileInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/learner-profiles/{id}": {
+      "get": {
+        "operationId": "getLearnerProfile",
+        "tags": [
+          "learner-profiles"
+        ],
+        "summary": "Read an owned learner education profile",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Private owned learner education profile; does not create an enquiry or authorize independent student access.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerProfile"
+                }
+              }
+            }
+          }
+        },
+        "description": "Guardian owner or the explicitly linked student only; foreign and missing IDs return 404.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -21515,16 +22001,20 @@
             "maxLength": 40
           },
           "grade": {
-            "type": "integer",
-            "minimum": 6,
-            "maximum": 10
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 12
           },
           "board": {
-            "type": "string",
-            "enum": [
-              "CBSE",
-              "CGBSE"
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 80
           },
           "studentAccountId": {
             "type": [
@@ -21564,6 +22054,50 @@
               "maxLength": 60
             },
             "maxItems": 20
+          },
+          "educationStage": {
+            "type": "string",
+            "enum": [
+              "EARLY_YEARS",
+              "SCHOOL",
+              "COLLEGE"
+            ]
+          },
+          "earlyYearsLevel": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "NURSERY",
+              "KG1",
+              "KG2",
+              null
+            ]
+          },
+          "courseName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "university": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "studyYear": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10
           }
         },
         "required": [
@@ -24290,10 +24824,20 @@
                       "type": "string"
                     },
                     "grade": {
-                      "type": "integer"
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 1,
+                      "maximum": 12
                     },
                     "board": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "minLength": 1,
+                      "maxLength": 80
                     }
                   },
                   "required": [
@@ -26549,10 +27093,20 @@
                 "type": "string"
               },
               "grade": {
-                "type": "integer"
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 12
               },
               "board": {
-                "type": "string"
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 80
               }
             },
             "required": [
@@ -26815,10 +27369,20 @@
                 "type": "string"
               },
               "grade": {
-                "type": "integer"
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 12
               },
               "board": {
-                "type": "string"
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 80
               }
             },
             "required": [
@@ -27206,11 +27770,48 @@
                   "type": "string"
                 },
                 "grade": {
-                  "type": "integer",
-                  "minimum": 0
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1,
+                  "maximum": 12
                 },
                 "board": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "educationStage": {
+                  "type": "string",
+                  "enum": [
+                    "EARLY_YEARS",
+                    "SCHOOL",
+                    "COLLEGE"
+                  ]
+                },
+                "earlyYearsLevel": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "NURSERY",
+                    "KG1",
+                    "KG2",
+                    null
+                  ]
+                },
+                "courseName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 1,
+                  "maxLength": 160
                 }
               },
               "required": [
@@ -27850,10 +28451,48 @@
                 "type": "string"
               },
               "grade": {
-                "type": "integer"
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 12
               },
               "board": {
-                "type": "string"
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "educationStage": {
+                "type": "string",
+                "enum": [
+                  "EARLY_YEARS",
+                  "SCHOOL",
+                  "COLLEGE"
+                ]
+              },
+              "earlyYearsLevel": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "NURSERY",
+                  "KG1",
+                  "KG2",
+                  null
+                ]
+              },
+              "courseName": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 160
               }
             },
             "required": [
@@ -28096,10 +28735,20 @@
             ]
           },
           "grade": {
-            "type": "integer"
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 12
           },
           "board": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 80
           }
         },
         "required": [
@@ -28379,10 +29028,20 @@
                   "type": "string"
                 },
                 "grade": {
-                  "type": "integer"
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1,
+                  "maximum": 12
                 },
                 "board": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 1,
+                  "maxLength": 80
                 },
                 "schoolName": {
                   "type": [
@@ -28395,6 +29054,34 @@
                   "items": {
                     "type": "string"
                   }
+                },
+                "educationStage": {
+                  "type": "string",
+                  "enum": [
+                    "EARLY_YEARS",
+                    "SCHOOL",
+                    "COLLEGE"
+                  ]
+                },
+                "earlyYearsLevel": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "NURSERY",
+                    "KG1",
+                    "KG2",
+                    null
+                  ]
+                },
+                "courseName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 1,
+                  "maxLength": 160
                 }
               },
               "required": [
@@ -29190,6 +29877,396 @@
           "mode",
           "status",
           "canRequestReplacement"
+        ],
+        "additionalProperties": false
+      },
+      "LearnerEducationInput": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "EARLY_YEARS"
+                ]
+              },
+              "institutionName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "subjects": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "NURSERY",
+                  "KG1",
+                  "KG2"
+                ]
+              }
+            },
+            "required": [
+              "stage",
+              "institutionName",
+              "subjects",
+              "level"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "SCHOOL"
+                ]
+              },
+              "institutionName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "subjects": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              },
+              "grade": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+              },
+              "board": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "stage",
+              "institutionName",
+              "subjects",
+              "grade",
+              "board"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "COLLEGE"
+                ]
+              },
+              "institutionName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "subjects": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              },
+              "courseName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "university": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "studyYear": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              }
+            },
+            "required": [
+              "stage",
+              "institutionName",
+              "subjects",
+              "courseName",
+              "university",
+              "studyYear"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "LearnerEducation": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "EARLY_YEARS"
+                ]
+              },
+              "institutionName": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "subjects": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              },
+              "level": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "NURSERY",
+                  "KG1",
+                  "KG2"
+                ]
+              }
+            },
+            "required": [
+              "stage",
+              "institutionName",
+              "subjects",
+              "level"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "SCHOOL"
+                ]
+              },
+              "institutionName": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "subjects": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              },
+              "grade": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 12
+              },
+              "board": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "stage",
+              "institutionName",
+              "subjects",
+              "grade",
+              "board"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "COLLEGE"
+                ]
+              },
+              "institutionName": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "subjects": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              },
+              "courseName": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "university": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "studyYear": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 10
+              }
+            },
+            "required": [
+              "stage",
+              "institutionName",
+              "subjects",
+              "courseName",
+              "university",
+              "studyYear"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "LearnerProfileInput": {
+        "type": "object",
+        "properties": {
+          "alias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "education": {
+            "$ref": "#/components/schemas/LearnerEducationInput"
+          }
+        },
+        "required": [
+          "alias",
+          "education"
+        ],
+        "additionalProperties": false
+      },
+      "LearnerProfile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "alias": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "education": {
+            "$ref": "#/components/schemas/LearnerEducation"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "enquiryEligible": {
+            "type": "boolean",
+            "description": "Current academic pilot eligibility only; region, consent, teacher supply and request fit are checked separately."
+          }
+        },
+        "required": [
+          "id",
+          "alias",
+          "education",
+          "version",
+          "enquiryEligible"
+        ],
+        "additionalProperties": false
+      },
+      "LearnerProfiles": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LearnerProfile"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "creationStatus": {
+            "type": "string",
+            "enum": [
+              "READY",
+              "READ_ONLY",
+              "VERIFICATION_REQUIRED",
+              "CONSENT_REQUIRED",
+              "PRIVACY_PAUSED"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "creationStatus"
         ],
         "additionalProperties": false
       }

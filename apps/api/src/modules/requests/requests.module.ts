@@ -25,7 +25,7 @@ export async function createIntake(db:DB,service:AppService,account:Account,req:
       if(data.preferredTeacherId&&!((await service.publicTeachers({id:data.preferredTeacherId},1))[0]))fail(404,'NOT_FOUND','Selected teacher is unavailable.');
       if(!data.childId&&(!data.schoolName||!data.schoolSubjects))fail(400,'LEARNER_DETAILS_REQUIRED','Enter the school and subjects studied in the class.');
       const child=data.childId?await service.child(db,account,data.childId):await db.child.create({data:{guardianId:account.id,alias:data.alias,grade:data.grade,board:data.board,schoolName:data.schoolName,schoolSubjects:data.schoolSubjects}});
-      if(child.grade!==data.grade||child.board!==data.board)fail(409,"CHILD_CHANGED","The linked learner grade or board differs from this request.");
+      if(child.educationStage!=='SCHOOL'||child.grade!==data.grade||child.board!==data.board)fail(409,"CHILD_CHANGED","The linked learner grade or board differs from this request.");
       if(data.childId&&(data.schoolName||data.schoolSubjects)){
        if(!data.schoolName||!data.schoolSubjects)fail(400,'LEARNER_DETAILS_REQUIRED','Supply both school and class subjects.');
        if(child.schoolName&&(child.schoolName!==data.schoolName||JSON.stringify(child.schoolSubjects)!==JSON.stringify(data.schoolSubjects)))fail(409,'CHILD_CHANGED','The learner school details changed; review the current record.');

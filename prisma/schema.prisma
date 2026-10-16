@@ -63,6 +63,11 @@ model Consent {
   withdrawnAt DateTime?
 }
 model Child {
+  educationStage String @default("SCHOOL")
+  earlyYearsLevel String?
+  courseName String?
+  university String?
+  studyYear Int?
   schoolName String?
   schoolSubjects String[] @default([])
   version Int @default(1)
@@ -70,8 +75,8 @@ model Child {
   id String @id @default(uuid()) @db.Uuid
   guardianId String @db.Uuid
   alias String
-  grade Int
-  board String
+  grade Int?
+  board String?
   studentAccountId String? @unique @db.Uuid
   @@index([guardianId])
 }
