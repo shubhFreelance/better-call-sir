@@ -1,4 +1,5 @@
 "use client";
+import { CurriculumChoice, subjectSuggestions } from "./curriculum-choice";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -171,6 +172,8 @@ export function PlacementCare({
       !Number.isSafeInteger(Math.round(amount)) ||
       amount < 50000 ||
       amount > 2000000 ||
+      !criteria.subject.trim() ||
+      criteria.subject.trim().length > 60 ||
       !criteria.locality.trim() ||
       criteria.locality.trim().length > 80
     ) {
@@ -186,6 +189,7 @@ export function PlacementCare({
       preferences: availability,
       criteria: {
         ...criteria,
+        subject: criteria.subject.trim(),
         locality: criteria.locality.trim(),
         budgetPaise: Math.round(amount),
         budget: undefined,
@@ -477,31 +481,41 @@ export function PlacementCare({
                                       ? "Teaching format"
                                       : key[0].toUpperCase() + key.slice(1)}
                                   </label>
-                                  <select
-                                    id={"care-" + key}
-                                    value={criteria[key]}
-                                    onChange={(e) =>
-                                      setCriteria({
-                                        ...criteria,
-                                        [key]: e.target.value,
-                                      })
-                                    }
-                                  >
-                                    {(key === "subject"
-                                      ? ["Maths", "Science"]
-                                      : key === "mode"
+                                  {key === "subject" ? (
+                                    <CurriculumChoice
+                                      id="care-subject"
+                                      value={criteria.subject}
+                                      onChange={(v) =>
+                                        setCriteria({ ...criteria, subject: v })
+                                      }
+                                      suggestions={subjectSuggestions}
+                                      customLabel="Subject name"
+                                    />
+                                  ) : (
+                                    <select
+                                      id={"care-" + key}
+                                      value={criteria[key]}
+                                      onChange={(e) =>
+                                        setCriteria({
+                                          ...criteria,
+                                          [key]: e.target.value,
+                                        })
+                                      }
+                                    >
+                                      {(key === "mode"
                                         ? ["ONLINE", "HOME"]
                                         : ["English", "Hindi"]
-                                    ).map((v) => (
-                                      <option key={v} value={v}>
-                                        {v === "ONLINE"
-                                          ? "Online"
-                                          : v === "HOME"
-                                            ? "At home"
-                                            : v}
-                                      </option>
-                                    ))}
-                                  </select>
+                                      ).map((v) => (
+                                        <option key={v} value={v}>
+                                          {v === "ONLINE"
+                                            ? "Online"
+                                            : v === "HOME"
+                                              ? "At home"
+                                              : v}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  )}
                                 </div>
                               ),
                             )}

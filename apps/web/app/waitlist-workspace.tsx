@@ -1,4 +1,5 @@
 "use client";
+import { educationLabel } from "./learner-education";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,8 +16,8 @@ export function WaitlistWorkspace({ session }: { session: Session | null }) {
       <header className="wizard-title">
         <h1>Tell us where to grow next.</h1>
         <p>
-          Need a class, subject, board or city outside our current pilot? Record
-          your interest without adding a child’s personal details.
+          Need teachers in a region we do not serve yet? Record stage-specific
+          learning criteria without adding a learner’s personal details.
         </p>
       </header>
       <div className="coverage-layout">
@@ -82,6 +83,12 @@ function WaitlistForm({ session }: { session: Session }) {
     retry: false,
     refetchOnWindowFocus: false,
   });
+  const [stage, setStage] = useState<"SCHOOL" | "EARLY_YEARS" | "COLLEGE">(
+      "SCHOOL",
+    ),
+    [level, setLevel] = useState(""),
+    [courseName, setCourseName] = useState(""),
+    [studyYear, setStudyYear] = useState("");
   const [grade, setGrade] = useState(""),
     [board, setBoard] = useState(""),
     [subject, setSubject] = useState(""),
@@ -106,27 +113,44 @@ function WaitlistForm({ session }: { session: Session }) {
   async function save() {
     if (!pending.current) {
       if (
-        !grade ||
-        !board.trim() ||
+        (stage === "SCHOOL" && (!grade || !board.trim())) ||
+        (stage === "EARLY_YEARS" && !level) ||
+        (stage === "COLLEGE" &&
+          (!courseName.trim() ||
+            !/^\d+$/.test(studyYear) ||
+            Number(studyYear) < 1 ||
+            Number(studyYear) > 10)) ||
         !subject.trim() ||
-        !language.trim() ||
+        !["english", "hindi"].includes(language.trim().toLowerCase()) ||
         !region.trim() ||
         !agreed
       ) {
         setError(
           "Complete each learning criterion and confirm that you understand the waitlist.",
         );
-        const first = !grade
-          ? "grade"
-          : !board.trim()
-            ? "board"
-            : !subject.trim()
-              ? "subject"
-              : !language.trim()
-                ? "language"
-                : !region.trim()
-                  ? "region"
-                  : "ack";
+        const first =
+          stage === "SCHOOL" && !grade
+            ? "grade"
+            : stage === "SCHOOL" && !board.trim()
+              ? "board"
+              : stage === "EARLY_YEARS" && !level
+                ? "level"
+                : stage === "COLLEGE" && !courseName.trim()
+                  ? "course"
+                  : stage === "COLLEGE" &&
+                      (!/^\d+$/.test(studyYear) ||
+                        Number(studyYear) < 1 ||
+                        Number(studyYear) > 10)
+                    ? "year"
+                    : !subject.trim()
+                      ? "subject"
+                      : !["english", "hindi"].includes(
+                            language.trim().toLowerCase(),
+                          )
+                        ? "language"
+                        : !region.trim()
+                          ? "region"
+                          : "ack";
         requestAnimationFrame(() =>
           document.getElementById("waitlist-" + first)?.focus(),
         );
@@ -135,10 +159,18 @@ function WaitlistForm({ session }: { session: Session }) {
       pending.current = {
         key: crypto.randomUUID(),
         body: {
-          grade: Number(grade),
-          board: board.trim(),
+          ...(stage === "SCHOOL"
+            ? { grade: Number(grade), board: board.trim() }
+            : stage === "EARLY_YEARS"
+              ? { stage, level: level as "NURSERY" | "KG1" | "KG2" }
+              : {
+                  stage,
+                  courseName: courseName.trim(),
+                  studyYear: Number(studyYear),
+                }),
           subject: subject.trim(),
-          language: language.trim(),
+          language:
+            language.trim().toLowerCase() === "hindi" ? "Hindi" : "English",
           region: region.trim(),
           mode,
         },
@@ -179,7 +211,7 @@ function WaitlistForm({ session }: { session: Session }) {
         unknown
           ? "We couldn’t confirm your request. Retry the same criteria before making another request."
           : e instanceof ApiError && e.code === "SUPPORTED_SCOPE"
-            ? "These criteria are already covered by the pilot. Send a free enquiry or browse teachers; a teacher still needs to be available."
+            ? "This region accepts ordinary teacher enquiries. Send a free enquiry or browse teachers; a teacher still needs to be available."
             : (e as Error).message,
       );
     } finally {
@@ -217,24 +249,77 @@ function WaitlistForm({ session }: { session: Session }) {
         >
           <div className="coverage-fields">
             <div className="field">
-              <label htmlFor="waitlist-grade">Class</label>
+              <label htmlFor="waitlist-stage">Education stage</label>
               <select
-                id="waitlist-grade"
-                aria-invalid={!!error && !grade}
-                aria-describedby={
-                  error && !grade ? "waitlist-errors" : undefined
-                }
-                value={grade}
-                onChange={(e) => setGrade(e.target.value)}
+                id="waitlist-stage"
+                value={stage}
+                onChange={(e) => setStage(e.target.value as typeof stage)}
               >
-                <option value="">Choose a class</option>
-                {Array.from({ length: 12 }, (_, i) => (
-                  <option key={i} value={i + 1}>
-                    Class {i + 1}
-                  </option>
-                ))}
+                <option value="SCHOOL">School — Classes 1–12</option>
+                <option value="EARLY_YEARS">Early years — Nursery / KG</option>
+                <option value="COLLEGE">College / university</option>
               </select>
             </div>
+            {stage === "EARLY_YEARS" && (
+              <div className="field">
+                <label htmlFor="waitlist-level">Early years level</label>
+                <select
+                  id="waitlist-level"
+                  value={level}
+                  onChange={(e) => setLevel(e.target.value)}
+                >
+                  <option value="">Choose a level</option>
+                  <option value="NURSERY">Nursery</option>
+                  <option value="KG1">KG1</option>
+                  <option value="KG2">KG2</option>
+                </select>
+              </div>
+            )}
+            {stage === "COLLEGE" && (
+              <>
+                <div className="field">
+                  <label htmlFor="waitlist-course">Course / degree</label>
+                  <Input
+                    id="waitlist-course"
+                    value={courseName}
+                    onChange={(e) => setCourseName(e.target.value)}
+                    maxLength={160}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="waitlist-year">Study year</label>
+                  <Input
+                    id="waitlist-year"
+                    value={studyYear}
+                    onChange={(e) => setStudyYear(e.target.value)}
+                    type="number"
+                    min={1}
+                    max={10}
+                  />
+                </div>
+              </>
+            )}
+            {stage === "SCHOOL" && (
+              <div className="field">
+                <label htmlFor="waitlist-grade">Class</label>
+                <select
+                  id="waitlist-grade"
+                  aria-invalid={!!error && !grade}
+                  aria-describedby={
+                    error && !grade ? "waitlist-errors" : undefined
+                  }
+                  value={grade}
+                  onChange={(e) => setGrade(e.target.value)}
+                >
+                  <option value="">Choose a class</option>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i} value={i + 1}>
+                      Class {i + 1}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             {(
               [
                 [
@@ -242,7 +327,7 @@ function WaitlistForm({ session }: { session: Session }) {
                   "School board",
                   board,
                   setBoard,
-                  30,
+                  80,
                   "For example, ICSE",
                 ],
                 [
@@ -250,7 +335,7 @@ function WaitlistForm({ session }: { session: Session }) {
                   "Subject",
                   subject,
                   setSubject,
-                  40,
+                  60,
                   "For example, English",
                 ],
                 [
@@ -270,22 +355,24 @@ function WaitlistForm({ session }: { session: Session }) {
                   "For example, Raipur",
                 ],
               ] as const
-            ).map(([id, label, value, set, max, placeholder]) => (
-              <div className="field" key={id}>
-                <label htmlFor={`waitlist-${id}`}>{label}</label>
-                <Input
-                  id={`waitlist-${id}`}
-                  aria-invalid={!!error && !value.trim()}
-                  aria-describedby={
-                    error && !value.trim() ? "waitlist-errors" : undefined
-                  }
-                  value={value}
-                  onChange={(e) => set(e.target.value)}
-                  maxLength={max}
-                  placeholder={placeholder}
-                />
-              </div>
-            ))}
+            )
+              .filter(([id]) => id !== "board" || stage === "SCHOOL")
+              .map(([id, label, value, set, max, placeholder]) => (
+                <div className="field" key={id}>
+                  <label htmlFor={`waitlist-${id}`}>{label}</label>
+                  <Input
+                    id={`waitlist-${id}`}
+                    aria-invalid={!!error && !value.trim()}
+                    aria-describedby={
+                      error && !value.trim() ? "waitlist-errors" : undefined
+                    }
+                    value={value}
+                    onChange={(e) => set(e.target.value)}
+                    maxLength={max}
+                    placeholder={placeholder}
+                  />
+                </div>
+              ))}
             <div className="field">
               <label htmlFor="waitlist-mode">Tuition format</label>
               <select
@@ -354,6 +441,10 @@ function WaitlistForm({ session }: { session: Session }) {
               variant="outline"
               onClick={() => {
                 setSaved(null);
+                setStage("SCHOOL");
+                setLevel("");
+                setCourseName("");
+                setStudyYear("");
                 setGrade("");
                 setBoard("");
                 setSubject("");
@@ -418,10 +509,15 @@ function WaitlistForm({ session }: { session: Session }) {
             {query.data.items.map((e) => (
               <li key={e.id}>
                 <h3>
-                  Class {e.grade} · {e.subject}
+                  {e.educationStage === "COLLEGE" ||
+                  e.educationStage === "EARLY_YEARS"
+                    ? educationLabel(e)
+                    : `Class ${e.grade}`}{" "}
+                  · {e.subject}
                 </h3>
                 <p>
-                  {e.board} · {e.language} · {e.region} ·{" "}
+                  {e.board && <>{e.board} · </>}
+                  {e.language} · {e.region} ·{" "}
                   {e.mode === "HOME" ? "At home" : "Online"}
                 </p>
                 <span className="badge">Recorded · pending</span>

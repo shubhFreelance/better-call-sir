@@ -345,13 +345,20 @@ test("real guardian saves a college profile, reloads it and reads the same priva
     await page.goto("/dashboard/family?learner=" + list.items[0].id);
     await expect(
       page.getByRole("option", {
-        name: "Synthetic learner · BA Economics",
+        name: "Synthetic learner · BA Economics · Year 2",
         exact: true,
       }),
     ).toHaveCount(1);
     await page.goto("/onboarding/parent");
     await beginGuardian(page);
-    await expect(page.getByLabel("Link an existing learner")).toHaveCount(0);
+    await expect(page.getByLabel("Link an existing learner")).toBeVisible();
+    await page
+      .getByLabel("Link an existing learner")
+      .selectOption(list.items[0].id);
+    await expect(page.getByLabel("Class", { exact: true })).toHaveCount(0);
+    await expect(
+      page.getByText("BA Economics · Year 2", { exact: true }),
+    ).toBeVisible();
   } finally {
     await pool.query(
       'UPDATE "Account" SET disabled=true,phone=NULL WHERE id=$1',
@@ -364,7 +371,7 @@ test("real guardian saves a college profile, reloads it and reads the same priva
   }
 });
 
-test("school education records Class 12 without implying expanded teacher coverage", async ({
+test("school education records Class 12 and explains that teacher fit is still checked", async ({
   page,
 }) => {
   const state = await mock(page);
@@ -388,7 +395,7 @@ test("school education records Class 12 without implying expanded teacher covera
     page.getByText("Class 12 · CBSE", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText(/Teacher enquiries currently cover Classes 6–10/),
+    page.getByText(/Teacher enquiries support early years, school and college/),
   ).toBeVisible();
   await page.getByRole("button", { name: "Confirm and save profile" }).click();
   expect(state.writes[0].body.education).toEqual({

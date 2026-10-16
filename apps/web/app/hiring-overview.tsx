@@ -361,7 +361,7 @@ export function HiringOverview({ session }: { session: Session }) {
                               {e.learner.alias && (
                                 <strong>{e.learner.alias} · </strong>
                               )}
-                              Class {e.learner.grade} · {e.learner.board}
+                              {educationLabel(e.learner)}
                             </p>
                             <dl className="hiring-details">
                               <div>
@@ -779,7 +779,7 @@ export function HiringOverview({ session }: { session: Session }) {
                 >
                   <h3>Review your response</h3>
                   <p>
-                    {selected.subject} · Class {selected.learner.grade} ·{" "}
+                    {selected.subject} · {educationLabel(selected.learner)} ·{" "}
                     {selected.mode === "HOME" ? "At home" : "Online"} ·{" "}
                     {selected.language}
                   </p>

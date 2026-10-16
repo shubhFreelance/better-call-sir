@@ -1,4 +1,12 @@
 "use client";
+import {
+  TeachingCoverageEditor,
+  coverageGroups,
+  expandedCoverage,
+  flatCoverage,
+  coverageText,
+  type TeachingScope,
+} from "./teaching-coverage";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -35,15 +43,12 @@ const profileSchema = z.object({
 });
 const coverageSchema = z
   .object({
-    subjects: z
-      .array(z.enum(["Maths", "Science"]))
-      .min(1, "Choose at least one subject."),
-    boards: z
-      .array(z.enum(["CBSE", "CGBSE"]))
-      .min(1, "Choose at least one board."),
-    grades: z
-      .array(z.number().int().min(6).max(10))
-      .min(1, "Choose at least one class."),
+    teachingCoverage: z
+      .array(z.custom<TeachingScope>())
+      .min(1, "Declare at least one teaching area."),
+    subjects: z.array(z.string().min(1).max(60)).min(1).max(40),
+    boards: z.array(z.string().min(1).max(80)).max(20),
+    grades: z.array(z.number().int().min(1).max(12)).max(12),
     languages: z
       .array(z.enum(["English", "Hindi"]))
       .min(1, "Choose at least one language."),
@@ -258,6 +263,10 @@ function ApplicationWizard({
     demoOptIn:
       typeof draft.demoOptIn === "boolean" ? draft.demoOptIn : undefined,
   });
+  const [teachingGroups, setTeachingGroups] = useState(() =>
+    coverageGroups(draft),
+  );
+  const expanded = expandedCoverage(teachingGroups);
   const [price, setPrice] = useState(
     draft.monthlyPaise !== undefined ? String(draft.monthlyPaise / 100) : "",
   );
@@ -323,9 +332,8 @@ function ApplicationWizard({
     }
     if (step >= 3)
       Object.assign(result, {
-        subjects: values.subjects || [],
-        boards: values.boards || [],
-        grades: values.grades || [],
+        teachingCoverage: expanded.scopes,
+        ...flatCoverage(expanded.scopes),
         languages: values.languages || [],
         modes: values.modes || [],
         localities: values.modes?.includes("HOME")
@@ -342,6 +350,13 @@ function ApplicationWizard({
     return result;
   }
   function validate(all = false) {
+    if ((all || step === 3) && expanded.error) {
+      setErrors({ teachingCoverage: expanded.error });
+      requestAnimationFrame(() =>
+        document.getElementById("coverage-subjects-0")?.focus(),
+      );
+      return false;
+    }
     const payload = data();
     const detailIssues = all
       ? {
@@ -631,8 +646,8 @@ function ApplicationWizard({
             <GraduationCap size={24} />
             <strong>For the Raipur pilot</strong>
             <p>
-              Maths and Science, classes 6–10. Select only the subjects, boards
-              and languages you teach confidently.
+              Early years, school and college. Select only the subjects and
+              curricula and languages you teach confidently.
             </p>
             <p>
               Your application stays private until approved and eligible for
@@ -725,16 +740,14 @@ function ApplicationWizard({
             )}
             {step === 3 && (
               <>
-                {choices("subjects", "Subjects", ["Maths", "Science"])}
-                {choices("boards", "School boards", ["CBSE", "CGBSE"])}
-                {choices(
-                  "grades",
-                  "Classes",
-                  [6, 7, 8, 9, 10],
-                  Object.fromEntries(
-                    [6, 7, 8, 9, 10].map((g) => [g, `Class ${g}`]),
-                  ),
-                )}
+                <TeachingCoverageEditor
+                  groups={teachingGroups}
+                  onChange={(groups) => {
+                    setTeachingGroups(groups);
+                    setErrors({});
+                  }}
+                  error={errors.teachingCoverage}
+                />
                 {choices("languages", "Teaching languages", [
                   "English",
                   "Hindi",
@@ -903,7 +916,7 @@ Not shown publicly`,
                   ],
                   [
                     "Coverage & tuition",
-                    `${values.subjects?.join(", ")} · ${values.boards?.join(", ")} · Classes ${values.grades?.join(", ")}`,
+                    coverageText({ teachingCoverage: expanded.scopes }),
                     `${values.languages?.join(", ")} · ${values.modes?.map((m) => (m === "HOME" ? "At home" : "Online")).join(", ")}\n${values.modes?.includes("HOME") ? values.localities?.join(", ") + "\n" : ""}${money(Math.round(Number(price) * 100))} per month\nConsultation interest: ${values.consultationOptIn ? "Yes" : "No"}`,
                   ],
                 ].map(([title, line, detail], i) => (

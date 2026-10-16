@@ -61,7 +61,13 @@ async function teaching(page: Page) {
   if (await address.isVisible()) await privateDetails(page);
 }
 async function coverage(page: Page) {
-  for (const label of ["Maths", "CBSE", "Class 8", "Hindi", "Online"])
+  await page
+    .getByLabel("Subjects in teaching area 1", { exact: true })
+    .fill("Maths");
+  await page
+    .getByLabel("Boards in teaching area 1", { exact: true })
+    .fill("CBSE");
+  for (const label of ["Class 8", "Hindi", "Online"])
     await page.getByRole("checkbox", { name: label, exact: true }).check();
   await page.getByLabel("Monthly tuition (₹)").fill("2500.50");
   await page.getByRole("radio", { name: "Yes, I can offer a demo" }).check();
@@ -409,7 +415,9 @@ test("real teacher application resumes, switches role and uploads private quaran
       exact: true,
     })
     .click();
-  await expect(page.getByText("Choose at least one subject.")).toBeVisible();
+  await expect(
+    page.getByText(/Teaching area 1: enter 1–40 distinct subjects/),
+  ).toBeVisible();
   await coverage(page);
   await expect(
     page.getByText("₹2,500.50 per month", { exact: false }),
@@ -597,7 +605,13 @@ test("home locality is explicit and uncertain private uploads keep their retry k
   const state = await mock(page, { uncertainUpload: true });
   await page.goto("/onboarding/teacher");
   await teaching(page);
-  for (const label of ["Maths", "CBSE", "Class 8", "Hindi", "At home"])
+  await page
+    .getByLabel("Subjects in teaching area 1", { exact: true })
+    .fill("Maths");
+  await page
+    .getByLabel("Boards in teaching area 1", { exact: true })
+    .fill("CBSE");
+  for (const label of ["Class 8", "Hindi", "At home"])
     await page.getByRole("checkbox", { name: label, exact: true }).check();
   await page.getByLabel("Monthly tuition (₹)").fill("2500.50");
   await page.getByRole("radio", { name: "Yes, I can offer a demo" }).check();
@@ -746,7 +760,13 @@ test("private education records and a declined demo survive review and submissio
       exact: true,
     })
     .click();
-  for (const label of ["Maths", "CBSE", "Class 8", "Hindi", "Online"])
+  await page
+    .getByLabel("Subjects in teaching area 1", { exact: true })
+    .fill("Maths");
+  await page
+    .getByLabel("Boards in teaching area 1", { exact: true })
+    .fill("CBSE");
+  for (const label of ["Class 8", "Hindi", "Online"])
     await page.getByRole("checkbox", { name: label, exact: true }).check();
   await page.getByLabel("Monthly tuition (₹)").fill("2500");
   await page
@@ -965,7 +985,13 @@ test("lock-in choice is explicit, saved on review and can be edited before submi
   const state = await mock(page);
   await page.goto("/onboarding/teacher");
   await teaching(page);
-  for (const label of ["Maths", "CBSE", "Class 8", "Hindi", "Online"])
+  await page
+    .getByLabel("Subjects in teaching area 1", { exact: true })
+    .fill("Maths");
+  await page
+    .getByLabel("Boards in teaching area 1", { exact: true })
+    .fill("CBSE");
+  for (const label of ["Class 8", "Hindi", "Online"])
     await page.getByRole("checkbox", { name: label, exact: true }).check();
   await page.getByLabel("Monthly tuition (₹)").fill("2500");
   await page.getByRole("radio", { name: "Yes, I can offer a demo" }).check();
@@ -1037,4 +1063,158 @@ test("lock-in choice is explicit, saved on review and can be edited before submi
     page.getByRole("heading", { name: "Your teacher workspace." }),
   ).toBeVisible();
   expect(state.getProfile().lockInDays).toBe(0);
+});
+
+test("teacher early-years, senior-school and college scopes save privately, resume and submit without cross-stage broadening", async ({
+  page,
+}) => {
+  const state = await mock(page);
+  await page.goto("/onboarding/teacher");
+  await teaching(page);
+  await page
+    .getByLabel("Education stage for teaching area 1")
+    .selectOption("COLLEGE");
+  await page
+    .getByLabel("Subjects in teaching area 1", { exact: true })
+    .fill("Mechanics");
+  await page
+    .getByLabel("Course / degree in teaching area 1")
+    .fill("BSc Physics");
+  await page.getByRole("checkbox", { name: "Year 2", exact: true }).check();
+  await page
+    .getByRole("button", { name: "Add teaching area", exact: true })
+    .click();
+  await page
+    .getByLabel("Education stage for teaching area 2")
+    .selectOption("EARLY_YEARS");
+  await page
+    .getByLabel("Subjects in teaching area 2", { exact: true })
+    .fill("Language");
+  await page.getByRole("checkbox", { name: "KG1", exact: true }).check();
+  await page
+    .getByRole("button", { name: "Add teaching area", exact: true })
+    .click();
+  await page
+    .getByLabel("Subjects in teaching area 3", { exact: true })
+    .fill("Physics");
+  await page
+    .getByLabel("Boards in teaching area 3", { exact: true })
+    .fill("CBSE");
+  await page.getByRole("checkbox", { name: "Class 12", exact: true }).check();
+  for (const name of ["English", "Online"])
+    await page.getByRole("checkbox", { name, exact: true }).check();
+  await page.getByLabel("Monthly tuition (₹)").fill("3000");
+  await page
+    .getByRole("radio", {
+      name: "No, I prefer to discuss tuition without a demo",
+    })
+    .check();
+  await page.getByRole("radio", { name: "Yes, 15 days", exact: true }).check();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({
+    path: "test-results/expanded-teacher-coverage-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "test-results/expanded-teacher-coverage-mobile.png",
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const a11y = await new AxeBuilder({ page }).analyze();
+  expect(
+    a11y.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+  await page
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
+    .click();
+  await expect(page.locator(".wizard-review")).toContainText("BSc Physics");
+  await page.reload();
+  for (const name of [
+    "Continue to private address",
+    "Continue to education & previous work",
+    "Continue to teaching preferences",
+  ])
+    await page.getByRole("button", { name, exact: true }).click();
+  await expect(
+    page.getByLabel("Education stage for teaching area 1"),
+  ).toHaveValue("COLLEGE");
+  await expect(
+    page.getByRole("checkbox", { name: "Year 2", exact: true }),
+  ).toBeChecked();
+  await page
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
+    .click();
+  await page.getByRole("checkbox").check();
+  await page
+    .getByRole("button", { name: "Submit teacher application", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Your teacher workspace." }),
+  ).toBeVisible();
+  expect(state.getProfile().teachingCoverage).toEqual(
+    expect.arrayContaining([
+      {
+        stage: "COLLEGE",
+        subject: "Mechanics",
+        courseName: "BSc Physics",
+        studyYear: 2,
+      },
+      { stage: "EARLY_YEARS", subject: "Language", level: "KG1" },
+      { stage: "SCHOOL", subject: "Physics", board: "CBSE", grade: 12 },
+    ]),
+  );
+  expect(state.getProfile().teachingCoverage).toHaveLength(3);
+  expect(state.getProfile().grades).toEqual([12]);
+});
+test("duplicate teaching areas are blocked before the application can reach review", async ({
+  page,
+}) => {
+  await mock(page);
+  await page.goto("/onboarding/teacher");
+  await teaching(page);
+  await page
+    .getByLabel("Subjects in teaching area 1", { exact: true })
+    .fill("Maths");
+  await page
+    .getByLabel("Boards in teaching area 1", { exact: true })
+    .fill("CBSE");
+  await page.getByRole("checkbox", { name: "Class 8", exact: true }).check();
+  await page
+    .getByRole("button", { name: "Add teaching area", exact: true })
+    .click();
+  await page
+    .getByLabel("Subjects in teaching area 2", { exact: true })
+    .fill("Maths");
+  await page
+    .getByLabel("Boards in teaching area 2", { exact: true })
+    .fill("CBSE");
+  await page
+    .getByRole("region", { name: "Teaching area 2", exact: true })
+    .getByRole("checkbox", { name: "Class 8", exact: true })
+    .check();
+  await page
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByText(/Two teaching areas repeat the same subject/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Review your application" }),
+  ).toHaveCount(0);
 });

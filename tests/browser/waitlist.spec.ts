@@ -58,8 +58,23 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
           },
         });
       if (!replay.has(key)) {
+        const {
+          stage = "SCHOOL",
+          level,
+          grade,
+          board,
+          courseName,
+          studyYear,
+          ...criteria
+        } = body;
         const result = {
-          ...body,
+          ...criteria,
+          educationStage: stage,
+          grade: stage === "SCHOOL" ? grade : null,
+          board: stage === "SCHOOL" ? board : null,
+          earlyYearsLevel: stage === "EARLY_YEARS" ? level : null,
+          courseName: stage === "COLLEGE" ? courseName : null,
+          studyYear: stage === "COLLEGE" ? studyYear : null,
           id: "80000000-0000-4000-8000-000000000301",
           guardianId: "10000000-0000-4000-8000-000000000301",
           status: "PENDING",
@@ -172,7 +187,7 @@ test("supported scope recovers to a free enquiry without losing form criteria", 
     .getByRole("button", { name: "Record my interest", exact: true })
     .click();
   await expect(
-    page.getByText(/These criteria are already covered/),
+    page.getByText(/This region accepts ordinary teacher enquiries/),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Send a free enquiry" }),
@@ -295,6 +310,8 @@ test("real verified guardian records unsupported coverage and reads it after rel
   await fill(page);
   const board = "Synthetic-" + crypto.randomUUID().slice(0, 8);
   await page.getByLabel("School board", { exact: true }).fill(board);
+  const region = "Synthetic-" + crypto.randomUUID().slice(0, 8);
+  await page.getByLabel("City / region", { exact: true }).fill(region);
   await page
     .getByRole("button", { name: "Record my interest", exact: true })
     .click();
@@ -303,6 +320,44 @@ test("real verified guardian records unsupported coverage and reads it after rel
   ).toBeVisible();
   await page.reload();
   await expect(
-    page.getByText(new RegExp(board + " · English · Raipur", "i")),
+    page.getByText(new RegExp(board + " · English · " + region, "i")),
   ).toBeVisible();
 });
+for (const stage of ["EARLY_YEARS", "COLLEGE"])
+  test(`future-region waitlist records ${stage} criteria without school class or identity`, async ({
+    page,
+  }) => {
+    const state = await mock(page);
+    await page.goto("/waitlist");
+    await page
+      .getByLabel("Education stage", { exact: true })
+      .selectOption(stage);
+    if (stage === "COLLEGE") {
+      await page
+        .getByLabel("Course / degree", { exact: true })
+        .fill("BSc Physics");
+      await page.getByLabel("Study year", { exact: true }).fill("2");
+    } else
+      await page
+        .getByLabel("Early years level", { exact: true })
+        .selectOption("KG1");
+    await page
+      .getByLabel("Subject", { exact: true })
+      .fill(stage === "COLLEGE" ? "Mechanics" : "Language");
+    await page.getByLabel("Teaching language", { exact: true }).fill("English");
+    await page
+      .getByLabel("City / region", { exact: true })
+      .fill("Synthetic future region");
+    await page.getByRole("checkbox").check();
+    await page
+      .getByRole("button", { name: "Record my interest", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: "Your interest is recorded." }),
+    ).toBeVisible();
+    expect(state.writes).toHaveLength(1);
+    expect(state.writes[0].body.stage).toBe(stage);
+    expect(state.writes[0].body).not.toHaveProperty("grade");
+    expect(state.writes[0].body).not.toHaveProperty("alias");
+    await expect(page.getByLabel("Class", { exact: true })).toHaveCount(0);
+  });

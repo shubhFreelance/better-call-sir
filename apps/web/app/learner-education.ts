@@ -4,9 +4,10 @@ type EducationSummary = {
   educationStage?: string;
   earlyYearsLevel?: string | null;
   courseName?: string | null;
+  studyYear?:number|null;
 };
 export function educationLabel(c: EducationSummary) {
-  if (c.educationStage === "COLLEGE") return c.courseName || "College";
+  if (c.educationStage === "COLLEGE") return `${c.courseName||"College"}${c.studyYear?" · Year "+c.studyYear:""}`;
   if (c.educationStage === "EARLY_YEARS")
     return c.earlyYearsLevel === "NURSERY"
       ? "Nursery"

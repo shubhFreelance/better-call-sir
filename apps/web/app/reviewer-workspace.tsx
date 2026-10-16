@@ -1,4 +1,5 @@
 "use client";
+import { TeachingCoverageSummary, coverageText } from "./teaching-coverage";
 import { TeacherDetailsSummary } from "./teacher-details-form";
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
@@ -316,6 +317,9 @@ function TeacherReview({
                 subjects: t.subjects,
                 boards: t.boards,
                 grades: t.grades,
+                ...(t.teachingCoverage
+                  ? { teachingCoverage: t.teachingCoverage }
+                  : {}),
               },
             }
           : {}),
@@ -360,9 +364,9 @@ function TeacherReview({
         <h3>{t.name}</h3>
         <p>{t.headline}</p>
         <p>{t.bio}</p>
+        <TeachingCoverageSummary profile={t} />
         <p>
-          Declared coverage: {t.subjects.join(", ")} · {t.boards.join(", ")} ·
-          Classes {t.grades.join(", ")} · {t.languages.join(", ")} ·{" "}
+          Teaching language and format: {t.languages.join(", ")} ·{" "}
           {t.modes.map(label).join(", ")} ·{" "}
           {t.localities.join(", ") || "No home localities"}
         </p>
@@ -626,9 +630,9 @@ function TeacherReview({
                                 onChange={(e) => setCoverage(e.target.checked)}
                               />
                               <span>
-                                I assessed the complete declared coverage:{" "}
-                                {t.subjects.join(", ")}; {t.boards.join(", ")};
-                                classes {t.grades.join(", ")}.
+                                I assessed every declared teaching area,
+                                including its stage, subject and class/board or
+                                course/year: {coverageText(t)}
                               </span>
                             </label>
                           )}
@@ -698,10 +702,10 @@ function TeacherReview({
                             : "Teacher decision: " + label(status) + "."}
                       </p>
                       {action === "check" && kind === "CAPABILITY" && (
-                        <p>
-                          Full coverage: {t.subjects.join(", ")} ·{" "}
-                          {t.boards.join(", ")} · Classes {t.grades.join(", ")}.
-                        </p>
+                        <div>
+                          <p>Full teaching coverage assessed:</p>
+                          <TeachingCoverageSummary profile={t} />
+                        </div>
                       )}
                       {action === "decision" && status === "SUSPENDED" && (
                         <p>

@@ -275,9 +275,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
             or activate a student account.
           </p>
           <p>
-            Teacher enquiries currently cover Classes 6–10, CBSE/CGBSE, Maths
-            and Science in the pilot. Broader teacher coverage is being built
-            separately.
+            Teacher enquiries support early years, school and college. Each match still needs an available teacher whose current reviewed coverage fits the learner.
           </p>
           <p>
             These details are private. Add education information only; do not
@@ -292,7 +290,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                 <p>
                   {saved.enquiryEligible
                     ? "You can select this learner when starting a supported tuition enquiry."
-                    : "The profile is saved. Teacher enquiries for this education stage or board are not available yet."}
+                    : "The profile is saved. Complete its education details before starting an enquiry."}
                 </p>
                 {saved.enquiryEligible && (
                   <Link className="inline-link" href="/onboarding/parent">
@@ -380,11 +378,11 @@ export function LearnerProfiles({ session }: { session: Session }) {
                           <EducationSummary education={p.education} />
                           <p className="care-help">
                             {p.enquiryEligible
-                              ? "Within the current academic enquiry scope."
+                              ? "Education details are ready for an enquiry. Teacher fit and availability still need to be checked."
                               : !p.education.institutionName ||
                                   !p.education.subjects.length
                                 ? "Education details are incomplete. Review guardian onboarding before sending an enquiry."
-                                : "Profile recorded; teacher enquiries for this stage or board are not available yet."}
+                                : "Complete the education details before requesting a teacher."}
                           </p>
                         </li>
                       ))}

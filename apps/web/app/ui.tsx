@@ -1,7 +1,13 @@
 "use client";
+import { TeachingCoverageSummary } from "./teaching-coverage";
+import {
+  CurriculumChoice,
+  subjectSuggestions,
+  boardSuggestions,
+} from "./curriculum-choice";
 import { LearnerProfiles } from "./learner-profiles";
 import { TeacherLockIn } from "./teacher-lock-in";
-import {WaitlistWorkspace} from "./waitlist-workspace";
+import { WaitlistWorkspace } from "./waitlist-workspace";
 import { HiringOverview } from "./hiring-overview";
 import { ReportsWorkspace } from "./reports-workspace";
 import { AdminConsole } from "./admin-console";
@@ -354,7 +360,7 @@ function Footer() {
             <br />
             Online & at-home lessons
             <br />
-            Classes 6–10 · CBSE & CGBSE
+            Early years, school & college
           </p>
         </div>
       </div>
@@ -474,13 +480,15 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
         {teacher.subjects.map((s) => (
           <span key={s}>{s}</span>
         ))}
-        <span>Classes 6–10</span>
       </div>
+      <TeachingCoverageSummary profile={teacher} compact />
       <div className="teacher-details">
-        <span>
-          <BookOpen size={15} />
-          {teacher.boards.join(" · ")}
-        </span>
+        {teacher.boards.length > 0 && (
+          <span>
+            <BookOpen size={15} />
+            {teacher.boards.join(" · ")}
+          </span>
+        )}
         <span>
           <MapPin size={15} />
           {teacher.modes.includes("HOME")
@@ -542,7 +550,7 @@ function Home() {
           <p>
             {hindi
               ? "हर बच्चा अलग तरह से सीखता है। अपने बच्चे के लिए सही गणित और विज्ञान शिक्षक खोजें।"
-              : "Every child learns differently. Find a teacher who gets yours — for Maths and Science, online or right at home."}
+              : "Find a teacher for early learning, school or college, online or close to home."}
           </p>
           <div className="hero-buttons">
             <Link className="button" href="/teachers">
@@ -679,6 +687,19 @@ function Home() {
 }
 function Teachers() {
   const discoveryParams = useSearchParams();
+  const [filterReset, setFilterReset] = useState(0);
+  const [stage, setStage] = useState(""),
+    [level, setLevel] = useState(""),
+    [courseName, setCourseName] = useState(""),
+    [studyYear, setStudyYear] = useState("");
+  function educationStage(next: string) {
+    setStage(next);
+    setGrade("");
+    setBoard("");
+    setLevel("");
+    setCourseName("");
+    setStudyYear("");
+  }
   const [q, setQ] = useState(""),
     [subject, setSubject] = useState(""),
     [mode, setMode] = useState(""),
@@ -694,6 +715,10 @@ function Teachers() {
     setTab(discoveryParams.get("tab") === "assisted" ? "assisted" : "manual");
   }, [discoveryParams]);
   const params = new URLSearchParams();
+  if (stage) params.set("stage", stage);
+  if (level) params.set("level", level);
+  if (courseName.trim()) params.set("courseName", courseName.trim());
+  if (studyYear) params.set("studyYear", studyYear);
   if (q.trim()) params.set("q", q.trim());
   if (subject) params.set("subject", subject);
   if (mode) params.set("mode", mode);
@@ -713,7 +738,7 @@ function Teachers() {
       <PageTitle
         eyebrow="FIND YOUR KIND OF TEACHER"
         title="Good learning starts with a good fit."
-        subtitle="Maths & Science · Classes 6–10 · CBSE & CGBSE · Raipur"
+        subtitle="Early years, school & college · Raipur pilot"
       />
       <Tabs
         value={tab}
@@ -738,9 +763,9 @@ function Teachers() {
               <span className="eyebrow">PERSONALIZED HELP</span>
               <h2>Tell us what would work for your family.</h2>
               <p>
-                Share your learner’s class, subject, schedule and budget. We’ll
-                review suitable teachers and prepare options for your guardian
-                account.
+                Share your learner’s education, subject, availability and
+                budget. We’ll review suitable teachers and prepare options for
+                your guardian account.
               </p>
             </div>
             <Link
@@ -762,17 +787,35 @@ function Teachers() {
                 onChange={(e) => setQ(e.target.value)}
               />
             </label>
-            <label className="filter-select">
-              <span className="filter-label">Subject</span>
+            <div className="filter-select">
+              <label className="filter-label" htmlFor="search-stage">
+                Education stage
+              </label>
               <select
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
+                id="search-stage"
+                value={stage}
+                onChange={(e) => educationStage(e.target.value)}
               >
-                <option value="">All subjects</option>
-                <option>Maths</option>
-                <option>Science</option>
+                <option value="">All stages</option>
+                <option value="EARLY_YEARS">Early years — Nursery / KG</option>
+                <option value="SCHOOL">School — Classes 1–12</option>
+                <option value="COLLEGE">College / university</option>
               </select>
-            </label>
+            </div>
+            <div className="filter-select">
+              <label className="filter-label" htmlFor="search-subject">
+                Subject
+              </label>
+              <CurriculumChoice
+                key={"subject-" + filterReset}
+                id="search-subject"
+                value={subject}
+                onChange={setSubject}
+                suggestions={subjectSuggestions}
+                customLabel="Subject name"
+                anyLabel="All subjects"
+              />
+            </div>
             <label className="filter-select">
               <span className="filter-label">Lesson mode</span>
               <select value={mode} onChange={(e) => setMode(e.target.value)}>
@@ -781,33 +824,89 @@ function Teachers() {
                 <option value="ONLINE">Online</option>
               </select>
             </label>
-            <label className="filter-select">
-              <span className="filter-label">Board</span>
-              <select
-                aria-label="Board"
-                value={board}
-                onChange={(e) => setBoard(e.target.value)}
-              >
-                <option value="">All boards</option>
-                <option>CBSE</option>
-                <option>CGBSE</option>
-              </select>
-            </label>
-            <label className="filter-select">
-              <span className="filter-label">Class</span>
-              <select
-                aria-label="Class"
-                value={grade}
-                onChange={(e) => setGrade(e.target.value)}
-              >
-                <option value="">All classes</option>
-                {[6, 7, 8, 9, 10].map((n) => (
-                  <option key={n} value={n}>
-                    Class {n}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {(!stage || stage === "SCHOOL") && (
+              <>
+                <div className="filter-select">
+                  <label className="filter-label" htmlFor="search-board">
+                    Board
+                  </label>
+                  <CurriculumChoice
+                    key={"board-" + filterReset}
+                    id="search-board"
+                    value={board}
+                    onChange={(v) => {
+                      setBoard(v);
+                      if (v) setStage("SCHOOL");
+                    }}
+                    suggestions={boardSuggestions}
+                    customLabel="Board name"
+                    anyLabel="All boards"
+                  />
+                </div>
+                <label className="filter-select">
+                  <span className="filter-label">Class</span>
+                  <select
+                    aria-label="Class"
+                    value={grade}
+                    onChange={(e) => {
+                      setGrade(e.target.value);
+                      if (e.target.value) setStage("SCHOOL");
+                    }}
+                  >
+                    <option value="">All classes</option>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>
+                        Class {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            )}
+            {stage === "EARLY_YEARS" && (
+              <label className="filter-select">
+                <span className="filter-label">Early years level</span>
+                <select
+                  aria-label="Early years level"
+                  value={level}
+                  onChange={(e) => setLevel(e.target.value)}
+                >
+                  <option value="">All early years levels</option>
+                  <option value="NURSERY">Nursery</option>
+                  <option value="KG1">KG1</option>
+                  <option value="KG2">KG2</option>
+                </select>
+              </label>
+            )}
+            {stage === "COLLEGE" && (
+              <>
+                <label className="filter-select">
+                  <span className="filter-label">Course / degree</span>
+                  <Input
+                    aria-label="Course / degree"
+                    value={courseName}
+                    onChange={(e) => setCourseName(e.target.value)}
+                    maxLength={160}
+                    placeholder="For example BSc Physics"
+                  />
+                </label>
+                <label className="filter-select">
+                  <span className="filter-label">Study year</span>
+                  <select
+                    aria-label="Study year"
+                    value={studyYear}
+                    onChange={(e) => setStudyYear(e.target.value)}
+                  >
+                    <option value="">All study years</option>
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>
+                        Year {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            )}
             <label className="filter-select">
               <span className="filter-label">Language</span>
               <select
@@ -858,7 +957,9 @@ function Teachers() {
               variant="outline"
               className="reset-filters"
               onClick={() => {
+                setFilterReset((v) => v + 1);
                 setQ("");
+                educationStage("");
                 setSubject("");
                 setMode("");
                 setBoard("");
@@ -891,8 +992,22 @@ function Teachers() {
               <TeacherCard key={t.id} teacher={t} />
             ))}
           </div>
-          {query.data?.items.length === 0 && (
-            !query.error && <section className="coverage-recovery" aria-label="Search recovery"><h2>No teachers match these filters right now.</h2><p>Try broader filters or let us review your needs. An empty search does not mean your class or subject is outside pilot coverage.</p><div className="wizard-actions"><UiButton variant="outline" onClick={()=>setTab("assisted")}>Let us search for you</UiButton><Link className="inline-link" href="/waitlist">Need another class, subject or city?</Link></div></section>
+          {query.data?.items.length === 0 && !query.error && (
+            <section className="coverage-recovery" aria-label="Search recovery">
+              <h2>No teachers match these filters right now.</h2>
+              <p>
+                Try broader filters or let us review your needs. An empty search
+                does not mean your class or subject is outside pilot coverage.
+              </p>
+              <div className="wizard-actions">
+                <UiButton variant="outline" onClick={() => setTab("assisted")}>
+                  Let us search for you
+                </UiButton>
+                <Link className="inline-link" href="/waitlist">
+                  Need another class, subject or city?
+                </Link>
+              </div>
+            </section>
           )}
           <div className="help-card">
             <div>
@@ -908,7 +1023,12 @@ function Teachers() {
           </div>
         </TabsContent>
       </Tabs>
-      <p className="coverage-discovery-link">Looking outside our current pilot coverage? <Link className="inline-link" href="/waitlist">Request future coverage</Link></p>
+      <p className="coverage-discovery-link">
+        Looking outside our current pilot coverage?{" "}
+        <Link className="inline-link" href="/waitlist">
+          Request future coverage
+        </Link>
+      </p>
     </main>
   );
 }
@@ -941,11 +1061,12 @@ function Profile({ slug }: { slug: string }) {
               {t.subjects.map((s) => (
                 <span key={s}>{s}</span>
               ))}
-              <span>Classes 6–10</span>
+
               {t.boards.map((b) => (
                 <span key={b}>{b}</span>
               ))}
             </div>
+            <TeachingCoverageSummary profile={t} />
             <div className="detail-grid">
               <div>
                 <Languages />
@@ -985,7 +1106,10 @@ function Profile({ slug }: { slug: string }) {
               <small> / month</small>
             </h2>
             <TeacherLockIn days={t.lockInDays} />
-            <p className="care-help">Teacher-declared preference. Cancellation restrictions are not currently enforced.</p>
+            <p className="care-help">
+              Teacher-declared preference. Cancellation restrictions are not
+              currently enforced.
+            </p>
             {t.demoAvailable && (
               <p className="teacher-demo-badge">
                 <Check size={16} aria-hidden="true" /> Demo available · optional
@@ -1184,8 +1308,26 @@ function TeacherOnboarding() {
     );
   return <TeacherSetup session={session} onSessionChange={setSession} />;
 }
-function LearnerProfilesPage(){const {session,loading}=useAuth();if(loading)return <State loading/>;if(!session)return <LoginPrompt/>;if(!["GUARDIAN","STUDENT"].includes(session.account.role))return <main className="container narrow section"><h1>Learner profiles belong to guardian and student accounts.</h1><Link href="/dashboard" className="inline-link">Return to dashboard</Link></main>;return <LearnerProfiles key={session.account.id} session={session}/>;}
-function WaitlistPage(){const {session,loading}=useAuth();if(loading)return <State loading/>;return <WaitlistWorkspace session={session}/>;}
+function LearnerProfilesPage() {
+  const { session, loading } = useAuth();
+  if (loading) return <State loading />;
+  if (!session) return <LoginPrompt />;
+  if (!["GUARDIAN", "STUDENT"].includes(session.account.role))
+    return (
+      <main className="container narrow section">
+        <h1>Learner profiles belong to guardian and student accounts.</h1>
+        <Link href="/dashboard" className="inline-link">
+          Return to dashboard
+        </Link>
+      </main>
+    );
+  return <LearnerProfiles key={session.account.id} session={session} />;
+}
+function WaitlistPage() {
+  const { session, loading } = useAuth();
+  if (loading) return <State loading />;
+  return <WaitlistWorkspace session={session} />;
+}
 function StudentOnboarding() {
   const {
     session,
@@ -1196,13 +1338,12 @@ function StudentOnboarding() {
   } = useAuth();
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
-  if (session.account.role === "STUDENT") return <StudentWelcome session={session} />;
+  if (session.account.role === "STUDENT")
+    return <StudentWelcome session={session} />;
   if (session.account.role !== "GUARDIAN")
     return (
       <main className="container narrow section">
-        <h1>
-          A guardian must authorize student access.
-        </h1>
+        <h1>A guardian must authorize student access.</h1>
         <Link href="/dashboard" className="button">
           Open dashboard
         </Link>
@@ -1237,8 +1378,24 @@ function DashboardShell({
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
     ["/teachers", "Find a teacher", Search],
-    ...(["GUARDIAN","STUDENT"].includes(role||"") ? [["/dashboard/learners", "Education profiles", GraduationCap] as [string,string,LucideIcon]] : []),
-    ...(role === "STUDENT" ? [["/onboarding/student", "Learning preferences", Settings] as [string, string, LucideIcon]] : []),
+    ...(["GUARDIAN", "STUDENT"].includes(role || "")
+      ? [
+          ["/dashboard/learners", "Education profiles", GraduationCap] as [
+            string,
+            string,
+            LucideIcon,
+          ],
+        ]
+      : []),
+    ...(role === "STUDENT"
+      ? [
+          ["/onboarding/student", "Learning preferences", Settings] as [
+            string,
+            string,
+            LucideIcon,
+          ],
+        ]
+      : []),
     ...(role === "GUARDIAN"
       ? ([
           ["/dashboard/requests", "Enquiries & teacher choices", Users],
@@ -1721,7 +1878,9 @@ function DashboardPage({ tab }: { tab: string }) {
             <>
               <DemoJourney session={session} act={act} />
               <ReservationBookings session={session} dashboard={d} />
-              {d.role === "GUARDIAN" && <TuitionTerms session={session} dashboard={d} />}
+              {d.role === "GUARDIAN" && (
+                <TuitionTerms session={session} dashboard={d} />
+              )}
               {d.role === "TEACHER" && (
                 <>
                   <h3>Assigned opportunities</h3>

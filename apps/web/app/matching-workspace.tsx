@@ -328,7 +328,7 @@ function MatchRequest({
           </p>
           <h4>Required eligibility</h4>
           <p>
-            Current screening and fee acceptance; learner class/board;
+            Current screening and fee acceptance; learner stage, class/board or course/year;
             subject/language/format; budget; home travel/locality where
             relevant; available capacity and a current availability overlap.
             Replacement requests exclude the previous teacher. These
@@ -610,9 +610,7 @@ function MatchRequest({
               Rules: {r.rankerVersion} · Feature version: {r.featureVersion}
             </p>
             <p>
-              Recorded learner coverage: Class{" "}
-              {String(r.requestFeatures.grade ?? "not recorded")} ·{" "}
-              {String(r.requestFeatures.board ?? "not recorded")}.{" "}
+              Recorded learner coverage: {r.requestFeatures.educationStage==='COLLEGE'?`${String(r.requestFeatures.courseName||'College')} · Year ${String(r.requestFeatures.studyYear||'not recorded')}`:r.requestFeatures.educationStage==='EARLY_YEARS'?String(r.requestFeatures.earlyYearsLevel||'Early years'):`Class ${String(r.requestFeatures.grade??'not recorded')} · ${String(r.requestFeatures.board??'not recorded')}`}.{' '}
               {r.eligiblePool.poolLimited
                 ? "This run was pool-limited."
                 : "No pool-limit flag recorded."}

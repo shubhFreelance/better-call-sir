@@ -59,6 +59,22 @@ async function mock(page: Page, mode = "normal", role = "REVIEWER") {
     travelAccepted: false,
     version: 1,
   };
+  if (mode === "expanded")
+    Object.assign(t, {
+      subjects: ["Mechanics", "Language", "Physics"],
+      boards: ["CBSE"],
+      grades: [12],
+      teachingCoverage: [
+        {
+          stage: "COLLEGE",
+          subject: "Mechanics",
+          courseName: "BSc Physics",
+          studyYear: 2,
+        },
+        { stage: "EARLY_YEARS", subject: "Language", level: "KG1" },
+        { stage: "SCHOOL", subject: "Physics", board: "CBSE", grade: 12 },
+      ],
+    });
   let evidence = kinds.map((kind, i) => ({
       id: eid(i),
       teacherId: teacher,
@@ -192,6 +208,7 @@ async function mock(page: Page, mode = "normal", role = "REVIEWER") {
         subjects: t.subjects,
         boards: t.boards,
         grades: t.grades,
+        ...(t.teachingCoverage ? { teachingCoverage: t.teachingCoverage } : {}),
       });
       const { expectedVersion, ...assessment } = body;
       result = check("VerificationCheck", {
@@ -256,7 +273,7 @@ async function capability(page: Page) {
   await page.getByLabel("Assessment result").selectOption("PASSED");
   await page
     .getByRole("checkbox", {
-      name: /I assessed the complete declared coverage/,
+      name: /I assessed every declared teaching area/,
     })
     .check();
   await page
@@ -536,6 +553,7 @@ test.describe("real scoped reviewer flow", () => {
       adapter: new PrismaPg({ connectionString: url.href }),
     });
     try {
+      const region = "Synthetic reviewer " + randomUUID();
       const account = await db.account.create({
           data: {
             name: "Synthetic reviewer browser applicant",
@@ -546,6 +564,7 @@ test.describe("real scoped reviewer flow", () => {
           data: {
             accountId: account.id,
             slug: "synthetic-review-" + randomUUID(),
+            region,
             name: account.name,
             headline: "Synthetic class 8 Maths",
             bio: "Synthetic reviewer browser fixture",
@@ -560,7 +579,12 @@ test.describe("real scoped reviewer flow", () => {
             feeTermsAcceptedAt: new Date(),
           },
         });
-      await verifiedStaffSession(page.request);
+      const session = await verifiedStaffSession(page.request);
+      // Isolate the bounded regional queue from other synthetic applications.
+      await db.account.update({
+        where: { id: session.account.id },
+        data: { role: "REVIEWER", region },
+      });
       await page.goto("/dashboard/review?teacher=" + t.id);
       await expect(
         page.getByRole("button", {
@@ -602,4 +626,25 @@ test.describe("real scoped reviewer flow", () => {
       await db.$disconnect();
     }
   });
+});
+
+test("capability review records exact early years, school and college teaching areas", async ({
+  page,
+}) => {
+  const s = await mock(page, "expanded");
+  await page.goto("/dashboard/review");
+  await expect(page.getByText(/BSc Physics/).first()).toBeVisible();
+  await capability(page);
+  await page
+    .getByRole("button", { name: "Confirm reviewer decision", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Screening assessment recorded. Teacher approval remains a separate decision.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  expect(s.writes[0].body.coverage.teachingCoverage).toEqual(
+    s.t().teachingCoverage,
+  );
 });

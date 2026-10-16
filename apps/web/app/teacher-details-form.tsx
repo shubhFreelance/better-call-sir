@@ -1,4 +1,5 @@
 "use client";
+import {TeachingCoverageSummary,type TeachingScope} from "./teaching-coverage";
 import { TeacherLockIn } from "./teacher-lock-in";
 import type { ReactNode } from "react";
 import type { components } from "@bcs/api-client";
@@ -11,6 +12,8 @@ export type TeacherDetails = {
   address: Address;
   education: Education[];
   employment: Employment[];
+  teachingCoverage?:TeachingScope[]|null;
+  subjects?:string[];boards?:string[];grades?:number[];
   demoOptIn?: boolean;
   lockInDays?: number | null;
 };
@@ -594,6 +597,8 @@ export function TeacherDetailsSummary({
       ) : (
         <p>No previous work recorded.</p>
       )}
+      <h4>Declared teaching areas</h4>
+      <TeachingCoverageSummary profile={profile}/>
       <h4>Lock-in preference</h4>
       <TeacherLockIn days={profile.lockInDays} />
       <p className="wizard-help">

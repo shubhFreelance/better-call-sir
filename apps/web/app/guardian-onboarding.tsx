@@ -1,5 +1,11 @@
 "use client";
-import { pilotLearner } from "./learner-education";
+import { educationLabel } from "./learner-education";
+import {
+  CurriculumChoice,
+  subjectSuggestions,
+  boardSuggestions,
+} from "./curriculum-choice";
+import { TeachingCoverageSummary } from "./teaching-coverage";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -49,8 +55,8 @@ type Draft = {
   preferredTeacherId?: string;
   childId?: string;
   alias: string;
-  grade: number;
-  board: string;
+  grade: number | null;
+  board: string | null;
   subject: string;
   mode: string;
   language: string;
@@ -105,11 +111,11 @@ const learnerSchema = z.object({
     .trim()
     .min(1, "Enter a learner alias.")
     .max(40, "Use 40 characters or fewer."),
-  grade: z.coerce.number().int().min(6).max(10),
-  board: z.enum(["CBSE", "CGBSE"]),
+  grade: z.coerce.number().int().min(1).max(12),
+  board: z.string().trim().min(1, "Enter a board.").max(80),
 });
 const needsSchema = z.object({
-  subject: z.enum(["Maths", "Science"]),
+  subject: z.string().trim().min(1, "Choose a subject.").max(60),
   mode: z.enum(["HOME", "ONLINE"]),
   language: z.enum(["English", "Hindi"]),
   locality: z.string().trim().min(1, "Choose a locality."),
@@ -483,8 +489,14 @@ function Wizard({
           }
         : {}),
       alias: values.alias.trim(),
-      grade: Number(values.grade),
-      board: values.board,
+      grade: values.childId
+        ? (children.data?.items.find((c) => c.id === values.childId)?.grade ??
+          null)
+        : Number(values.grade),
+      board: values.childId
+        ? (children.data?.items.find((c) => c.id === values.childId)?.board ??
+          null)
+        : values.board.trim(),
       subject: values.subject,
       mode: values.mode,
       language: values.language,
@@ -499,7 +511,12 @@ function Wizard({
   function validate(): boolean {
     const parsed =
       step === 1
-        ? learnerSchema.safeParse(values)
+        ? (selectedChild &&
+          selectedChild.educationStage !== undefined &&
+          selectedChild.educationStage !== "SCHOOL"
+            ? learnerSchema.omit({ grade: true, board: true })
+            : learnerSchema
+          ).safeParse(values)
         : step === 2
           ? needsSchema.safeParse(values)
           : null;
@@ -930,8 +947,15 @@ function Wizard({
                       </AlertDescription>
                     </Alert>
                   )}
-                  <p className="wizard-help">This enquiry supports Classes 6–10, CBSE/CGBSE. <Link className="inline-link" href="/dashboard/learners">Add education profiles for other stages</Link>.</p>
-                  {!!children.data?.items.filter(pilotLearner).length && (
+                  <p className="wizard-help">
+                    Select a saved learner from early years, school or college,
+                    or add school details here.{" "}
+                    <Link className="inline-link" href="/dashboard/learners">
+                      Add or view education profiles
+                    </Link>
+                    .
+                  </p>
+                  {!!children.data?.items.length && (
                     <Field id="childId" label="Link an existing learner">
                       <select
                         id="childId"
@@ -947,16 +971,16 @@ function Wizard({
                             schoolSubjects:
                               child?.schoolSubjects?.join(", ") || "",
                             alias: child?.alias || "",
-                            grade: String(child?.grade || 8),
+                            grade: child ? String(child.grade ?? "") : "8",
                             board: child?.board || "CBSE",
                           }));
                           setSaved(false);
                         }}
                       >
                         <option value="">Add another learner</option>
-                        {children.data.items.filter(pilotLearner).map((c) => (
+                        {children.data.items.map((c) => (
                           <option key={c.id} value={c.id}>
-                            {c.alias} · Class {c.grade}
+                            {c.alias} · {educationLabel(c)}
                           </option>
                         ))}
                       </select>
@@ -979,7 +1003,11 @@ function Wizard({
                   </Field>
                   <Field
                     id="schoolName"
-                    label="School name"
+                    label={
+                      selectedChild?.educationStage === "COLLEGE"
+                        ? "College / institution name"
+                        : "School name"
+                    }
                     error={errors.schoolName}
                     hint="Kept private for onboarding and tuition coordination; never listed publicly."
                   >
@@ -998,7 +1026,13 @@ function Wizard({
                   </Field>
                   <Field
                     id="schoolSubjects"
-                    label="Subjects studied in this class"
+                    label={
+                      selectedChild?.educationStage === "COLLEGE"
+                        ? "Subjects studied in this course"
+                        : selectedChild?.educationStage === "EARLY_YEARS"
+                          ? "Learning areas"
+                          : "Subjects studied in this class"
+                    }
                     error={errors.schoolSubjects}
                     hint="Separate subjects with commas, for example Maths, Science, English, Hindi, Social studies."
                   >
@@ -1022,38 +1056,52 @@ function Wizard({
                         .map((s) => s.trim())
                         .filter(Boolean).length
                     }{" "}
-                    class subjects listed. Choose the tuition subject separately
-                    in the next step.
+                    subjects listed. Choose the tuition subject separately in
+                    the next step.
                   </p>
-                  <div className="form-row">
-                    <Field id="grade" label="Class" error={errors.grade}>
-                      <select
-                        id="grade"
-                        value={values.grade}
-                        onChange={(e) => change("grade", e.target.value)}
-                        disabled={!!values.childId}
-                        {...errorProps("grade")}
-                      >
-                        {[6, 7, 8, 9, 10].map((n) => (
-                          <option value={n} key={n}>
-                            Class {n}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                    <Field id="board" label="Board" error={errors.board}>
-                      <select
-                        id="board"
-                        value={values.board}
-                        onChange={(e) => change("board", e.target.value)}
-                        disabled={!!values.childId}
-                        {...errorProps("board")}
-                      >
-                        <option>CBSE</option>
-                        <option>CGBSE</option>
-                      </select>
-                    </Field>
-                  </div>
+                  {selectedChild &&
+                  selectedChild.educationStage &&
+                  selectedChild.educationStage !== "SCHOOL" ? (
+                    <div className="care-review">
+                      <strong>{educationLabel(selectedChild)}</strong>
+                      <p>
+                        This enquiry uses the stage and course details in the
+                        saved learner profile.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="form-row">
+                      <Field id="grade" label="Class" error={errors.grade}>
+                        <select
+                          id="grade"
+                          value={values.grade}
+                          onChange={(e) => change("grade", e.target.value)}
+                          disabled={!!values.childId}
+                          {...errorProps("grade")}
+                        >
+                          {Array.from({ length: 12 }, (_, i) => i + 1).map(
+                            (n) => (
+                              <option key={n} value={n}>
+                                Class {n}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </Field>
+                      <Field id="board" label="Board" error={errors.board}>
+                        <CurriculumChoice
+                          id="board"
+                          value={values.board}
+                          onChange={(v) => change("board", v)}
+                          disabled={!!values.childId}
+                          suggestions={boardSuggestions}
+                          customLabel="Board name"
+                          error={!!errors.board}
+                          errorId={errors.board ? "board-error" : undefined}
+                        />
+                      </Field>
+                    </div>
+                  )}
                   {selectedChild && (
                     <p className="wizard-help">
                       These details come from your saved learner. To use
@@ -1066,15 +1114,20 @@ function Wizard({
                 <div className="wizard-fields">
                   <div className="form-row">
                     <Field id="subject" label="Subject" error={errors.subject}>
-                      <select
+                      <CurriculumChoice
                         id="subject"
                         value={values.subject}
-                        onChange={(e) => change("subject", e.target.value)}
-                        {...errorProps("subject")}
-                      >
-                        <option>Maths</option>
-                        <option>Science</option>
-                      </select>
+                        onChange={(v) => change("subject", v)}
+                        suggestions={[
+                          ...new Set([
+                            ...subjectSuggestions,
+                            ...(selectedChild?.schoolSubjects || []),
+                          ]),
+                        ]}
+                        customLabel="Subject name"
+                        error={!!errors.subject}
+                        errorId={errors.subject ? "subject-error" : undefined}
+                      />
                     </Field>
                     <Field id="mode" label="Lesson format" error={errors.mode}>
                       <select
@@ -1284,7 +1337,7 @@ function Wizard({
                     {
                       title: "Learner",
                       edit: 1,
-                      content: `${values.alias} · Class ${values.grade} · ${values.board}\n${values.schoolName}\nClass subjects: ${values.schoolSubjects}`,
+                      content: `${values.alias} · ${selectedChild ? educationLabel(selectedChild) : `Class ${values.grade} · ${values.board}`}\n${values.schoolName}\nSubjects: ${values.schoolSubjects}`,
                     },
                     {
                       title: "Tuition needs",
