@@ -37,6 +37,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from "../components/ui/tabs";
+import { GuardianSetup } from "./guardian-setup";
 import { GuardianOnboarding } from "./guardian-onboarding";
 import { TeacherSetup } from "./teacher-onboarding";
 import { RoleOverview } from "./role-overview";
@@ -1157,12 +1158,14 @@ function Login() {
     const next = searchParams.get("next");
     router.push(
       next &&
-        (/^\/onboarding\/(parent|teacher|student)(?:\?|$)/.test(next) ||
+        (/^\/onboarding\/(parent|guardian|teacher|student)(?:\?|$)/.test(
+          next,
+        ) ||
           (session.account.role === "GUARDIAN" &&
             /^\/revision(?:\?[^#]*)?$/.test(next)))
         ? next
         : session.account.role === "GUARDIAN" && !session.account.verified
-          ? "/onboarding/parent"
+          ? "/onboarding/guardian"
           : "/dashboard",
     );
   }
@@ -1308,6 +1311,27 @@ function TeacherOnboarding() {
     );
   return <TeacherSetup session={session} onSessionChange={setSession} />;
 }
+function GuardianSetupPage() {
+  const { session, setSession, loading } = useAuth();
+  if (loading) return <State loading />;
+  if (!session) return <LoginPrompt />;
+  if (session.account.role !== "GUARDIAN")
+    return (
+      <main className="container narrow section">
+        <h1>Guardian setup belongs to a guardian account.</h1>
+        <Link href="/dashboard" className="inline-link">
+          Return to dashboard
+        </Link>
+      </main>
+    );
+  return (
+    <GuardianSetup
+      key={session.account.id}
+      session={session}
+      onSessionChange={setSession}
+    />
+  );
+}
 function LearnerProfilesPage() {
   const { session, loading } = useAuth();
   if (loading) return <State loading />;
@@ -1398,6 +1422,7 @@ function DashboardShell({
       : []),
     ...(role === "GUARDIAN"
       ? ([
+          ["/onboarding/guardian", "Guardian setup", ShieldCheck],
           ["/dashboard/requests", "Enquiries & teacher choices", Users],
           ["/dashboard/arrangements", "Arrangements & replacement", RefreshCw],
           ["/dashboard/family", "Learners & access", ShieldCheck],
@@ -2134,6 +2159,8 @@ function Routes() {
     <Login />
   ) : path === "/dashboard/learners" ? (
     <LearnerProfilesPage />
+  ) : path === "/onboarding/guardian" ? (
+    <GuardianSetupPage />
   ) : path === "/onboarding/parent" ? (
     <IntakeForm />
   ) : path === "/onboarding/teacher" ? (

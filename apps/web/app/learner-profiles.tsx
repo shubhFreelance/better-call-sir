@@ -1,6 +1,7 @@
 "use client";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
@@ -44,7 +45,9 @@ const gateMessages = {
   READY: "",
 };
 export function LearnerProfiles({ session }: { session: Session }) {
-  const client = useQueryClient();
+  const client = useQueryClient(),
+    params = useSearchParams(),
+    router = useRouter();
   const [cursor, setCursor] = useState<string | null>(null),
     [adding, setAdding] = useState(false),
     [saved, setSaved] = useState<Profile | null>(null);
@@ -78,6 +81,19 @@ export function LearnerProfiles({ session }: { session: Session }) {
   const ready =
     query.data?.creationStatus === "READY" && !query.error && !query.isFetching;
   const locked = busy || uncertain || !!openingId;
+  useEffect(() => {
+    if (
+      params.get("new") !== "1" ||
+      !ready ||
+      adding ||
+      session.account.role !== "GUARDIAN"
+    )
+      return;
+    setAdding(true);
+    router.replace("/dashboard/learners", { scroll: false });
+    requestAnimationFrame(() => heading.current?.focus());
+  }, [params, ready, adding, session.account.role, router]);
+
   async function openEdit(id: string) {
     setOpeningId(id);
     setOpenError("");
@@ -249,6 +265,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
       await client.invalidateQueries({ queryKey: ["hiring-dashboard"] });
       await client.invalidateQueries({ queryKey: ["dashboard"] });
       await client.invalidateQueries({ queryKey: ["learner-profiles"] });
+      await client.invalidateQueries({ queryKey: ["guardian-setup"] });
     } catch (error) {
       const unknown =
         !(error instanceof ApiError) ||
@@ -343,6 +360,11 @@ export function LearnerProfiles({ session }: { session: Session }) {
         <Link href="/dashboard" className="inline-link">
           Back to dashboard
         </Link>
+        {session.account.role === "GUARDIAN" && (
+          <Link href="/onboarding/guardian" className="inline-link">
+            Guardian setup
+          </Link>
+        )}
       </header>
       <div className="learner-profile-layout">
         <aside className="learner-profile-intro">
@@ -371,6 +393,9 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     ? "You can select this learner when starting a supported tuition enquiry."
                     : "The profile is saved. Complete its education details before starting an enquiry."}
                 </p>
+                <Link href="/onboarding/guardian" className="inline-link">
+                  Continue guardian setup
+                </Link>
                 {saved.enquiryEligible && (
                   <Link className="inline-link" href="/onboarding/parent">
                     Start a tuition enquiry
@@ -440,7 +465,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     {["VERIFICATION_REQUIRED", "CONSENT_REQUIRED"].includes(
                       query.data.creationStatus,
                     ) && (
-                      <Link href="/onboarding/parent" className="inline-link">
+                      <Link href="/onboarding/guardian" className="inline-link">
                         Review guardian onboarding
                       </Link>
                     )}

@@ -187,7 +187,7 @@ for (const mode of [
 ])
   test(`learner profile access respects ${mode}`, async ({ page }) => {
     const state = await mock(page, mode);
-    await page.goto("/dashboard/learners");
+    await page.goto("/dashboard/learners?new=1");
     if (mode === "student") {
       await expect(
         page.getByText("BA Economics · Year 2", { exact: true }),

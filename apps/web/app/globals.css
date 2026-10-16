@@ -39,6 +39,9 @@
   border: 1px solid transparent;
   cursor: pointer;
 }
+[data-slot="button"][data-variant="default"] {
+  color: var(--white);
+}
 [data-slot="button"][data-variant="outline"] {
   border-color: var(--line);
   background: var(--white);
@@ -4838,3 +4841,6 @@ footer {
 
 .learner-profile-edit-context{background:var(--green);padding:1.25rem;border-radius:.75rem;margin:1.5rem 0;color:var(--primary)}
 .learner-profile-edit-context p{margin:.5rem 0 0;line-height:1.6}
+
+.guardian-setup-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:2rem;align-items:start}.guardian-setup-path{background:var(--green);border-radius:1.25rem;padding:1.75rem;color:var(--primary)}.guardian-setup-path h2{font-size:1.5rem;line-height:1.25}.guardian-setup-path>p{margin:1rem 0 1.75rem}.guardian-setup-path ol{list-style:none;padding:0;margin:0;display:grid;gap:1.5rem}.guardian-setup-path li{display:flex;gap:1rem;align-items:flex-start}.guardian-setup-path h3{font-size:1rem;margin:0 0 .4rem}.guardian-setup-path li p{margin:0;font-size:.875rem;line-height:1.55}.setup-step-number{flex:0 0 2rem;height:2rem;display:grid;place-items:center;border:1px solid var(--primary);border-radius:50%;font-weight:700}.setup-step-number.complete{background:var(--primary);color:var(--white)}.guardian-setup-panel{border:1px solid var(--line);border-radius:1.25rem;background:var(--white);padding:2rem}.guardian-setup-panel h2{font-size:1.75rem;line-height:1.25;margin:1.5rem 0 1rem}.guardian-setup-panel p{line-height:1.7;max-width:68ch}.guardian-setup-panel>.inline-link{display:inline-block;margin-top:1rem}.guardian-setup-account{display:flex;align-items:center;gap:1rem;padding-bottom:1.5rem;border-bottom:1px solid var(--line);margin-bottom:1.5rem;color:var(--primary)}.guardian-setup-account p{margin:.25rem 0 0;font-size:.875rem}.guardian-setup-account button{margin-left:auto}.guardian-setup-panel .wizard-checkbox{margin-top:1.5rem}.guardian-setup-discovery{background:var(--paper);border-radius:1rem;padding:1.5rem;margin:2rem 0}.guardian-setup-discovery h3{margin:1rem 0 .5rem}.guardian-setup-explore{margin-top:2rem}.guardian-setup .wizard-title>.inline-link{margin-right:1rem}.guardian-setup [data-slot=button]{height:auto;min-height:2.5rem;white-space:normal;text-align:center}.guardian-setup-panel [role=alert]{margin:1rem 0}
+@media(max-width:760px){.guardian-setup-layout{grid-template-columns:1fr;gap:1.25rem}.guardian-setup-path,.guardian-setup-panel{padding:1.25rem}.guardian-setup-path>p{margin-bottom:1.25rem}.guardian-setup-path ol{gap:1rem}.guardian-setup-account{flex-wrap:wrap}.guardian-setup-account button{margin-left:0}.guardian-setup-discovery{padding:1.25rem}.guardian-setup-panel h2{font-size:1.5rem}.guardian-setup .wizard-actions{gap:1rem}}
