@@ -2,9 +2,23 @@
 
 Updated 16 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
-Next sprint: **remaining H2 access polish, H5 localization and launch qualification**. Guardian drafts, weekly availability, teacher-revision drafts and dashboard hiring-term confirmation are implemented. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
+Next sprint: **expanded learner onboarding and account ownership**, followed by remaining H2 access polish, H5 localization and launch qualification. Guardian drafts, weekly availability, teacher-revision drafts and dashboard hiring-term confirmation are implemented. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
 
 Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides broader class-management launch requirements in the original PRD. Existing security, privacy and release controls remain required for the focused journey.
+
+## New owner requirements — staged delivery (16 October 2026)
+
+This request expands the intended audience beyond the current Classes 6–10 pilot. The items below are not implemented until checked. Existing consent and family access protections remain active during migration.
+
+- [ ] **L1 — Education model and coverage:** nursery, KG1/KG2, Classes 1–12 and college. Separate education stage from numeric school class; collect school/college, board or university/course/year and studied subjects as appropriate. Update validation, drafts, contracts, fixtures and legacy migration without inventing college grades. Expand teacher coverage, screening, matching, manual/assisted search and waitlist rules consistently. Recording a stage does not promise screened teacher supply.
+- [ ] **L2 — Guardian-led onboarding:** guardian creates their own account/profile, then adds/manages one or more learner profiles; preserve existing family ownership, consent, invitations and private records. Simplify the steps while retaining necessary details.
+- [ ] **L3 — Student-led onboarding and self-management:** direct student signup, education details and learner-owned enquiries/teacher selection. Latest owner clarification makes the UX decision explicit: “I can manage my learning” → student makes learning choices, with optional guardian help; “I need a guardian to manage this” → guardian invitation/acceptance required for managed profile and teacher decisions. Explain both paths plainly and support school/college stages. The earlier Class 6/7 threshold is no longer sufficient as the authorization rule. **Age and child-data authorization policy remains unresolved:** readiness is a product choice, not proof of adulthood or valid minor consent. Record age/consent separately; do not remove current safeguards solely on self-assessed readiness.
+- [ ] **L4 — Optional guardian assignment:** student invites/assigns a guardian through explicit acceptance, with clearly stated management permissions and safe revocation/recovery. Optional assistance should grant only the agreed learning/teacher-selection scope; managed mode lets the accepted guardian manage the learner profile, dashboard and teacher decisions. These permissions do not expose other-family records or grant staff authority. Prevent unsolicited guardian claims and exposure of existing records. Existing guardian-to-child invitations do not complete this reverse flow.
+- [x] **T1 — Teacher lock-in preference:** no lock-in / 15 / 30 days on onboarding, saved drafts/revisions, review, private owner/reviewer summaries, public search cards and profiles. Existing unrecorded choices remain explicitly unrecorded. This is a declaration, not cancellation enforcement.
+- [ ] **T2 — Agreed lock-in terms and enforcement:** define commencement, mutual acceptance, immutable arrangement snapshot, teacher changes affecting future arrangements only, cancellation/replacement/refund consequences and safety/service-failure exceptions before enforcing any restriction. No fees or cancellation blocks introduced by T1.
+- [ ] **L5 — Integrated acceptance:** exercise guardian-led junior learner, school student, college adult, optional guardian linkage and unauthorized access across onboarding → enquiry → hiring → support; mobile, keyboard and Hindi coverage. Broader self-management remains pending L1–L4.
+
+Delivery order: complete independent T1 first; then L1, L2, L3 and L4 in separate tested increments, followed by agreed T2 and L5. The readiness flow is now specified; final age/consent policy blocks only dependent authorization changes. Existing remaining support/access/localization/release items below stay tracked.
 
 ## Current priorities
 

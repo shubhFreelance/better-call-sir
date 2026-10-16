@@ -65,6 +65,7 @@ async function coverage(page: Page) {
     await page.getByRole("checkbox", { name: label, exact: true }).check();
   await page.getByLabel("Monthly tuition (₹)").fill("2500.50");
   await page.getByRole("radio", { name: "Yes, I can offer a demo" }).check();
+  await page.getByRole("radio", { name: "Yes, 15 days", exact: true }).check();
   await page
     .getByRole("button", {
       name: "Continue to review application",
@@ -126,6 +127,7 @@ async function mock(
     localities: [],
     monthlyPaise: 250050,
     experience: 4,
+    lockInDays: 0,
     avatarColor: "#034F46",
     consultationOptIn: false,
     accountId: "10000000-0000-4000-8000-000000000091",
@@ -599,6 +601,7 @@ test("home locality is explicit and uncertain private uploads keep their retry k
     await page.getByRole("checkbox", { name: label, exact: true }).check();
   await page.getByLabel("Monthly tuition (₹)").fill("2500.50");
   await page.getByRole("radio", { name: "Yes, I can offer a demo" }).check();
+  await page.getByRole("radio", { name: "Yes, 15 days", exact: true }).check();
   await page
     .getByRole("button", {
       name: "Continue to review application",
@@ -751,6 +754,9 @@ test("private education records and a declined demo survive review and submissio
       name: "No, I prefer to discuss tuition without a demo",
     })
     .check();
+  await page
+    .getByRole("radio", { name: "No, I do not require a lock-in" })
+    .check();
   await page.screenshot({
     path: "test-results/teacher-demo-preference-desktop.png",
     fullPage: true,
@@ -776,6 +782,7 @@ test("private education records and a declined demo survive review and submissio
   ).toBeVisible();
   expect(state.getProfile()).toMatchObject({
     demoOptIn: false,
+    lockInDays: 0,
     address: { line1: "12 Synthetic Road" },
     education: expect.arrayContaining([
       {
@@ -950,4 +957,84 @@ test("uncertain saved revision submission retries once without repeating screeni
   expect(state.revisionKeys[0]).toBe(state.revisionKeys[1]);
   expect(state.revisionBodies[0]).toEqual(state.revisionBodies[1]);
   expect(state.getProfile().profileRevision).toBe(2);
+});
+
+test("lock-in choice is explicit, saved on review and can be edited before submission", async ({
+  page,
+}) => {
+  const state = await mock(page);
+  await page.goto("/onboarding/teacher");
+  await teaching(page);
+  for (const label of ["Maths", "CBSE", "Class 8", "Hindi", "Online"])
+    await page.getByRole("checkbox", { name: label, exact: true }).check();
+  await page.getByLabel("Monthly tuition (₹)").fill("2500");
+  await page.getByRole("radio", { name: "Yes, I can offer a demo" }).check();
+  await page
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByText("Choose no lock-in, 15 days or 30 days."),
+  ).toBeVisible();
+  await page.getByRole("radio", { name: "Yes, 30 days", exact: true }).check();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByRole("group", { name: "Do you want a minimum engagement period?" })
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: "test-results/teacher-lock-in-mobile.png",
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByText("30 days lock-in", { exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  for (const name of [
+    "Continue to private address",
+    "Continue to education & previous work",
+    "Continue to teaching preferences",
+  ])
+    await page.getByRole("button", { name, exact: true }).click();
+  await expect(
+    page.getByRole("radio", { name: "Yes, 30 days", exact: true }),
+  ).toBeChecked();
+  await page
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("button", { name: "Edit lock-in preference", exact: true })
+    .click();
+  await page
+    .getByRole("radio", { name: "No, I do not require a lock-in" })
+    .check();
+  await page
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
+    .click();
+  await page.getByRole("checkbox").check();
+  await page
+    .getByRole("button", { name: "Submit teacher application", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Your teacher workspace." }),
+  ).toBeVisible();
+  expect(state.getProfile().lockInDays).toBe(0);
 });

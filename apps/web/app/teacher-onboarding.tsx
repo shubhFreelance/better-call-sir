@@ -57,6 +57,9 @@ const coverageSchema = z
       .min(50000, "Enter ₹500–₹20,000, with up to two decimal places.")
       .max(2000000, "Enter ₹500–₹20,000, with up to two decimal places."),
     consultationOptIn: z.boolean(),
+    lockInDays: z.union([z.literal(0), z.literal(15), z.literal(30)], {
+      error: "Choose no lock-in, 15 days or 30 days.",
+    }),
     demoOptIn: z.boolean({
       error: "Choose whether you offer an optional demo.",
     }),
@@ -251,6 +254,7 @@ function ApplicationWizard({
     address: draft.address || emptyDetails.address,
     education: draft.education || emptyDetails.education,
     employment: draft.employment || [],
+    lockInDays: draft.lockInDays ?? undefined,
     demoOptIn:
       typeof draft.demoOptIn === "boolean" ? draft.demoOptIn : undefined,
   });
@@ -332,6 +336,7 @@ function ApplicationWizard({
           : NaN,
         consultationOptIn: !!values.consultationOptIn,
         demoOptIn: values.demoOptIn,
+        lockInDays: values.lockInDays,
       });
     if (terms) result.feeTermsAccepted = true;
     return result;
@@ -790,6 +795,43 @@ function ApplicationWizard({
                     </small>
                   )}
                 </fieldset>
+                <fieldset
+                  className="teacher-demo-choice teacher-lock-in-choice"
+                  aria-describedby="lock-in-help"
+                >
+                  <legend>Do you want a minimum engagement period?</legend>
+                  <p id="lock-in-help" className="wizard-help">
+                    Choose your lock-in preference. Families will see it on your
+                    search card and profile. This records your preference;
+                    cancellation restrictions are not currently enforced.
+                  </p>
+                  {([0, 15, 30] as const).map((days) => (
+                    <label key={days}>
+                      <input
+                        type="radio"
+                        name="teacher-lock-in"
+                        checked={values.lockInDays === days}
+                        onChange={() => change("lockInDays", days)}
+                        aria-invalid={!!errors.lockInDays}
+                        aria-describedby={
+                          errors.lockInDays ? "lock-in-error" : undefined
+                        }
+                      />
+                      {days === 0
+                        ? "No, I do not require a lock-in"
+                        : `Yes, ${days} days`}
+                    </label>
+                  ))}
+                  {errors.lockInDays && (
+                    <small
+                      id="lock-in-error"
+                      role="alert"
+                      className="field-error"
+                    >
+                      {errors.lockInDays}
+                    </small>
+                  )}
+                </fieldset>
                 <label className="wizard-checkbox">
                   <input
                     type="checkbox"
@@ -846,6 +888,13 @@ Not shown publicly`,
                       .join("\n") || "No previous work recorded.",
                   ],
                   [
+                    "Lock-in preference",
+                    values.lockInDays === 0
+                      ? "No lock-in period"
+                      : `${values.lockInDays} days lock-in`,
+                    "Displayed publicly as your preference. Cancellation restrictions are not currently enforced.",
+                  ],
+                  [
                     "Optional demo",
                     values.demoOptIn ? "Demo available" : "Demo not offered",
                     values.demoOptIn
@@ -867,7 +916,7 @@ Not shown publicly`,
                     <Button
                       variant="ghost"
                       type="button"
-                      onClick={() => setStep([0, 1, 2, 2, 3, 3][i])}
+                      onClick={() => setStep([0, 1, 2, 2, 3, 3, 3][i])}
                     >
                       Edit{" "}
                       {
@@ -876,6 +925,7 @@ Not shown publicly`,
                           "private address",
                           "education",
                           "previous work",
+                          "lock-in preference",
                           "demo preference",
                           "coverage",
                         ][i]

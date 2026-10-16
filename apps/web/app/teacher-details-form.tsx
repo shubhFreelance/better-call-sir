@@ -1,4 +1,5 @@
 "use client";
+import { TeacherLockIn } from "./teacher-lock-in";
 import type { ReactNode } from "react";
 import type { components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
@@ -11,6 +12,7 @@ export type TeacherDetails = {
   education: Education[];
   employment: Employment[];
   demoOptIn?: boolean;
+  lockInDays?: number | null;
 };
 export const milestones = {
   CLASS_10: "Class 10",
@@ -592,6 +594,12 @@ export function TeacherDetailsSummary({
       ) : (
         <p>No previous work recorded.</p>
       )}
+      <h4>Lock-in preference</h4>
+      <TeacherLockIn days={profile.lockInDays} />
+      <p className="wizard-help">
+        A declared preference; cancellation restrictions are not currently
+        enforced.
+      </p>
       <h4>Optional demo preference</h4>
       <p>
         {profile.demoOptIn === true

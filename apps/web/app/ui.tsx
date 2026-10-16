@@ -1,4 +1,5 @@
 "use client";
+import { TeacherLockIn } from "./teacher-lock-in";
 import {WaitlistWorkspace} from "./waitlist-workspace";
 import { HiringOverview } from "./hiring-overview";
 import { ReportsWorkspace } from "./reports-workspace";
@@ -467,6 +468,7 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
           <Check size={14} aria-hidden="true" /> Demo available
         </span>
       )}
+      <TeacherLockIn days={teacher.lockInDays} />
       <div className="teacher-tags">
         {teacher.subjects.map((s) => (
           <span key={s}>{s}</span>
@@ -981,6 +983,8 @@ function Profile({ slug }: { slug: string }) {
               {rupees(t.monthlyPaise)}
               <small> / month</small>
             </h2>
+            <TeacherLockIn days={t.lockInDays} />
+            <p className="care-help">Teacher-declared preference. Cancellation restrictions are not currently enforced.</p>
             {t.demoAvailable && (
               <p className="teacher-demo-badge">
                 <Check size={16} aria-hidden="true" /> Demo available · optional
