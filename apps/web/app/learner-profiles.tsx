@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "../components/ui/alert";
 type Profile = components["schemas"]["LearnerProfile"];
 type Profiles = components["schemas"]["LearnerProfiles"];
 type ProfileInput = components["schemas"]["LearnerProfileInput"];
+type ProfileUpdate = components["schemas"]["LearnerProfileUpdate"];
 const initial = {
   alias: "",
   stage: "SCHOOL",
@@ -37,7 +38,7 @@ const gateMessages = {
     "Guardian verification is required before entering learner details.",
   CONSENT_REQUIRED: "Review guardian consent before entering learner details.",
   PRIVACY_PAUSED:
-    "New learner profiles are paused while your deletion request is reviewed.",
+    "Learner profile changes are paused while your deletion request is reviewed.",
   READ_ONLY:
     "You can view your linked profile. Your guardian currently manages education details.",
   READY: "",
@@ -47,13 +48,22 @@ export function LearnerProfiles({ session }: { session: Session }) {
   const [cursor, setCursor] = useState<string | null>(null),
     [adding, setAdding] = useState(false),
     [saved, setSaved] = useState<Profile | null>(null);
+  const [editing, setEditing] = useState<Profile | null>(null),
+    [openingId, setOpeningId] = useState<string | null>(null),
+    [openError, setOpenError] = useState(""),
+    [editNotice, setEditNotice] = useState(""),
+    [stale, setStale] = useState(false);
   const [values, setValues] = useState(initial),
     [review, setReview] = useState<ProfileInput | null>(null),
     [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false),
     [uncertain, setUncertain] = useState(false),
     [message, setMessage] = useState("");
-  const pending = useRef<{ body: ProfileInput; key: string } | null>(null),
+  const pending = useRef<{
+      body: ProfileInput | ProfileUpdate;
+      key: string;
+      path: string;
+    } | null>(null),
     heading = useRef<HTMLHeadingElement>(null);
   const query = useQuery({
     queryKey: ["learner-profiles", session.account.id, cursor],
@@ -67,7 +77,57 @@ export function LearnerProfiles({ session }: { session: Session }) {
   });
   const ready =
     query.data?.creationStatus === "READY" && !query.error && !query.isFetching;
-  const locked = busy || uncertain;
+  const locked = busy || uncertain || !!openingId;
+  async function openEdit(id: string) {
+    setOpeningId(id);
+    setOpenError("");
+    setEditNotice("");
+    setSaved(null);
+    try {
+      const current = await api<Profile>("/learner-profiles/" + id);
+      if (current.editStatus !== "EDITABLE") {
+        setEditNotice(
+          current.editStatus === "DELETED"
+            ? "This learner profile was deleted and cannot be restored by editing."
+            : "This learner profile is linked to enquiry or learning history. Direct edits are unavailable. Use privacy requests for name corrections, or contact support to review education changes.",
+        );
+        setAdding(false);
+        setEditing(null);
+        setReview(null);
+        return;
+      }
+      const e = current.education;
+      setValues({
+        ...initial,
+        alias: current.alias,
+        stage: e.stage,
+        institutionName: e.institutionName || "",
+        subjects: e.subjects.join(", "),
+        ...(e.stage === "SCHOOL"
+          ? { grade: String(e.grade ?? ""), board: e.board || "" }
+          : e.stage === "EARLY_YEARS"
+            ? { level: e.level || "" }
+            : {
+                courseName: e.courseName || "",
+                university: e.university || "",
+                studyYear: String(e.studyYear ?? ""),
+              }),
+      });
+      setEditing(current);
+      setAdding(true);
+      setReview(null);
+      setErrors({});
+      setMessage("");
+      setStale(false);
+      requestAnimationFrame(() => heading.current?.focus());
+    } catch (error) {
+      setOpenError(
+        "We couldn’t load the latest learner profile. Your current edits are retained. Try opening the profile again.",
+      );
+    } finally {
+      setOpeningId(null);
+    }
+  }
   function change(name: keyof typeof initial, value: string) {
     setValues((v) => ({ ...v, [name]: value }));
     setErrors((e) => ({ ...e, [name]: "" }));
@@ -153,16 +213,25 @@ export function LearnerProfiles({ session }: { session: Session }) {
     requestAnimationFrame(() => heading.current?.focus());
   }
   async function save() {
-    if (!review || (!ready && !uncertain)) return;
+    if (!review || stale || (!ready && !uncertain)) return;
     const attempt = pending.current || {
-      body: review,
+      body: editing
+        ? {
+            ...review,
+            expectedVersion: editing.version,
+            confirmed: true as const,
+          }
+        : review,
       key: crypto.randomUUID(),
+      path: editing
+        ? "/learner-profiles/" + editing.id + "/updates"
+        : "/learner-profiles",
     };
     pending.current = attempt;
     setBusy(true);
     setMessage("");
     try {
-      const result = await api<Profile>("/learner-profiles", {
+      const result = await api<Profile>(attempt.path, {
         method: "POST",
         body: attempt.body,
         key: attempt.key,
@@ -172,20 +241,28 @@ export function LearnerProfiles({ session }: { session: Session }) {
       setUncertain(false);
       setSaved(result);
       setAdding(false);
+      setEditing(null);
       setReview(null);
       setValues(initial);
       await client.invalidateQueries({ queryKey: ["children"] });
       await client.invalidateQueries({ queryKey: ["family-children"] });
       await client.invalidateQueries({ queryKey: ["hiring-dashboard"] });
       await client.invalidateQueries({ queryKey: ["dashboard"] });
-      await query.refetch();
+      await client.invalidateQueries({ queryKey: ["learner-profiles"] });
     } catch (error) {
-      const unknown = !(error instanceof ApiError) || error.status >= 500;
+      const unknown =
+        !(error instanceof ApiError) ||
+        error.code === "INVALID_RESPONSE" ||
+        error.status >= 500;
       setUncertain(unknown);
       if (!unknown) pending.current = null;
+      if (editing && error instanceof ApiError && error.status === 409)
+        setStale(true);
       setMessage(
         unknown
-          ? "We couldn’t confirm whether the profile was saved. Retry this save; the same request will not create a second profile."
+          ? editing
+            ? "We couldn’t confirm whether your changes were saved. Retry the same save; your update will be applied only once."
+            : "We couldn’t confirm whether the profile was saved. Retry this save; the same request will not create a second profile."
           : error instanceof Error
             ? error.message
             : "The profile could not be saved.",
@@ -275,7 +352,9 @@ export function LearnerProfiles({ session }: { session: Session }) {
             or activate a student account.
           </p>
           <p>
-            Teacher enquiries support early years, school and college. Each match still needs an available teacher whose current reviewed coverage fits the learner.
+            Teacher enquiries support early years, school and college. Each
+            match still needs an available teacher whose current reviewed
+            coverage fits the learner.
           </p>
           <p>
             These details are private. Add education information only; do not
@@ -306,12 +385,33 @@ export function LearnerProfiles({ session }: { session: Session }) {
               </AlertDescription>
             </Alert>
           )}
+          {openingId && (
+            <p role="status">Loading the latest learner profile…</p>
+          )}
+          {openError && (
+            <Alert variant="destructive">
+              <AlertDescription>{openError}</AlertDescription>
+            </Alert>
+          )}
+          {editNotice && (
+            <Alert>
+              <AlertDescription>
+                {editNotice}
+                <Link href="/dashboard/privacy" className="inline-link">
+                  Review privacy and correction requests
+                </Link>
+                <Link href="/dashboard/support" className="inline-link">
+                  Get help with education details
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
           {query.isPending && <p role="status">Loading learner profiles…</p>}
           {query.error && (
             <Alert variant="destructive">
               <AlertDescription>
                 We couldn’t load the current learner profiles. Your form is
-                retained; refresh before creating a profile.
+                retained; refresh before saving a profile.
                 <Button
                   disabled={locked}
                   variant="outline"
@@ -347,7 +447,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                   </AlertDescription>
                 </Alert>
               )}
-              {(!adding || query.data.items.length > 0) && (
+              {!editing && (!adding || query.data.items.length > 0) && (
                 <section
                   className="care-card"
                   aria-label="Saved learner profiles"
@@ -356,9 +456,16 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     <h2>Saved profiles</h2>
                     {session.account.role === "GUARDIAN" && !adding && (
                       <Button
-                        disabled={!ready}
+                        disabled={!ready || locked}
                         onClick={() => {
                           setAdding(true);
+                          setEditing(null);
+                          setValues(initial);
+                          setErrors({});
+                          setReview(null);
+                          setStale(false);
+                          setOpenError("");
+                          setEditNotice("");
                           setSaved(null);
                           setMessage("");
                           requestAnimationFrame(() => heading.current?.focus());
@@ -376,6 +483,15 @@ export function LearnerProfiles({ session }: { session: Session }) {
                         <li key={p.id}>
                           <h3>{p.alias}</h3>
                           <EducationSummary education={p.education} />
+                          {session.account.role === "GUARDIAN" && (
+                            <Button
+                              variant="outline"
+                              disabled={!ready || locked || adding}
+                              onClick={() => openEdit(p.id)}
+                            >
+                              Edit profile for {p.alias}
+                            </Button>
+                          )}
                           <p className="care-help">
                             {p.enquiryEligible
                               ? "Education details are ready for an enquiry. Teacher fit and availability still need to be checked."
@@ -392,7 +508,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     {cursor && (
                       <Button
                         variant="outline"
-                        disabled={locked || query.isFetching}
+                        disabled={locked || adding || query.isFetching}
                         onClick={() => setCursor(null)}
                       >
                         First page
@@ -401,7 +517,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     {query.data.nextCursor && (
                       <Button
                         variant="outline"
-                        disabled={locked || query.isFetching}
+                        disabled={locked || adding || query.isFetching}
                         onClick={() => setCursor(query.data!.nextCursor)}
                       >
                         Next profiles
@@ -413,7 +529,12 @@ export function LearnerProfiles({ session }: { session: Session }) {
             </>
           )}
           {adding && (
-            <section className="wizard-card" aria-label="New learner profile">
+            <section
+              className="wizard-card"
+              aria-label={
+                editing ? "Edit learner profile" : "New learner profile"
+              }
+            >
               <p className="wizard-save-note">
                 All fields shown are required. Details stay in this form until
                 you confirm the save. Leaving or reloading clears unsaved
@@ -422,16 +543,27 @@ export function LearnerProfiles({ session }: { session: Session }) {
               <h2 ref={heading} tabIndex={-1}>
                 {review
                   ? "Review the learner profile"
-                  : "Add education details"}
+                  : editing
+                    ? "Edit education details"
+                    : "Add education details"}
               </h2>
+              {editing && (
+                <div className="learner-profile-edit-context">
+                  <strong>Updating {editing.alias}’s education profile</strong>
+                  <p>
+                    Review every change before saving. Student access
+                    permissions stay as they are. Profiles used in an enquiry or
+                    learning history need a correction review.
+                  </p>
+                </div>
+              )}
               {review ? (
                 <>
                   <h3>{review.alias}</h3>
                   <EducationSummary education={review.education} />
                   <p>
-                    Your guardian account will manage this profile. Student
-                    self-management and optional guardian assistance are being
-                    built separately.
+                    You manage this learner’s education details. Saving this
+                    profile does not change student access permissions.
                   </p>
                 </>
               ) : (
@@ -444,7 +576,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                   }}
                 >
                   <fieldset
-                    disabled={locked || !ready}
+                    disabled={locked || stale || !ready}
                     className="learner-education-fields"
                   >
                     <legend className="sr-only">Learner education</legend>
@@ -536,6 +668,31 @@ export function LearnerProfiles({ session }: { session: Session }) {
                   <AlertDescription>{message}</AlertDescription>
                 </Alert>
               )}
+              {stale && editing && (
+                <Alert>
+                  <AlertDescription>
+                    The saved profile changed or can no longer be edited. Your
+                    edits are retained. Reloading discards them; review the
+                    latest profile before saving again.
+                    <Button
+                      variant="outline"
+                      disabled={locked}
+                      onClick={() => openEdit(editing.id)}
+                    >
+                      Discard edits and reload profile
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+              {openError && editing && !stale && (
+                <Button
+                  variant="outline"
+                  disabled={locked}
+                  onClick={() => openEdit(editing.id)}
+                >
+                  Retry opening profile
+                </Button>
+              )}
               <div className="wizard-actions">
                 {review ? (
                   <>
@@ -550,21 +707,25 @@ export function LearnerProfiles({ session }: { session: Session }) {
                       Edit details
                     </Button>
                     <Button
-                      disabled={busy || (!ready && !uncertain)}
+                      disabled={
+                        busy || stale || !!openingId || (!ready && !uncertain)
+                      }
                       onClick={save}
                     >
                       {busy
                         ? "Saving profile…"
                         : uncertain
                           ? "Retry profile save"
-                          : "Confirm and save profile"}
+                          : editing
+                            ? "Confirm and save changes"
+                            : "Confirm and save profile"}
                     </Button>
                   </>
                 ) : (
                   <Button
                     type="submit"
                     form="learner-education-form"
-                    disabled={locked || !ready}
+                    disabled={locked || stale || !ready}
                   >
                     Review learner profile
                   </Button>
@@ -574,6 +735,9 @@ export function LearnerProfiles({ session }: { session: Session }) {
                   disabled={locked}
                   onClick={() => {
                     setAdding(false);
+                    setEditing(null);
+                    setStale(false);
+                    setOpenError("");
                     setReview(null);
                     setMessage("");
                   }}
