@@ -89,6 +89,7 @@ model Invitation {
   usedAt DateTime?
 }
 model Teacher {
+  teachingCoverage Json?
   address Json?
   education Json?
   employment Json?
@@ -527,10 +528,14 @@ model Region {
   @@unique([countryCode, stateCode, cityName])
 }
 model Waitlist {
+  educationStage String @default("SCHOOL")
+  earlyYearsLevel String?
+  courseName String?
+  studyYear Int?
   id String @id @default(uuid()) @db.Uuid
   guardianId String @db.Uuid
-  grade Int
-  board String
+  grade Int?
+  board String?
   subject String
   language String
   mode String

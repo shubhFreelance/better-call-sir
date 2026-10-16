@@ -1,3 +1,4 @@
+import {subjectSchema,boardSchema,teachingScopes,sameCoverage} from '../../coverage';
 import {
   Module,
   Controller,
@@ -40,6 +41,7 @@ export async function reviewed(
     boards: string[];
     grades: number[];
     subjects: string[];
+    teachingCoverage?:unknown;
   },
   now = new Date(),
 ) {
@@ -53,6 +55,7 @@ export async function reviewed(
   });
   if (!checkKinds.every((kind) => checks.some((c) => c.kind === kind)))
     return null;
+  if(teacher.teachingCoverage&&!checks.some(c=>c.kind==='CAPABILITY'&&sameCoverage(teacher,(c.coverage as {teachingCoverage?:unknown}|null)?.teachingCoverage)))return null;
   const evidence = await db.evidence.findMany({
     where: { id: { in: checks.map((c) => c.evidenceId) }, status: "CLEAN" },
   });
@@ -298,19 +301,7 @@ class VerificationController {
   ) {
     parse(uuid, id);
     const actor = await this.service.actor(req, ["ADMIN", "REVIEWER"]);
-    const coverage = z
-      .object({
-        subjects: z
-          .array(z.enum(["Maths", "Science"]))
-          .min(1)
-          .max(2),
-        boards: z
-          .array(z.enum(["CBSE", "CGBSE"]))
-          .min(1)
-          .max(2),
-        grades: z.array(z.number().int().min(6).max(10)).min(1).max(5),
-      })
-      .strict();
+    const coverage=z.object({subjects:z.array(subjectSchema).min(1).max(40),boards:z.array(boardSchema).max(20),grades:z.array(z.number().int().min(1).max(12)).max(12),teachingCoverage:teachingScopes.optional()}).strict();
     const data = parse(
       z
         .object({
@@ -360,6 +351,7 @@ class VerificationController {
       if (data.kind === "CAPABILITY") {
         if (
           !data.coverage ||
+          (teacher.teachingCoverage&&!sameCoverage(teacher,data.coverage?.teachingCoverage)) ||
           !["subjects", "boards", "grades"].every(
             (key) =>
               JSON.stringify(
@@ -375,7 +367,7 @@ class VerificationController {
           fail(
             400,
             "COVERAGE_MISMATCH",
-            "Record checks for the full declared subject, board and grade coverage.",
+            "Record checks for every declared stage, subject and curriculum/course/year scope.",
           );
       } else if (data.coverage)
         fail(

@@ -1,3 +1,4 @@
+import {subjectSchema,boardSchema,teachingScopes,coverageProfile,declaredScopes} from '../../coverage';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
 import {Module, Controller, Get, Post, Param, Query, Body, Req, Res, Injectable, Inject, HttpException, Catch, ExceptionFilter, ArgumentsHost, Global} from '@nestjs/common';
@@ -14,10 +15,11 @@ import {detailsShape} from './details';
 import {reviewed} from '../verification/verification.module';
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,HttpRequest,DB} from '../../shared';
 
-export const applicationSchema=z.object({...detailsShape,name:text(80),headline:text(120),bio:text(1500),subjects:z.array(z.enum(['Maths','Science'])).min(1).max(2),boards:z.array(z.enum(['CBSE','CGBSE'])).min(1).max(2),grades:z.array(z.number().int().min(6).max(10)).min(1).max(5),languages:z.array(z.enum(['English','Hindi'])).min(1).max(2),modes:z.array(z.enum(['ONLINE','HOME'])).min(1).max(2),localities:z.array(text(80)).max(20),monthlyPaise:z.number().int().min(50_000).max(2_000_000),experience:z.number().int().min(0).max(60),consultationOptIn:z.boolean(),feeTermsAccepted:z.literal(true)}).strict();
+export const applicationSchema=z.object({...detailsShape,name:text(80),headline:text(120),bio:text(1500),teachingCoverage:teachingScopes.optional(),subjects:z.array(subjectSchema).min(1).max(40),boards:z.array(boardSchema).max(20),grades:z.array(z.number().int().min(1).max(12)).max(12),languages:z.array(z.enum(['English','Hindi'])).min(1).max(2),modes:z.array(z.enum(['ONLINE','HOME'])).min(1).max(2),localities:z.array(text(80)).max(20),monthlyPaise:z.number().int().min(50_000).max(2_000_000),experience:z.number().int().min(0).max(60),consultationOptIn:z.boolean(),feeTermsAccepted:z.literal(true)}).strict();
 export async function submitTeacher(db:DB,service:AppService,account:Account,data:z.infer<typeof applicationSchema>) {
   await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${account.id},0))`;
-  const {feeTermsAccepted,...profile}=data;
+  const {feeTermsAccepted,...declared}=data;
+  if(!declaredScopes(declared).length)fail(400,'INVALID_COVERAGE','Declare at least one valid teaching scope, up to 200 combinations.');const profile=coverageProfile(declared);
       const existing=await db.teacher.findUnique({where:{accountId:account.id}});
       if (existing) fail(409,'EXISTING_APPLICATION','Your application is already saved.');
       const teacher=await db.teacher.create({data:{...profile,accountId:account.id,feeTermsAcceptedAt:new Date(),region:account.region,slug:`${profile.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${randomBytes(3).toString('hex')}`}});
@@ -28,8 +30,10 @@ export async function submitTeacher(db:DB,service:AppService,account:Account,dat
 export async function reviseTeacher(db:DB,service:AppService,actor:Account,req:HttpRequest,id:string,data:z.infer<typeof applicationSchema>&{expectedVersion:number}) {
   await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
   const teacher=await db.teacher.findUnique({where:{id}});if(!teacher||teacher.accountId!==actor.id)fail(404,'NOT_FOUND','Application not found.');
+  if(teacher.teachingCoverage&&!data.teachingCoverage)fail(400,'COVERAGE_REQUIRED','Retain explicit teaching scopes when revising this application.');
   if(teacher.version!==data.expectedVersion)fail(409,'CONFLICT','Application changed. Reload it before resubmitting.');
-  const {expectedVersion,feeTermsAccepted,...profile}=data;
+  const {expectedVersion,feeTermsAccepted,...declared}=data;
+  if(!declaredScopes(declared).length)fail(400,'INVALID_COVERAGE','Declare valid teaching coverage.');const profile=coverageProfile(declared);
   const updated=await db.teacher.update({where:{id},data:{...profile,feeTermsAcceptedAt:new Date(),status:'SUBMITTED',screeningComplete:false,screeningValidUntil:null,profileRevision:{increment:1},version:{increment:1}}});
   await db.onboardingProgress.updateMany({where:{accountId:actor.id,kind:'TEACHER_REVISION'},data:{draft:{},version:{increment:1}}});
   await db.note.updateMany({where:{sharedTeacherId:id},data:{sharedTeacherId:null}});

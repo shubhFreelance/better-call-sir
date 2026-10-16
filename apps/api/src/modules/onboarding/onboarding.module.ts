@@ -1,3 +1,4 @@
+import {subjectSchema} from '../../coverage';
 import {Module,Controller,Get,Post,Param,Req,Body,Inject} from '@nestjs/common';
 import {Account} from '@prisma/client';
 import {z} from 'zod';
@@ -6,7 +7,7 @@ import {intakeSchema,createIntake} from '../requests/requests.module';
 import {applicationSchema,submitTeacher} from '../teachers/teachers.module';
 const kindSchema=z.enum(['parent','teacher','student','enquiry']);
 const childFields=['alias','grade','board','childId','schoolName','schoolSubjects'];
-const studentDraft=z.object({subjects:z.array(z.enum(['Maths','Science'])).max(2).optional(),language:z.enum(['English','Hindi']).optional(),learningPreferences:text(500).optional()}).strict();
+const studentDraft=z.object({subjects:z.array(subjectSchema).max(20).optional(),language:z.enum(['English','Hindi']).optional(),learningPreferences:text(500).optional()}).strict();
 @Controller('api/v1')
 class OnboardingController {
  constructor(@Inject(AppService) private readonly service:AppService){}

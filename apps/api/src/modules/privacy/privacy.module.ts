@@ -16,7 +16,7 @@ async function erase(db:DB,scope:string,resourceId:string,accountId:string){
  if(scope==='ACCOUNT'){
   await db.session.updateMany({where:{accountId},data:{revoked:true}});await db.account.update({where:{id:accountId},data:{name:'Deleted account',email:null,phone:null,disabled:true,verified:false}});
   const teacher=await db.teacher.findUnique({where:{accountId}});if(teacher)await db.note.updateMany({where:{sharedTeacherId:teacher.id},data:{sharedTeacherId:null,version:{increment:1}}});
-  await db.teacher.updateMany({where:{accountId},data:{address:Prisma.DbNull,education:Prisma.DbNull,employment:Prisma.DbNull,demoOptIn:false,name:'Deleted teacher',headline:'',bio:'',status:'SUSPENDED',screeningComplete:false,version:{increment:1}}});
+  await db.teacher.updateMany({where:{accountId},data:{teachingCoverage:Prisma.DbNull,address:Prisma.DbNull,education:Prisma.DbNull,employment:Prisma.DbNull,demoOptIn:false,name:'Deleted teacher',headline:'',bio:'',status:'SUSPENDED',screeningComplete:false,version:{increment:1}}});
  }
 }
 @Controller('api/v1')

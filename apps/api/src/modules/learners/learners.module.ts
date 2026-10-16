@@ -13,7 +13,7 @@ const profileInput=z.object({alias:text(40),education:learnerEducation}).strict(
 const profileSelect={id:true,alias:true,educationStage:true,earlyYearsLevel:true,grade:true,board:true,schoolName:true,schoolSubjects:true,courseName:true,university:true,studyYear:true,version:true} as const;
 export function learnerProjection(c:Pick<Child,keyof typeof profileSelect>) {
  const education={stage:c.educationStage,institutionName:c.schoolName,subjects:c.schoolSubjects,...(c.educationStage==='SCHOOL'?{grade:c.grade,board:c.board}:c.educationStage==='EARLY_YEARS'?{level:c.earlyYearsLevel}:{courseName:c.courseName,university:c.university,studyYear:c.studyYear})};
- return {id:c.id,alias:c.alias,education,version:c.version,enquiryEligible:c.educationStage==='SCHOOL'&&c.grade!==null&&c.grade>=6&&c.grade<=10&&['CBSE','CGBSE'].includes(c.board||'')&&!!c.schoolName&&c.schoolSubjects.length>0};
+ return {id:c.id,alias:c.alias,education,version:c.version,enquiryEligible:!!c.schoolName&&c.schoolSubjects.length>0&&(c.educationStage!=='COLLEGE'||!!c.courseName&&!!c.university&&!!c.studyYear)};
 }
 @Controller('api/v1')
 class LearnersController {
