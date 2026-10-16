@@ -4849,3 +4849,7 @@ footer {
 
 .family-device-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .family-student-access .family-confirm:has(#student-device-label) { background: var(--green); }
+
+.family-device-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; }
+.family-device-pagination > p { margin: 0; font-size: 14px; }
+.family-device-pagination > .wizard-help { flex-basis: 100%; }

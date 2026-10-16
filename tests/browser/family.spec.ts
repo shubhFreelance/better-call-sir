@@ -35,6 +35,9 @@ async function mock(
     | "label-gone"
     | "label-read-error"
     | "label-denied"
+    | "devices-paged"
+    | "devices-page-error"
+    | "devices-tail"
     | "unverified" = "normal",
 ) {
   let role = mode === "student" ? "STUDENT" : "GUARDIAN",
@@ -65,6 +68,17 @@ async function mock(
       expiresAt: new Date(Date.now() + 86400000).toISOString(),
     },
   ];
+  let pageReadFailed = false;
+  const devicePageReads: (string | null)[] = [];
+  if (mode.startsWith("devices-"))
+    sessions = Array.from(
+      { length: mode === "devices-tail" ? 21 : 52 },
+      (_, i) => ({
+        familyId: `${91000000 + i}-0000-4000-8000-000000000095`,
+        deviceLabel: `Tablet ${i + 1}`,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      }),
+    );
   const child = {
     id: childId,
     guardianId: parentId,
@@ -256,12 +270,14 @@ async function mock(
       }
       if (!labelResults.has(key)) {
         expect(body.expectedVersion).toBe(version);
-        expect(body.familyId).toBe(familyId);
+        expect(sessions.some((d) => d.familyId === body.familyId)).toBe(true);
         version++;
         labelWrites++;
-        sessions = sessions.map((d) => ({ ...d, deviceLabel: body.label }));
+        sessions = sessions.map((d) =>
+          d.familyId === body.familyId ? { ...d, deviceLabel: body.label } : d,
+        );
         labelResults.set(key, {
-          familyId,
+          familyId: body.familyId,
           label: body.label,
           childVersion: version,
         });
@@ -283,6 +299,18 @@ async function mock(
     }
     if (path.endsWith("/student-sessions")) {
       if (req.method() === "GET") {
+        const cursor = new URL(req.url()).searchParams.get("cursor");
+        devicePageReads.push(cursor);
+        if (mode === "devices-page-error" && cursor && !pageReadFailed) {
+          pageReadFailed = true;
+          return route.fulfill({
+            status: 503,
+            json: {
+              code: "UNAVAILABLE",
+              message: "Could not load this device page.",
+            },
+          });
+        }
         if (mode === "label-read-error" && labelWrites && !labelReadFailed) {
           labelReadFailed = true;
           return route.fulfill({
@@ -293,10 +321,15 @@ async function mock(
             },
           });
         }
+        const remaining = sessions.filter(
+            (d) => !cursor || d.familyId > cursor,
+          ),
+          items = remaining.slice(0, 20);
         const result = {
-          items: sessions,
+          items,
           childVersion: version,
           accessRevoked: revoked,
+          nextCursor: remaining.length > 20 ? items.at(-1)!.familyId : null,
         };
         const check = validator("StudentSessions");
         expect(check(result), JSON.stringify(check.errors)).toBe(true);
@@ -342,8 +375,11 @@ async function mock(
       }
       if (!(mode === "uncertain-revoke" && revocations > 1)) {
         expect(req.postDataJSON().expectedVersion).toBe(version);
-        sessions = [];
-        revoked = req.postDataJSON().familyId === null;
+        const selected = req.postDataJSON().familyId;
+        sessions = selected
+          ? sessions.filter((d) => d.familyId !== selected)
+          : [];
+        revoked = selected === null;
         version++;
       }
       if (mode === "uncertain-revoke" && revocations === 1)
@@ -462,6 +498,7 @@ async function mock(
     invitationBodies,
     labelKeys,
     labelBodies,
+    devicePageReads,
     getLabelWrites: () => labelWrites,
     getSwitches: () => switches,
     getInvitations: () => invitations,
@@ -1403,4 +1440,169 @@ test("device naming stays accessible on desktop and mobile", async ({
       fullPage: true,
     });
   }
+});
+
+test("guardians can browse all device pages and return without mixing sessions", async ({
+  page,
+}) => {
+  const state = await mock(page, "devices-paged");
+  await page.goto("/dashboard/family");
+  await expect(page.getByText("Tablet 1", { exact: true })).toBeVisible();
+  await expect(page.getByText("Tablet 20", { exact: true })).toBeVisible();
+  await expect(page.getByText("Tablet 21", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Next devices", exact: true }).click();
+  await expect(page.getByText("Device page 2", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Authorized student sessions" }),
+  ).toBeFocused();
+  await expect(page.getByText("Tablet 21", { exact: true })).toBeVisible();
+  await expect(page.getByText("Tablet 1", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Next devices", exact: true }).click();
+  await expect(page.getByText("Tablet 52", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Next devices", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Previous devices", exact: true })
+    .click();
+  await expect(page.getByText("Tablet 21", { exact: true })).toBeVisible();
+  expect(state.devicePageReads).toContain(
+    "91000019-0000-4000-8000-000000000095",
+  );
+  expect(state.devicePageReads).toContain(
+    "91000039-0000-4000-8000-000000000095",
+  );
+});
+test("later-page device naming locks navigation and refreshes the same page", async ({
+  page,
+}) => {
+  const state = await mock(page, "devices-paged");
+  await page.goto("/dashboard/family");
+  await page.getByRole("button", { name: "Next devices", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Rename device 91000020", exact: true })
+    .click();
+  await page.getByLabel("Device label (optional)").fill("Shared desk");
+  await expect(
+    page.getByRole("button", { name: "Next devices", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Previous devices", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText("Finish or cancel this change before browsing devices."),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Save device label", exact: true })
+    .click();
+  await expect(
+    page.getByText("Device label saved. Student access is unchanged."),
+  ).toBeVisible();
+  await expect(page.getByText("Shared desk", { exact: true })).toBeVisible();
+  await expect(page.getByText("Device page 2", { exact: true })).toBeVisible();
+  expect(state.labelBodies[0].familyId).toBe(
+    "91000020-0000-4000-8000-000000000095",
+  );
+  expect(state.devicePageReads.at(-1)).toBe(
+    "91000019-0000-4000-8000-000000000095",
+  );
+  await page
+    .getByRole("button", { name: "Previous devices", exact: true })
+    .click();
+  await expect(page.getByText("Tablet 1", { exact: true })).toBeVisible();
+  await expect(page.getByText("Shared desk", { exact: true })).toHaveCount(0);
+});
+test("revoking the last device on a later page leaves a useful route back", async ({
+  page,
+}) => {
+  const state = await mock(page, "devices-tail");
+  await page.goto("/dashboard/family");
+  await page.getByRole("button", { name: "Next devices", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Revoke session 91000020", exact: true })
+    .click();
+  await page.getByLabel("Reason for revoking access").fill("Unused tablet");
+  await page
+    .getByRole("checkbox", { name: /I understand which student access/ })
+    .check();
+  await expect(
+    page.getByRole("button", { name: "Previous devices", exact: true }),
+  ).toBeDisabled();
+  await page
+    .getByRole("button", { name: "Confirm access revocation", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "No active student sessions on this page. Go back to previous devices or refresh the list.",
+    ),
+  ).toBeVisible();
+  expect(state.bodies[0].familyId).toBe("91000020-0000-4000-8000-000000000095");
+  await page
+    .getByRole("button", { name: "Previous devices", exact: true })
+    .click();
+  await expect(page.getByText("Tablet 1", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Next devices", exact: true }),
+  ).toHaveCount(0);
+});
+test("failed device pages hide stale actions and can retry or go back", async ({
+  page,
+}) => {
+  await mock(page, "devices-page-error");
+  await page.goto("/dashboard/family");
+  await page.getByRole("button", { name: "Next devices", exact: true }).click();
+  await expect(
+    page.getByText("Could not load this device page."),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /^Rename device / }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Previous devices", exact: true }),
+  ).toBeEnabled();
+  await page
+    .getByRole("button", { name: "Refresh student access", exact: true })
+    .click();
+  await expect(page.getByText("Tablet 21", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Authorized student sessions" }),
+  ).toBeFocused();
+  await page
+    .getByRole("button", { name: "Previous devices", exact: true })
+    .click();
+  await expect(page.getByText("Tablet 1", { exact: true })).toBeVisible();
+});
+test("device page controls support mobile keyboard and accessible recovery", async ({
+  page,
+}) => {
+  await mock(page, "devices-tail");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/dashboard/family");
+  await page.getByRole("button", { name: "Next devices", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("Tablet 21", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Authorized student sessions" }),
+  ).toBeFocused();
+  await page.evaluate(() => document.fonts.ready);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const result = await new AxeBuilder({ page }).analyze();
+  expect(
+    result.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+  await page.screenshot({
+    path: "test-results/student-device-pages-mobile.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "Previous devices", exact: true })
+    .focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("Tablet 1", { exact: true })).toBeVisible();
 });

@@ -190,10 +190,24 @@ function LearnerAccess({
   onSessionChange: (s: Session) => void;
 } & SwitchCallbacks) {
   const client = useQueryClient();
+  const [pageCursors, setPageCursors] = useState<string[]>([]);
+  const cursor = pageCursors.at(-1);
+  const pageHeading = useRef<HTMLHeadingElement>(null),
+    focusPage = useRef(false);
   const query = useQuery({
-    queryKey: ["student-sessions", session.account.id, child.id],
+    queryKey: [
+      "student-sessions",
+      session.account.id,
+      child.id,
+      cursor || null,
+    ],
+    staleTime: 0,
     refetchOnReconnect: false,
-    queryFn: () => api<Sessions>(`/children/${child.id}/student-sessions`),
+    queryFn: ({ signal }) =>
+      api<Sessions>(
+        `/children/${child.id}/student-sessions${cursor ? "?cursor=" + encodeURIComponent(cursor) : ""}`,
+        { signal },
+      ),
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -221,6 +235,20 @@ function LearnerAccess({
   useEffect(() => {
     onLockChange(busy || uncertain);
   }, [busy, uncertain, onLockChange]);
+  useEffect(() => {
+    if (focusPage.current && query.isSuccess && !query.isFetching) {
+      focusPage.current = false;
+      pageHeading.current?.focus();
+    }
+  }, [cursor, query.isSuccess, query.isFetching]);
+  function browseDevices(next: string[]) {
+    if (locked || query.isFetching || action) return;
+    setError("");
+    setSuccess("");
+    setConflict(false);
+    focusPage.current = true;
+    setPageCursors(next);
+  }
   function choose(next: typeof action, id: string | null = null) {
     setAction(next);
     setFamilyId(id);
@@ -450,11 +478,13 @@ function LearnerAccess({
             </p>
             {child.studentAccountId ? (
               <>
-                <h3>Authorized student sessions</h3>
+                <h3 ref={pageHeading} tabIndex={-1}>
+                  Authorized student sessions
+                </h3>
                 <p className="wizard-help">
                   Give each session a name you recognize, such as “Study
                   tablet”. Labels are private reminders, not verified device
-                  information. Up to 50 current session groups are shown.
+                  information. Browse all current sessions, 20 per page.
                 </p>
                 {query.data.items.length ? (
                   <ul className="family-session-list">
@@ -486,7 +516,7 @@ function LearnerAccess({
                           </Button>
                           <Button
                             variant="outline"
-                            disabled={locked || conflict}
+                            disabled={locked || conflict || query.isFetching}
                             onClick={() => choose("revoke", device.familyId)}
                             aria-label={`Revoke session ${device.familyId.slice(0, 8)}`}
                           >
@@ -497,12 +527,18 @@ function LearnerAccess({
                     ))}
                   </ul>
                 ) : (
-                  <p>No active student sessions.</p>
+                  <p>
+                    {cursor
+                      ? "No active student sessions on this page. Go back to previous devices or refresh the list."
+                      : "No active student sessions."}
+                  </p>
                 )}
                 <div className="wizard-actions">
                   <Button
                     className="button"
-                    disabled={locked || conflict || !consentActive}
+                    disabled={
+                      locked || conflict || !consentActive || query.isFetching
+                    }
                     onClick={() => choose("authorize")}
                   >
                     Authorize this device for {child.alias}
@@ -510,7 +546,12 @@ function LearnerAccess({
                   <Button
                     variant="outline"
                     className="button secondary"
-                    disabled={locked || conflict || query.data.accessRevoked}
+                    disabled={
+                      locked ||
+                      conflict ||
+                      query.data.accessRevoked ||
+                      query.isFetching
+                    }
                     onClick={() => choose("revoke")}
                   >
                     Revoke all student access
@@ -529,6 +570,41 @@ function LearnerAccess({
             )}
           </>
         )
+      )}
+      {child.studentAccountId && (
+        <nav
+          className="family-device-pagination"
+          aria-label="Student device pages"
+        >
+          <p role="status">Device page {pageCursors.length + 1}</p>
+          <div className="family-device-actions">
+            {pageCursors.length > 0 && (
+              <Button
+                variant="outline"
+                disabled={locked || query.isFetching || !!action}
+                onClick={() => browseDevices(pageCursors.slice(0, -1))}
+              >
+                Previous devices
+              </Button>
+            )}
+            {query.data?.nextCursor && !query.error && (
+              <Button
+                variant="outline"
+                disabled={locked || query.isFetching || !!action}
+                onClick={() =>
+                  browseDevices([...pageCursors, query.data!.nextCursor!])
+                }
+              >
+                Next devices
+              </Button>
+            )}
+          </div>
+          {action && (pageCursors.length > 0 || query.data?.nextCursor) && (
+            <p className="wizard-help">
+              Finish or cancel this change before browsing devices.
+            </p>
+          )}
+        </nav>
       )}
       {action && (
         <form
