@@ -23,6 +23,10 @@ async function mock(
     | "uncertain-switch"
     | "student"
     | "invitation"
+    | "invitation-unknown"
+    | "invitation-stale"
+    | "invitation-expired"
+    | "invitation-status-error"
     | "uncertain-consent"
     | "switch-not-committed"
     | "unverified" = "normal",
@@ -39,6 +43,10 @@ async function mock(
   const keys: string[] = [],
     bodies: any[] = [],
     paths: string[] = [];
+  const invitationKeys: string[] = [],
+    invitationBodies: any[] = [];
+  let invitationConflict = mode === "invitation-stale";
+  const invitationExpiry = new Date(Date.now() + 86400000).toISOString();
   let sessions = [
     { familyId, expiresAt: new Date(Date.now() + 86400000).toISOString() },
   ];
@@ -48,7 +56,7 @@ async function mock(
     alias: "Synthetic Learner",
     grade: 8,
     board: "CBSE",
-    studentAccountId: mode === "invitation" ? null : studentId,
+    studentAccountId: mode.startsWith("invitation") ? null : studentId,
     version: 1,
     studentAccessRevokedAt: null,
   };
@@ -277,15 +285,67 @@ async function mock(
         });
       return route.fulfill({ status: 201, json: { status: "WITHDRAWN" } });
     }
-    if (path.endsWith("/invitations")) {
-      invitations++;
+    if (path.endsWith("/invitation")) {
+      if (mode === "invitation-status-error")
+        return route.fulfill({
+          status: 503,
+          json: { code: "UNAVAILABLE", message: "Unavailable" },
+        });
       return route.fulfill({
-        status: 201,
         json: {
-          token: "synthetic-private-invitation-code",
-          expiresAt: new Date(Date.now() + 86400000).toISOString(),
+          state:
+            mode === "invitation-expired" && invitations === 0
+              ? "EXPIRED"
+              : invitations
+                ? "ACTIVE"
+                : "NONE",
+          expiresAt: invitations
+            ? invitationExpiry
+            : mode === "invitation-expired"
+              ? new Date(Date.now() - 3600000).toISOString()
+              : null,
+          childVersion: version,
         },
       });
+    }
+    if (path.endsWith("/invitation-replacements")) {
+      const body = req.postDataJSON(),
+        key = req.headers()["idempotency-key"];
+      invitationKeys.push(key);
+      invitationBodies.push(body);
+      expect(validator("InvitationReplacement")(body)).toBe(true);
+      if (invitationConflict) {
+        invitationConflict = false;
+        version++;
+        return route.fulfill({
+          status: 409,
+          json: {
+            code: "CONFLICT",
+            message:
+              "Learner access changed. Refresh before replacing the invitation.",
+          },
+        });
+      }
+      const replay = invitationKeys.slice(0, -1).includes(key);
+      if (!replay) {
+        expect(body.expectedVersion).toBe(version);
+        version++;
+        invitations++;
+      }
+      if (mode === "invitation-unknown" && invitationKeys.length === 1)
+        return route.fulfill({
+          status: 201,
+          contentType: "application/json",
+          body: "unreadable invitation response",
+        });
+      const result = {
+        status: replay ? "CODE_UNAVAILABLE" : "ISSUED",
+        token: replay ? null : "synthetic-private-invitation-code",
+        expiresAt: invitationExpiry,
+        childVersion: version,
+      };
+      expect(validator("InvitationReplacementResult")(result)).toBe(true);
+      return route.fulfill({ status: 201, json: result });
     }
     if (path.endsWith("/invitations/activate")) {
       activations++;
@@ -315,6 +375,8 @@ async function mock(
     keys,
     bodies,
     paths,
+    invitationKeys,
+    invitationBodies,
     getSwitches: () => switches,
     getInvitations: () => invitations,
     getActivations: () => activations,
@@ -364,7 +426,25 @@ test("real guardian invitation and student device access stay owner-bound and re
   ).toBeVisible();
   await expect(page.getByLabel("Private invitation code")).toHaveCount(0);
   await page.getByRole("button", { name: "Reveal invitation code" }).click();
-  const token = await page.getByLabel("Private invitation code").inputValue();
+  let token = await page.getByLabel("Private invitation code").inputValue();
+  const previousToken = token;
+  await page.reload();
+  await expect(page.getByLabel("Private invitation code")).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Replace student invitation", exact: true })
+    .click();
+  await page
+    .getByRole("checkbox", { name: /I am the learner’s guardian/ })
+    .check();
+  await page
+    .getByRole("button", {
+      name: "Confirm invitation replacement",
+      exact: true,
+    })
+    .click();
+  await page.getByRole("button", { name: "Reveal invitation code" }).click();
+  token = await page.getByLabel("Private invitation code").inputValue();
+  expect(token).not.toBe(previousToken);
   const context = await browser.newContext();
   const device = await context.newPage();
   try {
@@ -397,13 +477,25 @@ test("real guardian invitation and student device access stay owner-bound and re
     await expect(
       device.getByRole("heading", { name: "Your student space is ready." }),
     ).toBeVisible();
-    await device.getByLabel("How do you like to learn? (optional)").fill("More worked examples, please.");
-    await device.getByRole("button", { name: "Save preferences", exact: true }).click();
-    await expect(device.getByText("Your learning preferences are saved.")).toBeVisible();
+    await device
+      .getByLabel("How do you like to learn? (optional)")
+      .fill("More worked examples, please.");
+    await device
+      .getByRole("button", { name: "Save preferences", exact: true })
+      .click();
+    await expect(
+      device.getByText("Your learning preferences are saved."),
+    ).toBeVisible();
     await device.reload();
-    await expect(device.getByLabel("How do you like to learn? (optional)")).toHaveValue("More worked examples, please.");
-    await device.getByRole("button", { name: "Save preferences", exact: true }).click();
-    await expect(device.getByText("Your learning preferences are saved.")).toBeVisible();
+    await expect(
+      device.getByLabel("How do you like to learn? (optional)"),
+    ).toHaveValue("More worked examples, please.");
+    await device
+      .getByRole("button", { name: "Save preferences", exact: true })
+      .click();
+    await expect(
+      device.getByText("Your learning preferences are saved."),
+    ).toBeVisible();
     await device
       .getByRole("link", { name: "Open dashboard", exact: true })
       .click();
@@ -728,7 +820,9 @@ test("student overview and guardian-only access route never fetch family control
 }) => {
   const state = await mock(page, "student");
   await page.goto("/dashboard");
-  await expect(page.getByRole("link", {name:"Learning preferences",exact:true})).toHaveAttribute("href","/onboarding/student");
+  await expect(
+    page.getByRole("link", { name: "Learning preferences", exact: true }),
+  ).toHaveAttribute("href", "/onboarding/student");
   await expect(
     page.getByRole("heading", { name: "Your next step in learning." }),
   ).toBeVisible();
@@ -825,4 +919,156 @@ test("unverified guardians cannot open learner controls or authorize student acc
   await expect(
     page.getByRole("button", { name: "Authorize student access" }),
   ).toBeDisabled();
+});
+
+test("unknown invitation creation retries metadata only then requires acknowledged replacement", async ({
+  page,
+}) => {
+  const state = await mock(page, "invitation-unknown");
+  await page.goto("/dashboard/family");
+  await page
+    .getByRole("button", { name: "Create first student invitation" })
+    .click();
+  await page
+    .getByRole("checkbox", { name: /I am the learner’s guardian/ })
+    .check();
+  await page
+    .getByRole("button", { name: "Create invitation", exact: true })
+    .click();
+  await expect(
+    page.getByText(/We couldn’t confirm the invitation/),
+  ).toBeVisible();
+  await expect(page.getByLabel("Choose a learner")).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Refresh invitation status" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Retry invitation request" }).click();
+  await expect(
+    page.getByText(/The request was already completed/),
+  ).toBeVisible();
+  expect(state.getInvitations()).toBe(1);
+  expect(state.invitationKeys[0]).toBe(state.invitationKeys[1]);
+  expect(state.invitationBodies[0]).toEqual(state.invitationBodies[1]);
+  await expect(
+    page.getByRole("button", { name: "Reveal invitation code" }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Refresh invitation status" }).click();
+  await page
+    .getByRole("button", { name: "Replace student invitation", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", {
+      name: "Confirm invitation replacement",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await page
+    .getByRole("checkbox", { name: /I am the learner’s guardian/ })
+    .check();
+  await page
+    .getByRole("button", {
+      name: "Confirm invitation replacement",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Reveal invitation code" }),
+  ).toBeVisible();
+  expect(state.getInvitations()).toBe(2);
+  expect(state.invitationKeys[2]).not.toBe(state.invitationKeys[0]);
+});
+test("stale invitation keeps review visible and requires refresh and renewed acknowledgement", async ({
+  page,
+}) => {
+  const state = await mock(page, "invitation-stale");
+  await page.goto("/dashboard/family");
+  await page
+    .getByRole("button", { name: "Create first student invitation" })
+    .click();
+  await page
+    .getByRole("checkbox", { name: /I am the learner’s guardian/ })
+    .check();
+  await page
+    .getByRole("button", { name: "Create invitation", exact: true })
+    .click();
+  await expect(page.getByText(/Learner access changed/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Create invitation", exact: true }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Refresh invitation status" }).click();
+  await page
+    .getByRole("button", { name: "Create first student invitation" })
+    .click();
+  await expect(
+    page.getByRole("checkbox", { name: /I am the learner’s guardian/ }),
+  ).not.toBeChecked();
+  await page
+    .getByRole("checkbox", { name: /I am the learner’s guardian/ })
+    .check();
+  await page
+    .getByRole("button", { name: "Create invitation", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Reveal invitation code" }),
+  ).toBeVisible();
+  expect(state.invitationBodies[1].expectedVersion).toBe(2);
+});
+test("expired invitation replacement is clear, cancellable and accessible on mobile", async ({
+  page,
+}) => {
+  const state = await mock(page, "invitation-expired");
+  await page.goto("/dashboard/family");
+  await expect(
+    page.getByText("Invitation expired", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Replace student invitation", exact: true })
+    .click();
+  await expect(page.getByText(/All earlier codes stop working/)).toBeVisible();
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  expect(state.getInvitations()).toBe(0);
+  await page
+    .getByRole("button", { name: "Replace student invitation", exact: true })
+    .click();
+  await page.screenshot({
+    path: "test-results/invitation-replacement-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "test-results/invitation-replacement-mobile.png",
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const result = await new AxeBuilder({ page }).analyze();
+  expect(
+    result.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+});
+test("invitation status failure blocks creation and replacement", async ({
+  page,
+}) => {
+  await mock(page, "invitation-status-error");
+  await page.goto("/dashboard/family");
+  await expect(
+    page.getByText(/Invitation status could not be loaded/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Refresh invitation status" }),
+  ).toBeEnabled();
+  await expect(
+    page.getByRole("button", { name: "Create first student invitation" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", {
+      name: "Replace student invitation",
+      exact: true,
+    }),
+  ).toHaveCount(0);
 });

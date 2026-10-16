@@ -8,6 +8,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Alert, AlertDescription } from "../components/ui/alert";
+import { InvitationRecovery } from "./invitation-recovery";
 type SwitchCallbacks = {
   onSwitchStart: (studentId?: string) => void;
   onSwitchFailure: (message: string, uncertain: boolean) => void;
@@ -194,14 +195,7 @@ function LearnerAccess({
     retry: false,
     refetchOnWindowFocus: false,
   });
-  const [invite, setInvite] = useState<{
-      token: string;
-      expiresAt: string;
-    } | null>(null),
-    [showToken, setShowToken] = useState(false);
-  const [action, setAction] = useState<
-      "invite" | "authorize" | "revoke" | null
-    >(null),
+  const [action, setAction] = useState<"authorize" | "revoke" | null>(null),
     [familyId, setFamilyId] = useState<string | null>(null),
     [reason, setReason] = useState(""),
     [agreed, setAgreed] = useState(false);
@@ -214,12 +208,6 @@ function LearnerAccess({
     body: components["schemas"]["StudentAccessRevocation"];
     key: string;
   } | null>(null);
-  useEffect(() => {
-    if (child.studentAccountId) {
-      setInvite(null);
-      setShowToken(false);
-    }
-  }, [child.studentAccountId]);
   const locked = busy || uncertain || blocked;
   useEffect(() => {
     onLockChange(busy || uncertain);
@@ -271,45 +259,6 @@ function LearnerAccess({
           ? "We couldn’t confirm the device switch. Check device access before trying again."
           : (e as Error).message,
         unsure,
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function createInvite() {
-    if (!agreed) {
-      setError(
-        "Confirm that you will use the invitation only on the intended student device.",
-      );
-      return;
-    }
-    setBusy(true);
-
-    setError("");
-    setInvite(null);
-    setShowToken(false);
-    try {
-      const result = await api<{ token: string; expiresAt: string }>(
-        `/children/${child.id}/invitations`,
-        {
-          method: "POST",
-          csrf: session.csrfToken,
-          body: {},
-          signal: AbortSignal.timeout(15000),
-        },
-      );
-      if (!result.token || !result.expiresAt)
-        throw new Error("No invitation code was returned.");
-      setInvite(result);
-      setAction(null);
-      setSuccess(
-        "Invitation created. Its code is shown only in this page session.",
-      );
-    } catch (e) {
-      setError(
-        unknown(e)
-          ? "We couldn’t retrieve the invitation. Its code cannot be recovered. You may explicitly create a new invitation; we will not retry this request automatically."
-          : (e as Error).message,
       );
     } finally {
       setBusy(false);
@@ -457,58 +406,17 @@ function LearnerAccess({
                 </div>
               </>
             ) : (
-              <Button
-                className="button"
-                disabled={locked || !consentActive}
-                onClick={() => choose("invite")}
-              >
-                Create first student invitation
-              </Button>
+              <InvitationRecovery
+                session={session}
+                childId={child.id}
+                alias={child.alias}
+                blocked={locked}
+                consentActive={consentActive}
+                onLockChange={onLockChange}
+              />
             )}
           </>
         )
-      )}
-      {invite && (
-        <div className="family-invitation">
-          <h3>Invitation for {child.alias}</h3>
-          <p>
-            Expires {date(invite.expiresAt)} IST. Single-use; only the inviting
-            guardian can activate it.
-          </p>
-          {showToken ? (
-            <div className="field">
-              <label htmlFor="student-invitation-code">
-                Private invitation code
-              </label>
-              <Input
-                id="student-invitation-code"
-                value={invite.token}
-                readOnly
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <Button variant="ghost" onClick={() => setShowToken(false)}>
-                Hide invitation code
-              </Button>
-            </div>
-          ) : (
-            <Button variant="outline" onClick={() => setShowToken(true)}>
-              Reveal invitation code
-            </Button>
-          )}
-          <ol>
-            <li>Open student onboarding on the intended device.</li>
-            <li>Sign in with your own guardian account on that device.</li>
-            <li>Paste the code and confirm the switch to the student space.</li>
-          </ol>
-          <p className="wizard-help">
-            Keep this code private. It is not saved in browser storage or placed
-            in a link.
-          </p>
-          <Link className="inline-link" href="/onboarding/student">
-            Open student onboarding
-          </Link>
-        </div>
       )}
       {action && (
         <form
@@ -517,27 +425,22 @@ function LearnerAccess({
           onSubmit={(e) => {
             e.preventDefault();
             if (action === "authorize") authorize();
-            else if (action === "invite") createInvite();
             else revoke();
           }}
         >
           <h3>
-            {action === "invite"
-              ? "Create a first invitation?"
-              : action === "authorize"
-                ? `Switch this device to ${child.alias}?`
-                : familyId
-                  ? `Revoke session ${familyId.slice(0, 8)}?`
-                  : `Revoke all access for ${child.alias}?`}
+            {action === "authorize"
+              ? `Switch this device to ${child.alias}?`
+              : familyId
+                ? `Revoke session ${familyId.slice(0, 8)}?`
+                : `Revoke all access for ${child.alias}?`}
           </h3>
           <p>
             {action === "authorize"
               ? "This browser will switch from your guardian account to a restricted student session. Other guardian devices stay signed in. Use the device intended for the learner."
-              : action === "invite"
-                ? "The invitation lasts 24 hours and is single-use. You must sign in as the inviting guardian on the learner’s intended device to activate it."
-                : familyId
-                  ? "This session and its refresh access will stop. Other student sessions remain authorized."
-                  : "All student sessions and their refresh access will stop. Access stays blocked until a guardian authorizes a device again."}
+              : familyId
+                ? "This session and its refresh access will stop. Other student sessions remain authorized."
+                : "All student sessions and their refresh access will stop. Access stays blocked until a guardian authorizes a device again."}
           </p>
           <fieldset className="wizard-fields" disabled={locked || conflict}>
             {action === "revoke" && (
@@ -576,11 +479,9 @@ function LearnerAccess({
                 Cancel
               </Button>
               <Button className="button" type="submit">
-                {action === "invite"
-                  ? "Create invitation"
-                  : action === "authorize"
-                    ? "Confirm student device switch"
-                    : "Confirm access revocation"}
+                {action === "authorize"
+                  ? "Confirm student device switch"
+                  : "Confirm access revocation"}
               </Button>
             </div>
           </fieldset>
