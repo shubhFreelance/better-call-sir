@@ -1,4 +1,5 @@
 "use client";
+import { educationLabel } from "./learner-education";
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -351,7 +352,7 @@ export function RoleOverview({
                   <header>
                     <h4>{item.learner.alias}</h4>
                     <p>
-                      Class {item.learner.grade} · {item.learner.board}
+                      {educationLabel(item.learner)}
                     </p>
                   </header>
                   <dl className="role-record-status">

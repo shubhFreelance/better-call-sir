@@ -1,4 +1,5 @@
 "use client";
+import { pilotLearner } from "./learner-education";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
@@ -145,8 +146,9 @@ function RevisionForm({
   initialTeacher: string | null;
   refresh: () => Promise<Dashboard>;
 }) {
+  const learners=(d.children||[]).filter(pilotLearner);
   const [childId, setChildId] = useState(
-      d.children?.length === 1 ? d.children[0].id : "",
+      learners.length === 1 ? learners[0].id : "",
     ),
     [subject, setSubject] = useState("Maths"),
     [language, setLanguage] = useState("English"),
@@ -159,7 +161,7 @@ function RevisionForm({
     [saved, setSaved] = useState<Reservation | null>(null),
     [availabilityDay, setAvailabilityDay] = useState(day()),
     [showTimes, setShowTimes] = useState(false);
-  const learner = d.children?.find((c) => c.id === childId);
+  const learner = learners.find((c) => c.id === childId);
   const profiles = useInfiniteQuery({
     queryKey: [
       "revision-experts",
@@ -339,7 +341,7 @@ function RevisionForm({
                   }}
                 >
                   <option value="">Choose a learner</option>
-                  {d.children?.map((c) => (
+                  {learners.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.alias} · {c.board}, Class {c.grade}
                     </option>

@@ -1,4 +1,5 @@
 "use client";
+import { educationLabel } from "./learner-education";
 import Link from "next/link";
 import { BookOpen, CalendarDays, ShieldCheck } from "lucide-react";
 import type { Dashboard, Session } from "@bcs/api-client";
@@ -103,7 +104,7 @@ export function FamilyOverview({
                   <div>
                     <strong>{child.alias}</strong>
                     <p>
-                      Class {child.grade} · {child.board}
+                      {educationLabel(child)}
                     </p>
                   </div>
                   <Link

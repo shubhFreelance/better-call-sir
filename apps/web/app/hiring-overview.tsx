@@ -1,4 +1,5 @@
 "use client";
+import { educationLabel } from "./learner-education";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -867,6 +868,7 @@ export function HiringOverview({ session }: { session: Session }) {
                     : "Reload current enquiries"}
                 </Button>
               )}
+              {(guardian || student) && <Link href="/dashboard/learners" className="inline-link">{guardian ? "Add or view education profiles" : "View education profile"}</Link>}
               {data.learners.length > 0 && (
                 <section className="care-card">
                   <div className="hiring-section-heading">
@@ -885,7 +887,7 @@ export function HiringOverview({ session }: { session: Session }) {
                         <div>
                           <strong>{c.alias}</strong>
                           <span>
-                            Class {c.grade} · {c.board}
+                            {educationLabel(c)}
                           </span>
                           {c.schoolName && <span>{c.schoolName}</span>}
                           {!!c.schoolSubjects?.length && (

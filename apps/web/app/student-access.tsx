@@ -1,4 +1,5 @@
 "use client";
+import { educationLabel } from "./learner-education";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -137,16 +138,16 @@ function VerifiedFamily({
             >
               {children.data?.items.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.alias} · Class {c.grade} · {c.board}
+                  {c.alias} · {educationLabel(c)}
                 </option>
               ))}
             </select>
           </div>
         ) : (
-          <p>No learners yet. Start guardian onboarding to add one.</p>
+          <p>No learners yet. Add an education profile to get started.</p>
         )}
-        <Link href="/onboarding/parent" className="inline-link">
-          Add a learner through tuition onboarding
+        <Link href="/dashboard/learners" className="inline-link">
+          Add or view education profiles
         </Link>
       </section>
       {child && (
@@ -342,7 +343,7 @@ function LearnerAccess({
         </Button>
       </div>
       <p>
-        Class {child.grade} · {child.board}
+        {educationLabel(child)}
       </p>
       {query.isPending ? (
         <p role="status">Loading student access…</p>

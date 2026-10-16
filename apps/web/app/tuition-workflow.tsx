@@ -362,7 +362,7 @@ function RequestReview({
           ...(request.mode === "HOME" ? { locality: request.locality } : {}),
         }
       : {}),
-    ...(child ? { board: child.board, grade: String(child.grade) } : {}),
+    ...(child?.board && child.grade!==null ? { board: child.board, grade: String(child.grade) } : {}),
   });
   const completedDemos =
     demos.data?.items.filter(

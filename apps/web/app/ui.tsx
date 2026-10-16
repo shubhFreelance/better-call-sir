@@ -1,4 +1,5 @@
 "use client";
+import { LearnerProfiles } from "./learner-profiles";
 import { TeacherLockIn } from "./teacher-lock-in";
 import {WaitlistWorkspace} from "./waitlist-workspace";
 import { HiringOverview } from "./hiring-overview";
@@ -1183,6 +1184,7 @@ function TeacherOnboarding() {
     );
   return <TeacherSetup session={session} onSessionChange={setSession} />;
 }
+function LearnerProfilesPage(){const {session,loading}=useAuth();if(loading)return <State loading/>;if(!session)return <LoginPrompt/>;if(!["GUARDIAN","STUDENT"].includes(session.account.role))return <main className="container narrow section"><h1>Learner profiles belong to guardian and student accounts.</h1><Link href="/dashboard" className="inline-link">Return to dashboard</Link></main>;return <LearnerProfiles key={session.account.id} session={session}/>;}
 function WaitlistPage(){const {session,loading}=useAuth();if(loading)return <State loading/>;return <WaitlistWorkspace session={session}/>;}
 function StudentOnboarding() {
   const {
@@ -1235,6 +1237,7 @@ function DashboardShell({
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
     ["/teachers", "Find a teacher", Search],
+    ...(["GUARDIAN","STUDENT"].includes(role||"") ? [["/dashboard/learners", "Education profiles", GraduationCap] as [string,string,LucideIcon]] : []),
     ...(role === "STUDENT" ? [["/onboarding/student", "Learning preferences", Settings] as [string, string, LucideIcon]] : []),
     ...(role === "GUARDIAN"
       ? ([
@@ -1970,6 +1973,8 @@ function Routes() {
     <Profile slug={path.split("/")[2]} />
   ) : path === "/login" ? (
     <Login />
+  ) : path === "/dashboard/learners" ? (
+    <LearnerProfilesPage />
   ) : path === "/onboarding/parent" ? (
     <IntakeForm />
   ) : path === "/onboarding/teacher" ? (

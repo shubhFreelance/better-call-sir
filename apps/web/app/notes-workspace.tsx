@@ -1,4 +1,5 @@
 "use client";
+import { educationLabel } from "./learner-education";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -326,7 +327,7 @@ export function NotesWorkspace({
                         <option value="">Choose a learner</option>
                         {d.children?.map((c) => (
                           <option key={c.id} value={c.id}>
-                            {c.alias} · Class {c.grade}
+                            {c.alias} · {educationLabel(c)}
                           </option>
                         ))}
                       </select>

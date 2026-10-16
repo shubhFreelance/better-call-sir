@@ -1,4 +1,5 @@
 "use client";
+import { pilotLearner } from "./learner-education";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -929,7 +930,8 @@ function Wizard({
                       </AlertDescription>
                     </Alert>
                   )}
-                  {!!children.data?.items.length && (
+                  <p className="wizard-help">This enquiry supports Classes 6–10, CBSE/CGBSE. <Link className="inline-link" href="/dashboard/learners">Add education profiles for other stages</Link>.</p>
+                  {!!children.data?.items.filter(pilotLearner).length && (
                     <Field id="childId" label="Link an existing learner">
                       <select
                         id="childId"
@@ -952,7 +954,7 @@ function Wizard({
                         }}
                       >
                         <option value="">Add another learner</option>
-                        {children.data.items.map((c) => (
+                        {children.data.items.filter(pilotLearner).map((c) => (
                           <option key={c.id} value={c.id}>
                             {c.alias} · Class {c.grade}
                           </option>

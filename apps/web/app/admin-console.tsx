@@ -1,4 +1,5 @@
 "use client";
+import { educationLabel } from "./learner-education";
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
@@ -459,7 +460,7 @@ function People({ session }: { session: Session }) {
                 <ul>
                   {detail.data.children.map((c) => (
                     <li key={c.id}>
-                      {c.alias} · Class {c.grade}, {c.board}
+                      {c.alias} · {c.grade===null?educationLabel(c):`Class ${c.grade}, ${c.board}`}
                       <p>
                         Learner {c.id}
                         <br />
