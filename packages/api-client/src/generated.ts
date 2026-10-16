@@ -2501,6 +2501,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/children/{id}/student-session-labels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Name or clear an owned active student device
+         * @description Guardian-only private label. Requires current verification/consent and expected child version. Does not authorize, revoke or extend a session. Refresh rotation preserves the label; audit metadata excludes label text.
+         */
+        post: operations["postChildrenIdStudentSessionLabels"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3373,6 +3393,7 @@ export interface components {
                 familyId: string;
                 /** Format: date-time */
                 expiresAt: string;
+                deviceLabel: string | null;
             }[];
             childVersion: number;
             accessRevoked: boolean;
@@ -4919,6 +4940,18 @@ export interface components {
                 language?: "English" | "Hindi";
                 learningPreferences?: string;
             };
+        };
+        StudentDeviceLabel: {
+            expectedVersion: number;
+            /** Format: uuid */
+            familyId: string;
+            label: string | null;
+        };
+        StudentDeviceLabelSaved: {
+            /** Format: uuid */
+            familyId: string;
+            label: string | null;
+            childVersion: number;
         };
     };
     responses: never;
@@ -17654,6 +17687,99 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OnboardingProgress"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    postChildrenIdStudentSessionLabels: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentDeviceLabel"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentDeviceLabelSaved"];
                 };
             };
             /** @description Validation */

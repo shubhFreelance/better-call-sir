@@ -9,8 +9,25 @@ class StudentAccessController {
  @Get('children/:id/student-sessions') async sessions(@Req() req:HttpRequest,@Param('id') id:string){
   parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);
   const child=await this.service.child(this.service.db,actor,id);
-  const items=child.studentAccountId?await this.service.db.session.findMany({where:{accountId:child.studentAccountId,revoked:false,rotated:false,expiresAt:{gt:new Date()}},select:{familyId:true,expiresAt:true},orderBy:[{expiresAt:'desc'},{familyId:'asc'}],take:50}):[];
+  const items=child.studentAccountId?await this.service.db.session.findMany({where:{accountId:child.studentAccountId,revoked:false,rotated:false,expiresAt:{gt:new Date()}},select:{familyId:true,expiresAt:true,deviceLabel:true},orderBy:[{expiresAt:'desc'},{familyId:'asc'}],take:50}):[];
   return {items,childVersion:child.version,accessRevoked:!!child.studentAccessRevokedAt};
+ }
+ @Post('children/:id/student-session-labels') async label(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+  parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);
+  const data=parse(z.object({expectedVersion:version,familyId:uuid,label:text(60).regex(/^[^\u0000-\u001f\u007f]+$/).nullable()}).strict(),body);
+  return this.service.once(req,actor,'student.device.label',data,async db=>{
+   await this.service.guardian(db,actor.id);const child=await this.service.child(db,actor,id);
+   if(child.version!==data.expectedVersion)fail(409,'CONFLICT','Student access has changed. Refresh before naming a device.');
+   if(!child.studentAccountId||child.studentAccessRevokedAt)fail(409,'STUDENT_UNAVAILABLE','Student access is unavailable.');
+   const account=await db.account.findUnique({where:{id:child.studentAccountId}});
+   if(!account||account.disabled||account.role!=='STUDENT')fail(409,'STUDENT_UNAVAILABLE','Student access is unavailable.');
+   const active=await db.session.findFirst({where:{accountId:account.id,familyId:data.familyId,revoked:false,rotated:false,expiresAt:{gt:new Date()}}});
+   if(!active)fail(404,'NOT_FOUND','Active student device not found.');
+   await db.session.updateMany({where:{accountId:account.id,familyId:data.familyId},data:{deviceLabel:data.label}});
+   const updated=await db.child.update({where:{id},data:{version:{increment:1}}});
+   await this.service.audit(db,actor,req,'STUDENT_DEVICE_LABEL_UPDATED',id,'Guardian updated a student device label',undefined,{familyId:data.familyId,hasLabel:data.label!==null});
+   return {familyId:data.familyId,label:data.label,childVersion:updated.version};
+  });
  }
  @Post('children/:id/student-sessions') async authorize(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown,@Res({passthrough:true}) res:Response){
   parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({expectedVersion:version}).strict(),body);

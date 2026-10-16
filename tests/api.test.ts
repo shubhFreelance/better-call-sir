@@ -700,6 +700,40 @@ test('guardian-approved returning student devices remain isolated, revocable and
  assert.equal((await relogin.call('/onboarding/parent')).status,403);
  student=relogin;
 });
+test('student device labels are private, versioned, duplicate-safe and survive refresh rotation',async()=>{
+ const path=`/children/${ids.child}/student-session-labels`,current=await parent.call(`/children/${ids.child}/student-sessions`);
+ const access=student.cookies.split('; ').find(x=>x.startsWith('bcs_access='))!.split('=')[1],session=await db.session.findUniqueOrThrow({where:{accessHash:createHash('sha256').update(access).digest('hex')}});
+ const body={expectedVersion:current.data.childVersion,familyId:session.familyId,label:'Study tablet'},key=randomUUID();
+ const saved=await parent.call(path,body,{key});assert.equal(saved.status,201,JSON.stringify(saved.data));assert.equal(saved.data.label,'Study tablet');assert.equal(saved.data.childVersion,body.expectedVersion+1);
+ assert.deepEqual((await parent.call(path,body,{key})).data,saved.data);assert.equal((await parent.call(path,{...body,label:'Different tablet'},{key})).status,409);
+ const validate=operationValidator('/children/{id}/student-session-labels','post','201');assert(validate(saved.data),JSON.stringify(validate.errors));
+ assert.equal((await student.call('/auth/refresh',{})).status,201);
+ const generations=await db.session.findMany({where:{accountId:ids.student,familyId:session.familyId}});assert(generations.length>=2);assert(generations.every(x=>x.deviceLabel==='Study tablet'));
+ const listed=await parent.call(`/children/${ids.child}/student-sessions`),entry=listed.data.items.find((x:any)=>x.familyId===session.familyId);assert.equal(entry.deviceLabel,'Study tablet');assert.deepEqual(Object.keys(entry).sort(),['deviceLabel','expiresAt','familyId']);
+ const audit=await db.audit.findFirstOrThrow({where:{action:'STUDENT_DEVICE_LABEL_UPDATED',aggregateId:ids.child},orderBy:{createdAt:'desc'}});assert(!JSON.stringify(audit).includes('Study tablet'));
+ assert.equal((await parent.call(path,{...body,expectedVersion:saved.data.childVersion,label:null})).status,201);assert.equal((await parent.call(`/children/${ids.child}/student-sessions`)).data.items.find((x:any)=>x.familyId===session.familyId).deviceLabel,null);
+ assert.equal((await student.call('/dashboard')).status,200);
+});
+test('device naming rejects foreign, stale, invalid and inactive sessions and preserves consent gates',async()=>{
+ const path=`/children/${ids.child}/student-session-labels`,current=await parent.call(`/children/${ids.child}/student-sessions`),body={expectedVersion:current.data.childVersion,familyId:current.data.items[0].familyId,label:'Shared tablet'};
+ assert.equal((await new Client().call(path,body)).status,401);assert.equal((await other.call(path,body)).status,404);assert.equal((await teacher.call(path,body)).status,403);assert.equal((await student.call(path,body)).status,403);
+ assert.equal((await parent.call(path,body,{csrf:'wrong'})).status,403);assert.equal((await parent.call(path,body,{origin:'https://untrusted.example'})).status,403);
+ for(const label of ['', '   ', 'x'.repeat(61), 'Bad\nname'])assert.equal((await parent.call(path,{...body,label})).status,400);
+ assert.equal((await parent.call(path,{...body,accountId:ids.otherGuardian})).status,400);assert.equal((await parent.call(path,{...body,expectedVersion:body.expectedVersion-1})).status,409);
+ const foreign=await db.session.findFirstOrThrow({where:{accountId:ids.otherGuardian,revoked:false,rotated:false}});assert.equal((await parent.call(path,{...body,familyId:foreign.familyId})).status,404);
+ const inactive=randomUUID();await new AppService().issueSession(await db.account.findUniqueOrThrow({where:{id:ids.student}}),inactive,db,new Date(Date.now()-1000));assert.equal((await parent.call(path,{...body,familyId:inactive})).status,404);
+ await db.consent.update({where:{guardianId:ids.guardian},data:{withdrawnAt:new Date()}});try{assert.equal((await parent.call(path,body)).status,403);}finally{await db.consent.update({where:{guardianId:ids.guardian},data:{withdrawnAt:null}});}
+ await db.account.update({where:{id:ids.guardian},data:{verified:false}});try{assert.equal((await parent.call(path,body)).status,403);}finally{await db.account.update({where:{id:ids.guardian},data:{verified:true}});}
+ const paused=await db.privacyRequest.create({data:{accountId:ids.guardian,kind:'DELETION',scope:'CHILD',resourceId:ids.child,reason:'Synthetic label gate'}});try{assert.equal((await parent.call(path,body)).status,403);}finally{await db.privacyRequest.delete({where:{id:paused.id}});}
+ assert.equal((await parent.call(`/children/${ids.child}/student-sessions`)).data.childVersion,body.expectedVersion);
+});
+test('concurrent device labels cannot overwrite a newer label or revive revoked access',async()=>{
+ const concurrentFamily=randomUUID();await new AppService().issueSession(await db.account.findUniqueOrThrow({where:{id:ids.student}}),concurrentFamily,db);
+ const current=await parent.call(`/children/${ids.child}/student-sessions`),body={expectedVersion:current.data.childVersion,familyId:concurrentFamily,label:'Tablet one'},path=`/children/${ids.child}/student-session-labels`;
+ const results=await Promise.all([parent.call(path,body),parent.call(path,{...body,label:'Tablet two'})]);assert.deepEqual(results.map(r=>r.status).sort(),[201,409]);
+ const winner=results.find(r=>r.status===201)!,revoke=await parent.call(`/children/${ids.child}/student-access-revocations`,{expectedVersion:winner.data.childVersion,familyId:body.familyId,reason:'Synthetic unused device'});assert.equal(revoke.status,201);
+ assert.equal((await parent.call(path,{...body,expectedVersion:revoke.data.childVersion})).status,404);
+});
 test('support queues isolate owners and regions and hide internal staff updates',async()=>{
  const data={category:'SAFETY',description:'Synthetic safety concern',placementId:ids.placement},key=randomUUID();
  assert.equal((await other.call('/cases',data)).status,404);const created=await parent.call('/cases',data,{key});assert.equal(created.status,201);assert.equal((await parent.call('/cases',data,{key})).data.id,created.data.id);
@@ -784,10 +818,12 @@ test('privacy correction and deletion require owner scope, reviewed retention an
  const correction=await other.call('/privacy-requests',{kind:'CORRECTION',scope:'NOTE',resourceId:note.id,reason:'Correct a typo',correction:'Corrected synthetic note'});assert.equal(correction.status,201);
  const review={expectedVersion:1,action:'FULFIL',reason:'Owner correction verified',policyVersion:'synthetic-privacy-v1',confirmed:true};assert.equal((await other.call(`/admin/privacy-requests/${correction.data.id}/reviews`,review)).status,403);
  assert.equal((await operator.call(`/admin/privacy-requests/${correction.data.id}/reviews`,review)).status,201);assert.equal((await db.note.findUniqueOrThrow({where:{id:note.id}})).text,'Corrected synthetic note');assert.equal((await db.note.findUniqueOrThrow({where:{id:note.id}})).sharedTeacherId,null);assert.equal((await db.note.findUniqueOrThrow({where:{id:note.id}})).acknowledgedAt,null);assert.equal((await operator.call(`/admin/privacy-requests/${correction.data.id}/reviews`,review)).status,409);
+ const erasedStudent=await db.account.create({data:{name:'Synthetic device erasure',role:'STUDENT'}});await db.child.update({where:{id:ids.otherChild},data:{studentAccountId:erasedStudent.id}});const erasedFamily=randomUUID();await new AppService().issueSession(erasedStudent,erasedFamily,db);await db.session.updateMany({where:{familyId:erasedFamily},data:{deviceLabel:'Private tablet name'}});
  const deletion=await other.call('/privacy-requests',{kind:'DELETION',scope:'CHILD',resourceId:ids.otherChild,reason:'Delete learner personal content'});assert.equal(deletion.status,201);
  assert.equal((await other.call('/requests',intake({childId:ids.otherChild,grade:9,board:'CGBSE'}))).status,403);
  assert.equal((await operator.call(`/admin/privacy-requests/${deletion.data.id}/reviews`,review)).status,400);
  const fulfilled=await operator.call(`/admin/privacy-requests/${deletion.data.id}/reviews`,{...review,retentionReason:'Synthetic approved retention of financial, learning, safety and immutable audit evidence'});assert.equal(fulfilled.status,201,JSON.stringify(fulfilled.data));assert.equal((await db.child.findUniqueOrThrow({where:{id:ids.otherChild}})).alias,'Deleted learner');assert.equal((await db.note.findUniqueOrThrow({where:{id:note.id}})).text,'[deleted]');
+ assert.equal((await db.session.findFirstOrThrow({where:{familyId:erasedFamily}})).deviceLabel,null);
  const ledger=await operator.call('/admin/privacy/deletion-ledger');assert.equal(ledger.status,200);const record=ledger.data.items.find((r:any)=>r.privacyRequestId===deletion.data.id);assert(record);assert.equal((await other.call('/admin/privacy/deletion-ledger')).status,403);await assert.rejects(db.deletionRecord.update({where:{id:record.id},data:{retentionReason:'Rewrite'}}));
  await db.note.update({where:{id:note.id},data:{text:'Restored backup content'}});const key=randomUUID(),replay={restoreReference:'synthetic-backup-restore-01',reason:'Apply deletion after restore',confirmed:true};assert.equal((await operator.call(`/admin/privacy/deletion-ledger/${record.id}/replays`,replay,{key})).status,201);assert.equal((await operator.call(`/admin/privacy/deletion-ledger/${record.id}/replays`,replay,{key})).status,201);assert.equal((await db.note.findUniqueOrThrow({where:{id:note.id}})).text,'[deleted]');assert.equal(await db.audit.count({where:{action:'BACKUP_DELETION_REPLAYED',aggregateId:record.id}}),1);
  const validate=operationValidator('/privacy-requests','post','201');assert(validate(deletion.data),JSON.stringify(validate.errors));
