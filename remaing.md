@@ -59,6 +59,7 @@ Delivery order: T1, L1a, L1, L2a and L2b are implemented in development. L3a act
 - [x] **F22 student welcome increment** Age-appropriate privacy/guardian guidance and optional private learning preferences, with save/resume, clearing, stale/uncertain recovery and skip/discovery routes.
 - [ ] **F22** Remaining access polish and final cross-journey recovery review; device labels and primary onboarding/revision/invitation recovery are implemented
 - [x] **F23** Unsupported-scope waitlist intake/private recorded status, supported-scope recovery, retry-safe save/history and useful no-match/discovery alternatives. No future teacher supply or notifications are promised.
+- [x] **F24 sign-in increment** English/Hindi selector, retained validation/input across language changes, translated sign-in/OTP/expiry/recovery/privacy notices, remembered non-sensitive language preference, self-hosted Devanagari font and localized email templates through the existing OTP endpoint. Devanagari code digits normalize to the unchanged six-digit API format. Other forms, dashboards, shared footer/notices and provider delivery qualification remain open.
 - [ ] **F24** Full English/Hindi localization: all forms, notices, validation, dashboard/console copy and typography
 - [ ] **F25** Finish remaining legacy screens/components and demo booking-detail forms using the shared shadcn controls and deliberate palette; review every loading/error/empty/retry state on mobile and keyboard
 

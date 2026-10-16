@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@fontsource-variable/manrope";
+import "@fontsource-variable/noto-sans-devanagari";
 import "./globals.css";
 import { headers } from "next/headers";
 import { ScriptNonceProvider } from "./security-nonce";

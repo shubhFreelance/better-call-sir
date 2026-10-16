@@ -4938,3 +4938,11 @@ footer {
 @media (max-width: 640px) {
   .auth-form input:not(.auth-code) { font-size: 16px; }
 }
+
+[lang="hi"] { --font-family: "Noto Sans Devanagari Variable", "Manrope Variable", sans-serif; font-family: var(--font-family); }
+[lang="hi"] :is(h1, h2, h3) { letter-spacing: 0; line-height: 1.45; }
+.auth-language { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 140px); align-items: center; gap: 12px; padding-bottom: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--line); }
+.auth-language label { color: var(--muted); font-size: 13px; }
+.auth-language select { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); color: var(--ink); font-size: 16px; }
+.auth-section[lang="hi"] .auth-card h1 { font-size: 30px; }
+.auth-section[lang="hi"] :is(.auth-help, .auth-footer-note, .auth-family-note p, .auth-subtitle) { line-height: 1.8; }

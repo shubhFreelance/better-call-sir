@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { z } from "zod";
+import { signInCopy, type SignInError } from "./sign-in-copy";
 import {
   ArrowRight,
   BookOpen,
@@ -34,9 +35,14 @@ type Challenge = {
 };
 export function EmailLogin({
   onSignedIn,
+  hindi,
+  onLanguageChange,
 }: {
+  hindi: boolean;
+  onLanguageChange: (hindi: boolean) => void;
   onSignedIn: (session: Session) => void;
 }) {
+  const t = signInCopy[hindi ? "hi" : "en"];
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -46,10 +52,10 @@ export function EmailLogin({
   const [now, setNow] = useState(0);
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<{
-    name?: string;
-    email?: string;
-    code?: string;
-    server?: string;
+    name?: SignInError;
+    email?: SignInError;
+    code?: SignInError;
+    server?: SignInError;
   }>({});
   const codeInput = useRef<HTMLInputElement>(null);
   const nameInput = useRef<HTMLInputElement>(null);
@@ -65,17 +71,33 @@ export function EmailLogin({
   }, [challenge]);
   const remaining = Math.max(0, Math.ceil((deadline - now) / 1000));
   const cooldown = Math.max(0, Math.ceil((resendAt - now) / 1000));
-  function serverError(error: unknown) {
-    return error instanceof ApiError
-      ? error.message
-      : "We couldn’t reach the sign-in service. Please try again.";
+  function serverError(error: unknown): SignInError {
+    if (!(error instanceof ApiError)) return "network";
+    return (
+      (
+        {
+          EMAIL_UNAVAILABLE: "emailUnavailable",
+          AUTH_UNAVAILABLE: "authUnavailable",
+          RATE_LIMIT: "rateLimited",
+          VALIDATION: "detailsInvalid",
+          PROVIDER_UNAVAILABLE: "signInUnavailable",
+        } as Record<string, SignInError>
+      )[error.code] || "signInUnavailable"
+    );
   }
   async function requestCode(event?: FormEvent) {
     event?.preventDefault();
     const parsed = detailsSchema.safeParse({ name, email });
     if (!parsed.success) {
       const fields = parsed.error.flatten().fieldErrors;
-      setErrors({ name: fields.name?.[0], email: fields.email?.[0] });
+      setErrors({
+        name: fields.name
+          ? name.trim()
+            ? "nameLong"
+            : "nameRequired"
+          : undefined,
+        email: fields.email ? "emailInvalid" : undefined,
+      });
       requestAnimationFrame(() =>
         (fields.name ? nameInput : emailInput).current?.focus(),
       );
@@ -86,7 +108,7 @@ export function EmailLogin({
     try {
       const result = await api<Challenge>("/auth/otp/request", {
         method: "POST",
-        body: { email: parsed.data.email },
+        body: { email: parsed.data.email, locale: hindi ? "hi" : "en" },
         signal: AbortSignal.timeout(12000),
       });
       setName(parsed.data.name);
@@ -106,12 +128,12 @@ export function EmailLogin({
   async function verify(event: FormEvent) {
     event.preventDefault();
     if (!/^\d{6}$/.test(code)) {
-      setErrors({ code: "Enter the six-digit code." });
+      setErrors({ code: "codeRequired" });
       codeInput.current?.focus();
       return;
     }
     if (!remaining) {
-      setErrors({ code: "This code has expired. Request a new code below." });
+      setErrors({ code: "codeExpired" });
       return;
     }
     setBusy(true);
@@ -128,7 +150,7 @@ export function EmailLogin({
     } catch (error) {
       if (error instanceof ApiError && error.code === "INVALID_OTP") {
         setErrors({
-          code: "That code is incorrect or expired. Check it or request a new code.",
+          code: "codeWrong",
         });
         codeInput.current?.focus();
       } else setErrors({ server: serverError(error) });
@@ -139,44 +161,55 @@ export function EmailLogin({
   return (
     <div className="auth-layout">
       <section className="auth-card" aria-labelledby="auth-title">
-        <ol className="auth-steps" aria-label="Sign-in progress">
+        <div className="auth-language">
+          <label htmlFor="signin-language">Language / भाषा</label>
+          <select
+            id="signin-language"
+            value={hindi ? "hi" : "en"}
+            onChange={(event) => onLanguageChange(event.target.value === "hi")}
+            disabled={busy}
+          >
+            <option value="en">English</option>
+            <option value="hi">हिन्दी</option>
+          </select>
+        </div>
+        <ol className="auth-steps" aria-label={t.progress}>
           <li
             className={!challenge ? "current" : "complete"}
             aria-current={!challenge ? "step" : undefined}
           >
-            <span>{challenge ? <Check size={14} /> : "1"}</span>Email
+            <span>{challenge ? <Check size={14} /> : "1"}</span>
+            {t.emailStep}
           </li>
           <li
             className={challenge ? "current" : ""}
             aria-current={challenge ? "step" : undefined}
           >
-            <span>2</span>Verify
+            <span>2</span>
+            {t.verifyStep}
           </li>
         </ol>
         <div className="auth-icon">
           <Mail size={24} />
         </div>
-        <h1 id="auth-title">
-          {challenge ? "Check your email" : "Welcome to Better Call Sir"}
-        </h1>
+        <h1 id="auth-title">{challenge ? t.checkEmail : t.welcome}</h1>
         <p className="auth-subtitle">
           {challenge ? (
             <>
-              Enter the code for{" "}
-              <strong className="auth-address">{email}</strong>.
+              {t.codeFor} <strong className="auth-address">{email}</strong>.
             </>
           ) : (
-            "Sign in or create your account with a one-time email code."
+            t.introduction
           )}
         </p>
         {errors.server && (
           <Alert variant="destructive" role="alert">
-            <AlertDescription>{errors.server}</AlertDescription>
+            <AlertDescription>{t.errors[errors.server]}</AlertDescription>
           </Alert>
         )}
         {!challenge ? (
           <form noValidate onSubmit={requestCode} className="auth-form">
-            <label htmlFor="signin-name">Your name</label>
+            <label htmlFor="signin-name">{t.name}</label>
             <Input
               ref={nameInput}
               id="signin-name"
@@ -195,14 +228,14 @@ export function EmailLogin({
             />
             {errors.name ? (
               <p id="signin-name-error" className="auth-field-error">
-                {errors.name}
+                {t.errors[errors.name]}
               </p>
             ) : (
               <p id="signin-name-help" className="auth-help">
-                Used when creating a new account.
+                {t.nameHelp}
               </p>
             )}
-            <label htmlFor="signin-email">Email address</label>
+            <label htmlFor="signin-email">{t.email}</label>
             <Input
               ref={emailInput}
               id="signin-email"
@@ -224,7 +257,7 @@ export function EmailLogin({
             />
             {errors.email && (
               <p id="signin-email-error" className="auth-field-error">
-                {errors.email}
+                {t.errors[errors.email]}
               </p>
             )}
             <Button
@@ -234,32 +267,30 @@ export function EmailLogin({
             >
               {busy ? (
                 <>
-                  <LoaderCircle className="spin" /> Requesting code…
+                  <LoaderCircle className="spin" /> {t.sending}
                 </>
               ) : (
                 <>
-                  Send sign-in code <ArrowRight size={18} />
+                  {t.send} <ArrowRight size={18} />
                 </>
               )}
             </Button>
-            <p className="auth-help">
-              No password to remember. Only enter a code you requested.
-            </p>
+            <p className="auth-help">{t.passwordHelp}</p>
           </form>
         ) : (
           <form noValidate onSubmit={verify} className="auth-form">
             {challenge.status === "SANDBOX" && (
               <Alert className="auth-sandbox" role="status">
                 <AlertDescription>
-                  <strong>Development preview — no email was sent.</strong>
+                  <strong>{t.preview}</strong>
                   <span>
-                    Use preview code{" "}
-                    <strong>{challenge.developmentCode}</strong>.
+                    {t.previewCode} <strong>{challenge.developmentCode}</strong>
+                    .
                   </span>
                 </AlertDescription>
               </Alert>
             )}
-            <label htmlFor="signin-code">Six-digit code</label>
+            <label htmlFor="signin-code">{t.code}</label>
             <Input
               ref={codeInput}
               id="signin-code"
@@ -269,7 +300,14 @@ export function EmailLogin({
               maxLength={6}
               value={code}
               onChange={(e) => {
-                setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                setCode(
+                  e.target.value
+                    .replace(/[०-९]/g, (digit) =>
+                      String(digit.charCodeAt(0) - 0x966),
+                    )
+                    .replace(/\D/g, "")
+                    .slice(0, 6),
+                );
                 setErrors((old) => ({ ...old, code: undefined }));
               }}
               aria-invalid={!!errors.code}
@@ -284,13 +322,15 @@ export function EmailLogin({
                 className="auth-field-error"
                 role="alert"
               >
-                {errors.code}
+                {t.errors[errors.code]}
               </p>
             )}
             <p id="signin-code-help" className="auth-help">
               {remaining
-                ? `Expires in ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, "0")}. You can paste the full code.`
-                : "This code has expired. Request a new one."}
+                ? t.expires(
+                    `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, "0")}`,
+                  )
+                : t.expired}
             </p>
             <Button
               className="button auth-submit"
@@ -299,10 +339,10 @@ export function EmailLogin({
             >
               {busy ? (
                 <>
-                  <LoaderCircle className="spin" /> Please wait…
+                  <LoaderCircle className="spin" /> {t.wait}
                 </>
               ) : (
-                "Verify and continue"
+                t.verify
               )}
             </Button>
             <div className="auth-recovery">
@@ -312,7 +352,7 @@ export function EmailLogin({
                 disabled={busy || cooldown > 0}
                 onClick={() => requestCode()}
               >
-                {cooldown ? `Resend in ${cooldown}s` : "Resend code"}
+                {cooldown ? t.resendIn(cooldown) : t.resend}
               </Button>
               <Button
                 variant="ghost"
@@ -325,40 +365,31 @@ export function EmailLogin({
                   requestAnimationFrame(() => emailInput.current?.focus());
                 }}
               >
-                Change email
+                {t.changeEmail}
               </Button>
             </div>
           </form>
         )}
-        <p className="auth-footer-note">
-          A verified email gives access to your account. Guardian verification
-          and consent are separate steps before learner details are collected.
-        </p>
+        <p className="auth-footer-note">{t.permission}</p>
       </section>
       <aside className="auth-intro">
         <BookOpen size={32} aria-hidden="true" />
-        <h2>A space for your learning journey.</h2>
-        <p>
-          Find a teacher who fits. Keep lessons, conversations and progress
-          together.
-        </p>
+        <h2>{t.guideTitle}</h2>
+        <p>{t.guideIntro}</p>
         <ul>
           <li>
-            <Check size={18} /> Explore reviewed teacher profiles
+            <Check size={18} /> {t.reviewed}
           </li>
           <li>
-            <Check size={18} /> Manage lessons and learning records
+            <Check size={18} /> {t.enquiries}
           </li>
           <li>
-            <Check size={18} /> Stay in control of your family’s information
+            <Check size={18} /> {t.privacy}
           </li>
         </ul>
         <div className="auth-family-note">
           <ShieldCheck size={20} />
-          <p>
-            Students join through their guardian. Email sign-in is for adult
-            accounts.
-          </p>
+          <p>{t.guardian}</p>
         </div>
       </aside>
     </div>

@@ -278,7 +278,7 @@ function Header() {
         <span className="dev-dot" /> Development preview · Synthetic profiles
         and accounts · No live payments or calls
       </div>
-      <header className="header">
+      <header className="header" lang={hindi ? "hi" : "en"}>
         <div className="container header-inner">
           <Logo />
           <nav
@@ -307,8 +307,12 @@ function Header() {
             {session ? (
               <>
                 <Link className="button small secondary" href="/dashboard">
-                  <span className="header-action-desktop">My dashboard</span>
-                  <span className="header-action-mobile">Dashboard</span>{" "}
+                  <span className="header-action-desktop">
+                    {hindi ? "मेरा डैशबोर्ड" : "My dashboard"}
+                  </span>
+                  <span className="header-action-mobile">
+                    {hindi ? "डैशबोर्ड" : "Dashboard"}
+                  </span>{" "}
                   <ArrowUpRight size={16} />
                 </Link>
                 <button
@@ -321,8 +325,12 @@ function Header() {
               </>
             ) : (
               <Link className="button small" href="/login">
-                <span className="header-action-desktop">Get started</span>
-                <span className="header-action-mobile">Sign in</span>{" "}
+                <span className="header-action-desktop">
+                  {hindi ? "शुरू करें" : "Get started"}
+                </span>
+                <span className="header-action-mobile">
+                  {hindi ? "साइन इन" : "Sign in"}
+                </span>{" "}
                 <ArrowUpRight size={16} />
               </Link>
             )}
@@ -1146,7 +1154,7 @@ function Profile({ slug }: { slug: string }) {
 }
 function Login() {
   const searchParams = useSearchParams();
-  const { setSession } = useAuth(),
+  const { setSession, hindi, setHindi } = useAuth(),
     router = useRouter(),
     client = useQueryClient();
   const query = useQuery({
@@ -1189,14 +1197,19 @@ function Login() {
     }
   }
   return (
-    <main className="container auth-section">
-      <EmailLogin onSignedIn={signedIn} />
+    <main className="container auth-section" lang={hindi ? "hi" : "en"}>
+      <EmailLogin
+        onSignedIn={signedIn}
+        hindi={hindi}
+        onLanguageChange={setHindi}
+      />
       {!!query.data?.length && (
         <details className="auth-demo-accounts">
-          <summary>Development accounts</summary>
+          <summary>{hindi ? "डेवलपमेंट खाते" : "Development accounts"}</summary>
           <p>
-            Explore the preview with synthetic accounts. These shortcuts are
-            unavailable in live mode.
+            {hindi
+              ? "नमूना खातों से प्रीव्यू देखें। लाइव सेवा में ये शॉर्टकट उपलब्ध नहीं होंगे।"
+              : "Explore the preview with synthetic accounts. These shortcuts are unavailable in live mode."}
           </p>
           {error && <Notice error>{error}</Notice>}
           <div className="account-list">
@@ -2231,7 +2244,22 @@ function Routes() {
 function AppContent() {
   const [session, setSession] = useState<Session | null>(null),
     [loading, setLoading] = useState(true),
-    [hindi, setHindi] = useState(false);
+    [hindi, setHindiState] = useState(false);
+  useEffect(() => {
+    try {
+      setHindiState(localStorage.getItem("bcs.interface-language") === "hi");
+    } catch {
+      /* Browser storage is optional. */
+    }
+  }, []);
+  function setHindi(value: boolean) {
+    setHindiState(value);
+    try {
+      localStorage.setItem("bcs.interface-language", value ? "hi" : "en");
+    } catch {
+      /* Keep language selection in memory. */
+    }
+  }
   const [transition, setTransition] = useState<{
     guardianId: string;
     studentId?: string;
