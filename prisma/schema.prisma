@@ -351,6 +351,8 @@ model Note {
   @@index([guardianId])
 }
 model SupportCase {
+  @@index([accountId, requestId])
+  requestId String? @db.Uuid
   region String @default("Raipur")
   assignedToId String? @db.Uuid
   placementId String? @db.Uuid
