@@ -184,3 +184,8 @@ test('independent signup contract requires explicit declarations and forbids aut
  const validate=validator('IndependentStudentSignup'),body={education:{stage:'COLLEGE',institutionName:'Synthetic college',subjects:['Physics'],courseName:'BSc',university:'Synthetic university',studyYear:1},managementPreference:'SELF_DIRECTED',adultDeclaration:true,consentAccepted:true,policyVersion:'independent-student-development-v1'};
  assert(validate(body));for(const patch of [{adultDeclaration:false},{consentAccepted:false},{managementPreference:'GUARDIAN_GUIDED'},{role:'ADMIN'},{guardianId:ids.guardian},{education:{...body.education,studyYear:0}}])assert.equal(validate({...body,...patch}),false);
 });
+
+test('student enquiry contracts preserve weekly limits, explicit review and server-owned account/education fields',()=>{
+ const validate=validator('StudentEnquiryInput'),body={expectedProfileVersion:1,discoveryMethod:'ASSISTED',subject:'Maths',mode:'ONLINE',language:'English',locality:'Synthetic locality',budgetPaise:100000,preferences:{timezone:'Asia/Kolkata',weekly:[{weekday:1,startMinute:960,endMinute:1080}]},confirmed:true};
+ assert(validate(body));for(const patch of [{studentAccountId:ids.student},{educationScope:{stage:'SCHOOL',grade:8,board:'CBSE'}},{confirmed:false},{budgetPaise:100.5},{preferences:{timezone:'UTC',weekly:body.preferences.weekly}}])assert.equal(validate({...body,...patch}),false);
+});

@@ -652,3 +652,24 @@ model IndependentStudentProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model StudentEnquiry {
+ id String @id @default(uuid()) @db.Uuid
+ studentAccountId String @db.Uuid
+ profileVersion Int
+ educationScope Json
+ discoveryMethod String
+ preferredTeacherId String? @db.Uuid
+ subject String
+ mode String
+ language String
+ locality String
+ budgetPaise Int
+ preferences Json
+ region String
+ status String @default("SUBMITTED")
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ @@index([studentAccountId,id])
+ @@index([region,status,id])
+}

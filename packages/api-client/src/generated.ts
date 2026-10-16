@@ -2588,6 +2588,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/independent-student/enquiry-context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getStudentEnquiryContext
+         * @description Private independent student enquiry intake, currently SUBMITTED for staff review or WITHDRAWN. No automatic match, teacher reply, hiring, payment or class booking is created. Student ownership and regional staff scope are enforced; school/institution, contact, account and guardian details are omitted from queue projections.
+         */
+        get: operations["getStudentEnquiryContext"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-enquiries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listStudentEnquiries
+         * @description Private independent student enquiry intake, currently SUBMITTED for staff review or WITHDRAWN. No automatic match, teacher reply, hiring, payment or class booking is created. Student ownership and regional staff scope are enforced; school/institution, contact, account and guardian details are omitted from queue projections.
+         */
+        get: operations["listStudentEnquiries"];
+        put?: never;
+        /**
+         * createStudentEnquiry
+         * @description Private independent student enquiry intake, currently SUBMITTED for staff review or WITHDRAWN. No automatic match, teacher reply, hiring, payment or class booking is created. Student ownership and regional staff scope are enforced; school/institution, contact, account and guardian details are omitted from queue projections.
+         */
+        post: operations["createStudentEnquiry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-enquiries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getStudentEnquiry
+         * @description Private independent student enquiry intake, currently SUBMITTED for staff review or WITHDRAWN. No automatic match, teacher reply, hiring, payment or class booking is created. Student ownership and regional staff scope are enforced; school/institution, contact, account and guardian details are omitted from queue projections.
+         */
+        get: operations["getStudentEnquiry"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student-enquiries/{id}/withdrawals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * withdrawStudentEnquiry
+         * @description Private independent student enquiry intake, currently SUBMITTED for staff review or WITHDRAWN. No automatic match, teacher reply, hiring, payment or class booking is created. Student ownership and regional staff scope are enforced; school/institution, contact, account and guardian details are omitted from queue projections.
+         */
+        post: operations["withdrawStudentEnquiry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5078,6 +5162,76 @@ export interface components {
         };
         IndependentStudentProfileUpdate: {
             education: components["schemas"]["IndependentStudentEducation"];
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+        };
+        StudentEnquiryEducation: {
+            /** @enum {string} */
+            stage: "SCHOOL";
+            grade: number;
+            board: string;
+        } | {
+            /** @enum {string} */
+            stage: "COLLEGE";
+            courseName: string;
+            studyYear: number;
+        };
+        StudentEnquiryInput: {
+            expectedProfileVersion: number;
+            /** @enum {string} */
+            discoveryMethod: "MANUAL" | "ASSISTED";
+            /** Format: uuid */
+            preferredTeacherId?: string;
+            subject: string;
+            /** @enum {string} */
+            mode: "ONLINE" | "HOME";
+            /** @enum {string} */
+            language: "English" | "Hindi";
+            locality: string;
+            budgetPaise: number;
+            preferences: components["schemas"]["WeeklyPreferences"];
+            /** @enum {boolean} */
+            confirmed: true;
+        };
+        StudentEnquiry: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            discoveryMethod: "MANUAL" | "ASSISTED";
+            /** Format: uuid */
+            preferredTeacherId: string | null;
+            educationScope: components["schemas"]["StudentEnquiryEducation"];
+            profileVersion: number;
+            subject: string;
+            /** @enum {string} */
+            mode: "ONLINE" | "HOME";
+            /** @enum {string} */
+            language: "English" | "Hindi";
+            locality: string;
+            budgetPaise: number;
+            preferences: components["schemas"]["WeeklyPreferences"];
+            region: string;
+            /** @enum {string} */
+            status: "SUBMITTED" | "WITHDRAWN";
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        StudentEnquiryContext: {
+            profileVersion: number;
+            educationScope: components["schemas"]["StudentEnquiryEducation"];
+            subjects: string[];
+            region: string;
+            /** @enum {string} */
+            gate: "READY" | "PRIVACY_PAUSED" | "UNSUPPORTED_REGION";
+        };
+        StudentEnquiryList: {
+            items: components["schemas"]["StudentEnquiry"][];
+            /** Format: uuid */
+            nextCursor: string | null;
+        };
+        StudentEnquiryWithdrawal: {
             expectedVersion: number;
             /** @enum {boolean} */
             confirmed: true;
@@ -18264,6 +18418,449 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IndependentStudentProfile"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getStudentEnquiryContext: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed private enquiry result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentEnquiryContext"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listStudentEnquiries: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                status?: "SUBMITTED" | "WITHDRAWN";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed private enquiry result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentEnquiryList"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createStudentEnquiry: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentEnquiryInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed private enquiry result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentEnquiry"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getStudentEnquiry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed private enquiry result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentEnquiry"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    withdrawStudentEnquiry: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+                /** @description Must match configured WEB_ORIGIN. Mock validates format only. */
+                Origin: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentEnquiryWithdrawal"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed private enquiry result. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentEnquiry"];
                 };
             };
             /** @description Validation */
