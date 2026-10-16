@@ -1,7 +1,7 @@
 import {Module,Controller,Get,Post,Param,Query,Req,Body,Inject} from '@nestjs/common';
 import type {Child} from '@prisma/client';
 import {z} from 'zod';
-import {AppService,PersistenceModule,HttpRequest,uuid,parse,fail,text} from '../../shared';
+import {AppService,PersistenceModule,HttpRequest,DB,uuid,version,parse,fail,text} from '../../shared';
 import {schoolSubjects} from '../teachers/details';
 const common={institutionName:text(160),subjects:schoolSubjects};
 export const learnerEducation=z.discriminatedUnion('stage',[
@@ -15,6 +15,14 @@ export function learnerProjection(c:Pick<Child,keyof typeof profileSelect>) {
  const education={stage:c.educationStage,institutionName:c.schoolName,subjects:c.schoolSubjects,...(c.educationStage==='SCHOOL'?{grade:c.grade,board:c.board}:c.educationStage==='EARLY_YEARS'?{level:c.earlyYearsLevel}:{courseName:c.courseName,university:c.university,studyYear:c.studyYear})};
  return {id:c.id,alias:c.alias,education,version:c.version,enquiryEligible:!!c.schoolName&&c.schoolSubjects.length>0&&(c.educationStage!=='COLLEGE'||!!c.courseName&&!!c.university&&!!c.studyYear)};
 }
+function educationData(e:z.infer<typeof learnerEducation>) {
+ return {educationStage:e.stage,schoolName:e.institutionName,schoolSubjects:e.subjects,grade:e.stage==='SCHOOL'?e.grade:null,board:e.stage==='SCHOOL'?e.board:null,earlyYearsLevel:e.stage==='EARLY_YEARS'?e.level:null,courseName:e.stage==='COLLEGE'?e.courseName:null,university:e.stage==='COLLEGE'?e.university:null,studyYear:e.stage==='COLLEGE'?e.studyYear:null};
+}
+async function editStatus(db:DB,child:Child) {
+ if(await db.deletionRecord.findFirst({where:{accountId:child.guardianId,OR:[{scope:'CHILD',resourceId:child.id},{scope:'ACCOUNT'}]},select:{id:true}}))return 'DELETED' as const;
+ if(await db.tuitionRequest.findFirst({where:{childId:child.id},select:{id:true}})||await db.reservation.findFirst({where:{childId:child.id},select:{id:true}})||await db.lesson.findFirst({where:{childId:child.id},select:{id:true}}))return 'HISTORY_LINKED' as const;
+ return 'EDITABLE' as const;
+}
 @Controller('api/v1')
 class LearnersController {
  constructor(@Inject(AppService) private readonly service:AppService){}
@@ -23,7 +31,7 @@ class LearnersController {
   return this.service.once(req,actor,'learner.create',data,async db=>{
    await this.service.guardian(db,actor.id);
    const e=data.education;
-   const child=await db.child.create({data:{guardianId:actor.id,alias:data.alias,educationStage:e.stage,schoolName:e.institutionName,schoolSubjects:e.subjects,grade:e.stage==='SCHOOL'?e.grade:null,board:e.stage==='SCHOOL'?e.board:null,earlyYearsLevel:e.stage==='EARLY_YEARS'?e.level:null,courseName:e.stage==='COLLEGE'?e.courseName:null,university:e.stage==='COLLEGE'?e.university:null,studyYear:e.stage==='COLLEGE'?e.studyYear:null}});
+   const child=await db.child.create({data:{guardianId:actor.id,alias:data.alias,...educationData(e)}});
    await this.service.audit(db,actor,req,'LEARNER_PROFILE_CREATED',child.id,'Guardian saved learner education profile');
    return learnerProjection(child);
   });
@@ -42,8 +50,23 @@ class LearnersController {
  }
  @Get('learner-profiles/:id') async detail(@Req() req:HttpRequest,@Param('id') id:string){
   parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','STUDENT']);
-  return learnerProjection(await this.service.child(this.service.db,actor,id));
+  return this.service.db.$transaction(async db=>{const child=await this.service.child(db,actor,id);return {...learnerProjection(child),editStatus:actor.role==='STUDENT'?'READ_ONLY':await editStatus(db,child)};},{isolationLevel:'RepeatableRead'});
  }
+ @Post('learner-profiles/:id/updates') async update(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
+  parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']),data=parse(profileInput.extend({expectedVersion:version,confirmed:z.literal(true)}),body);
+  return this.service.once(req,actor,'learner.update',data,async db=>{
+   await this.service.guardian(db,actor.id);
+   const child=await this.service.child(db,actor,id);
+   if(child.version!==data.expectedVersion)fail(409,'CONFLICT','This learner profile changed. Reload it before reviewing your changes again.');
+   const state=await editStatus(db,child);
+   if(state!=='EDITABLE')fail(409,state==='DELETED'?'PROFILE_DELETED':'PROFILE_HISTORY_LINKED',state==='DELETED'?'A deleted learner profile cannot be restored through editing.':'This profile is linked to enquiry or learning history. Use the privacy correction process instead.');
+   const updated=await db.child.updateMany({where:{id,guardianId:actor.id,version:data.expectedVersion},data:{alias:data.alias,...educationData(data.education),version:{increment:1}}});
+   if(!updated.count)fail(409,'CONFLICT','This learner profile changed. Reload it before reviewing your changes again.');
+   await this.service.audit(db,actor,req,'LEARNER_PROFILE_UPDATED',id,'Guardian confirmed an unlinked education profile update',undefined,{version:data.expectedVersion+1,educationStage:data.education.stage});
+   return {...learnerProjection(await db.child.findUniqueOrThrow({where:{id}})),editStatus:'EDITABLE'};
+  });
+ }
+
 }
 @Module({imports:[PersistenceModule],controllers:[LearnersController]})
 export class LearnersModule {}
