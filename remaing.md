@@ -2,7 +2,7 @@
 
 Updated 15 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
-Next sprint: **remaining H2 teacher/student/invitation recovery and H3 enquiry-to-hiring navigation**. Guardian drafts, weekly availability and dashboard hiring-term confirmation are implemented. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
+Next sprint: **remaining H2 teacher/student/invitation recovery and H3 enquiry-to-hiring navigation**. Guardian drafts, weekly availability, teacher-revision drafts and dashboard hiring-term confirmation are implemented. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
 
 Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides broader class-management launch requirements in the original PRD. Existing security, privacy and release controls remain required for the focused journey.
 
@@ -14,7 +14,8 @@ Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides
 - [x] **H2 enquiry-draft increment** Initial onboarding and one active additional enquiry have separate private, versioned saved drafts; resume, duplicate-safe submit, explicit post-submission restart, stale/uncertain recovery and protection from a different teacher link. Multiple simultaneous unfinished enquiry drafts remain outside this increment.
 - [x] **H2 draft-choice increment** Explicit acknowledged discard of unfinished initial/additional enquiry drafts, keeping submitted records/learner profiles; safe switch to another teacher, cancel/retry/version recovery and editing lock during review.
 - [x] **H2 weekly-availability increment** New enquiries use weekday/time ranges; existing dated windows remain supported. Draft resume, review, family editing and operator summaries preserve weekly intent. Matching rechecks actual free overlap, leave, reservations, screening/travel/capacity without booking classes.
-- [ ] **H2** Finish remaining guardian/teacher onboarding recovery, teacher-revision drafts and enquiry-to-hiring navigation; weekly availability and guardian draft recovery/discard are implemented
+- [x] **H2 teacher-revision increment** Private saved application revisions, step-by-step resume, no publication before resubmission, fresh fee acknowledgement, retry/version protection and acknowledged stale-draft discard.
+- [ ] **H2** Finish other guardian/student/invitation recovery and enquiry-to-hiring navigation; weekly availability, guardian draft recovery/discard and teacher-revision drafts are implemented
 - [x] **H3 dashboard terms increment** Guardian/teacher hiring-term review and versioned acceptance in primary dashboards; explicit waiting/both-confirmed states, policy/fee review, private financial scope and stale/uncertain recovery. Acceptance is independent of class timetables, service start and payment.
 - [ ] **H3** Teacher responses, selection and mutually confirmed hiring terms/status; review and decouple mandatory demo/timetable dependencies
 - [x] **H4** Hiring overview for student, guardian, teacher and superadmin: scoped enquiry/arrangement records, counts, learner/application metadata, reviewed teacher responses, operational drill-downs and recovery states. H2/H3 journey simplification remains pending.

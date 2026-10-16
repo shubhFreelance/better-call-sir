@@ -21,6 +21,7 @@ import {
 import { TeacherSchedule } from "./teacher-schedule";
 
 type Profile = components["schemas"]["PrivateTeacher"];
+type RevisionProgress = components["schemas"]["TeacherRevisionProgress"];
 type Evidence = components["schemas"]["Evidence"];
 const profileSchema = z.object({
   name: z.string().trim().min(1, "Enter your name.").max(80),
@@ -241,7 +242,7 @@ function ApplicationWizard({
   onReload: () => Promise<void>;
   onCancel?: () => void;
 }) {
-  const draft = (profile || initial?.draft || {}) as Partial<Application>;
+  const draft = { ...profile, ...initial?.draft } as Partial<Application>;
   const [values, setValues] = useState<Partial<Application>>({
     name: session.account.name,
     experience: 0,
@@ -403,16 +404,22 @@ function ApplicationWizard({
     setBusy(true);
     setError("");
     try {
-      if (!profile) {
-        // Keep valid coverage from a resumed draft when saving profile edits.
-        const result = await post<Progress>("/onboarding/teacher/drafts", {
-          expectedVersion: version,
-          draft: {
-            ...savedDraft,
-            ...data(),
-            feeTermsAccepted: undefined,
+      {
+        // Preserve later steps when saving an earlier step of a resumed draft.
+        const result = await post<Progress | RevisionProgress>(
+          profile
+            ? `/teacher-applications/${profile.id}/revision-drafts`
+            : "/onboarding/teacher/drafts",
+          {
+            expectedVersion: version,
+            ...(profile ? { expectedApplicationVersion: profile.version } : {}),
+            draft: {
+              ...savedDraft,
+              ...data(),
+              feeTermsAccepted: undefined,
+            },
           },
-        });
+        );
         setVersion(result.version);
         setSavedDraft({
           ...savedDraft,
@@ -440,12 +447,26 @@ function ApplicationWizard({
     setError("");
     try {
       if (!submission.current) {
-        if (profile)
+        if (profile) {
+          const { feeTermsAccepted, ...draft } = data();
+          const result = await post<RevisionProgress>(
+            `/teacher-applications/${profile.id}/revision-drafts`,
+            {
+              expectedVersion: version,
+              expectedApplicationVersion: profile.version,
+              draft,
+            },
+          );
+          setVersion(result.version);
           submission.current = {
-            path: `/teacher-applications/${profile.id}/revisions`,
-            body: { ...data(), expectedVersion: profile.version },
+            path: `/teacher-applications/${profile.id}/revision-draft-submissions`,
+            body: {
+              expectedVersion: result.version,
+              expectedApplicationVersion: profile.version,
+              feeTermsAccepted: true,
+            },
           };
-        else {
+        } else {
           const result = await post<Progress>("/onboarding/teacher/drafts", {
             expectedVersion: version,
             draft: data(),
@@ -628,11 +649,7 @@ function ApplicationWizard({
               Step {step + 1} of {steps.length}
             </span>
             <span role="status">
-              {profile
-                ? "Changes saved on resubmission"
-                : saved
-                  ? "Progress saved"
-                  : "Saved when you continue"}
+              {saved ? "Progress saved" : "Saved when you continue"}
             </span>
           </div>
           <h2 ref={heading} tabIndex={-1}>
@@ -930,7 +947,7 @@ Not shown publicly`,
                 disabled={locked}
                 onClick={onCancel}
               >
-                Cancel changes
+                Return to workspace
               </Button>
             )}
             <Button
@@ -962,13 +979,180 @@ Not shown publicly`,
           </div>
           {profile && (
             <p className="wizard-save-note">
-              Keep this page open until resubmission. Existing application edits
-              are saved when you resubmit.
+              Continue saves each completed step privately. Changes on the
+              current step are not saved until you continue. Your current
+              application stays unchanged until you review and resubmit; fee
+              acknowledgement must be renewed.
             </p>
           )}
         </form>
       </div>
     </main>
+  );
+}
+function RevisionEditor({
+  session,
+  profile,
+  onCancel,
+  onDone,
+  onReload,
+}: {
+  session: Session;
+  profile: Profile;
+  onCancel: () => void;
+  onDone: () => Promise<void>;
+  onReload: () => Promise<void>;
+}) {
+  const draft = useQuery({
+    queryKey: ["teacher-revision-draft", profile.id],
+    queryFn: () =>
+      api<RevisionProgress>(
+        `/teacher-applications/${profile.id}/revision-draft`,
+      ),
+    retry: false,
+    refetchOnWindowFocus: false,
+    staleTime: 0,
+  });
+  const [acknowledged, setAcknowledged] = useState(false),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState("");
+  const pending = useRef<{ body: unknown; key: string } | null>(null);
+  async function discard() {
+    if (!draft.data || (!acknowledged && !pending.current)) return;
+    setBusy(true);
+    setError("");
+    if (!pending.current)
+      pending.current = {
+        body: {
+          expectedVersion: draft.data.version,
+          expectedApplicationVersion: profile.version,
+          acknowledged: true,
+        },
+        key: crypto.randomUUID(),
+      };
+    try {
+      await api(`/teacher-applications/${profile.id}/revision-draft-discards`, {
+        method: "POST",
+        body: pending.current.body,
+        key: pending.current.key,
+        csrf: session.csrfToken,
+        signal: AbortSignal.timeout(15000),
+      });
+      pending.current = null;
+      await onReload();
+    } catch (e) {
+      if (!unknownResult(e)) {
+        pending.current = null;
+        setAcknowledged(false);
+      }
+      setError(
+        unknownResult(e)
+          ? "We couldn’t confirm the discard. Retry the same action before leaving."
+          : (e as Error).message,
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  if (draft.isPending || draft.isFetching)
+    return (
+      <main className="container narrow section">
+        <Message>Loading your saved revision…</Message>
+      </main>
+    );
+  if (draft.error || !draft.data)
+    return (
+      <main className="container narrow section">
+        <Message error>
+          Your saved revision could not be loaded. Try again before editing.
+        </Message>
+        <Button onClick={() => draft.refetch()}>Retry saved revision</Button>
+        <Button variant="ghost" onClick={onCancel}>
+          Return to workspace
+        </Button>
+      </main>
+    );
+  if (draft.data.stale)
+    return (
+      <main className="container narrow section">
+        <section className="wizard-card revision-recovery">
+          <h1>Your application changed.</h1>
+          <p>
+            Your saved revision belongs to an earlier application version. It is
+            preserved here; review the current application before starting
+            again.
+          </p>
+          <dl className="review-list">
+            <div>
+              <dt>Saved headline</dt>
+              <dd>{draft.data.draft.headline || "Not added"}</dd>
+            </div>
+            <div>
+              <dt>Current headline</dt>
+              <dd>{profile.headline}</dd>
+            </div>
+          </dl>
+          <p>
+            Discarding removes only this unfinished revision. Your current
+            application, evidence and reviewer decisions are kept.
+          </p>
+          <label className="check-line">
+            <input
+              type="checkbox"
+              checked={acknowledged}
+              disabled={busy || !!pending.current}
+              onChange={(e) => setAcknowledged(e.target.checked)}
+            />
+            <span>
+              I understand that my saved revision edits will be discarded.
+            </span>
+          </label>
+          {error && <Message error>{error}</Message>}
+          <div className="wizard-actions">
+            <Button
+              variant="outline"
+              disabled={busy || !!pending.current}
+              onClick={onCancel}
+            >
+              Keep saved revision
+            </Button>
+            <Button
+              disabled={busy || (!acknowledged && !pending.current)}
+              onClick={discard}
+            >
+              {busy
+                ? "Discarding…"
+                : pending.current
+                  ? "Retry discarding revision"
+                  : "Discard saved revision"}
+            </Button>
+            <Button
+              variant="ghost"
+              disabled={busy || !!pending.current}
+              onClick={onReload}
+            >
+              Reload current application
+            </Button>
+          </div>
+        </section>
+      </main>
+    );
+  return (
+    <ApplicationWizard
+      key={draft.data.version}
+      session={session}
+      profile={profile}
+      initial={{
+        kind: "TEACHER_REVISION",
+        state: profile.status,
+        draft: draft.data.draft as Partial<Application>,
+        version: draft.data.version,
+        completedResourceId: null,
+      }}
+      onCancel={onCancel}
+      onDone={onDone}
+      onReload={onReload}
+    />
   );
 }
 function TeacherWorkspace({
@@ -991,7 +1175,7 @@ function TeacherWorkspace({
   });
   if (edit)
     return (
-      <ApplicationWizard
+      <RevisionEditor
         session={session}
         profile={profile}
         onCancel={() => setEdit(false)}

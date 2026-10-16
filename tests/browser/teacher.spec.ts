@@ -78,6 +78,9 @@ async function mock(
     uncertain?: boolean;
     conflict?: boolean;
     teacher?: boolean;
+    revisionStale?: boolean;
+    uncertainRevisionSave?: boolean;
+    uncertainRevisionSubmit?: boolean;
     uncertainUpload?: boolean;
   } = {},
 ) {
@@ -97,6 +100,17 @@ async function mock(
     files: any[] = [];
   const uploadKeys: string[] = [],
     uploadBodies: unknown[] = [];
+  let revision: any = {
+    draft: {},
+    version: 0,
+    applicationVersion: 1,
+    stale: false,
+  };
+  const revisionKeys: string[] = [],
+    revisionBodies: unknown[] = [];
+  const revisionSaveKeys: string[] = [],
+    revisionSaveBodies: unknown[] = [];
+  let revisionResult: any = null;
   const privateProfile = () => ({
     ...teacherDetails,
     id: "30000000-0000-4000-8000-000000000091",
@@ -132,6 +146,15 @@ async function mock(
       status: "APPROVED",
       screeningComplete: true,
     };
+  if (options.revisionStale) {
+    profile.version = 2;
+    revision = {
+      draft: { headline: "Saved earlier headline" },
+      version: 1,
+      applicationVersion: 1,
+      stale: true,
+    };
+  }
   await page.route("**/api/v1/**", async (route) => {
     const req = route.request(),
       path = new URL(req.url()).pathname;
@@ -211,6 +234,80 @@ async function mock(
       expect(check(progress), JSON.stringify(check.errors)).toBe(true);
       return route.fulfill({ status: suffix ? 201 : 200, json: progress });
     }
+    if (path.endsWith("/revision-draft"))
+      return route.fulfill({ json: revision });
+    if (path.endsWith("/revision-drafts")) {
+      const body = req.postDataJSON(),
+        key = req.headers()["idempotency-key"];
+      expect(validator("TeacherRevisionSave")(body)).toBe(true);
+      revisionSaveKeys.push(key);
+      revisionSaveBodies.push(body);
+      if (revisionSaveKeys.indexOf(key) === revisionSaveKeys.length - 1) {
+        expect(body.expectedVersion).toBe(revision.version);
+        expect(body.expectedApplicationVersion).toBe(profile.version);
+        revision = {
+          draft: body.draft,
+          version: revision.version + 1,
+          applicationVersion: profile.version,
+          stale: false,
+        };
+      }
+      if (options.uncertainRevisionSave && revisionSaveKeys.length === 1)
+        return route.fulfill({
+          status: 201,
+          contentType: "application/json",
+          body: "unreadable revision save",
+        });
+      expect(validator("TeacherRevisionProgress")(revision)).toBe(true);
+      return route.fulfill({ status: 201, json: revision });
+    }
+    if (path.endsWith("/revision-draft-discards")) {
+      const body = req.postDataJSON();
+      expect(validator("TeacherRevisionDiscard")(body)).toBe(true);
+      expect(body.expectedVersion).toBe(revision.version);
+      expect(body.expectedApplicationVersion).toBe(profile.version);
+      revision = {
+        draft: {},
+        version: revision.version + 1,
+        applicationVersion: profile.version,
+        stale: false,
+      };
+      return route.fulfill({ status: 201, json: revision });
+    }
+    if (path.endsWith("/revision-draft-submissions")) {
+      const body = req.postDataJSON();
+      revisionKeys.push(req.headers()["idempotency-key"]);
+      revisionBodies.push(body);
+      expect(validator("TeacherRevisionSubmit")(body)).toBe(true);
+      if (!revisionResult) {
+        expect(body.expectedVersion).toBe(revision.version);
+        expect(body.expectedApplicationVersion).toBe(profile.version);
+        profile = {
+          ...profile,
+          ...revision.draft,
+          status: "SUBMITTED",
+          screeningComplete: false,
+          screeningValidUntil: null,
+          profileRevision: profile.profileRevision + 1,
+          version: profile.version + 1,
+        };
+        revision = {
+          draft: {},
+          version: revision.version + 1,
+          applicationVersion: profile.version,
+          stale: false,
+        };
+        revisionResult = profile;
+      }
+      if (options.uncertainRevisionSubmit && revisionKeys.length === 1)
+        return route.fulfill({
+          status: 201,
+          contentType: "application/json",
+          body: "unreadable revision submission",
+        });
+      expect(validator("PrivateTeacher")(profile)).toBe(true);
+      return route.fulfill({ status: 201, json: revisionResult });
+    }
     if (path.endsWith("/revisions")) {
       const body = req.postDataJSON();
       expect(body.expectedVersion).toBe(profile.version);
@@ -268,6 +365,11 @@ async function mock(
   return {
     keys,
     bodies,
+    revisionKeys,
+    revisionBodies,
+    revisionSaveKeys,
+    revisionSaveBodies,
+    getRevision: () => revision,
     uploadKeys,
     uploadBodies,
     getProfile: () => profile,
@@ -693,4 +795,159 @@ test("private education records and a declined demo survive review and submissio
       }),
     ],
   });
+});
+
+test("teacher revision saves privately and resumes after reload without changing approval", async ({
+  page,
+}) => {
+  const state = await mock(page, { teacher: true });
+  await page.goto("/onboarding/teacher");
+  await page.getByRole("button", { name: "Edit application" }).click();
+  await page.getByLabel("Teaching headline").fill("My saved revision");
+  await page
+    .getByRole("button", { name: "Continue to private address" })
+    .click();
+  await expect(page.getByText("Progress saved", { exact: true })).toBeVisible();
+  expect(state.getProfile().headline).toBe("Patient Maths guidance");
+  expect(state.getProfile().status).toBe("APPROVED");
+  await page.reload();
+  await page.getByRole("button", { name: "Edit application" }).click();
+  await expect(page.getByLabel("Teaching headline")).toHaveValue(
+    "My saved revision",
+  );
+  await page.screenshot({
+    path: "test-results/teacher-revision-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "test-results/teacher-revision-mobile.png",
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const a11y = await new AxeBuilder({ page }).analyze();
+  expect(
+    a11y.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+  await page.getByRole("button", { name: "Return to workspace" }).click();
+  await expect(page.getByText("Approved", { exact: true })).toBeVisible();
+  expect(state.getRevision().draft.headline).toBe("My saved revision");
+});
+
+test("uncertain teacher revision save locks editing and retries the same body and key", async ({
+  page,
+}) => {
+  const state = await mock(page, {
+    teacher: true,
+    uncertainRevisionSave: true,
+  });
+  await page.goto("/onboarding/teacher");
+  await page.getByRole("button", { name: "Edit application" }).click();
+  await page.getByLabel("Teaching headline").fill("Retry my changes");
+  await page
+    .getByRole("button", { name: "Continue to private address" })
+    .click();
+  await expect(page.getByText(/We couldn’t confirm the save/)).toBeVisible();
+  await expect(page.getByLabel("Teaching headline")).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Return to workspace" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Retry saving progress" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Private address", exact: true }),
+  ).toBeVisible();
+  expect(state.revisionSaveKeys).toHaveLength(2);
+  expect(state.revisionSaveKeys[0]).toBe(state.revisionSaveKeys[1]);
+  expect(state.revisionSaveBodies[0]).toEqual(state.revisionSaveBodies[1]);
+});
+
+test("stale teacher revision requires acknowledged discard and preserves the current application", async ({
+  page,
+}) => {
+  const state = await mock(page, { teacher: true, revisionStale: true });
+  await page.goto("/onboarding/teacher");
+  await page.getByRole("button", { name: "Edit application" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Your application changed." }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Saved earlier headline", { exact: true }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "test-results/teacher-revision-recovery-mobile.png",
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const recovery = await new AxeBuilder({ page }).analyze();
+  expect(
+    recovery.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+
+  await expect(
+    page.getByRole("button", { name: "Discard saved revision", exact: true }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Keep saved revision" }).click();
+  expect(state.getRevision().draft.headline).toBe("Saved earlier headline");
+  await page.getByRole("button", { name: "Edit application" }).click();
+  await page
+    .getByRole("checkbox", {
+      name: "I understand that my saved revision edits will be discarded.",
+    })
+    .check();
+  await page
+    .getByRole("button", { name: "Discard saved revision", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Your teacher workspace." }),
+  ).toBeVisible();
+  expect(state.getProfile().status).toBe("APPROVED");
+  expect(state.getProfile().version).toBe(2);
+  expect(state.getRevision().draft).toEqual({});
+  await page.getByRole("button", { name: "Edit application" }).click();
+  await expect(page.getByLabel("Teaching headline")).toHaveValue(
+    "Patient Maths guidance",
+  );
+});
+
+test("uncertain saved revision submission retries once without repeating screening revisions", async ({
+  page,
+}) => {
+  const state = await mock(page, {
+    teacher: true,
+    uncertainRevisionSubmit: true,
+  });
+  await page.goto("/onboarding/teacher");
+  await page.getByRole("button", { name: "Edit application" }).click();
+  await teaching(page);
+  await page
+    .getByRole("button", {
+      name: "Continue to review application",
+      exact: true,
+    })
+    .click();
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Resubmit for review" }).click();
+  await expect(page.getByText(/We couldn’t confirm the result/)).toBeVisible();
+  await expect(page.getByRole("checkbox")).toBeDisabled();
+  await page.getByRole("button", { name: "Resubmit for review" }).click();
+  await expect(
+    page.getByText("Submitted for review", { exact: true }),
+  ).toBeVisible();
+  expect(state.revisionKeys).toHaveLength(2);
+  expect(state.revisionKeys[0]).toBe(state.revisionKeys[1]);
+  expect(state.revisionBodies[0]).toEqual(state.revisionBodies[1]);
+  expect(state.getProfile().profileRevision).toBe(2);
 });

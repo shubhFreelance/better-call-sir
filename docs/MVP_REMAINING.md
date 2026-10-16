@@ -87,3 +87,5 @@ These items include backend work previously deferred by the owner to progress th
 - AWS migration/high availability/national operational rollout follow demonstrated demand, load/recovery evidence and a separate infrastructure plan.
 
 No arbitrary completion percentage is assigned: frontend screens, backend implementation gaps and live acceptance gates have different effort and prerequisites.
+
+H2 teacher-revision recovery increment: saved private revision steps, reload/resume, current-application isolation, renewed fee acknowledgement, immutable uncertain retries and acknowledged stale-draft discard are implemented. Other guardian/student/invitation recovery and enquiry-to-hiring navigation remain open; this does not close H2 or launch qualification.
