@@ -18997,6 +18997,16 @@
               "maximum": 50,
               "default": 20
             }
+          },
+          {
+            "name": "arrangementId",
+            "in": "query",
+            "required": false,
+            "description": "Exact owned arrangement, only with section=ARRANGEMENTS and no cursor.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         ],
         "description": "Current-record counts are independent of the requested page. Lists use stable ID-descending order, not chronological order, and a scope-validated cursor. Student projection excludes budget, price, other learners, candidate decisions and administrative data. Teacher enquiries require current presented unexpired recommendations and active verified family consent with no pending deletion; eligibility is rechecked per displayed opportunity. Interest/selection/terms are distinct from an active teaching start or financial settlement. Admin receives audited global aggregates only and uses dedicated queues for details. Learner preview is limited to 20 with an explicit flag. Existing demo/timetable dependencies are not removed by this read endpoint."
