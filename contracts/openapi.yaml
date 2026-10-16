@@ -21485,6 +21485,143 @@
           }
         }
       }
+    },
+    "/children/{id}/student-session-labels": {
+      "post": {
+        "operationId": "postChildrenIdStudentSessionLabels",
+        "tags": [
+          "children"
+        ],
+        "summary": "Name or clear an owned active student device",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentDeviceLabelSaved"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Guardian-only private label. Requires current verification/consent and expected child version. Does not authorize, revoke or extend a session. Refresh rotation preserves the label; audit metadata excludes label text.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentDeviceLabel"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -25159,11 +25296,20 @@
                 "expiresAt": {
                   "type": "string",
                   "format": "date-time"
+                },
+                "deviceLabel": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "minLength": 1,
+                  "maxLength": 60
                 }
               },
               "required": [
                 "familyId",
-                "expiresAt"
+                "expiresAt",
+                "deviceLabel"
               ],
               "additionalProperties": false
             }
@@ -31647,6 +31793,61 @@
           "educationVersion",
           "confirmed",
           "draft"
+        ],
+        "additionalProperties": false
+      },
+      "StudentDeviceLabel": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "familyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 60,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "familyId",
+          "label"
+        ],
+        "additionalProperties": false
+      },
+      "StudentDeviceLabelSaved": {
+        "type": "object",
+        "properties": {
+          "familyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "childVersion": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "familyId",
+          "label",
+          "childVersion"
         ],
         "additionalProperties": false
       }

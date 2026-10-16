@@ -88,7 +88,7 @@ class IdentityController {
       if(!same(req.get('X-CSRF-Token')||'',session.csrf)) fail(403,'CSRF','Refresh token validation failed.');
       if(session.rotated) {await db.session.updateMany({where:{familyId:session.familyId},data:{revoked:true}});return {error:true} as const;}
       await db.session.update({where:{id:session.id},data:{rotated:true}});
-      const state=await this.service.issueSession(account,session.familyId,db,session.expiresAt,{createdAt:session.createdAt,mfaVerifiedAt:session.mfaVerifiedAt});
+      const state=await this.service.issueSession(account,session.familyId,db,session.expiresAt,{createdAt:session.createdAt,mfaVerifiedAt:session.mfaVerifiedAt,deviceLabel:session.deviceLabel});
       return {account,state};
     });
     if('error' in result) fail(401,'REFRESH_REPLAY','Session expired or refresh replay detected. Sign in again.');

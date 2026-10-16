@@ -90,7 +90,7 @@ export class AppService {
       return result;
     });
   }
-  async issueSession(account: Account, familyId: string, db: Pick<DB,'session'> = this.db, expiresAt = new Date(Date.now()+30*86_400_000),security?:{createdAt:Date;mfaVerifiedAt:Date|null}) {
+  async issueSession(account: Account, familyId: string, db: Pick<DB,'session'> = this.db, expiresAt = new Date(Date.now()+30*86_400_000),security?:{createdAt:Date;mfaVerifiedAt:Date|null;deviceLabel?:string|null}) {
     if(privileged(account.role))expiresAt=new Date(Math.min(expiresAt.getTime(),Date.now()+8*3600000));
     const access=token(),refresh=token(),csrf=token();
     await db.session.create({data:{accountId:account.id,familyId,accessHash:hash(access),refreshHash:hash(refresh),csrf,accessExpiresAt:new Date(Math.min(Date.now()+600_000,expiresAt.getTime())),expiresAt,...security}});
