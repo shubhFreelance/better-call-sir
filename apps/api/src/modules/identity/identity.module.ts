@@ -32,12 +32,12 @@ class IdentityController {
   }
 
   @Post('auth/otp/request') async otpRequest(@Body() body: unknown,@Req() req: Request) {
-    const {email}=parse(z.object({email:emailAddress}).strict(),body);
+    const {email,locale}=parse(z.object({email:emailAddress,locale:z.enum(['en','hi']).default('en')}).strict(),body);
     await this.service.limit(`otp:${email}`,3);await this.service.limit(`otp-ip:${req.ip}`,10);
     if(!development())fail(503,'PROVIDER_UNAVAILABLE','Authentication is not qualified for live mode.');
     const code=String(randomInt(1000000)).padStart(6,'0');let digest:string;try{digest=otpDigest(email,code);}catch{fail(503,'AUTH_UNAVAILABLE','Authentication is temporarily unavailable. Please retry later.');}
     await this.db.otp.upsert({where:{address:email},create:{address:email,hash:digest,expiresAt:new Date(Date.now()+300000)},update:{hash:digest,expiresAt:new Date(Date.now()+300000),attempts:0}});
-    try{return await sendEmailOtp(email,code,randomUUID());}
+    try{return await sendEmailOtp(email,code,randomUUID(),locale);}
     catch{await this.db.otp.deleteMany({where:{address:email,hash:digest}});fail(503,'EMAIL_UNAVAILABLE','Email delivery is unavailable. Please retry later.');}
   }
 

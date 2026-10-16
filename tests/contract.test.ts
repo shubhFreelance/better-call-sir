@@ -172,3 +172,10 @@ test('Phase 2 contracts constrain evidence, schedules, capacity and private wait
  const waitlist=validator('WaitlistInput');const unsupported={grade:11,board:'ICSE',subject:'History',language:'English',mode:'ONLINE',region:'Delhi'};
  assert(waitlist(unsupported));assert.equal(waitlist({...unsupported,alias:'Unnecessary child identity'}),false);
 });
+
+test("OTP locale is optional, bounded to English/Hindi and cannot assign account permissions", () => {
+ const check=validator("OtpRequest");
+ assert(check({email:"guardian@example.test"}));
+ for(const locale of ["en","hi"]) assert(check({email:"guardian@example.test",locale}));
+ for(const patch of [{locale:"fr"},{locale:null},{locale:"hi",role:"ADMIN"}]) assert.equal(check({email:"guardian@example.test",...patch}),false);
+});

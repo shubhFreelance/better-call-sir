@@ -217,7 +217,7 @@ test('production authentication and worker startup stay blocked before provider 
  }
 });
 test('valid sandbox email OTP creates only an unverified guardian, is single-use and stores hashed session credentials',async()=>{
- const client=new Client();assert.equal((await client.call('/auth/otp/request',{phone:'+919999999993'})).status,400);const email='otp3@example.test';const requested=await client.call('/auth/otp/request',{email});assert.equal(requested.status,201);
+ const client=new Client();assert.equal((await client.call('/auth/otp/request',{phone:'+919999999993'})).status,400);const email='otp3@example.test';assert.equal((await client.call('/auth/otp/request',{email,locale:'unsupported'})).status,400);assert.equal((await client.call('/auth/otp/request',{email,locale:'hi',role:'ADMIN'})).status,400);const requested=await client.call('/auth/otp/request',{email,locale:'hi'});assert.equal(requested.status,201);
  const storedOtp=await db.otp.findUniqueOrThrow({where:{address:email}});assert.equal(storedOtp.hash,otpDigest(email,requested.data.developmentCode));assert.notEqual(storedOtp.hash,createHash('sha256').update(requested.data.developmentCode).digest('hex'));
  const body={email,code:requested.data.developmentCode,name:'Synthetic OTP guardian'};
  const verified=await client.call('/auth/otp/verify',body);assert.equal(verified.status,201);assert.equal(verified.data.account.role,'GUARDIAN');assert.equal(verified.data.account.verified,false);
