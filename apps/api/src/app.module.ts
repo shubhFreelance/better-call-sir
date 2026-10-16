@@ -1,3 +1,4 @@
+import {StudentHiringModule} from './modules/requests/student-hiring.module';
 import {StudentEnquiriesModule} from './modules/requests/student-enquiries.module';
 import {IndependentStudentsModule} from './modules/learners/independent-students.module';
 import {LearnersModule} from './modules/learners/learners.module';
@@ -25,5 +26,5 @@ import {NotesModule} from './modules/notes/notes.module';
 import {SupportModule} from './modules/support/support.module';
 import {MembershipsModule} from './modules/memberships/memberships.module';
 import {AdministrationModule} from './modules/administration/administration.module';
-@Module({imports:[StudentEnquiriesModule,IndependentStudentsModule,LearnersModule,MfaModule,AnalyticsModule,PrivacyModule,MeetingsModule,PaymentsModule,RecurringModule,StudentAccessModule,OnboardingModule,SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,PlacementsModule,TeachersModule,RevisionModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
+@Module({imports:[StudentHiringModule,StudentEnquiriesModule,IndependentStudentsModule,LearnersModule,MfaModule,AnalyticsModule,PrivacyModule,MeetingsModule,PaymentsModule,RecurringModule,StudentAccessModule,OnboardingModule,SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,PlacementsModule,TeachersModule,RevisionModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
 export class AppModule {}
