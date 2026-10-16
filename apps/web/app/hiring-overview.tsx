@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Users, ShieldCheck, ArrowUpRight } from "lucide-react";
 import { api, type Session, type components } from "@bcs/api-client";
@@ -30,13 +31,14 @@ const money = (n: number) =>
     maximumFractionDigits: 2,
   }).format(n / 100);
 export function HiringOverview({ session }: { session: Session }) {
+  const arrangementId = useSearchParams().get("arrangement");
   const role = session.account.role,
     guardian = role === "GUARDIAN",
     student = role === "STUDENT",
     teacher = role === "TEACHER",
     admin = role === "ADMIN";
   const [section, setSection] = useState<"ENQUIRIES" | "ARRANGEMENTS">(
-      "ENQUIRIES",
+      arrangementId ? "ARRANGEMENTS" : "ENQUIRIES",
     ),
     [cursors, setCursors] = useState<string[]>([]),
     [selected, setSelected] = useState<Enquiry | null>(null),
@@ -48,7 +50,9 @@ export function HiringOverview({ session }: { session: Session }) {
     if (terms) termsHeading.current?.focus();
   }, [terms?.id]);
   const params = new URLSearchParams({ section });
-  if (cursors.at(-1)) params.set("cursor", cursors.at(-1)!);
+  if (arrangementId && section === "ARRANGEMENTS")
+    params.set("arrangementId", arrangementId);
+  else if (cursors.at(-1)) params.set("cursor", cursors.at(-1)!);
   const query = useQuery({
     queryKey: ["hiring-dashboard", session.account.id, params.toString()],
     queryFn: ({ signal }) =>
@@ -147,6 +151,14 @@ export function HiringOverview({ session }: { session: Session }) {
               Return to first page
             </Button>
           )}
+        </Notice>
+      )}
+      {arrangementId && section === "ARRANGEMENTS" && (
+        <Notice>
+          Viewing the linked hiring arrangement.{" "}
+          <Link href="/dashboard" className="inline-link">
+            View all hiring records
+          </Link>
         </Notice>
       )}
       <Feedback decision={decision} />
@@ -406,7 +418,7 @@ export function HiringOverview({ session }: { session: Session }) {
                               <>
                                 <p className="hiring-next">
                                   {e.candidate.response !== "PENDING"
-                                    ? "Your response is recorded. Hiring still needs mutually agreed terms."
+                                    ? "Your response is recorded. The guardian reviews their choice and opens hiring terms. Check Teaching arrangements to review and confirm any shared terms."
                                     : !e.candidate.eligible
                                       ? "Current fit could not be confirmed. Refresh or review your availability before responding."
                                       : "Review the learner’s needs before expressing interest or declining."}

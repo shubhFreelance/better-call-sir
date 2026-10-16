@@ -125,6 +125,7 @@ async function mock(
     bodies: any[] = [],
     seen: any[] = [],
     replay = new Map<string, any>();
+  let accountRole = mode === "student" ? "STUDENT" : "GUARDIAN";
   let savedChoices = 0,
     stale = mode === "stale",
     termsSaved = 0;
@@ -139,17 +140,70 @@ async function mock(
           account: {
             id: parent,
             name: "Synthetic Guardian",
-            role: mode === "student" ? "STUDENT" : "GUARDIAN",
+            role: accountRole,
             verified: mode !== "student",
           },
           csrfToken: "synthetic-csrf",
         },
       });
+    if (path.endsWith("/dashboard/hiring")) {
+      const data = {
+        role: accountRole,
+        asOf: new Date().toISOString(),
+        definitionVersion: "hiring-v1",
+        section: "ARRANGEMENTS",
+        counts: {
+          enquiries: 1,
+          openEnquiries: 1,
+          pendingResponses: 0,
+          termsPending: p ? 1 : 0,
+          activeArrangements: 0,
+        },
+        enquiries: [],
+        learners: [],
+        learnersLimited: false,
+        nextCursor: null,
+        arrangements: p
+          ? [
+              {
+                id: p.id,
+                subject: "Maths",
+                mode: "ONLINE",
+                status: p.status,
+                guardianAccepted: p.guardianAccepted,
+                teacherAccepted: p.teacherAccepted,
+                guardianStarted: false,
+                teacherReceiptConfirmed: false,
+                learner: {
+                  alias: "Synthetic Learner",
+                  grade: 8,
+                  board: "CBSE",
+                },
+                teacher: {
+                  id: teacherId,
+                  name: profile.name,
+                  status: "APPROVED",
+                },
+                monthlyPaise: p.monthlyPaise,
+                version: p.version,
+                policyVersion: p.policyVersion,
+                placementFeePaise: 62513,
+              },
+            ]
+          : [],
+        ...(accountRole === "GUARDIAN"
+          ? { gate: { verified: true, consent: true, privacyPaused: false } }
+          : { profile: null }),
+      };
+      expect(url.searchParams.get("arrangementId")).toBe(placementId);
+      expect(validator("HiringDashboard")(data)).toBe(true);
+      return route.fulfill({ json: data });
+    }
     if (path.endsWith("/dashboard")) {
       const { candidates, ...summary } = request;
       return route.fulfill({
         json: {
-          role: mode === "student" ? "STUDENT" : "GUARDIAN",
+          role: accountRole,
           window: {
             start: new Date(Date.now() - 30 * 86400000).toISOString(),
             end: new Date().toISOString(),
@@ -331,7 +385,13 @@ async function mock(
         action: "ACCEPT_TERMS",
       });
       termsSaved++;
-      p = { ...p, guardianAccepted: true, version: p.version + 1 };
+      p = {
+        ...p,
+        ...(accountRole === "TEACHER"
+          ? { teacherAccepted: true }
+          : { guardianAccepted: true }),
+        version: p.version + 1,
+      };
       const check = validator("Placement");
       expect(check(p), JSON.stringify(check.errors)).toBe(true);
       replay.set(keys.at(-1)!, p);
@@ -374,6 +434,9 @@ async function mock(
     seen,
     getChoices: () => savedChoices,
     getTerms: () => termsSaved,
+    asTeacher: () => {
+      accountRole = "TEACHER";
+    },
   };
 }
 async function choose(page: Page) {
@@ -473,7 +536,7 @@ test("tuition acceptance requires review, survives an uncertain response and kee
   page,
 }) => {
   const state = await mock(page, "uncertain-terms");
-  await page.goto("/dashboard/requests");
+  await page.goto("/dashboard/bookings");
   await page
     .getByRole("button", { name: "Review & accept tuition terms" })
     .click();
@@ -615,7 +678,7 @@ test("shortlist choices and term review fit on mobile and have no serious access
   });
   await page.unroute("**/api/v1/**");
   await mock(page, "uncertain-terms");
-  await page.reload();
+  await page.goto("/dashboard/bookings");
   await page
     .getByRole("button", { name: "Review & accept tuition terms" })
     .click();
@@ -673,14 +736,14 @@ test("a completed demo can open pending tuition terms after its shortlist is emp
   await page.getByRole("button", { name: "Open tuition agreement" }).click();
   await expect(
     page.getByText(
-      "Tuition terms created. Review the monthly amount and each party’s acceptance below.",
+      "Tuition terms created. Continue to hiring confirmation to review the amount and both parties’ acceptance.",
     ),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Recurring tuition terms" }),
+    page.getByRole("link", { name: "Continue to hiring confirmation" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Review & accept tuition terms" }),
+    page.getByRole("link", { name: "Continue to hiring confirmation" }),
   ).toBeVisible();
   expect(state.seen).toHaveLength(0);
   expect(
@@ -695,6 +758,13 @@ test("an accepted teacher can open terms without a demo", async ({ page }) => {
     page.getByRole("button", { name: "Choose & arrange optional demo" }),
   ).toHaveCount(0);
   await page
+    .getByRole("button", { name: "Select teacher", exact: true })
+    .click();
+  await page
+    .getByRole("checkbox", { name: /records my teacher choice/ })
+    .check();
+  await page.getByRole("button", { name: "Confirm teacher choice" }).click();
+  await page
     .getByRole("button", {
       name: "Review tuition terms without a demo",
       exact: true,
@@ -708,7 +778,7 @@ test("an accepted teacher can open terms without a demo", async ({ page }) => {
     .check();
   await page.getByRole("button", { name: "Open tuition agreement" }).click();
   await expect(
-    page.getByRole("heading", { name: "Recurring tuition terms" }),
+    page.getByRole("link", { name: "Continue to hiring confirmation" }),
   ).toBeVisible();
   expect(
     state.paths.filter((p) => p === "POST /api/v1/placements"),
@@ -750,4 +820,119 @@ test("family reads and updates weekly availability without changing to dated cla
   expect(
     state.paths.filter((p) => p.endsWith("/schedules") && p.startsWith("POST")),
   ).toHaveLength(1);
+});
+
+test("enquiry selection hands off to exact mutual hiring confirmation without class planning", async ({
+  page,
+}) => {
+  const state = await mock(page);
+  await page.goto("/dashboard/requests?request=" + requestId);
+  await expect(
+    page.getByRole("list", { name: "Enquiry to hiring progress" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "Review tuition terms without a demo",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Select teacher", exact: true })
+    .click();
+  await page
+    .getByRole("checkbox", { name: /records my teacher choice/ })
+    .check();
+  await page.getByRole("button", { name: "Confirm teacher choice" }).click();
+  await expect(
+    page.getByText("Teacher choice recorded", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", {
+      name: "Review tuition terms without a demo",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("checkbox", { name: /open a pending tuition agreement/ })
+    .check();
+  await page.getByRole("button", { name: "Open tuition agreement" }).click();
+  await expect(
+    page.getByRole("link", { name: "Continue to hiring confirmation" }),
+  ).toHaveAttribute("href", "/dashboard?arrangement=" + placementId);
+  await expect(
+    page.getByRole("heading", { name: "Recurring tuition terms" }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("link", { name: "Continue to hiring confirmation" })
+    .click();
+  await page
+    .getByRole("button", { name: "Review hiring terms", exact: true })
+    .click();
+  await page
+    .getByRole("checkbox", { name: /reviewed the monthly tuition and policy/ })
+    .check();
+  await page
+    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .click();
+  await expect(
+    page.getByText(/Your acceptance is recorded. Waiting for the other party/),
+  ).toBeVisible();
+  state.asTeacher();
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Review hiring terms", exact: true })
+    .click();
+  await page
+    .getByRole("checkbox", { name: /reviewed the monthly tuition and policy/ })
+    .check();
+  await page
+    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .click();
+  await expect(
+    page.getByText("Hiring terms confirmed", { exact: true }),
+  ).toBeVisible();
+  expect(state.getTerms()).toBe(2);
+  expect(
+    state.paths.filter(
+      (p) =>
+        p.includes("/schedules") ||
+        p.includes("/lessons") ||
+        p.includes("/checkout"),
+    ),
+  ).toEqual([]);
+  await page.screenshot({
+    path: "test-results/hiring-journey-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "test-results/hiring-journey-mobile.png",
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const result = await new AxeBuilder({ page }).analyze();
+  expect(
+    result.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+});
+test("an unavailable enquiry link never falls back to another learner request", async ({
+  page,
+}) => {
+  const state = await mock(page);
+  await page.goto(
+    "/dashboard/requests?request=40000000-0000-4000-8000-000000000099",
+  );
+  await expect(page.getByText(/This enquiry is not available/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Select teacher", exact: true }),
+  ).toHaveCount(0);
+  expect(
+    state.paths.some((p) => p === "GET /api/v1/requests/" + requestId),
+  ).toBe(false);
 });

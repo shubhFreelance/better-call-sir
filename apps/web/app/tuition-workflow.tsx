@@ -213,7 +213,15 @@ export function TuitionRequests({
       params.get("request") || d.requests?.[0]?.id || "",
     ),
     [locked, setLocked] = useState(false);
-  const request = d.requests?.find((r) => r.id === selected) || d.requests?.[0];
+  const linkedRequest = params.get("request"),
+    lastLink = useRef(linkedRequest);
+  useEffect(() => {
+    if (lastLink.current !== linkedRequest && !locked) {
+      lastLink.current = linkedRequest;
+      setSelected(linkedRequest || d.requests?.[0]?.id || "");
+    }
+  }, [linkedRequest, locked, d.requests]);
+  const request = d.requests?.find((r) => r.id === selected);
   const permitted =
     session.account.verified && !!d.consent && !d.consent.withdrawnAt;
   return (
@@ -257,6 +265,13 @@ export function TuitionRequests({
               ))}
             </select>
           </div>
+        ) : selected ? (
+          <Notice error>
+            This enquiry is not available in your current request list.{" "}
+            <Link className="inline-link" href="/dashboard">
+              Return to your enquiries
+            </Link>
+          </Notice>
         ) : (
           <p>No requests yet. Tell us what your family needs.</p>
         )}
@@ -271,7 +286,6 @@ export function TuitionRequests({
           onLockChange={setLocked}
         />
       )}
-      <TuitionTerms session={session} dashboard={d} />
     </div>
   );
 }
@@ -469,7 +483,7 @@ function RequestReview({
       path: "/placements",
       body: { requestId: request!.id, teacherId: form.teacherId },
       message:
-        "Tuition terms created. Review the monthly amount and each party’s acceptance below.",
+        "Tuition terms created. Continue to hiring confirmation to review the amount and both parties’ acceptance.",
       onSaved: () => setForm(null),
     });
   }
@@ -533,6 +547,43 @@ function RequestReview({
         </div>
       </dl>
       <p>{request.schedule}</p>
+      <ol className="enquiry-progress" aria-label="Enquiry to hiring progress">
+        {[
+          "Enquiry saved",
+          request.candidates.some(
+            (c) => current(c) && c.response === "ACCEPTED",
+          )
+            ? "Teacher interest received"
+            : "Awaiting reviewed teacher options",
+          request.selectedCandidateId
+            ? "Teacher choice recorded"
+            : "Choose your teacher",
+          placement
+            ? placement.guardianAccepted && placement.teacherAccepted
+              ? "Hiring terms confirmed"
+              : "Confirm hiring terms"
+            : "Review monthly hiring terms",
+        ].map((label, index) => (
+          <li
+            key={index}
+            aria-current={
+              (placement
+                ? 3
+                : request.selectedCandidateId
+                  ? 3
+                  : request.candidates.some(
+                        (c) => current(c) && c.response === "ACCEPTED",
+                      )
+                    ? 2
+                    : 1) === index
+                ? "step"
+                : undefined
+            }
+          >
+            {label}
+          </li>
+        ))}
+      </ol>
       <h3>Your availability preferences</h3>
       {request.schedulePreferences &&
       "weekly" in request.schedulePreferences ? (
@@ -719,10 +770,32 @@ function RequestReview({
         </form>
       )}
       {placement ? (
-        <Notice>
-          This request already has tuition terms. Review the current agreement
-          below.
-        </Notice>
+        <section
+          className="enquiry-handoff"
+          aria-label="Hiring confirmation next step"
+        >
+          <h3>
+            {placement.guardianAccepted && placement.teacherAccepted
+              ? "Hiring terms confirmed"
+              : "Your hiring agreement is ready to review"}
+          </h3>
+          <p>
+            Guardian: {placement.guardianAccepted ? "accepted" : "pending"} ·
+            Teacher: {placement.teacherAccepted ? "accepted" : "pending"}.
+            Review the current agreement and both parties’ confirmation. A demo
+            and class timetable are not required.
+          </p>
+          <Link
+            className="button"
+            href={`/dashboard?arrangement=${placement.id}`}
+          >
+            Continue to hiring confirmation
+          </Link>
+          <p className="wizard-help">
+            Confirmed hiring terms do not charge anyone or confirm that teaching
+            has started.
+          </p>
+        </section>
       ) : (
         <>
           <h3>Reviewed teacher options</h3>
@@ -826,7 +899,7 @@ function RequestReview({
                         </Link>
                       ) : profile?.demoAvailable ? (
                         <Button
-                          className="button"
+                          variant="outline"
                           disabled={blocked}
                           onClick={() => open("demo", c)}
                         >
@@ -842,9 +915,10 @@ function RequestReview({
                   )}
                   {current(c) &&
                     c.response === "ACCEPTED" &&
+                    request.selectedCandidateId === c.id &&
                     (!demo || demo.status === "CANCELLED") && (
                       <Button
-                        variant="outline"
+                        className="button"
                         disabled={blocked || demos.isPending || !!demos.error}
                         onClick={() => open("terms", c)}
                       >

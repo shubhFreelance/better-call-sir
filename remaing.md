@@ -19,7 +19,7 @@ Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides
 - [x] **H2 invitation-recovery increment** Private status, acknowledged versioned replacement, invalidation of earlier codes, metadata-only idempotent recovery, explicit refresh after lost responses and no readable code storage.
 - [ ] **H2** Finish other guardian/student recovery and enquiry-to-hiring navigation; weekly availability, guardian draft recovery/discard and teacher-revision drafts are implemented
 - [x] **H3 dashboard terms increment** Guardian/teacher hiring-term review and versioned acceptance in primary dashboards; explicit waiting/both-confirmed states, policy/fee review, private financial scope and stale/uncertain recovery. Acceptance is independent of class timetables, service start and payment.
-- [ ] **H3** Teacher responses, selection and mutually confirmed hiring terms/status; review and decouple mandatory demo/timetable dependencies
+- [x] **H3 hiring journey increment** Enquiry detail/teacher replies → explicit selection → terms → exact owned hiring confirmation, with mutual acceptance states and no mandatory class timetable/demo. Legacy start controls remain secondary; live acceptance stays open.
 - [x] **H4** Hiring overview for student, guardian, teacher and superadmin: scoped enquiry/arrangement records, counts, learner/application metadata, reviewed teacher responses, operational drill-downs and recovery states. H2/H3 journey simplification remains pending.
 - [ ] **H5** Finish no-match/waitlist, support/replacement, privacy, mobile/keyboard/recovery and localization for the hiring journey
 

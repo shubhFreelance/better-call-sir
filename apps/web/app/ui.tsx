@@ -1714,6 +1714,7 @@ function DashboardPage({ tab }: { tab: string }) {
             <>
               <DemoJourney session={session} act={act} />
               <ReservationBookings session={session} dashboard={d} />
+              {d.role === "GUARDIAN" && <TuitionTerms session={session} dashboard={d} />}
               {d.role === "TEACHER" && (
                 <>
                   <h3>Assigned opportunities</h3>
