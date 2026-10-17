@@ -5087,3 +5087,36 @@ footer {
  .privacy-workspace .independent-language { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; gap: 8px; }
  .privacy-workspace .independent-language select { width: 100%; }
 }
+
+.support-workspace .independent-language { margin-bottom: 0; }
+.support-workspace .independent-language select { width: auto; min-width: 160px; }
+.support-workspace .independent-language label { white-space: nowrap; }
+.support-workspace[lang="hi"] :is(p, small, label, button) {
+  line-height: 1.7;
+}
+.support-workspace[lang="hi"] :is(h1, h2, h3) {
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .support-workspace[lang="hi"]
+    :is(.support-actions, .support-toolbar-actions) {
+    flex-wrap: wrap;
+  }
+  .support-workspace[lang="hi"]
+    :is(.support-actions, .support-toolbar-actions)
+    > button {
+    width: 100%;
+    white-space: normal;
+    min-height: 48px;
+  }
+  .support-workspace .independent-language {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+    gap: 8px;
+  }
+  .support-workspace .independent-language select {
+    width: 100%;
+  }
+}

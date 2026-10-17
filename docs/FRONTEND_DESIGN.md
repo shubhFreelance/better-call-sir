@@ -302,3 +302,7 @@ Optional support uses a lavender explanation panel and names the exact ADVICE/MA
 ## Owner privacy localization
 
 Privacy correction/deletion forms and history offer a visible page-level English/Hindi selector, including on narrow phones. Switching language keeps entered text, review state, acknowledgement and pending retry identity. Canonical API enums, ownership and request payloads are unchanged. User-written reasons/corrections and reviewer outcomes are shown as authored. Hindi uses the existing self-hosted Devanagari font, with readable line height and stacked mobile actions/locale control. Retention, review, immediate processing effects and lack of live notification delivery remain explicit in both languages.
+
+## Hindi owner support
+
+The shared support page reuses the established teal introduction, lavender enquiry/history surfaces, white conversation and cream canvas. Its page-level English/Hindi selector remains visible at 360px, including before sign-in. Hindi uses the existing self-hosted Devanagari font, untracked headings and comfortable line height; mobile request/reply actions stack and wrap. Forms, categories/statuses, safety guidance, linked progress, pagination controls and recovery feedback translate at display time. Drafts, acknowledgements, uncertain operation keys, canonical API values and user/staff-authored messages remain intact when language changes. Shared footer/development banners and operator consoles remain separate localization work.

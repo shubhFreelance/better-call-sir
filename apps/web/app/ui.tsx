@@ -2470,13 +2470,15 @@ function AdminPanel({ dashboard: d }: { dashboard: Dashboard; act: Act }) {
 }
 
 function Support() {
-  const { session } = useAuth();
+  const { session, hindi, setHindi } = useAuth();
   return (
     <SupportWorkspace
       key={
         session ? `${session.account.id}:${session.account.role}` : "anonymous"
       }
       session={session}
+      hindi={hindi}
+      onLanguageChange={setHindi}
     />
   );
 }

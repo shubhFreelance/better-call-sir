@@ -613,3 +613,172 @@ test("contextual support is clear and accessible on mobile", async ({
     ),
   ).toEqual([]);
 });
+
+test("Hindi anonymous safety guidance stays free and never reads private cases", async ({
+  page,
+}) => {
+  const state = await mock(page, "normal", "ANONYMOUS");
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/support");
+  await page.getByLabel("Language / भाषा", { exact: true }).selectOption("hi");
+  await expect(
+    page.getByRole("heading", { name: "मदद पाने का आसान रास्ता।" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "भारत में 112 पर कॉल करें" }),
+  ).toHaveAttribute("href", "tel:112");
+  await expect(
+    page.getByRole("link", { name: /अपने निजी मामले/ }),
+  ).toHaveAttribute("href", "/login?next=%2Fsupport");
+  expect(state.reads).toEqual([]);
+});
+
+test("Hindi support preserves validation, contextual retries and authored content on mobile", async ({
+  page,
+}) => {
+  const state = await mock(page, "uncertain-context");
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/support?placement=" + linkedPlacement);
+  await page.getByLabel("Language / भाषा", { exact: true }).selectOption("hi");
+  await expect(
+    page.getByRole("heading", { name: "इस व्यवस्था के लिए मदद" }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "नया मामला बनाएँ", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "अनुरोध जाँचें", exact: true })
+    .click();
+  await expect(page.locator("main").getByRole("alert")).toContainText(
+    "अधिकतम 3,000 अक्षरों में बताएँ कि क्या हुआ।",
+  );
+  await page.getByLabel("आपको किस विषय में मदद चाहिए?").selectOption("SAFETY");
+  await page
+    .getByLabel("बताएँ कि क्या हुआ")
+    .fill("मेरी निजी चिंता। Please keep this wording.");
+  await page.getByLabel("Language / भाषा", { exact: true }).selectOption("en");
+  await expect(page.getByLabel("Tell us what happened")).toHaveValue(
+    "मेरी निजी चिंता। Please keep this wording.",
+  );
+  await page
+    .getByRole("button", { name: "Review request", exact: true })
+    .click();
+  await page.getByRole("checkbox", { name: /I reviewed this request/ }).check();
+  await page.getByLabel("Language / भाषा", { exact: true }).selectOption("hi");
+  await expect(
+    page.getByRole("checkbox", { name: /मैंने अनुरोध/ }),
+  ).toBeChecked();
+  await page
+    .getByRole("button", { name: "सहायता अनुरोध भेजें", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "वही निर्णय फिर भेजें" }),
+  ).toBeVisible();
+  await page.getByLabel("Language / भाषा", { exact: true }).selectOption("en");
+  await page.getByRole("button", { name: "Retry same decision" }).click();
+  await expect(page.locator(".support-original")).toContainText(
+    "मेरी निजी चिंता। Please keep this wording.",
+  );
+  expect(state.writes).toHaveLength(2);
+  expect(state.writes[0]).toEqual(state.writes[1]);
+  expect(state.writes[0].body).toEqual({
+    category: "SAFETY",
+    description: "मेरी निजी चिंता। Please keep this wording.",
+    placementId: linkedPlacement,
+  });
+  await page.getByLabel("Language / भाषा", { exact: true }).selectOption("hi");
+  await expect(page.locator("main.support-workspace")).toHaveAttribute(
+    "lang",
+    "hi",
+  );
+  await expect(page.locator(".support-updates")).toContainText(
+    "Please share the date and approximate time you joined.",
+  );
+  await expect(page.locator(".support-original")).toHaveCSS(
+    "font-family",
+    /Noto/,
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  const axe = await new AxeBuilder({ page }).analyze();
+  expect(
+    axe.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+  await page.screenshot({
+    path: "test-results/support-hindi-mobile.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({
+    path: "test-results/support-hindi-desktop.png",
+    fullPage: true,
+  });
+});
+
+test("Hindi replies retain retry identity and canonical history filters", async ({
+  page,
+}) => {
+  const state = await mock(page, "uncertain-reply", "TEACHER");
+  await page.goto("/support?case=" + caseId);
+  await page.getByLabel("Language / भाषा", { exact: true }).selectOption("hi");
+  await page
+    .getByLabel("जवाब लिखें", { exact: true })
+    .fill("मंगलवार को पाँच बजे।");
+  await page.getByRole("button", { name: "जवाब जाँचें", exact: true }).click();
+  await page.getByRole("checkbox", { name: /मैंने जवाब/ }).check();
+  await page.getByRole("button", { name: "जवाब भेजें", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "वही निर्णय फिर भेजें" }),
+  ).toBeVisible();
+  await page.getByLabel("Language / भाषा", { exact: true }).selectOption("en");
+  await page.getByRole("button", { name: "Retry same decision" }).click();
+  await expect(page.locator(".support-updates")).toContainText(
+    "मंगलवार को पाँच बजे।",
+  );
+  expect(state.writes).toHaveLength(2);
+  expect(state.writes[0]).toEqual(state.writes[1]);
+  expect(state.writes[0].body).toEqual({
+    expectedVersion: 2,
+    message: "मंगलवार को पाँच बजे।",
+    internal: false,
+  });
+  await page.getByLabel("Language / भाषा", { exact: true }).selectOption("hi");
+  await page
+    .getByLabel("मामले की स्थिति", { exact: true })
+    .selectOption("WAITING_OWNER");
+  await expect
+    .poll(() => state.reads.some((p) => p.includes("status=WAITING_OWNER")))
+    .toBe(true);
+});
+
+test("Hindi denied context and closed conversations preserve access boundaries", async ({
+  page,
+}) => {
+  const state = await mock(page, "bad-context");
+  await page.goto("/support?request=" + linkedRequest + "&case=" + caseId);
+  await page.getByLabel("Language / भाषा", { exact: true }).selectOption("hi");
+  await expect(page.locator("main").getByRole("alert")).toContainText(
+    "इस सहायता लिंक की पुष्टि नहीं हुई।",
+  );
+  await expect(
+    page.getByRole("button", { name: "नया मामला बनाएँ", exact: true }),
+  ).toBeDisabled();
+  expect(state.reads.some((p) => p.startsWith("/cases"))).toBe(false);
+  await page.unroute("**/api/v1/**");
+  await mock(page, "resolved");
+  await page.goto("/support?case=" + caseId);
+  await expect(
+    page.getByText(
+      "यह मामला सुलझ चुका है और इसमें जवाब नहीं भेज सकते। और मदद के लिए नया मामला बनाएँ।",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText("The attendance record has been corrected after review."),
+  ).toBeVisible();
+  await expect(page.getByLabel("जवाब लिखें", { exact: true })).toHaveCount(0);
+});

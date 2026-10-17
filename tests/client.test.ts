@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { supportText, supportError } from "../apps/web/app/support-copy";
 import { privacyText, privacyError } from "../apps/web/app/privacy-copy";
 import { api, ApiError } from "../packages/api-client/src";
 test("browser API transport is bounded, rejects redirects and honors caller cancellation", async () => {
@@ -101,4 +102,27 @@ test("privacy display localization preserves authored text and treats unknown/pr
     privacyError(true, "Your session has expired. Sign in again."),
     "आपका प्रवेश समाप्त हो गया है। फिर साइन इन करें।",
   );
+});
+
+test("support localization keeps unknown and prototype keys safe", () => {
+  assert.equal(supportText(true, "Safety concern"), "सुरक्षा संबंधी चिंता");
+  assert.equal(supportText(false, "Safety concern"), "Safety concern");
+  assert.equal(supportError(true, ""), "");
+  assert.equal(
+    supportError(true, "Your session has expired. Sign in again."),
+    "आपका प्रवेश समाप्त हो गया है। फिर साइन इन करें।",
+  );
+  for (const value of [
+    "constructor",
+    "__proto__",
+    "toString",
+    "Authored case message",
+  ]) {
+    assert.equal(supportText(true, value), value);
+    assert.equal(supportError(false, value), value);
+    assert.equal(
+      supportError(true, value),
+      "अनुरोध पूरा नहीं हुआ। अपनी अनुमति और मौजूदा जानकारी जाँचकर फिर कोशिश करें।",
+    );
+  }
 });
