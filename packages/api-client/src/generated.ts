@@ -1159,8 +1159,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * listOwnWaitlist
-         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
+         * List owned future-coverage requests with stable pagination
+         * @description Guardian-owned history ordered by creation time descending, then ID descending. Newer requests do not move an existing cursor boundary. Unavailable cursors require restarting from the first page.
          */
         get: operations["listOwnWaitlist"];
         put?: never;
@@ -3806,6 +3806,8 @@ export interface components {
         };
         WaitlistEntries: {
             items: components["schemas"]["Waitlist"][];
+            /** Format: uuid */
+            nextCursor?: string | null;
         };
         MatchingInput: {
             expectedVersion: number;
@@ -12033,7 +12035,11 @@ export interface operations {
     };
     listOwnWaitlist: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                /** @description Owned last entry ID from the previous page. Missing or foreign anchors return 404. */
+                cursor?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;

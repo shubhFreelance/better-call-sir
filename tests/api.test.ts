@@ -481,6 +481,21 @@ test('unsupported scope waitlist is retry-safe, private and does not create a ch
  assert.equal((await parent.call('/waitlist',{...body,alias:'Unnecessary child data'})).status,400);
 });
 
+test('waitlist history paginates tied timestamps without crossing guardian ownership or losing old records',async()=>{
+ const ownerId=ids.guardian,g=parent,stamp=new Date(Date.now()+86400000),old=await db.waitlist.findMany({where:{guardianId:ownerId},orderBy:[{createdAt:'desc'},{id:'desc'}],select:{id:true}});
+ const entryIds=Array.from({length:53},()=>randomUUID()).sort().reverse();
+ await db.waitlist.createMany({data:entryIds.map(id=>({id,guardianId:ownerId,grade:8,board:'CBSE',subject:'Maths',language:'English',mode:'ONLINE',region:'Synthetic future region',createdAt:stamp}))});
+ let cursor='',seen:string[]=[];for(let page=0;page<10;page++){
+  const result=await g.call('/waitlist?limit=13'+(cursor?'&cursor='+cursor:''));assert.equal(result.status,200);assert(operationValidator('/waitlist','get','200')(result.data));seen.push(...result.data.items.map((x:any)=>x.id));
+  if(page===0)await db.waitlist.create({data:{guardianId:ownerId,grade:8,board:'CBSE',subject:'Physics',language:'English',mode:'ONLINE',region:'Synthetic new region',createdAt:new Date(stamp.getTime()+1000)}});
+  cursor=result.data.nextCursor||'';if(!cursor)break;
+ }assert.deepEqual(seen,[...entryIds,...old.map(x=>x.id)]);assert.equal(new Set(seen).size,53+old.length);assert.equal(cursor,'');
+ assert.equal((await other.call('/waitlist?cursor='+entryIds[0])).status,404);assert.equal((await g.call('/waitlist?cursor='+randomUUID())).status,404);
+ for(const query of ['limit=0','limit=51','limit=1.5','cursor=invalid','unexpected=1'])assert.equal((await g.call('/waitlist?'+query)).status,400);
+ assert.equal((await student.call('/waitlist?limit=1')).status,403);assert.equal((await teacher.call('/waitlist?limit=1')).status,403);
+ await db.waitlist.delete({where:{id:entryIds[0]}});assert.equal((await g.call('/waitlist?cursor='+entryIds[0])).status,404);
+});
+
 test('matching requires confirmed schedules and preserves immutable run, publication, exposure and decision evidence',async()=>{
  const legacy=await parent.call('/requests',intake()),needs=await operator.call(`/admin/requests/${legacy.data.id}/recommendations`,{expectedVersion:1});assert.equal(needs.status,201);assert.equal(needs.data.matchStatus,'NEEDS_SCHEDULE');assert.equal(needs.data.items.length,0);
  const startsAt=future(46),endsAt=new Date(new Date(startsAt).getTime()+3600000).toISOString();const request=await parent.call('/requests',intake({preferences:{timezone:'Asia/Kolkata',slots:[{startsAt,endsAt}]}}));assert.equal(request.status,201);
