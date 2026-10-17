@@ -251,6 +251,7 @@ test("empty discovery offers assistance and future coverage without claiming sup
 }) => {
   await mock(page);
   await page.goto("/teachers");
+  await page.waitForLoadState("networkidle");
   await page
     .getByRole("combobox", { name: "Subject", exact: true })
     .selectOption("Science");

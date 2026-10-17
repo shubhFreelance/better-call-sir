@@ -1,7 +1,7 @@
 "use client";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
@@ -9,6 +9,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Alert, AlertDescription } from "../components/ui/alert";
 type Entry = components["schemas"]["Waitlist"];
+type History = components["schemas"]["WaitlistEntries"];
 type Criteria = components["schemas"]["WaitlistInput"];
 export function WaitlistWorkspace({ session }: { session: Session | null }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
@@ -85,14 +86,35 @@ export function WaitlistWorkspace({ session }: { session: Session | null }) {
 function WaitlistForm({ session }: { session: Session }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
-  const client = useQueryClient(),
-    key = ["scope-waitlist", session.account.id];
+  const client = useQueryClient();
+  const [cursor, setCursor] = useState("");
+  const [previous, setPrevious] = useState<string[]>([]);
+  const rootKey = ["scope-waitlist", session.account.id];
+  const historyTitle = useRef<HTMLHeadingElement>(null);
+  const focusPage = useRef(false);
   const query = useQuery({
-    queryKey: key,
-    queryFn: () => api<{ items: Entry[] }>("/waitlist"),
+    queryKey: [...rootKey, cursor],
+    queryFn: ({ signal }) =>
+      api<History>(
+        "/waitlist?limit=20" +
+          (cursor ? "&cursor=" + encodeURIComponent(cursor) : ""),
+        { signal },
+      ),
     retry: false,
+    staleTime: 0,
     refetchOnWindowFocus: false,
   });
+  useEffect(() => {
+    if (focusPage.current && !query.isFetching && (query.data || query.error)) {
+      focusPage.current = false;
+      historyTitle.current?.focus();
+    }
+  }, [cursor, query.data, query.error, query.isFetching]);
+  function firstPage() {
+    focusPage.current = true;
+    setPrevious([]);
+    setCursor("");
+  }
   const [stage, setStage] = useState<"SCHOOL" | "EARLY_YEARS" | "COLLEGE">(
       "SCHOOL",
     ),
@@ -202,12 +224,9 @@ function WaitlistForm({ session }: { session: Session }) {
       pending.current = null;
       setUncertain(false);
       setSaved(result);
-      client.setQueryData<{ items: Entry[] }>(key, (old) => ({
-        items: [
-          result,
-          ...(old?.items || []).filter((e) => e.id !== result.id),
-        ].slice(0, 50),
-      }));
+      setPrevious([]);
+      setCursor("");
+      await client.invalidateQueries({ queryKey: rootKey });
       requestAnimationFrame(() => heading.current?.focus());
     } catch (e) {
       const unknown =
@@ -509,9 +528,14 @@ function WaitlistForm({ session }: { session: Session }) {
           </Button>
         )}
       </form>
-      <section className="wizard-card coverage-history">
+      <section
+        className="wizard-card coverage-history"
+        aria-busy={query.isFetching}
+      >
         <div className="panel-title">
-          <h2>{appText("Your coverage requests")}</h2>
+          <h2 ref={historyTitle} tabIndex={-1}>
+            {appText("Your coverage requests")}
+          </h2>
           <Button
             variant="outline"
             disabled={busy || uncertain || query.isFetching}
@@ -522,7 +546,7 @@ function WaitlistForm({ session }: { session: Session }) {
         </div>
         <p className="wizard-help">
           {appText(
-            "Your latest 50 recorded requests. Status does not confirm teacher supply or a place in a queue.",
+            "Your recorded requests, newest first. Status does not confirm teacher supply or a place in a queue.",
           )}{" "}
         </p>
         {query.error ? (
@@ -533,7 +557,7 @@ function WaitlistForm({ session }: { session: Session }) {
               )}{" "}
             </AlertDescription>
           </Alert>
-        ) : query.isPending ? (
+        ) : query.isPending || query.isFetching ? (
           <p role="status">{appText("Loading recorded requests…")}</p>
         ) : !query.data?.items.length ? (
           <p>{appText("No coverage requests recorded yet.")}</p>
@@ -564,6 +588,51 @@ function WaitlistForm({ session }: { session: Session }) {
               </li>
             ))}
           </ul>
+        )}
+        {(cursor || query.data?.nextCursor) && (
+          <nav
+            className="coverage-pagination"
+            aria-label={appText("Coverage request history pages")}
+          >
+            <Button
+              variant="outline"
+              disabled={
+                busy || uncertain || query.isFetching || !previous.length
+              }
+              onClick={() => {
+                if (!previous.length) return;
+                focusPage.current = true;
+                setCursor(previous.at(-1)!);
+                setPrevious((p) => p.slice(0, -1));
+              }}
+            >
+              {appText("Previous page")}
+            </Button>
+            <span>{appText("History page {0}", [previous.length + 1])}</span>
+            {!query.error && query.data?.nextCursor && (
+              <Button
+                variant="outline"
+                disabled={busy || uncertain || query.isFetching}
+                onClick={() => {
+                  if (!query.data?.nextCursor) return;
+                  focusPage.current = true;
+                  setPrevious((p) => [...p, cursor]);
+                  setCursor(query.data.nextCursor);
+                }}
+              >
+                {appText("Next page")}
+              </Button>
+            )}
+            {!!query.error && !!cursor && (
+              <Button
+                variant="outline"
+                disabled={busy || uncertain || query.isFetching}
+                onClick={firstPage}
+              >
+                {appText("Return to first page")}
+              </Button>
+            )}
+          </nav>
         )}
       </section>
     </>

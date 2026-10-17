@@ -1,5 +1,9 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Your recorded requests, newest first. Status does not confirm teacher supply or a place in a queue.":
+    "आपके दर्ज अनुरोध, सबसे नए पहले। स्थिति से शिक्षक उपलब्ध होने या कतार में जगह मिलने की पुष्टि नहीं होती।",
+  "Coverage request history pages": "सेवा-क्षेत्र अनुरोधों के पुराने पृष्ठ",
+  "History page {0}": "पुराने अनुरोधों का पृष्ठ {0}",
   "We couldn’t load your saved setup. Check your account permissions and try again.":
     "आपका सहेजा गया सेटअप लोड नहीं हो पाया। खाते की अनुमति जाँचकर फिर कोशिश करें।",
   "Your application is saved, but we couldn’t open your teacher workspace. Try again.":
