@@ -5156,3 +5156,12 @@ html[lang="hi"] :is(input,select,textarea) { font-family: var(--font-family); }
 .search-pagination > [role="alert"] { width: 100%; text-align: start; }
 .results-heading [tabindex="-1"]:focus-visible { outline: 2px solid var(--primary); outline-offset: 6px; border-radius: 4px; }
 @media (max-width: 640px) { .search-pagination > button { width: 100%; } }
+
+.profile-navigation { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.profile-recovery { max-width: 860px; padding: 36px; background: var(--green); }
+.profile-recovery h1 { max-width: 24ch; margin: 0 0 16px; font-size: clamp(26px, 4vw, 38px); line-height: 1.35; color: var(--primary); overflow-wrap: anywhere; }
+.profile-recovery p { max-width: 65ch; }
+.profile-recovery .wizard-actions { flex-wrap: wrap; }
+.profile-navigation button, .profile-recovery .button { min-height: 48px; }
+.profile-recovery h1:focus-visible, .profile-main h1:focus-visible { outline: 2px solid var(--primary); outline-offset: 6px; }
+@media(max-width: 640px) { .profile-recovery { padding: 24px 20px; } .profile-recovery .wizard-actions { display: grid; grid-template-columns: minmax(0,1fr); } .profile-recovery .wizard-actions > * { width: 100%; text-align: center; } .profile-recovery .inline-link { min-height: 44px; justify-content: center; } }

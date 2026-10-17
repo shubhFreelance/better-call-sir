@@ -324,3 +324,8 @@ Changing language preserves current form values, acknowledgement/review state, p
 ## Teacher discovery pages
 
 Search keeps the existing teacher cards and manual/assisted tabs. A lavender continuation surface separates the end of the visible grid from additional matches, with teal progress text and a shared outline button. Phone actions fill the available width with at least 48px height. Counts describe the teachers shown rather than an unprovided total. Loading exposes busy state; a failed additional page keeps the current cards and criteria, while an unreadable first page does not masquerade as no supply. Repeated cursors stop with a refresh action, not an end-of-results claim. Final-page completion returns keyboard focus to the result summary. All copy follows the English/Hindi preference.
+
+
+## Teacher profile recovery
+
+A concise navigation row pairs the directory link with a shared outline Refresh profile control. Unavailable and temporarily unreadable profiles use a lavender recovery surface with teal headings, one primary retry and secondary manual/assisted discovery links. A failed refresh removes the cached profile and enquiry actions until a current read succeeds. Retry retains the recovery context while loading; headings receive keyboard focus after failure and successful recovery. On phones, actions stack with full-width touch targets. Interface copy is English/Hindi; raw server errors are never displayed.

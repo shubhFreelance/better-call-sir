@@ -4605,4 +4605,16 @@ export const hindiMessages: Record<string, string> = {
   "More results could not be verified. Refresh this search to try again.":
     "और नतीजों की पुष्टि नहीं हुई। फिर कोशिश करने के लिए खोज रीफ़्रेश करें।",
   "Refresh search": "खोज रीफ़्रेश करें",
+  "Checking profile…": "प्रोफ़ाइल की जानकारी जाँची जा रही है…",
+  "Refresh profile": "प्रोफ़ाइल रीफ़्रेश करें",
+  "This teacher profile is unavailable.":
+    "इस शिक्षक की प्रोफ़ाइल उपलब्ध नहीं है।",
+  "We couldn’t load this teacher profile.":
+    "इस शिक्षक की प्रोफ़ाइल लोड नहीं हुई।",
+  "This profile cannot currently be viewed or enquired about. Check again, explore other teachers or ask us to help you search.":
+    "अभी यह प्रोफ़ाइल देखना या इस शिक्षक के लिए अनुरोध भेजना संभव नहीं है। फिर जाँचें, दूसरे शिक्षक देखें या खोज में हमारी मदद लें।",
+  "Your account and enquiries are unchanged. Retry this profile or continue your teacher search.":
+    "आपका खाता और अनुरोध पहले जैसे हैं। यह प्रोफ़ाइल फिर लोड करें या शिक्षकों की खोज जारी रखें।",
+  "Retry this profile": "यह प्रोफ़ाइल फिर लोड करें",
+  "Browse other teachers": "दूसरे शिक्षक देखें",
 };

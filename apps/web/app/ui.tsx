@@ -1346,16 +1346,94 @@ function Profile({ slug }: { slug: string }) {
   const independent = session?.account.role === "INDEPENDENT_STUDENT";
   const query = useQuery({
     queryKey: ["teacher", slug],
-    queryFn: ({ signal }) => api<Teacher>(`/teachers/${slug}`, { signal }),
+    queryFn: ({ signal }) =>
+      api<Teacher>(`/teachers/${encodeURIComponent(slug)}`, { signal }),
+    retry: false,
   });
   const t = query.data;
+  const profileTitle = useRef<HTMLHeadingElement>(null);
+  const recoveryTitle = useRef<HTMLHeadingElement>(null);
+  const lastFailure = useRef<{ slug: string; error: Error } | null>(null);
+  const failure =
+    query.error ||
+    (query.isFetching && lastFailure.current?.slug === slug
+      ? lastFailure.current.error
+      : null);
+  useEffect(() => {
+    if (query.error && !query.isFetching) {
+      lastFailure.current = { slug, error: query.error };
+      recoveryTitle.current?.focus();
+    } else if (
+      query.isSuccess &&
+      !query.isFetching &&
+      t &&
+      lastFailure.current?.slug === slug
+    ) {
+      lastFailure.current = null;
+      profileTitle.current?.focus();
+    }
+  }, [query.error, query.isFetching, query.isSuccess, t, slug]);
+  const missing = failure instanceof ApiError && failure.status === 404;
   return (
     <main className="container section">
-      <Link className="inline-link" href="/teachers">
-        {appText("← All teachers")}{" "}
-      </Link>
-      <State loading={query.isPending} error={query.error} />
-      {t && (
+      <div className="profile-navigation">
+        <Link className="inline-link" href="/teachers">
+          {appText("← All teachers")}{" "}
+        </Link>
+        {t && !failure && (
+          <UiButton
+            type="button"
+            variant="outline"
+            disabled={query.isFetching}
+            onClick={() => query.refetch({ cancelRefetch: false })}
+          >
+            {appText(
+              query.isFetching ? "Checking profile…" : "Refresh profile",
+            )}
+          </UiButton>
+        )}
+      </div>
+      <State loading={query.isPending && !failure} />
+      {failure && (
+        <section
+          className="profile-recovery panel"
+          aria-labelledby="profile-recovery-title"
+          aria-busy={query.isFetching}
+        >
+          <h1 id="profile-recovery-title" ref={recoveryTitle} tabIndex={-1}>
+            {appText(
+              missing
+                ? "This teacher profile is unavailable."
+                : "We couldn’t load this teacher profile.",
+            )}
+          </h1>
+          <p>
+            {appText(
+              missing
+                ? "This profile cannot currently be viewed or enquired about. Check again, explore other teachers or ask us to help you search."
+                : "Your account and enquiries are unchanged. Retry this profile or continue your teacher search.",
+            )}
+          </p>
+          <div className="wizard-actions">
+            <UiButton
+              type="button"
+              disabled={query.isFetching}
+              onClick={() => query.refetch({ cancelRefetch: false })}
+            >
+              {appText(
+                query.isFetching ? "Checking profile…" : "Retry this profile",
+              )}
+            </UiButton>
+            <Link className="button secondary" href="/teachers">
+              {appText("Browse other teachers")}
+            </Link>
+            <Link className="inline-link" href="/teachers?tab=assisted">
+              {appText("Let us search for you")}
+            </Link>
+          </div>
+        </section>
+      )}
+      {t && !failure && (
         <div className="profile-layout">
           <article className="panel profile-main">
             <div className="avatar large" style={{ background: t.avatarColor }}>
@@ -1365,7 +1443,9 @@ function Profile({ slug }: { slug: string }) {
               <ShieldCheck size={14} />{" "}
               {appText("Reviewed subject coverage")}{" "}
             </Badge>
-            <h1>{t.name}</h1>
+            <h1 ref={profileTitle} tabIndex={-1}>
+              {t.name}
+            </h1>
             <h2 className="profile-headline">{t.headline}</h2>
             <p>{t.bio}</p>
             <h3>{appText("What we can work on together")}</h3>
