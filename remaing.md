@@ -4,6 +4,10 @@ Updated 17 October 2026. Checkboxes track the stated item only; completed develo
 
 Next sprint: **remaining bounded-history pagination, H5 cross-flow review and launch qualification**. Expanded learner onboarding, independent adult accounts and optional supporter access are implemented in development. Guardian drafts, weekly availability, teacher-revision drafts and dashboard hiring-term confirmation are implemented. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
 
+Next feature: **paginate private privacy-request history (B12/H5)** so owners can reach requests beyond the current bounded list, with matching API, ownership and recovery checks.
+
+Reporting routine: after every completed feature/API, update this tracker, push the changes, then show the completed work, test/push evidence, one next feature and the full grouped remaining backlog directly in chat. Implementation, pending decisions/launch qualification and deferred scope must remain distinct.
+
 Current scope: [Teacher discovery and hiring](docs/MVP_SCOPE.md). This overrides broader class-management launch requirements in the original PRD. Existing security, privacy and release controls remain required for the focused journey.
 
 ## New owner requirements — staged delivery (16 October 2026)

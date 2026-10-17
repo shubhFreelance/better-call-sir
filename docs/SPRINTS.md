@@ -799,3 +799,6 @@ Development acceptance: all 17 waitlist browser checks pass, including four new 
 Production acceptance: Next production build and all 35 production browser checks pass, including the same four waitlist-history cases under strict CSP. Source/public-bundle scans cover 311 files and 17 assets without findings. The existing secret/dependency controls are preserved; exact-source hosted CI, physical devices, real guardian verification and operational release qualification remain separate. Other B12 histories are still open. No merge or deployment.
 
 Development web and API readiness return HTTP 200 after restoring the development server.
+
+
+17 October 2026 — owner delivery/reporting update: every completed feature/API includes a synchronized remaing.md update in its push. The post-push chat report must state completed work and validation/commit evidence, one next feature and the full grouped remaining backlog, distinguishing implementation, pending decisions/launch gates and deferred work. This is saved in AGENTS.md. Next proposed increment: private privacy-request history pagination (B12/H5). Documentation-only change; application tests are not rerun.

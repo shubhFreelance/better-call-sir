@@ -37,6 +37,10 @@ Use the owner's `docs/BetterCallSir_MVP_PRD.docx` (Version 3) as the product req
 
 Follow the owner's phase-by-phase delivery preference: execute PRD Section 10 Phases 1–7 in order, with sprint increments inside the active phase. Close and record each phase's required acceptance evidence before advancing. Keep existing later-phase code, but do not use its presence to mark a phase complete. Phase 1 permits labelled provider stubs with live integration tracked as open tickets. Consult the active phase in `docs/SPRINTS.md` before selecting the next feature.
 
+## Progress reporting after every feature
+
+Owner instruction, 17 October 2026: update `remaing.md` for every completed feature/API and include that tracker update in the tested feature push. After verifying the push, report directly in chat: what completed, relevant validation and commit/branch, the single next feature, and the complete remaining backlog grouped into implementation work, decisions/launch blockers and explicitly deferred work. Do not provide only a tracker link or make the owner ask what remains. Keep the next named feature in the tracker synchronized with the chat. Continue one feature at a time; unchanged blockers stay visible without being presented as newly discovered work.
+
 ## Current owner scope override
 
 The owner's 14 October 2026 instruction prioritizes teacher discovery, enquiries and booking/hiring a teacher. Follow `docs/MVP_SCOPE.md` and H1–H5 in `remaing.md` before the earlier class-management backlog. Individual class booking, timetables, attendance and lesson-based workflows are deferred until later scale. Preserve existing code/data and history; do not mark deferred PRD requirements accepted. Retain authentication, consent, screening, privacy, support and applicable security/release controls. This scope change does not authorize live charges, merging or deployment.
