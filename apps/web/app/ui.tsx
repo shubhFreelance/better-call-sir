@@ -237,14 +237,16 @@ function PageTitle({
   title,
   subtitle,
   action,
+  lang,
 }: {
   eyebrow: string;
   title: string;
   subtitle: string;
   action?: ReactNode;
+  lang?: "en" | "hi";
 }) {
   return (
-    <div className="page-title">
+    <div className="page-title" lang={lang}>
       <div>
         {eyebrow && <span className="eyebrow">{eyebrow}</span>}
         <h1>{title}</h1>
@@ -1737,6 +1739,7 @@ function DashboardPage({ tab }: { tab: string }) {
       beginStudentSwitch,
       failStudentSwitch,
       hindi,
+      setHindi,
     } = useAuth(),
     client = useQueryClient();
   const query = useQuery({
@@ -1895,9 +1898,11 @@ function DashboardPage({ tab }: { tab: string }) {
             }}
           />
         ) : tab === "/dashboard/privacy" ? (
-          <div lang="en">
-            <PrivacyWorkspace session={session} />
-          </div>
+          <PrivacyWorkspace
+            session={session}
+            hindi={hindi}
+            onLanguageChange={setHindi}
+          />
         ) : (
           <IndependentStudentHome session={session} hindi={hindi} />
         )}
@@ -1933,6 +1938,7 @@ function DashboardPage({ tab }: { tab: string }) {
       {d && (
         <>
           <PageTitle
+            lang={tab.endsWith("privacy") ? (hindi ? "hi" : "en") : undefined}
             eyebrow={
               session.account.role === "ADMIN"
                 ? "OPERATIONS"
@@ -1958,7 +1964,9 @@ function DashboardPage({ tab }: { tab: string }) {
                           : tab.endsWith("review")
                             ? "A careful review, recorded."
                             : tab.endsWith("privacy")
-                              ? "Your information and privacy."
+                              ? hindi
+                                ? "आपकी जानकारी और गोपनीयता।"
+                                : "Your information and privacy."
                               : tab.endsWith("arrangements")
                                 ? "A clear next step for your tuition."
                                 : tab.endsWith("requests")
@@ -1982,9 +1990,13 @@ function DashboardPage({ tab }: { tab: string }) {
                   ? "Manage student devices and the permissions you grant."
                   : tab.endsWith("requests")
                     ? "Review teacher options, demo progress and your tuition agreement."
-                    : tab.endsWith("lessons")
-                      ? "Your weekly timetable, booked lessons and attendance records."
-                      : "All changes are confirmed by the backend."
+                    : tab.endsWith("privacy")
+                      ? hindi
+                        ? "हर अनुरोध की समीक्षा करें और मौजूदा स्थिति देखें।"
+                        : "Review each request and follow its current status."
+                      : tab.endsWith("lessons")
+                        ? "Your weekly timetable, booked lessons and attendance records."
+                        : "All changes are confirmed by the backend."
             }
           />
           {error && <Notice error>{error}</Notice>}
@@ -2193,6 +2205,8 @@ function DashboardPage({ tab }: { tab: string }) {
               key={`${session.account.id}:${session.account.role}`}
               session={session}
               dashboard={d}
+              hindi={hindi}
+              onLanguageChange={setHindi}
             />
           )}
           {tab.endsWith("arrangements") && (

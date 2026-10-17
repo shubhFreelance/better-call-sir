@@ -181,21 +181,25 @@ export function useDecision(
 }
 export function Feedback({
   decision,
+  translate = (text: string) => text,
 }: {
   decision: ReturnType<typeof useDecision>;
+  translate?: (text: string) => string;
 }) {
   return (
     <>
-      {decision.error && <Notice error>{decision.error}</Notice>}
-      {decision.success && <Notice>{decision.success}</Notice>}
-      {decision.busy && <p role="status">Saving your decision…</p>}
+      {decision.error && <Notice error>{translate(decision.error)}</Notice>}
+      {decision.success && <Notice>{translate(decision.success)}</Notice>}
+      {decision.busy && (
+        <p role="status">{translate("Saving your decision…")}</p>
+      )}
       {decision.uncertain && (
         <Button
           className="button"
           disabled={decision.busy}
           onClick={() => decision.run()}
         >
-          Retry same decision
+          {translate("Retry same decision")}
         </Button>
       )}
     </>
@@ -362,7 +366,9 @@ function RequestReview({
           ...(request.mode === "HOME" ? { locality: request.locality } : {}),
         }
       : {}),
-    ...(child?.board && child.grade!==null ? { board: child.board, grade: String(child.grade) } : {}),
+    ...(child?.board && child.grade !== null
+      ? { board: child.board, grade: String(child.grade) }
+      : {}),
   });
   const completedDemos =
     demos.data?.items.filter(
@@ -859,7 +865,10 @@ function RequestReview({
                   <Link className="inline-link" href="/teachers">
                     Browse teachers manually
                   </Link>
-                  <Link className="inline-link" href={`/support?request=${request.id}`}>
+                  <Link
+                    className="inline-link"
+                    href={`/support?request=${request.id}`}
+                  >
                     Ask for search support
                   </Link>
                 </div>

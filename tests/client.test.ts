@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { privacyText, privacyError } from "../apps/web/app/privacy-copy";
 import { api, ApiError } from "../packages/api-client/src";
 test("browser API transport is bounded, rejects redirects and honors caller cancellation", async () => {
   const original = globalThis.fetch,
@@ -73,4 +74,31 @@ test("unreadable API responses preserve uncertainty and malformed error bodies r
   } finally {
     globalThis.fetch = original;
   }
+});
+
+test("privacy display localization preserves authored text and treats unknown/prototype error keys as safe text", () => {
+  assert.equal(privacyText(true, "Correction"), "सुधार");
+  assert.equal(privacyText(false, "Correction"), "Correction");
+  assert.equal(
+    privacyText(true, "Reviewer-authored evidence"),
+    "Reviewer-authored evidence",
+  );
+  assert.equal(privacyError(true, ""), "");
+  for (const value of [
+    "constructor",
+    "__proto__",
+    "toString",
+    "Unrecognized service error",
+  ]) {
+    assert.equal(privacyText(true, value), value);
+    assert.equal(privacyError(false, value), value);
+    assert.equal(
+      privacyError(true, value),
+      "अनुरोध पूरा नहीं हुआ। अपनी अनुमति और मौजूदा जानकारी जाँचकर फिर कोशिश करें।",
+    );
+  }
+  assert.equal(
+    privacyError(true, "Your session has expired. Sign in again."),
+    "आपका प्रवेश समाप्त हो गया है। फिर साइन इन करें।",
+  );
 });

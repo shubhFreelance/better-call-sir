@@ -5075,3 +5075,15 @@ footer {
 }
 
 .student-workspace[lang="hi"] :is(h1, h2) { letter-spacing: 0; }
+
+.privacy-workspace[lang="hi"] :is(p, small, label, button) { line-height: 1.7; }
+.privacy-workspace[lang="hi"] :is(h2, h3, h4) { letter-spacing: 0; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+ .privacy-workspace[lang="hi"] .care-intro h2 { font-size: 28px; }
+ .privacy-workspace[lang="hi"] .care-actions { flex-wrap: wrap; }
+ .privacy-workspace[lang="hi"] .care-actions > button { width: 100%; white-space: normal; min-height: 48px; }
+}
+@media (max-width: 640px) {
+ .privacy-workspace .independent-language { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; gap: 8px; }
+ .privacy-workspace .independent-language select { width: 100%; }
+}

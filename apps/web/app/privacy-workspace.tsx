@@ -1,4 +1,5 @@
 "use client";
+import { privacyText, privacyError } from "./privacy-copy";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -21,10 +22,15 @@ const status = {
 export function PrivacyWorkspace({
   session,
   dashboard: d,
+  hindi = false,
+  onLanguageChange,
 }: {
   session: Session;
   dashboard?: Dashboard;
+  hindi?: boolean;
+  onLanguageChange: (hindi: boolean) => void;
 }) {
+  const t = (text: string) => privacyText(hindi, text);
   const allowed = ["GUARDIAN", "TEACHER", "INDEPENDENT_STUDENT"].includes(
       session.account.role,
     ),
@@ -80,11 +86,11 @@ export function PrivacyWorkspace({
     limit = scope === "NOTE" ? 5000 : 80;
   const target =
     scope === "ACCOUNT"
-      ? "Your account"
+      ? t("Your account")
       : scope === "CHILD"
-        ? d?.children?.find((c) => c.id === resource)?.alias || "Learner"
+        ? d?.children?.find((c) => c.id === resource)?.alias || t("Learner")
         : notes.data?.items.find((n) => n.id === resource)?.learner.alias ||
-          "Learning note";
+          t("Learning note");
   function body() {
     if (
       !resource ||
@@ -140,57 +146,77 @@ export function PrivacyWorkspace({
   }
   if (!allowed)
     return (
-      <Notice>
-        Privacy requests belong to the guardian or teacher who owns the record.
-        Students can ask their guardian for help.{" "}
-        <Link href="/support">Help & safety</Link>.
-      </Notice>
+      <div className="privacy-workspace" lang={hindi ? "hi" : "en"}>
+        <Notice>
+          {t(
+            "Privacy requests are available to guardians, teachers and independent adult students for records they own. Guardian-linked students can ask their guardian for help.",
+          )}{" "}
+          <Link href="/support">{t("Help & safety")}</Link>.
+        </Notice>
+      </div>
     );
   const pause = history.data?.items.some(
     (r) =>
       r.kind === "DELETION" && r.status === "PENDING" && r.scope !== "NOTE",
   );
   return (
-    <div className="care-workspace">
+    <div
+      className="care-workspace privacy-workspace"
+      lang={hindi ? "hi" : "en"}
+    >
+      <div className="independent-language">
+        <label htmlFor="privacy-language">Language / भाषा</label>
+        <select
+          id="privacy-language"
+          value={hindi ? "hi" : "en"}
+          onChange={(e) => onLanguageChange(e.target.value === "hi")}
+        >
+          <option value="en">English</option>
+          <option value="hi">हिन्दी</option>
+        </select>
+      </div>
       <section className="care-intro">
         <ShieldCheck size={28} aria-hidden="true" />
-        <h2>Your information, with a clear record.</h2>
+        <h2>{t("Your information, with a clear record.")}</h2>
         <p>
-          Request a correction or reviewed deletion and follow the outcome.
-          Requests are private; financial, learning, safety and audit evidence
-          may require approved retention.
+          {t(
+            "Request a correction or reviewed deletion and follow the outcome. Requests are private; financial, learning, safety and audit evidence may require approved retention.",
+          )}
         </p>
       </section>
-      <Feedback decision={decision} />
+      <Feedback
+        decision={{ ...decision, error: privacyError(hindi, decision.error) }}
+        translate={t}
+      />
       {decision.conflict && (
         <Button
           variant="outline"
           disabled={decision.busy}
           onClick={() => decision.reload()}
         >
-          Refresh privacy records
+          {t("Refresh privacy records")}
         </Button>
       )}
       {guardian && (pause || d?.consent?.withdrawnAt) && (
         <Notice>
-          Family processing is paused or guardian consent is withdrawn.
-          Learner/account deletion requests withdraw family consent, revoke
-          student sessions and remove teacher access to shared notes. Completion
-          or rejection does not automatically restore consent or access.
+          {t(
+            "Family processing is paused or guardian consent is withdrawn. Learner/account deletion requests withdraw family consent, revoke student sessions and remove teacher access to shared notes. Completion or rejection does not automatically restore consent or access.",
+          )}
         </Notice>
       )}
       {session.account.role === "INDEPENDENT_STUDENT" && pause && (
         <Notice>
-          Profile changes are paused while your account deletion request is
-          reviewed.
+          {t(
+            "Profile changes are paused while your account deletion request is reviewed.",
+          )}
         </Notice>
       )}
       {session.account.role === "TEACHER" &&
         (pause || d?.profile?.status === "SUSPENDED") && (
           <Notice>
-            Your teacher profile is suspended. Account deletion requests
-            immediately pause discovery; a rejected request does not
-            automatically restore approval.
+            {t(
+              "Your teacher profile is suspended. Account deletion requests immediately pause discovery; a rejected request does not automatically restore approval.",
+            )}
           </Notice>
         )}
       <div className="care-actions">
@@ -205,26 +231,28 @@ export function PrivacyWorkspace({
             decision.invalid("");
           }}
         >
-          Create privacy request
+          {t("Create privacy request")}
         </Button>
         <Button
           variant="outline"
           disabled={decision.locked || composing}
           onClick={() => decision.reload()}
         >
-          Refresh request history
+          {t("Refresh request history")}
         </Button>
       </div>
-      {history.isPending && <p role="status">Loading privacy requests…</p>}
+      {history.isPending && (
+        <p role="status">{t("Loading privacy requests…")}</p>
+      )}
       {history.error && (
         <Notice error>
-          Privacy history could not be loaded.{" "}
+          {t("Privacy history could not be loaded.")}{" "}
           <Button
             variant="outline"
             disabled={decision.uncertain}
             onClick={() => history.refetch()}
           >
-            Retry privacy history
+            {t("Retry privacy history")}
           </Button>
         </Notice>
       )}
@@ -232,8 +260,8 @@ export function PrivacyWorkspace({
         <section className="care-card care-editor">
           <h3>
             {review
-              ? "Review your privacy request"
-              : "Choose the record and requested change"}
+              ? t("Review your privacy request")
+              : t("Choose the record and requested change")}
           </h3>
           <form
             noValidate
@@ -254,18 +282,18 @@ export function PrivacyWorkspace({
                 <>
                   <div className="care-fields">
                     <div>
-                      <label htmlFor="privacy-kind">Request type</label>
+                      <label htmlFor="privacy-kind">{t("Request type")}</label>
                       <select
                         id="privacy-kind"
                         value={kind}
                         onChange={(e) => setKind(e.target.value)}
                       >
-                        <option value="CORRECTION">Correction</option>
-                        <option value="DELETION">Deletion</option>
+                        <option value="CORRECTION">{t("Correction")}</option>
+                        <option value="DELETION">{t("Deletion")}</option>
                       </select>
                     </div>
                     <div>
-                      <label htmlFor="privacy-scope">Record type</label>
+                      <label htmlFor="privacy-scope">{t("Record type")}</label>
                       <select
                         id="privacy-scope"
                         value={scope}
@@ -279,11 +307,13 @@ export function PrivacyWorkspace({
                           setCorrection("");
                         }}
                       >
-                        <option value="ACCOUNT">My account</option>
+                        <option value="ACCOUNT">{t("My account")}</option>
                         {guardian && (
                           <>
-                            <option value="CHILD">Learner</option>
-                            <option value="NOTE">Private learning note</option>
+                            <option value="CHILD">{t("Learner")}</option>
+                            <option value="NOTE">
+                              {t("Private learning note")}
+                            </option>
                           </>
                         )}
                       </select>
@@ -291,23 +321,24 @@ export function PrivacyWorkspace({
                   </div>
                   {scope === "ACCOUNT" ? (
                     <p>
-                      Account: {session.account.name}. Correction changes the
-                      display name; this form does not change email, login or
-                      role.
+                      {t("Account:")} {session.account.name}
+                      {t(
+                        ". Correction changes the display name; this form does not change email, login or role.",
+                      )}
                     </p>
                   ) : (
                     <>
                       <label htmlFor="privacy-resource">
                         {scope === "CHILD"
-                          ? "Owned learner"
-                          : "Owned learning note"}
+                          ? t("Owned learner")
+                          : t("Owned learning note")}
                       </label>
                       <select
                         id="privacy-resource"
                         value={resource}
                         onChange={(e) => setResource(e.target.value)}
                       >
-                        <option value="">Choose a record</option>
+                        <option value="">{t("Choose a record")}</option>
                         {scope === "CHILD"
                           ? d?.children?.map((c) => (
                               <option key={c.id} value={c.id}>
@@ -316,28 +347,31 @@ export function PrivacyWorkspace({
                             ))
                           : notes.data?.items.map((n) => (
                               <option key={n.id} value={n.id}>
-                                {n.learner.alias} — Note {n.id.slice(0, 8)}
+                                {n.learner.alias} {t("— Note")}{" "}
+                                {n.id.slice(0, 8)}
                               </option>
                             ))}
                       </select>
                       {notes.isFetching && scope === "NOTE" && (
-                        <p role="status">Loading owned notes…</p>
+                        <p role="status">{t("Loading owned notes…")}</p>
                       )}
                       {notes.error && scope === "NOTE" && (
                         <Notice error>
-                          Owned notes could not be loaded.{" "}
+                          {t("Owned notes could not be loaded.")}{" "}
                           <Button
                             type="button"
                             variant="outline"
                             onClick={() => notes.refetch()}
                           >
-                            Retry owned notes
+                            {t("Retry owned notes")}
                           </Button>
                         </Notice>
                       )}
                     </>
                   )}
-                  <label htmlFor="privacy-reason">Reason for request</label>
+                  <label htmlFor="privacy-reason">
+                    {t("Reason for request")}
+                  </label>
                   <Textarea
                     id="privacy-reason"
                     value={reason}
@@ -348,10 +382,10 @@ export function PrivacyWorkspace({
                   {kind === "CORRECTION" && (
                     <>
                       <label htmlFor="privacy-correction">
-                        Proposed{" "}
+                        {t("Proposed")}{" "}
                         {scope === "NOTE"
-                          ? "note text"
-                          : "display name or learner alias"}
+                          ? t("note text")
+                          : t("display name or learner alias")}
                       </label>
                       <Textarea
                         id="privacy-correction"
@@ -361,8 +395,10 @@ export function PrivacyWorkspace({
                         onChange={(e) => setCorrection(e.target.value)}
                       />
                       <small>
-                        {correction.length}/{limit} characters. Approved note
-                        corrections become private and clear acknowledgement.
+                        {correction.length}/{limit}{" "}
+                        {t(
+                          "characters. Approved note corrections become private and clear acknowledgement.",
+                        )}
                       </small>
                     </>
                   )}
@@ -370,33 +406,38 @@ export function PrivacyWorkspace({
               ) : (
                 <div className="care-review">
                   <h4>
-                    {kind === "DELETION" ? "Reviewed deletion" : "Correction"} ·{" "}
-                    {target}
+                    {kind === "DELETION"
+                      ? t("Reviewed deletion")
+                      : t("Correction")}{" "}
+                    · {target}
                   </h4>
                   <p>{reason}</p>
                   {kind === "CORRECTION" ? (
                     <>
                       <p>{correction}</p>
                       <p>
-                        The change is applied only after authorized review.
-                        Corrected notes become private.
+                        {t(
+                          "The change is applied only after authorized review. Corrected notes become private.",
+                        )}
                       </p>
                     </>
                   ) : (
                     <>
                       <p>
                         {session.account.role === "INDEPENDENT_STUDENT"
-                          ? "This request immediately pauses education profile changes. Account deletion and session revocation happen only after authorized review."
+                          ? t(
+                              "This request immediately pauses education changes, withdraws open enquiries, closes arrangements and removes optional supporter access. Account deletion and session revocation happen only after authorized review.",
+                            )
                           : scope === "NOTE"
-                            ? "This note stops being shared immediately."
-                            : "This request immediately pauses processing: family consent is withdrawn, student sessions are revoked and shared note access is removed. Teacher account requests also suspend discovery."}
+                            ? t("This note stops being shared immediately.")
+                            : t(
+                                "This request immediately pauses processing: family consent is withdrawn, student sessions are revoked and shared note access is removed. Teacher account requests also suspend discovery.",
+                              )}
                       </p>
                       <p>
-                        Deletion requires review. Financial, learning,
-                        safeguarding and audit records may be retained under
-                        approved policy. Backups and private files require
-                        separate deletion processing; this request does not
-                        promise instant or complete erasure.
+                        {t(
+                          "Deletion requires review. Financial, learning, safeguarding and audit records may be retained under approved policy. Backups and private files require separate deletion processing; this request does not promise instant or complete erasure.",
+                        )}
                       </p>
                     </>
                   )}
@@ -407,8 +448,9 @@ export function PrivacyWorkspace({
                       onChange={(e) => setAgreed(e.target.checked)}
                     />
                     <span>
-                      I reviewed the record, requested change and immediate
-                      effects, and want to send this request.
+                      {t(
+                        "I reviewed the record, requested change and immediate effects, and want to send this request.",
+                      )}
                     </span>
                   </label>
                 </div>
@@ -423,10 +465,12 @@ export function PrivacyWorkspace({
                       : (setComposing(false), setReason(""), setCorrection(""))
                   }
                 >
-                  {review ? "Back to editing" : "Cancel request"}
+                  {review ? t("Back to editing") : t("Cancel request")}
                 </Button>
                 <Button type="submit">
-                  {review ? "Send privacy request" : "Review privacy request"}
+                  {review
+                    ? t("Send privacy request")
+                    : t("Review privacy request")}
                 </Button>
               </div>
             </fieldset>
@@ -434,35 +478,51 @@ export function PrivacyWorkspace({
         </section>
       )}
       <section className="care-card">
-        <h3>Your request history</h3>
+        <h3>{t("Your request history")}</h3>
         <p>
-          Latest 50 requests. A pending request is not a completed correction or
-          deletion.
+          {t(
+            "Latest 50 requests. A pending request is not a completed correction or deletion.",
+          )}
         </p>
         {!history.isPending &&
           !history.error &&
-          !history.data?.items.length && <p>No privacy requests yet.</p>}
+          !history.data?.items.length && <p>{t("No privacy requests yet.")}</p>}
         {history.data?.items.map((r) => (
           <article className="privacy-record" key={r.id}>
-            <span className="care-status">{status[r.status]}</span>
+            <span className="care-status">{t(status[r.status])}</span>
             <h4>
-              {r.kind === "DELETION" ? "Deletion" : "Correction"} ·{" "}
+              {r.kind === "DELETION" ? t("Deletion") : t("Correction")} ·{" "}
               {r.scope === "ACCOUNT"
-                ? "Account"
+                ? t("Account")
                 : r.scope === "CHILD"
-                  ? "Learner"
-                  : "Learning note"}
+                  ? t("Learner")
+                  : t("Learning note")}
             </h4>
             <p>{r.reason}</p>
-            {r.correction && <p>Proposed correction: {r.correction}</p>}
-            {r.resolution && <p>Review outcome: {r.resolution}</p>}
-            {r.policyVersion && <small>Policy: {r.policyVersion}</small>}
+            {r.correction && (
+              <p>
+                {t("Proposed correction:")} {r.correction}
+              </p>
+            )}
+            {r.resolution && (
+              <p>
+                {t("Review outcome:")} {r.resolution}
+              </p>
+            )}
+            {r.policyVersion && (
+              <small>
+                {t("Policy:")} {r.policyVersion}
+              </small>
+            )}
             <p>
               <small>
-                Request {r.id.slice(0, 8)} ·{" "}
-                {new Date(r.createdAt).toLocaleString("en-IN", {
-                  timeZone: "Asia/Kolkata",
-                })}{" "}
+                {t("Request")} {r.id.slice(0, 8)} ·{" "}
+                {new Date(r.createdAt).toLocaleString(
+                  hindi ? "hi-IN" : "en-IN",
+                  {
+                    timeZone: "Asia/Kolkata",
+                  },
+                )}{" "}
                 IST
               </small>
             </p>
@@ -470,10 +530,11 @@ export function PrivacyWorkspace({
         ))}
       </section>
       <Notice>
-        For urgent concerns use <Link href="/support">Help & safety</Link>. This
-        development service has no live privacy operator or notification
-        delivery. Retention rules and off-site backup deletion remain subject to
-        live qualification.
+        {t("For urgent concerns use")}{" "}
+        <Link href="/support">{t("Help & safety")}</Link>
+        {t(
+          ". This development service has no live privacy operator or notification delivery. Retention rules and off-site backup deletion remain subject to live qualification.",
+        )}
       </Notice>
     </div>
   );

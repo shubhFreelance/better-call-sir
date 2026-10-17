@@ -259,7 +259,9 @@ test("teacher scope is account-only and student cannot query private requests", 
   await page.unrouteAll();
   const s = await mock(page, "normal", "STUDENT");
   await page.reload();
-  await expect(page.getByText(/Students can ask their guardian/)).toBeVisible();
+  await expect(
+    page.getByText(/Guardian-linked students can ask their guardian/),
+  ).toBeVisible();
   expect(s.reads).not.toContain("/api/v1/privacy-requests");
   expect(s.reads).not.toContain("/api/v1/notes");
 });
@@ -347,4 +349,183 @@ test("real guardian note deletion stays pending and immediately revokes only tha
   } finally {
     await db.$disconnect();
   }
+});
+
+test("Hindi privacy correction translates validation and preserves the exact entered request across language switches", async ({
+  page,
+}) => {
+  const s = await mock(page);
+  await page.goto("/dashboard/privacy");
+  const language = page.getByRole("button", {
+    name: "Switch English and Hindi",
+  });
+  await language.click();
+  await page
+    .getByRole("button", { name: "गोपनीयता अनुरोध बनाएँ", exact: true })
+    .click();
+  await page
+    .getByRole("button", {
+      name: "गोपनीयता अनुरोध की समीक्षा करें",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.locator(".privacy-workspace").getByRole("alert"),
+  ).toContainText("अपना रिकॉर्ड चुनें");
+  await page
+    .getByLabel("अनुरोध का कारण", { exact: true })
+    .fill("मेरे नाम में सुधार करें।");
+  await page
+    .getByLabel("प्रस्तावित दिखने वाला नाम या विद्यार्थी का उपनाम", {
+      exact: true,
+    })
+    .fill("सही नाम");
+  await language.click();
+  await expect(
+    page.getByLabel("Reason for request", { exact: true }),
+  ).toHaveValue("मेरे नाम में सुधार करें।");
+  await expect(
+    page.locator(".privacy-workspace").getByRole("alert"),
+  ).toContainText("Choose an owned record");
+  await language.click();
+  await page
+    .getByRole("button", {
+      name: "गोपनीयता अनुरोध की समीक्षा करें",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("checkbox", {
+      name: "मैंने रिकॉर्ड, चाहा गया बदलाव",
+      exact: false,
+    })
+    .check();
+  await page
+    .getByRole("button", { name: "गोपनीयता अनुरोध भेजें", exact: true })
+    .click();
+  await expect(page.locator(".privacy-record")).toContainText(
+    "समीक्षा का इंतज़ार",
+  );
+  expect(s.writes).toHaveLength(1);
+  expect(s.writes[0].body).toEqual({
+    kind: "CORRECTION",
+    scope: "ACCOUNT",
+    resourceId: account,
+    reason: "मेरे नाम में सुधार करें।",
+    correction: "सही नाम",
+  });
+});
+test("Hindi independent deletion explains closed hiring and supporter access and retries an uncertain request unchanged on mobile", async ({
+  page,
+}) => {
+  const s = await mock(page, "unknown", "INDEPENDENT_STUDENT");
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/dashboard/privacy");
+  const language = page.getByLabel("Language / भाषा", { exact: true });
+  await language.selectOption("hi");
+  await page
+    .getByRole("button", { name: "गोपनीयता अनुरोध बनाएँ", exact: true })
+    .click();
+  await page
+    .getByLabel("अनुरोध का प्रकार", { exact: true })
+    .selectOption("DELETION");
+  await page
+    .getByLabel("अनुरोध का कारण", { exact: true })
+    .fill("मेरा खाता मिटाने की समीक्षा करें।");
+  await page
+    .getByRole("button", {
+      name: "गोपनीयता अनुरोध की समीक्षा करें",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByText("इस अनुरोध से पढ़ाई में बदलाव तुरंत रुकते हैं", {
+      exact: false,
+    }),
+  ).toContainText("व्यवस्थाएँ बंद होती हैं और मददगार की अनुमति हटती है");
+  await page
+    .getByRole("checkbox", {
+      name: "मैंने रिकॉर्ड, चाहा गया बदलाव",
+      exact: false,
+    })
+    .check();
+  await page
+    .getByRole("button", { name: "गोपनीयता अनुरोध भेजें", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "वही निर्णय फिर भेजें", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "संपादन पर लौटें", exact: true }),
+  ).toBeDisabled();
+  await language.selectOption("en");
+  await expect(
+    page.getByRole("button", { name: "Retry same decision", exact: true }),
+  ).toBeVisible();
+  await language.selectOption("hi");
+  await page
+    .getByRole("button", { name: "वही निर्णय फिर भेजें", exact: true })
+    .click();
+  await expect(page.locator(".privacy-record")).toContainText(
+    "समीक्षा का इंतज़ार",
+  );
+  expect(s.writes).toHaveLength(2);
+  expect(s.writes[0]).toEqual(s.writes[1]);
+  expect(s.reads).not.toContain("/api/v1/dashboard");
+  expect(s.reads).not.toContain("/api/v1/notes");
+  await expect
+    .poll(() =>
+      page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+    )
+    .toBe(true);
+  expect(
+    await page
+      .locator(".privacy-workspace")
+      .evaluate((e) => getComputedStyle(e).fontFamily),
+  ).toContain("Noto Sans Devanagari");
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .include(".privacy-workspace")
+        .withTags(["wcag2a", "wcag2aa"])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page
+    .locator(".privacy-workspace")
+    .screenshot({ path: "test-results/privacy-hindi-mobile.png" });
+});
+test("Hindi teacher privacy history localizes outcomes while retaining reviewer-authored evidence and account-only scope", async ({
+  page,
+}) => {
+  const s = await mock(page, "outcomes", "TEACHER");
+  await page.goto("/dashboard/privacy");
+  await page.getByRole("button", { name: "Switch English and Hindi" }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "आपकी जानकारी और गोपनीयता।",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".care-status").filter({ hasText: "पूरा हुआ" }),
+  ).toBeVisible();
+  await expect(
+    page.locator(".care-status").filter({ hasText: "अस्वीकृत" }),
+  ).toBeVisible();
+  await expect(page.locator(".privacy-record").first()).toContainText(
+    "समीक्षा का नतीजा: Name corrected",
+  );
+  await page
+    .getByRole("button", { name: "गोपनीयता अनुरोध बनाएँ", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("रिकॉर्ड का प्रकार", { exact: true }).locator("option"),
+  ).toHaveCount(1);
+  expect(s.reads).not.toContain("/api/v1/notes");
+  await page.screenshot({
+    path: "test-results/privacy-hindi-desktop.png",
+    style: "nextjs-portal{display:none!important}",
+    fullPage: true,
+  });
 });
