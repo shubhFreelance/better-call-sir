@@ -122,4 +122,4 @@ const hi: Record<string, string> = {
   Withdrawn: "वापस ली गई",
 };
 export const enquiryText = (hindi: boolean, text: string) =>
-  hindi ? (hi[text] ?? text) : text;
+  hindi && Object.hasOwn(hi, text) ? hi[text] : text;

@@ -1,4 +1,11 @@
 "use client";
+import {
+  useAppTranslation,
+  LanguageContext,
+  nativeValidationText,
+  translateText,
+  rememberLanguage,
+} from "./locale";
 import { StudentSupporters, StudentDevices } from "./independent-access";
 import {
   StudentArrangements,
@@ -137,8 +144,8 @@ const Auth = createContext<{
   setHindi: () => {},
 });
 const useAuth = () => useContext(Auth);
-const date = (value: string, withTime = true) =>
-  new Intl.DateTimeFormat("en-IN", {
+const date = (value: string, withTime = true, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     day: "numeric",
     month: "short",
@@ -164,6 +171,8 @@ function Button({
   secondary?: boolean;
   disabled?: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <UiButton
       type={type}
@@ -183,6 +192,8 @@ function Notice({
   children: ReactNode;
   error?: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <Alert
       variant={error ? "destructive" : "default"}
@@ -203,19 +214,22 @@ function State({
   error?: Error | null;
   retry?: () => void;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   if (loading)
     return (
       <div className="loading" role="status">
-        <LoaderCircle className="spin" /> Getting things ready…
+        <LoaderCircle className="spin" />{" "}
+        {appText("Getting things ready…")}{" "}
       </div>
     );
   if (error)
     return (
       <Notice error>
-        {error.message}{" "}
+        {appError(error.message)}{" "}
         {retry && (
           <button className="text-button" onClick={retry}>
-            Try again
+            {appText("Try again")}{" "}
           </button>
         )}
       </Notice>
@@ -223,9 +237,13 @@ function State({
   return null;
 }
 function Badge({ children }: { children: ReactNode }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return <span className="badge">{children}</span>;
 }
 function Empty({ children }: { children: ReactNode }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <div className="empty">
       <BookOpen size={28} />
@@ -246,38 +264,47 @@ function PageTitle({
   action?: ReactNode;
   lang?: "en" | "hi";
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <div className="page-title" lang={lang}>
       <div>
-        {eyebrow && <span className="eyebrow">{eyebrow}</span>}
-        <h1>{title}</h1>
-        <p>{subtitle}</p>
+        {eyebrow && <span className="eyebrow">{appText(eyebrow)}</span>}
+        <h1>{appText(title)}</h1>
+        <p>{appText(subtitle)}</p>
       </div>
       {action}
     </div>
   );
 }
 function Logo() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { hindi } = useAuth();
   return (
     <Link
       href="/"
       className="logo"
       aria-label={
-        hindi ? "Better Call Sir मुख्य पृष्ठ" : "Better Call Sir home"
+        hindi
+          ? appText("Better Call Sir मुख्य पृष्ठ")
+          : appText("Better Call Sir home")
       }
     >
       <span className="logo-mark">
         <BookOpen size={21} />
       </span>
       <span>
-        bettercall<span className="logo-accent">sir</span>
+        {appText("bettercall")}
+        <span className="logo-accent">{appText("sir")}</span>
         <span className="logo-dot">.</span>
       </span>
     </Link>
   );
 }
 function Header() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session, hindi, setHindi, setSession } = useAuth(),
     client = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -304,7 +331,9 @@ function Header() {
         <span className="dev-dot" aria-hidden="true" />
         {hindi
           ? "विकास संस्करण · नमूना प्रोफ़ाइल और खाते · कोई लाइव भुगतान या कॉल नहीं"
-          : "Development preview · Synthetic profiles and accounts · No live payments or calls"}
+          : appText(
+              "Development preview · Synthetic profiles and accounts · No live payments or calls",
+            )}
       </div>
       <header
         className="header"
@@ -322,16 +351,18 @@ function Header() {
           <nav
             className={open ? "top-nav open" : "top-nav"}
             id="site-navigation"
-            aria-label={hindi ? "मुख्य नेविगेशन" : "Main navigation"}
+            aria-label={hindi ? "मुख्य नेविगेशन" : appText("Main navigation")}
           >
             <Link href="/teachers" onClick={() => setOpen(false)}>
-              {hindi ? "शिक्षक खोजें" : "Find a teacher"}
+              {hindi ? "शिक्षक खोजें" : appText("Find a teacher")}
             </Link>
             <Link href="/teachers?tab=assisted" onClick={() => setOpen(false)}>
-              {hindi ? "हमें आपके लिए खोजने दें" : "Let us search for you"}
+              {hindi
+                ? "हमें आपके लिए खोजने दें"
+                : appText("Let us search for you")}
             </Link>
             <Link href="/onboarding/teacher" onClick={() => setOpen(false)}>
-              {hindi ? "शिक्षक बनें" : "Become a teacher"}
+              {hindi ? "शिक्षक बनें" : appText("Become a teacher")}
             </Link>
             <div className="mobile-nav-actions">
               <UiButton
@@ -340,16 +371,16 @@ function Header() {
                 aria-label={
                   hindi
                     ? "अंग्रेज़ी और हिन्दी बदलें"
-                    : "Switch English and Hindi"
+                    : appText("Switch English and Hindi")
                 }
               >
                 <Languages size={16} aria-hidden="true" />
-                {hindi ? "English" : "हिन्दी"}
+                {hindi ? appText("English") : "हिन्दी"}
               </UiButton>
               {session && (
                 <UiButton variant="outline" onClick={logout}>
                   <LogOut size={18} aria-hidden="true" />
-                  {hindi ? "साइन आउट" : "Sign out"}
+                  {hindi ? "साइन आउट" : appText("Sign out")}
                 </UiButton>
               )}
             </div>
@@ -359,27 +390,29 @@ function Header() {
               className="language"
               onClick={() => setHindi(!hindi)}
               aria-label={
-                hindi ? "अंग्रेज़ी और हिन्दी बदलें" : "Switch English and Hindi"
+                hindi
+                  ? "अंग्रेज़ी और हिन्दी बदलें"
+                  : appText("Switch English and Hindi")
               }
             >
               <Languages size={16} />
-              {hindi ? "English" : "हिन्दी"}
+              {hindi ? appText("English") : "हिन्दी"}
             </button>
             {session ? (
               <>
                 <Link className="button small secondary" href="/dashboard">
                   <span className="header-action-desktop">
-                    {hindi ? "मेरा डैशबोर्ड" : "My dashboard"}
+                    {hindi ? "मेरा डैशबोर्ड" : appText("My dashboard")}
                   </span>
                   <span className="header-action-mobile">
-                    {hindi ? "डैशबोर्ड" : "Dashboard"}
+                    {hindi ? "डैशबोर्ड" : appText("Dashboard")}
                   </span>{" "}
                   <ArrowUpRight size={16} />
                 </Link>
                 <button
                   className="icon-button"
                   onClick={logout}
-                  aria-label={hindi ? "साइन आउट" : "Sign out"}
+                  aria-label={hindi ? "साइन आउट" : appText("Sign out")}
                 >
                   <LogOut size={18} />
                 </button>
@@ -387,10 +420,10 @@ function Header() {
             ) : (
               <Link className="button small" href="/login">
                 <span className="header-action-desktop">
-                  {hindi ? "शुरू करें" : "Get started"}
+                  {hindi ? "शुरू करें" : appText("Get started")}
                 </span>
                 <span className="header-action-mobile">
-                  {hindi ? "साइन इन" : "Sign in"}
+                  {hindi ? "साइन इन" : appText("Sign in")}
                 </span>{" "}
                 <ArrowUpRight size={16} />
               </Link>
@@ -402,7 +435,9 @@ function Header() {
               onClick={() => setOpen(!open)}
               aria-expanded={open}
               aria-label={
-                hindi ? "नेविगेशन खोलें या बंद करें" : "Toggle navigation"
+                hindi
+                  ? "नेविगेशन खोलें या बंद करें"
+                  : appText("Toggle navigation")
               }
             >
               {open ? <X /> : <Menu />}
@@ -414,6 +449,8 @@ function Header() {
   );
 }
 function Footer() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { hindi } = useAuth();
   return (
     <footer lang={hindi ? "hi" : "en"}>
@@ -425,58 +462,63 @@ function Footer() {
               "एक अच्छा शिक्षक नई संभावनाएँ दिखाता है।"
             ) : (
               <>
-                A good teacher changes the way
-                <br />
-                you see what’s possible.
+                {appText("A good teacher changes the way")} <br />
+                {appText("you see what’s possible.")}{" "}
               </>
             )}
           </p>
         </div>
         <div>
           <span className="eyebrow">
-            {hindi ? "आपके परिवार के लिए" : "MADE FOR YOUR FAMILY"}
+            {hindi ? "आपके परिवार के लिए" : appText("MADE FOR YOUR FAMILY")}
           </span>
           <Link href="/teachers">
-            {hindi ? "शिक्षक खोजें" : "Find a teacher"}
+            {hindi ? "शिक्षक खोजें" : appText("Find a teacher")}
           </Link>
           <Link href="/onboarding/parent">
-            {hindi ? "अपनी ज़रूरत बताएँ" : "Tell us what you need"}
+            {hindi ? "अपनी ज़रूरत बताएँ" : appText("Tell us what you need")}
           </Link>
           <Link href="/support">
-            {hindi ? "मदद और सुरक्षा सहायता" : "Help & safety support"}
+            {hindi ? "मदद और सुरक्षा सहायता" : appText("Help & safety support")}
           </Link>
         </div>
         <div>
           <span className="eyebrow">
-            {hindi ? "आपके आसपास से शुरुआत" : "STARTING CLOSE TO HOME"}
+            {hindi ? "आपके आसपास से शुरुआत" : appText("STARTING CLOSE TO HOME")}
           </span>
           <p>
-            {hindi ? "रायपुर, छत्तीसगढ़" : "Raipur, Chhattisgarh"}
+            {hindi ? "रायपुर, छत्तीसगढ़" : appText("Raipur, Chhattisgarh")}
             <br />
-            {hindi ? "ऑनलाइन और घर पर पढ़ाई" : "Online & at-home lessons"}
+            {hindi
+              ? "ऑनलाइन और घर पर पढ़ाई"
+              : appText("Online & at-home lessons")}
             <br />
             {hindi
               ? "शुरुआती शिक्षा, स्कूल और कॉलेज"
-              : "Early years, school & college"}
+              : appText("Early years, school & college")}
           </p>
         </div>
       </div>
       <div className="container footer-bottom">
-        <span>© {new Date().getFullYear()} Better Call Sir</span>
+        <span>
+          © {new Date().getFullYear()} {appText("Better Call Sir")}
+        </span>
         <span>
           {hindi
             ? "यह विकास संस्करण है। लाइव सेवाएँ चालू नहीं हैं।"
-            : "A development build. Live services are not enabled."}
+            : appText("A development build. Live services are not enabled.")}
         </span>
       </div>
     </footer>
   );
 }
 function Illustration() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <div
       className="illustration"
-      aria-label="Illustration of a supportive learning space"
+      aria-label={appText("Illustration of a supportive learning space")}
       role="img"
     >
       <div className="art-grid" />
@@ -489,8 +531,8 @@ function Illustration() {
           <ShieldCheck size={18} />
         </span>
         <div>
-          <strong>A thoughtful match</strong>
-          <small>For your child. For their pace.</small>
+          <strong>{appText("A thoughtful match")}</strong>
+          <small>{appText("For your child. For their pace.")}</small>
         </div>
       </div>
       <div className="chalkboard">
@@ -498,11 +540,12 @@ function Illustration() {
           <span /> <span /> <span />
         </div>
         <span className="chalk-title">
-          Small steps.
-          <br />
-          Big possibilities.
+          {appText("Small steps.")} <br />
+          {appText("Big possibilities.")}{" "}
         </span>
-        <div className="chalk-math">x² + y² = a little confidence</div>
+        <div className="chalk-math">
+          {appText("x² + y² = a little confidence")}
+        </div>
         <svg viewBox="0 0 250 85" aria-hidden="true">
           <path
             d="M15 60 Q70 65 105 40 T225 15"
@@ -522,7 +565,7 @@ function Illustration() {
       <div className="illustrated-person teacher-person">
         <div className="hair" />
         <div className="face">
-          <span className="eyes">• &nbsp; •</span>
+          <span className="eyes">{"•   •"}</span>
           <span className="smile">⌣</span>
         </div>
         <div className="shirt" />
@@ -531,7 +574,7 @@ function Illustration() {
       <div className="illustrated-person student-person">
         <div className="hair" />
         <div className="face">
-          <span className="eyes">• &nbsp; •</span>
+          <span className="eyes">{"•   •"}</span>
           <span className="smile">⌣</span>
         </div>
         <div className="shirt" />
@@ -545,14 +588,16 @@ function Illustration() {
           <Heart size={18} />
         </span>
         <div>
-          <strong>“Now I understand.”</strong>
-          <small>The moment we’re here for.</small>
+          <strong>{appText("“Now I understand.”")}</strong>
+          <small>{appText("The moment we’re here for.")}</small>
         </div>
       </div>
     </div>
   );
 }
 function TeacherCard({ teacher }: { teacher: Teacher }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <article className="teacher-card">
       <div className="teacher-top">
@@ -563,7 +608,7 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
           </span>
         </div>
         <Badge>
-          <ShieldCheck size={12} /> Reviewed coverage
+          <ShieldCheck size={12} /> {appText("Reviewed coverage")}{" "}
         </Badge>
       </div>
       <Link href={`/teachers/${teacher.slug}`} className="teacher-name">
@@ -573,13 +618,14 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
       <p className="teacher-headline">{teacher.headline}</p>
       {teacher.demoAvailable && (
         <span className="teacher-demo-badge">
-          <Check size={14} aria-hidden="true" /> Demo available
+          <Check size={14} aria-hidden="true" />{" "}
+          {appText("Demo available")}{" "}
         </span>
       )}
       <TeacherLockIn days={teacher.lockInDays} />
       <div className="teacher-tags">
         {teacher.subjects.map((s) => (
-          <span key={s}>{s}</span>
+          <span key={s}>{appCurriculum(s)}</span>
         ))}
       </div>
       <TeachingCoverageSummary profile={teacher} compact />
@@ -594,24 +640,27 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
           <MapPin size={15} />
           {teacher.modes.includes("HOME")
             ? teacher.modes.includes("ONLINE")
-              ? "Raipur · At home & online"
-              : "Raipur · Home tuition"
-            : "Online tuition"}
+              ? appText("Raipur · At home & online")
+              : appText("Raipur · Home tuition")
+            : appText("Online tuition")}
         </span>
         <span>
           <Languages size={15} />
-          {teacher.languages.join(" & ")} · {teacher.experience} years teaching
+          {teacher.languages
+            .map((value) => appCurriculum(value))
+            .join(" & ")} · {teacher.experience}{" "}
+          {appText("years teaching")}{" "}
         </span>
       </div>
       <div className="teacher-bottom">
         <div>
-          <strong>{rupees(teacher.monthlyPaise)}</strong>
-          <small> / month · tuition paid directly</small>
+          <strong>{rupees(teacher.monthlyPaise, appLocale)}</strong>
+          <small> {appText("/ month · tuition paid directly")}</small>
         </div>
         <Link
           href={`/teachers/${teacher.slug}`}
           className="round-link"
-          aria-label={`View ${teacher.name}`}
+          aria-label={appText("View {0}", [teacher.name])}
         >
           <ArrowUpRight size={20} />
         </Link>
@@ -620,6 +669,8 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
   );
 }
 function Home() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { hindi } = useAuth();
   const { data, error, isPending } = useQuery({
     queryKey: ["teachers"],
@@ -630,7 +681,7 @@ function Home() {
       <section className="hero container">
         <div className="hero-copy">
           <div className="location-pill">
-            <span /> Rooted in Raipur. Ready for your child.
+            <span /> {appText("Rooted in Raipur. Ready for your child.")}{" "}
           </div>
           <h1>
             {hindi ? (
@@ -641,36 +692,41 @@ function Home() {
               </>
             ) : (
               <>
-                A little guidance.
-                <br />A world of
-                <br />
-                <em>possibilities.</em>
+                {appText("A little guidance.")} <br />
+                {appText("A world of")} <br />
+                <em>{appText("possibilities.")}</em>
               </>
             )}
           </h1>
           <p>
             {hindi
-              ? "हर बच्चा अलग तरह से सीखता है। अपने बच्चे के लिए सही गणित और विज्ञान शिक्षक खोजें।"
-              : "Find a teacher for early learning, school or college, online or close to home."}
+              ? "शुरुआती शिक्षा, स्कूल या कॉलेज के लिए अपने अनुरूप शिक्षक खोजें—ऑनलाइन या आसपास।"
+              : appText(
+                  "Find a teacher for early learning, school or college, online or close to home.",
+                )}
           </p>
           <div className="hero-buttons">
             <Link className="button" href="/teachers">
-              {hindi ? "सही शिक्षक खोजें" : "Find your kind of teacher"}
+              {hindi
+                ? "सही शिक्षक खोजें"
+                : appText("Find your kind of teacher")}
               <ArrowUpRight size={19} />
             </Link>
             <Link className="hero-secondary" href="/onboarding/parent">
-              Help me choose <ArrowRight size={17} />
+              {appText("Help me choose")} <ArrowRight size={17} />
             </Link>
           </div>
           <div className="hero-proof">
             <div className="mini-avatars">
-              <span>A</span>
-              <span>R</span>
-              <span>M</span>
+              <span>{appText("A")}</span>
+              <span>{appText("R")}</span>
+              <span>{appText("M")}</span>
             </div>
             <div>
-              <strong>People, before profiles.</strong>
-              <small>Reviewed subject coverage. Clear fit reasons.</small>
+              <strong>{appText("People, before profiles.")}</strong>
+              <small>
+                {appText("Reviewed subject coverage. Clear fit reasons.")}
+              </small>
             </div>
           </div>
         </div>
@@ -680,40 +736,41 @@ function Home() {
         <div className="container promise-inner">
           <span>
             <ShieldCheck />
-            Reviewed teacher coverage
+            {appText("Reviewed teacher coverage")}{" "}
           </span>
           <span>
             <MapPin />
-            At home or online
+            {appText("At home or online")}{" "}
           </span>
           <span>
             <Heart />
-            Matching is free for families
+            {appText("Matching is free for families")}{" "}
           </span>
           <span>
             <Users />
-            Guardian-led, student-centred
+            {appText("Guardian-led, student-centred")}{" "}
           </span>
         </div>
       </section>
       <section className="container section">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">GOOD TEACHERS. REAL CONNECTIONS.</span>
+            <span className="eyebrow">
+              {appText("GOOD TEACHERS. REAL CONNECTIONS.")}
+            </span>
             <h2>
-              A teacher for their
-              <br />
-              <em>kind of curious.</em>
+              {appText("A teacher for their")} <br />
+              <em>{appText("kind of curious.")}</em>
             </h2>
           </div>
           <div>
             <p>
-              Start with a subject. Stay for the understanding.
+              {appText("Start with a subject. Stay for the understanding.")}{" "}
               <br />
-              Explore our synthetic development catalog.
+              {appText("Explore our synthetic development catalog.")}{" "}
             </p>
             <Link className="inline-link" href="/teachers">
-              Meet all teachers <ArrowUpRight size={17} />
+              {appText("Meet all teachers")} <ArrowUpRight size={17} />
             </Link>
           </div>
         </div>
@@ -726,14 +783,15 @@ function Home() {
       </section>
       <section className="container how-section">
         <div>
-          <span className="eyebrow">LESS GUESSWORK. MORE GOOD FIT.</span>
+          <span className="eyebrow">
+            {appText("LESS GUESSWORK. MORE GOOD FIT.")}
+          </span>
           <h2>
-            From “where do we start?”
-            <br />
-            to <em>“we’ve found our teacher.”</em>
+            {appText("From “where do we start?”")} <br />
+            {appText("to")} <em>{appText("“we’ve found our teacher.”")}</em>
           </h2>
           <Link className="button" href="/onboarding/parent">
-            Let’s find your fit <ArrowUpRight size={18} />
+            {appText("Let’s find your fit")} <ArrowUpRight size={18} />
           </Link>
         </div>
         <div className="steps">
@@ -757,8 +815,8 @@ function Home() {
             <div className="step" key={number}>
               <span>{number}</span>
               <div>
-                <h3>{title}</h3>
-                <p>{copy}</p>
+                <h3>{appText(title)}</h3>
+                <p>{appText(copy)}</p>
               </div>
             </div>
           ))}
@@ -766,20 +824,22 @@ function Home() {
       </section>
       <section className="container hiring-discovery-banner">
         <div>
-          <h2>Let us help you find the right fit.</h2>
+          <h2>{appText("Let us help you find the right fit.")}</h2>
           <p>
-            Share the subject, class, location and budget that work for your
-            family. Our team reviews suitable teacher options for you.
+            {appText(
+              "Share the subject, class, location and budget that work for your family. Our team reviews suitable teacher options for you.",
+            )}{" "}
           </p>
           <Link className="button" href="/teachers?tab=assisted">
-            Let us search for you <ArrowUpRight size={18} />
+            {appText("Let us search for you")} <ArrowUpRight size={18} />
           </Link>
         </div>
         <div>
-          <h3>You keep the choice.</h3>
+          <h3>{appText("You keep the choice.")}</h3>
           <p>
-            Review profiles, ask about fit and agree the arrangement with the
-            teacher. A shortlist is the start of a decision.
+            {appText(
+              "Review profiles, ask about fit and agree the arrangement with the teacher. A shortlist is the start of a decision.",
+            )}{" "}
           </p>
         </div>
       </section>
@@ -787,6 +847,8 @@ function Home() {
   );
 }
 function Teachers() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session } = useAuth();
   const independent = session?.account.role === "INDEPENDENT_STUDENT";
   const discoveryParams = useSearchParams();
@@ -839,9 +901,9 @@ function Teachers() {
   return (
     <main className="container section">
       <PageTitle
-        eyebrow="FIND YOUR KIND OF TEACHER"
-        title="Good learning starts with a good fit."
-        subtitle="Early years, school & college · Raipur pilot"
+        eyebrow={appText("FIND YOUR KIND OF TEACHER")}
+        title={appText("Good learning starts with a good fit.")}
+        subtitle={appText("Early years, school & college · Raipur pilot")}
       />
       <Tabs
         value={tab}
@@ -849,48 +911,50 @@ function Teachers() {
       >
         <TabsList
           className="discovery-tabs"
-          aria-label="How would you like to find a teacher?"
+          aria-label={appText("How would you like to find a teacher?")}
         >
           <TabsTrigger value="manual">
-            <Search size={18} /> Search
-            <small>Browse and choose a teacher</small>
+            <Search size={18} /> {appText("Search")}{" "}
+            <small>{appText("Browse and choose a teacher")}</small>
           </TabsTrigger>
           <TabsTrigger value="assisted">
-            <Sparkles size={18} /> Let us search for you
-            <small>Share your criteria for a reviewed shortlist</small>
+            <Sparkles size={18} /> {appText("Let us search for you")}{" "}
+            <small>
+              {appText("Share your criteria for a reviewed shortlist")}
+            </small>
           </TabsTrigger>
         </TabsList>
         <TabsContent value="assisted">
           {independent ? (
             <section className="assisted-search panel">
               <div>
-                <h2>Tell us what would work for your learning.</h2>
+                <h2>{appText("Tell us what would work for your learning.")}</h2>
                 <p>
-                  Share your subject, availability and budget. Your criteria are
-                  recorded for staff review; this does not book or hire a
-                  teacher.
+                  {appText(
+                    "Share your subject, availability and budget. Your criteria are recorded for staff review; this does not book or hire a teacher.",
+                  )}{" "}
                 </p>
               </div>
               <Link className="button" href="/dashboard/enquiries?new=1">
-                Share my criteria <ArrowRight size={18} />
+                {appText("Share my criteria")} <ArrowRight size={18} />
               </Link>
             </section>
           ) : (
             <section className="assisted-search panel">
               <div>
-                <span className="eyebrow">PERSONALIZED HELP</span>
-                <h2>Tell us what would work for your family.</h2>
+                <span className="eyebrow">{appText("PERSONALIZED HELP")}</span>
+                <h2>{appText("Tell us what would work for your family.")}</h2>
                 <p>
-                  Share your learner’s education, subject, availability and
-                  budget. We’ll review suitable teachers and prepare options for
-                  your guardian account.
+                  {appText(
+                    "Share your learner’s education, subject, availability and budget. We’ll review suitable teachers and prepare options for your guardian account.",
+                  )}{" "}
                 </p>
               </div>
               <Link
                 className="button"
                 href="/onboarding/parent?discovery=ASSISTED"
               >
-                Share your criteria <ArrowRight size={18} />
+                {appText("Share your criteria")} <ArrowRight size={18} />
               </Link>
             </section>
           )}
@@ -900,30 +964,36 @@ function Teachers() {
             <label className="search-input">
               <Search size={19} />
               <Input
-                aria-label="Search teachers"
-                placeholder="Search a teacher or subject"
+                aria-label={appText("Search teachers")}
+                placeholder={appText("Search a teacher or subject")}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
             </label>
             <div className="filter-select">
               <label className="filter-label" htmlFor="search-stage">
-                Education stage
+                {appText("Education stage")}{" "}
               </label>
               <select
                 id="search-stage"
                 value={stage}
                 onChange={(e) => educationStage(e.target.value)}
               >
-                <option value="">All stages</option>
-                <option value="EARLY_YEARS">Early years — Nursery / KG</option>
-                <option value="SCHOOL">School — Classes 1–12</option>
-                <option value="COLLEGE">College / university</option>
+                <option value="">{appText("All stages")}</option>
+                <option value="EARLY_YEARS">
+                  {appText("Early years — Nursery / KG")}
+                </option>
+                <option value="SCHOOL">
+                  {appText("School — Classes 1–12")}
+                </option>
+                <option value="COLLEGE">
+                  {appText("College / university")}
+                </option>
               </select>
             </div>
             <div className="filter-select">
               <label className="filter-label" htmlFor="search-subject">
-                Subject
+                {appText("Subject")}{" "}
               </label>
               <CurriculumChoice
                 key={"subject-" + filterReset}
@@ -931,23 +1001,23 @@ function Teachers() {
                 value={subject}
                 onChange={setSubject}
                 suggestions={subjectSuggestions}
-                customLabel="Subject name"
-                anyLabel="All subjects"
+                customLabel={appText("Subject name")}
+                anyLabel={appText("All subjects")}
               />
             </div>
             <label className="filter-select">
-              <span className="filter-label">Lesson mode</span>
+              <span className="filter-label">{appText("Lesson mode")}</span>
               <select value={mode} onChange={(e) => setMode(e.target.value)}>
-                <option value="">At home & online</option>
-                <option value="HOME">At home</option>
-                <option value="ONLINE">Online</option>
+                <option value="">{appText("At home & online")}</option>
+                <option value="HOME">{appText("At home")}</option>
+                <option value="ONLINE">{appText("Online")}</option>
               </select>
             </label>
             {(!stage || stage === "SCHOOL") && (
               <>
                 <div className="filter-select">
                   <label className="filter-label" htmlFor="search-board">
-                    Board
+                    {appText("Board")}{" "}
                   </label>
                   <CurriculumChoice
                     key={"board-" + filterReset}
@@ -958,24 +1028,24 @@ function Teachers() {
                       if (v) setStage("SCHOOL");
                     }}
                     suggestions={boardSuggestions}
-                    customLabel="Board name"
-                    anyLabel="All boards"
+                    customLabel={appText("Board name")}
+                    anyLabel={appText("All boards")}
                   />
                 </div>
                 <label className="filter-select">
-                  <span className="filter-label">Class</span>
+                  <span className="filter-label">{appText("Class")}</span>
                   <select
-                    aria-label="Class"
+                    aria-label={appText("Class")}
                     value={grade}
                     onChange={(e) => {
                       setGrade(e.target.value);
                       if (e.target.value) setStage("SCHOOL");
                     }}
                   >
-                    <option value="">All classes</option>
+                    <option value="">{appText("All classes")}</option>
                     {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
                       <option key={n} value={n}>
-                        Class {n}
+                        {appText("Class")} {n}
                       </option>
                     ))}
                   </select>
@@ -984,42 +1054,46 @@ function Teachers() {
             )}
             {stage === "EARLY_YEARS" && (
               <label className="filter-select">
-                <span className="filter-label">Early years level</span>
+                <span className="filter-label">
+                  {appText("Early years level")}
+                </span>
                 <select
-                  aria-label="Early years level"
+                  aria-label={appText("Early years level")}
                   value={level}
                   onChange={(e) => setLevel(e.target.value)}
                 >
-                  <option value="">All early years levels</option>
-                  <option value="NURSERY">Nursery</option>
-                  <option value="KG1">KG1</option>
-                  <option value="KG2">KG2</option>
+                  <option value="">{appText("All early years levels")}</option>
+                  <option value="NURSERY">{appText("Nursery")}</option>
+                  <option value="KG1">{appText("KG1")}</option>
+                  <option value="KG2">{appText("KG2")}</option>
                 </select>
               </label>
             )}
             {stage === "COLLEGE" && (
               <>
                 <label className="filter-select">
-                  <span className="filter-label">Course / degree</span>
+                  <span className="filter-label">
+                    {appText("Course / degree")}
+                  </span>
                   <Input
-                    aria-label="Course / degree"
+                    aria-label={appText("Course / degree")}
                     value={courseName}
                     onChange={(e) => setCourseName(e.target.value)}
                     maxLength={160}
-                    placeholder="For example BSc Physics"
+                    placeholder={appText("For example BSc Physics")}
                   />
                 </label>
                 <label className="filter-select">
-                  <span className="filter-label">Study year</span>
+                  <span className="filter-label">{appText("Study year")}</span>
                   <select
-                    aria-label="Study year"
+                    aria-label={appText("Study year")}
                     value={studyYear}
                     onChange={(e) => setStudyYear(e.target.value)}
                   >
-                    <option value="">All study years</option>
+                    <option value="">{appText("All study years")}</option>
                     {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
                       <option key={n} value={n}>
-                        Year {n}
+                        {appText("Year")} {n}
                       </option>
                     ))}
                   </select>
@@ -1027,25 +1101,25 @@ function Teachers() {
               </>
             )}
             <label className="filter-select">
-              <span className="filter-label">Language</span>
+              <span className="filter-label">{appText("Language")}</span>
               <select
-                aria-label="Language"
+                aria-label={appText("Language")}
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
               >
-                <option value="">Any language</option>
-                <option>English</option>
-                <option>Hindi</option>
+                <option value="">{appText("Any language")}</option>
+                <option>{appText("English")}</option>
+                <option>{appText("Hindi")}</option>
               </select>
             </label>
             <label className="filter-select">
-              <span className="filter-label">Locality</span>
+              <span className="filter-label">{appText("Locality")}</span>
               <select
-                aria-label="Locality"
+                aria-label={appText("Locality")}
                 value={locality}
                 onChange={(e) => setLocality(e.target.value)}
               >
-                <option value="">Any locality</option>
+                <option value="">{appText("Any locality")}</option>
                 {[
                   "Shankar Nagar",
                   "Avanti Vihar",
@@ -1053,22 +1127,24 @@ function Teachers() {
                   "Civil Lines",
                   "Mowa",
                 ].map((l) => (
-                  <option key={l}>{l}</option>
+                  <option key={l}>{appText(l)}</option>
                 ))}
               </select>
             </label>
             <label className="filter-select budget-filter">
-              <span className="filter-label">Maximum monthly tuition</span>
+              <span className="filter-label">
+                {appText("Maximum monthly tuition")}
+              </span>
               <select
-                aria-label="Maximum monthly tuition"
+                aria-label={appText("Maximum monthly tuition")}
                 value={maxMonthly}
                 onChange={(e) => setMaxMonthly(e.target.value)}
               >
-                <option value="">Any budget</option>
-                <option value="3000">Up to ₹3,000</option>
-                <option value="5000">Up to ₹5,000</option>
-                <option value="8000">Up to ₹8,000</option>
-                <option value="12000">Up to ₹12,000</option>
+                <option value="">{appText("Any budget")}</option>
+                <option value="3000">{appText("Up to ₹3,000")}</option>
+                <option value="5000">{appText("Up to ₹5,000")}</option>
+                <option value="8000">{appText("Up to ₹8,000")}</option>
+                <option value="12000">{appText("Up to ₹12,000")}</option>
               </select>
             </label>
             <UiButton
@@ -1088,18 +1164,22 @@ function Teachers() {
                 setMaxMonthly("");
               }}
             >
-              Reset filters
+              {appText("Reset filters")}{" "}
             </UiButton>
           </div>
           <div className="results-heading">
             <span role="status">
               {query.isPending
-                ? "Searching for teachers…"
+                ? appText("Searching for teachers…")
                 : query.error
-                  ? "Search unavailable"
-                  : `${query.data?.items.length || 0} teachers to get to know`}
+                  ? appText("Search unavailable")
+                  : appText("{0} teachers to get to know", [
+                      query.data?.items.length || 0,
+                    ])}
             </span>
-            <small>Synthetic profiles · prices are monthly tuition</small>
+            <small>
+              {appText("Synthetic profiles · prices are monthly tuition")}
+            </small>
           </div>
           <State
             loading={query.isPending}
@@ -1112,28 +1192,33 @@ function Teachers() {
             ))}
           </div>
           {query.data?.items.length === 0 && !query.error && (
-            <section className="coverage-recovery" aria-label="Search recovery">
-              <h2>No teachers match these filters right now.</h2>
+            <section
+              className="coverage-recovery"
+              aria-label={appText("Search recovery")}
+            >
+              <h2>{appText("No teachers match these filters right now.")}</h2>
               <p>
-                Try broader filters or let us review your needs. An empty search
-                does not mean your class or subject is outside pilot coverage.
+                {appText(
+                  "Try broader filters or let us review your needs. An empty search does not mean your class or subject is outside pilot coverage.",
+                )}{" "}
               </p>
               <div className="wizard-actions">
                 <UiButton variant="outline" onClick={() => setTab("assisted")}>
-                  Let us search for you
+                  {appText("Let us search for you")}{" "}
                 </UiButton>
                 <Link className="inline-link" href="/waitlist">
-                  Need another class, subject or city?
+                  {appText("Need another class, subject or city?")}{" "}
                 </Link>
               </div>
             </section>
           )}
           <div className="help-card">
             <div>
-              <h3>Not sure who to choose?</h3>
+              <h3>{appText("Not sure who to choose?")}</h3>
               <p>
-                Tell us what your child needs. We’ll help you find suitable
-                options.
+                {appText(
+                  "Tell us what your child needs. We’ll help you find suitable options.",
+                )}{" "}
               </p>
             </div>
             <Link
@@ -1144,21 +1229,23 @@ function Teachers() {
               }
               className="button secondary"
             >
-              Help me choose <ArrowRight size={17} />
+              {appText("Help me choose")} <ArrowRight size={17} />
             </Link>
           </div>
         </TabsContent>
       </Tabs>
       <p className="coverage-discovery-link">
-        Looking outside our current pilot coverage?{" "}
+        {appText("Looking outside our current pilot coverage?")}{" "}
         <Link className="inline-link" href="/waitlist">
-          Request future coverage
+          {appText("Request future coverage")}{" "}
         </Link>
       </p>
     </main>
   );
 }
 function Profile({ slug }: { slug: string }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session } = useAuth();
   const independent = session?.account.role === "INDEPENDENT_STUDENT";
   const query = useQuery({
@@ -1169,7 +1256,7 @@ function Profile({ slug }: { slug: string }) {
   return (
     <main className="container section">
       <Link className="inline-link" href="/teachers">
-        ← All teachers
+        {appText("← All teachers")}{" "}
       </Link>
       <State loading={query.isPending} error={query.error} />
       {t && (
@@ -1179,15 +1266,16 @@ function Profile({ slug }: { slug: string }) {
               {initials(t.name)}
             </div>
             <Badge>
-              <ShieldCheck size={14} /> Reviewed subject coverage
+              <ShieldCheck size={14} />{" "}
+              {appText("Reviewed subject coverage")}{" "}
             </Badge>
             <h1>{t.name}</h1>
             <h2 className="profile-headline">{t.headline}</h2>
             <p>{t.bio}</p>
-            <h3>What we can work on together</h3>
+            <h3>{appText("What we can work on together")}</h3>
             <div className="teacher-tags">
               {t.subjects.map((s) => (
-                <span key={s}>{s}</span>
+                <span key={s}>{appCurriculum(s)}</span>
               ))}
 
               {t.boards.map((b) => (
@@ -1198,55 +1286,65 @@ function Profile({ slug }: { slug: string }) {
             <div className="detail-grid">
               <div>
                 <Languages />
-                <strong>Languages</strong>
-                <p>{t.languages.join(" & ")}</p>
+                <strong>{appText("Languages")}</strong>
+                <p>
+                  {t.languages.map((value) => appCurriculum(value)).join(" & ")}
+                </p>
               </div>
               <div>
                 <GraduationCap />
-                <strong>Experience</strong>
-                <p>{t.experience} years of teaching</p>
+                <strong>{appText("Experience")}</strong>
+                <p>
+                  {t.experience} {appText("years of teaching")}
+                </p>
               </div>
               <div>
                 <MapPin />
-                <strong>Lesson format</strong>
-                <p>{t.modes.map(pretty).join(" & ")}</p>
+                <strong>{appText("Lesson format")}</strong>
+                <p>
+                  {t.modes.map((value) => appText(pretty(value))).join(" · ")}
+                </p>
               </div>
               <div>
                 <Phone />
-                <strong>Parent consultations</strong>
+                <strong>{appText("Parent consultations")}</strong>
                 <p>
                   {t.consultationOptIn
-                    ? "Opted in · accepted windows"
-                    : "Not currently available"}
+                    ? appText("Opted in · accepted windows")
+                    : appText("Not currently available")}
                 </p>
               </div>
             </div>
             <Notice>
-              Coverage review describes subjects and classes checked. It does
-              not guarantee marks or safety. This is a synthetic development
-              profile.
+              {appText(
+                "Coverage review describes subjects and classes checked. It does not guarantee marks or safety. This is a synthetic development profile.",
+              )}{" "}
             </Notice>
           </article>
           <aside className="panel booking-panel">
-            <span className="eyebrow">A LITTLE GUIDANCE, EVERY WEEK</span>
+            <span className="eyebrow">
+              {appText("A LITTLE GUIDANCE, EVERY WEEK")}
+            </span>
             <h2>
-              {rupees(t.monthlyPaise)}
-              <small> / month</small>
+              {rupees(t.monthlyPaise, appLocale)}
+              <small> {appText("/ month")}</small>
             </h2>
             <TeacherLockIn days={t.lockInDays} />
             <p className="care-help">
-              Teacher-declared preference. Cancellation restrictions are not
-              currently enforced.
+              {appText(
+                "Teacher-declared preference. Cancellation restrictions are not currently enforced.",
+              )}{" "}
             </p>
             {t.demoAvailable && (
               <p className="teacher-demo-badge">
-                <Check size={16} aria-hidden="true" /> Demo available · optional
-                before hiring
+                <Check size={16} aria-hidden="true" />{" "}
+                {appText("Demo available · optional before hiring")}{" "}
               </p>
             )}
             <p>
-              Recurring tuition is paid directly to your teacher. Ordinary
-              matching and safety support are free for families.
+              {appText(
+                "Recurring tuition is paid directly to your teacher. Ordinary matching and safety support are free for families.",
+              )}{" "}
             </p>
             {independent ? (
               <>
@@ -1254,11 +1352,13 @@ function Profile({ slug }: { slug: string }) {
                   className="button"
                   href={`/dashboard/enquiries?new=1&teacher=${t.id}&profile=${encodeURIComponent(t.slug)}`}
                 >
-                  Enquire about this teacher <ArrowUpRight size={18} />
+                  {appText("Enquire about this teacher")}{" "}
+                  <ArrowUpRight size={18} />
                 </Link>
                 <p className="care-help">
-                  Your teacher interest is recorded for staff review. It does
-                  not reserve, hire or charge you.
+                  {appText(
+                    "Your teacher interest is recorded for staff review. It does not reserve, hire or charge you.",
+                  )}{" "}
                 </p>
               </>
             ) : (
@@ -1267,14 +1367,17 @@ function Profile({ slug }: { slug: string }) {
                   className="button"
                   href={`/onboarding/parent?teacher=${t.id}&profile=${encodeURIComponent(t.slug)}`}
                 >
-                  Enquire about this teacher <ArrowUpRight size={18} />
+                  {appText("Enquire about this teacher")}{" "}
+                  <ArrowUpRight size={18} />
                 </Link>
                 <p className="care-help">
-                  An enquiry starts a conversation about fit and terms. It does
-                  not hire the teacher or charge you.
+                  {appText(
+                    "An enquiry starts a conversation about fit and terms. It does not hire the teacher or charge you.",
+                  )}{" "}
                 </p>
                 <div className="subtle-line">
-                  <ShieldCheck size={16} /> Guardian-managed enquiry
+                  <ShieldCheck size={16} />{" "}
+                  {appText("Guardian-managed enquiry")}{" "}
                 </div>
               </>
             )}
@@ -1285,6 +1388,8 @@ function Profile({ slug }: { slug: string }) {
   );
 }
 function Login() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const searchParams = useSearchParams();
   const { setSession, hindi, setHindi } = useAuth(),
     router = useRouter(),
@@ -1339,18 +1444,24 @@ function Login() {
         <Link href="/onboarding/independent-student" className="inline-link">
           {hindi
             ? "अपनी पढ़ाई सँभालते हैं? स्वतंत्र विद्यार्थी के रूप में खाता बनाएँ (18+)"
-            : "Managing your own learning? Sign up as an independent student (18+)"}
+            : appText(
+                "Managing your own learning? Sign up as an independent student (18+)",
+              )}
         </Link>
       </p>
       {!!query.data?.length && (
         <details className="auth-demo-accounts">
-          <summary>{hindi ? "डेवलपमेंट खाते" : "Development accounts"}</summary>
+          <summary>
+            {hindi ? "डेवलपमेंट खाते" : appText("Development accounts")}
+          </summary>
           <p>
             {hindi
               ? "नमूना खातों से प्रीव्यू देखें। लाइव सेवा में ये शॉर्टकट उपलब्ध नहीं होंगे।"
-              : "Explore the preview with synthetic accounts. These shortcuts are unavailable in live mode."}
+              : appText(
+                  "Explore the preview with synthetic accounts. These shortcuts are unavailable in live mode.",
+                )}
           </p>
-          {error && <Notice error>{error}</Notice>}
+          {error && <Notice error>{appError(error)}</Notice>}
           <div className="account-list">
             {query.data?.map((a) => (
               <button
@@ -1373,9 +1484,9 @@ function Login() {
                 <span>
                   <strong>{a.name}</strong>
                   <small>
-                    {pretty(a.role)}
+                    {appText(pretty(a.role))}
                     {a.role === "GUARDIAN" && !a.verified
-                      ? " · verification pending"
+                      ? appText(" · verification pending")
                       : ""}
                   </small>
                 </span>
@@ -1401,20 +1512,24 @@ function Field({
   error?: string;
   children: ReactNode;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <label className="field">
-      <span>{label}</span>
+      <span>{appText(label)}</span>
       {children}
-      {error && <small className="field-error">{error}</small>}
+      {error && <small className="field-error">{appError(error)}</small>}
     </label>
   );
 }
 function IntakeForm() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session, setSession, loading } = useAuth();
   if (loading)
     return (
       <main className="container section">
-        <p role="status">Loading your account…</p>
+        <p role="status">{appText("Loading your account…")}</p>
       </main>
     );
   if (!session) return <LoginPrompt />;
@@ -1422,61 +1537,70 @@ function IntakeForm() {
     return (
       <main className="container narrow section">
         <Notice error>
-          Use a guardian account to create a tuition request.
+          {appText("Use a guardian account to create a tuition request.")}{" "}
         </Notice>
         <Link className="button secondary" href="/teachers">
-          Browse teachers
+          {appText("Browse teachers")}{" "}
         </Link>
       </main>
     );
   return <GuardianOnboarding session={session} onSessionChange={setSession} />;
 }
 function LoginPrompt() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const path = usePathname();
   const searchParams = useSearchParams();
   const next = path + (searchParams.size ? `?${searchParams}` : "");
   return (
     <main className="container narrow section">
       <PageTitle
-        eyebrow="YOUR FAMILY, YOUR SPACE"
-        title="Sign in to continue."
-        subtitle="Private learning journeys are available only to the right account."
+        eyebrow={appText("YOUR FAMILY, YOUR SPACE")}
+        title={appText("Sign in to continue.")}
+        subtitle={appText(
+          "Private learning journeys are available only to the right account.",
+        )}
       />
       <Link className="button" href={`/login?next=${encodeURIComponent(next)}`}>
-        Sign in with email <ArrowRight size={18} />
+        {appText("Sign in with email")} <ArrowRight size={18} />
       </Link>
     </main>
   );
 }
 function TeacherOnboarding() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session, setSession, loading } = useAuth();
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
   if (!["GUARDIAN", "TEACHER"].includes(session.account.role))
     return (
       <main className="container narrow section">
-        <h1>A teacher account is required.</h1>
+        <h1>{appText("A teacher account is required.")}</h1>
         <p>
-          Sign in with your own adult account to apply. Student accounts cannot
-          submit teacher applications.
+          {appText(
+            "Sign in with your own adult account to apply. Student accounts cannot submit teacher applications.",
+          )}{" "}
         </p>
         <Link className="button" href="/dashboard">
-          Return to dashboard
+          {appText("Return to dashboard")}{" "}
         </Link>
       </main>
     );
   return <TeacherSetup session={session} onSessionChange={setSession} />;
 }
 function GuardianSetupPage() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session, setSession, loading } = useAuth();
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
   if (session.account.role !== "GUARDIAN")
     return (
       <main className="container narrow section">
-        <h1>Guardian setup belongs to a guardian account.</h1>
+        <h1>{appText("Guardian setup belongs to a guardian account.")}</h1>
         <Link href="/dashboard" className="inline-link">
-          Return to dashboard
+          {appText("Return to dashboard")}{" "}
         </Link>
       </main>
     );
@@ -1489,26 +1613,34 @@ function GuardianSetupPage() {
   );
 }
 function LearnerProfilesPage() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session, loading } = useAuth();
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
   if (!["GUARDIAN", "STUDENT"].includes(session.account.role))
     return (
       <main className="container narrow section">
-        <h1>Learner profiles belong to guardian and student accounts.</h1>
+        <h1>
+          {appText("Learner profiles belong to guardian and student accounts.")}
+        </h1>
         <Link href="/dashboard" className="inline-link">
-          Return to dashboard
+          {appText("Return to dashboard")}{" "}
         </Link>
       </main>
     );
   return <LearnerProfiles key={session.account.id} session={session} />;
 }
 function WaitlistPage() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session, loading } = useAuth();
   if (loading) return <State loading />;
   return <WaitlistWorkspace session={session} />;
 }
 function IndependentStudentPage() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session, setSession, loading, hindi, setHindi } = useAuth(),
     client = useQueryClient(),
     params = useSearchParams();
@@ -1520,12 +1652,14 @@ function IndependentStudentPage() {
           <h1>
             {hindi
               ? "अपना विद्यार्थी खाता बनाएँ"
-              : "Create your own student account"}
+              : appText("Create your own student account")}
           </h1>
           <p>
             {hindi
               ? "पहले अपने ईमेल की पुष्टि करें। फिर तैयारी, उम्र की घोषणा और पढ़ाई की जानकारी की समीक्षा करें। स्वतंत्र सेटअप फ़िलहाल 18 वर्ष या अधिक के विद्यार्थियों के लिए है।"
-              : "Start by verifying your own email. Then review your readiness, age declaration and education details. Independent setup is currently for students aged 18+."}
+              : appText(
+                  "Start by verifying your own email. Then review your readiness, age declaration and education details. Independent setup is currently for students aged 18+.",
+                )}
           </p>
         </header>
         <EmailLogin
@@ -1544,12 +1678,14 @@ function IndependentStudentPage() {
         <h1>
           {hindi
             ? "इस खाते का सेटअप पहले से है"
-            : "This account already has a setup"}
+            : appText("This account already has a setup")}
         </h1>
         <p>
           {hindi
             ? "मौजूदा खाते को स्वतंत्र विद्यार्थी खाते में नहीं बदला जा सकता।"
-            : "An existing managed student, teacher or staff account cannot become an independent student account."}
+            : appText(
+                "An existing managed student, teacher or staff account cannot become an independent student account.",
+              )}
         </p>
         <Link
           className="button"
@@ -1559,7 +1695,7 @@ function IndependentStudentPage() {
               : "/dashboard"
           }
         >
-          {hindi ? "अपने खाते पर लौटें" : "Return to my account"}
+          {hindi ? "अपने खाते पर लौटें" : appText("Return to my account")}
         </Link>
       </main>
     );
@@ -1575,6 +1711,8 @@ function IndependentStudentPage() {
   );
 }
 function StudentOnboarding() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const {
     session,
     setSession,
@@ -1589,9 +1727,9 @@ function StudentOnboarding() {
   if (session.account.role !== "GUARDIAN")
     return (
       <main className="container narrow section">
-        <h1>A guardian must authorize student access.</h1>
+        <h1>{appText("A guardian must authorize student access.")}</h1>
         <Link href="/dashboard" className="button">
-          Open dashboard
+          {appText("Open dashboard")}{" "}
         </Link>
       </main>
     );
@@ -1605,6 +1743,8 @@ function StudentOnboarding() {
   );
 }
 function Revision() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session } = useAuth();
   const params = useSearchParams();
   return (
@@ -1619,6 +1759,8 @@ function DashboardShell({
   children: ReactNode;
   tab: string;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session } = useAuth();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const role = session?.account.role;
@@ -1735,17 +1877,20 @@ function DashboardShell({
   return (
     <main className="container dashboard-layout">
       <aside className="dashboard-sidebar">
-        <span className="eyebrow">YOUR TEACHER CONNECTIONS</span>
+        <span className="eyebrow">{appText("YOUR TEACHER CONNECTIONS")}</span>
         <div className="sidebar-person">
           <span className="avatar small-avatar">
             {initials(session?.account.name || "You")}
           </span>
           <div>
             <strong>{session?.account.name.split(" · ")[0]}</strong>
-            <small>{pretty(role || "account")}</small>
+            <small>{appText(pretty(role || "account"))}</small>
           </div>
         </div>
-        <nav className="dashboard-desktop-nav" aria-label="Dashboard">
+        <nav
+          className="dashboard-desktop-nav"
+          aria-label={appText("Dashboard")}
+        >
           {links.map(([href, label, Icon]) => (
             <Link
               key={href}
@@ -1754,7 +1899,7 @@ function DashboardShell({
               aria-current={tab === href ? "page" : undefined}
             >
               <Icon size={18} />
-              {label}
+              {appText(label)}
             </Link>
           ))}
         </nav>
@@ -1762,22 +1907,27 @@ function DashboardShell({
           <UiButton
             variant="ghost"
             className="dashboard-mobile-trigger"
-            aria-label={`Dashboard menu: ${links.find(([href]) => href === tab)?.[1] || "Overview"}`}
+            aria-label={appText("Dashboard menu: {0}", [
+              links.find(([href]) => href === tab)?.[1] || appText("Overview"),
+            ])}
             aria-expanded={mobileNavOpen}
             aria-controls="dashboard-mobile-sections"
             onClick={() => setMobileNavOpen(!mobileNavOpen)}
           >
             <span>
-              <small>Dashboard menu</small>
+              <small>{appText("Dashboard menu")}</small>
               <strong>
-                {links.find(([href]) => href === tab)?.[1] || "Overview"}
+                {appText(
+                  links.find(([href]) => href === tab)?.[1] ||
+                    appText("Overview"),
+                )}
               </strong>
             </span>
             <ChevronDown size={20} aria-hidden="true" />
           </UiButton>
           <nav
             id="dashboard-mobile-sections"
-            aria-label="Dashboard sections"
+            aria-label={appText("Dashboard sections")}
             hidden={!mobileNavOpen}
           >
             {links.map(([href, label, Icon]) => (
@@ -1789,7 +1939,7 @@ function DashboardShell({
                 onClick={() => setMobileNavOpen(false)}
               >
                 <Icon size={18} />
-                {label}
+                {appText(label)}
               </Link>
             ))}
           </nav>
@@ -1797,9 +1947,8 @@ function DashboardShell({
         <div className="sidebar-tip">
           <Heart size={21} />
           <p>
-            A good fit starts
-            <br />
-            with a clear conversation.
+            {appText("A good fit starts")} <br />
+            {appText("with a clear conversation.")}{" "}
           </p>
         </div>
       </aside>
@@ -1808,6 +1957,8 @@ function DashboardShell({
   );
 }
 function DashboardPage({ tab }: { tab: string }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const {
       session,
       setSession,
@@ -1901,24 +2052,24 @@ function DashboardPage({ tab }: { tab: string }) {
       >
         <nav
           className="independent-navigation"
-          aria-label={hindi ? "विद्यार्थी खाता" : "Student account"}
+          aria-label={hindi ? "विद्यार्थी खाता" : appText("Student account")}
         >
           <Link
             className="inline-link"
             href="/dashboard"
             aria-current={tab === "/dashboard" ? "page" : undefined}
           >
-            {hindi ? "मेरी पढ़ाई" : "My learning"}
+            {hindi ? "मेरी पढ़ाई" : appText("My learning")}
           </Link>
           <Link className="inline-link" href="/teachers">
-            {hindi ? "शिक्षक खोजें" : "Find a teacher"}
+            {hindi ? "शिक्षक खोजें" : appText("Find a teacher")}
           </Link>
           <Link
             className="inline-link"
             href="/dashboard/enquiries"
             aria-current={tab === "/dashboard/enquiries" ? "page" : undefined}
           >
-            {hindi ? "मेरी पूछताछ" : "My enquiries"}
+            {hindi ? "मेरी पूछताछ" : appText("My enquiries")}
           </Link>
           {[
             [
@@ -1941,7 +2092,7 @@ function DashboardPage({ tab }: { tab: string }) {
               href={href}
               aria-current={tab === href ? "page" : undefined}
             >
-              {label}
+              {appText(label)}
             </Link>
           ))}
           <Link
@@ -1949,7 +2100,7 @@ function DashboardPage({ tab }: { tab: string }) {
             href="/dashboard/privacy"
             aria-current={tab === "/dashboard/privacy" ? "page" : undefined}
           >
-            {hindi ? "खाते की गोपनीयता" : "Account privacy"}
+            {hindi ? "खाते की गोपनीयता" : appText("Account privacy")}
           </Link>
         </nav>
         {tab === "/dashboard/enquiries" ||
@@ -1993,9 +2144,11 @@ function DashboardPage({ tab }: { tab: string }) {
     return (
       <DashboardShell tab={tab}>
         <PageTitle
-          eyebrow=""
-          title={`Hello, ${session.account.name.split(" · ")[0]}.`}
-          subtitle="Your teacher connections, with a clear next step."
+          eyebrow={appText("")}
+          title={appText("Hello, {0}.", [session.account.name.split(" · ")[0]])}
+          subtitle={appText(
+            "Your teacher connections, with a clear next step.",
+          )}
         />
         <HiringOverview
           key={`${session.account.id}:${session.account.role}`}
@@ -2017,66 +2170,84 @@ function DashboardPage({ tab }: { tab: string }) {
             lang={tab.endsWith("privacy") ? (hindi ? "hi" : "en") : undefined}
             eyebrow={
               session.account.role === "ADMIN"
-                ? "OPERATIONS"
+                ? appText("OPERATIONS")
                 : ["GUARDIAN", "STUDENT", "TEACHER"].includes(
                       session.account.role,
                     )
                   ? ""
-                  : "A LITTLE PROGRESS, EVERY DAY"
+                  : appText("A LITTLE PROGRESS, EVERY DAY")
             }
             title={
               tab === "/dashboard"
-                ? `Hello, ${session.account.name.split(" · ")[0]}.`
+                ? appText("Hello, {0}.", [session.account.name.split(" · ")[0]])
                 : tab.endsWith("lessons")
-                  ? "Every class, accounted for."
+                  ? appText("Every class, accounted for.")
                   : tab.endsWith("reports")
-                    ? "Progress, backed by records."
+                    ? appText("Progress, backed by records.")
                     : tab.endsWith("finance")
-                      ? "Financial records, with their evidence."
+                      ? appText("Financial records, with their evidence.")
                       : tab.endsWith("support")
-                        ? "Support, with a clear next step."
+                        ? appText("Support, with a clear next step.")
                         : tab.endsWith("matching")
-                          ? "A considered shortlist, ready for review."
+                          ? appText("A considered shortlist, ready for review.")
                           : tab.endsWith("review")
-                            ? "A careful review, recorded."
+                            ? appText("A careful review, recorded.")
                             : tab.endsWith("privacy")
                               ? hindi
                                 ? "आपकी जानकारी और गोपनीयता।"
-                                : "Your information and privacy."
+                                : appText("Your information and privacy.")
                               : tab.endsWith("arrangements")
-                                ? "A clear next step for your tuition."
+                                ? appText("A clear next step for your tuition.")
                                 : tab.endsWith("requests")
-                                  ? "Your path to a good fit."
+                                  ? appText("Your path to a good fit.")
                                   : tab.endsWith("family")
-                                    ? "Your learners, your control."
+                                    ? appText("Your learners, your control.")
                                     : tab.endsWith("bookings")
-                                      ? "A little clarity, on the calendar."
+                                      ? appText(
+                                          "A little clarity, on the calendar.",
+                                        )
                                       : tab.endsWith("pro")
-                                        ? "A conversation can help."
+                                        ? appText("A conversation can help.")
                                         : tab.endsWith("notes")
                                           ? session.account.role === "TEACHER"
-                                            ? "Learning context, shared with you."
-                                            : "Your thoughts, kept private."
-                                          : "A thoughtful control room."
+                                            ? appText(
+                                                "Learning context, shared with you.",
+                                              )
+                                            : appText(
+                                                "Your thoughts, kept private.",
+                                              )
+                                          : appText(
+                                              "A thoughtful control room.",
+                                            )
             }
             subtitle={
               tab === "/dashboard"
-                ? "Your recorded activity, current assignments and next steps."
+                ? appText(
+                    "Your recorded activity, current assignments and next steps.",
+                  )
                 : tab.endsWith("family")
-                  ? "Manage student devices and the permissions you grant."
+                  ? appText(
+                      "Manage student devices and the permissions you grant.",
+                    )
                   : tab.endsWith("requests")
-                    ? "Review teacher options, demo progress and your tuition agreement."
+                    ? appText(
+                        "Review teacher options, demo progress and your tuition agreement.",
+                      )
                     : tab.endsWith("privacy")
                       ? hindi
                         ? "हर अनुरोध की समीक्षा करें और मौजूदा स्थिति देखें।"
-                        : "Review each request and follow its current status."
+                        : appText(
+                            "Review each request and follow its current status.",
+                          )
                       : tab.endsWith("lessons")
-                        ? "Your weekly timetable, booked lessons and attendance records."
-                        : "All changes are confirmed by the backend."
+                        ? appText(
+                            "Your weekly timetable, booked lessons and attendance records.",
+                          )
+                        : appText("All changes are confirmed by the backend.")
             }
           />
-          {error && <Notice error>{error}</Notice>}
-          {message && <Notice>{message}</Notice>}
+          {error && <Notice error>{appError(error)}</Notice>}
+          {message && <Notice>{appText(message)}</Notice>}
           {tab === "/dashboard/history" &&
             (["GUARDIAN", "STUDENT", "TEACHER"].includes(
               session.account.role,
@@ -2111,10 +2282,12 @@ function DashboardPage({ tab }: { tab: string }) {
                         ]
                   ).map(([label, value], i) => (
                     <div className="stat" key={label}>
-                      <span>{label}</span>
+                      <span>{appText(label)}</span>
                       <strong>{value}</strong>
                       <small>
-                        {i === 0 ? "Rolling 30 days" : "Recorded activity"}
+                        {i === 0
+                          ? appText("Rolling 30 days")
+                          : appText("Recorded activity")}
                       </small>
                     </div>
                   ))}
@@ -2126,18 +2299,22 @@ function DashboardPage({ tab }: { tab: string }) {
                     <div className="dashboard-banner">
                       <div>
                         <Badge>
-                          <Sparkles size={13} /> A little support goes a long
-                          way
+                          <Sparkles size={13} />{" "}
+                          {appText("A little support goes a long way")}{" "}
                         </Badge>
                         <h2>
                           {d.role === "TEACHER"
-                            ? "There’s a learner on the other side."
-                            : "Keep their curiosity moving."}
+                            ? appText("There’s a learner on the other side.")
+                            : appText("Keep their curiosity moving.")}
                         </h2>
                         <p>
                           {d.role === "STUDENT"
-                            ? "Your next class and your recorded progress are right here."
-                            : "Your teachers, upcoming classes and next steps, all in one place."}
+                            ? appText(
+                                "Your next class and your recorded progress are right here.",
+                              )
+                            : appText(
+                                "Your teachers, upcoming classes and next steps, all in one place.",
+                              )}
                         </p>
                       </div>
                       <BookOpen size={64} strokeWidth={1} />
@@ -2145,12 +2322,12 @@ function DashboardPage({ tab }: { tab: string }) {
                     <div className="dashboard-columns">
                       <div className="panel">
                         <div className="panel-title">
-                          <h3>Coming up next</h3>
+                          <h3>{appText("Coming up next")}</h3>
                           <Link
                             href="/dashboard/lessons"
                             className="inline-link"
                           >
-                            View all <ArrowUpRight size={15} />
+                            {appText("View all")} <ArrowUpRight size={15} />
                           </Link>
                         </div>
                         <LessonList
@@ -2168,8 +2345,8 @@ function DashboardPage({ tab }: { tab: string }) {
                       <div className="panel">
                         <h3>
                           {d.role === "TEACHER"
-                            ? "Your teaching profile"
-                            : "Your learning team"}
+                            ? appText("Your teaching profile")
+                            : appText("Your learning team")}
                         </h3>
                         {d.profile ? (
                           <>
@@ -2183,13 +2360,16 @@ function DashboardPage({ tab }: { tab: string }) {
                               <div>
                                 <strong>{d.profile.name}</strong>
                                 <small>
-                                  {pretty(d.profile.status || "pending")}
+                                  {appText(
+                                    pretty(d.profile.status || "pending"),
+                                  )}
                                 </small>
                               </div>
                             </div>
                             <p>
-                              Approval requires completed capability checks;
-                              material changes must reopen review.
+                              {appText(
+                                "Approval requires completed capability checks; material changes must reopen review.",
+                              )}{" "}
                             </p>
                           </>
                         ) : d.teachers?.length ? (
@@ -2203,20 +2383,25 @@ function DashboardPage({ tab }: { tab: string }) {
                               </div>
                               <div>
                                 <strong>{t.name}</strong>
-                                <small>{t.subjects.join(" & ")}</small>
+                                <small>
+                                  {t.subjects
+                                    .map((value) => appCurriculum(value))
+                                    .join(" & ")}
+                                </small>
                                 <Link
                                   href={`/teachers/${t.slug}`}
                                   className="inline-link"
                                 >
-                                  View profile →
+                                  {appText("View profile →")}{" "}
                                 </Link>
                               </div>
                             </div>
                           ))
                         ) : (
                           <Empty>
-                            No active teacher yet. Your shortlist is the next
-                            step.
+                            {appText(
+                              "No active teacher yet. Your shortlist is the next step.",
+                            )}{" "}
                           </Empty>
                         )}
                       </div>
@@ -2236,13 +2421,14 @@ function DashboardPage({ tab }: { tab: string }) {
               />
             ) : (
               <section className="panel">
-                <h2>These controls belong to your guardian.</h2>
+                <h2>{appText("These controls belong to your guardian.")}</h2>
                 <p>
-                  Only your guardian can manage learner consent and student
-                  access.
+                  {appText(
+                    "Only your guardian can manage learner consent and student access.",
+                  )}{" "}
                 </p>
                 <Link href="/dashboard" className="inline-link">
-                  Return to your learning space
+                  {appText("Return to your learning space")}{" "}
                 </Link>
               </section>
             ))}
@@ -2300,13 +2486,14 @@ function DashboardPage({ tab }: { tab: string }) {
               <TuitionRequests session={session} dashboard={d} />
             ) : (
               <section className="panel">
-                <h2>Tuition choices belong to your guardian.</h2>
+                <h2>{appText("Tuition choices belong to your guardian.")}</h2>
                 <p>
-                  Only a guardian can review their family’s requests and choose
-                  a teacher.
+                  {appText(
+                    "Only a guardian can review their family’s requests and choose a teacher.",
+                  )}{" "}
                 </p>
                 <Link href="/dashboard" className="inline-link">
-                  Return to your dashboard
+                  {appText("Return to your dashboard")}{" "}
                 </Link>
               </section>
             ))}
@@ -2319,12 +2506,12 @@ function DashboardPage({ tab }: { tab: string }) {
               )}
               {d.role === "TEACHER" && (
                 <>
-                  <h3>Assigned opportunities</h3>
+                  <h3>{appText("Assigned opportunities")}</h3>
                   {d.opportunities?.length ? (
                     d.opportunities.map((c) => (
                       <div className="panel" key={c.id}>
-                        <Badge>{pretty(c.response)}</Badge>
-                        <p>{c.reasons.join(" · ")}</p>
+                        <Badge>{appText(pretty(c.response))}</Badge>
+                        <p>{appText(c.reasons.join(" · "))}</p>
                         {c.response === "PENDING" && (
                           <div className="action-row">
                             <Button
@@ -2339,7 +2526,7 @@ function DashboardPage({ tab }: { tab: string }) {
                                 )
                               }
                             >
-                              Accept opportunity
+                              {appText("Accept opportunity")}{" "}
                             </Button>
                             <Button
                               secondary
@@ -2354,14 +2541,14 @@ function DashboardPage({ tab }: { tab: string }) {
                                 )
                               }
                             >
-                              Decline
+                              {appText("Decline")}{" "}
                             </Button>
                           </div>
                         )}
                       </div>
                     ))
                   ) : (
-                    <Empty>No assigned opportunities yet.</Empty>
+                    <Empty>{appText("No assigned opportunities yet.")}</Empty>
                   )}
                   <TuitionTerms session={session} dashboard={d} />
                   <PlacementInvoices session={session} dashboard={d} />
@@ -2400,20 +2587,23 @@ function LessonList({
   lessons: Lesson[];
   children?: Child[];
 }) {
-  if (!lessons.length) return <Empty>No classes in this view yet.</Empty>;
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
+  if (!lessons.length)
+    return <Empty>{appText("No classes in this view yet.")}</Empty>;
   return (
     <div className="lesson-list">
       {lessons.map((l) => (
         <div className="lesson-item" key={l.id}>
           <div className="lesson-date">
             <strong>
-              {new Date(l.startsAt).toLocaleDateString("en-IN", {
+              {new Date(l.startsAt).toLocaleDateString(appLocale, {
                 day: "numeric",
                 timeZone: "Asia/Kolkata",
               })}
             </strong>
             <span>
-              {new Date(l.startsAt).toLocaleDateString("en-IN", {
+              {new Date(l.startsAt).toLocaleDateString(appLocale, {
                 month: "short",
                 timeZone: "Asia/Kolkata",
               })}
@@ -2421,17 +2611,17 @@ function LessonList({
           </div>
           <div className="lesson-info">
             <strong>
-              {l.subject} · {pretty(l.kind)}
+              {appCurriculum(l.subject)} · {appText(pretty(l.kind))}
             </strong>
             <small>
               {children?.find((c) => c.id === l.childId)?.alias ||
-                "Assigned learner"}{" "}
-              · {date(l.startsAt)}
+                appText("Assigned learner")}{" "}
+              · {date(l.startsAt, undefined, appLocale)}
             </small>
             <span className={`attendance ${l.disputed ? "disputed" : ""}`}>
               {l.disputed
-                ? "Disputed · excluded from totals"
-                : `${pretty(l.status)} · ${pretty(l.attendance)}`}
+                ? appText("Disputed · excluded from totals")
+                : `${appText(pretty(l.status))} · ${appText(pretty(l.attendance))}`}
             </span>
           </div>
         </div>
@@ -2448,23 +2638,27 @@ function Pro({
   act: Act;
   busy: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const m = d.membership;
   return (
     <>
       <div className="pro-card">
         <div>
           <Badge>
-            <Sparkles size={13} /> Parent Pro · synthetic prepaid pass
+            <Sparkles size={13} />{" "}
+            {appText("Parent Pro · synthetic prepaid pass")}{" "}
           </Badge>
           <h2>
-            Stay in the loop.
-            <br />
-            <em>Talk it through.</em>
+            {appText("Stay in the loop.")} <br />
+            <em>{appText("Talk it through.")}</em>
           </h2>
           <p>
-            Consult your child’s active teacher in an accepted window.
+            {appText(
+              "Consult your child’s active teacher in an accepted window.",
+            )}{" "}
             <br />
-            No personal numbers. No 24/7 promise.
+            {appText("No personal numbers. No 24/7 promise.")}{" "}
           </p>
         </div>
         <div className="pro-allowance">
@@ -2472,16 +2666,18 @@ function Pro({
             {m ? m.allowance - m.used - m.reserved : 0}
             <small> / {m?.allowance || 4}</small>
           </strong>
-          <span>consultations available</span>
+          <span>{appText("consultations available")}</span>
           <small>
-            {m ? `Expires ${date(m.periodEnd, false)}` : "No active membership"}
+            {m
+              ? appText("Expires {0}", [date(m.periodEnd, false, appLocale)])
+              : appText("No active membership")}
           </small>
         </div>
       </div>
       <Notice>
-        Pro never changes matching rank or safety support. Live calling and plan
-        purchase are unavailable until transport, price and terms are approved.
-        Demo consultations use 5pm–8pm IST windows.
+        {appText(
+          "Pro never changes matching rank or safety support. Live calling and plan purchase are unavailable until transport, price and terms are approved. Demo consultations use 5pm–8pm IST windows.",
+        )}{" "}
       </Notice>
       {m && m.status === "ACTIVE" ? (
         <form
@@ -2495,57 +2691,65 @@ function Pro({
             });
           }}
         >
-          <h3>Request a teacher callback</h3>
-          <Field label="Active teacher assignment">
+          <h3>{appText("Request a teacher callback")}</h3>
+          <Field label={appText("Active teacher assignment")}>
             <select name="placement" required>
               {d.placements
                 ?.filter((p) => p.status === "ACTIVE")
                 .map((p) => (
                   <option key={p.id} value={p.id}>
                     {d.teachers?.find((t) => t.id === p.teacherId)?.name ||
-                      "Assigned teacher"}
+                      appText("Assigned teacher")}
                   </option>
                 ))}
             </select>
           </Field>
-          <Field label="Preferred callback (IST)">
+          <Field label={appText("Preferred callback (IST)")}>
             <input type="datetime-local" name="time" required />
           </Field>
           <Button type="submit" disabled={busy}>
-            Request consultation <Phone size={17} />
+            {appText("Request consultation")} <Phone size={17} />
           </Button>
         </form>
       ) : (
         <Empty>
-          Free or expired memberships cannot start consultations. Ordinary
-          support is always available.
+          {appText(
+            "Free or expired memberships cannot start consultations. Ordinary support is always available.",
+          )}{" "}
         </Empty>
       )}
       {d.calls?.map((c) => (
         <div className="panel panel-title" key={c.id}>
-          <span>Callback · {date(c.startsAt)}</span>
-          <Badge>{pretty(c.status)}</Badge>
+          <span>
+            {appText("Callback ·")} {date(c.startsAt, undefined, appLocale)}
+          </span>
+          <Badge>{appText(pretty(c.status))}</Badge>
         </div>
       ))}
     </>
   );
 }
 function AdminPanel({ dashboard: d }: { dashboard: Dashboard; act: Act }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <section className="panel">
-      <h3>Administrator workspaces</h3>
+      <h3>{appText("Administrator workspaces")}</h3>
       <p>
-        Review controls, private queues and recorded outcomes in the dedicated
-        console.
+        {appText(
+          "Review controls, private queues and recorded outcomes in the dedicated console.",
+        )}{" "}
       </p>
       <Link href="/dashboard/admin" className="inline-link">
-        Open administrator console
+        {appText("Open administrator console")}{" "}
       </Link>
     </section>
   );
 }
 
 function Support() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const { session, hindi, setHindi } = useAuth();
   return (
     <SupportWorkspace
@@ -2559,6 +2763,8 @@ function Support() {
   );
 }
 function Routes() {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const path = usePathname();
   return path === "/" ? (
     <Home />
@@ -2591,29 +2797,59 @@ function Routes() {
   ) : (
     <main className="container section">
       <PageTitle
-        eyebrow="NOT FOUND"
-        title="This page isn’t here yet."
-        subtitle="Head back to discover your kind of teacher."
+        eyebrow={appText("NOT FOUND")}
+        title={appText("This page isn’t here yet.")}
+        subtitle={appText("Head back to discover your kind of teacher.")}
       />
       <Link className="button" href="/">
-        Go home
+        {appText("Go home")}{" "}
       </Link>
     </main>
   );
 }
 function AppContent() {
+  const initialHindi = useContext(LanguageContext);
   const [session, setSession] = useState<Session | null>(null),
     [loading, setLoading] = useState(true),
-    [hindi, setHindiState] = useState(false);
+    [hindi, setHindiState] = useState(initialHindi);
+  const { appText, appError, appLocale, appCurriculum } =
+    useAppTranslation(hindi);
   useEffect(() => {
     try {
-      setHindiState(localStorage.getItem("bcs.interface-language") === "hi");
+      const stored = localStorage.getItem("bcs.interface-language");
+      if (stored === "hi" || stored === "en") {
+        setHindiState(stored === "hi");
+        rememberLanguage(stored === "hi");
+      }
     } catch {
       /* Browser storage is optional. */
     }
   }, []);
+  useEffect(() => {
+    document.documentElement.lang = hindi ? "hi" : "en";
+    document.title = translateText(
+      hindi,
+      "Better Call Sir · Find your kind of teacher",
+    );
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute(
+        "content",
+        translateText(
+          hindi,
+          "Find a teacher for early learning, school or college, online or close to home.",
+        ),
+      );
+  }, [hindi]);
   function setHindi(value: boolean) {
     setHindiState(value);
+    rememberLanguage(value);
+    document
+      .querySelectorAll<HTMLInputElement>("[data-bcs-localized-validity]")
+      .forEach((field) => {
+        field.setCustomValidity("");
+        delete field.dataset.bcsLocalizedValidity;
+      });
     try {
       localStorage.setItem("bcs.interface-language", value ? "hi" : "en");
     } catch {
@@ -2707,82 +2943,113 @@ function AppContent() {
     };
   }, []);
   return (
-    <Auth.Provider
-      value={{
-        session,
-        loading,
-        setSession: changeSession,
-        hindi,
-        setHindi,
-        beginStudentSwitch,
-        failStudentSwitch,
-      }}
-    >
-      {transition && (
-        <main className="container narrow section wizard-verification">
-          <h1>Switching to student access.</h1>
-          <p>
-            Guardian screens are hidden while we confirm which account this
-            browser is using.
-          </p>
-          {transition.busy ? (
-            <p role="status">Checking student access…</p>
-          ) : (
-            <>
-              <Alert variant="destructive" role="alert">
-                {transition.message}
-              </Alert>
-              <div className="wizard-actions">
-                <UiButton className="button" onClick={checkStudentSwitch}>
-                  Check device access
-                </UiButton>
-                <UiButton
-                  variant="outline"
-                  className="button secondary"
-                  onClick={() => {
-                    client.clear();
-                    changeSession(null);
-                    router.push("/login");
-                  }}
-                >
-                  Return to sign-in
-                </UiButton>
-              </div>
-            </>
-          )}
-        </main>
-      )}
-      <div hidden={!!transition}>
-        <a className="skip-link" href="#main" lang={hindi ? "hi" : "en"}>
-          {hindi ? "मुख्य सामग्री पर जाएँ" : "Skip to content"}
-        </a>
-        <Header />
-        {switchMessage && (
-          <div className="container">
-            <Alert role="status">{switchMessage}</Alert>
-          </div>
+    <LanguageContext.Provider value={hindi}>
+      <Auth.Provider
+        value={{
+          session,
+          loading,
+          setSession: changeSession,
+          hindi,
+          setHindi,
+          beginStudentSwitch,
+          failStudentSwitch,
+        }}
+      >
+        {transition && (
+          <main className="container narrow section wizard-verification">
+            <h1>{appText("Switching to student access.")}</h1>
+            <p>
+              {appText(
+                "Guardian screens are hidden while we confirm which account this browser is using.",
+              )}{" "}
+            </p>
+            {transition.busy ? (
+              <p role="status">{appText("Checking student access…")}</p>
+            ) : (
+              <>
+                <Alert variant="destructive" role="alert">
+                  {appError(transition.message)}
+                </Alert>
+                <div className="wizard-actions">
+                  <UiButton className="button" onClick={checkStudentSwitch}>
+                    {appText("Check device access")}{" "}
+                  </UiButton>
+                  <UiButton
+                    variant="outline"
+                    className="button secondary"
+                    onClick={() => {
+                      client.clear();
+                      changeSession(null);
+                      router.push("/login");
+                    }}
+                  >
+                    {appText("Return to sign-in")}{" "}
+                  </UiButton>
+                </div>
+              </>
+            )}
+          </main>
         )}
-        <div id="main" tabIndex={-1}>
-          <StaffAccess
-            session={session}
-            onSignIn={() => {
-              client.clear();
-              changeSession(null);
-              router.push("/login");
-            }}
-          >
-            <Routes />
-          </StaffAccess>
+        <div
+          hidden={!!transition}
+          onInvalidCapture={(event) => {
+            const field = event.target;
+            if (
+              hindi &&
+              (field instanceof HTMLInputElement ||
+                field instanceof HTMLSelectElement ||
+                field instanceof HTMLTextAreaElement)
+            ) {
+              field.setCustomValidity(nativeValidationText(field.validity));
+              field.dataset.bcsLocalizedValidity = "true";
+            }
+          }}
+          onInputCapture={(event) => {
+            const field = event.target;
+            if (
+              (field instanceof HTMLInputElement ||
+                field instanceof HTMLSelectElement ||
+                field instanceof HTMLTextAreaElement) &&
+              field.dataset.bcsLocalizedValidity
+            ) {
+              field.setCustomValidity("");
+              delete field.dataset.bcsLocalizedValidity;
+            }
+          }}
+        >
+          <a className="skip-link" href="#main" lang={hindi ? "hi" : "en"}>
+            {hindi ? "मुख्य सामग्री पर जाएँ" : appText("Skip to content")}
+          </a>
+          <Header />
+          {switchMessage && (
+            <div className="container">
+              <Alert role="status">{appError(switchMessage)}</Alert>
+            </div>
+          )}
+          <div id="main" tabIndex={-1}>
+            <StaffAccess
+              session={session}
+              onSignIn={() => {
+                client.clear();
+                changeSession(null);
+                router.push("/login");
+              }}
+            >
+              <Routes />
+            </StaffAccess>
+          </div>
+          <Footer />
         </div>
-        <Footer />
-      </div>
-    </Auth.Provider>
+      </Auth.Provider>
+    </LanguageContext.Provider>
   );
 }
 export default function App({
   initialTeachers,
   initialTeacher,
 }: { initialTeachers?: { items: Teacher[] }; initialTeacher?: Teacher } = {}) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const [client] = useState(() => {
     const client = new QueryClient({
       defaultOptions: {

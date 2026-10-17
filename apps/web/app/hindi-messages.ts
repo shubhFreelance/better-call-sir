@@ -1,0 +1,4595 @@
+// Interface copy only. Authored content and API values are never translated.
+export const hindiMessages: Record<string, string> = {
+  Education: "पढ़ाई",
+  Class: "कक्षा",
+  Year: "वर्ष",
+  Institution: "संस्थान",
+  University: "विश्वविद्यालय",
+  "Subjects studied": "पढ़ने वाले विषय",
+  "Awaiting review": "समीक्षा का इंतज़ार",
+  Completed: "पूरा हुआ",
+  Rejected: "अस्वीकृत",
+  "Your account": "आपका खाता",
+  Learner: "विद्यार्थी",
+  "Learning note": "पढ़ाई का नोट",
+  "A matching request is already awaiting review. Follow its status below.":
+    "ऐसा अनुरोध पहले से समीक्षा में है। नीचे उसकी स्थिति देखें।",
+  "Choose an owned record, add a reason and supply the proposed correction within the stated limit. Refresh unavailable records before sending.":
+    "अपना रिकॉर्ड चुनें, कारण लिखें और तय सीमा में सुधार दें। रिकॉर्ड उपलब्ध न हो तो भेजने से पहले फिर लोड करें।",
+  "Review and acknowledge this request before sending.":
+    "भेजने से पहले अनुरोध की समीक्षा करके सहमति दें।",
+  "Your privacy request is recorded for review. This does not confirm completion.":
+    "गोपनीयता अनुरोध समीक्षा के लिए दर्ज हो गया है। इससे काम पूरा होने की पुष्टि नहीं होती।",
+  "Privacy requests are available to guardians, teachers and independent adult students for records they own. Guardian-linked students can ask their guardian for help.":
+    "गोपनीयता अनुरोध रिकॉर्ड के मालिक अभिभावक, शिक्षक या स्वतंत्र वयस्क विद्यार्थी के लिए हैं। अभिभावक से जुड़े विद्यार्थी उनसे मदद माँग सकते हैं।",
+  "Help & safety": "सहायता और सुरक्षा",
+  "Your information, with a clear record.":
+    "आपकी जानकारी और अनुरोधों का साफ़ रिकॉर्ड।",
+  "Request a correction or reviewed deletion and follow the outcome. Requests are private; financial, learning, safety and audit evidence may require approved retention.":
+    "सुधार या समीक्षा के बाद जानकारी मिटाने का अनुरोध करें और नतीजा देखें। अनुरोध निजी हैं। स्वीकृत नीति के अनुसार वित्तीय, पढ़ाई, सुरक्षा और जाँच के कुछ रिकॉर्ड रखना ज़रूरी हो सकता है।",
+  "Refresh privacy records": "गोपनीयता रिकॉर्ड फिर लोड करें",
+  "Family processing is paused or guardian consent is withdrawn. Learner/account deletion requests withdraw family consent, revoke student sessions and remove teacher access to shared notes. Completion or rejection does not automatically restore consent or access.":
+    "परिवार के डेटा का उपयोग रुका है या अभिभावक की सहमति वापस ली गई है। विद्यार्थी या खाता मिटाने के अनुरोध से पारिवारिक सहमति, विद्यार्थी का प्रवेश और साझा नोट पर शिक्षक की अनुमति हटती है। अनुरोध पूरा या अस्वीकृत होने पर अनुमति अपने आप वापस नहीं आती।",
+  "Profile changes are paused while your account deletion request is reviewed.":
+    "खाता मिटाने के अनुरोध की समीक्षा तक प्रोफ़ाइल में बदलाव रुके हैं।",
+  "Your teacher profile is suspended. Account deletion requests immediately pause discovery; a rejected request does not automatically restore approval.":
+    "आपकी शिक्षक प्रोफ़ाइल निलंबित है। खाता मिटाने का अनुरोध आते ही प्रोफ़ाइल खोज में दिखना बंद होती है। अनुरोध अस्वीकृत होने पर मंज़ूरी अपने आप वापस नहीं आती।",
+  "Create privacy request": "गोपनीयता अनुरोध बनाएँ",
+  "Refresh request history": "अनुरोधों का इतिहास फिर लोड करें",
+  "Loading privacy requests…": "गोपनीयता अनुरोध लोड हो रहे हैं…",
+  "Privacy history could not be loaded.": "गोपनीयता का इतिहास लोड नहीं हुआ।",
+  "Retry privacy history": "इतिहास फिर लोड करें",
+  "Review your privacy request": "अपने गोपनीयता अनुरोध की समीक्षा करें",
+  "Choose the record and requested change": "रिकॉर्ड और चाहा गया बदलाव चुनें",
+  "Request type": "अनुरोध का प्रकार",
+  Correction: "सुधार",
+  Deletion: "जानकारी मिटाना",
+  "Record type": "रिकॉर्ड का प्रकार",
+  "My account": "मेरा खाता",
+  "Private learning note": "पढ़ाई का निजी नोट",
+  "Account:": "खाता:",
+  ". Correction changes the display name; this form does not change email, login or role.":
+    "। सुधार से दिखने वाला नाम बदलता है। इस फ़ॉर्म से ईमेल, लॉगिन या भूमिका नहीं बदलती।",
+  "Owned learner": "आपका विद्यार्थी",
+  "Owned learning note": "आपका पढ़ाई का नोट",
+  "Choose a record": "रिकॉर्ड चुनें",
+  "— Note": "— नोट",
+  "Loading owned notes…": "आपके नोट लोड हो रहे हैं…",
+  "Owned notes could not be loaded.": "आपके नोट लोड नहीं हुए।",
+  "Retry owned notes": "नोट फिर लोड करें",
+  "Reason for request": "अनुरोध का कारण",
+  Proposed: "प्रस्तावित",
+  "note text": "नोट का पाठ",
+  "display name or learner alias": "दिखने वाला नाम या विद्यार्थी का उपनाम",
+  "characters. Approved note corrections become private and clear acknowledgement.":
+    "अक्षर। स्वीकृत सुधार के बाद नोट निजी हो जाता है और पुरानी पुष्टि हट जाती है।",
+  "Reviewed deletion": "समीक्षा के बाद जानकारी मिटाना",
+  "The change is applied only after authorized review. Corrected notes become private.":
+    "बदलाव अधिकृत समीक्षा के बाद ही लागू होता है। सुधारे गए नोट निजी हो जाते हैं।",
+  "This request immediately pauses education changes, withdraws open enquiries, closes arrangements and removes optional supporter access. Account deletion and session revocation happen only after authorized review.":
+    "इस अनुरोध से पढ़ाई में बदलाव तुरंत रुकते हैं, खुली पूछताछ वापस होती हैं, व्यवस्थाएँ बंद होती हैं और मददगार की अनुमति हटती है। खाता मिटाना और प्रवेश बंद करना अधिकृत समीक्षा के बाद ही होता है।",
+  "This note stops being shared immediately.":
+    "इस नोट का साझा होना तुरंत बंद हो जाता है।",
+  "This request immediately pauses processing: family consent is withdrawn, student sessions are revoked and shared note access is removed. Teacher account requests also suspend discovery.":
+    "इस अनुरोध से डेटा का उपयोग तुरंत रुकता है। पारिवारिक सहमति वापस होती है, विद्यार्थी का प्रवेश बंद होता है और साझा नोट की अनुमति हटती है। शिक्षक के खाते के अनुरोध से प्रोफ़ाइल खोज में दिखना भी बंद होता है।",
+  "Deletion requires review. Financial, learning, safeguarding and audit records may be retained under approved policy. Backups and private files require separate deletion processing; this request does not promise instant or complete erasure.":
+    "जानकारी मिटाने के लिए समीक्षा ज़रूरी है। स्वीकृत नीति के अनुसार वित्तीय, पढ़ाई, सुरक्षा और जाँच के रिकॉर्ड रखे जा सकते हैं। बैकअप और निजी फ़ाइलें अलग प्रक्रिया से मिटती हैं। यह अनुरोध तुरंत या पूरी तरह सब कुछ मिटाने का वादा नहीं करता।",
+  "I reviewed the record, requested change and immediate effects, and want to send this request.":
+    "मैंने रिकॉर्ड, चाहा गया बदलाव और तुरंत होने वाले असर देख लिए हैं और यह अनुरोध भेजना चाहता/चाहती हूँ।",
+  "Back to editing": "बदलाव करने पर लौटें",
+  "Cancel request": "अनुरोध रद्द करें",
+  "Send privacy request": "गोपनीयता अनुरोध भेजें",
+  "Review privacy request": "गोपनीयता अनुरोध की समीक्षा करें",
+  "Your request history": "आपके अनुरोधों का इतिहास",
+  "Latest 50 requests. A pending request is not a completed correction or deletion.":
+    "नवीनतम 50 अनुरोध। समीक्षा में होने का मतलब सुधार या जानकारी मिटाने का काम पूरा होना नहीं है।",
+  "No privacy requests yet.": "अभी कोई गोपनीयता अनुरोध नहीं है।",
+  Account: "खाता",
+  "Proposed correction:": "प्रस्तावित सुधार:",
+  "Review outcome:": "समीक्षा का नतीजा:",
+  "Policy:": "नीति:",
+  Request: "अनुरोध",
+  "For urgent concerns use": "ज़रूरी चिंताओं के लिए संपर्क करें",
+  ". This development service has no live privacy operator or notification delivery. Retention rules and off-site backup deletion remain subject to live qualification.":
+    "। इस विकास संस्करण में लाइव गोपनीयता अधिकारी या सूचना भेजने की सुविधा नहीं है। रिकॉर्ड रखने के नियम और बाहरी बैकअप मिटाने की प्रक्रिया का लाइव सत्यापन बाकी है।",
+  "Saving your decision…": "आपका निर्णय सहेजा जा रहा है…",
+  "Retry same decision": "वही निर्णय फिर भेजें",
+  "We couldn’t confirm this decision. Retry the same decision before editing or leaving this page.":
+    "इस निर्णय की पुष्टि नहीं हुई। बदलाव करने या पृष्ठ छोड़ने से पहले वही निर्णय फिर भेजें।",
+  "Your decision was saved, but current details could not be loaded. Refresh before making another decision.":
+    "आपका निर्णय सहेज लिया गया, लेकिन नई जानकारी लोड नहीं हुई। अगला निर्णय लेने से पहले फिर लोड करें।",
+  "Current details loaded. Review them before confirming.":
+    "मौजूदा जानकारी लोड हो गई। पुष्टि से पहले उसकी समीक्षा करें।",
+  "Account not found.": "खाता नहीं मिला।",
+  "Note not found.": "नोट नहीं मिला।",
+  "Student not found.": "विद्यार्थी नहीं मिला।",
+  "Only the guardian controls learner and note privacy.":
+    "विद्यार्थी और नोट की गोपनीयता केवल अभिभावक सँभाल सकता है।",
+  "Supply a correction only for correction requests; names are limited to 80 characters.":
+    "केवल सुधार के अनुरोध में नया पाठ दें। नाम अधिकतम 80 अक्षर का हो।",
+  "Your session has expired. Sign in again.":
+    "आपका प्रवेश समाप्त हो गया है। फिर साइन इन करें।",
+  "Sign in to continue.": "जारी रखने के लिए साइन इन करें।",
+  "Your role cannot perform this action.":
+    "आपकी भूमिका को यह कार्रवाई करने की अनुमति नहीं है।",
+  "Refresh this page before continuing.":
+    "जारी रखने से पहले यह पृष्ठ फिर लोड करें।",
+  progress: "साइन-इन के चरण",
+  emailStep: "ईमेल",
+  verifyStep: "पुष्टि",
+  welcome: "Better Call Sir में आपका स्वागत है",
+  checkEmail: "अपना ईमेल देखें",
+  introduction:
+    "एक बार इस्तेमाल होने वाले ईमेल कोड से साइन इन करें या खाता बनाएँ।",
+  codeFor: "इस ईमेल पर भेजा गया कोड डालें:",
+  name: "आपका नाम",
+  nameHelp: "नया खाता बनाने के लिए इस्तेमाल होगा।",
+  email: "ईमेल",
+  sending: "कोड भेजा जा रहा है…",
+  send: "साइन-इन कोड भेजें",
+  passwordHelp:
+    "पासवर्ड याद रखने की ज़रूरत नहीं। केवल वही कोड डालें जो आपने माँगा है।",
+  preview: "डेवलपमेंट प्रीव्यू — कोई ईमेल नहीं भेजा गया।",
+  previewCode: "प्रीव्यू कोड का इस्तेमाल करें",
+  code: "छह अंकों का कोड",
+  expired: "इस कोड की वैधता समाप्त हो गई है। नया कोड मँगाएँ।",
+  wait: "कृपया प्रतीक्षा करें…",
+  verify: "पुष्टि करके आगे बढ़ें",
+  resend: "कोड फिर भेजें",
+  changeEmail: "ईमेल बदलें",
+  permission:
+    "ईमेल की पुष्टि से आपके इनबॉक्स तक पहुँच की पुष्टि होती है। विद्यार्थी की सहमति और अभिभावक की अनुमति अलग चरणों में ली जाती हैं।",
+  guideTitle: "आपकी पढ़ाई के सफ़र के लिए एक जगह।",
+  guideIntro:
+    "अपनी ज़रूरत के अनुसार शिक्षक खोजें। पूछताछ, बातचीत और ट्यूशन के विकल्प एक जगह रखें।",
+  reviewed: "समीक्षित शिक्षक प्रोफ़ाइल देखें",
+  enquiries: "पूछताछ और शिक्षक के विकल्प सँभालें",
+  privacy: "अपने परिवार की जानकारी पर नियंत्रण रखें",
+  guardian:
+    "18 वर्ष या अधिक के विद्यार्थी स्वतंत्र साइनअप चुन सकते हैं। कम उम्र के विद्यार्थी अभिभावक के ज़रिए जुड़ते हैं।",
+  nameRequired: "अपना नाम डालें।",
+  nameLong: "नाम 80 अक्षरों तक रखें।",
+  emailInvalid: "सही ईमेल पता डालें।",
+  codeRequired: "छह अंकों का कोड डालें।",
+  codeExpired: "इस कोड की वैधता समाप्त हो गई है। नीचे से नया कोड मँगाएँ।",
+  codeWrong:
+    "कोड गलत है या उसकी वैधता समाप्त हो गई है। जाँचें या नया कोड मँगाएँ।",
+  emailUnavailable: "अभी ईमेल भेजा नहीं जा सका। कुछ देर बाद फिर कोशिश करें।",
+  authUnavailable: "अभी साइन इन नहीं हो पा रहा है। कुछ देर बाद फिर कोशिश करें।",
+  rateLimited: "कई बार कोशिश हो चुकी है। कुछ देर बाद फिर कोशिश करें।",
+  detailsInvalid: "अपनी जानकारी जाँचें और फिर कोशिश करें।",
+  signInUnavailable: "अभी साइन इन उपलब्ध नहीं है। कुछ देर बाद फिर कोशिश करें।",
+  network: "साइन-इन सेवा से संपर्क नहीं हो पाया। फिर कोशिश करें।",
+  "Checking shared learning access…": "साझा पढ़ाई की अनुमति जाँच रहे हैं…",
+  "Student enquiries belong to independent students and authorized review staff.":
+    "पूछताछ स्वतंत्र विद्यार्थियों, अधिकृत मददगारों और समीक्षा स्टाफ़ के लिए है।",
+  "Independent student enquiries": "स्वतंत्र विद्यार्थियों की पूछताछ",
+  "My teacher enquiries": "शिक्षक के लिए मेरी पूछताछ",
+  "Review student-owned criteria in your authorized region. Matching, teacher replies and hiring are separate steps.":
+    "अपने अधिकृत क्षेत्र की ज़रूरतें देखें। मिलान, शिक्षक का जवाब और नियुक्ति अलग चरण हैं।",
+  "Share the help you need, review your criteria, and keep a record of your request.":
+    "अपनी ज़रूरतें बताएँ, समीक्षा करें और अनुरोध का रिकॉर्ड देखें।",
+  "New teacher enquiry": "शिक्षक के लिए नई पूछताछ",
+  "Review queue": "समीक्षा सूची",
+  "Enquiry history": "पूछताछ का इतिहास",
+  "Loading enquiries…": "पूछताछ लोड हो रही है…",
+  "We couldn’t load this page of enquiries.":
+    "इस पृष्ठ की पूछताछ लोड नहीं हुई।",
+  "Retry enquiry history": "इतिहास फिर लोड करें",
+  "Return to first page": "पहले पृष्ठ पर जाएँ",
+  "No more enquiries on this page.": "इस पृष्ठ पर और पूछताछ नहीं हैं।",
+  "No enquiries yet.": "अभी कोई पूछताछ नहीं है।",
+  "Start with teacher search or share your criteria for staff review.":
+    "शिक्षक खोजें या स्टाफ़ की समीक्षा के लिए अपनी ज़रूरतें भेजें।",
+  "At home": "घर पर",
+  "Received · awaiting staff review": "मिली · स्टाफ़ की समीक्षा का इंतज़ार",
+  "Both sides confirmed": "दोनों पक्षों ने पुष्टि की",
+  "· Reference": "· संदर्भ",
+  "View details": "जानकारी देखें",
+  "Previous page": "पिछला पृष्ठ",
+  "Next page": "अगला पृष्ठ",
+  "Enter a subject, up to 60 characters.": "अधिकतम 60 अक्षरों में विषय लिखें।",
+  "Choose online or at-home teaching.": "ऑनलाइन या घर पर पढ़ाई चुनें।",
+  "Choose a teaching language.": "पढ़ाने की भाषा चुनें।",
+  "Enter a locality, up to 80 characters. Do not enter your full address.":
+    "अधिकतम 80 अक्षरों में इलाका लिखें। पूरा पता न लिखें।",
+  "Enter a monthly budget from ₹500 to ₹20,000, with up to two decimal places.":
+    "₹500 से ₹20,000 तक मासिक बजट लिखें, अधिकतम दो दशमलव तक।",
+  "Choose nonoverlapping weekly time ranges of at least 20 minutes.":
+    "कम से कम 20 मिनट के ऐसे समय चुनें जो आपस में न टकराएँ।",
+  "Review your enquiry": "पूछताछ की समीक्षा करें",
+  "Enquire about this teacher": "इस शिक्षक के बारे में पूछें",
+  "Let us search for you": "हमें आपके लिए खोजने दें",
+  "Reload criteria and review again": "ज़रूरतें फिर लोड करके समीक्षा करें",
+  "Loading your education profile…": "पढ़ाई की प्रोफ़ाइल लोड हो रही है…",
+  "We couldn’t load your current education details. Your form stays on this page.":
+    "पढ़ाई की जानकारी लोड नहीं हुई। आपका फ़ॉर्म इस पृष्ठ पर सुरक्षित है।",
+  "Retry education details": "पढ़ाई की जानकारी फिर लोड करें",
+  "New enquiries are paused while your deletion request is reviewed.":
+    "खाता मिटाने के अनुरोध की समीक्षा तक नई पूछताछ रुकी है।",
+  "Your account region is not enabled for teacher enquiries yet.":
+    "आपके क्षेत्र में अभी शिक्षक की पूछताछ उपलब्ध नहीं है।",
+  "Return to my dashboard": "मेरे डैशबोर्ड पर जाएँ",
+  "Checking the selected teacher…": "चुने हुए शिक्षक की जाँच हो रही है…",
+  "The selected teacher could not be confirmed. We have not substituted another teacher.":
+    "चुने हुए शिक्षक की पुष्टि नहीं हुई। कोई दूसरा शिक्षक नहीं चुना गया है।",
+  "Use assisted search instead": "सहायक खोज अपनाएँ",
+  "Your current education": "आपकी मौजूदा पढ़ाई",
+  "· Profile version": "· प्रोफ़ाइल संस्करण",
+  "Requested teacher:": "चाहा गया शिक्षक:",
+  "/ month": "/ माह",
+  "Subject you need help with": "किस विषय में मदद चाहिए",
+  "Teaching format": "पढ़ाने का तरीका",
+  "Choose a format": "तरीका चुनें",
+  Online: "ऑनलाइन",
+  "Teaching language": "पढ़ाने की भाषा",
+  "Choose a language": "भाषा चुनें",
+  English: "अंग्रेज़ी",
+  Hindi: "हिन्दी",
+  "Your locality": "आपका इलाका",
+  "Locality only. Keep your full address and contact details out of this form.":
+    "केवल इलाका लिखें। पूरा पता या संपर्क इस फ़ॉर्म में न दें।",
+  "Monthly budget (₹)": "मासिक बजट (₹)",
+  "When are you usually available?": "आमतौर पर किस समय उपलब्ध हैं?",
+  "Review enquiry": "पूछताछ की समीक्षा करें",
+  "Search approach": "खोज का तरीका",
+  "My selected teacher": "मेरा चुना हुआ शिक्षक",
+  "Subject and format": "विषय और तरीका",
+  Locality: "इलाका",
+  "Monthly budget": "मासिक बजट",
+  "We will record these criteria for staff review. This does not reserve a teacher, confirm hiring, book classes or charge you.":
+    "ज़रूरतें स्टाफ़ की समीक्षा के लिए दर्ज होंगी। इससे शिक्षक आरक्षित, नियुक्ति तय, कक्षा बुक या भुगतान नहीं होगा।",
+  "I reviewed my education and enquiry criteria and want to send this request.":
+    "मैंने अपनी पढ़ाई और ज़रूरतें देखी हैं और यह अनुरोध भेजना चाहता/चाहती हूँ।",
+  "Edit criteria": "ज़रूरतें बदलें",
+  "Your enquiry was recorded. Check its current status in your history.":
+    "पूछताछ दर्ज हो गई। इतिहास में मौजूदा स्थिति देखें।",
+  "Send my enquiry": "मेरी पूछताछ भेजें",
+  "Return to enquiry history": "पूछताछ के इतिहास में जाएँ",
+  "A clear brief. A better starting point.": "साफ़ ज़रूरतें। बेहतर शुरुआत।",
+  "Tell us the subject, format, budget and broad weekly times that work for you.":
+    "अपना विषय, तरीका, बजट और सुविधाजनक साप्ताहिक समय बताएँ।",
+  "Your school name, university and account contact details are not included in the staff queue. Only education criteria needed to review teacher fit are saved with this enquiry.":
+    "स्टाफ़ की सूची में स्कूल, विश्वविद्यालय या खाते के संपर्क नहीं दिखते। शिक्षक के मिलान के लिए ज़रूरी पढ़ाई की जानकारी ही दर्ज होती है।",
+  "Staff review your criteria, publish a shortlist and ask teachers to respond. You choose an interested teacher and both sides review terms before hiring is confirmed.":
+    "स्टाफ़ ज़रूरतें देखकर शिक्षक सूची प्रकाशित करेगा। शिक्षक के जवाब के बाद आप चुनेंगे और नियुक्ति से पहले दोनों शर्तें स्वीकारेंगे।",
+  "Unsubmitted details stay on this page only. Reloading clears them.":
+    "बिना भेजी जानकारी केवल इस पृष्ठ पर रहती है। फिर लोड करने पर मिट जाएगी।",
+  "Enquiry details": "पूछताछ की जानकारी",
+  "Reload enquiry": "पूछताछ फिर लोड करें",
+  "Loading enquiry details…": "पूछताछ की जानकारी लोड हो रही है…",
+  "This enquiry could not be loaded for your account.":
+    "आपके खाते के लिए यह पूछताछ लोड नहीं हुई।",
+  "Retry enquiry details": "जानकारी फिर लोड करें",
+  Reference: "संदर्भ",
+  "· Submitted": "· भेजी गई",
+  Subject: "विषय",
+  "Selected teacher · ": "चुना शिक्षक · ",
+  "Format and language": "तरीका और भाषा",
+  "Follow the reviewed shortlist below. A teacher is hired only after both sides accept the arrangement terms. No payment is taken here.":
+    "नीचे समीक्षित सूची देखें। दोनों की सहमति के बाद ही शिक्षक की नियुक्ति तय होगी। यहाँ भुगतान नहीं लिया जाता।",
+  "This enquiry is closed. It will not proceed to matching or hiring.":
+    "यह पूछताछ बंद है। आगे मिलान या नियुक्ति नहीं होगी।",
+  "Help and progress": "सहायता और प्रगति",
+  "Withdraw this enquiry?": "यह पूछताछ वापस लें?",
+  "Your submitted criteria stay in your private history. No booking or payment is cancelled because this enquiry has not created one.":
+    "भेजी गई ज़रूरतें आपके निजी इतिहास में रहेंगी। इस पूछताछ ने कोई बुकिंग या भुगतान नहीं बनाया है।",
+  "I want to withdraw this enquiry.":
+    "मैं यह पूछताछ वापस लेना चाहता/चाहती हूँ।",
+  "Keep enquiry": "पूछताछ जारी रखें",
+  "Enquiry withdrawn.": "पूछताछ वापस ली गई।",
+  "Confirm withdrawal": "वापस लेने की पुष्टि करें",
+  "Withdraw enquiry": "पूछताछ वापस लें",
+  Withdrawn: "वापस ली गई",
+  "A clear path to help.": "मदद पाने का आसान रास्ता।",
+  "Ask a question, report a concern and follow the conversation in one place. Safety reporting and support are free, with or without Pro.":
+    "सवाल पूछें, चिंता बताएँ और बातचीत की प्रगति एक ही जगह देखें। सुरक्षा की शिकायत और सहायता मुफ़्त हैं, Pro के बिना भी।",
+  "Safety guidance": "सुरक्षा संबंधी मार्गदर्शन",
+  "For immediate danger, contact emergency services.":
+    "तत्काल खतरे में आपातकालीन सेवाओं से संपर्क करें।",
+  "Call 112 in India": "भारत में 112 पर कॉल करें",
+  ". This development service has no live emergency response.":
+    "। इस विकास संस्करण में तत्काल आपातकालीन मदद उपलब्ध नहीं है।",
+  "If it is safe, tell a trusted adult.":
+    "अगर सुरक्षित हो, तो किसी भरोसेमंद वयस्क को बताएँ।",
+  "To record a safety concern here, choose “Safety concern” when creating a case. No payment is required.":
+    "यहाँ सुरक्षा की चिंता दर्ज करने के लिए नया मामला बनाते समय “सुरक्षा संबंधी चिंता” चुनें। कोई भुगतान ज़रूरी नहीं है।",
+  "Sign in to submit or view your private cases":
+    "अपने निजी मामले भेजने या देखने के लिए साइन इन करें",
+  ". Emergency guidance is available without signing in.":
+    "। आपातकालीन मार्गदर्शन बिना साइन इन किए भी उपलब्ध है।",
+  "To review support cases, open your":
+    "सहायता के मामले देखने के लिए यह खोलें:",
+  "staff dashboard": "कर्मचारी डैशबोर्ड",
+  "Your support cases": "आपके सहायता मामले",
+  "Refresh cases": "मामले फिर लोड करें",
+  "Create a case": "नया मामला बनाएँ",
+  "Linked support context": "संबंधित सहायता संदर्भ",
+  "Loading the linked enquiry or arrangement…":
+    "संबंधित पूछताछ या व्यवस्था लोड हो रही है…",
+  "This support link could not be verified. No case will be sent against an unavailable enquiry or arrangement.":
+    "इस सहायता लिंक की पुष्टि नहीं हुई। अनुपलब्ध पूछताछ या व्यवस्था से जुड़ा मामला नहीं भेजा जाएगा।",
+  "Retry support context": "संबंधित जानकारी फिर लोड करें",
+  "Help with this enquiry": "इस पूछताछ के लिए मदद",
+  "Help with this arrangement": "इस व्यवस्था के लिए मदद",
+  "Your related cases and their progress appear below. Other participants’ conversations stay private.":
+    "आपके संबंधित मामले और उनकी प्रगति नीचे हैं। दूसरे प्रतिभागियों की बातचीत निजी रहती है।",
+  "Return to enquiry progress": "पूछताछ की प्रगति पर लौटें",
+  "Review hiring confirmation": "शिक्षक चुनने की पुष्टि देखें",
+  "Review replacement options": "शिक्षक बदलने के विकल्प देखें",
+  "Refresh current case": "मौजूदा मामला फिर लोड करें",
+  "Review your request": "अपना अनुरोध जाँचें",
+  "Tell us what you need": "अपनी ज़रूरत बताएँ",
+  "What can we help with?": "आपको किस विषय में मदद चाहिए?",
+  "Tell us what happened": "बताएँ कि क्या हुआ",
+  "/3,000 characters. Include only what helps resolve this case; avoid passwords and unnecessary personal details.":
+    "/3,000 अक्षर। केवल मामले को सुलझाने की ज़रूरी जानकारी दें; पासवर्ड और अनावश्यक निजी जानकारी न दें।",
+  "This records a private request. It does not arrange emergency response, change a teacher assignment or confirm a refund.":
+    "यह निजी अनुरोध दर्ज करता है। इससे आपातकालीन मदद, शिक्षक बदलने या पैसे लौटाने की पुष्टि नहीं होती।",
+  "I reviewed this request and want to send it to support.":
+    "मैंने अनुरोध जाँच लिया है और इसे सहायता टीम को भेजना चाहता/चाहती हूँ।",
+  "Send support request": "सहायता अनुरोध भेजें",
+  "Review request": "अनुरोध जाँचें",
+  "Your case history": "आपके मामलों का इतिहास",
+  "Case status": "मामले की स्थिति",
+  "All statuses": "सभी स्थितियाँ",
+  "A verified context is needed to load related history.":
+    "संबंधित इतिहास देखने के लिए संदर्भ की पुष्टि ज़रूरी है।",
+  "Loading your case history…": "आपके मामलों का इतिहास लोड हो रहा है…",
+  "Case history could not be loaded.": "मामलों का इतिहास लोड नहीं हुआ।",
+  "Retry case history": "इतिहास फिर लोड करें",
+  "No cases for this status.": "इस स्थिति का कोई मामला नहीं है।",
+  "Create a case to start a private support conversation, or choose another status.":
+    "निजी सहायता बातचीत शुरू करने के लिए मामला बनाएँ या दूसरी स्थिति चुनें।",
+  Case: "मामला",
+  "Load more cases": "और मामले लोड करें",
+  "Case conversation": "मामले की बातचीत",
+  "Choose a case to follow its progress.": "प्रगति देखने के लिए मामला चुनें।",
+  "Replies and status changes appear here. Only your own cases are listed.":
+    "जवाब और स्थिति में बदलाव यहाँ दिखते हैं। सूची में केवल आपके मामले हैं।",
+  "Resolve the support context before opening this case.":
+    "मामला खोलने से पहले संबंधित सहायता जानकारी की पुष्टि करें।",
+  "Loading case details…": "मामले की जानकारी लोड हो रही है…",
+  "This case could not be loaded or is no longer accessible. Your reply stays here.":
+    "मामला लोड नहीं हुआ या अब इसकी अनुमति नहीं है। आपका लिखा जवाब यहीं रहेगा।",
+  "Retry case details": "मामले की जानकारी फिर लोड करें",
+  "Your original request": "आपका मूल अनुरोध",
+  Created: "दर्ज किया गया:",
+  "Resolution:": "समाधान:",
+  "Case updates": "मामले की प्रगति",
+  "Load earlier updates": "पुराने अपडेट लोड करें",
+  You: "आप",
+  Participant: "प्रतिभागी",
+  Support: "सहायता टीम",
+  "No replies yet. Recorded requests are not a promise of immediate response.":
+    "अभी कोई जवाब नहीं है। अनुरोध दर्ज होने का अर्थ तत्काल जवाब का वादा नहीं है।",
+  "This case is closed and cannot receive replies. Create a new case if you need further help.":
+    "यह मामला बंद है और इसमें जवाब नहीं भेज सकते। और मदद के लिए नया मामला बनाएँ।",
+  "This case is resolved and cannot receive replies. Create a new case if you need further help.":
+    "यह मामला सुलझ चुका है और इसमें जवाब नहीं भेज सकते। और मदद के लिए नया मामला बनाएँ।",
+  "Review your reply": "अपना जवाब जाँचें",
+  "Add a reply": "जवाब लिखें",
+  "I reviewed this reply and want to add it to the case.":
+    "मैंने जवाब जाँच लिया है और इसे मामले में जोड़ना चाहता/चाहती हूँ।",
+  "Replies remain part of this case. Send only relevant information.":
+    "जवाब इस मामले का हिस्सा रहते हैं। केवल संबंधित जानकारी भेजें।",
+  "Edit reply": "जवाब बदलें",
+  "Discard reply": "लिखा जवाब हटाएँ",
+  "Send reply": "जवाब भेजें",
+  "Review reply": "जवाब जाँचें",
+  Open: "खुला",
+  "Under review": "समीक्षा जारी",
+  "Awaiting your response": "आपके जवाब का इंतज़ार",
+  Resolved: "सुलझ चुका",
+  Closed: "बंद",
+  "General question": "सामान्य सवाल",
+  "Safety concern": "सुरक्षा संबंधी चिंता",
+  "Teacher replacement": "शिक्षक बदलना",
+  "Attendance record": "उपस्थिति रिकॉर्ड",
+  "Payment or refund": "भुगतान या पैसे वापसी",
+  "Privacy or deletion": "गोपनीयता या डेटा मिटाना",
+  "Refresh the linked support context before sending.":
+    "भेजने से पहले संबंधित सहायता जानकारी फिर लोड करें।",
+  "Write a message of up to 3,000 characters and review it before sending.":
+    "अधिकतम 3,000 अक्षर का संदेश लिखें और भेजने से पहले जाँचें।",
+  "Refresh the case before sending a reply. Resolved cases cannot receive replies.":
+    "जवाब भेजने से पहले मामला फिर लोड करें। सुलझे हुए मामलों में जवाब नहीं भेज सकते।",
+  "Describe what happened in up to 3,000 characters.":
+    "अधिकतम 3,000 अक्षरों में बताएँ कि क्या हुआ।",
+  "Write a reply of up to 3,000 characters.":
+    "अधिकतम 3,000 अक्षर का जवाब लिखें।",
+  "Your support request is recorded. This development service has no live support operator or notification delivery.":
+    "आपका सहायता अनुरोध दर्ज हो गया है। इस विकास संस्करण में लाइव सहायता कर्मचारी या सूचना भेजने की सुविधा नहीं है।",
+  "Your reply is recorded. Check the case status for further updates.":
+    "आपका जवाब दर्ज हो गया है। आगे की जानकारी के लिए मामले की स्थिति देखें।",
+  "Case changed. Refresh before replying.":
+    "मामले में बदलाव हुआ है। जवाब देने से पहले फिर लोड करें।",
+  "Better Call Sir home": "Better Call Sir मुख्य पृष्ठ",
+  "Development preview · Synthetic profiles and accounts · No live payments or calls":
+    "विकास संस्करण · नमूना प्रोफ़ाइल और खाते · कोई लाइव भुगतान या कॉल नहीं",
+  "Main navigation": "मुख्य नेविगेशन",
+  "Find a teacher": "शिक्षक खोजें",
+  "Become a teacher": "शिक्षक बनें",
+  "Switch English and Hindi": "अंग्रेज़ी और हिन्दी बदलें",
+  "Sign out": "साइन आउट",
+  "My dashboard": "मेरा डैशबोर्ड",
+  Dashboard: "डैशबोर्ड",
+  "Get started": "शुरू करें",
+  "Sign in": "साइन इन",
+  "Toggle navigation": "नेविगेशन खोलें या बंद करें",
+  "MADE FOR YOUR FAMILY": "आपके परिवार के लिए",
+  "Help & safety support": "मदद और सुरक्षा सहायता",
+  "STARTING CLOSE TO HOME": "आपके आसपास से शुरुआत",
+  "Raipur, Chhattisgarh": "रायपुर, छत्तीसगढ़",
+  "Online & at-home lessons": "ऑनलाइन और घर पर पढ़ाई",
+  "Early years, school & college": "शुरुआती शिक्षा, स्कूल और कॉलेज",
+  "A development build. Live services are not enabled.":
+    "यह विकास संस्करण है। लाइव सेवाएँ चालू नहीं हैं।",
+  "Find a teacher for early learning, school or college, online or close to home.":
+    "शुरुआती शिक्षा, स्कूल या कॉलेज के लिए अपने अनुरूप शिक्षक खोजें—ऑनलाइन या आसपास।",
+  "Find your kind of teacher": "सही शिक्षक खोजें",
+  "Managing your own learning? Sign up as an independent student (18+)":
+    "अपनी पढ़ाई सँभालते हैं? स्वतंत्र विद्यार्थी के रूप में खाता बनाएँ (18+)",
+  "Development accounts": "डेवलपमेंट खाते",
+  "Explore the preview with synthetic accounts. These shortcuts are unavailable in live mode.":
+    "नमूना खातों से प्रीव्यू देखें। लाइव सेवा में ये शॉर्टकट उपलब्ध नहीं होंगे।",
+  "Create your own student account": "अपना विद्यार्थी खाता बनाएँ",
+  "Start by verifying your own email. Then review your readiness, age declaration and education details. Independent setup is currently for students aged 18+.":
+    "पहले अपने ईमेल की पुष्टि करें। फिर तैयारी, उम्र की घोषणा और पढ़ाई की जानकारी की समीक्षा करें। स्वतंत्र सेटअप फ़िलहाल 18 वर्ष या अधिक के विद्यार्थियों के लिए है।",
+  "This account already has a setup": "इस खाते का सेटअप पहले से है",
+  "An existing managed student, teacher or staff account cannot become an independent student account.":
+    "मौजूदा खाते को स्वतंत्र विद्यार्थी खाते में नहीं बदला जा सकता।",
+  "Return to my account": "अपने खाते पर लौटें",
+  "Student account": "विद्यार्थी खाता",
+  "My learning": "मेरी पढ़ाई",
+  "My enquiries": "मेरी पूछताछ",
+  "Hiring & arrangements": "नियुक्ति और व्यवस्थाएँ",
+  "Learning support": "पढ़ाई में मदद",
+  "Devices & recovery": "उपकरण और वापसी",
+  Help: "सहायता",
+  "Account privacy": "खाते की गोपनीयता",
+  "Your information and privacy.": "आपकी जानकारी और गोपनीयता।",
+  "Review each request and follow its current status.":
+    "हर अनुरोध की समीक्षा करें और मौजूदा स्थिति देखें।",
+  "Skip to content": "मुख्य सामग्री पर जाएँ",
+  "Choose suitable weekdays and broad time ranges in India Standard Time. These help us find a teacher; they do not book classes or set a lesson length.":
+    "भारतीय समय के अनुसार सुविधाजनक दिन और समय चुनें। इनसे शिक्षक खोजने में मदद मिलेगी; कक्षा बुक या अवधि तय नहीं होगी।",
+  "Preferred day": "पसंदीदा दिन",
+  "Choose a day": "दिन चुनें",
+  "Available from": "कब से उपलब्ध",
+  "Available until": "कब तक उपलब्ध",
+  "Remove weekly range": "समय हटाएँ",
+  Remove: "हटाएँ",
+  "Add another day/time range": "एक और दिन/समय जोड़ें",
+  "Ranges must not overlap on the same day. Use 00:00 as the end time for midnight at the end of that day.":
+    "एक दिन के समय आपस में नहीं टकराने चाहिए। दिन के अंत की मध्यरात्रि के लिए 00:00 चुनें।",
+  "Administrator access is required for this console.":
+    "इस कंसोल के लिए प्रशासक की अनुमति ज़रूरी है।",
+  "Make every decision traceable.": "हर निर्णय का स्पष्ट रिकॉर्ड रखें।",
+  "Inspect supervised account links, review privacy decisions and recover permitted work. Every change needs a reason and a current record.":
+    "खातों के संबंध, गोपनीयता निर्णय और अनुमत काम की बहाली देखें। हर बदलाव के लिए कारण और मौजूदा रिकॉर्ड ज़रूरी है।",
+  "Private administrator workspace. Live release is blocked. Staff provisioning and commercial policy editing await their independent approval and version-history workflows.":
+    "निजी प्रशासक कार्यक्षेत्र। लाइव रिलीज़ बंद है। कर्मचारी खाते बनाने और व्यावसायिक नीतियाँ बदलने के लिए स्वतंत्र स्वीकृति और बदलावों का इतिहास ज़रूरी है।",
+  "Administrator workspaces": "प्रशासक कार्यक्षेत्र",
+  "Loading console state…": "कंसोल की स्थिति लोड हो रही है…",
+  "Console state could not be loaded.": "कंसोल की स्थिति लोड नहीं हुई।",
+  "Retry console state": "कंसोल फिर लोड करें",
+  "Feature controls": "सुविधाओं के नियंत्रण",
+  Recorded: "दर्ज किया गया",
+  "IST. Mode:": "IST। मोड:",
+  ". A flag change does not authorize release or prove provider readiness.":
+    "। सुविधा बदलने से रिलीज़ की अनुमति या प्रदाता की तैयारी की पुष्टि नहीं होती।",
+  "account records ·": "खातों के रिकॉर्ड ·",
+  "privacy requests awaiting review.":
+    "गोपनीयता अनुरोध समीक्षा के इंतज़ार में।",
+  "Masked calls": "नंबर छिपाकर कॉल",
+  Enabled: "चालू",
+  Paused: "रुका हुआ",
+  "· Version": "· संस्करण",
+  "Activation is blocked until reviewed provider/release evidence exists.":
+    "समीक्षित प्रदाता और रिलीज़ प्रमाण मिलने तक चालू करना बंद है।",
+  "Review pause": "रोकने की समीक्षा करें",
+  "Review enable": "चालू करने की समीक्षा करें",
+  "Regional supply snapshot": "क्षेत्रवार शिक्षक उपलब्धता",
+  "Recorded teacher profile statuses, grouped by region. Approval status alone does not prove current screening, available capacity or a qualified pilot supply.":
+    "क्षेत्र के अनुसार शिक्षक प्रोफ़ाइल की दर्ज स्थितियाँ। केवल स्वीकृति से वर्तमान जाँच, खाली क्षमता या पायलट की तैयारी सिद्ध नहीं होती।",
+  profiles: "प्रोफ़ाइल",
+  "No supply records.": "उपलब्धता का कोई रिकॉर्ड नहीं है।",
+  "Up to": "अधिकतम",
+  "region/status groups. Region and service configuration changes remain pending.":
+    "क्षेत्र/स्थिति समूह। क्षेत्र और सेवा के विन्यास में बदलाव अभी बाकी हैं।",
+  "Current commercial rules": "मौजूदा व्यावसायिक नियम",
+  "Read-only examples from the code's current pricing functions. Accepted terms remain immutable; policy editing, history and rollback require the separate configuration workflow.":
+    "वर्तमान मूल्य निर्धारण के केवल पढ़ने योग्य उदाहरण। स्वीकार की गई शर्तें स्थिर रहती हैं; नीति बदलने, इतिहास और वापसी के लिए अलग प्रक्रिया ज़रूरी है।",
+  "Placement fee examples": "शिक्षक नियुक्ति शुल्क के उदाहरण",
+  "monthly tuition →": "मासिक ट्यूशन →",
+  "platform fee": "प्लेटफ़ॉर्म शुल्क",
+  "Revision prices": "पुनरावृत्ति कक्षा के मूल्य",
+  "minutes ·": "मिनट ·",
+  "Integration and release state": "एकीकरण और रिलीज़ की स्थिति",
+  "These are configured modes, not uptime checks or qualification. Current live adapters remain unqualified.":
+    "ये विन्यास में चुने गए मोड हैं, उपलब्धता या योग्यता की जाँच नहीं। मौजूदा लाइव एकीकरणों का सत्यापन बाकी है।",
+  "Live release:": "लाइव रिलीज़:",
+  ". Provider qualification:": "। प्रदाता सत्यापन:",
+  ". This console cannot override the release verifier.":
+    "। यह कंसोल रिलीज़ जाँच को दरकिनार नहीं कर सकता।",
+  "Specialist workspaces": "विशेषज्ञ कार्यक्षेत्र",
+  "Teacher screening & private evidence": "शिक्षक की जाँच और निजी प्रमाण",
+  "Matching & publication": "मिलान और प्रकाशन",
+  "Support & disputes": "सहायता और विवाद",
+  "Operational reports & cohorts": "संचालन रिपोर्ट और समूह",
+  "Finance & recorded obligations": "वित्त और दर्ज देनदारियाँ",
+  "Sensitive account grants, impersonation and arbitrary database edits are unavailable. B2/B3 retain staff approval/provisioning and commercial configuration work. Live provider delivery, backup restore and operational release acceptance remain separate.":
+    "संवेदनशील खाता अनुमतियाँ, किसी अन्य के रूप में प्रवेश और मनमाने डेटाबेस बदलाव उपलब्ध नहीं हैं। कर्मचारी स्वीकृति और व्यावसायिक विन्यास B2/B3 में हैं। लाइव सेवा, बैकअप बहाली और संचालन रिलीज़ की स्वीकृति अलग हैं।",
+  "People & supervised linkage": "लोग और संबंधित खाते",
+  "Minimal account status and supervised learner/teacher links. Contact details, notes, feedback, session credentials and impersonation are excluded.":
+    "खाते की सीमित स्थिति और अभिभावक, विद्यार्थी व शिक्षक के संबंध। संपर्क, नोट्स, प्रतिक्रिया, सत्र की गुप्त जानकारी और दूसरे के रूप में प्रवेश शामिल नहीं हैं।",
+  "Account role": "खाते की भूमिका",
+  "All roles": "सभी भूमिकाएँ",
+  "Exact account ID (optional)": "सटीक खाता ID (वैकल्पिक)",
+  "Apply account ID": "खाता ID लागू करें",
+  "Loading account directory…": "खातों की सूची लोड हो रही है…",
+  "Account directory unavailable.": "खातों की सूची उपलब्ध नहीं है।",
+  "Retry account directory": "खातों की सूची फिर लोड करें",
+  "No accounts match these filters.": "इन फ़िल्टर से कोई खाता नहीं मिला।",
+  Disabled: "बंद किया गया",
+  Verified: "सत्यापित",
+  Unverified: "असत्यापित",
+  "Inspect linkage": "खातों का संबंध देखें",
+  "Load more accounts": "और खाते लोड करें",
+  "Recorded account linkage": "खाते के दर्ज संबंध",
+  "Loading supervised linkage…": "संबंधित खाते लोड हो रहे हैं…",
+  "Linkage unavailable.": "संबंध उपलब्ध नहीं हैं।",
+  "Retry account linkage": "खातों के संबंध फिर लोड करें",
+  "Class {0}, {1}": "कक्षा {0}, {1}",
+  Guardian: "अभिभावक",
+  "Student {0} · {1}": "विद्यार्थी {0} · {1}",
+  "No student account link": "विद्यार्थी का खाता नहीं जुड़ा है",
+  "No guardian/student learner links recorded.":
+    "अभिभावक और विद्यार्थी का कोई संबंध दर्ज नहीं है।",
+  Teacher: "शिक्षक",
+  "· Profile revision": "· प्रोफ़ाइल संशोधन",
+  Latest: "नवीनतम",
+  "linkage records. Staff grants, verification and account changes require their separate approved workflow.":
+    "संबंधों के रिकॉर्ड। कर्मचारी अनुमतियाँ, सत्यापन और खाते के बदलावों के लिए अलग स्वीकृत प्रक्रिया ज़रूरी है।",
+  "Private correction & deletion review": "निजी सुधार और मिटाने की समीक्षा",
+  "Review the recorded request and policy before acting. Rejecting a deletion request does not automatically restore consent, student access or teacher approval.":
+    "कार्रवाई से पहले दर्ज अनुरोध और नीति जाँचें। मिटाने का अनुरोध अस्वीकार करने से सहमति, विद्यार्थी की पहुँच या शिक्षक की स्वीकृति वापस नहीं आती।",
+  "Privacy request status": "गोपनीयता अनुरोध की स्थिति",
+  "Privacy queue unavailable.": "गोपनीयता कतार उपलब्ध नहीं है।",
+  "Retry privacy queue": "गोपनीयता कतार फिर लोड करें",
+  "No privacy requests in this status.":
+    "इस स्थिति में कोई गोपनीयता अनुरोध नहीं है।",
+  IST: "IST",
+  "Recorded outcome:": "दर्ज नतीजा:",
+  "· Policy": "· नीति",
+  "Another administrator must review your request.":
+    "आपके अनुरोध की समीक्षा किसी दूसरे प्रशासक को करनी होगी।",
+  "Load more privacy requests": "और गोपनीयता अनुरोध लोड करें",
+  "Recovery queue": "काम की बहाली की कतार",
+  "Sanitized oldest-50 unprocessed jobs. Only exhausted private scan/deletion jobs have this reviewed retry; payment, meeting and delivery jobs require their dedicated recovery workflow. A queued retry does not prove processing.":
+    "बिना संवेदनशील जानकारी वाले सबसे पुराने 50 अधूरे काम। केवल सभी प्रयास समाप्त हुए निजी स्कैन या मिटाने के काम दोबारा चल सकते हैं। भुगतान, बैठक और संदेश की बहाली अलग प्रक्रिया है। कतार में जुड़ना काम पूरा होना नहीं है।",
+  "Recovery job filter": "बहाली के काम का फ़िल्टर",
+  "Exhausted attempts": "सभी प्रयास समाप्त",
+  "All unprocessed (including exhausted)":
+    "सभी अधूरे काम (प्रयास समाप्त वाले भी)",
+  "Loading recovery jobs…": "बहाली के काम लोड हो रहे हैं…",
+  "Recovery jobs unavailable.": "बहाली के काम उपलब्ध नहीं हैं।",
+  "Retry recovery queue": "बहाली की कतार फिर लोड करें",
+  "No recovery jobs in this filter.":
+    "इस फ़िल्टर में कोई बहाली का काम नहीं है।",
+  "attempts ·": "प्रयास ·",
+  Job: "काम",
+  "· Resource": "· संसाधन",
+  "Review retry": "दोबारा प्रयास की समीक्षा करें",
+  "Backup deletion replay ledger":
+    "बैकअप में मिटाने की पुनर्प्रक्रिया का रिकॉर्ड",
+  "Immutable deletion markers preserve policy and retention exceptions. Replay after a separately verified restore to reapply application scrubbing. This does not perform or qualify a backup restore, erase external backups or verify private-file delivery.":
+    "स्थिर मिटाने के चिह्न नीति और रिकॉर्ड रखने के अपवाद सुरक्षित रखते हैं। अलग से सत्यापित बहाली के बाद फिर चलाकर अनुप्रयोग का डेटा साफ़ करें। इससे बैकअप बहाल या सत्यापित नहीं होता, बाहरी बैकअप नहीं मिटते और निजी फ़ाइल वितरण की पुष्टि नहीं होती।",
+  "Loading deletion ledger…": "मिटाने का रिकॉर्ड लोड हो रहा है…",
+  "Deletion ledger unavailable.": "मिटाने का रिकॉर्ड उपलब्ध नहीं है।",
+  "Retry deletion ledger": "मिटाने का रिकॉर्ड फिर लोड करें",
+  "No deletion markers recorded.": "मिटाने का कोई चिह्न दर्ज नहीं है।",
+  Policy: "नीति",
+  "Review replay": "दोबारा चलाने की समीक्षा करें",
+  "Load more deletion markers": "मिटाने के और चिह्न लोड करें",
+  "Append-only audit history": "केवल नए रिकॉर्ड जोड़ने वाला ऑडिट इतिहास",
+  "Recorded actions, resources and reasons. Raw before/after payloads and actor credentials are excluded. Reads are audited too.":
+    "दर्ज कार्रवाइयाँ, संसाधन और कारण। बदलाव से पहले/बाद का पूरा डेटा और उपयोगकर्ता की गुप्त जानकारी शामिल नहीं है। पढ़ने का रिकॉर्ड भी रखा जाता है।",
+  "Exact audit action (optional)": "सटीक ऑडिट कार्रवाई (वैकल्पिक)",
+  "Apply audit action": "ऑडिट कार्रवाई लागू करें",
+  "Loading audit history…": "ऑडिट इतिहास लोड हो रहा है…",
+  "Audit history unavailable.": "ऑडिट इतिहास उपलब्ध नहीं है।",
+  "Retry audit history": "ऑडिट इतिहास फिर लोड करें",
+  "No audit records match this action.":
+    "इस कार्रवाई का कोई ऑडिट रिकॉर्ड नहीं मिला।",
+  Resource: "संसाधन",
+  "Load earlier audit records": "पुराने ऑडिट रिकॉर्ड लोड करें",
+  Record: "रिकॉर्ड",
+  " · Version {0}": " · संस्करण {0}",
+  "Owner request:": "खाते के मालिक का अनुरोध:",
+  "Deletion scrubs the selected scope while retaining financial, learning, safety and audit evidence under the recorded exception. Private-file processing and backup replay remain separate. Rejection does not restore paused consent or approval.":
+    "मिटाने पर चुने हुए दायरे का डेटा साफ़ होता है, जबकि दर्ज अपवाद के तहत वित्तीय, सीखने, सुरक्षा और ऑडिट प्रमाण रखे जाते हैं। निजी फ़ाइल और बैकअप की प्रक्रिया अलग है। अस्वीकृति से रुकी हुई सहमति या स्वीकृति वापस नहीं आती।",
+  "Fulfilment applies the recorded note correction, returns the note to private and clears previous acknowledgement. Rejection records the assessment without applying the proposed correction.":
+    "पूरा करने पर दर्ज नोट का सुधार लागू होगा, नोट निजी हो जाएगा और पुरानी पुष्टि हट जाएगी। अस्वीकृति में प्रस्तावित सुधार लागू किए बिना आकलन दर्ज होगा।",
+  "Fulfilment applies the recorded name correction in its owned scope. Verification, consent and approval remain separate; rejection leaves the proposed correction unapplied.":
+    "पूरा करने पर खाते के अपने दायरे में दर्ज नाम का सुधार लागू होगा। सत्यापन, सहमति और स्वीकृति अलग हैं; अस्वीकृति में प्रस्तावित सुधार लागू नहीं होगा।",
+  Enable: "चालू करें",
+  Pause: "रोकें",
+  ". Existing financial/service evidence is preserved. This does not authorize a production cohort or override the release gate.":
+    "। मौजूदा वित्तीय और सेवा प्रमाण सुरक्षित रहेंगे। इससे उत्पादन समूह खोलने या रिलीज़ रोक हटाने की अनुमति नहीं मिलती।",
+  Retry: "दोबारा प्रयास करें",
+  "for resource": "इस संसाधन के लिए",
+  ". The server rechecks its current private-media state. Payment, meeting and notification recovery are not performed by this action.":
+    "। सर्वर निजी मीडिया की मौजूदा स्थिति फिर जाँचता है। इस कार्रवाई से भुगतान, बैठक या सूचना की बहाली नहीं होती।",
+  "Reapply application scrubbing for": "अनुप्रयोग का डेटा फिर साफ़ करें:",
+  ". Retention policy": "। रिकॉर्ड रखने की नीति",
+  ". Restore validation and external-backup erasure are separate.":
+    "। बहाली का सत्यापन और बाहरी बैकअप मिटाना अलग हैं।",
+  "This record is no longer actionable in the current queue. Close this review and inspect its recorded outcome.":
+    "मौजूदा कतार में इस रिकॉर्ड पर अब कार्रवाई नहीं हो सकती। समीक्षा बंद करके दर्ज नतीजा देखें।",
+  "Privacy decision": "गोपनीयता निर्णय",
+  "Choose after reviewing": "समीक्षा के बाद चुनें",
+  "Fulfil request": "अनुरोध पूरा करें",
+  "Reject with recorded reason": "कारण दर्ज करके अस्वीकार करें",
+  "Reviewed policy version": "समीक्षित नीति का संस्करण",
+  "Approved retention exception": "स्वीकृत रिकॉर्ड रखने का अपवाद",
+  "Verified restore reference": "सत्यापित बहाली का संदर्भ",
+  "Reason for this decision": "इस निर्णय का कारण",
+  "Review effects and reason": "असर और कारण की समीक्षा करें",
+  "Decision:": "निर्णय:",
+  " · Retention exception: {0}": " · रिकॉर्ड रखने का अपवाद: {0}",
+  "Verified restore reference:": "सत्यापित बहाली का संदर्भ:",
+  "I reviewed this evidence, reason and effects, and want to record this decision.":
+    "मैंने प्रमाण, कारण और असर की समीक्षा कर ली है और यह निर्णय दर्ज करना चाहता/चाहती हूँ।",
+  "Back to decision details": "निर्णय के विवरण पर लौटें",
+  "Confirm reviewed decision": "समीक्षित निर्णय की पुष्टि करें",
+  "Retry identical administrator decision": "वही प्रशासक निर्णय फिर भेजें",
+  "Refresh administrator review": "प्रशासक समीक्षा फिर लोड करें",
+  "Reload current decision record": "निर्णय का मौजूदा रिकॉर्ड फिर लोड करें",
+  "Close recorded decision": "दर्ज निर्णय बंद करें",
+  "Discard decision draft": "निर्णय का मसौदा हटाएँ",
+  "Private meeting access": "निजी बैठक में प्रवेश",
+  "Your private meeting": "आपकी निजी बैठक",
+  "Development preview": "विकास संस्करण",
+  "Awaiting meeting": "बैठक का इंतज़ार",
+  "Checking private meeting access…": "निजी बैठक में प्रवेश की जाँच हो रही है…",
+  "Refresh access or contact support.":
+    "प्रवेश फिर जाँचें या सहायता से संपर्क करें।",
+  "A private meeting has not been created for this booking. Home lessons do not need a meeting link; contact support if an online link is missing.":
+    "इस बुकिंग की निजी बैठक नहीं बनी है। घर पर पढ़ाई के लिए बैठक लिंक नहीं चाहिए; ऑनलाइन लिंक न मिले तो सहायता से संपर्क करें।",
+  "This development meeting cannot be joined. No live Google Meet session is provided.":
+    "इस विकास संस्करण की बैठक में शामिल नहीं हो सकते। कोई लाइव Google Meet सत्र उपलब्ध नहीं है।",
+  "Meeting delivery needs attention. Contact support; refreshing checks the current state.":
+    "बैठक उपलब्ध कराने में समस्या है। सहायता से संपर्क करें; फिर लोड करने पर मौजूदा स्थिति जाँची जाएगी।",
+  "This meeting is cancelled.": "यह बैठक रद्द है।",
+  "Your private meeting is being prepared.": "आपकी निजी बैठक तैयार हो रही है।",
+  "Your join window is open.": "बैठक में शामिल होने का समय शुरू हो गया है।",
+  "The meeting join window has ended.":
+    "बैठक में शामिल होने का समय समाप्त हो गया है।",
+  "A valid Google Meet link is unavailable. Contact support.":
+    "मान्य Google Meet लिंक उपलब्ध नहीं है। सहायता से संपर्क करें।",
+  "The join link appears from ten minutes before the scheduled start until fifteen minutes after the scheduled end.":
+    "शामिल होने का लिंक निर्धारित शुरुआत से दस मिनट पहले से अंत के पंद्रह मिनट बाद तक दिखता है।",
+  "Join Google Meet": "Google Meet में शामिल हों",
+  "Refresh meeting access": "बैठक में प्रवेश फिर जाँचें",
+  "Get meeting help": "बैठक के लिए मदद लें",
+  "Revision checkout": "पुनरावृत्ति कक्षा का भुगतान",
+  "Invoice checkout": "चालान का भुगतान",
+  "Revision session total": "पुनरावृत्ति सत्र की कुल राशि",
+  "Teacher placement fee": "शिक्षक नियुक्ति शुल्क",
+  "INR ·": "INR ·",
+  "Payment captured by the server": "सर्वर ने भुगतान मिलने की पुष्टि की",
+  "Your saved checkout": "आपका सहेजा गया भुगतान",
+  "Review before payment": "भुगतान से पहले समीक्षा करें",
+  "Expert scope acceptance, payment capture and slot allocation are separate checks. The booking is confirmed only when its status says confirmed.":
+    "विशेषज्ञ द्वारा दायरा स्वीकार करना, भुगतान मिलना और समय आवंटन अलग जाँचें हैं। बुकिंग तभी पक्की है जब उसकी स्थिति पक्की बताए।",
+  "This pays the teacher placement invoice. Family tuition is paid directly to the teacher.":
+    "यह शिक्षक नियुक्ति का चालान चुकाता है। ट्यूशन शुल्क परिवार सीधे शिक्षक को देता है।",
+  "Checking saved checkout…": "सहेजे गए भुगतान की जाँच हो रही है…",
+  Order: "ऑर्डर",
+  "The saved order does not match this amount or booking. Contact support before paying.":
+    "सहेजा गया ऑर्डर इस राशि या बुकिंग से मेल नहीं खाता। भुगतान से पहले सहायता से संपर्क करें।",
+  "This is a local sandbox order. It cannot charge money or open Razorpay. No live payment is confirmed.":
+    "यह स्थानीय परीक्षण ऑर्डर है। इससे पैसे नहीं कट सकते और Razorpay नहीं खुल सकता। किसी लाइव भुगतान की पुष्टि नहीं है।",
+  "Payment capture is recorded. Review the booking or invoice status separately; refunds and settlement are separate processes.":
+    "भुगतान मिलने का रिकॉर्ड दर्ज है। बुकिंग या चालान की स्थिति अलग देखें; पैसे वापसी और निपटान अलग प्रक्रियाएँ हैं।",
+  "Checkout needs provider review. Contact support before creating another payment.":
+    "भुगतान के लिए प्रदाता की समीक्षा ज़रूरी है। नया भुगतान बनाने से पहले सहायता से संपर्क करें।",
+  "Razorpay checkout configuration is unavailable. Your order remains saved; contact support.":
+    "Razorpay भुगतान का विन्यास उपलब्ध नहीं है। आपका ऑर्डर सहेजा हुआ है; सहायता से संपर्क करें।",
+  "Secure checkout could not load. Refresh the page to retry this saved order.":
+    "सुरक्षित भुगतान लोड नहीं हुआ। इसी सहेजे ऑर्डर के लिए पृष्ठ फिर लोड करें।",
+  "Review payment": "भुगतान की समीक्षा करें",
+  "Checkout open…": "भुगतान खुला है…",
+  "Awaiting payment confirmation": "भुगतान की पुष्टि का इंतज़ार",
+  "Continue to Razorpay": "Razorpay पर जाएँ",
+  "Review payment terms": "भुगतान की शर्तें देखें",
+  "Check payment status": "भुगतान की स्थिति जाँचें",
+  "Refresh page to reload checkout": "भुगतान फिर खोलने के लिए पृष्ठ लोड करें",
+  "Confirm the payment basis": "भुगतान के आधार की पुष्टि करें",
+  under: "के तहत",
+  "No syllabus or score guarantee. Cancellation, allocation loss and refunds require the current policy and support review; no settled refund is promised.":
+    "पाठ्यक्रम या अंकों की गारंटी नहीं है। रद्द करना, आवंटन खोना और पैसे वापसी वर्तमान नीति व सहायता की समीक्षा पर निर्भर हैं; पैसे लौटने का वादा नहीं है।",
+  "The server-owned invoice amount and policy apply. This is separate from monthly tuition.":
+    "सर्वर पर दर्ज चालान राशि और नीति लागू होती है। यह मासिक ट्यूशन से अलग है।",
+  "I reviewed the exact amount, payment basis and pending refund/settlement limits.":
+    "मैंने सटीक राशि, भुगतान का आधार और पैसे वापसी/निपटान की सीमाएँ जाँच ली हैं।",
+  "Cancel review": "समीक्षा रद्द करें",
+  "Save payment review": "भुगतान समीक्षा सहेजें",
+  "Create secure checkout": "सुरक्षित भुगतान बनाएँ",
+  "Get payment help": "भुगतान के लिए मदद लें",
+  "Choose an option": "एक विकल्प चुनें",
+  "Enter another": "दूसरा विकल्प दर्ज करें",
+  "Demo start (IST)": "डेमो की शुरुआत (IST)",
+  "Demo duration": "डेमो की अवधि",
+  "20 minutes": "20 मिनट",
+  "30 minutes": "30 मिनट",
+  "40 minutes": "40 मिनट",
+  "Reason for rescheduling": "समय बदलने का कारण",
+  "At least one hour ahead, within 60 days. Both parties must accept the same time. Proposals expire within 24 hours.":
+    "कम से कम एक घंटे बाद और 60 दिनों के भीतर। दोनों पक्षों को एक ही समय स्वीकार करना होगा। प्रस्ताव 24 घंटों में समाप्त होते हैं।",
+  "Propose new demo time": "नए डेमो समय का प्रस्ताव दें",
+  "Propose demo": "डेमो का प्रस्ताव दें",
+  "Loading demos…": "डेमो लोड हो रहे हैं…",
+  "Demo dispute reviews": "डेमो विवादों की समीक्षा",
+  "Demo scheduling": "डेमो का समय तय करना",
+  "Your demos": "आपके डेमो",
+  "No demo disputes awaiting review.":
+    "समीक्षा के इंतज़ार में कोई डेमो विवाद नहीं है।",
+  "Arrange a demo from an accepted teacher recommendation in Tuition requests.":
+    "ट्यूशन अनुरोधों में स्वीकार किए शिक्षक सुझाव से डेमो तय करें।",
+  "Demo with {0}": "{0} के साथ डेमो",
+  "Demo with": "डेमो इनके साथ",
+  "proposal expired": "प्रस्ताव समाप्त",
+  "· IST": "· IST",
+  Version: "संस्करण",
+  "· Guardian": "· अभिभावक",
+  accepted: "स्वीकार किया",
+  pending: "इंतज़ार में",
+  "· Teacher": "· शिक्षक",
+  "Accept before": "इससे पहले स्वीकार करें",
+  "This is a scheduling record. Private meeting access is provided separately when a meeting is ready.":
+    "यह समय तय करने का रिकॉर्ड है। बैठक तैयार होने पर निजी प्रवेश अलग से उपलब्ध होगा।",
+  "Your recorded outcome:": "आपका दर्ज नतीजा:",
+  "Support case": "सहायता का मामला",
+  ": awaiting operator review. Tuition terms remain blocked.":
+    ": संचालन टीम की समीक्षा का इंतज़ार। ट्यूशन की शर्तें अभी बंद हैं।",
+  "Accept demo time": "डेमो का समय स्वीकार करें",
+  "Reschedule demo": "डेमो का समय बदलें",
+  "Cancellation reason": "रद्द करने का कारण",
+  "Cancel demo": "डेमो रद्द करें",
+  "Demo outcome": "डेमो का नतीजा",
+  "No-show": "अनुपस्थित",
+  Disputed: "विवादित",
+  "Outcome details": "नतीजे का विवरण",
+  "Record demo outcome": "डेमो का नतीजा दर्ज करें",
+  "Reviewed demo resolution": "समीक्षित डेमो समाधान",
+  "Not completed": "पूरा नहीं हुआ",
+  "Completed after evidence review": "प्रमाण की समीक्षा के बाद पूरा",
+  "Review evidence and reason": "प्रमाण और कारण की समीक्षा करें",
+  "Resolve demo dispute": "डेमो विवाद सुलझाएँ",
+  "Language / भाषा": "Language / भाषा",
+  "you@example.com": "you@example.com",
+  "Your family’s learning, together.": "परिवार के साथ सीखने की राह।",
+  "Your next step in learning.": "सीखने की दिशा में आपका अगला कदम।",
+  "See what’s coming up, manage student access and keep your family’s learning moving.":
+    "आगे की जानकारी देखें, विद्यार्थी की पहुँच सँभालें और परिवार की पढ़ाई आगे बढ़ाएँ।",
+  "Your classes and learning team are here. Your guardian manages purchases, consent and private family notes.":
+    "आपकी कक्षाएँ और सीखने की टीम यहाँ हैं। खरीद, सहमति और निजी पारिवारिक नोट्स अभिभावक सँभालता है।",
+  "Guardian verification is pending. Learner entry and student authorization are unavailable until your account is approved.":
+    "अभिभावक का सत्यापन बाकी है। स्वीकृति मिलने तक विद्यार्थी की जानकारी दर्ज करना और प्रवेश देना उपलब्ध नहीं है।",
+  "Guardian consent is pending or withdrawn. New matching and student authorization are paused.":
+    "अभिभावक की सहमति बाकी है या वापस ली गई है। नए मिलान और विद्यार्थी की पहुँच रोक दी गई है।",
+  "Review guardian onboarding": "अभिभावक की शुरुआत की समीक्षा करें",
+  "Family activity": "परिवार की गतिविधि",
+  "Your learning activity": "आपकी पढ़ाई की गतिविधि",
+  "IST ·": "IST ·",
+  "All learners": "सभी विद्यार्थी",
+  "Your records": "आपके रिकॉर्ड",
+  "Classes taken count completed, undisputed lessons marked present or late. This summary comes from your recorded activity.":
+    "ली गई कक्षाओं में पूरी हुई, निर्विवाद और उपस्थित या देर से आए चिह्नित कक्षाएँ गिनी जाती हैं। यह सारांश आपकी दर्ज गतिविधि से बना है।",
+  "Your learners": "आपके विद्यार्थी",
+  "Add a learner through tuition onboarding":
+    "ट्यूशन की शुरुआत के ज़रिए विद्यार्थी जोड़ें",
+  Manage: "सँभालें",
+  "’s access": "की पहुँच",
+  "No learners yet. Complete guardian onboarding to add a learner and their tuition needs.":
+    "अभी कोई विद्यार्थी नहीं है। विद्यार्थी और ट्यूशन की ज़रूरत जोड़ने के लिए अभिभावक की शुरुआत पूरी करें।",
+  "Coming up next": "आगे क्या है",
+  "View classes": "कक्षाएँ देखें",
+  "Your learner": "आपका विद्यार्थी",
+  "· Scheduled": "· निर्धारित",
+  "No upcoming class is shown here. Open classes to review your available learning records.":
+    "यहाँ अगली कक्षा नहीं दिख रही। उपलब्ध रिकॉर्ड देखने के लिए कक्षाएँ खोलें।",
+  "Your learning team": "आपकी सीखने की टीम",
+  View: "देखें",
+  "’s profile": "की प्रोफ़ाइल",
+  "An assigned teacher’s public profile is currently unavailable. Contact support for help.":
+    "नियुक्त शिक्षक की सार्वजनिक प्रोफ़ाइल अभी उपलब्ध नहीं है। सहायता से संपर्क करें।",
+  "No active teacher assignment yet.":
+    "अभी कोई सक्रिय शिक्षक नियुक्ति नहीं है।",
+  "Review tuition requests": "ट्यूशन अनुरोध देखें",
+  "Your family stays in control.": "आपके परिवार के पास नियंत्रण रहता है।",
+  "Review authorized student sessions and manage consent. Student spaces keep guardian purchases and private notes out of view.":
+    "अनुमत विद्यार्थी सत्र देखें और सहमति सँभालें। विद्यार्थी के स्थान में अभिभावक की खरीद और निजी नोट्स नहीं दिखते।",
+  "Learners & access": "विद्यार्थी और पहुँच",
+  "Finance access is required to view these records.":
+    "इन रिकॉर्ड के लिए वित्त की अनुमति ज़रूरी है।",
+  "Every amount, with its evidence.": "हर राशि, उसके प्रमाण के साथ।",
+  "Review recorded invoices, captures and obligations. Query a checkout's provider status without treating it as settlement or changing its payment state.":
+    "दर्ज चालान, मिले भुगतान और देनदारियाँ देखें। निपटान माने या भुगतान की स्थिति बदले बिना प्रदाता से ऑर्डर की स्थिति पूछें।",
+  "Development finance workspace. Captured funds, pending refunds and eligible teacher payables are separate records. Provider settlement is unverified; refund and payout execution remain pending.":
+    "विकास संस्करण का वित्त कार्यक्षेत्र। मिले भुगतान, लंबित पैसे वापसी और शिक्षक की देय राशि अलग रिकॉर्ड हैं। प्रदाता के निपटान का सत्यापन तथा पैसे वापसी और भुगतान करना बाकी है।",
+  "Financial records": "वित्तीय रिकॉर्ड",
+  "ADMIN and FINANCE have audited global finance access. This queue uses stable record-ID order, not chronological order; dates are shown only when recorded.":
+    "प्रशासक और वित्त टीम की वैश्विक पहुँच का ऑडिट होता है। कतार स्थिर रिकॉर्ड ID क्रम में है, तारीख़ के क्रम में नहीं; तारीख़ केवल दर्ज होने पर दिखती है।",
+  "Recorded status": "दर्ज स्थिति",
+  "Exact record ID (optional)": "सटीक रिकॉर्ड ID (वैकल्पिक)",
+  "Apply record ID": "रिकॉर्ड ID लागू करें",
+  "Loading financial records…": "वित्तीय रिकॉर्ड लोड हो रहे हैं…",
+  "Financial records could not be loaded.": "वित्तीय रिकॉर्ड लोड नहीं हुए।",
+  "Retry financial records": "वित्तीय रिकॉर्ड फिर लोड करें",
+  "No records match these filters.": "इन फ़िल्टर से कोई रिकॉर्ड नहीं मिला।",
+  "Local sandbox evidence": "स्थानीय परीक्षण का प्रमाण",
+  "Live provider mode; settlement unverified":
+    "लाइव प्रदाता मोड; निपटान असत्यापित",
+  "Provider mode not recorded": "प्रदाता मोड दर्ज नहीं है",
+  "{0} IST": "{0} IST",
+  "Creation date not recorded": "बनने की तारीख़ दर्ज नहीं है",
+  "Inspect record": "रिकॉर्ड देखें",
+  "Load more financial records": "और वित्तीय रिकॉर्ड लोड करें",
+  "Refresh financial records": "वित्तीय रिकॉर्ड फिर लोड करें",
+  "Queues page 20 records at a time. Eligible payables are obligations, not payouts. Pending refunds have no provider settlement evidence. Periodic provider reconciliation, refunds, payouts and immutable adjustments remain tracked separately.":
+    "एक बार में 20 रिकॉर्ड दिखते हैं। पात्र देय राशियाँ देनदारियाँ हैं, किए गए भुगतान नहीं। लंबित पैसे वापसी के लिए प्रदाता के निपटान का प्रमाण नहीं है। नियमित मिलान, पैसे वापसी, भुगतान और स्थिर समायोजन अलग कार्य हैं।",
+  "Recorded amounts and obligations": "दर्ज राशियाँ और देनदारियाँ",
+  "Capture, refund-request and payable totals use the date range below. Outstanding invoices are current across all dates. Local sandbox captures may be included; these totals are not bank settlement.":
+    "मिले भुगतान, पैसे वापसी के अनुरोध और देय राशियाँ नीचे की अवधि के हैं। बाकी चालान सभी तारीख़ों के वर्तमान हैं। स्थानीय परीक्षण के भुगतान शामिल हो सकते हैं; ये बैंक निपटान नहीं हैं।",
+  "Recorded from (IST)": "रिकॉर्ड की शुरुआत (IST)",
+  "Recorded through (IST)": "रिकॉर्ड का अंत (IST)",
+  "Apply report dates": "रिपोर्ट की तारीख़ें लागू करें",
+  "Loading recorded totals…": "दर्ज कुल राशियाँ लोड हो रही हैं…",
+  "Recorded totals could not be loaded.": "दर्ज कुल राशियाँ लोड नहीं हुईं।",
+  "Retry finance totals": "वित्त के कुल आँकड़े फिर लोड करें",
+  "Shown range:": "दिखाई गई अवधि:",
+  "IST (end excluded). Recorded as of":
+    "IST (अंत शामिल नहीं)। रिकॉर्ड इस समय तक:",
+  "IST.": "IST।",
+  "Recorded captures": "दर्ज मिले भुगतान",
+  "payment records · settlement unverified":
+    "भुगतान रिकॉर्ड · निपटान असत्यापित",
+  "Pending refund requests": "पैसे वापसी के लंबित अनुरोध",
+  "requests · not refunded": "अनुरोध · पैसे नहीं लौटे",
+  "Outstanding invoices": "बाकी चालान",
+  "invoices · current across all dates": "चालान · सभी तारीख़ों के वर्तमान",
+  "Teacher obligations by recorded status":
+    "दर्ज स्थिति के अनुसार शिक्षक की देनदारियाँ",
+  "records · not paid out": "रिकॉर्ड · भुगतान नहीं हुआ",
+  "No teacher payable records in this range.":
+    "इस अवधि में शिक्षक की देय राशि का रिकॉर्ड नहीं है।",
+  "Inspect financial record": "वित्तीय रिकॉर्ड देखें",
+  "Record ID": "रिकॉर्ड ID",
+  "Recorded amount": "दर्ज राशि",
+  "Linked reference ID": "संबंधित संदर्भ ID",
+  "No linked reference": "कोई संबंधित संदर्भ नहीं है",
+  "Policy version": "नीति का संस्करण",
+  "Not recorded": "दर्ज नहीं है",
+  "Recorded eligibility date": "पात्रता की दर्ज तारीख़",
+  "{0} IST; payout unverified": "{0} IST; भुगतान असत्यापित",
+  "No eligibility date recorded": "पात्रता की तारीख़ दर्ज नहीं है",
+  "Recorded reason:": "दर्ज कारण:",
+  "Linked checkout": "संबंधित भुगतान",
+  "Loading current checkout…": "मौजूदा भुगतान लोड हो रहा है…",
+  "Current checkout is unavailable.": "मौजूदा भुगतान उपलब्ध नहीं है।",
+  "Retry current checkout": "मौजूदा भुगतान फिर लोड करें",
+  "Current local order:": "मौजूदा स्थानीय ऑर्डर:",
+  "Sandbox query returns local evidence only and never contacts Razorpay.":
+    "स्थानीय परीक्षण में केवल स्थानीय प्रमाण मिलता है; Razorpay से संपर्क नहीं होता।",
+  "This queries Razorpay order status. Signed capture processing remains separate; a paid provider status does not repair or settle the local order.":
+    "यह Razorpay ऑर्डर की स्थिति पूछता है। हस्ताक्षरित भुगतान की प्रक्रिया अलग है; प्रदाता पर भुगतान दिखने से स्थानीय ऑर्डर सुधरता या निपटता नहीं।",
+  "No provider order ID is recorded. Provider-attempt recovery is required before a provider query.":
+    "प्रदाता का ऑर्डर ID दर्ज नहीं है। प्रदाता से पूछने से पहले उस प्रयास की बहाली ज़रूरी है।",
+  "Reason for provider query": "प्रदाता से पूछने का कारण",
+  "Review provider query": "प्रदाता से पूछताछ की समीक्षा करें",
+  Checkout: "भुगतान",
+  Query: "पूछताछ",
+  "local sandbox": "स्थानीय परीक्षण",
+  provider: "प्रदाता",
+  "status. This records an audited query; it does not settle funds, execute a refund/payout, or change the local captured state.":
+    "की स्थिति। पूछताछ का ऑडिट रिकॉर्ड बनता है; इससे पैसे का निपटान, वापसी, भुगतान या स्थानीय प्राप्त भुगतान की स्थिति नहीं बदलती।",
+  "I reviewed this order and understand that the query does not establish settlement.":
+    "मैंने ऑर्डर जाँच लिया है और समझता/समझती हूँ कि पूछताछ निपटान की पुष्टि नहीं है।",
+  "Back to query reason": "पूछताछ के कारण पर लौटें",
+  "Confirm provider query": "प्रदाता से पूछने की पुष्टि करें",
+  "No checkout is linked to this record. Provider query is unavailable.":
+    "इस रिकॉर्ड से कोई भुगतान जुड़ा नहीं है। प्रदाता से पूछताछ उपलब्ध नहीं है।",
+  "Retry identical provider query": "वही प्रदाता पूछताछ फिर भेजें",
+  "Refresh for renewed review": "नई समीक्षा के लिए फिर लोड करें",
+  "Recorded query result:": "पूछताछ का दर्ज नतीजा:",
+  "Local sandbox only": "केवल स्थानीय परीक्षण",
+  ". Local checkout status returned:": "। मिली स्थानीय भुगतान स्थिति:",
+  ". Provider settlement remains unverified.":
+    "। प्रदाता का निपटान अभी असत्यापित है।",
+  "Discard query draft": "पूछताछ का मसौदा हटाएँ",
+  "Close record inspection": "रिकॉर्ड देखना बंद करें",
+  "Discard draft review": "मसौदा समीक्षा हटाएँ",
+  "Discard this unfinished enquiry?": "यह अधूरी पूछताछ हटाएँ?",
+  "This removes the saved criteria for this draft and any unsaved changes in this form. You will start again with your teacher choice.":
+    "इससे मसौदे की सहेजी ज़रूरतें और इस फ़ॉर्म के बिना सहेजे बदलाव हटेंगे। चुने हुए शिक्षक के साथ फिर शुरुआत होगी।",
+  "Your submitted enquiries, learner profiles and confirmed arrangements stay saved. This does not cancel a teacher arrangement or request deletion of your account.":
+    "भेजी गई पूछताछ, विद्यार्थी प्रोफ़ाइल और पक्की व्यवस्थाएँ सहेजी रहेंगी। इससे शिक्षक की व्यवस्था रद्द या खाता मिटाने का अनुरोध नहीं होता।",
+  "This draft is empty or already submitted. There is no unfinished draft to discard.":
+    "यह मसौदा खाली है या पहले भेजा जा चुका है। हटाने के लिए अधूरा मसौदा नहीं है।",
+  "I understand that this unfinished draft and my unsaved edits will be lost.":
+    "मैं समझता/समझती हूँ कि यह अधूरा मसौदा और बिना सहेजे बदलाव खो जाएँगे।",
+  "Keep draft": "मसौदा रखें",
+  "Reload saved draft": "सहेजा मसौदा फिर लोड करें",
+  "Discarding…": "हटाया जा रहा है…",
+  "Retry same discard": "वही हटाने का प्रयास फिर करें",
+  "Confirm discard & continue": "हटाने की पुष्टि करके आगे बढ़ें",
+  "Guardian verification is pending.": "अभिभावक का सत्यापन बाकी है।",
+  "Your email is verified. We need an approved guardian verification before collecting learner information.":
+    "आपका ईमेल सत्यापित है। विद्यार्थी की जानकारी लेने से पहले अभिभावक का स्वीकृत सत्यापन ज़रूरी है।",
+  "Verification pending. You can explore teachers while your guardian account is reviewed.":
+    "सत्यापन बाकी है। खाते की समीक्षा के दौरान शिक्षक देख सकते हैं।",
+  "Explore teachers": "शिक्षक देखें",
+  "Refresh verification status": "सत्यापन की स्थिति फिर जाँचें",
+  "Get help with your account": "खाते के लिए मदद लें",
+  "Loading your saved progress…": "आपकी सहेजी प्रगति लोड हो रही है…",
+  "Try again": "फिर कोशिश करें",
+  "Choose a teacher": "शिक्षक चुनें",
+  "A saved enquiry is already in progress.":
+    "एक सहेजी पूछताछ पहले से अधूरी है।",
+  "Your existing draft has been preserved. Resume it, or review an explicit discard before continuing with this teacher.":
+    "मौजूदा मसौदा सुरक्षित है। उसे जारी रखें या इस शिक्षक के साथ बढ़ने से पहले हटाने की समीक्षा करें।",
+  "Resume saved enquiry": "सहेजी पूछताछ जारी रखें",
+  "Back to teacher search": "शिक्षक खोज पर लौटें",
+  "Discard draft & use this teacher": "मसौदा हटाकर इस शिक्षक को चुनें",
+  "Choose a teacher to continue.": "आगे बढ़ने के लिए शिक्षक चुनें।",
+  "The selected profile does not match this request.":
+    "चुनी प्रोफ़ाइल इस अनुरोध से मेल नहीं खाती।",
+  "Browse teachers": "शिक्षक खोजें",
+  "Your tuition request is saved.": "आपका ट्यूशन अनुरोध सहेज लिया गया है।",
+  "· Your criteria are ready for review. No teacher has been assigned yet.":
+    "· आपकी ज़रूरतें समीक्षा के लिए तैयार हैं। अभी शिक्षक नियुक्त नहीं हुआ है।",
+  "What happens next?": "आगे क्या होगा?",
+  "Fit and availability are reviewed before suitable options are presented. You choose a teacher and review hiring terms together. A demo is optional.":
+    "उपयुक्त विकल्प दिखाने से पहले योग्यता और उपलब्धता देखी जाती है। आप शिक्षक चुनकर साथ में शर्तें जाँचते हैं। डेमो वैकल्पिक है।",
+  "View tuition requests": "ट्यूशन अनुरोध देखें",
+  "Reload saved progress": "सहेजी प्रगति फिर लोड करें",
+  "Starting enquiry…": "पूछताछ शुरू हो रही है…",
+  "Create another request": "दूसरा अनुरोध बनाएँ",
+  "Set up your learner’s tuition.": "विद्यार्थी की ट्यूशन की शुरुआत करें।",
+  "A few clear steps. Review everything before submitting.":
+    "कुछ आसान कदम। भेजने से पहले सब जाँचें।",
+  "Guardian onboarding progress": "अभिभावक की शुरुआत की प्रगति",
+  "Your chosen teacher": "आपका चुना शिक्षक",
+  "per month": "प्रति माह",
+  "We’ll check this teacher’s fit and availability for your criteria.":
+    "हम आपकी ज़रूरतों के लिए इस शिक्षक की योग्यता और उपलब्धता जाँचेंगे।",
+  "Your criteria will be reviewed across eligible teachers.":
+    "आपकी ज़रूरतों की समीक्षा पात्र शिक्षकों में की जाएगी।",
+  "Change discovery option": "खोज का विकल्प बदलें",
+  Step: "कदम",
+  of: "में से",
+  "Progress saved": "प्रगति सहेज ली गई",
+  "Saved draft available": "सहेजा मसौदा उपलब्ध है",
+  "New request": "नया अनुरोध",
+  "Manual search: {0}.": "खुद खोजें: {0}।",
+  "Assisted search: a shortlist based on your criteria.":
+    "हमसे खोज करवाएँ: आपकी ज़रूरतों पर आधारित सूची।",
+  "We found your saved progress. Review your details as you continue.":
+    "आपकी सहेजी प्रगति मिल गई। आगे बढ़ते समय जानकारी जाँचें।",
+  "This is an additional enquiry. Your submitted enquiries stay saved; this draft is saved privately each time you continue.":
+    "यह अतिरिक्त पूछताछ है। भेजी पूछताछ सहेजी रहती है; हर बार आगे बढ़ने पर यह मसौदा निजी तौर पर सहेजा जाता है।",
+  "Guardian account verified": "अभिभावक का खाता सत्यापित है",
+  "We use a learner alias, school, class subjects and tuition need to review teacher fit and manage learning records.":
+    "शिक्षक की उपयुक्तता और पढ़ाई के रिकॉर्ड के लिए हम विद्यार्थी का उपनाम, स्कूल, कक्षा के विषय और ट्यूशन की ज़रूरत इस्तेमाल करते हैं।",
+  "No learner phone number, photo, date of birth or school address.":
+    "विद्यार्थी का फ़ोन, फ़ोटो, जन्मतिथि या स्कूल का पता नहीं लिया जाता।",
+  "You choose a teacher after reviewing suitable options.":
+    "उपयुक्त विकल्प देखकर आप शिक्षक चुनते हैं।",
+  "You can withdraw consent in your dashboard. This does not authorize AI training.":
+    "डैशबोर्ड से सहमति वापस ले सकते हैं। इससे AI प्रशिक्षण की अनुमति नहीं मिलती।",
+  "I am the learner’s parent or lawful guardian. I agree to the use described above for tuition matching and learning records.":
+    "मैं विद्यार्थी का माता-पिता या कानूनी अभिभावक हूँ। ट्यूशन मिलान और पढ़ाई के रिकॉर्ड के लिए ऊपर बताए उपयोग से सहमत हूँ।",
+  "Current notice: development-v1. These are purpose-specific permissions.":
+    "मौजूदा सूचना: development-v1। ये तय उद्देश्यों के लिए अनुमतियाँ हैं।",
+  "Loading your learners…": "आपके विद्यार्थी लोड हो रहे हैं…",
+  "Retry learners": "विद्यार्थी फिर लोड करें",
+  "Select a saved learner from early years, school or college, or add school details here.":
+    "शुरुआती शिक्षा, स्कूल या कॉलेज का सहेजा विद्यार्थी चुनें या यहाँ स्कूल का विवरण जोड़ें।",
+  "Add or view education profiles": "शिक्षा प्रोफ़ाइल जोड़ें या देखें",
+  "Link an existing learner": "मौजूदा विद्यार्थी जोड़ें",
+  "Add another learner": "दूसरा विद्यार्थी जोड़ें",
+  "Learner alias": "विद्यार्थी का उपनाम",
+  "A name or nickname your learner likes to use.":
+    "वह नाम या उपनाम जिसे विद्यार्थी इस्तेमाल करना पसंद करता है।",
+  "College / institution name": "कॉलेज / संस्थान का नाम",
+  "School name": "स्कूल का नाम",
+  "Kept private for onboarding and tuition coordination; never listed publicly.":
+    "शुरुआत और ट्यूशन समन्वय के लिए निजी रखा जाता है; सार्वजनिक सूची में नहीं दिखता।",
+  "Subjects studied in this course": "इस पाठ्यक्रम में पढ़े जाने वाले विषय",
+  "Learning areas": "सीखने के क्षेत्र",
+  "Subjects studied in this class": "इस कक्षा में पढ़े जाने वाले विषय",
+  "Separate subjects with commas, for example Maths, Science, English, Hindi, Social studies.":
+    "विषय अल्पविराम से अलग करें, जैसे गणित, विज्ञान, अंग्रेज़ी, हिन्दी, सामाजिक अध्ययन।",
+  "subjects listed. Choose the tuition subject separately in the next step.":
+    "विषय दर्ज हैं। ट्यूशन का विषय अगले कदम में अलग चुनें।",
+  "This enquiry uses the stage and course details in the saved learner profile.":
+    "यह पूछताछ सहेजी प्रोफ़ाइल के शिक्षा स्तर और पाठ्यक्रम का उपयोग करती है।",
+  Board: "बोर्ड",
+  "Board name": "बोर्ड का नाम",
+  "These details come from your saved learner. To use different details, add another learner.":
+    "यह विवरण सहेजे विद्यार्थी से है। अलग जानकारी के लिए दूसरा विद्यार्थी जोड़ें।",
+  "Subject name": "विषय का नाम",
+  "Lesson format": "पढ़ाने का तरीका",
+  Language: "भाषा",
+  "Monthly tuition budget (₹)": "मासिक ट्यूशन बजट (₹)",
+  "Between ₹500 and ₹20,000. Recurring tuition is paid directly to the teacher.":
+    "₹500 से ₹20,000 के बीच। नियमित ट्यूशन का भुगतान सीधे शिक्षक को होता है।",
+  "All times are in India Standard Time (Asia/Kolkata). Add up to six preferred availability windows, at least one hour ahead and within the next 60 days.":
+    "सभी समय भारतीय मानक समय (Asia/Kolkata) में हैं। कम से कम एक घंटे बाद और अगले 60 दिनों में अधिकतम छह पसंदीदा समय जोड़ें।",
+  "Preferred start time {0} (IST)": "पसंदीदा शुरुआत {0} (IST)",
+  "Window length {0}": "समय की अवधि {0}",
+  minutes: "मिनट",
+  "Remove availability window {0}": "पसंदीदा समय {0} हटाएँ",
+  "Add another window": "और समय जोड़ें",
+  "Schedule notes (optional)": "समय संबंधी नोट्स (वैकल्पिक)",
+  "Anything else about your preferred days or availability.":
+    "पसंदीदा दिनों या उपलब्धता के बारे में कोई और जानकारी।",
+  "These are preferences, not booked lessons. A timetable will be agreed separately.":
+    "ये पसंद हैं, बुक की गई कक्षाएँ नहीं। समय-सारणी अलग से तय होगी।",
+  Edit: "बदलें",
+  "Preferred availability · IST": "पसंदीदा उपलब्धता · IST",
+  "Edit schedule": "समय बदलें",
+  "You confirmed guardian permission. Submitting creates a tuition request, not a booking or payment.":
+    "आपने अभिभावक की अनुमति की पुष्टि की है। भेजने पर ट्यूशन अनुरोध बनता है, बुकिंग या भुगतान नहीं।",
+  Back: "पीछे",
+  "Saving…": "सहेजा जा रहा है…",
+  "Your progress is saved securely as you continue. Changes on the current step are saved when you select Continue.":
+    "आगे बढ़ने पर प्रगति सुरक्षित सहेजी जाती है। मौजूदा कदम के बदलाव आगे बढ़ें चुनने पर सहेजते हैं।",
+  "A clear start for your learner.": "विद्यार्थी के लिए एक स्पष्ट शुरुआत।",
+  "Set up your guardian account, add education details, then choose how to find a teacher.":
+    "अभिभावक खाता तैयार करें, शिक्षा विवरण जोड़ें और शिक्षक खोजने का तरीका चुनें।",
+  "Back to dashboard": "डैशबोर्ड पर लौटें",
+  "Loading your guardian setup…": "अभिभावक की तैयारी लोड हो रही है…",
+  "We couldn’t load your guardian setup. Refresh before continuing.":
+    "अभिभावक की तैयारी लोड नहीं हुई। जारी रखने से पहले फिर लोड करें।",
+  "Retry guardian setup": "अभिभावक की तैयारी फिर लोड करें",
+  "Your family, your pace.": "आपका परिवार, आपकी गति।",
+  "Save a learner profile first. Finding a teacher is a separate step you can return to.":
+    "पहले विद्यार्थी की प्रोफ़ाइल सहेजें। शिक्षक खोजना अलग कदम है, जिस पर बाद में लौट सकते हैं।",
+  "Guardian setup steps": "अभिभावक की तैयारी के कदम",
+  Complete: "पूरा",
+  "Guardian setup next step": "अभिभावक की तैयारी का अगला कदम",
+  "Guardian account ·": "अभिभावक खाता ·",
+  "Verification pending": "सत्यापन बाकी है",
+  "Refresh setup": "तैयारी फिर लोड करें",
+  "Guardian verification comes first.": "पहले अभिभावक का सत्यापन।",
+  "Your email sign-in does not verify your authority as a guardian. Approved verification is required before entering learner information.":
+    "ईमेल से प्रवेश करना अभिभावक की अधिकारिता का सत्यापन नहीं है। विद्यार्थी की जानकारी दर्ज करने से पहले स्वीकृत सत्यापन ज़रूरी है।",
+  "You can explore teachers while verification is pending. No learner details are needed here.":
+    "सत्यापन के इंतज़ार में शिक्षक देख सकते हैं। यहाँ विद्यार्थी का विवरण नहीं चाहिए।",
+  "Get help with guardian verification": "अभिभावक सत्यापन के लिए मदद लें",
+  "Learner setup is paused.": "विद्यार्थी की तैयारी रुकी हुई है।",
+  "Your deletion request is being reviewed. Review its progress before adding learner details or starting a new enquiry.":
+    "आपका मिटाने का अनुरोध समीक्षा में है। विद्यार्थी जोड़ने या नई पूछताछ से पहले उसकी प्रगति देखें।",
+  "Your permission comes first.": "पहले आपकी अनुमति।",
+  "We use learner education details and tuition needs to review teacher fit and manage learning records. This permission does not authorise AI training.":
+    "शिक्षक की उपयुक्तता और पढ़ाई के रिकॉर्ड के लिए विद्यार्थी की शिक्षा और ट्यूशन की ज़रूरतें उपयोग होती हैं। यह AI प्रशिक्षण की अनुमति नहीं है।",
+  "You choose a teacher after reviewing suitable options. You can review or withdraw permission in Family access.":
+    "उपयुक्त विकल्प देखकर शिक्षक चुनते हैं। पारिवारिक पहुँच में अनुमति देख या वापस ले सकते हैं।",
+  "Current permission notice: development-v1. Saving permission does not send a tuition enquiry.":
+    "मौजूदा अनुमति सूचना: development-v1। अनुमति सहेजने से ट्यूशन पूछताछ नहीं भेजी जाती।",
+  "Check permission status": "अनुमति की स्थिति जाँचें",
+  "Saving permission…": "अनुमति सहेजी जा रही है…",
+  "Agree and continue": "सहमत होकर आगे बढ़ें",
+  "Your saved enquiry is waiting.": "सहेजी पूछताछ आपका इंतज़ार कर रही है।",
+  "Your criteria are preserved. Resume when you’re ready; there’s no need to start again.":
+    "आपकी ज़रूरतें सुरक्षित हैं। तैयार होने पर जारी रखें; फिर से शुरू करने की ज़रूरत नहीं।",
+  "Your learner profiles are ready to review.":
+    "विद्यार्थी प्रोफ़ाइल समीक्षा के लिए तैयार हैं।",
+  "Start with your first learner.": "पहले विद्यार्थी से शुरुआत करें।",
+  "{0} {1} education details saved. You can manage these profiles or add another learner.":
+    "{0} {1} शिक्षा विवरण सहेजा गया। ये प्रोफ़ाइल सँभाल सकते हैं या दूसरा विद्यार्थी जोड़ सकते हैं।",
+  "Add a learner’s education stage, school or college, subjects and current level. You can manage more than one learner from this guardian account.":
+    "शिक्षा का स्तर, स्कूल या कॉलेज, विषय और मौजूदा स्तर जोड़ें। इस खाते से कई विद्यार्थी सँभाल सकते हैं।",
+  "Creating a profile does not send an enquiry, hire a teacher or activate student access.":
+    "प्रोफ़ाइल बनाने से पूछताछ नहीं भेजी जाती, शिक्षक नियुक्त नहीं होता और विद्यार्थी को प्रवेश नहीं मिलता।",
+  "Manage or add learner profiles": "विद्यार्थी प्रोफ़ाइल सँभालें या जोड़ें",
+  "Add learner profile": "विद्यार्थी प्रोफ़ाइल जोड़ें",
+  "Manage student access": "विद्यार्थी की पहुँच सँभालें",
+  "Find a teacher when you’re ready.": "तैयार होने पर शिक्षक खोजें।",
+  "Browse profiles yourself, or share your criteria and let us help. A match still depends on reviewed coverage and teacher availability.":
+    "खुद प्रोफ़ाइल देखें या अपनी ज़रूरत बताकर हमारी मदद लें। मिलान समीक्षित योग्यता और उपलब्धता पर निर्भर है।",
+  "Search teachers": "शिक्षक खोजें",
+  "View your enquiries": "अपनी पूछताछ देखें",
+  "Explore teacher profiles": "शिक्षक प्रोफ़ाइल देखें",
+  "A clear view of the marketplace.": "शिक्षक खोज का स्पष्ट दृश्य।",
+  "Your next teaching opportunity.": "पढ़ाने का अगला अवसर।",
+  "Follow enquiries, screening and arrangements. Open the right queue to act on recorded evidence.":
+    "पूछताछ, जाँच और व्यवस्थाएँ देखें। दर्ज प्रमाण पर कार्रवाई के लिए सही कतार खोलें।",
+  "Keep your application current, review assigned enquiries and follow your teaching arrangements.":
+    "आवेदन अद्यतन रखें, सौंपी पूछताछ देखें और पढ़ाने की व्यवस्थाओं पर नज़र रखें।",
+  "Explore teachers and see your own search progress. Your guardian sends enquiries and confirms arrangements.":
+    "शिक्षक और अपनी खोज की प्रगति देखें। आपका अभिभावक पूछताछ भेजता और व्यवस्था की पुष्टि करता है।",
+  "Find a teacher who fits, follow your enquiries and keep every choice in view.":
+    "उपयुक्त शिक्षक खोजें, पूछताछ की प्रगति देखें और हर निर्णय पर नज़र रखें।",
+  "Review your application": "अपना आवेदन देखें",
+  "Open control console": "नियंत्रण कंसोल खोलें",
+  "Loading your hiring overview…": "नियुक्ति का सारांश लोड हो रहा है…",
+  "Your hiring overview could not be refreshed.":
+    "नियुक्ति का सारांश फिर लोड नहीं हुआ।",
+  "The displayed records are from the last successful read.":
+    "दिख रहे रिकॉर्ड पिछली सफल जानकारी के हैं।",
+  "Counts are unavailable; this is not an empty enquiry list.":
+    "गिनती उपलब्ध नहीं है; इसका अर्थ पूछताछ सूची खाली होना नहीं है।",
+  "Retry hiring overview": "नियुक्ति का सारांश फिर लोड करें",
+  "Viewing the linked hiring arrangement.":
+    "संबंधित नियुक्ति व्यवस्था दिखाई जा रही है।",
+  "View all hiring records": "सभी नियुक्ति रिकॉर्ड देखें",
+  "Current records · Updated": "मौजूदा रिकॉर्ड · अद्यतन",
+  "Refresh overview": "सारांश फिर लोड करें",
+  "New tuition decisions are paused while your deletion request is reviewed.":
+    "मिटाने के अनुरोध की समीक्षा तक ट्यूशन के नए निर्णय रुके हैं।",
+  "Guardian verification is pending. Complete verification before submitting learner details.":
+    "अभिभावक का सत्यापन बाकी है। विद्यार्थी का विवरण भेजने से पहले सत्यापन पूरा करें।",
+  "Guardian consent is missing or withdrawn. Review your permission before starting a new enquiry.":
+    "अभिभावक की सहमति नहीं है या वापस ली गई है। नई पूछताछ से पहले अनुमति देखें।",
+  "Your teaching application": "आपका शिक्षक आवेदन",
+  "Review profile & evidence": "प्रोफ़ाइल और प्रमाण देखें",
+  "Application status": "आवेदन की स्थिति",
+  "Screening evidence": "जाँच के प्रमाण",
+  "Recorded and current": "दर्ज और वर्तमान",
+  "Pending or needs renewal": "बाकी है या नवीनीकरण चाहिए",
+  "Fee terms": "शुल्क की शर्तें",
+  "Acceptance recorded": "स्वीकृति दर्ज है",
+  "Acceptance pending": "स्वीकृति का इंतज़ार",
+  "Approval, current screening and fit are required for an actionable enquiry. A profile status is not a guarantee of teaching work.":
+    "पूछताछ पर कार्रवाई के लिए स्वीकृति, वर्तमान जाँच और उपयुक्तता ज़रूरी है। प्रोफ़ाइल की स्थिति काम मिलने की गारंटी नहीं है।",
+  "No teaching application yet. Create your profile and provide evidence to join the review process.":
+    "अभी शिक्षक आवेदन नहीं है। समीक्षा में जुड़ने के लिए प्रोफ़ाइल बनाएँ और प्रमाण दें।",
+  "Hiring records": "नियुक्ति के रिकॉर्ड",
+  "Assigned enquiries": "सौंपी गई पूछताछ",
+  "Enquiry progress": "पूछताछ की प्रगति",
+  "Your teacher": "आपका शिक्षक",
+  "Teaching arrangements": "पढ़ाने की व्यवस्थाएँ",
+  "Review your assigned enquiries": "सौंपी गई पूछताछ देखें",
+  "Your teacher search progress": "आपकी शिक्षक खोज की प्रगति",
+  "Your teacher enquiries": "आपकी शिक्षक पूछताछ",
+  "New tuition enquiry": "नई ट्यूशन पूछताछ",
+  "Only currently presented enquiries with active family permission appear here. Expressing interest does not confirm hiring.":
+    "केवल वर्तमान में प्रस्तुत पूछताछ दिखती हैं जिनमें परिवार की अनुमति सक्रिय है। रुचि जताना नियुक्ति की पुष्टि नहीं है।",
+  "A reviewed shortlist, a saved choice and an agreed arrangement are separate steps. Open an enquiry to review the details.":
+    "समीक्षित सूची, सहेजी पसंद और सहमत व्यवस्था अलग कदम हैं। विवरण के लिए पूछताछ खोलें।",
+  "No current assigned enquiries": "अभी सौंपी गई पूछताछ नहीं है",
+  "No teacher enquiry recorded yet": "अभी शिक्षक पूछताछ दर्ज नहीं है",
+  "Ready to find your teacher?": "अपना शिक्षक खोजने के लिए तैयार हैं?",
+  "Keep your profile and availability current. Enquiries appear when they are presented to you and the family’s permission is active.":
+    "प्रोफ़ाइल और उपलब्धता अद्यतन रखें। पूछताछ तभी दिखती है जब आपको प्रस्तुत हो और परिवार की अनुमति सक्रिय हो।",
+  "You can browse teacher profiles. Your guardian can tell us what you need and submit an enquiry.":
+    "शिक्षक की प्रोफ़ाइल देख सकते हैं। अभिभावक आपकी ज़रूरत बताकर पूछताछ भेज सकता है।",
+  "Browse profiles yourself or share your criteria for a reviewed shortlist.":
+    "खुद प्रोफ़ाइल देखें या समीक्षित सूची के लिए अपनी ज़रूरत बताएँ।",
+  "{0} enquiry{1}": "{0} पूछताछ{1}",
+  "Enquiry open": "पूछताछ खुली है",
+  "Search path": "खोज का तरीका",
+  "Manual search": "खुद खोजें",
+  "Teaching preference": "पढ़ाने की पसंद",
+  "Matching status": "मिलान की स्थिति",
+  "Teacher choice": "शिक्षक की पसंद",
+  "Family selected you": "परिवार ने आपको चुना",
+  "No selection of you recorded": "आपके चयन का रिकॉर्ड नहीं है",
+  "Choice recorded": "पसंद दर्ज है",
+  "Not chosen yet": "अभी नहीं चुना",
+  "Your response": "आपका जवाब",
+  Submitted: "भेज दिया गया",
+  "Help and case progress for this enquiry":
+    "इस पूछताछ की सहायता और मामले की प्रगति",
+  "Your response is recorded. The guardian reviews their choice and opens hiring terms. Check Teaching arrangements to review and confirm any shared terms.":
+    "आपका जवाब दर्ज है। अभिभावक अपनी पसंद जाँचकर नियुक्ति की शर्तें खोलता है। साझा शर्तें देखने और पुष्टि के लिए पढ़ाने की व्यवस्थाएँ देखें।",
+  "Current fit could not be confirmed. Refresh or review your availability before responding.":
+    "मौजूदा उपयुक्तता की पुष्टि नहीं हुई। जवाब से पहले फिर लोड करें या उपलब्धता देखें।",
+  "Review the learner’s needs before expressing interest or declining.":
+    "रुचि जताने या मना करने से पहले विद्यार्थी की ज़रूरतें जाँचें।",
+  "Review opportunity response": "अवसर के जवाब की समीक्षा करें",
+  "Open enquiry & teacher options": "पूछताछ और शिक्षक विकल्प खोलें",
+  "Your guardian reviews the teacher options and confirms the arrangement.":
+    "अभिभावक शिक्षक विकल्प देखकर व्यवस्था की पुष्टि करता है।",
+  "Your teacher arrangements": "आपकी शिक्षक व्यवस्थाएँ",
+  "Your teaching arrangements": "आपकी पढ़ाने की व्यवस्थाएँ",
+  "A saved choice or accepted term is not proof that teaching has started. These are the current recorded arrangement states.":
+    "सहेजी पसंद या स्वीकार शर्त पढ़ाई शुरू होने का प्रमाण नहीं है। ये व्यवस्थाओं की वर्तमान दर्ज स्थितियाँ हैं।",
+  "No arrangement recorded yet": "अभी व्यवस्था दर्ज नहीं है",
+  "Your assigned enquiries are the next place to review.":
+    "अगले कदम के लिए सौंपी पूछताछ देखें।",
+  "Find a suitable teacher and review your enquiry progress.":
+    "उपयुक्त शिक्षक खोजें और पूछताछ की प्रगति देखें।",
+  "{0} arrangement with {1}": "{1} के साथ {0} व्यवस्था",
+  "Hiring terms confirmed": "नियुक्ति की शर्तें पक्की हैं",
+  "Hiring terms pending": "नियुक्ति की शर्तें बाकी हैं",
+  "Teacher profile": "शिक्षक प्रोफ़ाइल",
+  "Guardian terms": "अभिभावक की शर्तें",
+  Pending: "इंतज़ार में",
+  "Teacher terms": "शिक्षक की शर्तें",
+  "Start evidence": "शुरुआत का प्रमाण",
+  "Both confirmations recorded": "दोनों पुष्टियाँ दर्ज हैं",
+  "Not independently confirmed": "स्वतंत्र पुष्टि नहीं हुई",
+  "Recorded monthly terms": "दर्ज मासिक शर्तें",
+  "This arrangement is closed. Its recorded terms remain available for reference.":
+    "यह व्यवस्था बंद है। दर्ज शर्तें संदर्भ के लिए उपलब्ध हैं।",
+  "Both parties have confirmed the hiring terms. This does not confirm a lesson, tuition payment or service start.":
+    "दोनों पक्षों ने नियुक्ति की शर्तों की पुष्टि की है। इससे कक्षा, ट्यूशन भुगतान या सेवा की शुरुआत की पुष्टि नहीं होती।",
+  "Your guardian and teacher review and confirm the hiring terms.":
+    "अभिभावक और शिक्षक नियुक्ति की शर्तें जाँचकर पुष्टि करते हैं।",
+  "Your acceptance is recorded. Waiting for the other party to confirm the same terms.":
+    "आपकी स्वीकृति दर्ज है। इन्हीं शर्तों पर दूसरे पक्ष की पुष्टि का इंतज़ार है।",
+  "Review the monthly terms and policy before accepting. A demo and class timetable are not required to accept hiring terms.":
+    "स्वीकार करने से पहले मासिक शर्तें और नीति देखें। नियुक्ति की शर्तें स्वीकार करने के लिए डेमो या समय-सारणी ज़रूरी नहीं है।",
+  "Review hiring terms": "नियुक्ति की शर्तें देखें",
+  "Help and case progress": "सहायता और मामले की प्रगति",
+  "Support or replacement": "सहायता या शिक्षक बदलना",
+  "Previous records": "पिछले रिकॉर्ड",
+  Page: "पृष्ठ",
+  "Next records": "अगले रिकॉर्ड",
+  "Hiring terms review": "नियुक्ति की शर्तों की समीक्षा",
+  "Home tuition": "घर पर ट्यूशन",
+  "Online tuition": "ऑनलाइन ट्यूशन",
+  "Monthly tuition": "मासिक ट्यूशन",
+  Unavailable: "उपलब्ध नहीं",
+  "Recorded policy": "दर्ज नीति",
+  "Guardian acceptance": "अभिभावक की स्वीकृति",
+  "Teacher acceptance": "शिक्षक की स्वीकृति",
+  "Tuition is paid directly to the teacher. Accepting these terms does not charge either party or confirm that teaching has started.":
+    "ट्यूशन का भुगतान सीधे शिक्षक को होता है। शर्तें स्वीकार करने से किसी से पैसे नहीं कटते और पढ़ाई शुरू होने की पुष्टि नहीं होती।",
+  "Proposed teacher placement fee:": "प्रस्तावित शिक्षक नियुक्ति शुल्क:",
+  ", only after separate service-start and tuition-receipt evidence. Final live commercial terms remain under review.":
+    ", केवल सेवा की शुरुआत और ट्यूशन मिलने के अलग प्रमाण के बाद। अंतिम लाइव व्यावसायिक शर्तें समीक्षा में हैं।",
+  "A demo is optional. You can confirm hiring terms without booking a class or agreeing a class timetable.":
+    "डेमो वैकल्पिक है। कक्षा बुक किए या समय-सारणी तय किए बिना नियुक्ति की शर्तें स्वीकार कर सकते हैं।",
+  "This arrangement is closed. Further acceptances are unavailable.":
+    "यह व्यवस्था बंद है। आगे स्वीकृति उपलब्ध नहीं है।",
+  "Your acceptance is already recorded.": "आपकी स्वीकृति पहले से दर्ज है।",
+  " Both parties have confirmed the hiring terms.":
+    " दोनों पक्षों ने नियुक्ति की शर्तों की पुष्टि की है।",
+  " Waiting for the other party.": " दूसरे पक्ष का इंतज़ार है।",
+  "I have reviewed the monthly tuition and policy and agree to these hiring terms.":
+    "मैंने मासिक ट्यूशन और नीति जाँच ली है और नियुक्ति की इन शर्तों से सहमत हूँ।",
+  "Accept hiring terms": "नियुक्ति की शर्तें स्वीकार करें",
+  "Close terms review": "शर्तों की समीक्षा बंद करें",
+  "Opportunity response review": "अवसर के जवाब की समीक्षा",
+  "Review your response": "अपना जवाब जाँचें",
+  "I’m interested in this enquiry": "मुझे इस पूछताछ में रुचि है",
+  "Decline this opportunity": "इस अवसर को मना करें",
+  "This records your interest. It does not hire you, create a lesson or confirm payment.":
+    "यह आपकी रुचि दर्ज करता है। इससे नियुक्ति, कक्षा या भुगतान की पुष्टि नहीं होती।",
+  "This records a decline for this opportunity. The family may consider another teacher.":
+    "यह इस अवसर के लिए मना करना दर्ज करता है। परिवार दूसरा शिक्षक देख सकता है।",
+  "I understand and confirm this response.":
+    "मैं इस जवाब को समझकर पुष्टि करता/करती हूँ।",
+  "Confirm opportunity response": "अवसर के जवाब की पुष्टि करें",
+  "Reload current hiring terms": "मौजूदा नियुक्ति शर्तें फिर लोड करें",
+  "Reload current enquiries": "मौजूदा पूछताछ फिर लोड करें",
+  "View education profile": "शिक्षा प्रोफ़ाइल देखें",
+  "Your learner profile": "आपके विद्यार्थी की प्रोफ़ाइल",
+  "Manage learner permissions": "विद्यार्थी की अनुमतियाँ सँभालें",
+  "class subjects:": "कक्षा के विषय:",
+  "Showing the first 20 learner profiles. Open learner permissions to review the family list.":
+    "पहली 20 विद्यार्थी प्रोफ़ाइल दिख रही हैं। परिवार की सूची के लिए विद्यार्थी की अनुमतियाँ खोलें।",
+  "When you need a hand": "जब मदद चाहिए",
+  "Questions about teacher fit, a stalled enquiry or an existing arrangement? Contact support. Safety concerns can be reported at any time.":
+    "शिक्षक की उपयुक्तता, रुकी पूछताछ या मौजूदा व्यवस्था पर सवाल हैं? सहायता से संपर्क करें। सुरक्षा की चिंता कभी भी बता सकते हैं।",
+  "Get help & safety support": "मदद और सुरक्षा सहायता लें",
+  "Review your privacy requests": "अपने गोपनीयता अनुरोध देखें",
+  "No recorded items in this queue.": "इस कतार में कोई रिकॉर्ड नहीं है।",
+  "Attention & governance": "ध्यान और प्रशासन",
+  "Open support cases": "खुले सहायता मामले",
+  "Pending privacy requests": "लंबित गोपनीयता अनुरोध",
+  "Unprocessed jobs with five or more attempts":
+    "पाँच या अधिक प्रयास वाले अधूरे काम",
+  "Review support & disputes": "सहायता और विवाद देखें",
+  "Privacy, people, controls & audit": "गोपनीयता, लोग, नियंत्रण और ऑडिट",
+  "Inspect financial records": "वित्तीय रिकॉर्ड देखें",
+  "Authenticator & recovery": "प्रमाणक और बहाली",
+  "Queue counts describe recorded state. They do not establish screened supply availability, financial settlement or a live release. Sensitive grants and commercial editing retain their separate approval requirements.":
+    "कतार की गिनती दर्ज स्थिति दिखाती है। इससे जाँचे शिक्षक की उपलब्धता, वित्तीय निपटान या लाइव रिलीज़ सिद्ध नहीं होती। संवेदनशील अनुमतियों और व्यावसायिक बदलावों के लिए अलग स्वीकृति ज़रूरी है।",
+  "Reload current details": "मौजूदा जानकारी फिर लोड करें",
+  "Student invitation": "विद्यार्थी का निमंत्रण",
+  "Refresh invitation status": "निमंत्रण की स्थिति फिर जाँचें",
+  "Active guardian consent is required to create or replace invitations.":
+    "निमंत्रण बनाने या बदलने के लिए अभिभावक की सक्रिय सहमति ज़रूरी है।",
+  "Loading invitation status…": "निमंत्रण की स्थिति लोड हो रही है…",
+  "Invitation status could not be loaded. Refresh before continuing.":
+    "निमंत्रण की स्थिति लोड नहीं हुई। आगे बढ़ने से पहले फिर लोड करें।",
+  "Invitation expiry:": "निमंत्रण की समाप्ति:",
+  "Lost a code or returned to this page? Codes cannot be retrieved. Replacing an invitation invalidates all earlier codes for this learner. Existing student accounts are managed through device access.":
+    "कोड खो गया या इस पृष्ठ पर लौटे हैं? कोड वापस नहीं मिलते। नया निमंत्रण पुराने सभी कोड अमान्य करता है। मौजूदा विद्यार्थी खाते उपकरण की पहुँच से सँभालते हैं।",
+  "Create first student invitation": "पहला विद्यार्थी निमंत्रण बनाएँ",
+  "Replace student invitation": "विद्यार्थी का निमंत्रण बदलें",
+  "Refresh student access to manage the learner’s authorized devices.":
+    "अनुमत उपकरण सँभालने के लिए विद्यार्थी की पहुँच फिर लोड करें।",
+  "Create a first invitation?": "पहला निमंत्रण बनाएँ?",
+  "Replace this learner’s invitation?": "इस विद्यार्थी का निमंत्रण बदलें?",
+  "The new invitation lasts 24 hours and is single-use. All earlier codes stop working. Only you, signed in as the inviting guardian on the intended student device, can activate it. This does not switch your current account.":
+    "नया निमंत्रण 24 घंटे और एक उपयोग के लिए है। सभी पुराने कोड बंद हो जाएँगे। केवल निमंत्रण भेजने वाला अभिभावक, इच्छित विद्यार्थी उपकरण पर अपने खाते से प्रवेश करके, इसे सक्रिय कर सकता है। इससे आपका वर्तमान खाता नहीं बदलता।",
+  "I am the learner’s guardian and will authorize only the intended student device. I understand that earlier invitation codes will stop working.":
+    "मैं विद्यार्थी का अभिभावक हूँ और केवल इच्छित उपकरण को अनुमति दूँगा/दूँगी। पुराने निमंत्रण कोड बंद होने को समझता/समझती हूँ।",
+  Cancel: "रद्द करें",
+  "Create invitation": "निमंत्रण बनाएँ",
+  "Confirm invitation replacement": "निमंत्रण बदलने की पुष्टि करें",
+  "Invitation for": "निमंत्रण इनके लिए",
+  Expires: "समाप्ति",
+  "IST. Single-use; only the inviting guardian can activate it.":
+    "IST। एक बार उपयोग; केवल भेजने वाला अभिभावक सक्रिय कर सकता है।",
+  "Private invitation code": "निजी निमंत्रण कोड",
+  "Hide invitation code": "निमंत्रण कोड छिपाएँ",
+  "Reveal invitation code": "निमंत्रण कोड दिखाएँ",
+  "Open student onboarding on the intended device.":
+    "इच्छित उपकरण पर विद्यार्थी की शुरुआत खोलें।",
+  "Sign in with your own guardian account on that device.":
+    "उस उपकरण पर अपने अभिभावक खाते से प्रवेश करें।",
+  "Paste the code and confirm the switch to the student space.":
+    "कोड डालकर विद्यार्थी स्थान पर जाने की पुष्टि करें।",
+  "Keep this code private. It is not saved in browser storage or placed in a link.":
+    "कोड निजी रखें। इसे ब्राउज़र में सहेजा या लिंक में नहीं रखा जाता।",
+  "Open student onboarding": "विद्यार्थी की शुरुआत खोलें",
+  "Retry invitation request": "निमंत्रण अनुरोध फिर भेजें",
+  "Refresh invitation status and review it before creating or replacing a code.":
+    "कोड बनाने या बदलने से पहले निमंत्रण की स्थिति फिर लोड करके जाँचें।",
+  "Your education profile.": "आपकी शिक्षा प्रोफ़ाइल।",
+  "Every learner has a different starting point.":
+    "हर विद्यार्थी की शुरुआत अलग होती है।",
+  "School, early years or college: keep the details that help explain what they’re learning.":
+    "स्कूल, शुरुआती शिक्षा या कॉलेज: पढ़ाई समझने में मदद करने वाला विवरण रखें।",
+  "Guardian setup": "अभिभावक की तैयारी",
+  "Start with the learner.": "विद्यार्थी से शुरुआत करें।",
+  "Saving an education profile does not send an enquiry, hire a teacher or activate a student account.":
+    "शिक्षा प्रोफ़ाइल सहेजने से पूछताछ नहीं भेजी जाती, शिक्षक नियुक्त या विद्यार्थी खाता सक्रिय नहीं होता।",
+  "Teacher enquiries support early years, school and college. Each match still needs an available teacher whose current reviewed coverage fits the learner.":
+    "शिक्षक की पूछताछ शुरुआती शिक्षा, स्कूल और कॉलेज के लिए है। हर मिलान के लिए उपलब्ध शिक्षक की वर्तमान जाँची योग्यता विद्यार्थी से मेल खानी चाहिए।",
+  "These details are private. Add education information only; do not enter identity documents or contact details.":
+    "यह विवरण निजी है। केवल शिक्षा की जानकारी दें; पहचान दस्तावेज़ या संपर्क न दें।",
+  "’s profile is saved.": "की प्रोफ़ाइल सहेज ली गई है।",
+  "You can select this learner when starting a supported tuition enquiry.":
+    "उपलब्ध ट्यूशन की पूछताछ शुरू करते समय यह विद्यार्थी चुन सकते हैं।",
+  "The profile is saved. Complete its education details before starting an enquiry.":
+    "प्रोफ़ाइल सहेजी है। पूछताछ शुरू करने से पहले शिक्षा विवरण पूरा करें।",
+  "Continue guardian setup": "अभिभावक की तैयारी जारी रखें",
+  "Start a tuition enquiry": "ट्यूशन पूछताछ शुरू करें",
+  "Loading the latest learner profile…":
+    "विद्यार्थी की नई प्रोफ़ाइल लोड हो रही है…",
+  "Review privacy and correction requests": "गोपनीयता और सुधार अनुरोध देखें",
+  "Get help with education details": "शिक्षा विवरण के लिए मदद लें",
+  "Loading learner profiles…": "विद्यार्थी प्रोफ़ाइल लोड हो रही हैं…",
+  "We couldn’t load the current learner profiles. Your form is retained; refresh before saving a profile.":
+    "मौजूदा विद्यार्थी प्रोफ़ाइल लोड नहीं हुईं। फ़ॉर्म सुरक्षित है; सहेजने से पहले फिर लोड करें।",
+  "Retry learner profiles": "विद्यार्थी प्रोफ़ाइल फिर लोड करें",
+  "Saved learner profiles": "सहेजी विद्यार्थी प्रोफ़ाइल",
+  "Saved profiles": "सहेजी प्रोफ़ाइल",
+  "No learner profiles saved yet.": "अभी विद्यार्थी प्रोफ़ाइल सहेजी नहीं है।",
+  "Edit profile for": "इनकी प्रोफ़ाइल बदलें",
+  "Education details are ready for an enquiry. Teacher fit and availability still need to be checked.":
+    "शिक्षा विवरण पूछताछ के लिए तैयार है। शिक्षक की उपयुक्तता और उपलब्धता अभी जाँची जाएगी।",
+  "Education details are incomplete. Review guardian onboarding before sending an enquiry.":
+    "शिक्षा विवरण अधूरा है। पूछताछ भेजने से पहले अभिभावक की शुरुआत देखें।",
+  "Complete the education details before requesting a teacher.":
+    "शिक्षक माँगने से पहले शिक्षा विवरण पूरा करें।",
+  "First page": "पहला पृष्ठ",
+  "Next profiles": "अगली प्रोफ़ाइल",
+  "Edit learner profile": "विद्यार्थी प्रोफ़ाइल बदलें",
+  "New learner profile": "नई विद्यार्थी प्रोफ़ाइल",
+  "All fields shown are required. Details stay in this form until you confirm the save. Leaving or reloading clears unsaved details.":
+    "दिखाए सभी फ़ील्ड ज़रूरी हैं। पुष्टि तक विवरण इस फ़ॉर्म में रहता है। पृष्ठ छोड़ने या फिर लोड करने पर बिना सहेजा विवरण हटता है।",
+  "Review the learner profile": "विद्यार्थी प्रोफ़ाइल जाँचें",
+  "Edit education details": "शिक्षा विवरण बदलें",
+  "Add education details": "शिक्षा विवरण जोड़ें",
+  Updating: "बदलाव हो रहा है",
+  "’s education profile": "की शिक्षा प्रोफ़ाइल",
+  "Review every change before saving. Student access permissions stay as they are. Profiles used in an enquiry or learning history need a correction review.":
+    "हर बदलाव सहेजने से पहले जाँचें। विद्यार्थी की पहुँच की अनुमति नहीं बदलती। पूछताछ या पढ़ाई के इतिहास में इस्तेमाल प्रोफ़ाइल के लिए सुधार समीक्षा ज़रूरी है।",
+  "You manage this learner’s education details. Saving this profile does not change student access permissions.":
+    "आप इस विद्यार्थी की शिक्षा सँभालते हैं। सहेजने से विद्यार्थी की पहुँच की अनुमति नहीं बदलती।",
+  "Learner education": "विद्यार्थी की शिक्षा",
+  "Education stage": "शिक्षा का स्तर",
+  "Early years — Nursery / KG": "शुरुआती शिक्षा — नर्सरी / KG",
+  "School — Classes 1–12": "स्कूल — कक्षा 1–12",
+  "College / university": "कॉलेज / विश्वविद्यालय",
+  "Choose early years level": "शुरुआती शिक्षा का स्तर चुनें",
+  Nursery: "नर्सरी",
+  KG1: "KG1",
+  KG2: "KG2",
+  "Choose class": "कक्षा चुनें",
+  "The saved profile changed or can no longer be edited. Your edits are retained. Reloading discards them; review the latest profile before saving again.":
+    "सहेजी प्रोफ़ाइल बदल गई है या अब बदल नहीं सकती। आपके बदलाव सुरक्षित हैं। फिर लोड करने पर ये हटेंगे; फिर सहेजने से पहले नई प्रोफ़ाइल देखें।",
+  "Discard edits and reload profile": "बदलाव हटाकर प्रोफ़ाइल फिर लोड करें",
+  "Retry opening profile": "प्रोफ़ाइल फिर खोलें",
+  "Edit details": "विवरण बदलें",
+  "Saving profile…": "प्रोफ़ाइल सहेजी जा रही है…",
+  "Retry profile save": "प्रोफ़ाइल फिर सहेजें",
+  "Confirm and save changes": "पुष्टि करके बदलाव सहेजें",
+  "Confirm and save profile": "पुष्टि करके प्रोफ़ाइल सहेजें",
+  "Review learner profile": "विद्यार्थी प्रोफ़ाइल जाँचें",
+  "Class {0} · {1}": "कक्षा {0} · {1}",
+  "Subjects: {0}": "विषय: {0}",
+  "Subjects not yet recorded.": "विषय अभी दर्ज नहीं हैं।",
+  "Classes are available to guardians, teachers and students.":
+    "कक्षाएँ अभिभावक, शिक्षक और विद्यार्थी के लिए उपलब्ध हैं।",
+  "A steady rhythm for learning.": "सीखने की नियमित लय।",
+  "Agree a weekly timetable. Keep each lesson and its attendance in view.":
+    "साप्ताहिक समय-सारणी तय करें। हर कक्षा और उपस्थिति पर नज़र रखें।",
+  "Asia/Kolkata": "Asia/Kolkata",
+  "All times are shown in IST.": "सभी समय IST में हैं।",
+  "Timetable agreement and tuition-start confirmation are separate steps.":
+    "समय-सारणी पर सहमति और ट्यूशन शुरू होने की पुष्टि अलग कदम हैं।",
+  "Weekly timetables": "साप्ताहिक समय-सारणी",
+  "Your weekly rhythm": "आपकी साप्ताहिक लय",
+  "Review tuition terms": "ट्यूशन की शर्तें देखें",
+  "No tuition agreement yet. Complete a demo and open tuition terms before proposing a timetable.":
+    "अभी ट्यूशन समझौता नहीं है। समय-सारणी देने से पहले डेमो पूरा करके ट्यूशन की शर्तें खोलें।",
+  "Weekly times in IST": "साप्ताहिक समय IST में",
+  "Tuition agreement": "ट्यूशन समझौता",
+  "Agreement {0}": "समझौता {0}",
+  "Timetable agreed": "समय-सारणी पर सहमति है",
+  "Awaiting a timetable": "समय-सारणी का इंतज़ार",
+  "Active guardian consent and verification are required to manage this timetable.":
+    "समय-सारणी सँभालने के लिए अभिभावक का सत्यापन और सक्रिय सहमति ज़रूरी है।",
+  "Loading weekly timetables…": "साप्ताहिक समय-सारणी लोड हो रही हैं…",
+  "Make space for regular learning.": "नियमित पढ़ाई के लिए समय बनाएँ।",
+  "Propose the days and times that work for this tuition agreement.":
+    "ट्यूशन समझौते के लिए उपयुक्त दिन और समय सुझाएँ।",
+  "{0} timetable": "{0} समय-सारणी",
+  "Agreed weekly timetable": "सहमत साप्ताहिक समय-सारणी",
+  "Proposed weekly timetable": "प्रस्तावित साप्ताहिक समय-सारणी",
+  "Guardian:": "अभिभावक:",
+  "Teacher:": "शिक्षक:",
+  "Booking checks cover a rolling 60 days":
+    "बुकिंग की जाँच आगे के 60 दिनों की होती है",
+  ", last checked through {0}": ", पिछली जाँच {0} तक",
+  ". Individual booked lessons appear below; cancelled lessons remain in the record.":
+    "। बुक की गई कक्षाएँ नीचे हैं; रद्द कक्षाएँ रिकॉर्ड में रहती हैं।",
+  "A booking check needs review. Next recorded retry:":
+    "बुकिंग की जाँच की समीक्षा चाहिए। अगला दर्ज प्रयास:",
+  ". Contact support if lessons are missing.":
+    "। कक्षाएँ न मिलें तो सहायता से संपर्क करें।",
+  "Review & accept timetable": "समय-सारणी जाँचकर स्वीकार करें",
+  "Your acceptance is recorded. Waiting for the other party.":
+    "आपकी स्वीकृति दर्ज है। दूसरे पक्ष का इंतज़ार है।",
+  "Check upcoming bookings": "अगली बुकिंग जाँचें",
+  "Both parties must accept tuition terms before agreeing this timetable.":
+    "समय-सारणी पर सहमति से पहले दोनों पक्षों को ट्यूशन की शर्तें स्वीकार करनी होंगी।",
+  "Review terms": "शर्तें देखें",
+  "Refresh timetable": "समय-सारणी फिर लोड करें",
+  Propose: "प्रस्ताव दें",
+  "a replacement": "बदली हुई",
+  "weekly times": "साप्ताहिक समय",
+  "This view contains the latest 50 timetables. Contact support for older agreements.":
+    "यहाँ नवीनतम 50 समय-सारणी हैं। पुराने समझौतों के लिए सहायता लें।",
+  "Review a replacement timetable": "बदली समय-सारणी जाँचें",
+  "Propose weekly times": "साप्ताहिक समय सुझाएँ",
+  "Every time is in IST. Online lessons allow up to 40 minutes. Home lessons allow 20–120 minutes.":
+    "सभी समय IST में हैं। ऑनलाइन कक्षाएँ अधिकतम 40 मिनट और घर पर 20–120 मिनट की हो सकती हैं।",
+  "A new proposal replaces any pending proposal. After both parties accept, booked future lessons at least one hour away may be cancelled and replaced; earlier commitments remain.":
+    "नया प्रस्ताव पुराने लंबित प्रस्ताव की जगह लेता है। दोनों की स्वीकृति के बाद कम से कम एक घंटे दूर की भावी कक्षाएँ रद्द होकर बदल सकती हैं; पहले की प्रतिबद्धताएँ रहती हैं।",
+  "First valid date": "पहली मान्य तारीख़",
+  "Last valid date": "आखिरी मान्य तारीख़",
+  Day: "दिन",
+  "Day {0}": "दिन {0}",
+  "Start time": "शुरुआत का समय",
+  "(IST)": "(IST)",
+  Duration: "अवधि",
+  "Duration {0}": "अवधि {0}",
+  "Remove weekly time {0}": "साप्ताहिक समय {0} हटाएँ",
+  "Add weekly time": "साप्ताहिक समय जोड़ें",
+  "Reason for these times": "इन समयों का कारण",
+  "For example, after-school Maths practice":
+    "जैसे, स्कूल के बाद गणित का अभ्यास",
+  "I have reviewed these times and the replacement policy.":
+    "मैंने ये समय और बदलने की नीति जाँच ली है।",
+  "Save timetable proposal": "समय-सारणी का प्रस्ताव सहेजें",
+  "Review timetable acceptance": "समय-सारणी की स्वीकृति जाँचें",
+  "Both parties must accept this version. Availability is checked before lessons are booked. Accepting a replacement may cancel and replace scheduled lessons at least one hour away; earlier commitments remain.":
+    "दोनों पक्षों को यह संस्करण स्वीकार करना होगा। बुकिंग से पहले उपलब्धता जाँची जाती है। बदलाव स्वीकार करने पर कम से कम एक घंटे दूर की कक्षाएँ रद्द होकर बदल सकती हैं; पहले की प्रतिबद्धताएँ रहती हैं।",
+  "This checks available lessons against the agreed timetable, within the next 60 days and its validity dates. It does not confirm paid tuition start or attendance.":
+    "यह सहमत समय-सारणी की मान्य तारीख़ों और अगले 60 दिनों में उपलब्ध कक्षाएँ जाँचता है। इससे सशुल्क ट्यूशन शुरू होने या उपस्थिति की पुष्टि नहीं होती।",
+  "I have reviewed the timetable and understand this action.":
+    "मैंने समय-सारणी जाँच ली है और कार्रवाई समझता/समझती हूँ।",
+  "Accept this timetable": "यह समय-सारणी स्वीकार करें",
+  "Confirm booking check": "बुकिंग की जाँच की पुष्टि करें",
+  "Lesson records": "कक्षाओं के रिकॉर्ड",
+  "Every lesson, in view.": "हर कक्षा पर नज़र।",
+  "Refresh lessons": "कक्षाएँ फिर लोड करें",
+  "Attendance totals include completed present or late lessons. Cancelled, absent and disputed lessons are excluded.":
+    "उपस्थिति में पूरी हुई उपस्थित या देर वाली कक्षाएँ शामिल हैं। रद्द, अनुपस्थित और विवादित कक्षाएँ शामिल नहीं हैं।",
+  "Lessons from": "कक्षाएँ इस तारीख़ से",
+  "Lessons through": "कक्षाएँ इस तारीख़ तक",
+  "Apply dates": "तारीख़ें लागू करें",
+  "Lesson view": "कक्षाओं का दृश्य",
+  Upcoming: "आगामी",
+  "Attendance & records": "उपस्थिति और रिकॉर्ड",
+  "Loading lesson records…": "कक्षाओं के रिकॉर्ड लोड हो रहे हैं…",
+  "Retry lesson records": "कक्षाओं के रिकॉर्ड फिर लोड करें",
+  "No upcoming lessons in the loaded records.":
+    "लोड किए रिकॉर्ड में आगामी कक्षाएँ नहीं हैं।",
+  "No lesson records for these dates.":
+    "इन तारीख़ों के लिए कक्षाओं के रिकॉर्ड नहीं हैं।",
+  "Load more lessons to check the rest of this date range.":
+    "पूरी अवधि देखने के लिए और कक्षाएँ लोड करें।",
+  "Adjust the dates or agree a timetable to see booked lessons here.":
+    "बुक कक्षाएँ देखने के लिए तारीख़ें बदलें या समय-सारणी पर सहमति दें।",
+  loaded: "लोड हुए",
+  record: "रिकॉर्ड",
+  records: "रिकॉर्ड",
+  "in this date range": "इस अवधि में",
+  "Loading…": "लोड हो रहा है…",
+  "Load more lessons": "और कक्षाएँ लोड करें",
+  with: "के साथ",
+  ", Class": ", कक्षा",
+  "Attendance under review": "उपस्थिति समीक्षा में है",
+  "Teacher recap": "शिक्षक का सारांश",
+  "You reviewed an earlier attendance record. Ask support to review the correction before adding feedback.":
+    "आपने पहले के उपस्थिति रिकॉर्ड की समीक्षा की है। प्रतिक्रिया देने से पहले सुधार की समीक्षा के लिए सहायता लें।",
+  "You confirmed this attendance record.":
+    "आपने इस उपस्थिति रिकॉर्ड की पुष्टि की है।",
+  "You reported an attendance error. Support will review it.":
+    "आपने उपस्थिति की गलती बताई है। सहायता टीम समीक्षा करेगी।",
+  "Private lesson feedback": "कक्षा की निजी प्रतिक्रिया",
+  "Guardian feedback": "अभिभावक की प्रतिक्रिया",
+  "Your lesson feedback": "कक्षा पर आपकी प्रतिक्रिया",
+  "out of 5": "5 में से",
+  "No written comment added.": "लिखित टिप्पणी नहीं जोड़ी गई।",
+  "· Private to the guardian and this lesson’s teacher":
+    "· केवल अभिभावक और इस कक्षा के शिक्षक के लिए निजी",
+  "Ask support for a correction": "सुधार के लिए सहायता लें",
+  "Feedback is available after you confirm the current attendance for a present or late lesson, with active guardian consent. Resolve any attendance review first.":
+    "वर्तमान उपस्थित या देर वाली कक्षा की उपस्थिति की पुष्टि और सक्रिय अभिभावक सहमति के बाद प्रतिक्रिया दे सकते हैं। पहले उपस्थिति समीक्षा सुलझाएँ।",
+  "Excluded from attendance totals until support resolves the record.":
+    "सहायता टीम के समाधान तक उपस्थिति की गिनती से बाहर है।",
+  "Recorded attendance reviews (": "दर्ज उपस्थिति समीक्षाएँ (",
+  "The record does not identify who submitted each review.":
+    "रिकॉर्ड में हर समीक्षा भेजने वाले की पहचान नहीं है।",
+  "Each person can submit one attendance review per lesson. If you have already reviewed it,":
+    "हर व्यक्ति प्रति कक्षा एक उपस्थिति समीक्षा भेज सकता है। पहले समीक्षा की हो तो,",
+  "ask support to correct the record": "रिकॉर्ड सुधारने के लिए सहायता लें",
+  "Record attendance": "उपस्थिति दर्ज करें",
+  "Confirm attendance": "उपस्थिति की पुष्टि करें",
+  "Report attendance error": "उपस्थिति की गलती बताएँ",
+  "Share lesson feedback": "कक्षा की प्रतिक्रिया साझा करें",
+  "Review your lesson feedback": "कक्षा की प्रतिक्रिया जाँचें",
+  "How did this lesson go?": "यह कक्षा कैसी रही?",
+  "Shared privately with this lesson’s teacher. Your feedback won’t appear on their public profile.":
+    "केवल इस कक्षा के शिक्षक से निजी तौर पर साझा। सार्वजनिक प्रोफ़ाइल पर नहीं दिखेगी।",
+  for: "के लिए",
+  on: "को",
+  "I reviewed my feedback and understand it will be shared with this lesson’s teacher.":
+    "मैंने प्रतिक्रिया जाँच ली है और समझता/समझती हूँ कि यह इस कक्षा के शिक्षक से साझा होगी।",
+  "How helpful was this lesson?": "यह कक्षा कितनी उपयोगी थी?",
+  "What worked well, or could be better? (optional)":
+    "क्या अच्छा रहा या बेहतर हो सकता है? (वैकल्पिक)",
+  "/1,000 characters. Keep the comment about this lesson; leave out contact details.":
+    "/1,000 अक्षर। टिप्पणी कक्षा के बारे में रखें; संपर्क विवरण न दें।",
+  "Edit feedback": "प्रतिक्रिया बदलें",
+  "Cancel feedback": "प्रतिक्रिया रद्द करें",
+  "Send private feedback": "निजी प्रतिक्रिया भेजें",
+  "Review feedback": "प्रतिक्रिया जाँचें",
+  "For a safety concern,": "सुरक्षा की चिंता हो तो,",
+  "contact support": "सहायता से संपर्क करें",
+  "Record lesson attendance": "कक्षा की उपस्थिति दर्ज करें",
+  "Review attendance confirmation": "उपस्थिति की पुष्टि जाँचें",
+  "Report an attendance error": "उपस्थिति की गलती बताएँ",
+  "Explain what is incorrect. This opens a support review and excludes the lesson from attendance totals.":
+    "बताएँ कि क्या गलत है। सहायता समीक्षा खुलेगी और कक्षा उपस्थिति की गिनती से बाहर रहेगी।",
+  "Review the {0} record for {1} on {2}. Confirm only what actually happened.":
+    "{2} को {1} के लिए {0} रिकॉर्ड जाँचें। केवल वास्तव में हुई बात की पुष्टि करें।",
+  Attendance: "उपस्थिति",
+  Present: "उपस्थित",
+  Late: "देर से आए",
+  Absent: "अनुपस्थित",
+  "What is incorrect?": "क्या गलत है?",
+  "Reason for this record": "इस रिकॉर्ड का कारण",
+  "Revision recap": "पुनरावृत्ति का सारांश",
+  " (required)": " (ज़रूरी)",
+  " (optional)": " (वैकल्पिक)",
+  "Summarize the topic covered and the learner’s next step.":
+    "पढ़ाए विषय और विद्यार्थी का अगला कदम संक्षेप में बताएँ।",
+  "I want support to review this attendance record.":
+    "मैं सहायता टीम से इस उपस्थिति रिकॉर्ड की समीक्षा चाहता/चाहती हूँ।",
+  "I have reviewed this lesson and the attendance details are accurate.":
+    "मैंने कक्षा जाँच ली है और उपस्थिति विवरण सही है।",
+  "Submit attendance dispute": "उपस्थिति का विवाद भेजें",
+  "Save attendance confirmation": "उपस्थिति की पुष्टि सहेजें",
+  "Save attendance record": "उपस्थिति का रिकॉर्ड सहेजें",
+  "Refresh attendance record": "उपस्थिति का रिकॉर्ड फिर लोड करें",
+  "Matching review belongs to authorized operators and administrators.":
+    "मिलान की समीक्षा अधिकृत संचालन टीम और प्रशासक करते हैं।",
+  "A shortlist with reasons.": "स्पष्ट कारणों के साथ शिक्षक सूची।",
+  "Review the eligible pool, choose a clear order and publish only after checking the current criteria. Rules guide the list; teacher acceptance and guardian choice remain separate.":
+    "पात्र शिक्षकों को जाँचें, स्पष्ट क्रम चुनें और मौजूदा ज़रूरतें जाँचकर प्रकाशित करें। सूची नियमों से बनती है; शिक्षक की स्वीकृति और अभिभावक की पसंद अलग हैं।",
+  "Open tuition request": "ट्यूशन अनुरोध खोलें",
+  "Choose a request": "अनुरोध चुनें",
+  "Direct search": "खुद खोजें",
+  "Assisted search": "हमसे खोज करवाएँ",
+  "Loading matching queue…": "मिलान कतार लोड हो रही है…",
+  "Request queue is unavailable.": "अनुरोध कतार उपलब्ध नहीं है।",
+  "Retry matching queue": "मिलान कतार फिर लोड करें",
+  "No open requests in this queue.": "इस कतार में खुले अनुरोध नहीं हैं।",
+  "Choose a request from this authorized queue. It contains the latest 50 records.":
+    "इस अधिकृत कतार से अनुरोध चुनें। इसमें नवीनतम 50 रिकॉर्ड हैं।",
+  "Latest 50 requests and matching runs; up to 10 shortlist candidates from a rules pool bounded at 200 teachers. A match is not an assignment or guaranteed supply. Notification delivery and live operator staffing remain unqualified.":
+    "नवीनतम 50 अनुरोध और मिलान; अधिकतम 200 शिक्षकों के नियम समूह से 10 सुझाव। मिलान नियुक्ति या उपलब्धता की गारंटी नहीं है। सूचनाएँ और लाइव संचालन टीम अभी सत्यापित नहीं हैं।",
+  "Refresh matching details": "मिलान की जानकारी फिर लोड करें",
+  "Matching details are loading or unavailable. Guardian verification/consent, an open request and regional access are required.":
+    "मिलान विवरण लोड हो रहे हैं या उपलब्ध नहीं हैं। अभिभावक का सत्यापन/सहमति, खुला अनुरोध और क्षेत्रीय अनुमति ज़रूरी हैं।",
+  "Reload matching details": "मिलान विवरण फिर लोड करें",
+  "monthly budget": "मासिक बजट",
+  "Only the guardian’s chosen teacher is considered.":
+    "केवल अभिभावक के चुने शिक्षक पर विचार होगा।",
+  "An operator reviews the eligible pool for the guardian.":
+    "संचालन टीम अभिभावक के लिए पात्र शिक्षकों को देखती है।",
+  "Current request version": "अनुरोध का वर्तमान संस्करण",
+  "Required eligibility": "ज़रूरी पात्रता",
+  "Current screening and fee acceptance; learner stage, class/board or course/year; subject/language/format; budget; home travel/locality where relevant; available capacity and a current availability overlap. Replacement requests exclude the previous teacher. These requirements cannot be overridden.":
+    "वर्तमान जाँच और शुल्क की स्वीकृति; शिक्षा स्तर, कक्षा/बोर्ड या पाठ्यक्रम/वर्ष; विषय, भाषा और तरीका; बजट; जहाँ लागू हो घर की दूरी/इलाका; क्षमता और उपलब्ध समय का मेल। बदलाव के अनुरोध पुराने शिक्षक को बाहर रखते हैं। इन शर्तों को दरकिनार नहीं कर सकते।",
+  "Schedule:": "समय-सारणी:",
+  "Confirmed preferences": "पुष्ट पसंद",
+  "Needs confirmation": "पुष्टि चाहिए",
+  "Review new matching run": "नए मिलान की समीक्षा करें",
+  "Review shortlist publication": "सूची के प्रकाशन की समीक्षा करें",
+  "Refresh matching workspace": "मिलान कार्यक्षेत्र फिर लोड करें",
+  "Ask the guardian to confirm fresh future availability before running matching again. No shortlist is ready to publish.":
+    "फिर मिलान चलाने से पहले अभिभावक से भविष्य की नई उपलब्धता की पुष्टि कराएँ। प्रकाशित करने के लिए सूची तैयार नहीं है।",
+  "No eligible teacher was found in this run. Review criteria and teacher supply; ask the guardian to update their needs or availability. Do not bypass hard requirements.":
+    "इस मिलान में पात्र शिक्षक नहीं मिला। ज़रूरतें और शिक्षक उपलब्धता देखें; अभिभावक से ज़रूरतें या समय बदलने को कहें। आवश्यक शर्तें न हटाएँ।",
+  "Current shortlist candidates": "मौजूदा सूची के शिक्षक",
+  "No candidates yet. Build a run and review its result.":
+    "अभी सुझाव नहीं हैं। मिलान चलाकर नतीजा देखें।",
+  "Currently eligible": "अभी पात्र",
+  "Not currently selectable": "अभी चुन नहीं सकते",
+  "Rules score:": "नियमों का अंक:",
+  "· Teacher response:": "· शिक्षक का जवाब:",
+  "Published at {0} IST": "{0} IST को प्रकाशित",
+  "Not published": "प्रकाशित नहीं",
+  "Review a fresh rules run": "नए नियम आधारित मिलान की समीक्षा करें",
+  "Review the ordered shortlist": "क्रमबद्ध सूची की समीक्षा करें",
+  "Choose and order the shortlist": "सूची चुनें और क्रम तय करें",
+  "Choose eligible candidates only. Ordering and exclusion are recorded; the server rechecks eligibility at publication.":
+    "केवल पात्र शिक्षक चुनें। क्रम और बाहर करना दर्ज होता है; प्रकाशन पर सर्वर पात्रता फिर जाँचता है।",
+  Eligible: "पात्र",
+  "Changed; remove from this selection": "बदल गया; इस चयन से हटाएँ",
+  "Candidate no longer in this run": "शिक्षक अब इस मिलान में नहीं है",
+  "Move candidate": "शिक्षक को ले जाएँ",
+  up: "ऊपर",
+  down: "नीचे",
+  "Remove candidate": "शिक्षक हटाएँ",
+  "Reason for shortlist and adjustments": "सूची और बदलावों का कारण",
+  "A new run rechecks the eligible pool and clears the previous shortlist and saved teacher choice. Publication and assignment remain separate decisions.":
+    "नया मिलान पात्र शिक्षक फिर जाँचता है और पिछली सूची व सहेजी पसंद हटाता है। प्रकाशन और नियुक्ति अलग निर्णय हैं।",
+  "Candidate changed": "शिक्षक की स्थिति बदल गई",
+  "This ordered set replaces the current publication. Excluded candidates stop being shown; current eligibility, expiry and run ownership are rechecked. Publishing does not record a guardian view or assign a teacher.":
+    "यह क्रम मौजूदा प्रकाशित सूची की जगह लेता है। बाहर किए शिक्षक दिखना बंद होंगे; वर्तमान पात्रता, समाप्ति और मिलान का अधिकार फिर जाँचा जाता है। प्रकाशन अभिभावक का देखना या शिक्षक नियुक्ति दर्ज नहीं करता।",
+  "I reviewed the criteria and effects and want to":
+    "मैंने ज़रूरतों और असर की समीक्षा की है और चाहता/चाहती हूँ:",
+  "create this matching run": "यह मिलान बनाना",
+  "publish this ordered shortlist": "यह क्रमबद्ध सूची प्रकाशित करना",
+  "Back to adjustments": "बदलाव पर लौटें",
+  "Cancel decision": "निर्णय रद्द करें",
+  "Confirm matching run": "मिलान की पुष्टि करें",
+  "Publish reviewed shortlist": "समीक्षित सूची प्रकाशित करें",
+  "Review matching run": "मिलान की समीक्षा करें",
+  "Review publication": "प्रकाशन की समीक्षा करें",
+  "Matching run history": "मिलान का इतिहास",
+  "No matching runs yet.": "अभी कोई मिलान नहीं चला है।",
+  "· Request version": "· अनुरोध संस्करण",
+  "Rules:": "नियम:",
+  "· Feature version:": "· सुविधा संस्करण:",
+  "Recorded learner coverage:": "विद्यार्थी की दर्ज शिक्षा:",
+  "{0} · Year {1}": "{0} · वर्ष {1}",
+  "This run was pool-limited.": "इस मिलान में शिक्षक समूह की सीमा लागू थी।",
+  "No pool-limit flag recorded.": "समूह सीमा का संकेत दर्ज नहीं है।",
+  "Historical evidence does not qualify a candidate for a new publication; the current server checks remain authoritative.":
+    "पुराना प्रमाण नए प्रकाशन की पात्रता नहीं देता; सर्वर की वर्तमान जाँच अंतिम है।",
+  "Private notes are available to guardians and the teacher they choose to share with.":
+    "निजी नोट्स अभिभावक और उसके चुने साझा शिक्षक के लिए हैं।",
+  "Small details. Thoughtful support.": "छोटी बातें। सोच-समझकर सहायता।",
+  "A little context for your next lesson.": "अगली कक्षा के लिए थोड़ा संदर्भ।",
+  "Keep learning preferences in one private place. You choose what to share and which teacher can read it.":
+    "पढ़ाई की पसंद एक निजी जगह रखें। आप तय करते हैं क्या साझा करना है और कौन शिक्षक पढ़ सकता है।",
+  "Read only the notes a guardian has chosen to share with you. Acknowledge them once you’ve reviewed the current version.":
+    "केवल अभिभावक के साझा किए नोट्स पढ़ें। वर्तमान संस्करण पढ़कर पुष्टि करें।",
+  "Private comes first": "पहले गोपनीयता",
+  "Shared by invitation": "निमंत्रण पर साझा",
+  "Every new or edited note stays private until you name an active teacher.":
+    "हर नया या बदला नोट सक्रिय शिक्षक चुनने तक निजी रहता है।",
+  "Access depends on an active placement and guardian consent.":
+    "पहुँच सक्रिय नियुक्ति और अभिभावक की सहमति पर निर्भर है।",
+  "Use these notes only to support the learner’s teaching. Avoid copying them into personal messages or documents.":
+    "नोट्स केवल पढ़ाने में मदद के लिए हैं। निजी संदेश या दस्तावेज़ में नकल न करें।",
+  "Verified guardian access and active consent are required to create, edit or share notes.":
+    "नोट्स बनाने, बदलने या साझा करने के लिए सत्यापित अभिभावक और सक्रिय सहमति ज़रूरी है।",
+  "Review learner access": "विद्यार्थी की पहुँच देखें",
+  "Add a learner before writing a private learning note.":
+    "निजी नोट लिखने से पहले विद्यार्थी जोड़ें।",
+  "Complete learner onboarding": "विद्यार्थी की शुरुआत पूरी करें",
+  "Your learning notes": "आपके पढ़ाई के नोट्स",
+  "Notes shared with you": "आपके साथ साझा नोट्स",
+  "Up to 50 most recent notes, with current sharing status.":
+    "वर्तमान साझाकरण स्थिति के साथ नवीनतम अधिकतम 50 नोट्स।",
+  "Refresh notes": "नोट्स फिर लोड करें",
+  "Write a private note": "निजी नोट लिखें",
+  "Refresh current note": "मौजूदा नोट फिर लोड करें",
+  "Loading your notes…": "आपके नोट्स लोड हो रहे हैं…",
+  "Notes could not be loaded. Your edits stay here.":
+    "नोट्स लोड नहीं हुए। आपके बदलाव यहीं रहेंगे।",
+  "Retry notes": "नोट्स फिर लोड करें",
+  "Review before saving": "सहेजने से पहले जाँचें",
+  "Learning context": "पढ़ाई का संदर्भ",
+  "Review access": "पहुँच जाँचें",
+  "Edit your note": "अपना नोट बदलें",
+  "Choose who can read this note": "चुनें कि यह नोट कौन पढ़ सकता है",
+  "Withdraw teacher access": "शिक्षक की पहुँच वापस लें",
+  "Acknowledge the shared note": "साझा नोट पढ़ने की पुष्टि करें",
+  "The note is no longer in your current notes. Cancel this decision and refresh.":
+    "यह नोट अब मौजूदा नोट्स में नहीं है। निर्णय रद्द करके फिर लोड करें।",
+  "Choose a learner": "विद्यार्थी चुनें",
+  "/5,000 characters. Include practical learning preferences; leave out passwords, contact details and unnecessary sensitive information.":
+    "/5,000 अक्षर। पढ़ाई की उपयोगी पसंद बताएँ; पासवर्ड, संपर्क और अनावश्यक संवेदनशील जानकारी न दें।",
+  "Saving edits withdraws the existing teacher’s access and clears their acknowledgement. Review sharing again after saving.":
+    "बदलाव सहेजने पर मौजूदा शिक्षक की पहुँच और पुष्टि हटती है। सहेजने के बाद साझाकरण फिर देखें।",
+  "Saved privately": "निजी तौर पर सहेजा गया",
+  "Only the teacher you select": "केवल आपका चुना शिक्षक",
+  "Future access will stop": "आगे की पहुँच बंद होगी",
+  "Confirm you reviewed this version": "इस संस्करण को पढ़ने की पुष्टि करें",
+  "Teacher to share with": "साझा करने के लिए शिक्षक",
+  "Choose a named teacher": "नाम से शिक्षक चुनें",
+  "No named active teacher is available for this learner. Keep the note private and review your tuition agreement.":
+    "इस विद्यार्थी के लिए सक्रिय शिक्षक नहीं है। नोट निजी रखें और ट्यूशन समझौता देखें।",
+  "The selected teacher can read the entire note and acknowledge it. Other teachers and students cannot access it.":
+    "चुना शिक्षक पूरा नोट पढ़कर पुष्टि कर सकता है। दूसरे शिक्षक और विद्यार्थी इसे नहीं देख सकते।",
+  "Access for": "इनकी पहुँच",
+  "the previously named teacher": "पहले नामित शिक्षक",
+  "will stop. This cannot recall information they already read.":
+    "बंद होगी। पहले पढ़ी जानकारी वापस नहीं ली जा सकती।",
+  "The edited note will be private. Its previous sharing and acknowledgement will be cleared.":
+    "बदला नोट निजी होगा। पिछला साझाकरण और पुष्टि हट जाएगी।",
+  "I reviewed this note and want to save it privately.":
+    "मैंने नोट जाँच लिया है और निजी तौर पर सहेजना चाहता/चाहती हूँ।",
+  "I reviewed the full note and want to share it with this named teacher.":
+    "मैंने पूरा नोट जाँच लिया है और इस नामित शिक्षक से साझा करना चाहता/चाहती हूँ।",
+  "I want to withdraw this teacher’s access to the note.":
+    "मैं इस शिक्षक की नोट तक पहुँच वापस लेना चाहता/चाहती हूँ।",
+  "I have read this shared note and understand its learning context.":
+    "मैंने साझा नोट पढ़ लिया है और पढ़ाई का संदर्भ समझता/समझती हूँ।",
+  "Save note privately": "नोट निजी तौर पर सहेजें",
+  "Review private note": "निजी नोट जाँचें",
+  "Confirm sharing": "साझा करने की पुष्टि करें",
+  "Withdraw access": "पहुँच वापस लें",
+  "Confirm acknowledgement": "पढ़ने की पुष्टि करें",
+  "A private place to start.": "शुरुआत के लिए एक निजी जगह।",
+  "No notes shared with you yet.": "अभी आपके साथ नोट साझा नहीं हैं।",
+  "Write a short note about what helps your learner. Sharing is always a separate decision.":
+    "विद्यार्थी को क्या मदद करता है, उस पर छोटा नोट लिखें। साझा करना हमेशा अलग निर्णय है।",
+  "Guardians choose which learning notes to share. No private notes appear here.":
+    "अभिभावक चुनता है कौन-से नोट साझा हों। निजी नोट यहाँ नहीं दिखते।",
+  "Private · only you": "निजी · केवल आप",
+  "Shared with {0}": "{0} के साथ साझा",
+  "Sharing paused": "साझाकरण रुका है",
+  Acknowledged: "पढ़ने की पुष्टि हुई",
+  "Awaiting teacher acknowledgement": "शिक्षक की पुष्टि का इंतज़ार",
+  "Edit note": "नोट बदलें",
+  "Review withdrawal": "पहुँच हटाने की समीक्षा करें",
+  "Review sharing": "साझाकरण की समीक्षा करें",
+  "Acknowledge note": "नोट पढ़ने की पुष्टि करें",
+  "These arrangement decisions belong to your guardian.":
+    "व्यवस्था के ये निर्णय आपके अभिभावक के हैं।",
+  "Return to your dashboard": "अपने डैशबोर्ड पर लौटें",
+  "When the fit needs to change.": "जब शिक्षक बदलने की ज़रूरत हो।",
+  "Review your current arrangement, end future commitments or ask us to look for a replacement teacher. Support and replacement requests do not require Pro.":
+    "मौजूदा व्यवस्था देखें, आगे की प्रतिबद्धताएँ समाप्त करें या दूसरा शिक्षक माँगें। सहायता और शिक्षक बदलने के लिए Pro ज़रूरी नहीं है।",
+  "Refresh arrangement": "व्यवस्था फिर लोड करें",
+  "Current verified guardian consent is required for these decisions.":
+    "इन निर्णयों के लिए अभिभावक की वर्तमान सत्यापित सहमति ज़रूरी है।",
+  "Help and safety reporting remain available":
+    "मदद और सुरक्षा की शिकायत उपलब्ध हैं",
+  "Request criteria could not be loaded.": "अनुरोध की ज़रूरतें लोड नहीं हुईं।",
+  "Retry criteria": "ज़रूरतें फिर लोड करें",
+  "No tuition arrangements yet.": "अभी ट्यूशन व्यवस्था नहीं है।",
+  "Your arrangements appear after tuition terms are opened.":
+    "ट्यूशन की शर्तें खुलने के बाद व्यवस्थाएँ दिखेंगी।",
+  "Review your tuition requests": "ट्यूशन अनुरोध देखें",
+  "Tuition arrangement": "ट्यूशन व्यवस्था",
+  "Teacher {0}": "शिक्षक {0}",
+  "Refresh arrangements": "व्यवस्थाएँ फिर लोड करें",
+  "The linked arrangement is unavailable in this view. Return to your hiring dashboard or contact support; another arrangement has not been substituted.":
+    "संबंधित व्यवस्था यहाँ उपलब्ध नहीं है। नियुक्ति डैशबोर्ड पर लौटें या सहायता लें; उसकी जगह दूसरी व्यवस्था नहीं दिखाई गई है।",
+  "’s arrangement": "की व्यवस्था",
+  monthly: "मासिक",
+  "Help and case progress for this arrangement":
+    "इस व्यवस्था की सहायता और मामले की प्रगति",
+  "This arrangement is closed.": "यह व्यवस्था बंद है।",
+  "Replacement request:": "शिक्षक बदलने का अनुरोध:",
+  "Matching status unavailable": "मिलान की स्थिति उपलब्ध नहीं है",
+  "Review replacement progress": "शिक्षक बदलने की प्रगति देखें",
+  "View support history": "सहायता इतिहास देखें",
+  "Request a replacement": "दूसरा शिक्षक माँगें",
+  "Close arrangement": "व्यवस्था बंद करें",
+  "Open the linked support case": "संबंधित सहायता मामला खोलें",
+  "Review your replacement request": "शिक्षक बदलने का अनुरोध जाँचें",
+  ". A recorded request does not confirm a refund or a new teacher.":
+    "। अनुरोध दर्ज होने से पैसे वापसी या नए शिक्षक की पुष्टि नहीं होती।",
+  "Review the effects": "असर की समीक्षा करें",
+  "Your replacement criteria": "नए शिक्षक की आपकी ज़रूरतें",
+  "Close this arrangement": "यह व्यवस्था बंद करें",
+  "Reason for": "इसका कारण",
+  replacement: "शिक्षक बदलना",
+  closure: "बंद करना",
+  "Include only information needed for this decision. Report urgent safety concerns through Help & safety.":
+    "केवल निर्णय की ज़रूरी जानकारी दें। तत्काल सुरक्षा की चिंता मदद और सुरक्षा सहायता से बताएँ।",
+  "The same learner and region are retained. Review these criteria and add fresh availability; the previous teacher is excluded.":
+    "वही विद्यार्थी और क्षेत्र रहेंगे। ज़रूरतें जाँचकर नया समय जोड़ें; पिछला शिक्षक शामिल नहीं होगा।",
+  "Fresh availability in IST": "नया उपलब्ध समय IST में",
+  "Choose 1–6 windows of 20–120 minutes, from one hour to 60 days ahead. These are preferences, not confirmed bookings.":
+    "अगले एक घंटे से 60 दिनों में 20–120 मिनट के 1–6 समय चुनें। ये पसंद हैं, पक्की बुकिंग नहीं।",
+  Window: "समय",
+  "starts (IST)": "शुरुआत (IST)",
+  "(minutes)": "(मिनट)",
+  "Remove window": "समय हटाएँ",
+  "Add availability window": "उपलब्ध समय जोड़ें",
+  "Close and request replacement": "बंद करके दूसरा शिक्षक माँगें",
+  "Close without replacement": "दूसरा शिक्षक माँगे बिना बंद करें",
+  "Future scheduled lessons, their reservations and meeting access are cancelled.":
+    "भावी तय कक्षाएँ, उनके आरक्षण और बैठक प्रवेश रद्द होंगे।",
+  "Pending/accepted timetables end. Existing past lesson and financial records remain.":
+    "लंबित/स्वीकृत समय-सारणी समाप्त होंगी। पुरानी कक्षाओं और वित्त के रिकॉर्ड रहेंगे।",
+  "Notes shared with this teacher become private. Information already read cannot be recalled.":
+    "इस शिक्षक से साझा नोट निजी हो जाएँगे। पहले पढ़ी जानकारी वापस नहीं ली जा सकती।",
+  "No refund or replacement teacher is confirmed by this action. Any financial question needs support review.":
+    "इससे पैसे वापसी या नए शिक्षक की पुष्टि नहीं होती। वित्तीय सवाल के लिए सहायता समीक्षा ज़रूरी है।",
+  budget: "बजट",
+  "The previous teacher is excluded. A replacement follows the teacher shortlist and mutually reviewed hiring terms. A demo is optional; no class timetable is required to accept hiring terms.":
+    "पिछला शिक्षक बाहर रहेगा। बदलाव के लिए नई सूची और दोनों की समीक्षित नियुक्ति शर्तें होंगी। डेमो वैकल्पिक है; शर्तें स्वीकार करने के लिए समय-सारणी ज़रूरी नहीं।",
+  "I reviewed these effects and want to":
+    "मैंने असर जाँच लिया है और चाहता/चाहती हूँ:",
+  "close this arrangement and request a replacement":
+    "व्यवस्था बंद करके दूसरा शिक्षक माँगना",
+  "close this arrangement": "यह व्यवस्था बंद करना",
+  "Confirm closure and replacement":
+    "बंद करने और दूसरा शिक्षक माँगने की पुष्टि करें",
+  "Confirm closure": "बंद करने की पुष्टि करें",
+  "Review decision": "निर्णय की समीक्षा करें",
+  "This view uses your current dashboard and latest 50 requests. For earlier cases or financial questions, use Help & safety. Development support has no live operator or notification delivery.":
+    "यह दृश्य वर्तमान डैशबोर्ड और नवीनतम 50 अनुरोधों का है। पुराने मामलों या वित्तीय सवालों के लिए सहायता लें। विकास संस्करण में लाइव कर्मचारी या सूचनाएँ नहीं हैं।",
+  "Staff reporting access is required to view these reports.":
+    "इन रिपोर्ट के लिए कर्मचारी रिपोर्टिंग की अनुमति चाहिए।",
+  "Follow the recorded journey.": "दर्ज सफ़र पर नज़र रखें।",
+  "Compare search paths with their real denominators. Keep unknown outcomes visible and financial obligations separate from settlement.":
+    "खोज के तरीकों की वास्तविक आधार संख्या से तुलना करें। अज्ञात नतीजे स्पष्ट रखें और वित्तीय देनदारियाँ निपटान से अलग रखें।",
+  "Reporting views": "रिपोर्ट के दृश्य",
+  "Search & continuation": "खोज और निरंतरता",
+  "Capture & obligations": "मिले भुगतान और देनदारियाँ",
+  "Reports use recorded development data and may include synthetic fixtures. These observations do not establish learning improvement, provider settlement or live pilot qualification.":
+    "रिपोर्ट विकास संस्करण के दर्ज डेटा की हैं और इनमें नमूना रिकॉर्ड हो सकते हैं। इससे पढ़ाई में सुधार, प्रदाता का निपटान या लाइव पायलट की तैयारी सिद्ध नहीं होती।",
+  "Choose the reporting dates": "रिपोर्ट की तारीख़ें चुनें",
+  "Dates use IST. Apply a preset or custom range to update the reports; draft dates do not change the displayed results.":
+    "तारीख़ें IST में हैं। रिपोर्ट बदलने के लिए तय या अपनी अवधि लागू करें; मसौदा तारीख़ों से दिख रहे नतीजे नहीं बदलते।",
+  "Date preset": "तय अवधि",
+  "Last 30 calendar days": "पिछले 30 कैलेंडर दिन",
+  "Current calendar month": "मौजूदा कैलेंडर महीना",
+  "Previous calendar month": "पिछला कैलेंडर महीना",
+  "Custom dates": "अपनी तारीख़ें",
+  "Report from (IST)": "रिपोर्ट की शुरुआत (IST)",
+  "Report through (IST)": "रिपोर्ट का अंत (IST)",
+  "Applied dates:": "लागू तारीख़ें:",
+  through: "से",
+  "Request cohorts by search path": "खोज के तरीके के अनुसार अनुरोध समूह",
+  "The date range selects when tuition requests were created. Milestones reflect current recorded evidence as of the report timestamp, even if it arrived later. Each request counts once per milestone; the bars do not imply an ordered or completed service.":
+    "अवधि अनुरोध बनने की तारीख़ चुनती है। पड़ाव रिपोर्ट के समय तक दर्ज वर्तमान प्रमाण दिखाते हैं, भले बाद में आए हों। हर पड़ाव में अनुरोध एक बार गिना जाता है; चार्ट क्रम या पूरी सेवा नहीं दर्शाता।",
+  "Loading reporting regions…": "रिपोर्ट के क्षेत्र लोड हो रहे हैं…",
+  "Region choices unavailable.": "क्षेत्र विकल्प उपलब्ध नहीं हैं।",
+  "Retry reporting regions": "रिपोर्ट के क्षेत्र फिर लोड करें",
+  "Request region": "अनुरोध का क्षेत्र",
+  "All regions": "सभी क्षेत्र",
+  "First 100 region choices; All regions includes the full reporting scope.":
+    "पहले 100 क्षेत्र विकल्प; सभी क्षेत्र में पूरा अनुमत दायरा शामिल है।",
+  "Assigned reporting region:": "सौंपा गया रिपोर्ट क्षेत्र:",
+  ". Requests outside this region are excluded.":
+    "। इस क्षेत्र के बाहर के अनुरोध शामिल नहीं हैं।",
+  "Loading request cohorts…": "अनुरोध समूह लोड हो रहे हैं…",
+  "Request cohort report unavailable.":
+    "अनुरोध समूह की रिपोर्ट उपलब्ध नहीं है।",
+  "Retry request cohorts": "अनुरोध समूह फिर लोड करें",
+  "Shown scope:": "दिखाया दायरा:",
+  ". Cohort interval:": "। समूह की अवधि:",
+  "IST (end excluded). Outcomes recorded as of":
+    "IST (अंत शामिल नहीं)। नतीजे इस समय तक दर्ज:",
+  "Recorded request milestones by search path":
+    "खोज के तरीके के अनुसार अनुरोध के दर्ज पड़ाव",
+  "requests form this path's denominator.":
+    "अनुरोध इस तरीके की आधार संख्या हैं।",
+  "recorded milestones": "दर्ज पड़ाव",
+  Milestone: "पड़ाव",
+  Requests: "अनुरोध",
+  "Of cohort": "समूह का हिस्सा",
+  "Recorded start conversion:": "दर्ज शुरुआत का अनुपात:",
+  "No request cohort for this path in the selected dates and region.":
+    "चुनी तारीख़ों और क्षेत्र में इस तरीके का अनुरोध समूह नहीं है।",
+  "No requests were recorded in this cohort. Conversion is not estimable.":
+    "इस समूह में अनुरोध दर्ज नहीं है। रूपांतरण का अनुमान नहीं लगाया जा सकता।",
+  "Refresh request cohorts": "अनुरोध समूह फिर लोड करें",
+  "Day-30 continuation evidence": "30वें दिन जारी रहने का प्रमाण",
+  "Only starts at least 30 days old and qualified observations contribute to the known-outcome rate. Unknown, missing and immature records stay visible; no response is not a failed outcome. This is continuation evidence, not a learning-improvement score.":
+    "कम से कम 30 दिन पुरानी शुरुआत और योग्य अवलोकन ही ज्ञात नतीजों के अनुपात में आते हैं। अज्ञात, बिना प्रमाण और समय पूरा न हुए रिकॉर्ड दिखते रहते हैं; जवाब न होना असफल नतीजा नहीं है। यह निरंतरता का प्रमाण है, सीखने में सुधार का अंक नहीं।",
+  "All search paths": "सभी खोज तरीके",
+  "Not estimable": "अनुमान उपलब्ध नहीं",
+  "continued /": "जारी रहे /",
+  "known mature outcomes. Observation coverage:":
+    "ज्ञात परिपक्व नतीजे। अवलोकन का दायरा:",
+  "mature starts (": "परिपक्व शुरुआत (",
+  "Known continued": "जारी रहना ज्ञात है",
+  "Known stopped": "रुकना ज्ञात है",
+  "Unknown outcome": "अज्ञात नतीजा",
+  "Missing qualified observation": "योग्य अवलोकन नहीं मिला",
+  "Not yet mature": "अभी समय पूरा नहीं हुआ",
+  "Placement missing start evidence": "नियुक्ति में शुरुआत का प्रमाण नहीं",
+  "Recorded captures by provider mode":
+    "प्रदाता मोड के अनुसार दर्ज मिले भुगतान",
+  "Global finance scope. Captures are local payment records, not verified bank settlement. Sandbox records and unrecorded modes are shown separately.":
+    "वैश्विक वित्तीय दायरा। प्राप्त राशि स्थानीय भुगतान का रिकॉर्ड है, सत्यापित बैंक निपटान नहीं। परीक्षण और बिना दर्ज मोड अलग दिखते हैं।",
+  "Loading financial report…": "वित्तीय रिपोर्ट लोड हो रही है…",
+  "Financial report unavailable.": "वित्तीय रिपोर्ट उपलब्ध नहीं है।",
+  "Retry financial report": "वित्तीय रिपोर्ट फिर लोड करें",
+  "Record-creation interval:": "रिकॉर्ड बनने की अवधि:",
+  "IST (end excluded). Snapshot": "IST (अंत शामिल नहीं)। स्थिति",
+  "recorded captures · settlement unverified.":
+    "दर्ज मिले भुगतान · निपटान असत्यापित।",
+  "Provider-mode classification is unavailable. Refresh the report before comparing live and sandbox captures.":
+    "प्रदाता मोड का वर्गीकरण उपलब्ध नहीं है। लाइव और परीक्षण भुगतान की तुलना से पहले रिपोर्ट फिर लोड करें।",
+  "No captures in this period; no provider-mode comparison is available.":
+    "इस अवधि में भुगतान नहीं हैं; प्रदाता मोड की तुलना उपलब्ध नहीं है।",
+  "Recorded capture amounts by provider mode":
+    "प्रदाता मोड के अनुसार दर्ज भुगतान राशि",
+  "Provider-mode capture records": "प्रदाता मोड के भुगतान रिकॉर्ड",
+  "Recorded mode": "दर्ज मोड",
+  Records: "रिकॉर्ड",
+  Amount: "राशि",
+  "Separate financial obligations": "अलग वित्तीय देनदारियाँ",
+  "Refund requests and teacher payables use their creation dates in this period. Invoice dues are current across all dates. These independent measures must not be added or subtracted to calculate a cash balance.":
+    "पैसे वापसी के अनुरोध और शिक्षक की देय राशि इस अवधि में बनने की तारीख़ पर हैं। बाकी चालान सभी तारीख़ों के वर्तमान हैं। नकद शेष निकालने के लिए इन अलग आँकड़ों को जोड़ें या घटाएँ नहीं।",
+  "requests · refund settlement unverified":
+    "अनुरोध · पैसे वापसी का निपटान असत्यापित",
+  "Outstanding platform invoices": "प्लेटफ़ॉर्म के बाकी चालान",
+  "Teacher payable obligations": "शिक्षक को देय देनदारियाँ",
+  "Payables created in this period; payout settlement unverified":
+    "इस अवधि में बनी देय राशियाँ; भुगतान का निपटान असत्यापित",
+  "No teacher payable records were created in this period.":
+    "इस अवधि में शिक्षक की देय राशि के रिकॉर्ड नहीं बने।",
+  "Refresh financial report": "वित्तीय रिपोर्ट फिर लोड करें",
+  "Inspect invoices, captures and obligations":
+    "चालान, मिले भुगतान और देनदारियाँ देखें",
+  "This workspace is restricted to authorized reviewers and administrators.":
+    "यह कार्यक्षेत्र केवल अधिकृत समीक्षक और प्रशासक के लिए है।",
+  "Evidence before approval.": "स्वीकृति से पहले प्रमाण।",
+  "Review private evidence and record the full screening assessment for the current application revision. Server MFA, regional scope and independent review apply.":
+    "निजी प्रमाण देखकर वर्तमान आवेदन संशोधन की पूरी जाँच दर्ज करें। सर्वर MFA, क्षेत्रीय दायरा और स्वतंत्र समीक्षा लागू हैं।",
+  "Queue status": "कतार की स्थिति",
+  "Teacher application": "शिक्षक आवेदन",
+  "Choose an application": "आवेदन चुनें",
+  "— Revision": "— संशोधन",
+  "Loading review queue…": "समीक्षा कतार लोड हो रही है…",
+  "Review queue could not be loaded.": "समीक्षा कतार लोड नहीं हुई।",
+  "Retry review queue": "समीक्षा कतार फिर लोड करें",
+  "No applications for this status.": "इस स्थिति में आवेदन नहीं हैं।",
+  "Choose an application from this queue. A requested application may be outside your scope or the latest 50 entries.":
+    "इस कतार से आवेदन चुनें। माँगा आवेदन आपके दायरे या नवीनतम 50 प्रविष्टियों से बाहर हो सकता है।",
+  "Latest 50 queue entries, evidence items and screening records. Older records require the administrative history workflow. Scanner clearance is file safety, not identity or teaching approval. Live reviewer staffing and production qualification remain open.":
+    "नवीनतम 50 आवेदन, प्रमाण और जाँच रिकॉर्ड। पुराने रिकॉर्ड प्रशासनिक इतिहास से मिलेंगे। स्कैन फ़ाइल की सुरक्षा है, पहचान या पढ़ाने की स्वीकृति नहीं। लाइव समीक्षक और उत्पादन सत्यापन अलग हैं।",
+  "· Revision": "· संशोधन",
+  "Teaching language and format:": "पढ़ाने की भाषा और तरीका:",
+  "No home localities": "घर पर पढ़ाने के इलाके नहीं हैं",
+  "Fee terms:": "शुल्क की शर्तें:",
+  Accepted: "स्वीकार किया",
+  "Not accepted": "स्वीकार नहीं किया",
+  "You cannot review your own application. Independent review is required.":
+    "अपने आवेदन की समीक्षा नहीं कर सकते। स्वतंत्र समीक्षा ज़रूरी है।",
+  "Refresh screening": "जाँच फिर लोड करें",
+  "Refresh evidence and checks": "प्रमाण और जाँच फिर लोड करें",
+  "Record screening check": "जाँच का आकलन दर्ज करें",
+  "Review teacher decision": "शिक्षक निर्णय की समीक्षा करें",
+  "Private evidence or screening history is unavailable. Refresh before making a decision.":
+    "निजी प्रमाण या जाँच इतिहास उपलब्ध नहीं है। निर्णय से पहले फिर लोड करें।",
+  "Private evidence": "निजी प्रमाण",
+  "Loading private evidence…": "निजी प्रमाण लोड हो रहे हैं…",
+  "No evidence uploaded yet.": "अभी प्रमाण अपलोड नहीं हैं।",
+  "KiB · Evidence": "KiB · प्रमाण",
+  "Scanner:": "स्कैनर:",
+  "Not scanned": "स्कैन नहीं हुआ",
+  "Download private": "निजी डाउनलोड करें",
+  evidence: "प्रमाण",
+  "Review scan retry": "स्कैन फिर चलाने की समीक्षा करें",
+  "Screening history": "जाँच का इतिहास",
+  "Current visible checks meet the approval prerequisites; the server rechecks every decision.":
+    "वर्तमान दिख रही जाँच स्वीकृति की ज़रूरतें पूरी करती हैं; सर्वर हर निर्णय फिर जाँचता है।",
+  "Approval prerequisites are incomplete or blocked.":
+    "स्वीकृति की ज़रूरतें अधूरी या अवरुद्ध हैं।",
+  "A failed check exists on this revision. Request changes and require a new application revision before approval.":
+    "इस संशोधन की एक जाँच असफल है। स्वीकृति से पहले बदलाव माँगें और नया संशोधन ज़रूरी करें।",
+  "Loading screening history…": "जाँच इतिहास लोड हो रहा है…",
+  "Valid until": "इस तारीख़ तक मान्य",
+  "Current revision": "मौजूदा संशोधन",
+  "Earlier revision": "पुराना संशोधन",
+  "Confirm the recorded assessment": "दर्ज आकलन की पुष्टि करें",
+  "Record an evidence-based screening check": "प्रमाण आधारित जाँच दर्ज करें",
+  "Retry quarantined evidence scanning": "अलग रखे प्रमाण का स्कैन फिर चलाएँ",
+  "Choose the teacher decision": "शिक्षक का निर्णय चुनें",
+  "Check kind": "जाँच का प्रकार",
+  "Matching clean evidence": "मेल खाता सुरक्षित प्रमाण",
+  "Choose reviewed evidence": "जाँचा प्रमाण चुनें",
+  "Assessment result": "आकलन का नतीजा",
+  "Choose a result": "नतीजा चुनें",
+  Passed: "सफल",
+  Failed: "असफल",
+  "Valid until (IST)": "इस तारीख़ तक मान्य (IST)",
+  "I assessed every declared teaching area, including its stage, subject and class/board or course/year:":
+    "मैंने घोषित हर शिक्षण क्षेत्र की जाँच की है, जिसमें स्तर, विषय और कक्षा/बोर्ड या पाठ्यक्रम/वर्ष शामिल हैं:",
+  "Teacher decision": "शिक्षक का निर्णय",
+  "Request changes": "बदलाव माँगें",
+  "Approve current revision": "मौजूदा संशोधन स्वीकार करें",
+  "Suspend teacher": "शिक्षक को निलंबित करें",
+  "Approval requires four current passed checks with clean evidence and accepted fee terms. Suspension removes discovery/new booking eligibility and shared note access; existing paid bookings require separate review.":
+    "स्वीकृति के लिए सुरक्षित प्रमाण वाली चार वर्तमान सफल जाँच और स्वीकार शुल्क शर्तें ज़रूरी हैं। निलंबन से खोज, नई बुकिंग और साझा नोट्स की पहुँच हटती है; मौजूदा सशुल्क बुकिंग की अलग समीक्षा चाहिए।",
+  "A retry queues scanning and keeps this evidence quarantined. It does not declare the file safe or approve the teacher.":
+    "दोबारा प्रयास प्रमाण अलग रखते हुए स्कैन कतार में डालता है। इससे फ़ाइल सुरक्षित या शिक्षक स्वीकृत नहीं होता।",
+  "Reason for recorded decision": "दर्ज निर्णय का कारण",
+  "Include an assessment or actionable changes. Avoid unnecessary personal details.":
+    "आकलन या करने योग्य बदलाव बताएँ। अनावश्यक निजी जानकारी न दें।",
+  "{0}: {1}. Evidence {2}; valid until {3} IST.":
+    "{0}: {1}। प्रमाण {2}; {3} IST तक मान्य।",
+  "Queue a private evidence scan retry.":
+    "निजी प्रमाण के स्कैन का दोबारा प्रयास कतार में डालें।",
+  "Teacher decision: {0}.": "शिक्षक निर्णय: {0}।",
+  "Full teaching coverage assessed:": "पूरी घोषित शिक्षण योग्यता जाँची गई:",
+  "Discovery and new bookings stop; named note access is revoked. Existing paid bookings and refunds require separate review.":
+    "खोज और नई बुकिंग बंद होंगी; नामित नोट्स की पहुँच हटेगी। मौजूदा सशुल्क बुकिंग और पैसे वापसी की अलग समीक्षा ज़रूरी है।",
+  "I reviewed the quarantine state and want to queue this audited scan retry.":
+    "मैंने अलग रखी स्थिति देख ली है और ऑडिट सहित स्कैन फिर चलाने का काम कतार में डालना चाहता/चाहती हूँ।",
+  "I independently reviewed this application, its available evidence and the current revision, and want to record this audited decision.":
+    "मैंने आवेदन, उपलब्ध प्रमाण और वर्तमान संशोधन की स्वतंत्र समीक्षा की है और ऑडिट सहित निर्णय दर्ज करना चाहता/चाहती हूँ।",
+  "Confirm reviewer decision": "समीक्षक निर्णय की पुष्टि करें",
+  "Review assessment": "आकलन की समीक्षा करें",
+  "One topic. A clearer next step.": "एक विषय। अगला कदम स्पष्ट।",
+  "Choose the learner and a focused brief. Your expert reviews the scope before checkout.":
+    "विद्यार्थी और केंद्रित ज़रूरत चुनें। भुगतान से पहले विशेषज्ञ दायरा देखता है।",
+  "20 or 40 minutes": "20 या 40 मिनट",
+  "Current online sessions use Google Meet, with a 40-minute limit.":
+    "मौजूदा ऑनलाइन सत्र Google Meet पर अधिकतम 40 मिनट के हैं।",
+  "Practice and an expert recap. No syllabus or score guarantee.":
+    "अभ्यास और विशेषज्ञ का सारांश। पाठ्यक्रम या अंकों की गारंटी नहीं।",
+  "Sign in with a guardian account to book for a learner.":
+    "विद्यार्थी के लिए बुक करने हेतु अभिभावक खाते से प्रवेश करें।",
+  "Sign in to book revision": "पुनरावृत्ति बुक करने के लिए प्रवेश करें",
+  "Only a guardian can book and pay for revision.":
+    "केवल अभिभावक पुनरावृत्ति बुक करके भुगतान कर सकता है।",
+  "Guardian adult verification is required before learner details and booking are available.":
+    "विद्यार्थी की जानकारी और बुकिंग से पहले अभिभावक का वयस्क सत्यापन ज़रूरी है।",
+  "Loading your family’s booking permissions…":
+    "परिवार की बुकिंग अनुमतियाँ लोड हो रही हैं…",
+  "Retry family details": "परिवार का विवरण फिर लोड करें",
+  "Active guardian consent is required to book revision.":
+    "पुनरावृत्ति बुक करने के लिए अभिभावक की सक्रिय सहमति चाहिए।",
+  "Review guardian consent": "अभिभावक की सहमति देखें",
+  "Add a learner before booking revision.":
+    "पुनरावृत्ति बुक करने से पहले विद्यार्थी जोड़ें।",
+  "Add a learner": "विद्यार्थी जोड़ें",
+  "Keep the brief focused.": "ज़रूरत को केंद्रित रखें।",
+  "Choose a topic": "विषय चुनें",
+  "Class, board, subject and the question to work through.":
+    "कक्षा, बोर्ड, विषय और हल करने वाला सवाल।",
+  "Let the expert review": "विशेषज्ञ को समीक्षा करने दें",
+  "A ten-minute hold reserves the slot while the expert accepts your scope.":
+    "विशेषज्ञ के दायरा स्वीकार करने के दौरान दस मिनट के लिए समय आरक्षित रहता है।",
+  "Review and pay": "समीक्षा करके भुगतान करें",
+  "Checkout confirms payment separately from the final slot allocation.":
+    "भुगतान और समय का अंतिम आवंटन अलग पुष्टियाँ हैं।",
+  "Current development quotes:": "विकास संस्करण के वर्तमान मूल्य:",
+  "for 20 minutes or": "20 मिनट के लिए या",
+  "for 40 minutes. The saved reservation owns the exact price and policy.":
+    "40 मिनट के लिए। सटीक मूल्य और नीति सहेजे आरक्षण में हैं।",
+  "Plan your revision session": "पुनरावृत्ति सत्र की योजना बनाएँ",
+  "Keep this page open until your hold is saved. All starts are in IST.":
+    "आरक्षण सहेजने तक पृष्ठ खुला रखें। सभी शुरुआत IST में हैं।",
+  "Revision subject": "पुनरावृत्ति का विषय",
+  Maths: "गणित",
+  Science: "विज्ञान",
+  "Session duration": "सत्र की अवधि",
+  "Revision expert": "पुनरावृत्ति विशेषज्ञ",
+  "Choose an eligible expert": "पात्र विशेषज्ञ चुनें",
+  "Loading eligible profiles…": "पात्र प्रोफ़ाइल लोड हो रही हैं…",
+  "The chosen expert is not in the loaded eligible profiles. Load more profiles or choose another expert.":
+    "चुना विशेषज्ञ लोड की पात्र प्रोफ़ाइल में नहीं है। और प्रोफ़ाइल लोड करें या दूसरा विशेषज्ञ चुनें।",
+  "Load more expert profiles": "और विशेषज्ञ प्रोफ़ाइल लोड करें",
+  "Preferred start (IST)": "पसंदीदा शुरुआत (IST)",
+  "Check advertised date (IST)": "घोषित तारीख़ जाँचें (IST)",
+  "See available revision times": "उपलब्ध पुनरावृत्ति समय देखें",
+  "Checking advertised times…": "घोषित समय जाँचे जा रहे हैं…",
+  "Advertised free times for the chosen date. Availability is rechecked when saving.":
+    "चुनी तारीख़ के घोषित खाली समय। सहेजते समय उपलब्धता फिर जाँची जाती है।",
+  "No advertised free times for this date. Choose another date.":
+    "इस तारीख़ पर घोषित खाली समय नहीं है। दूसरी तारीख़ चुनें।",
+  "Load more revision times": "और पुनरावृत्ति समय लोड करें",
+  "Topic brief": "विषय की ज़रूरत",
+  "For example, Class 8 CBSE fractions: converting mixed numbers and checking signs":
+    "जैसे कक्षा 8 CBSE भिन्न: मिश्रित संख्याएँ बदलना और चिह्न जाँचना",
+  "Review session request": "सत्र अनुरोध जाँचें",
+  "Review your revision request": "पुनरावृत्ति अनुरोध जाँचें",
+  "minutes with": "मिनट इनके साथ",
+  "A hold lasts ten minutes. Expert scope acceptance and current availability are required before checkout. No payment or booking confirmation happens at this step.":
+    "आरक्षण दस मिनट रहता है। भुगतान से पहले विशेषज्ञ की स्वीकृति और वर्तमान उपलब्धता ज़रूरी है। इस कदम में भुगतान या बुकिंग की पुष्टि नहीं होती।",
+  "I reviewed this topic, learner, time and hold conditions.":
+    "मैंने विषय, विद्यार्थी, समय और आरक्षण की शर्तें जाँच ली हैं।",
+  "Back to request": "अनुरोध पर लौटें",
+  "Request scope & hold slot": "दायरे की समीक्षा और समय आरक्षण माँगें",
+  "Refresh revision details": "पुनरावृत्ति विवरण फिर लोड करें",
+  "Hold saved until": "आरक्षण सहेजा गया, इस समय तक:",
+  "its recorded expiry": "दर्ज समाप्ति",
+  "Review your revision booking": "पुनरावृत्ति बुकिंग देखें",
+  "Revision and recurring bookings": "पुनरावृत्ति और नियमित बुकिंग",
+  "Booked learning, clearly tracked.": "बुक की पढ़ाई की स्पष्ट प्रगति।",
+  "Request revision": "पुनरावृत्ति माँगें",
+  "Holds, expert acceptance, payment and confirmed bookings remain separate states.":
+    "आरक्षण, विशेषज्ञ की स्वीकृति, भुगतान और पक्की बुकिंग अलग स्थितियाँ हैं।",
+  "No revision or recurring reservations in this view. Students can find their own booked lessons and meeting access in":
+    "यहाँ पुनरावृत्ति या नियमित आरक्षण नहीं हैं। विद्यार्थी अपनी बुक कक्षाएँ और बैठक प्रवेश यहाँ देख सकते हैं:",
+  "Classes & attendance": "कक्षाएँ और उपस्थिति",
+  "Focused revision": "केंद्रित पुनरावृत्ति",
+  "Recurring lesson": "नियमित कक्षा",
+  " with {0}": " {0} के साथ",
+  "hold expired": "आरक्षण समाप्त",
+  "· Expert scope": "· विशेषज्ञ का दायरा",
+  "Hold expires": "आरक्षण की समाप्ति",
+  ". Expired holds cannot start checkout.":
+    "। समाप्त आरक्षण से भुगतान शुरू नहीं हो सकता।",
+  "Payment was captured but this slot was not allocated. Refund processing needs review; no settled refund or confirmed meeting is promised.":
+    "भुगतान मिला लेकिन समय आवंटित नहीं हुआ। पैसे वापसी की समीक्षा चाहिए; लौटे पैसे या पक्की बैठक का वादा नहीं है।",
+  "Contact payment support": "भुगतान सहायता लें",
+  "Review topic scope": "विषय का दायरा देखें",
+  "Review cancellation": "रद्द करने की समीक्षा करें",
+  "Refresh booking": "बुकिंग फिर लोड करें",
+  "Review expert scope acceptance": "विशेषज्ञ की दायरा स्वीकृति जाँचें",
+  "Review reservation cancellation": "आरक्षण रद्द करने की समीक्षा करें",
+  "Accept only the brief, learner coverage and session time you can deliver. Payment is still separate.":
+    "केवल वह ज़रूरत, विद्यार्थी की योग्यता और समय स्वीकार करें जो दे सकते हैं। भुगतान अलग है।",
+  "This cancels the reservation and its future scheduled lesson/meeting. Captured payments follow the approved policy and refund processing; late cancellation may require support review.":
+    "इससे आरक्षण और भविष्य की तय कक्षा/बैठक रद्द होती है। मिले भुगतान स्वीकृत नीति और पैसे वापसी की प्रक्रिया से चलते हैं; देर से रद्द करने पर सहायता समीक्षा चाहिए।",
+  "Reason for cancellation": "रद्द करने का कारण",
+  "I can deliver this topic brief at the recorded time.":
+    "मैं दर्ज समय पर यह विषय पढ़ा सकता/सकती हूँ।",
+  "I reviewed the cancellation and pending refund implications.":
+    "मैंने रद्द करने और लंबित पैसे वापसी के असर जाँच लिए हैं।",
+  "Keep booking": "बुकिंग रखें",
+  "Accept topic scope": "विषय का दायरा स्वीकार करें",
+  "Confirm cancellation": "रद्द करने की पुष्टि करें",
+  "Placement invoices": "नियुक्ति के चालान",
+  "Teacher placement fee ·": "शिक्षक नियुक्ति शुल्क ·",
+  "Policy details unavailable": "नीति का विवरण उपलब्ध नहीं है",
+  "No placement invoices. Each party must independently confirm paid tuition start and receipt first.":
+    "नियुक्ति के चालान नहीं हैं। पहले दोनों पक्षों को भुगतान सहित ट्यूशन की शुरुआत और प्राप्ति की स्वतंत्र पुष्टि करनी होगी।",
+  "Your teaching, with a clear record.": "आपके पढ़ाने का स्पष्ट रिकॉर्ड।",
+  "See your assigned learners, recorded teaching and attendance that needs attention.":
+    "सौंपे विद्यार्थी, दर्ज शिक्षण और ध्यान माँगती उपस्थिति देखें।",
+  "Follow each learner’s classes, teachers and next steps in one place.":
+    "हर विद्यार्थी की कक्षाएँ, शिक्षक और अगले कदम एक जगह देखें।",
+  "Your classes, teachers and attendance belong here. Your guardian manages purchases and family permissions.":
+    "आपकी कक्षाएँ, शिक्षक और उपस्थिति यहाँ हैं। खरीद और परिवार की अनुमति अभिभावक सँभालता है।",
+  "Loading your recorded activity…": "दर्ज गतिविधि लोड हो रही है…",
+  "Recorded activity could not be refreshed.": "दर्ज गतिविधि फिर लोड नहीं हुई।",
+  "Totals are unavailable; this is not a zero-activity result.":
+    "कुल उपलब्ध नहीं हैं; इसका अर्थ शून्य गतिविधि नहीं है।",
+  "Retry recorded activity": "दर्ज गतिविधि फिर लोड करें",
+  "Teaching activity": "शिक्षण गतिविधि",
+  "Refresh activity": "गतिविधि फिर लोड करें",
+  "IST (end excluded). Lesson start selects this period.":
+    "IST (अंत शामिल नहीं)। अवधि कक्षा की शुरुआत से चुनी जाती है।",
+  Updated: "अद्यतन",
+  "IST. Counts reflect current records, including later corrections.":
+    "IST। गिनती वर्तमान रिकॉर्ड और बाद के सुधार दिखाती है।",
+  "Classes taken count completed, undisputed lessons marked present or late after lesson end. Completed lesson records describe status separately. Counts describe service activity, not learning improvement.":
+    "ली गई कक्षाएँ अंत के बाद पूरी हुई, निर्विवाद और उपस्थित या देर चिह्नित हैं। पूरे कक्षा रिकॉर्ड स्थिति अलग बताते हैं। गिनती सेवा की गतिविधि है, सीखने में सुधार नहीं।",
+  "Attendance completeness": "उपस्थिति की पूर्णता",
+  "undisputed attendance records /": "निर्विवाद उपस्थिति रिकॉर्ड /",
+  "ended, non-cancelled lessons. Pending and disputed records remain outside the numerator.":
+    "समाप्त, रद्द न हुई कक्षाएँ। लंबित और विवादित रिकॉर्ड अंश में नहीं हैं।",
+  "Private feedback sample": "निजी प्रतिक्रिया का नमूना",
+  "No eligible feedback": "पात्र प्रतिक्रिया नहीं है",
+  "eligible attended lessons with feedback. This is a recorded rating average; comments remain in your private lesson history.":
+    "प्रतिक्रिया वाली पात्र उपस्थित कक्षाएँ। यह दर्ज रेटिंग का औसत है; टिप्पणियाँ निजी इतिहास में हैं।",
+  "No lesson records start in this period. Upcoming lessons and current assignments can still appear below.":
+    "इस अवधि में शुरू होने वाली कक्षाएँ नहीं हैं। आगामी कक्षाएँ और वर्तमान नियुक्तियाँ नीचे दिख सकती हैं।",
+  "Attendance pending": "उपस्थिति बाकी है",
+  "Recorded absences": "दर्ज अनुपस्थिति",
+  "Cancelled lessons": "रद्द कक्षाएँ",
+  "Disputed lesson records": "विवादित कक्षा रिकॉर्ड",
+  "Pending family confirmations": "परिवार की लंबित पुष्टियाँ",
+  "Attendance and cancellation counts describe these lesson records; they do not assign responsibility or infer a teacher no-show.":
+    "उपस्थिति और रद्द की गिनती रिकॉर्ड बताती है; इससे ज़िम्मेदारी तय या शिक्षक की अनुपस्थिति का अनुमान नहीं होता।",
+  "Open calendar & attendance history": "कैलेंडर और उपस्थिति इतिहास खोलें",
+  "Your teaching profile": "आपकी शिक्षक प्रोफ़ाइल",
+  "· Recorded status:": "· दर्ज स्थिति:",
+  "Approval depends on current screening and available capacity.":
+    "स्वीकृति वर्तमान जाँच और खाली क्षमता पर निर्भर है।",
+  "No teaching profile yet. Complete your teacher application before assignments can be confirmed.":
+    "अभी शिक्षक प्रोफ़ाइल नहीं है। नियुक्ति की पुष्टि से पहले शिक्षक आवेदन पूरा करें।",
+  "Review teacher application": "शिक्षक आवेदन देखें",
+  "Assigned learner records": "सौंपे विद्यार्थियों के रिकॉर्ड",
+  "Your learner record": "आपके विद्यार्थी का रिकॉर्ड",
+  "Current assignments and the next scheduled lesson are independent of the selected period. History can include ended assignments. Each page shows up to 20 learners; the totals above cover all authorized records.":
+    "वर्तमान नियुक्तियाँ और अगली कक्षा चुनी अवधि से अलग हैं। इतिहास में समाप्त नियुक्तियाँ हो सकती हैं। हर पृष्ठ में अधिकतम 20 विद्यार्थी हैं; ऊपर के कुल में पूरा अधिकृत दायरा है।",
+  "Your current teacher and next scheduled class appear here, independently of the activity dates you choose.":
+    "मौजूदा शिक्षक और अगली तय कक्षा यहाँ हैं, गतिविधि की चुनी तारीख़ों से अलग।",
+  "No authorized learner assignments or lesson/demo history yet.":
+    "अभी अधिकृत विद्यार्थी नियुक्ति या कक्षा/डेमो इतिहास नहीं है।",
+  "No authorized learner record is available. Ask your guardian to review access.":
+    "अधिकृत विद्यार्थी रिकॉर्ड नहीं है। अभिभावक से पहुँच जाँचने को कहें।",
+  "{0}’s learning": "{0} की पढ़ाई",
+  "Classes taken in this period": "इस अवधि में ली गई कक्षाएँ",
+  "Disputed records": "विवादित रिकॉर्ड",
+  "Next scheduled class": "अगली निर्धारित कक्षा",
+  "No upcoming scheduled lesson is recorded.":
+    "आगामी निर्धारित कक्षा दर्ज नहीं है।",
+  "Current recurring teacher": "मौजूदा नियमित शिक्षक",
+  s: "",
+  "· Profile status:": "· प्रोफ़ाइल की स्थिति:",
+  "No active recurring teacher assignment yet.":
+    "अभी सक्रिय नियमित शिक्षक नियुक्त नहीं है।",
+  "Showing the first 20 current assignments. Contact support to review additional assignments.":
+    "पहली 20 वर्तमान नियुक्तियाँ दिखाई गई हैं। अतिरिक्त नियुक्तियों के लिए सहायता लें।",
+  "Previous learners": "पिछले विद्यार्थी",
+  "Next learners": "अगले विद्यार्थी",
+  "Family next steps": "परिवार के अगले कदम",
+  "Review revision bookings": "पुनरावृत्ति बुकिंग देखें",
+  "Review tuition requests & demos": "ट्यूशन अनुरोध और डेमो देखें",
+  "Manage student devices": "विद्यार्थी के उपकरण सँभालें",
+  "Recorded Parent Pro allowance": "दर्ज Parent Pro सीमा",
+  "recorded allowance;": "दर्ज सीमा;",
+  "used;": "उपयोग किया;",
+  "reserved. Unreserved recorded balance:": "आरक्षित। बिना आरक्षण का दर्ज शेष:",
+  ". Period ends": "। अवधि का अंत",
+  "Recorded status:": "दर्ज स्थिति:",
+  "This recorded period has ended.": "यह दर्ज अवधि समाप्त है।",
+  "No recorded membership allowance.": "सदस्यता की सीमा दर्ज नहीं है।",
+  "Masked call delivery remains disabled. These development records do not establish a live calling entitlement.":
+    "नंबर छिपाकर कॉल बंद है। विकास संस्करण के रिकॉर्ड लाइव कॉल का अधिकार नहीं देते।",
+  "Review Parent Pro records": "Parent Pro रिकॉर्ड देखें",
+  "Lessons by service": "सेवा के अनुसार कक्षाएँ",
+  "Lesson service breakdown": "कक्षाओं का सेवा विवरण",
+  Service: "सेवा",
+  "Classes taken": "ली गई कक्षाएँ",
+  "All lessons": "सभी कक्षाएँ",
+  "Demos are shown separately below and are not added to these lesson totals.":
+    "डेमो नीचे अलग हैं और इन कुल कक्षाओं में नहीं जोड़े जाते।",
+  "Demos in this period": "इस अवधि के डेमो",
+  "bookings ·": "बुकिंग ·",
+  "completed ·": "पूरे ·",
+  "cancelled ·": "रद्द ·",
+  "reported no-shows ·": "दर्ज अनुपस्थिति ·",
+  "disputed.": "विवादित।",
+  "A no-show report may also be disputed. These are recorded outcomes, not extra classes taken.":
+    "अनुपस्थिति की रिपोर्ट विवादित भी हो सकती है। ये दर्ज नतीजे हैं, अतिरिक्त ली गई कक्षाएँ नहीं।",
+  "Choose the activity period": "गतिविधि की अवधि चुनें",
+  "Rolling 30 days": "पिछले 30 दिन",
+  "Current month": "मौजूदा महीना",
+  "Activity from (IST)": "गतिविधि की शुरुआत (IST)",
+  "Activity through (IST)": "गतिविधि का अंत (IST)",
+  "Apply activity dates": "गतिविधि की तारीख़ें लागू करें",
+  "Rolling 30 days ends at the report read time. Calendar dates cover whole IST days. Draft changes apply only when you choose Apply activity dates.":
+    "पिछले 30 दिन रिपोर्ट पढ़ने के समय तक हैं। कैलेंडर तारीख़ें पूरे IST दिन हैं। मसौदा बदलाव तारीख़ें लागू करें चुनने पर लागू होते हैं।",
+  "Checking staff access…": "कर्मचारी की पहुँच जाँची जा रही है…",
+  "Protect your staff access.": "अपनी कर्मचारी पहुँच सुरक्षित रखें।",
+  "Verify an independent authenticator before opening private staff records.":
+    "निजी कर्मचारी रिकॉर्ड खोलने से पहले स्वतंत्र प्रमाणक सत्यापित करें।",
+  "Staff authenticator": "कर्मचारी प्रमाणक",
+  "Return to sign-in if your primary session expired.":
+    "मुख्य सत्र समाप्त हो तो साइन इन पर लौटें।",
+  "Checking your authenticator…": "प्रमाणक की जाँच हो रही है…",
+  "Staff verification is current.": "कर्मचारी सत्यापन वर्तमान है।",
+  "A fresh verification is required.": "नया सत्यापन चाहिए।",
+  "recovery codes remain.": "बहाली कोड बाकी हैं।",
+  "Add your authenticator": "अपना प्रमाणक जोड़ें",
+  "Use an authenticator app on your phone. Setup requires a recent sign-in and expires after ten minutes.":
+    "फ़ोन पर प्रमाणक ऐप इस्तेमाल करें। तैयारी के लिए हाल में प्रवेश करना ज़रूरी है; यह दस मिनट में समाप्त होती है।",
+  "Set up authenticator": "प्रमाणक तैयार करें",
+  "Your private setup key": "आपकी निजी सेटअप कुंजी",
+  "Add “Better Call Sir” in your authenticator using this key. Keep it private.":
+    "इस कुंजी से प्रमाणक में “Better Call Sir” जोड़ें। इसे निजी रखें।",
+  "Authenticator setup key": "प्रमाणक की सेटअप कुंजी",
+  "This key stays in page memory and is cleared after verification or leaving this screen.":
+    "यह कुंजी पृष्ठ की मेमोरी में रहती है और सत्यापन या पृष्ठ छोड़ने के बाद हटती है।",
+  "New authenticator code": "नया प्रमाणक कोड",
+  "Single-use recovery code": "एक बार उपयोग का बहाली कोड",
+  "Authenticator code": "प्रमाणक कोड",
+  "Use a fresh six-digit code. Replacing recovery codes invalidates every previous code.":
+    "नया छह अंकों का कोड दें। बहाली कोड बदलने से सभी पुराने कोड अमान्य होते हैं।",
+  "Recovery consumes one code and signs out other staff session families.":
+    "बहाली एक कोड इस्तेमाल करती है और दूसरे कर्मचारी सत्र समूहों से साइन आउट करती है।",
+  "Enter the current six-digit code. A code cannot be reused after verification.":
+    "वर्तमान छह अंकों का कोड दें। सत्यापन के बाद कोड फिर इस्तेमाल नहीं हो सकता।",
+  "Replace recovery codes": "बहाली कोड बदलें",
+  "Verify staff access": "कर्मचारी पहुँच सत्यापित करें",
+  "Use authenticator instead": "इसके बजाय प्रमाणक इस्तेमाल करें",
+  "Use a recovery code": "बहाली कोड इस्तेमाल करें",
+  "Cancel replacement": "बदलना रद्द करें",
+  "Save your recovery codes": "बहाली कोड सहेज लें",
+  "Keep these in a password manager. Each works once; they will not be shown again after leaving this page.":
+    "पासवर्ड मैनेजर में रखें। हर कोड एक बार चलता है; पृष्ठ छोड़ने के बाद फिर नहीं दिखेगा।",
+  "Private recovery codes": "निजी बहाली कोड",
+  "I saved these recovery codes securely.":
+    "मैंने बहाली कोड सुरक्षित सहेज लिए हैं।",
+  "Continue with verified access": "सत्यापित पहुँच के साथ आगे बढ़ें",
+  "Checking…": "जाँच हो रही है…",
+  "Check current verification": "मौजूदा सत्यापन जाँचें",
+  "Continue with recorded verification": "दर्ज सत्यापन के साथ आगे बढ़ें",
+  "Return to sign-in": "साइन इन पर लौटें",
+  "Return to staff workspace": "कर्मचारी कार्यक्षेत्र पर लौटें",
+  "Student authorization requires an approved guardian account and active consent.":
+    "विद्यार्थी को अनुमति देने के लिए स्वीकृत अभिभावक खाता और सक्रिय सहमति चाहिए।",
+  "Learners & student access": "विद्यार्थी और उनकी पहुँच",
+  "Create a learner’s first invitation, authorize this browser for an existing learner, or revoke student sessions. No child email or phone number is required.":
+    "पहला निमंत्रण बनाएँ, मौजूदा विद्यार्थी के लिए यह ब्राउज़र अधिकृत करें या सत्रों की अनुमति हटाएँ। बच्चे का ईमेल या फ़ोन नहीं चाहिए।",
+  "Guardian consent is not active. New invitations and device authorization are paused. You can still revoke existing student sessions.":
+    "अभिभावक की सहमति सक्रिय नहीं है। नए निमंत्रण और उपकरण की अनुमति रुकी हैं। मौजूदा सत्रों की अनुमति अभी भी हटा सकते हैं।",
+  "No learners yet. Add an education profile to get started.":
+    "अभी विद्यार्थी नहीं हैं। शिक्षा प्रोफ़ाइल जोड़कर शुरू करें।",
+  "’s student space": "का विद्यार्थी स्थान",
+  "Refresh student access": "विद्यार्थी की पहुँच फिर लोड करें",
+  "Loading student access…": "विद्यार्थी की पहुँच लोड हो रही है…",
+  "Not activated": "सक्रिय नहीं हुआ",
+  "Access revoked": "पहुँच वापस ली गई",
+  "Student space activated": "विद्यार्थी स्थान सक्रिय है",
+  "Authorized student sessions": "अनुमत विद्यार्थी सत्र",
+  "Give each session a name you recognize, such as “Study tablet”. Labels are private reminders, not verified device information. Browse all current sessions, 20 per page.":
+    "हर सत्र को पहचाना नाम दें, जैसे “पढ़ाई का टैबलेट”। नाम निजी याद दिलाने के लिए हैं, सत्यापित उपकरण जानकारी नहीं। सभी वर्तमान सत्र 20 प्रति पृष्ठ देखें।",
+  "Unnamed student device": "बिना नाम का विद्यार्थी उपकरण",
+  Session: "सत्र",
+  "{0} device {1}": "{0} उपकरण {1}",
+  "Rename device": "उपकरण का नाम बदलें",
+  "Name device": "उपकरण को नाम दें",
+  "Revoke session {0}": "सत्र {0} की अनुमति हटाएँ",
+  "Revoke session": "सत्र की अनुमति हटाएँ",
+  "No active student sessions on this page. Go back to previous devices or refresh the list.":
+    "इस पृष्ठ पर सक्रिय सत्र नहीं हैं। पिछले उपकरणों पर जाएँ या सूची फिर लोड करें।",
+  "No active student sessions.": "सक्रिय विद्यार्थी सत्र नहीं हैं।",
+  "Authorize this device for {0}": "{0} के लिए यह उपकरण अधिकृत करें",
+  "Authorize this device": "यह उपकरण अधिकृत करें",
+  "Revoke all student access": "विद्यार्थी की सारी पहुँच हटाएँ",
+  "Student device pages": "विद्यार्थी उपकरण के पृष्ठ",
+  "Device page": "उपकरण का पृष्ठ",
+  "Previous devices": "पिछले उपकरण",
+  "Next devices": "अगले उपकरण",
+  "Finish or cancel this change before browsing devices.":
+    "उपकरण देखने से पहले बदलाव पूरा या रद्द करें।",
+  "Switch this device to {0}?": "यह उपकरण {0} के लिए बदलें?",
+  "Name this student device": "विद्यार्थी के इस उपकरण को नाम दें",
+  "Revoke session {0}?": "सत्र {0} की अनुमति हटाएँ?",
+  "Revoke all access for {0}?": "{0} की सारी पहुँच हटाएँ?",
+  "This browser will switch from your guardian account to a restricted student session. Other guardian devices stay signed in. Use the device intended for the learner.":
+    "यह ब्राउज़र अभिभावक खाते से सीमित विद्यार्थी सत्र में जाएगा। दूसरे अभिभावक उपकरणों का प्रवेश बना रहेगा। विद्यार्थी के लिए इच्छित उपकरण इस्तेमाल करें।",
+  "Label session {0} so you can recognize it later. Naming it does not change who can sign in.":
+    "सत्र {0} को पहचानने के लिए नाम दें। नाम बदलने से प्रवेश करने की अनुमति नहीं बदलती।",
+  "This session and its refresh access will stop. Other student sessions remain authorized.":
+    "यह सत्र और उसका नवीनीकरण बंद होगा। दूसरे विद्यार्थी सत्र अधिकृत रहेंगे।",
+  "All student sessions and their refresh access will stop. Access stays blocked until a guardian authorizes a device again.":
+    "सभी विद्यार्थी सत्र और उनका नवीनीकरण बंद होंगे। अभिभावक के फिर उपकरण अधिकृत करने तक पहुँच बंद रहेगी।",
+  "Device label (optional)": "उपकरण का नाम (वैकल्पिक)",
+  "Use a simple name. Leave blank to clear the label. Avoid names, contact details and passwords.":
+    "आसान नाम दें। खाली छोड़ने से नाम हटता है। व्यक्तिगत नाम, संपर्क और पासवर्ड न दें।",
+  "Reason for revoking access": "पहुँच हटाने का कारण",
+  "I understand which student access will be revoked.":
+    "मैं समझता/समझती हूँ कि किस विद्यार्थी की पहुँच हटेगी।",
+  "I am the learner’s guardian and will authorize only the intended student device.":
+    "मैं विद्यार्थी का अभिभावक हूँ और केवल इच्छित उपकरण अधिकृत करूँगा/करूँगी।",
+  "Confirm student device switch": "विद्यार्थी उपकरण बदलने की पुष्टि करें",
+  "Save device label": "उपकरण का नाम सहेजें",
+  "Confirm access revocation": "पहुँच हटाने की पुष्टि करें",
+  "Updating student access…": "विद्यार्थी की पहुँच बदली जा रही है…",
+  "Retry device label": "उपकरण का नाम फिर सहेजें",
+  "Retry access revocation": "पहुँच हटाने का प्रयास फिर करें",
+  "Refresh student access to load the current learner version. Your entered details remain here. Review them again before saving.":
+    "विद्यार्थी का वर्तमान संस्करण पाने के लिए पहुँच फिर लोड करें। दर्ज विवरण यहीं रहेगा। सहेजने से पहले फिर जाँचें।",
+  "Guardian consent": "अभिभावक की सहमति",
+  "Consent is active. You can pause new matching and learner-data changes by withdrawing it. Student sessions are revoked when you withdraw.":
+    "सहमति सक्रिय है। वापस लेने पर नए मिलान और विद्यार्थी डेटा के बदलाव रुकते हैं। विद्यार्थी सत्रों की अनुमति भी हटती है।",
+  "Consent is pending or withdrawn. New matching and student authorization remain paused.":
+    "सहमति बाकी है या वापस ली गई है। नए मिलान और विद्यार्थी की अनुमति रुकी हैं।",
+  "I understand that withdrawal pauses new matching and child-data changes, and revokes student sessions.":
+    "मैं समझता/समझती हूँ कि सहमति वापस लेने से नए मिलान, बच्चे के डेटा के बदलाव और विद्यार्थी सत्रों की पहुँच रुकती है।",
+  "Keep consent active": "सहमति सक्रिय रखें",
+  "Confirm consent withdrawal": "सहमति वापस लेने की पुष्टि करें",
+  "Withdraw guardian consent": "अभिभावक की सहमति वापस लें",
+  "Review consent in onboarding": "शुरुआत में सहमति देखें",
+  "Check consent status": "सहमति की स्थिति जाँचें",
+  "Your learning, in your own space.": "आपकी पढ़ाई, आपके अपने स्थान में।",
+  "A guardian-authorized student space, without a child’s email or phone number.":
+    "बच्चे के ईमेल या फ़ोन के बिना अभिभावक से अधिकृत विद्यार्थी स्थान।",
+  "Authorize the student device": "विद्यार्थी के उपकरण को अनुमति दें",
+  "You’re signed in as": "आप इस खाते से जुड़े हैं:",
+  ". Only the guardian who created this invitation can activate it.":
+    "। केवल निमंत्रण बनाने वाला अभिभावक इसे सक्रिय कर सकता है।",
+  "This browser will switch to the learner’s student session. Guardian purchases, consent controls and private notes will stay out of the student interface.":
+    "यह ब्राउज़र विद्यार्थी सत्र में जाएगा। अभिभावक की खरीद, सहमति नियंत्रण और निजी नोट्स विद्यार्थी को नहीं दिखेंगे।",
+  "Guardian invitation code": "अभिभावक का निमंत्रण कोड",
+  "I am the inviting guardian and this is the intended student device.":
+    "मैं निमंत्रण भेजने वाला अभिभावक हूँ और यह इच्छित विद्यार्थी उपकरण है।",
+  "Authorize student access": "विद्यार्थी की पहुँच अधिकृत करें",
+  "Guardian verification is pending. Student authorization is unavailable until your account is approved.":
+    "अभिभावक का सत्यापन बाकी है। खाते की स्वीकृति तक विद्यार्थी की अनुमति उपलब्ध नहीं है।",
+  "Authorizing student access…": "विद्यार्थी की पहुँच अधिकृत हो रही है…",
+  "Return to learners & access": "विद्यार्थी और पहुँच पर लौटें",
+  "View enquiry {0}": "पूछताछ {0} देखें",
+  "Set up your student space.": "अपना विद्यार्थी स्थान तैयार करें।",
+  "Check what you’re learning, choose the help you want, and review your setup before saving.":
+    "पढ़ाई का विवरण जाँचें, चाही मदद चुनें और सहेजने से पहले तैयारी देखें।",
+  "Loading your student setup…": "विद्यार्थी की तैयारी लोड हो रही है…",
+  "Your student access or guardian permission needs review. Ask your guardian for help before continuing.":
+    "विद्यार्थी की पहुँच या अभिभावक की अनुमति की समीक्षा चाहिए। आगे बढ़ने से पहले अभिभावक से मदद लें।",
+  "We couldn’t load your saved student setup. Try again before entering details.":
+    "सहेजी तैयारी लोड नहीं हुई। विवरण दर्ज करने से पहले फिर कोशिश करें।",
+  "Retry loading student setup": "विद्यार्थी की तैयारी फिर लोड करें",
+  "Open dashboard": "डैशबोर्ड खोलें",
+  "We couldn’t refresh your setup. Your edits are retained; reload the latest details before saving.":
+    "तैयारी फिर लोड नहीं हुई। बदलाव सुरक्षित हैं; सहेजने से पहले नई जानकारी लोड करें।",
+  "Your learning, with support.": "आपकी पढ़ाई, मदद के साथ।",
+  "You can explore teachers and tell us what works for you. Your guardian currently sends enquiries, chooses teachers and agrees to tuition terms.":
+    "शिक्षक देख सकते हैं और अपनी पसंद बता सकते हैं। अभी अभिभावक पूछताछ भेजता, शिक्षक चुनता और ट्यूशन शर्तें स्वीकार करता है।",
+  "Your support choice records the help you want. It does not change these permissions.":
+    "यह विकल्प चाही मदद दर्ज करता है। अनुमतियाँ नहीं बदलतीं।",
+  "Keep personal details private.": "व्यक्तिगत जानकारी निजी रखें।",
+  "Do not add phone numbers, addresses, passwords or identity documents to learning notes.":
+    "पढ़ाई के नोट्स में फ़ोन, पता, पासवर्ड या पहचान दस्तावेज़ न जोड़ें।",
+  "Get help with your guardian": "अभिभावक से संबंधित मदद लें",
+  "Review your education details.": "शिक्षा विवरण जाँचें।",
+  "Some education details are missing. Ask your guardian to complete your profile, then reload your setup.":
+    "कुछ शिक्षा विवरण नहीं हैं। अभिभावक से प्रोफ़ाइल पूरी करने को कहें, फिर तैयारी लोड करें।",
+  "Reload student setup": "विद्यार्थी की तैयारी फिर लोड करें",
+  "Student onboarding": "विद्यार्थी की शुरुआत",
+  "Student setup progress": "विद्यार्थी की तैयारी की प्रगति",
+  "1 · Details and support": "1 · विवरण और मदद",
+  "2 · Review and save": "2 · जाँचें और सहेजें",
+  "Your student setup is saved.": "विद्यार्थी की तैयारी सहेज ली गई है।",
+  "Review your student setup": "विद्यार्थी की तैयारी जाँचें",
+  "What helps you learn?": "क्या सीखने में मदद करता है?",
+  "Support you want": "आपको चाही मदद",
+  "Learning preferences": "सीखने की पसंद",
+  "No subjects selected": "विषय नहीं चुने हैं",
+  "No language preference": "भाषा की पसंद नहीं है",
+  "Your guardian continues to handle enquiries, teacher choices and tuition agreements.":
+    "पूछताछ, शिक्षक की पसंद और ट्यूशन समझौते अभिभावक सँभालता रहेगा।",
+  "Your education details": "आपका शिक्षा विवरण",
+  "These education details are correct": "यह शिक्षा विवरण सही है",
+  "If anything is wrong, ask your guardian to review it before continuing.":
+    "कुछ गलत हो तो आगे बढ़ने से पहले अभिभावक से जाँच करवाएँ।",
+  "How would you like to manage your learning?":
+    "अपनी पढ़ाई कैसे सँभालना चाहेंगे?",
+  "Choose the support you want. Your current account permissions stay as they are.":
+    "चाही मदद चुनें। खाते की वर्तमान अनुमतियाँ नहीं बदलेंगी।",
+  "I want to organise my goals and explore teachers, with help when I ask for it.":
+    "मैं अपने लक्ष्य तय करना और शिक्षक देखना चाहता/चाहती हूँ, ज़रूरत पर मदद के साथ।",
+  "I want help understanding my needs and choosing a suitable teacher.":
+    "अपनी ज़रूरत समझने और उपयुक्त शिक्षक चुनने में मदद चाहिए।",
+  "Subjects you want help with (optional)":
+    "जिन विषयों में मदद चाहिए (वैकल्पिक)",
+  "Other subjects (optional)": "दूसरे विषय (वैकल्पिक)",
+  "Separate subjects with commas. Choose up to 20 subjects in total.":
+    "विषय अल्पविराम से अलग करें। कुल अधिकतम 20 विषय चुनें।",
+  "Language you prefer (optional)": "पसंदीदा भाषा (वैकल्पिक)",
+  "No preference": "कोई पसंद नहीं",
+  "How do you like to learn? (optional)":
+    "आप कैसे सीखना पसंद करते हैं? (वैकल्पिक)",
+  "For example, “Please explain with pictures and give me time to try.” Keep personal details out.":
+    "जैसे, “चित्रों से समझाएँ और कोशिश करने के लिए समय दें।” निजी जानकारी न दें।",
+  "/500 characters.": "/500 अक्षर।",
+  "Only the final confirmation saves your changes. Leaving or reloading clears unsaved details.":
+    "केवल अंतिम पुष्टि बदलाव सहेजती है। पृष्ठ छोड़ने या फिर लोड करने पर बिना सहेजे विवरण हटेंगे।",
+  "Your edits are retained. Reloading replaces them with the latest saved setup and education details; review them again before saving.":
+    "बदलाव सुरक्षित हैं। फिर लोड करने पर नवीनतम सहेजी तैयारी और शिक्षा विवरण आएगा; सहेजने से पहले फिर जाँचें।",
+  "Reload latest student setup": "विद्यार्थी की नवीनतम तैयारी लोड करें",
+  "Update student setup": "विद्यार्थी की तैयारी बदलें",
+  "Edit setup details": "तैयारी का विवरण बदलें",
+  "Saving student setup…": "विद्यार्थी की तैयारी सहेजी जा रही है…",
+  "Retry saving student setup": "विद्यार्थी की तैयारी फिर सहेजें",
+  "Confirm and save student setup": "पुष्टि करके विद्यार्थी की तैयारी सहेजें",
+  "Review student setup": "विद्यार्थी की तैयारी जाँचें",
+  "Do this later": "यह बाद में करें",
+  "Support operations belong to authorized operators and administrators.":
+    "सहायता संचालन अधिकृत संचालन टीम और प्रशासक का काम है।",
+  "Your private support cases": "आपके निजी सहायता मामले",
+  "remain separate.": "अलग रहते हैं।",
+  "Every concern, a clear next step.": "हर चिंता का स्पष्ट अगला कदम।",
+  "Review regional cases, distinguish private staff notes from owner replies, and resolve demo or attendance disputes from the recorded evidence. Safety reporting stays free.":
+    "क्षेत्रीय मामले देखें, निजी कर्मचारी नोट्स को मालिक के जवाब से अलग रखें और प्रमाण के आधार पर डेमो या उपस्थिति विवाद सुलझाएँ। सुरक्षा की शिकायत मुफ़्त है।",
+  "Support operation queues": "सहायता संचालन की कतारें",
+  Cases: "मामले",
+  "Demo disputes": "डेमो विवाद",
+  "Attendance disputes": "उपस्थिति विवाद",
+  "Case/update and attendance queues are paginated. Demo history is the latest 100 records. Self-assignment and release support team handoff; staff provisioning remains separate. These actions do not settle refunds or payouts. Live support hours, notification delivery and safeguarding procedures remain unqualified.":
+    "मामलों, अपडेट और उपस्थिति की कतारें पृष्ठों में हैं। डेमो के नवीनतम 100 रिकॉर्ड हैं। खुद काम लेना या छोड़ना हस्तांतरण में मदद करता है; कर्मचारी प्रावधान अलग है। इससे पैसे वापसी या भुगतान नहीं निपटते। लाइव सहायता समय, सूचनाएँ और सुरक्षा प्रक्रियाएँ असत्यापित हैं।",
+  "Case category": "मामले की श्रेणी",
+  "All categories": "सभी श्रेणियाँ",
+  "Assignment filter": "सौंपने का फ़िल्टर",
+  "All assignments": "सभी जिम्मेदारियाँ",
+  "Assigned to me": "मुझे सौंपा गया",
+  Unassigned: "बिना सौंपा",
+  "Loading cases…": "मामले लोड हो रहे हैं…",
+  "Case queue could not be loaded.": "मामलों की कतार लोड नहीं हुई।",
+  "Retry case queue": "मामलों की कतार फिर लोड करें",
+  "Case queue": "मामलों की कतार",
+  "No cases for these filters.": "इन फ़िल्टर के मामले नहीं हैं।",
+  "Refresh current staff case": "मौजूदा कर्मचारी मामला फिर लोड करें",
+  "This case is unavailable or outside your authorized scope.":
+    "मामला उपलब्ध नहीं है या अधिकृत दायरे से बाहर है।",
+  "Retry staff case": "कर्मचारी मामला फिर लोड करें",
+  "Loading case conversation…": "मामले की बातचीत लोड हो रही है…",
+  "· Case": "· मामला",
+  "Assignment:": "जिम्मेदारी:",
+  "Another staff member {0}": "दूसरा कर्मचारी {0}",
+  "Review linked student enquiry": "संबंधित विद्यार्थी पूछताछ देखें",
+  "Linked arrangement": "संबंधित व्यवस्था",
+  "Recorded resolution:": "दर्ज समाधान:",
+  "Conversation and staff notes": "बातचीत और कर्मचारी नोट्स",
+  "Load earlier staff updates": "पुराने कर्मचारी अपडेट लोड करें",
+  "Case owner": "मामले का मालिक",
+  "Staff only": "केवल कर्मचारी",
+  "Visible to case owner": "मामले के मालिक को दिखता है",
+  "Write reply or staff note": "जवाब या कर्मचारी नोट लिखें",
+  "Review status and assignment": "स्थिति और जिम्मेदारी जाँचें",
+  "Refresh case conversation": "मामले की बातचीत फिर लोड करें",
+  "Next case status": "मामले की अगली स्थिति",
+  "Assignment decision": "जिम्मेदारी का निर्णय",
+  "Keep current assignment": "वर्तमान जिम्मेदारी रखें",
+  "Assign to me": "मुझे सौंपें",
+  "Release to unassigned queue": "बिना सौंपे कतार में लौटाएँ",
+  "Staff-only note: hide this message from the case owner.":
+    "केवल कर्मचारी नोट: संदेश मामले के मालिक से छिपाएँ।",
+  "Case message": "मामले का संदेश",
+  "Reason for status/assignment": "स्थिति/जिम्मेदारी का कारण",
+  "Triage reasons are visible to the case owner. Use the dispute tabs for demo/attendance outcomes; case triage alone does not decide a lesson outcome.":
+    "छँटाई के कारण मामले के मालिक को दिखते हैं। डेमो/उपस्थिति नतीजों के लिए विवाद टैब इस्तेमाल करें; मामले की छँटाई कक्षा का नतीजा तय नहीं करती।",
+  "This note is visible only to authorized support staff.":
+    "यह नोट केवल अधिकृत सहायता कर्मचारियों को दिखता है।",
+  "This reply is visible to the case owner.":
+    "यह जवाब मामले के मालिक को दिखता है।",
+  "Visibility: authorized staff only.": "दृश्यता: केवल अधिकृत कर्मचारी।",
+  "Visibility: case owner and authorized staff.":
+    "दृश्यता: मामले का मालिक और अधिकृत कर्मचारी।",
+  "Record {0}; {1}. The reason is visible to the case owner.":
+    "{0} दर्ज करें; {1}। कारण मामले के मालिक को दिखता है।",
+  "Closing is final; this case cannot be reopened.":
+    "बंद करना अंतिम है; मामला फिर नहीं खुल सकता।",
+  "I reviewed this case, message visibility and effects, and want to record the decision.":
+    "मैंने मामला, संदेश की दृश्यता और असर जाँच लिए हैं और निर्णय दर्ज करना चाहता/चाहती हूँ।",
+  "Cancel case decision": "मामले का निर्णय रद्द करें",
+  "Confirm case decision": "मामले के निर्णय की पुष्टि करें",
+  "Review case decision": "मामले के निर्णय की समीक्षा करें",
+  "Demo outcome disputes": "डेमो नतीजे के विवाद",
+  "Loading disputes…": "विवाद लोड हो रहे हैं…",
+  "Scoped dispute records are unavailable.":
+    "दायरे के विवाद रिकॉर्ड उपलब्ध नहीं हैं।",
+  "Retry dispute queue": "विवाद कतार फिर लोड करें",
+  "No open disputes in these records.": "इन रिकॉर्ड में खुले विवाद नहीं हैं।",
+  "Demo · {0}": "डेमो · {0}",
+  "Refresh dispute queue": "विवाद कतार फिर लोड करें",
+  "Load more attendance disputes": "और उपस्थिति विवाद लोड करें",
+  "Review demo outcome": "डेमो का नतीजा देखें",
+  "Review recorded attendance": "दर्ज उपस्थिति देखें",
+  "Guardian report:": "अभिभावक की रिपोर्ट:",
+  "· Teacher report:": "· शिक्षक की रिपोर्ट:",
+  "Linked case evidence": "संबंधित मामले के प्रमाण",
+  "Staff note": "कर्मचारी नोट",
+  "Latest 20 case updates. The case queue contains earlier history.":
+    "मामले के नवीनतम 20 अपडेट। पुराना इतिहास मामलों की कतार में है।",
+  "Loading linked case evidence…": "संबंधित मामले के प्रमाण लोड हो रहे हैं…",
+  "Linked case evidence is unavailable; resolution is blocked until it loads.":
+    "संबंधित प्रमाण उपलब्ध नहीं हैं; लोड होने तक समाधान बंद है।",
+  "Retry dispute evidence": "विवाद के प्रमाण फिर लोड करें",
+  "· Class": "· कक्षा",
+  "IST · Attendance:": "IST · उपस्थिति:",
+  "Teacher recap:": "शिक्षक का सारांश:",
+  "for lesson version": "कक्षा के संस्करण के लिए",
+  "This record is no longer in the current open queue, or current records are unavailable. Your local assessment remains below; refresh or cancel before choosing another record.":
+    "यह रिकॉर्ड अब खुली कतार में नहीं है या मौजूदा रिकॉर्ड उपलब्ध नहीं हैं। स्थानीय आकलन नीचे है; दूसरा रिकॉर्ड चुनने से पहले फिर लोड या रद्द करें।",
+  "Refresh current dispute": "मौजूदा विवाद फिर लोड करें",
+  "Reviewed outcome": "समीक्षित नतीजा",
+  "Choose after reviewing evidence": "प्रमाण देखने के बाद चुनें",
+  "Evidence and reason for resolution": "समाधान के प्रमाण और कारण",
+  "This records the reviewed outcome and updates eligible linked support cases. Attendance correction may change a held payable's eligibility; refunds and actual payouts require separate finance review and settlement.":
+    "यह समीक्षित नतीजा दर्ज करके पात्र जुड़े मामलों को बदलता है। उपस्थिति सुधार से रोकी देय राशि की पात्रता बदल सकती है; पैसे वापसी और वास्तविक भुगतान की अलग वित्तीय समीक्षा और निपटान चाहिए।",
+  "I reviewed the participant evidence and outcome and want to record this audited resolution.":
+    "मैंने पक्षों के प्रमाण और नतीजे जाँच लिए हैं और ऑडिट सहित समाधान दर्ज करना चाहता/चाहती हूँ।",
+  "Back to evidence": "प्रमाण पर लौटें",
+  "Cancel dispute review": "विवाद समीक्षा रद्द करें",
+  "Confirm dispute resolution": "विवाद समाधान की पुष्टि करें",
+  "Review dispute outcome": "विवाद के नतीजे की समीक्षा करें",
+  "Your full address stays private for verification and administration. Families see your chosen home-tuition service areas, never this address.":
+    "पूरा पता सत्यापन और प्रशासन के लिए निजी है। परिवार आपके चुने सेवा क्षेत्र देखता है, यह पता नहीं।",
+  "Country: India. Public service coverage is selected in the teaching-preferences step.":
+    "देश: भारत। सार्वजनिक सेवा क्षेत्र पढ़ाने की पसंद वाले कदम में चुने जाते हैं।",
+  "Record all four milestones. Choose “Pursuing” or “Not applicable” where appropriate. Marks, institution details and documents stay private; declarations still need independent review.":
+    "चारों शिक्षा पड़ाव दर्ज करें। जहाँ उचित हो “जारी है” या “लागू नहीं” चुनें। अंक, संस्थान और दस्तावेज़ निजी हैं; घोषणाओं की स्वतंत्र समीक्षा ज़रूरी है।",
+  Pursuing: "जारी है",
+  "Not applicable": "लागू नहीं",
+  Percentage: "प्रतिशत",
+  "Marks obtained / total": "प्राप्त अंक / कुल अंक",
+  "CGPA and scale": "CGPA और पैमाना",
+  "Calculated percentage:": "गणना किया प्रतिशत:",
+  "Previous teaching work": "पहले पढ़ाने का अनुभव",
+  "Include schools, institutes or independent tuition. If you have no previous work, leave this list empty. Certificates and references are uploaded privately after application submission.":
+    "स्कूल, संस्थान या स्वतंत्र ट्यूशन शामिल करें। अनुभव न हो तो सूची खाली रखें। प्रमाणपत्र और संदर्भ आवेदन भेजने के बाद निजी अपलोड होते हैं।",
+  "Previous work {0}": "पिछला काम {0}",
+  "Previous work": "पिछला काम",
+  "I can provide an experience certificate":
+    "अनुभव प्रमाणपत्र दे सकता/सकती हूँ",
+  "I can provide a reference": "संदर्भ दे सकता/सकती हूँ",
+  "Neither is currently available": "अभी दोनों उपलब्ध नहीं हैं",
+  "Remove previous work": "पिछला काम हटाएँ",
+  "Add previous work": "पिछला काम जोड़ें",
+  "Private onboarding details": "शुरुआत के निजी विवरण",
+  "These are submitted declarations for verification. They are not published with the teacher profile.":
+    "ये सत्यापन के लिए भेजी घोषणाएँ हैं। शिक्षक की सार्वजनिक प्रोफ़ाइल में नहीं दिखतीं।",
+  "Complete address": "पूरा पता",
+  "Address not yet recorded. Update the application before approval.":
+    "पता दर्ज नहीं है। स्वीकृति से पहले आवेदन बदलें।",
+  "Education and results": "शिक्षा और परिणाम",
+  "Education milestones not yet recorded.": "शिक्षा के पड़ाव दर्ज नहीं हैं।",
+  "Previous work and proof declarations": "पिछला काम और प्रमाण की घोषणाएँ",
+  current: "वर्तमान",
+  "No previous work recorded.": "पिछला काम दर्ज नहीं है।",
+  "Declared teaching areas": "घोषित शिक्षण क्षेत्र",
+  "Lock-in preference": "न्यूनतम अवधि की पसंद",
+  "A declared preference; cancellation restrictions are not currently enforced.":
+    "यह घोषित पसंद है; रद्द करने पर पाबंदी अभी लागू नहीं है।",
+  "Optional demo preference": "वैकल्पिक डेमो की पसंद",
+  "Demo offered": "डेमो उपलब्ध है",
+  "Demo not offered": "डेमो उपलब्ध नहीं है",
+  "Preference not yet recorded": "पसंद दर्ज नहीं है",
+  ". This preference is separate from qualification approval.":
+    "। यह पसंद योग्यता की स्वीकृति से अलग है।",
+  "Review qualification certificates/marksheets and previous-work certificates or references in the private evidence list below. A declaration does not establish that a certificate has been uploaded or verified.":
+    "नीचे निजी प्रमाण सूची में योग्यता प्रमाणपत्र/अंकपत्र और पिछले काम के प्रमाण या संदर्भ जाँचें। घोषणा से अपलोड या सत्यापन सिद्ध नहीं होता।",
+  "No lock-in period": "न्यूनतम अवधि की शर्त नहीं",
+  "{0}-day lock-in preference": "{0} दिन की न्यूनतम अवधि की पसंद",
+  "Lock-in preference not recorded": "न्यूनतम अवधि की पसंद दर्ज नहीं है",
+  "Loading your teacher workspace…": "शिक्षक कार्यक्षेत्र लोड हो रहा है…",
+  "Your application is saved.": "आपका आवेदन सहेज लिया गया है।",
+  "Open your teacher workspace to add private evidence and check your review status.":
+    "निजी प्रमाण जोड़ने और समीक्षा की स्थिति देखने के लिए शिक्षक कार्यक्षेत्र खोलें।",
+  "Open teacher workspace": "शिक्षक कार्यक्षेत्र खोलें",
+  "Your teacher profile could not be found. Contact support before creating another application.":
+    "शिक्षक प्रोफ़ाइल नहीं मिली। दूसरा आवेदन बनाने से पहले सहायता लें।",
+  "Contact support": "सहायता से संपर्क करें",
+  "It is submitted for review. Private evidence and current screening checks are still required.":
+    "समीक्षा के लिए भेजा गया है। निजी प्रमाण और वर्तमान जाँच अभी ज़रूरी हैं।",
+  "Update your teaching application.": "शिक्षक आवेदन बदलें।",
+  "Bring your kind of teaching.": "अपने पढ़ाने का तरीका लाएँ।",
+  "A focused application, followed by private evidence and an independent review.":
+    "केंद्रित आवेदन, फिर निजी प्रमाण और स्वतंत्र समीक्षा।",
+  "Application progress": "आवेदन की प्रगति",
+  "For the Raipur pilot": "रायपुर पायलट के लिए",
+  "Early years, school and college. Select only the subjects and curricula and languages you teach confidently.":
+    "शुरुआती शिक्षा, स्कूल और कॉलेज। केवल वही विषय, पाठ्यक्रम और भाषाएँ चुनें जिन्हें आत्मविश्वास से पढ़ा सकते हैं।",
+  "Your application stays private until approved and eligible for discovery.":
+    "स्वीकृति और खोज की पात्रता तक आवेदन निजी रहता है।",
+  "Saved when you continue": "आगे बढ़ने पर सहेजता है",
+  "Are you comfortable offering an optional demo?":
+    "क्या आप वैकल्पिक डेमो देना चाहेंगे?",
+  "A demo helps families assess teaching fit before deciding. It is optional and does not guarantee hiring. “Demo available” is highlighted on your approved public profile when you opt in.":
+    "डेमो से परिवार पढ़ाने का तरीका समझ सकता है। यह वैकल्पिक है और नियुक्ति की गारंटी नहीं। सहमत होने पर स्वीकृत सार्वजनिक प्रोफ़ाइल में “डेमो उपलब्ध है” दिखेगा।",
+  "Yes, I can offer a demo": "हाँ, मैं डेमो दे सकता/सकती हूँ",
+  "No, I prefer to discuss tuition without a demo":
+    "नहीं, मैं बिना डेमो ट्यूशन पर बात करना चाहूँगा/चाहूँगी",
+  "Do you want a minimum engagement period?":
+    "क्या आप जुड़ने की न्यूनतम अवधि चाहते हैं?",
+  "Choose your lock-in preference. Families will see it on your search card and profile. This records your preference; cancellation restrictions are not currently enforced.":
+    "न्यूनतम अवधि की पसंद चुनें। परिवार इसे खोज कार्ड और प्रोफ़ाइल पर देखेगा। यह पसंद का रिकॉर्ड है; रद्द करने की पाबंदी अभी लागू नहीं है।",
+  "No, I do not require a lock-in": "नहीं, न्यूनतम अवधि की शर्त नहीं है",
+  "Yes, {0} days": "हाँ, {0} दिन",
+  "I’m interested in Parent Pro consultations. This records my preference; calling is currently unavailable.":
+    "मुझे Parent Pro परामर्श में रुचि है। यह पसंद दर्ज होती है; कॉल अभी उपलब्ध नहीं है।",
+  "Resubmitting reopens screening, hides your profile from discovery and revokes existing private-note sharing. Accepted bookings are not cancelled.":
+    "फिर भेजने से जाँच दोबारा खुलेगी, प्रोफ़ाइल खोज से छिपेगी और निजी नोट्स की साझा पहुँच हटेगी। स्वीकृत बुकिंग रद्द नहीं होतीं।",
+  "Submitting changes this account to a teacher account. To retain a separate guardian workspace, apply using a different email account.":
+    "भेजने से यह शिक्षक खाता बनेगा। अलग अभिभावक कार्यक्षेत्र रखने के लिए दूसरे ईमेल से आवेदन करें।",
+  "I acknowledge these account changes and the proposed pilot placement fee: 25% of first monthly tuition, capped at ₹1,500, after independently confirmed start and receipt. Final terms require review.":
+    "मैं खाते के बदलाव और प्रस्तावित पायलट नियुक्ति शुल्क को स्वीकार करता/करती हूँ: पहली मासिक ट्यूशन का 25%, अधिकतम ₹1,500, स्वतंत्र शुरुआत और प्राप्ति की पुष्टि के बाद। अंतिम शर्तों की समीक्षा ज़रूरी है।",
+  "Next: upload private evidence for identity, qualifications, teaching capability and references. Submission does not approve your profile.":
+    "आगे पहचान, योग्यता, पढ़ाने की क्षमता और संदर्भ के निजी प्रमाण अपलोड करें। भेजना स्वीकृति नहीं है।",
+  "Reload saved application": "सहेजा आवेदन फिर लोड करें",
+  "Return to workspace": "कार्यक्षेत्र पर लौटें",
+  "Continue to {0}": "{0} पर आगे बढ़ें",
+  "Resubmit for review": "समीक्षा के लिए फिर भेजें",
+  "Submit teacher application": "शिक्षक आवेदन भेजें",
+  "Retry saving progress": "प्रगति फिर सहेजें",
+  "Continue saves each completed step privately. Changes on the current step are not saved until you continue. Your current application stays unchanged until you review and resubmit; fee acknowledgement must be renewed.":
+    "आगे बढ़ने पर पूरा कदम निजी सहेजता है। मौजूदा कदम के बदलाव आगे बढ़ने तक नहीं सहेजते। समीक्षा और फिर भेजने तक वर्तमान आवेदन नहीं बदलता; शुल्क की पुष्टि फिर देनी होगी।",
+  "Loading your saved revision…": "सहेजा संशोधन लोड हो रहा है…",
+  "Your saved revision could not be loaded. Try again before editing.":
+    "सहेजा संशोधन लोड नहीं हुआ। बदलने से पहले फिर कोशिश करें।",
+  "Retry saved revision": "सहेजा संशोधन फिर लोड करें",
+  "Your application changed.": "आपका आवेदन बदल गया है।",
+  "Your saved revision belongs to an earlier application version. It is preserved here; review the current application before starting again.":
+    "सहेजा संशोधन पुराने आवेदन का है। यह सुरक्षित है; फिर शुरू करने से पहले वर्तमान आवेदन देखें।",
+  "Saved headline": "सहेजा परिचय",
+  "Not added": "जोड़ा नहीं गया",
+  "Current headline": "मौजूदा परिचय",
+  "Discarding removes only this unfinished revision. Your current application, evidence and reviewer decisions are kept.":
+    "हटाने से केवल अधूरा संशोधन हटेगा। मौजूदा आवेदन, प्रमाण और समीक्षक निर्णय सुरक्षित रहेंगे।",
+  "I understand that my saved revision edits will be discarded.":
+    "मैं समझता/समझती हूँ कि सहेजे संशोधन के बदलाव हटेंगे।",
+  "Keep saved revision": "सहेजा संशोधन रखें",
+  "Retry discarding revision": "संशोधन हटाने का प्रयास फिर करें",
+  "Discard saved revision": "सहेजा संशोधन हटाएँ",
+  "Reload current application": "मौजूदा आवेदन फिर लोड करें",
+  "Your teacher workspace.": "आपका शिक्षक कार्यक्षेत्र।",
+  "Manage your application, private evidence and teaching schedule.":
+    "आवेदन, निजी प्रमाण और पढ़ाने का समय सँभालें।",
+  "Manage teaching schedule": "पढ़ाने का समय सँभालें",
+  "Open teacher dashboard": "शिक्षक डैशबोर्ड खोलें",
+  "Your application is approved. Discovery also depends on current screening and availability.":
+    "आवेदन स्वीकृत है। खोज में दिखना वर्तमान जाँच और उपलब्धता पर भी निर्भर है।",
+  "Your reviewer requested changes. Contact support for clarification, then update your application or evidence.":
+    "समीक्षक ने बदलाव माँगे हैं। स्पष्टीकरण के लिए सहायता लें, फिर आवेदन या प्रमाण बदलें।",
+  "Your profile is suspended. Contact support for the next steps.":
+    "प्रोफ़ाइल निलंबित है। अगले कदम के लिए सहायता लें।",
+  "Your profile stays private while identity, qualification, capability and reference checks are reviewed.":
+    "पहचान, योग्यता, क्षमता और संदर्भ जाँचे जाने तक प्रोफ़ाइल निजी है।",
+  "Refresh review status": "समीक्षा की स्थिति फिर लोड करें",
+  "Edit application": "आवेदन बदलें",
+  "Private screening evidence": "जाँच के निजी प्रमाण",
+  "Upload only documents needed for your checks. Files are stored privately and must pass a safety scan before they can be downloaded. A clean scan does not mean your application is approved.":
+    "केवल जाँच के ज़रूरी दस्तावेज़ अपलोड करें। फ़ाइल निजी रहती है और डाउनलोड से पहले सुरक्षा स्कैन चाहिए। सुरक्षित स्कैन आवेदन की स्वीकृति नहीं है।",
+  "Use Qualifications for Class 10/12 marksheets, college and postgraduate certificates. Use References for previous-work experience certificates or reference evidence. Upload each document separately.":
+    "कक्षा 10/12 के अंकपत्र और कॉलेज/स्नातकोत्तर प्रमाणपत्र योग्यता में दें। अनुभव प्रमाणपत्र या संदर्भ प्रमाण संदर्भ में दें। हर दस्तावेज़ अलग अपलोड करें।",
+  "Loading evidence…": "प्रमाण लोड हो रहे हैं…",
+  "Retry evidence list": "प्रमाण सूची फिर लोड करें",
+  "KB ·": "KB ·",
+  "Safety scan complete": "सुरक्षा स्कैन पूरा",
+  "Awaiting safety scan": "सुरक्षा स्कैन का इंतज़ार",
+  "Blocked by safety scan": "सुरक्षा स्कैन ने रोका",
+  Deleted: "मिटाया गया",
+  "Download private file": "निजी फ़ाइल डाउनलोड करें",
+  "No evidence uploaded yet. Start with the documents for your identity check.":
+    "अभी प्रमाण अपलोड नहीं हैं। पहचान जाँच के दस्तावेज़ से शुरू करें।",
+  "Uploads are available while an application is submitted or changes are requested. To change an approved profile, resubmit your application for a new review.":
+    "आवेदन भेजे जाने या बदलाव माँगे जाने पर अपलोड उपलब्ध हैं। स्वीकृत प्रोफ़ाइल बदलने के लिए नई समीक्षा हेतु फिर आवेदन भेजें।",
+  "Check category": "जाँच की श्रेणी",
+  "Teaching capability": "पढ़ाने की क्षमता",
+  "Private evidence file": "निजी प्रमाण फ़ाइल",
+  "PDF, PNG or JPEG, up to 5 MiB. Files remain private.":
+    "PDF, PNG या JPEG, अधिकतम 5 MiB। फ़ाइल निजी रहेगी।",
+  "Private evidence uploaded. Check its safety-scan status below.":
+    "निजी प्रमाण अपलोड हो गया। नीचे सुरक्षा स्कैन की स्थिति देखें।",
+  "Uploading…": "अपलोड हो रहा है…",
+  "Retry private upload": "निजी अपलोड फिर करें",
+  "Upload private evidence": "निजी प्रमाण अपलोड करें",
+  "Your teaching schedule": "आपके पढ़ाने का समय",
+  "Declare your hours, capacity and time away. All times are in IST (Asia/Kolkata).":
+    "समय, क्षमता और छुट्टी बताएँ। सभी समय IST (Asia/Kolkata) में हैं।",
+  "Refresh schedule": "समय फिर लोड करें",
+  "Teaching schedule": "पढ़ाने का समय",
+  "Weekly hours": "साप्ताहिक समय",
+  Capacity: "क्षमता",
+  Leave: "छुट्टी",
+  "Weekly hours offer time for new bookings; they do not create lessons. Pausing hours does not cancel accepted bookings.":
+    "साप्ताहिक समय नई बुकिंग के लिए है; इससे कक्षाएँ नहीं बनतीं। समय रोकने से स्वीकृत बुकिंग रद्द नहीं होतीं।",
+  "End at midnight (start of the next day)":
+    "आधी रात को समाप्त (अगले दिन की शुरुआत)",
+  "Add weekly hours": "साप्ताहिक समय जोड़ें",
+  "Saved weekly hours": "सहेजा साप्ताहिक समय",
+  to: "से",
+  Active: "सक्रिय",
+  "{0} {1} {2} hours {3}–{4} IST": "{0} {1} {2} समय {3}–{4} IST",
+  "Pause hours": "समय रोकें",
+  "Reopen hours": "समय फिर खोलें",
+  "No weekly hours yet. Add a time window for each type of session you offer.":
+    "अभी साप्ताहिक समय नहीं है। हर तरह के सत्र के लिए उपलब्ध समय जोड़ें।",
+  "Capacity is the maximum number of active or committed students you can support. It cannot be reduced below your current commitments.":
+    "क्षमता सक्रिय या प्रतिबद्ध विद्यार्थियों की अधिकतम संख्या है। इसे मौजूदा प्रतिबद्धताओं से कम नहीं कर सकते।",
+  "I can travel for home tuition within my declared localities.":
+    "घोषित इलाकों में घर पर ट्यूशन के लिए यात्रा कर सकता/सकती हूँ।",
+  "Home tuition matching requires both this travel preference and home tuition localities in your application.":
+    "घर की ट्यूशन के मिलान के लिए यह यात्रा पसंद और आवेदन में सेवा इलाके दोनों ज़रूरी हैं।",
+  "Save capacity & travel": "क्षमता और यात्रा सहेजें",
+  "Leave blocks new bookings during the selected period. Accepted or held bookings must be resolved first; they will not be cancelled automatically.":
+    "छुट्टी चुनी अवधि में नई बुकिंग रोकती है। पहले स्वीकृत या आरक्षित बुकिंग सुलझाएँ; वे अपने आप रद्द नहीं होंगी।",
+  "Add leave": "छुट्टी जोड़ें",
+  "Saved leave": "सहेजी छुट्टियाँ",
+  "Cancel leave starting {0}": "{0} से शुरू छुट्टी रद्द करें",
+  "Cancel leave": "छुट्टी रद्द करें",
+  "No leave recorded.": "छुट्टी दर्ज नहीं है।",
+  "Cancel this leave?": "यह छुट्टी रद्द करें?",
+  "Reopen these hours?": "ये समय फिर खोलें?",
+  "Pause these hours?": "ये समय रोकें?",
+  "Your declared weekly hours will apply again during this period.":
+    "इस अवधि में घोषित साप्ताहिक समय फिर लागू होगा।",
+  "Accepted bookings are unchanged. This affects availability for new bookings.":
+    "स्वीकृत बुकिंग नहीं बदलती। इससे नई बुकिंग की उपलब्धता बदलती है।",
+  "Keep current schedule": "मौजूदा समय रखें",
+  "Confirm schedule change": "समय बदलने की पुष्टि करें",
+  "Loading your saved schedule…": "सहेजा समय लोड हो रहा है…",
+  "Your schedule is unavailable; refresh before making changes.":
+    "समय उपलब्ध नहीं है; बदलाव से पहले फिर लोड करें।",
+  "Review accepted bookings": "स्वीकृत बुकिंग देखें",
+  "Retry schedule change": "समय बदलने का प्रयास फिर करें",
+  "Refresh the schedule to load its current version. Your form entries will stay here.":
+    "वर्तमान संस्करण के लिए समय फिर लोड करें। फ़ॉर्म की जानकारी यहीं रहेगी।",
+  "Saving your schedule…": "समय सहेजा जा रहा है…",
+  "Form entries are saved only when you confirm an action. Keep this page open until the result is confirmed. Calls are currently unavailable. The saved schedule shows up to 50 weekly windows and 50 active leave periods.":
+    "कार्रवाई की पुष्टि पर ही फ़ॉर्म सहेजता है। नतीजे की पुष्टि तक पृष्ठ खुला रखें। कॉल उपलब्ध नहीं है। सहेजे समय में अधिकतम 50 साप्ताहिक समय और 50 सक्रिय छुट्टियाँ हैं।",
+  "more teaching areas on the profile": "और शिक्षण क्षेत्र प्रोफ़ाइल पर हैं",
+  "What do you teach?": "आप क्या पढ़ाते हैं?",
+  "Create a separate teaching area when the subject, curriculum or course differs. Each subject applies to every selected class, level or year within that area. All declarations need screening.":
+    "विषय, पाठ्यक्रम या कोर्स अलग हो तो अलग शिक्षण क्षेत्र बनाएँ। हर विषय क्षेत्र की सभी चुनी कक्षाओं, स्तरों या वर्षों पर लागू है। सभी घोषणाओं की जाँच चाहिए।",
+  "Teaching area {0}": "शिक्षण क्षेत्र {0}",
+  "Teaching area": "शिक्षण क्षेत्र",
+  "Remove teaching area": "शिक्षण क्षेत्र हटाएँ",
+  "Education stage for teaching area": "शिक्षण क्षेत्र का शिक्षा स्तर",
+  "Subjects in teaching area": "शिक्षण क्षेत्र के विषय",
+  "Separate subjects with commas, for example Physics, Chemistry.":
+    "विषय अल्पविराम से अलग करें, जैसे भौतिकी, रसायन विज्ञान।",
+  "Boards in teaching area": "शिक्षण क्षेत्र के बोर्ड",
+  "For example CBSE, ICSE or your state board.":
+    "जैसे CBSE, ICSE या राज्य बोर्ड।",
+  "Classes in teaching area": "शिक्षण क्षेत्र की कक्षाएँ",
+  "Levels in teaching area": "शिक्षण क्षेत्र के स्तर",
+  "Course / degree in teaching area": "शिक्षण क्षेत्र का पाठ्यक्रम / डिग्री",
+  "Use the course name learners use, for example BSc Physics. Matching also checks the study year.":
+    "विद्यार्थियों के इस्तेमाल वाला कोर्स नाम दें, जैसे BSc Physics। मिलान पढ़ाई का वर्ष भी जाँचता है।",
+  "Study years in teaching area": "शिक्षण क्षेत्र के पढ़ाई वर्ष",
+  "Add teaching area": "शिक्षण क्षेत्र जोड़ें",
+  "Your tuition requests": "आपके ट्यूशन अनुरोध",
+  "Compare teacher options and review tuition terms. A demo is optional when the teacher offers one. Your choices stay with you.":
+    "शिक्षक विकल्प और ट्यूशन शर्तें जाँचें। शिक्षक के देने पर डेमो वैकल्पिक है। निर्णय आपके पास रहते हैं।",
+  "Guardian verification and active consent are required before making new tuition decisions.":
+    "ट्यूशन के नए निर्णय से पहले अभिभावक सत्यापन और सक्रिय सहमति चाहिए।",
+  "Choose a tuition request": "ट्यूशन अनुरोध चुनें",
+  "This enquiry is not available in your current request list.":
+    "यह पूछताछ मौजूदा अनुरोध सूची में उपलब्ध नहीं है।",
+  "Return to your enquiries": "अपनी पूछताछ पर लौटें",
+  "No requests yet. Tell us what your family needs.":
+    "अभी अनुरोध नहीं हैं। परिवार की ज़रूरत बताएँ।",
+  "Loading the current shortlist…": "मौजूदा शिक्षक सूची लोड हो रही है…",
+  "Request details are unavailable.": "अनुरोध का विवरण उपलब्ध नहीं है।",
+  "Retry request details": "अनुरोध का विवरण फिर लोड करें",
+  "Refresh shortlist": "शिक्षक सूची फिर लोड करें",
+  Discovery: "खोज",
+  "Search · your selected teacher": "खुद खोजें · आपका चुना शिक्षक",
+  Lessons: "कक्षाएँ",
+  "Request status": "अनुरोध की स्थिति",
+  "Enquiry to hiring progress": "पूछताछ से नियुक्ति की प्रगति",
+  "Your availability preferences": "उपलब्धता की आपकी पसंद",
+  "No structured availability is confirmed yet. Share time windows before a shortlist can be reviewed.":
+    "निश्चित उपलब्धता की पुष्टि नहीं है। सूची की समीक्षा से पहले समय दें।",
+  "These are preferences, not booked classes. Teacher options are reviewed against current availability and capacity.":
+    "ये पसंद हैं, बुक कक्षाएँ नहीं। शिक्षक विकल्प वर्तमान समय और क्षमता से जाँचे जाते हैं।",
+  "Update availability preferences": "उपलब्धता की पसंद बदलें",
+  "Changing these windows clears the current reviewed shortlist and teacher choice. Existing demo reservations are not cancelled.":
+    "समय बदलने से वर्तमान समीक्षित सूची और शिक्षक की पसंद हटती है। मौजूदा डेमो आरक्षण रद्द नहीं होते।",
+  "Preferred start": "पसंदीदा शुरुआत",
+  "Window duration": "समय की अवधि",
+  "I understand that the reviewed shortlist and teacher choice will be reset.":
+    "मैं समझता/समझती हूँ कि समीक्षित सूची और शिक्षक की पसंद हटेंगी।",
+  "Save availability preferences": "उपलब्धता की पसंद सहेजें",
+  "Hiring confirmation next step": "नियुक्ति की पुष्टि का अगला कदम",
+  "Your hiring agreement is ready to review":
+    "नियुक्ति का समझौता समीक्षा के लिए तैयार है",
+  "· Teacher:": "· शिक्षक:",
+  ". Review the current agreement and both parties’ confirmation. A demo and class timetable are not required.":
+    "। वर्तमान समझौता और दोनों पक्षों की पुष्टि देखें। डेमो और समय-सारणी ज़रूरी नहीं हैं।",
+  "Continue to hiring confirmation": "नियुक्ति की पुष्टि पर आगे बढ़ें",
+  "Confirmed hiring terms do not charge anyone or confirm that teaching has started.":
+    "शर्तें पक्की होने से पैसे नहीं कटते और पढ़ाई की शुरुआत की पुष्टि नहीं होती।",
+  "Reviewed teacher options": "समीक्षित शिक्षक विकल्प",
+  "Options are reviewed using your criteria. Teacher acceptance, your choice and an optional demo are separate steps; no automatic assignment is made.":
+    "विकल्प आपकी ज़रूरतों से जाँचे जाते हैं। शिक्षक की स्वीकृति, आपकी पसंद और वैकल्पिक डेमो अलग कदम हैं; नियुक्ति अपने आप नहीं होती।",
+  "Loading teacher profiles…": "शिक्षक प्रोफ़ाइल लोड हो रही हैं…",
+  "Retry teacher profiles": "शिक्षक प्रोफ़ाइल फिर लोड करें",
+  "This request is no longer open for teacher choices.":
+    "इस अनुरोध में शिक्षक चुनना अब खुला नहीं है।",
+  "No current shortlist options are shown. Review your completed demo below to open tuition terms.":
+    "वर्तमान सूची के विकल्प नहीं हैं। ट्यूशन शर्तें खोलने के लिए नीचे पूरा डेमो देखें।",
+  "No eligible teacher is on this shortlist right now. Review your criteria or contact support.":
+    "अभी सूची में पात्र शिक्षक नहीं है। ज़रूरतें जाँचें या सहायता लें।",
+  "Confirm your availability preferences so a shortlist can be reviewed.":
+    "सूची की समीक्षा के लिए उपलब्धता की पसंद की पुष्टि करें।",
+  "Your shortlist is awaiting review or current teacher responses. Refresh later or contact support for help.":
+    "सूची की समीक्षा या शिक्षक के जवाब का इंतज़ार है। बाद में फिर लोड करें या सहायता लें।",
+  "Enquiry recovery": "पूछताछ फिर आगे बढ़ाएँ",
+  "Keep your enquiry. Explore another path.":
+    "पूछताछ सुरक्षित रखें। दूसरा रास्ता देखें।",
+  "These teacher options need another review.":
+    "इन शिक्षक विकल्पों की फिर समीक्षा चाहिए।",
+  "Your enquiry and learner details are preserved. Review your availability or ask support to review other eligible teachers. Changes to availability clear the old shortlist and choice only after your acknowledgement.":
+    "पूछताछ और विद्यार्थी विवरण सुरक्षित हैं। उपलब्धता देखें या अन्य पात्र शिक्षकों के लिए सहायता लें। समय बदलने पर आपकी पुष्टि के बाद ही पुरानी सूची और पसंद हटेगी।",
+  "Review availability": "उपलब्धता देखें",
+  "Browse teachers manually": "शिक्षक खुद खोजें",
+  "Ask for search support": "खोज में मदद माँगें",
+  "The waitlist is for a class, subject, board or city outside pilot coverage—not a guarantee of teacher availability.":
+    "प्रतीक्षा सूची पायलट के बाहर की कक्षा, विषय, बोर्ड या शहर के लिए है—शिक्षक मिलने की गारंटी नहीं।",
+  "Request future coverage": "भविष्य के सेवा दायरे का अनुरोध करें",
+  "Teacher has accepted this opportunity": "शिक्षक ने अवसर स्वीकार किया है",
+  "Teacher has declined this opportunity": "शिक्षक ने अवसर मना किया है",
+  "Waiting for the teacher’s response": "शिक्षक के जवाब का इंतज़ार",
+  "Demo:": "डेमो:",
+  "Option expires": "विकल्प की समाप्ति",
+  "Review teacher choice": "शिक्षक की पसंद जाँचें",
+  "Select teacher": "शिक्षक चुनें",
+  "Loading demo progress…": "डेमो की प्रगति लोड हो रही है…",
+  "Retry demo status": "डेमो की स्थिति फिर लोड करें",
+  "Review tuition terms from the completed demo below.":
+    "नीचे पूरे डेमो से ट्यूशन शर्तें देखें।",
+  "Review demo ·": "डेमो देखें ·",
+  "Choose & arrange optional demo": "चुनें और वैकल्पिक डेमो तय करें",
+  "Demo not currently offered. You can review tuition terms without a demo.":
+    "डेमो अभी उपलब्ध नहीं है। बिना डेमो ट्यूशन शर्तें देख सकते हैं।",
+  "Review tuition terms without a demo": "बिना डेमो ट्यूशन शर्तें देखें",
+  "Refresh the shortlist before choosing this option.":
+    "यह विकल्प चुनने से पहले सूची फिर लोड करें।",
+  "Load more teacher profiles": "और शिक्षक प्रोफ़ाइल लोड करें",
+  "Some public profiles are unavailable. Refresh the shortlist before making a choice.":
+    "कुछ सार्वजनिक प्रोफ़ाइल उपलब्ध नहीं हैं। निर्णय से पहले सूची फिर लोड करें।",
+  "Completed demos": "पूरे डेमो",
+  "A completed demo stays available for agreement review after its shortlist expires. Current fit and teacher acceptance will be checked before terms are created.":
+    "सूची समाप्त होने पर भी पूरा डेमो समझौता समीक्षा के लिए उपलब्ध है। शर्तें बनने से पहले वर्तमान योग्यता और शिक्षक की स्वीकृति जाँची जाएगी।",
+  "Teacher profile not loaded": "शिक्षक प्रोफ़ाइल लोड नहीं हुई",
+  "IST · Completed": "IST · पूरा",
+  "Choose {0}?": "{0} को चुनें?",
+  "Arrange a demo with {0}": "{0} के साथ डेमो तय करें",
+  "Open tuition terms with {0}?": "{0} के साथ ट्यूशन शर्तें खोलें?",
+  "per month ·": "प्रति माह ·",
+  "This saves your preferred teacher. It does not assign a teacher, confirm a demo or start paid tuition.":
+    "यह पसंदीदा शिक्षक सहेजता है। नियुक्ति, डेमो की पुष्टि या सशुल्क ट्यूशन शुरू नहीं होती।",
+  "A demo is optional. Opening terms creates a pending agreement; neither party has accepted it yet.":
+    "डेमो वैकल्पिक है। शर्तें खोलने से लंबित समझौता बनता है; किसी पक्ष ने अभी स्वीकार नहीं किया है।",
+  "I understand this records my teacher choice without starting tuition.":
+    "मैं समझता/समझती हूँ कि यह ट्यूशन शुरू किए बिना शिक्षक की पसंद दर्ज करता है।",
+  "I want to open a pending tuition agreement with this teacher.":
+    "मैं इस शिक्षक के साथ लंबित ट्यूशन समझौता खोलना चाहता/चाहती हूँ।",
+  "Confirm teacher choice": "शिक्षक की पसंद की पुष्टि करें",
+  "Open tuition agreement": "ट्यूशन समझौता खोलें",
+  "Get help with this request": "इस अनुरोध के लिए मदद लें",
+  "Your saved choice": "आपकी सहेजी पसंद",
+  "years teaching": "वर्ष पढ़ाने का अनुभव",
+  "Why this teacher was shortlisted": "यह शिक्षक सूची में क्यों चुना गया",
+  "We couldn’t confirm this shortlist view in your request history.":
+    "अनुरोध के इतिहास में सूची देखने की पुष्टि नहीं हुई।",
+  "Retry recording view": "देखने का रिकॉर्ड फिर भेजें",
+  "At least one hour ahead, within 60 days. Availability is checked when you propose the time; both parties must then accept it. A demo proposal is not a confirmed meeting.":
+    "कम से कम एक घंटे बाद और 60 दिनों के भीतर। प्रस्ताव पर उपलब्धता जाँची जाती है; फिर दोनों पक्ष स्वीकार करेंगे। डेमो प्रस्ताव पक्की बैठक नहीं है।",
+  "Show advertised times for": "इस तारीख़ के घोषित समय देखें",
+  "Loading advertised demo times…": "घोषित डेमो समय लोड हो रहे हैं…",
+  "Retry advertised times": "घोषित समय फिर लोड करें",
+  "No advertised free demo time for this date. Choose another date or ask for help.":
+    "इस तारीख़ को घोषित खाली डेमो समय नहीं है। दूसरी तारीख़ चुनें या मदद लें।",
+  "More advertised times": "और घोषित समय",
+  "Tuition agreements": "ट्यूशन समझौते",
+  "Recurring tuition terms": "नियमित ट्यूशन की शर्तें",
+  "Teacher profile unavailable": "शिक्षक प्रोफ़ाइल उपलब्ध नहीं है",
+  Agreement: "समझौता",
+  "Tuition is paid directly to the teacher. Policy:":
+    "ट्यूशन का भुगतान सीधे शिक्षक को होता है। नीति:",
+  "details unavailable": "विवरण उपलब्ध नहीं है",
+  "Proposed pilot placement fee for the teacher: 25% of first monthly tuition, capped at ₹1,500, only after independent start and receipt confirmations. Final live terms require review.":
+    "शिक्षक का प्रस्तावित पायलट नियुक्ति शुल्क: पहली मासिक ट्यूशन का 25%, अधिकतम ₹1,500, स्वतंत्र शुरुआत और प्राप्ति की पुष्टि के बाद। अंतिम लाइव शर्तों की समीक्षा ज़रूरी है।",
+  "Guardian start": "अभिभावक की शुरुआत",
+  Confirmed: "पुष्टि हुई",
+  "Teacher receipt": "शिक्षक को प्राप्ति",
+  "Loading timetable status…": "समय-सारणी की स्थिति लोड हो रही है…",
+  "Retry timetable status": "समय-सारणी की स्थिति फिर लोड करें",
+  "A recurring timetable has been accepted by both parties.":
+    "दोनों पक्षों ने नियमित समय-सारणी स्वीकार की है।",
+  "An agreed recurring timetable is still required before tuition starts.":
+    "ट्यूशन शुरू होने से पहले नियमित समय-सारणी पर सहमति अभी ज़रूरी है।",
+  "Refresh tuition terms": "ट्यूशन शर्तें फिर लोड करें",
+  "Review & accept tuition terms": "ट्यूशन शर्तें जाँचकर स्वीकार करें",
+  "Confirm first paid lesson": "पहली सशुल्क कक्षा की पुष्टि करें",
+  "Confirm lesson & tuition receipt": "कक्षा और ट्यूशन मिलने की पुष्टि करें",
+  "This agreement is closed; further acceptances are unavailable.":
+    "समझौता बंद है; आगे स्वीकृति उपलब्ध नहीं है।",
+  "Current teacher and policy details are required before accepting. Refresh or contact support.":
+    "स्वीकार करने से पहले शिक्षक और नीति का वर्तमान विवरण चाहिए। फिर लोड करें या सहायता लें।",
+  "Confirm the actual first paid lesson":
+    "वास्तविक पहली सशुल्क कक्षा की पुष्टि करें",
+  "Confirm the lesson and tuition receipt":
+    "कक्षा और ट्यूशन मिलने की पुष्टि करें",
+  "You are accepting {0} per month with {1}. Both parties must accept these terms and a recurring timetable before tuition starts.":
+    "आप {1} के साथ {0} प्रति माह स्वीकार कर रहे हैं। ट्यूशन से पहले दोनों पक्षों को शर्तें और नियमित समय-सारणी स्वीकार करनी होगी।",
+  "Confirm only after the first paid lesson actually took place. This does not confirm the teacher’s receipt of tuition.":
+    "केवल वास्तव में पहली सशुल्क कक्षा होने के बाद पुष्टि करें। इससे शिक्षक को ट्यूशन मिलने की पुष्टि नहीं होती।",
+  "Confirm only after the paid lesson took place and you received the tuition. The guardian independently confirms the start.":
+    "केवल कक्षा होने और ट्यूशन मिलने के बाद पुष्टि करें। अभिभावक शुरुआत की स्वतंत्र पुष्टि करता है।",
+  "I have reviewed the monthly amount, payment basis and stored policy terms.":
+    "मैंने मासिक राशि, भुगतान के आधार और दर्ज नीति शर्तों की समीक्षा कर ली है।",
+  "The first paid lesson actually took place.":
+    "पहली सशुल्क कक्षा वास्तव में हुई।",
+  "The lesson took place and I received the tuition.":
+    "कक्षा हुई और मुझे ट्यूशन मिली।",
+  "Accept tuition terms": "ट्यूशन शर्तें स्वीकार करें",
+  "Save start confirmation": "शुरुआत की पुष्टि सहेजें",
+  "Getting things ready…": "तैयारी हो रही है…",
+  "Better Call Sir मुख्य पृष्ठ": "Better Call Sir मुख्य पृष्ठ",
+  bettercall: "bettercall",
+  sir: "sir",
+  "A good teacher changes the way": "अच्छा शिक्षक बदल देता है",
+  "you see what’s possible.": "संभावनाओं को देखने का नज़रिया।",
+  "Better Call Sir": "Better Call Sir",
+  "Illustration of a supportive learning space":
+    "सहयोगी सीखने के स्थान का चित्र",
+  "A thoughtful match": "सोच-समझकर मिलान",
+  "For your child. For their pace.": "आपके विद्यार्थी के लिए। उसकी गति से।",
+  "Small steps.": "छोटे कदम।",
+  "Big possibilities.": "बड़ी संभावनाएँ।",
+  "x² + y² = a little confidence": "x² + y² = थोड़ा आत्मविश्वास",
+  "• &nbsp; •": "•   •",
+  "“Now I understand.”": "“अब समझ आया।”",
+  "The moment we’re here for.": "इसी पल के लिए हम यहाँ हैं।",
+  "Reviewed coverage": "जाँचा शिक्षण दायरा",
+  "Demo available": "डेमो उपलब्ध है",
+  "Raipur · At home & online": "रायपुर · घर पर और ऑनलाइन",
+  "Raipur · Home tuition": "रायपुर · घर पर ट्यूशन",
+  "/ month · tuition paid directly": "/ माह · ट्यूशन का भुगतान सीधे",
+  "View {0}": "{0} देखें",
+  "Rooted in Raipur. Ready for your child.":
+    "रायपुर से शुरुआत। आपके विद्यार्थी के लिए तैयार।",
+  "A little guidance.": "थोड़ा मार्गदर्शन।",
+  "A world of": "एक दुनिया",
+  "possibilities.": "नई संभावनाओं की।",
+  "Help me choose": "चुनने में मदद करें",
+  A: "A",
+  R: "R",
+  M: "M",
+  "People, before profiles.": "प्रोफ़ाइल से पहले इंसान।",
+  "Reviewed subject coverage. Clear fit reasons.":
+    "जाँचे शिक्षण क्षेत्र। उपयुक्तता के स्पष्ट कारण।",
+  "Reviewed teacher coverage": "शिक्षक का जाँचा दायरा",
+  "At home or online": "घर पर या ऑनलाइन",
+  "Matching is free for families": "परिवारों के लिए मिलान मुफ़्त है",
+  "Guardian-led, student-centred": "अभिभावक की मदद, विद्यार्थी पर ध्यान",
+  "GOOD TEACHERS. REAL CONNECTIONS.": "अच्छे शिक्षक। सच्चा जुड़ाव।",
+  "A teacher for their": "ऐसा शिक्षक जो समझे",
+  "kind of curious.": "आपकी जिज्ञासा।",
+  "Start with a subject. Stay for the understanding.":
+    "विषय से शुरू करें। समझ के लिए जुड़ें।",
+  "Explore our synthetic development catalog.":
+    "विकास संस्करण की नमूना सूची देखें।",
+  "Meet all teachers": "सभी शिक्षक देखें",
+  "LESS GUESSWORK. MORE GOOD FIT.": "कम अटकलें। बेहतर मेल।",
+  "From “where do we start?”": "“कहाँ से शुरू करें?” से",
+  "“we’ve found our teacher.”": "“हमारा शिक्षक मिल गया।” तक",
+  "Let’s find your fit": "आपके अनुरूप शिक्षक खोजें",
+  "Let us help you find the right fit.":
+    "उपयुक्त शिक्षक खोजने में हमारी मदद लें।",
+  "Share the subject, class, location and budget that work for your family. Our team reviews suitable teacher options for you.":
+    "परिवार के लिए उपयुक्त विषय, कक्षा, जगह और बजट बताएँ। हमारी टीम विकल्पों की समीक्षा करती है।",
+  "You keep the choice.": "निर्णय आपका रहता है।",
+  "Review profiles, ask about fit and agree the arrangement with the teacher. A shortlist is the start of a decision.":
+    "प्रोफ़ाइल देखें, उपयुक्तता पूछें और शिक्षक के साथ व्यवस्था तय करें। सूची निर्णय की शुरुआत है।",
+  "FIND YOUR KIND OF TEACHER": "अपने अनुरूप शिक्षक खोजें",
+  "Good learning starts with a good fit.":
+    "अच्छी पढ़ाई सही मेल से शुरू होती है।",
+  "Early years, school & college · Raipur pilot":
+    "शुरुआती शिक्षा, स्कूल और कॉलेज · रायपुर पायलट",
+  "How would you like to find a teacher?": "शिक्षक कैसे खोजना चाहेंगे?",
+  Search: "खोजें",
+  "Browse and choose a teacher": "खुद देखें और शिक्षक चुनें",
+  "Share your criteria for a reviewed shortlist":
+    "समीक्षित सूची के लिए अपनी ज़रूरत बताएँ",
+  "Tell us what would work for your learning.":
+    "बताएँ कि आपकी पढ़ाई के लिए क्या सही होगा।",
+  "Share your subject, availability and budget. Your criteria are recorded for staff review; this does not book or hire a teacher.":
+    "विषय, समय और बजट बताएँ। ज़रूरतें कर्मचारी समीक्षा के लिए दर्ज होती हैं; इससे बुकिंग या नियुक्ति नहीं होती।",
+  "Share my criteria": "अपनी ज़रूरत बताएँ",
+  "PERSONALIZED HELP": "आपके लिए मदद",
+  "Tell us what would work for your family.":
+    "बताएँ कि परिवार के लिए क्या सही होगा।",
+  "Share your learner’s education, subject, availability and budget. We’ll review suitable teachers and prepare options for your guardian account.":
+    "विद्यार्थी की शिक्षा, विषय, समय और बजट बताएँ। अभिभावक खाते के लिए उपयुक्त शिक्षकों की समीक्षा करके विकल्प तैयार करेंगे।",
+  "Share your criteria": "अपनी ज़रूरत बताएँ",
+  "Search a teacher or subject": "शिक्षक या विषय खोजें",
+  "All stages": "सभी शिक्षा स्तर",
+  "All subjects": "सभी विषय",
+  "Lesson mode": "पढ़ाने का तरीका",
+  "At home & online": "घर पर और ऑनलाइन",
+  "All boards": "सभी बोर्ड",
+  "All classes": "सभी कक्षाएँ",
+  "Early years level": "शुरुआती शिक्षा का स्तर",
+  "All early years levels": "शुरुआती शिक्षा के सभी स्तर",
+  "Course / degree": "पाठ्यक्रम / डिग्री",
+  "For example BSc Physics": "जैसे BSc Physics",
+  "Study year": "पढ़ाई का वर्ष",
+  "All study years": "पढ़ाई के सभी वर्ष",
+  "Any language": "कोई भी भाषा",
+  "Any locality": "कोई भी इलाका",
+  "Maximum monthly tuition": "अधिकतम मासिक ट्यूशन",
+  "Any budget": "कोई भी बजट",
+  "Up to ₹3,000": "₹3,000 तक",
+  "Up to ₹5,000": "₹5,000 तक",
+  "Up to ₹8,000": "₹8,000 तक",
+  "Up to ₹12,000": "₹12,000 तक",
+  "Reset filters": "फ़िल्टर हटाएँ",
+  "Searching for teachers…": "शिक्षक खोजे जा रहे हैं…",
+  "Search unavailable": "खोज उपलब्ध नहीं है",
+  "{0} teachers to get to know": "जानने के लिए {0} शिक्षक",
+  "Synthetic profiles · prices are monthly tuition":
+    "नमूना प्रोफ़ाइल · मूल्य मासिक ट्यूशन के हैं",
+  "Search recovery": "खोज फिर आगे बढ़ाएँ",
+  "No teachers match these filters right now.":
+    "अभी इन फ़िल्टर से शिक्षक नहीं मिले।",
+  "Try broader filters or let us review your needs. An empty search does not mean your class or subject is outside pilot coverage.":
+    "फ़िल्टर कम करें या ज़रूरतें हमें देखने दें। खाली खोज का अर्थ आपकी कक्षा या विषय का पायलट से बाहर होना नहीं है।",
+  "Need another class, subject or city?": "दूसरी कक्षा, विषय या शहर चाहिए?",
+  "Not sure who to choose?": "तय नहीं कर पा रहे कि किसे चुनें?",
+  "Tell us what your child needs. We’ll help you find suitable options.":
+    "विद्यार्थी की ज़रूरत बताएँ। उपयुक्त विकल्प खोजने में मदद करेंगे।",
+  "Looking outside our current pilot coverage?":
+    "मौजूदा पायलट दायरे के बाहर खोज रहे हैं?",
+  "← All teachers": "← सभी शिक्षक",
+  "Reviewed subject coverage": "जाँचा विषय दायरा",
+  "What we can work on together": "मिलकर किन विषयों पर काम कर सकते हैं",
+  Languages: "भाषाएँ",
+  Experience: "अनुभव",
+  "years of teaching": "वर्ष पढ़ाने का अनुभव",
+  "Parent consultations": "अभिभावक परामर्श",
+  "Opted in · accepted windows": "रुचि दर्ज · स्वीकृत समय",
+  "Not currently available": "अभी उपलब्ध नहीं",
+  "Coverage review describes subjects and classes checked. It does not guarantee marks or safety. This is a synthetic development profile.":
+    "दायरे की समीक्षा जाँचे विषय और कक्षाएँ बताती है। अंकों या सुरक्षा की गारंटी नहीं है। यह नमूना विकास प्रोफ़ाइल है।",
+  "A LITTLE GUIDANCE, EVERY WEEK": "हर हफ़्ते थोड़ा मार्गदर्शन",
+  "Teacher-declared preference. Cancellation restrictions are not currently enforced.":
+    "शिक्षक की घोषित पसंद। रद्द करने की पाबंदी अभी लागू नहीं है।",
+  "Demo available · optional before hiring":
+    "डेमो उपलब्ध · नियुक्ति से पहले वैकल्पिक",
+  "Recurring tuition is paid directly to your teacher. Ordinary matching and safety support are free for families.":
+    "नियमित ट्यूशन का भुगतान सीधे शिक्षक को होता है। सामान्य मिलान और सुरक्षा सहायता परिवारों के लिए मुफ़्त हैं।",
+  "Your teacher interest is recorded for staff review. It does not reserve, hire or charge you.":
+    "आपकी शिक्षक रुचि कर्मचारी समीक्षा के लिए दर्ज है। इससे आरक्षण, नियुक्ति या भुगतान नहीं होता।",
+  "An enquiry starts a conversation about fit and terms. It does not hire the teacher or charge you.":
+    "पूछताछ से उपयुक्तता और शर्तों पर बातचीत शुरू होती है। इससे नियुक्ति या पैसे नहीं कटते।",
+  "Guardian-managed enquiry": "अभिभावक द्वारा सँभाली पूछताछ",
+  " · verification pending": " · सत्यापन बाकी है",
+  "Loading your account…": "आपका खाता लोड हो रहा है…",
+  "Use a guardian account to create a tuition request.":
+    "ट्यूशन अनुरोध बनाने के लिए अभिभावक खाता इस्तेमाल करें।",
+  "YOUR FAMILY, YOUR SPACE": "आपका परिवार, आपका स्थान",
+  "Private learning journeys are available only to the right account.":
+    "निजी पढ़ाई का सफ़र केवल सही खाते के लिए उपलब्ध है।",
+  "Sign in with email": "ईमेल से साइन इन करें",
+  "A teacher account is required.": "शिक्षक खाता ज़रूरी है।",
+  "Sign in with your own adult account to apply. Student accounts cannot submit teacher applications.":
+    "आवेदन के लिए अपने वयस्क खाते से प्रवेश करें। विद्यार्थी खाते शिक्षक आवेदन नहीं भेज सकते।",
+  "Return to dashboard": "डैशबोर्ड पर लौटें",
+  "Guardian setup belongs to a guardian account.":
+    "अभिभावक की तैयारी अभिभावक खाते के लिए है।",
+  "Learner profiles belong to guardian and student accounts.":
+    "शिक्षा प्रोफ़ाइल अभिभावक और विद्यार्थी खातों की हैं।",
+  "A guardian must authorize student access.":
+    "अभिभावक को विद्यार्थी की पहुँच अधिकृत करनी होगी।",
+  "YOUR TEACHER CONNECTIONS": "शिक्षकों से आपका जुड़ाव",
+  "Dashboard menu: {0}": "डैशबोर्ड मेन्यू: {0}",
+  "Dashboard menu": "डैशबोर्ड मेन्यू",
+  Overview: "सारांश",
+  "Dashboard sections": "डैशबोर्ड के अनुभाग",
+  "A good fit starts": "अच्छा मेल शुरू होता है",
+  "with a clear conversation.": "एक स्पष्ट बातचीत से।",
+  "Hello, {0}.": "नमस्ते, {0}।",
+  "Your teacher connections, with a clear next step.":
+    "शिक्षकों से जुड़ाव, स्पष्ट अगले कदम के साथ।",
+  OPERATIONS: "संचालन",
+  "A LITTLE PROGRESS, EVERY DAY": "हर दिन थोड़ी प्रगति",
+  "Every class, accounted for.": "हर कक्षा का हिसाब।",
+  "Progress, backed by records.": "रिकॉर्ड से पुष्ट प्रगति।",
+  "Financial records, with their evidence.": "प्रमाण के साथ वित्तीय रिकॉर्ड।",
+  "Support, with a clear next step.": "स्पष्ट अगले कदम के साथ मदद।",
+  "A considered shortlist, ready for review.":
+    "सोच-समझकर बनी सूची, समीक्षा के लिए तैयार।",
+  "A careful review, recorded.": "सावधानी से की गई दर्ज समीक्षा।",
+  "A clear next step for your tuition.": "ट्यूशन के लिए स्पष्ट अगला कदम।",
+  "Your path to a good fit.": "सही शिक्षक तक आपका रास्ता।",
+  "Your learners, your control.": "आपके विद्यार्थी, आपका नियंत्रण।",
+  "A little clarity, on the calendar.": "कैलेंडर पर थोड़ी स्पष्टता।",
+  "A conversation can help.": "बातचीत मदद कर सकती है।",
+  "Learning context, shared with you.": "पढ़ाई का संदर्भ, आपके साथ साझा।",
+  "Your thoughts, kept private.": "आपकी बातें, निजी रखी गईं।",
+  "A thoughtful control room.": "सोच-समझकर बना नियंत्रण कक्ष।",
+  "Your recorded activity, current assignments and next steps.":
+    "दर्ज गतिविधि, वर्तमान नियुक्तियाँ और अगले कदम।",
+  "Manage student devices and the permissions you grant.":
+    "विद्यार्थी के उपकरण और दी गई अनुमतियाँ सँभालें।",
+  "Review teacher options, demo progress and your tuition agreement.":
+    "शिक्षक विकल्प, डेमो की प्रगति और ट्यूशन समझौता देखें।",
+  "Your weekly timetable, booked lessons and attendance records.":
+    "साप्ताहिक समय-सारणी, बुक कक्षाएँ और उपस्थिति रिकॉर्ड।",
+  "All changes are confirmed by the backend.":
+    "सभी बदलाव सर्वर की पुष्टि से होते हैं।",
+  "Recorded activity": "दर्ज गतिविधि",
+  "A little support goes a long way": "थोड़ी मदद बहुत काम आती है",
+  "There’s a learner on the other side.": "दूसरी ओर एक विद्यार्थी है।",
+  "Keep their curiosity moving.": "उसकी जिज्ञासा आगे बढ़ाएँ।",
+  "Your next class and your recorded progress are right here.":
+    "अगली कक्षा और दर्ज प्रगति यहीं हैं।",
+  "Your teachers, upcoming classes and next steps, all in one place.":
+    "शिक्षक, आगामी कक्षाएँ और अगले कदम, एक जगह।",
+  "View all": "सभी देखें",
+  "Approval requires completed capability checks; material changes must reopen review.":
+    "स्वीकृति के लिए क्षमता की जाँच पूरी होनी चाहिए; महत्वपूर्ण बदलाव से समीक्षा फिर खुलेगी।",
+  "View profile →": "प्रोफ़ाइल देखें →",
+  "No active teacher yet. Your shortlist is the next step.":
+    "अभी सक्रिय शिक्षक नहीं है। अगला कदम आपकी शिक्षक सूची है।",
+  "These controls belong to your guardian.": "ये नियंत्रण आपके अभिभावक के हैं।",
+  "Only your guardian can manage learner consent and student access.":
+    "केवल अभिभावक विद्यार्थी की सहमति और पहुँच सँभाल सकता है।",
+  "Return to your learning space": "अपनी पढ़ाई के स्थान पर लौटें",
+  "Tuition choices belong to your guardian.":
+    "ट्यूशन की पसंद आपके अभिभावक की है।",
+  "Only a guardian can review their family’s requests and choose a teacher.":
+    "केवल अभिभावक परिवार के अनुरोध देखकर शिक्षक चुन सकता है।",
+  "Assigned opportunities": "सौंपे गए अवसर",
+  "Accept opportunity": "अवसर स्वीकार करें",
+  Decline: "मना करें",
+  "No assigned opportunities yet.": "अभी अवसर नहीं सौंपे गए हैं।",
+  "No classes in this view yet.": "यहाँ अभी कक्षाएँ नहीं हैं।",
+  "Assigned learner": "सौंपा विद्यार्थी",
+  "Disputed · excluded from totals": "विवादित · कुल से बाहर",
+  "Parent Pro · synthetic prepaid pass": "Parent Pro · नमूना प्रीपेड पास",
+  "Stay in the loop.": "जुड़े रहें।",
+  "Talk it through.": "बात करके समझें।",
+  "Consult your child’s active teacher in an accepted window.":
+    "स्वीकृत समय पर विद्यार्थी के सक्रिय शिक्षक से परामर्श लें।",
+  "No personal numbers. No 24/7 promise.":
+    "निजी नंबर नहीं। चौबीसों घंटे सेवा का वादा नहीं।",
+  "consultations available": "परामर्श उपलब्ध हैं",
+  "Expires {0}": "समाप्ति {0}",
+  "No active membership": "सक्रिय सदस्यता नहीं है",
+  "Pro never changes matching rank or safety support. Live calling and plan purchase are unavailable until transport, price and terms are approved. Demo consultations use 5pm–8pm IST windows.":
+    "Pro से मिलान की रैंक या सुरक्षा सहायता नहीं बदलती। परिवहन, मूल्य और शर्तें स्वीकृत होने तक लाइव कॉल और योजना खरीद उपलब्ध नहीं हैं। डेमो परामर्श का समय शाम 5–8 बजे IST है।",
+  "Request a teacher callback": "शिक्षक से कॉल का अनुरोध करें",
+  "Active teacher assignment": "सक्रिय शिक्षक नियुक्ति",
+  "Assigned teacher": "नियुक्त शिक्षक",
+  "Preferred callback (IST)": "पसंदीदा कॉल का समय (IST)",
+  "Request consultation": "परामर्श माँगें",
+  "Free or expired memberships cannot start consultations. Ordinary support is always available.":
+    "मुफ़्त या समाप्त सदस्यता से परामर्श शुरू नहीं हो सकता। सामान्य सहायता हमेशा उपलब्ध है।",
+  "Callback ·": "वापसी कॉल ·",
+  "Review controls, private queues and recorded outcomes in the dedicated console.":
+    "अलग कंसोल में नियंत्रण, निजी कतारें और दर्ज नतीजे देखें।",
+  "Open administrator console": "प्रशासक कंसोल खोलें",
+  "NOT FOUND": "पृष्ठ नहीं मिला",
+  "This page isn’t here yet.": "यह पृष्ठ अभी उपलब्ध नहीं है।",
+  "Head back to discover your kind of teacher.":
+    "अपने अनुरूप शिक्षक खोजने के लिए वापस जाएँ।",
+  "Go home": "मुख्य पृष्ठ पर जाएँ",
+  "Switching to student access.": "विद्यार्थी की पहुँच पर जा रहे हैं।",
+  "Guardian screens are hidden while we confirm which account this browser is using.":
+    "इस ब्राउज़र का खाता जाँचने तक अभिभावक के पृष्ठ छिपे हैं।",
+  "Checking student access…": "विद्यार्थी की पहुँच जाँची जा रही है…",
+  "Check device access": "उपकरण की पहुँच जाँचें",
+  "Tell us where to grow next.": "बताएँ कि आगे कहाँ सेवा चाहिए।",
+  "Need teachers in a region we do not serve yet? Record stage-specific learning criteria without adding a learner’s personal details.":
+    "ऐसे क्षेत्र में शिक्षक चाहिए जहाँ सेवा नहीं है? विद्यार्थी की निजी जानकारी के बिना शिक्षा स्तर के अनुसार ज़रूरतें दर्ज करें।",
+  "Coverage is different from availability.":
+    "सेवा का दायरा और शिक्षक की उपलब्धता अलग हैं।",
+  "For an in-scope request with no suitable teacher right now, keep your enquiry and review availability or ask support for alternatives.":
+    "दायरे में शिक्षक न मिले तो पूछताछ सुरक्षित रखें और उपलब्धता जाँचें या सहायता से विकल्प माँगें।",
+  "Browse current teachers": "मौजूदा शिक्षक देखें",
+  "What the waitlist means": "प्रतीक्षा सूची का अर्थ",
+  "This records interest in future coverage. It does not book a teacher or promise a start date or notification.":
+    "यह भविष्य की सेवा में रुचि दर्ज करता है। शिक्षक बुक नहीं होता और शुरुआत की तारीख़ या सूचना का वादा नहीं है।",
+  "Share only learning criteria. Do not enter a learner’s name, school, address or contact details.":
+    "केवल पढ़ाई की ज़रूरतें दें। विद्यार्थी का नाम, स्कूल, पता या संपर्क न दें।",
+  "Review existing enquiries": "मौजूदा पूछताछ देखें",
+  "Ask your guardian to record interest.": "अभिभावक से रुचि दर्ज करवाएँ।",
+  "A guardian can join the waitlist.":
+    "अभिभावक प्रतीक्षा सूची में जुड़ सकता है।",
+  "Your guardian manages enquiries and private waitlist requests.":
+    "अभिभावक पूछताछ और निजी प्रतीक्षा सूची अनुरोध सँभालता है।",
+  "Sign in as a guardian": "अभिभावक के रूप में साइन इन करें",
+  "Your interest is recorded.": "आपकी रुचि दर्ज है।",
+  "Guardian verification is pending. Complete approved verification and active consent before recording interest.":
+    "अभिभावक का सत्यापन बाकी है। रुचि दर्ज करने से पहले स्वीकृत सत्यापन और सक्रिय सहमति पूरी करें।",
+  "Loading your saved requests…": "सहेजे अनुरोध लोड हो रहे हैं…",
+  "Choose a level": "स्तर चुनें",
+  "Choose a class": "कक्षा चुनें",
+  "Tuition format": "ट्यूशन का तरीका",
+  "I understand this records interest only, with no teacher, start date or notification guaranteed.":
+    "मैं समझता/समझती हूँ कि यह केवल रुचि दर्ज करता है; शिक्षक, तारीख़ या सूचना की गारंटी नहीं है।",
+  "Send a free enquiry": "मुफ़्त पूछताछ भेजें",
+  "Review permission and verification": "अनुमति और सत्यापन देखें",
+  "Recorded · pending. No learner profile or tuition enquiry was created.":
+    "दर्ज · इंतज़ार में। विद्यार्थी प्रोफ़ाइल या ट्यूशन पूछताछ नहीं बनी।",
+  "Reference:": "संदर्भ:",
+  "Record another coverage request": "सेवा दायरे का दूसरा अनुरोध दर्ज करें",
+  "Retry same waitlist request": "वही प्रतीक्षा सूची अनुरोध फिर भेजें",
+  "Record my interest": "मेरी रुचि दर्ज करें",
+  "Your coverage requests": "सेवा दायरे के आपके अनुरोध",
+  "Refresh coverage requests": "सेवा दायरे के अनुरोध फिर लोड करें",
+  "Your latest 50 recorded requests. Status does not confirm teacher supply or a place in a queue.":
+    "नवीनतम 50 दर्ज अनुरोध। स्थिति शिक्षक की उपलब्धता या कतार में जगह की पुष्टि नहीं है।",
+  "Saved requests could not be loaded. Refresh before creating another request.":
+    "सहेजे अनुरोध लोड नहीं हुए। दूसरा बनाने से पहले फिर लोड करें।",
+  "Loading recorded requests…": "दर्ज अनुरोध लोड हो रहे हैं…",
+  "No coverage requests recorded yet.":
+    "सेवा दायरे के अनुरोध अभी दर्ज नहीं हैं।",
+  "Class {0}": "कक्षा {0}",
+  "Recorded · pending": "दर्ज · इंतज़ार में",
+  "IST · Reference": "IST · संदर्भ",
+  "How would you like to share availability?": "उपलब्धता कैसे बताना चाहेंगे?",
+  "Weekly preferences": "साप्ताहिक पसंद",
+  "Specific dates (optional)": "निश्चित तारीख़ें (वैकल्पिक)",
+  "Overview & controls": "सारांश और नियंत्रण",
+  "People & linkage": "लोग और संबंधित खाते",
+  "Privacy review": "गोपनीयता समीक्षा",
+  "Recovery & backups": "बहाली और बैकअप",
+  "Audit history": "ऑडिट इतिहास",
+  "Enter a complete account UUID.": "पूरा खाता UUID दर्ज करें।",
+  "Access link recorded; consent must also remain active":
+    "पहुँच का संबंध दर्ज है; सहमति भी सक्रिय रहनी चाहिए",
+  "Review feature change": "सुविधा बदलाव की समीक्षा करें",
+  "Review privacy decision": "गोपनीयता निर्णय की समीक्षा करें",
+  "Review recovery retry": "बहाली के प्रयास की समीक्षा करें",
+  "Review deletion replay": "मिटाने की पुनर्प्रक्रिया जाँचें",
+  "Load the current record and add a reason within its limit.":
+    "वर्तमान रिकॉर्ड लोड करें और सीमा में कारण जोड़ें।",
+  "This flag already matches your intended state. Discard this draft and inspect the current control.":
+    "सुविधा की स्थिति पहले से आपकी पसंद जैसी है। मसौदा हटाकर वर्तमान नियंत्रण देखें।",
+  "Record the separately verified restore reference.":
+    "अलग सत्यापित बहाली का संदर्भ दर्ज करें।",
+  "Choose a decision, record its policy and the deletion retention exception when fulfilling.":
+    "निर्णय चुनें, नीति दर्ज करें और पूरा करने पर मिटाने के रिकॉर्ड रखने का अपवाद दें।",
+  "Retry queued; worker processing is not confirmed.":
+    "प्रयास कतार में है; काम पूरा होने की पुष्टि नहीं है।",
+  "Application deletion replay recorded; external backups and private files remain separate.":
+    "अनुप्रयोग का डेटा फिर मिटाने का रिकॉर्ड दर्ज है; बाहरी बैकअप और निजी फ़ाइल अलग हैं।",
+  "Reviewed decision recorded.": "समीक्षित निर्णय दर्ज है।",
+  "Saved checkout details could not be verified. Refresh or contact support before paying.":
+    "सहेजे भुगतान का विवरण सत्यापित नहीं हुआ। भुगतान से पहले फिर लोड करें या सहायता लें।",
+  "Review the exact amount and payment basis before creating checkout.":
+    "भुगतान बनाने से पहले सटीक राशि और आधार जाँचें।",
+  "This booking or invoice is no longer payable. Review its current details.":
+    "बुकिंग या चालान अब भुगतान योग्य नहीं है। वर्तमान विवरण देखें।",
+  "Current booking details could not be loaded. Refresh before creating checkout.":
+    "वर्तमान बुकिंग विवरण लोड नहीं हुए। भुगतान बनाने से पहले फिर लोड करें।",
+  "Checkout order saved. Payment and booking confirmation are separate.":
+    "भुगतान का ऑर्डर सहेजा गया। भुगतान और बुकिंग की पुष्टि अलग हैं।",
+  "Payment status refreshed. A Razorpay response alone does not confirm a booking.":
+    "भुगतान की स्थिति फिर जाँची गई। केवल Razorpay का जवाब बुकिंग की पुष्टि नहीं है।",
+  "Payment status could not be confirmed. Keep this order and check again; do not create another payment.":
+    "भुगतान की पुष्टि नहीं हुई। यही ऑर्डर रखकर फिर जाँचें; दूसरा भुगतान न बनाएँ।",
+  "Current checkout is not payable. Refresh its status before continuing.":
+    "वर्तमान ऑर्डर भुगतान योग्य नहीं है। आगे बढ़ने से पहले स्थिति फिर जाँचें।",
+  "Secure checkout could not load. Refresh the page to retry the saved order.":
+    "सुरक्षित भुगतान लोड नहीं हुआ। सहेजे ऑर्डर के लिए पृष्ठ फिर लोड करें।",
+  "Payment status could not be confirmed. Check the saved order again; do not make another payment.":
+    "भुगतान की पुष्टि नहीं हुई। सहेजा ऑर्डर फिर जाँचें; दूसरा भुगतान न करें।",
+  "Scheduled revision session": "निर्धारित पुनरावृत्ति सत्र",
+  "Razorpay returned a payment response. Waiting for server confirmation from the signed payment event.":
+    "Razorpay ने भुगतान का जवाब दिया है। हस्ताक्षरित घटना से सर्वर की पुष्टि का इंतज़ार है।",
+  "Checkout closed. Check the saved order status before reopening it.":
+    "भुगतान बंद हुआ। फिर खोलने से पहले सहेजे ऑर्डर की स्थिति जाँचें।",
+  "This payment attempt was not confirmed. Check the saved order before trying again.":
+    "भुगतान के इस प्रयास की पुष्टि नहीं हुई। फिर कोशिश से पहले सहेजा ऑर्डर जाँचें।",
+  Physics: "भौतिकी",
+  Chemistry: "रसायन विज्ञान",
+  Biology: "जीव विज्ञान",
+  Economics: "अर्थशास्त्र",
+  Statistics: "सांख्यिकी",
+  "Computer Science": "कंप्यूटर विज्ञान",
+  Numbers: "संख्याएँ",
+  "Enter your name.": "अपना नाम दर्ज करें।",
+  "Use 80 characters or fewer.": "अधिकतम 80 अक्षर इस्तेमाल करें।",
+  "Enter a valid email address.": "मान्य ईमेल पता दर्ज करें।",
+  Reconciliation: "मिलान और हिसाब",
+  Invoices: "चालान",
+  "Checkout orders": "भुगतान ऑर्डर",
+  "Captured payments": "मिले भुगतान",
+  "Refund requests": "पैसे वापसी के अनुरोध",
+  "Teacher payables": "शिक्षक की देय राशियाँ",
+  "Enter a complete record UUID or leave it blank.":
+    "पूरा रिकॉर्ड UUID दें या खाली छोड़ें।",
+  " IST": " IST",
+  "Choose an ordered date range of up to 366 days.":
+    "सही क्रम में अधिकतम 366 दिनों की अवधि चुनें।",
+  "Acknowledge the provider-query limits and add a reason of up to 500 characters.":
+    "प्रदाता पूछताछ की सीमाएँ स्वीकार करें और अधिकतम 500 अक्षर का कारण दें।",
+  "Provider query recorded. Review its reported status below; no settlement or payment-state change is confirmed.":
+    "प्रदाता की पूछताछ दर्ज है। नीचे बताई स्थिति देखें; निपटान या भुगतान की स्थिति में बदलाव की पुष्टि नहीं है।",
+  " IST; payout unverified": " IST; भुगतान असत्यापित",
+  "Add a reason before reviewing the provider query.":
+    "पूछताछ की समीक्षा से पहले कारण दें।",
+  "Discard draft & choose again": "मसौदा हटाकर फिर चुनें",
+  "Unconfirmed discard result": "हटाने का नतीजा पुष्ट नहीं है",
+  "We couldn’t confirm the discard. Retry the same action before changing this draft.":
+    "हटाने की पुष्टि नहीं हुई। मसौदा बदलने से पहले वही कार्रवाई फिर करें।",
+  Permission: "अनुमति",
+  "Tuition needs": "ट्यूशन की ज़रूरतें",
+  Schedule: "समय",
+  Review: "समीक्षा",
+  "Enter the school name.": "स्कूल का नाम दर्ज करें।",
+  "List the subjects studied in class.": "कक्षा में पढ़े जाने वाले विषय लिखें।",
+  "List 1–20 unique subjects, separated by commas.":
+    "अल्पविराम से अलग 1–20 अलग विषय लिखें।",
+  "Enter a learner alias.": "विद्यार्थी का उपनाम दर्ज करें।",
+  "Use 40 characters or fewer.": "अधिकतम 40 अक्षर इस्तेमाल करें।",
+  "Enter a board.": "बोर्ड दर्ज करें।",
+  "Choose a subject.": "विषय चुनें।",
+  "Choose a locality.": "इलाका चुनें।",
+  "Enter a monthly budget between ₹500 and ₹20,000, in whole paise.":
+    "₹500 से ₹20,000 के बीच मासिक बजट, पूरे पैसे में दर्ज करें।",
+  "Shankar Nagar": "शंकर नगर",
+  "weekly availability ranges": "साप्ताहिक उपलब्ध समय",
+  "dated availability windows": "तारीख़ वाले उपलब्ध समय",
+  "Choose a weekday and nonoverlapping time ranges of at least 20 minutes. End times must be later on the same day.":
+    "दिन और कम से कम 20 मिनट के बिना टकराव वाले समय चुनें। अंत उसी दिन शुरुआत के बाद हो।",
+  "Choose nonoverlapping 20–120 minute windows, at least one hour ahead and within 60 days. Notes must be 300 characters or fewer.":
+    "कम से कम एक घंटे बाद और 60 दिनों के भीतर 20–120 मिनट के बिना टकराव वाले समय चुनें। नोट्स अधिकतम 300 अक्षर हों।",
+  "Confirm that you are the learner’s parent or lawful guardian and agree to the stated use.":
+    "विद्यार्थी के माता-पिता या कानूनी अभिभावक होने और बताए उपयोग से सहमति की पुष्टि करें।",
+  "We couldn’t save progress yet. Your changes are still here. Try again.":
+    "प्रगति अभी नहीं सहेजी गई। बदलाव यहीं हैं। फिर कोशिश करें।",
+  "The service did not confirm your request. Retry to check the result.":
+    "सेवा ने अनुरोध की पुष्टि नहीं की। नतीजा जाँचने के लिए फिर भेजें।",
+  "We couldn’t confirm the result. Retry this submission before making edits.":
+    "नतीजे की पुष्टि नहीं हुई। बदलाव से पहले यही अनुरोध फिर भेजें।",
+  "Refresh saved progress before starting another enquiry.":
+    "नई पूछताछ शुरू करने से पहले सहेजी प्रगति लोड करें।",
+  "We couldn’t confirm the new draft. Try again to check the same action.":
+    "नए मसौदे की पुष्टि नहीं हुई। उसी कार्रवाई को जाँचने के लिए फिर कोशिश करें।",
+  "Your permission comes first": "पहले आपकी अनुमति",
+  "Tell us about your learner": "अपने विद्यार्थी के बारे में बताएँ",
+  "What kind of tuition would help?": "किस तरह की ट्यूशन मदद करेगी?",
+  "Choose times that work": "उपयुक्त समय चुनें",
+  "Review your tuition request": "ट्यूशन अनुरोध जाँचें",
+  "your previously chosen teacher": "आपका पहले चुना शिक्षक",
+  "Avanti Vihar": "अवंति विहार",
+  Telibandha: "तेलीबांधा",
+  "Civil Lines": "सिविल लाइंस",
+  Mowa: "मोवा",
+  "Continue to tuition needs": "ट्यूशन की ज़रूरतों पर आगे बढ़ें",
+  "Continue to schedule": "समय पर आगे बढ़ें",
+  "Submit tuition request": "ट्यूशन अनुरोध भेजें",
+  "We couldn’t confirm your current setup. Refresh before continuing.":
+    "मौजूदा तैयारी की पुष्टि नहीं हुई। आगे बढ़ने से पहले फिर लोड करें।",
+  "Your permission may have been saved. Check its current status before trying again.":
+    "अनुमति सहेजी हो सकती है। फिर कोशिश से पहले वर्तमान स्थिति जाँचें।",
+  "Sign in and complete guardian verification.":
+    "साइन इन करके अभिभावक का सत्यापन पूरा करें।",
+  "Guardian permission": "अभिभावक की अनुमति",
+  "Review how learner information will be used.":
+    "विद्यार्थी की जानकारी के इस्तेमाल की समीक्षा करें।",
+  "Learner profiles": "विद्यार्थी प्रोफ़ाइल",
+  "Add school, early years or college details.":
+    "स्कूल, शुरुआती शिक्षा या कॉलेज का विवरण जोड़ें।",
+  "learner has": "विद्यार्थी का",
+  "learners have": "विद्यार्थियों का",
+  Enquiries: "पूछताछ",
+  "Open enquiries": "खुली पूछताछ",
+  "Awaiting tuition start": "ट्यूशन शुरू होने का इंतज़ार",
+  "Active arrangements": "सक्रिय व्यवस्थाएँ",
+  " for ": " के लिए ",
+  "Review and acknowledge the hiring terms before accepting.":
+    "स्वीकार करने से पहले नियुक्ति की शर्तें जाँचकर पुष्टि करें।",
+  "Current terms and guardian permission are required. Refresh the overview before accepting.":
+    "वर्तमान शर्तें और अभिभावक की अनुमति ज़रूरी हैं। स्वीकार करने से पहले सारांश फिर लोड करें।",
+  "Your hiring-term acceptance was recorded.":
+    "नियुक्ति की शर्तों की आपकी स्वीकृति दर्ज है।",
+  "Acknowledge the effect before responding.":
+    "जवाब से पहले असर की पुष्टि करें।",
+  "Your opportunity response was recorded.": "अवसर का आपका जवाब दर्ज है।",
+  "Enquiry & matching queues": "पूछताछ और मिलान कतारें",
+  "Review matching": "मिलान देखें",
+  "Teacher screening": "शिक्षक की जाँच",
+  "Review teacher evidence": "शिक्षक के प्रमाण देखें",
+  "Arrangement states": "व्यवस्था की स्थितियाँ",
+  "Open operational reports": "संचालन रिपोर्ट खोलें",
+  "Choose your learning support": "पढ़ाई की मदद चुनें",
+  "Supported students": "सहायता प्राप्त विद्यार्थी",
+  "Keep managing your own learning, or invite someone you trust. You keep ownership of your account and can remove access at any time.":
+    "पढ़ाई खुद सँभालें या भरोसेमंद व्यक्ति बुलाएँ। खाता आपका रहता है और कभी भी पहुँच हटा सकते हैं।",
+  "Accept only invitations you recognize. This support is separate from your own family profiles and does not transfer account ownership.":
+    "केवल पहचाने निमंत्रण स्वीकार करें। यह सहायता आपकी पारिवारिक प्रोफ़ाइल से अलग है और खाते का स्वामित्व नहीं बदलती।",
+  "Decide what help you want": "तय करें कि कैसी मदद चाहिए",
+  "Advice only": "केवल सलाह",
+  "View shared education, enquiries, shortlist and arrangement progress. No edits or decisions.":
+    "साझा शिक्षा, पूछताछ, सूची और व्यवस्था की प्रगति देखें। बदलाव या निर्णय की अनुमति नहीं।",
+  "Manage learning decisions": "पढ़ाई के निर्णय सँभालें",
+  "Also edit education, send enquiries, choose a teacher, accept hiring and mutual email-sharing terms, close arrangements or request a replacement.":
+    "शिक्षा बदलें, पूछताछ भेजें, शिक्षक चुनें, नियुक्ति और आपसी ईमेल साझाकरण की शर्तें स्वीकार करें, व्यवस्थाएँ बंद करें या दूसरा शिक्षक माँगें।",
+  "Neither option shares login codes, devices, account ownership, private support conversations or privacy/deletion controls. This is voluntary adult support, not proof of legal guardianship.":
+    "किसी विकल्प से प्रवेश कोड, उपकरण, खाते का स्वामित्व, निजी सहायता बातचीत या गोपनीयता/मिटाने के नियंत्रण साझा नहीं होते। यह वयस्क की स्वैच्छिक मदद है, कानूनी अभिभावक का प्रमाण नहीं।",
+  "Loading invitations…": "निमंत्रण लोड हो रहे हैं…",
+  "Invitation history is unavailable. Reload before making a decision.":
+    "निमंत्रण इतिहास उपलब्ध नहीं है। निर्णय से पहले फिर लोड करें।",
+  "Replace pending invitation": "लंबित निमंत्रण बदलें",
+  "Invite a supporter": "सहायक को बुलाएँ",
+  "Load the remaining history before creating or replacing an invitation.":
+    "निमंत्रण बनाने या बदलने से पहले पूरा इतिहास लोड करें।",
+  "Invite by email": "ईमेल से निमंत्रण दें",
+  "Supporter’s account email": "सहायक के खाते का ईमेल",
+  "Review invitation": "निमंत्रण जाँचें",
+  "The invitation lasts seven days. Ask this person to sign in with this email as a guardian and open Supported students. Creating the invitation does not send an email or grant access before acceptance.":
+    "निमंत्रण सात दिन रहता है। व्यक्ति से इसी ईमेल के अभिभावक खाते में प्रवेश करके सहायता प्राप्त विद्यार्थी खोलने को कहें। निमंत्रण बनाने से ईमेल नहीं जाता और स्वीकृति से पहले पहुँच नहीं मिलती।",
+  "The previous invitation will be revoked immediately.":
+    "पुराने निमंत्रण की अनुमति तुरंत हट जाएगी।",
+  "I trust this person and authorize exactly the scope described above.":
+    "मैं इस व्यक्ति पर भरोसा करता/करती हूँ और ऊपर बताई सटीक अनुमति देता/देती हूँ।",
+  "Edit invitation": "निमंत्रण बदलें",
+  "Invitation created. Ask your supporter to review it in their account.":
+    "निमंत्रण बना है। सहायक से अपने खाते में देखने को कहें।",
+  "Waiting for acceptance": "स्वीकृति का इंतज़ार",
+  "Access active": "पहुँच सक्रिय है",
+  "Invitation expired": "निमंत्रण समाप्त है",
+  Declined: "मना किया",
+  "Access removed": "पहुँच हटाई गई",
+  "Invitation expires": "निमंत्रण की समाप्ति",
+  "Decline invitation": "निमंत्रण मना करें",
+  "Open shared learning profile": "साझा पढ़ाई प्रोफ़ाइल खोलें",
+  "Remove access": "पहुँच हटाएँ",
+  "Stop supporting": "सहायता करना बंद करें",
+  "No one has access to your learning profile. Invite someone only if you want help.":
+    "आपकी पढ़ाई प्रोफ़ाइल तक किसी की पहुँच नहीं है। मदद चाहिए तभी व्यक्ति को बुलाएँ।",
+  "No invitations for this email yet. Ask the student to invite your account email.":
+    "इस ईमेल के लिए निमंत्रण नहीं हैं। विद्यार्थी से खाते के ईमेल पर बुलाने को कहें।",
+  "Load more invitations": "और निमंत्रण लोड करें",
+  "Remove this access?": "यह पहुँच हटाएँ?",
+  "Accept the stated permissions?": "बताई अनुमतियाँ स्वीकार करें?",
+  "Decline this invitation?": "यह निमंत्रण मना करें?",
+  "Shared profile and decision access stops immediately. The student keeps their account and learning records.":
+    "साझा प्रोफ़ाइल और निर्णय की पहुँच तुरंत बंद होगी। खाता और पढ़ाई रिकॉर्ड विद्यार्थी के रहेंगे।",
+  "The exact scope is described above. Login, privacy controls and ownership remain with the student.":
+    "सटीक अनुमति ऊपर है। प्रवेश, गोपनीयता और स्वामित्व विद्यार्थी के पास रहते हैं।",
+  "I understand this decision.": "मैं यह निर्णय समझता/समझती हूँ।",
+  "Go back": "पीछे जाएँ",
+  "Support access decision recorded.": "सहायता की पहुँच का निर्णय दर्ज है।",
+  "Confirm decision": "निर्णय की पुष्टि करें",
+  "Shared learning profile": "साझा पढ़ाई प्रोफ़ाइल",
+  "Checking your access…": "आपकी पहुँच जाँची जा रही है…",
+  "Access is unavailable or has been revoked. Ask the student to review their support settings.":
+    "पहुँच उपलब्ध नहीं या वापस ली गई है। विद्यार्थी से सहायता की सेटिंग जाँचने को कहें।",
+  "Check again": "फिर जाँचें",
+  "The student authorized you to manage learning decisions. They retain account ownership.":
+    "विद्यार्थी ने पढ़ाई के निर्णय की अनुमति दी है। खाते का स्वामित्व उसके पास है।",
+  "You can read shared learning progress. Decisions remain with the student.":
+    "साझा पढ़ाई की प्रगति देख सकते हैं। निर्णय विद्यार्थी के पास हैं।",
+  "Enquiries and teacher choices": "पूछताछ और शिक्षक की पसंद",
+  "Hiring and arrangements": "नियुक्ति और व्यवस्थाएँ",
+  "Close editor": "बदलाव का फ़ॉर्म बंद करें",
+  "Edit shared education": "साझा शिक्षा बदलें",
+  "Devices and account recovery": "उपकरण और खाते की बहाली",
+  "Name devices you recognize and sign out any you no longer use. Signing out this device returns you to email sign-in.":
+    "पहचाने उपकरणों को नाम दें और बेकार उपकरण से साइन आउट करें। इसी उपकरण से साइन आउट करने पर ईमेल प्रवेश खुलेगा।",
+  "Need to regain access?": "पहुँच वापस चाहिए?",
+  "Sign in with the same account email and a fresh one-time code. Keep that mailbox secure. A learning supporter cannot receive your codes, change your login or recover your account for you. If you lose the mailbox, contact support; account ownership is never transferred automatically.":
+    "उसी ईमेल और नए एक बार के कोड से प्रवेश करें। ईमेल सुरक्षित रखें। सहायक आपके कोड नहीं ले सकता, प्रवेश नहीं बदल सकता और आपकी जगह बहाली नहीं कर सकता। ईमेल खोने पर सहायता लें; स्वामित्व अपने आप नहीं बदलता।",
+  "Get account help": "खाते के लिए मदद लें",
+  "Loading devices…": "उपकरण लोड हो रहे हैं…",
+  "Devices could not be loaded. Check your sign-in status and try again.":
+    "उपकरण लोड नहीं हुए। प्रवेश की स्थिति जाँचकर फिर कोशिश करें।",
+  "Check access again": "पहुँच फिर जाँचें",
+  "Unnamed device": "बिना नाम का उपकरण",
+  "This device": "यह उपकरण",
+  "Another signed-in device": "दूसरा प्रवेश किया उपकरण",
+  "Session expires": "सत्र की समाप्ति",
+  "Sign out device": "उपकरण से साइन आउट करें",
+  "No active devices on this page.": "इस पृष्ठ पर सक्रिय उपकरण नहीं हैं।",
+  "Load more devices": "और उपकरण लोड करें",
+  "Name this device": "इस उपकरण को नाम दें",
+  "Sign out this device?": "इस उपकरण से साइन आउट करें?",
+  "You are using this device now.": "आप अभी यह उपकरण इस्तेमाल कर रहे हैं।",
+  "Device name (optional)": "उपकरण का नाम (वैकल्पिक)",
+  "This ends access for this device, including refreshed sessions. Your learning records stay in your account.":
+    "नवीनीकृत सत्रों सहित इस उपकरण की पहुँच समाप्त होगी। पढ़ाई के रिकॉर्ड खाते में रहेंगे।",
+  "I reviewed this change.": "मैंने बदलाव जाँच लिया है।",
+  "Device name saved.": "उपकरण का नाम सहेजा गया।",
+  "Device signed out.": "उपकरण से साइन आउट हुआ।",
+  "Save device name": "उपकरण का नाम सहेजें",
+  "Confirm sign-out": "साइन आउट की पुष्टि करें",
+  "Check whether I am still signed in":
+    "जाँचें कि मैं अभी प्रवेश किए हूँ या नहीं",
+  "Loading current details…": "मौजूदा विवरण लोड हो रहे हैं…",
+  "These details could not be loaded. Check your access and try again.":
+    "विवरण लोड नहीं हुए। पहुँच जाँचकर फिर कोशिश करें।",
+  "Matching review": "मिलान की समीक्षा",
+  "Your teacher shortlist": "आपके शिक्षक की सूची",
+  "Hiring progress": "नियुक्ति की प्रगति",
+  "Criteria received": "ज़रूरतें मिलीं",
+  "Staff shortlist": "कर्मचारी की सूची",
+  "Teacher response": "शिक्षक का जवाब",
+  "Choose and agree terms": "चुनें और शर्तें स्वीकार करें",
+  "No eligible teacher is available for these criteria right now. Keep this enquiry open for staff review, browse other subjects or formats, or withdraw it and send a revised brief.":
+    "अभी इन ज़रूरतों के लिए पात्र शिक्षक नहीं है। कर्मचारी समीक्षा के लिए पूछताछ खुली रखें, दूसरे विषय या तरीके देखें, या वापस लेकर बदली ज़रूरत भेजें।",
+  "Your brief is waiting for a staff-reviewed shortlist. No teacher has been assigned. You can continue browsing while we review it.":
+    "आपकी ज़रूरत कर्मचारी की समीक्षित सूची के इंतज़ार में है। शिक्षक नियुक्त नहीं हुआ है। समीक्षा के दौरान खोज जारी रख सकते हैं।",
+  "Review current eligibility": "मौजूदा पात्रता जाँचें",
+  "Run current coverage, privacy, availability and capacity checks. Results remain private until you publish the chosen order.":
+    "दायरा, गोपनीयता, समय और क्षमता जाँचें। चुना क्रम प्रकाशित करने तक नतीजे निजी हैं।",
+  "I reviewed this enquiry and want a fresh matching run.":
+    "मैंने पूछताछ जाँच ली है और नया मिलान चाहता/चाहती हूँ।",
+  "Matching run recorded.": "मिलान दर्ज है।",
+  "Run matching": "मिलान चलाएँ",
+  "Teacher is interested": "शिक्षक रुचि रखता है",
+  "Teacher declined": "शिक्षक ने मना किया",
+  "Awaiting teacher response": "शिक्षक के जवाब का इंतज़ार",
+  "Fits current criteria": "वर्तमान ज़रूरतों से मेल",
+  "Unavailable, expired or already selected. Ask staff to review again.":
+    "उपलब्ध नहीं, समाप्त या पहले चुना है। कर्मचारी से फिर समीक्षा करवाएँ।",
+  "Response window ends": "जवाब का समय समाप्त होगा",
+  "Read teacher profile": "शिक्षक की प्रोफ़ाइल पढ़ें",
+  "Publish position ": "प्रकाशन का क्रम ",
+  "Add to published shortlist": "प्रकाशित सूची में जोड़ें",
+  "Review this choice": "यह पसंद जाँचें",
+  "Teachers will appear in the order selected. Uncheck and select again to change the order. Publishing invites teacher responses; it does not hire anyone.":
+    "शिक्षक चुने क्रम में दिखेंगे। क्रम बदलने के लिए हटाकर फिर चुनें। प्रकाशन शिक्षक से जवाब माँगता है; नियुक्ति नहीं करता।",
+  "Shortlist published.": "सूची प्रकाशित है।",
+  "Choose ": "चुनें ",
+  "This opens a separate review of the monthly fee and coordination terms. Both you and the teacher must accept; no classes or payments are booked.":
+    "इससे मासिक शुल्क और समन्वय की अलग समीक्षा खुलती है। आपको और शिक्षक को स्वीकार करना होगा; कक्षा या भुगतान बुक नहीं होता।",
+  "I want to review hiring terms with this teacher.":
+    "मैं इस शिक्षक के साथ नियुक्ति की शर्तें देखना चाहता/चाहती हूँ।",
+  "Keep comparing": "तुलना जारी रखें",
+  "Teacher selected. Review the terms next.":
+    "शिक्षक चुना गया। अब शर्तें देखें।",
+  "Open hiring terms": "नियुक्ति की शर्तें खोलें",
+  "Continue to hiring terms": "नियुक्ति की शर्तों पर आगे बढ़ें",
+  "Review the learning brief before showing interest. Accepting an enquiry starts a conversation; hiring needs a separate mutual agreement.":
+    "रुचि से पहले पढ़ाई की ज़रूरत देखें। पूछताछ स्वीकार करना बातचीत शुरू करता है; नियुक्ति के लिए अलग आपसी समझौता चाहिए।",
+  "View student arrangements": "विद्यार्थी की व्यवस्थाएँ देखें",
+  "Class ": "कक्षा ",
+  "Response needed": "जवाब चाहिए",
+  "You are interested. The student can now choose you.":
+    "आपकी रुचि दर्ज है। विद्यार्थी अब आपको चुन सकता है।",
+  "You declined this enquiry.": "आपने यह पूछताछ मना की है।",
+  "Review interest": "रुचि की समीक्षा करें",
+  "Review decline": "मना करने की समीक्षा करें",
+  "Get private help": "निजी मदद लें",
+  "No active student opportunities on this page. Keep your coverage and availability current.":
+    "इस पृष्ठ पर सक्रिय विद्यार्थी अवसर नहीं हैं। योग्यता और उपलब्धता अद्यतन रखें।",
+  "Load more enquiries": "और पूछताछ लोड करें",
+  "Confirm your interest": "अपनी रुचि की पुष्टि करें",
+  "Decline this enquiry?": "यह पूछताछ मना करें?",
+  "Review the subject, fee range and weekly preferences above. This response does not book a class or confirm a hire.":
+    "ऊपर विषय, शुल्क सीमा और साप्ताहिक पसंद देखें। इस जवाब से कक्षा बुक या नियुक्ति पक्की नहीं होती।",
+  "I reviewed this response.": "मैंने यह जवाब जाँच लिया है।",
+  "Response recorded.": "जवाब दर्ज है।",
+  "Confirm response": "जवाब की पुष्टि करें",
+  "A clear record of the teacher, agreed fee and each person’s acceptance. Individual classes can be arranged separately.":
+    "शिक्षक, सहमत शुल्क और हर व्यक्ति की स्वीकृति का स्पष्ट रिकॉर्ड। अलग-अलग कक्षाएँ अलग से तय हो सकती हैं।",
+  "Arrangement history": "व्यवस्थाओं का इतिहास",
+  "Reviewing terms": "शर्तों की समीक्षा",
+  "View arrangement": "व्यवस्था देखें",
+  "No arrangements yet. Choose an interested teacher from your enquiry shortlist to review terms.":
+    "अभी व्यवस्थाएँ नहीं हैं। शर्तें देखने के लिए सूची से रुचि रखने वाला शिक्षक चुनें।",
+  "Load more arrangements": "और व्यवस्थाएँ लोड करें",
+  "Contact is unavailable. Check both acceptances and use support if access is paused.":
+    "संपर्क उपलब्ध नहीं है। दोनों स्वीकृतियाँ जाँचें और पहुँच रुकी हो तो सहायता लें।",
+  "Review your tuition arrangement": "ट्यूशन व्यवस्था देखें",
+  Format: "तरीका",
+  "Teacher’s lock-in preference": "शिक्षक की न्यूनतम अवधि की पसंद",
+  "No lock-in": "न्यूनतम अवधि की शर्त नहीं",
+  " days": " दिन",
+  "Demo preference": "डेमो की पसंद",
+  "Teacher offers a demo": "शिक्षक डेमो देता है",
+  "No demo offered": "डेमो नहीं है",
+  "Placement fee declaration": "नियुक्ति शुल्क की घोषणा",
+  "Recorded; no payment is taken here": "दर्ज है; यहाँ भुगतान नहीं होता",
+  "The lock-in preference is recorded only. Cancellation or refund restrictions are not enforced here. These terms do not book classes, create invoices or charge a payment.":
+    "न्यूनतम अवधि की पसंद केवल दर्ज है। यहाँ रद्द करने या पैसे वापसी की पाबंदी लागू नहीं है। इन शर्तों से कक्षा, चालान या भुगतान नहीं बनते।",
+  "Agreement status": "समझौते की स्थिति",
+  "Student side accepted": "विद्यार्थी पक्ष ने स्वीकार किया",
+  "Student side pending": "विद्यार्थी पक्ष का इंतज़ार",
+  "Teacher accepted": "शिक्षक ने स्वीकार किया",
+  "Teacher acceptance pending": "शिक्षक की स्वीकृति का इंतज़ार",
+  "Arrangement closed": "व्यवस्था बंद है",
+  "Waiting for both acceptances": "दोनों स्वीकृतियों का इंतज़ार",
+  "I accept these exact terms and authorize sharing the student’s and teacher’s account email addresses with each other after both sides confirm.":
+    "मैं इन्हीं शर्तों को स्वीकार करता/करती हूँ और दोनों की पुष्टि के बाद विद्यार्थी व शिक्षक के खाता ईमेल एक-दूसरे से साझा करने की अनुमति देता/देती हूँ।",
+  "Terms accepted. Current agreement status is shown above.":
+    "शर्तें स्वीकार हैं। वर्तमान समझौते की स्थिति ऊपर है।",
+  "Accept reviewed terms": "समीक्षित शर्तें स्वीकार करें",
+  "Coordinate with each other": "एक-दूसरे से समन्वय करें",
+  "Checking access…": "पहुँच जाँची जा रही है…",
+  "Show agreed contact email": "सहमत संपर्क ईमेल दिखाएँ",
+  "No email is available. Use support.": "ईमेल उपलब्ध नहीं है। सहायता लें।",
+  "Request a different teacher": "दूसरा शिक्षक माँगें",
+  "Close this arrangement?": "यह व्यवस्था बंद करें?",
+  "This closes contact access and releases the teacher’s place. It does not cancel or refund external payments.":
+    "संपर्क की पहुँच बंद होगी और शिक्षक की जगह खाली होगी। बाहरी भुगतान रद्द या वापस नहीं होते।",
+  Reason: "कारण",
+  "I understand and want to close it.":
+    "मैं समझता/समझती हूँ और इसे बंद करना चाहता/चाहती हूँ।",
+  "Arrangement closed.": "व्यवस्था बंद है।",
+  "Complete every field, use a ₹500–₹20,000 budget and valid nonoverlapping weekly times.":
+    "हर फ़ील्ड पूरा करें, ₹500–₹20,000 बजट और मान्य बिना टकराव वाले साप्ताहिक समय दें।",
+  "Review a replacement brief": "नए शिक्षक की ज़रूरत जाँचें",
+  "Your updated criteria": "आपकी बदली ज़रूरतें",
+  "Why do you need a replacement?": "दूसरा शिक्षक क्यों चाहिए?",
+  "Review replacement": "बदलने की समीक्षा करें",
+  "Confirming closes this arrangement and its contact access, creates a fresh assisted enquiry and a private replacement support request. The previous teacher is excluded. A replacement is not guaranteed and external payments are unchanged.":
+    "पुष्टि से व्यवस्था और संपर्क बंद होंगे, नई सहायक पूछताछ और निजी शिक्षक-बदलाव मामला बनेगा। पिछला शिक्षक बाहर है। नए शिक्षक की गारंटी नहीं और बाहरी भुगतान नहीं बदलते।",
+  "I reviewed the brief and want to request a different teacher.":
+    "मैंने ज़रूरत जाँच ली है और दूसरा शिक्षक माँगना चाहता/चाहती हूँ।",
+  "Edit brief": "ज़रूरत बदलें",
+  "Replacement request recorded.": "शिक्षक बदलने का अनुरोध दर्ज है।",
+  "Confirm replacement request": "शिक्षक बदलने के अनुरोध की पुष्टि करें",
+  "Your next learning decision": "पढ़ाई का आपका अगला निर्णय",
+  "Follow teacher responses and mutual agreement here. Open the full enquiry and arrangement histories to see more.":
+    "शिक्षक के जवाब और आपसी सहमति यहाँ देखें। अधिक जानकारी के लिए पूरी पूछताछ और व्यवस्था का इतिहास खोलें।",
+  "Enquiry overview": "पूछताछ का सारांश",
+  "No enquiries yet. Start with teacher search or an assisted brief.":
+    "अभी पूछताछ नहीं है। शिक्षक खोजें या मदद के लिए ज़रूरत बताएँ।",
+  "Awaiting a suitable teacher": "उपयुक्त शिक्षक का इंतज़ार",
+  "Review teacher progress": "शिक्षक की प्रगति देखें",
+  "Open enquiry": "पूछताछ खोलें",
+  "All enquiry history": "पूरी पूछताछ का इतिहास",
+  "Arrangement overview": "व्यवस्था का सारांश",
+  "After an interested teacher is chosen, review the exact terms here.":
+    "रुचि रखने वाला शिक्षक चुनने के बाद सटीक शर्तें यहाँ देखें।",
+  "Acceptance needed": "स्वीकृति चाहिए",
+  "Review arrangement": "व्यवस्था जाँचें",
+  "All arrangements": "सभी व्यवस्थाएँ",
+  "Your education profile": "आपकी शिक्षा प्रोफ़ाइल",
+  "Your learning. Your next step.": "आपकी पढ़ाई। आपका अगला कदम।",
+  "Set up a student account for your own learning, with clear choices about support.":
+    "मदद के स्पष्ट विकल्पों के साथ अपनी पढ़ाई के लिए विद्यार्थी खाता बनाएँ।",
+  "Student setup": "विद्यार्थी की तैयारी",
+  "Checking your account…": "आपका खाता जाँचा जा रहा है…",
+  "We couldn’t check your setup. No details have been submitted.":
+    "तैयारी की जाँच नहीं हुई। कोई विवरण नहीं भेजा गया है।",
+  "Retry account check": "खाते की जाँच फिर करें",
+  "This email already has another setup. Keep that account, or sign out and use a separate student email.":
+    "इस ईमेल पर दूसरी तैयारी है। वह खाता रखें या साइन आउट करके अलग विद्यार्थी ईमेल इस्तेमाल करें।",
+  "Open my dashboard": "मेरा डैशबोर्ड खोलें",
+  "Your student account is ready": "आपका विद्यार्थी खाता तैयार है",
+  "We couldn’t refresh your sign-in. Your profile is saved; retry opening the dashboard.":
+    "प्रवेश फिर लोड नहीं हुआ। प्रोफ़ाइल सहेजी है; डैशबोर्ड फिर खोलें।",
+  "A profile that belongs to you.": "आपकी अपनी प्रोफ़ाइल।",
+  "Independent setup is currently for students who declare they are 18 or older and ready to manage their learning.":
+    "स्वतंत्र शुरुआत अभी 18 वर्ष या उससे अधिक की घोषणा करने और पढ़ाई खुद सँभालने के लिए तैयार विद्यार्थियों के लिए है।",
+  "Your school, college and subjects stay private. Saving this profile does not send an enquiry or hire a teacher.":
+    "स्कूल, कॉलेज और विषय निजी रहते हैं। प्रोफ़ाइल सहेजने से पूछताछ या नियुक्ति नहीं होती।",
+  "After setup, you can invite a trusted supporter with advice or learning-management permissions. No one receives access from this form.":
+    "तैयारी के बाद सलाह या पढ़ाई सँभालने की अनुमति के साथ भरोसेमंद सहायक बुला सकते हैं। इस फ़ॉर्म से किसी को पहुँच नहीं मिलती।",
+  "Explore teachers first": "पहले शिक्षक देखें",
+  "Complete this field.": "यह फ़ील्ड पूरा करें।",
+  "Use 160 characters or fewer.": "अधिकतम 160 अक्षर इस्तेमाल करें।",
+  "Enter 1–20 different subjects, up to 60 characters each.":
+    "1–20 अलग विषय दें, हर विषय अधिकतम 60 अक्षर का हो।",
+  "Choose a class from 1 to 12.": "कक्षा 1 से 12 में से चुनें।",
+  "Enter a year from 1 to 10.": "वर्ष 1 से 10 में दें।",
+  "We couldn’t confirm the result. Your reviewed details are locked; retry the same save safely.":
+    "नतीजे की पुष्टि नहीं हुई। समीक्षित जानकारी बंद है; वही सहेजने का प्रयास सुरक्षित फिर करें।",
+  "Your account or profile changed. Reload and review the latest details before saving.":
+    "खाता या प्रोफ़ाइल बदली है। सहेजने से पहले नई जानकारी लोड करके जाँचें।",
+  "The service could not save these details. Check your account and try again.":
+    "विवरण सहेजा नहीं गया। खाता जाँचकर फिर कोशिश करें।",
+  "Signup progress": "खाता बनाने की प्रगति",
+  Readiness: "तैयारी",
+  "How would you like to manage learning?": "पढ़ाई कैसे सँभालना चाहेंगे?",
+  "Tell us about your education": "अपनी शिक्षा के बारे में बताएँ",
+  "Review your student profile": "विद्यार्थी प्रोफ़ाइल जाँचें",
+  "Profile changes are paused while your deletion request is reviewed.":
+    "मिटाने के अनुरोध की समीक्षा तक प्रोफ़ाइल बदलाव रुके हैं।",
+  "Discard edits and reload": "बदलाव हटाकर फिर लोड करें",
+  "Sign in again": "फिर साइन इन करें",
+  "Choose the support you need": "ज़रूरी मदद चुनें",
+  "I can manage my learning": "पढ़ाई खुद सँभाल सकता/सकती हूँ",
+  "I can choose teachers and explain the help I need.":
+    "शिक्षक चुन सकता/सकती हूँ और ज़रूरी मदद बता सकता/सकती हूँ।",
+  "I need a guardian to guide me": "मार्गदर्शन के लिए अभिभावक चाहिए",
+  "A parent or guardian should help manage my profile and choices.":
+    "माता-पिता या अभिभावक को मेरी प्रोफ़ाइल और पसंद में मदद करनी चाहिए।",
+  "Account eligibility": "खाते की पात्रता",
+  "I declare that I am 18 or older":
+    "मैं घोषणा करता/करती हूँ कि 18 वर्ष या अधिक का/की हूँ",
+  "I am under 18": "मैं 18 वर्ष से कम का/की हूँ",
+  "Readiness and age are separate. This declaration is not an identity check.":
+    "तैयारी और उम्र अलग हैं। यह घोषणा पहचान की जाँच नहीं है।",
+  "Ask your guardian to sign up with their own email, create your learner profile, then invite you. Your current email account has not been changed.":
+    "अभिभावक से अपने ईमेल से खाता बनाकर विद्यार्थी प्रोफ़ाइल और निमंत्रण बनाने को कहें। आपका वर्तमान ईमेल खाता नहीं बदला है।",
+  "I already have a guardian invitation": "मेरे पास अभिभावक का निमंत्रण है",
+  "Continue to education": "शिक्षा पर आगे बढ़ें",
+  "Choose your stage": "अपना स्तर चुनें",
+  School: "स्कूल",
+  "School / college name": "स्कूल / कॉलेज का नाम",
+  "School board": "स्कूल बोर्ड",
+  "University / awarding institution":
+    "विश्वविद्यालय / उपाधि देने वाला संस्थान",
+  "Current year of study": "पढ़ाई का वर्तमान वर्ष",
+  "Separate subjects with commas. Include all the subjects you currently study.":
+    "विषय अल्पविराम से अलग करें। अभी पढ़े जाने वाले सभी विषय दें।",
+  "Review profile": "प्रोफ़ाइल जाँचें",
+  "Confirm this update": "बदलाव की पुष्टि करें",
+  "Your permission": "आपकी अनुमति",
+  "Your education details are used to maintain your private student profile and prepare teacher discovery. They are not published on teacher cards or shared with a guardian by this signup.":
+    "शिक्षा विवरण निजी विद्यार्थी प्रोफ़ाइल और शिक्षक खोज की तैयारी में इस्तेमाल होता है। इस शुरुआत से शिक्षक कार्ड पर प्रकाशित या अभिभावक से साझा नहीं होता।",
+  "I reviewed and confirm these changes.": "मैंने बदलाव जाँचकर पुष्टि की है।",
+  "I am 18 or older, can manage my learning, and agree to my education details being stored for this purpose.":
+    "मैं 18 वर्ष या अधिक का/की हूँ, पढ़ाई सँभाल सकता/सकती हूँ और इस उद्देश्य से शिक्षा विवरण सहेजने को सहमत हूँ।",
+  "You can edit education details and request account correction or deletion from your dashboard.":
+    "डैशबोर्ड से शिक्षा विवरण बदल सकते हैं और खाता सुधारने या मिटाने का अनुरोध कर सकते हैं।",
+  "Edit education": "शिक्षा बदलें",
+  "Retry same save": "वही सहेजने का प्रयास फिर करें",
+  "Save profile changes": "प्रोफ़ाइल बदलाव सहेजें",
+  "Create my student account": "मेरा विद्यार्थी खाता बनाएँ",
+  "Unsubmitted details stay on this page only. Reloading before saving clears them.":
+    "बिना भेजा विवरण केवल इस पृष्ठ पर रहता है। सहेजने से पहले फिर लोड करने पर हटता है।",
+  "Your learning starts here,": "आपकी पढ़ाई यहीं शुरू होती है,",
+  "Your own profile, with a clear path to finding a teacher.":
+    "आपकी प्रोफ़ाइल, शिक्षक खोजने के स्पष्ट रास्ते के साथ।",
+  "Loading your profile…": "आपकी प्रोफ़ाइल लोड हो रही है…",
+  "We couldn’t load your profile.": "प्रोफ़ाइल लोड नहीं हुई।",
+  "My education": "मेरी शिक्षा",
+  "Learning preference: I manage my learning.":
+    "पढ़ाई की पसंद: मैं खुद सँभालता/सँभालती हूँ।",
+  "Education changes are paused while your deletion request is reviewed.":
+    "मिटाने के अनुरोध की समीक्षा तक शिक्षा बदलाव रुके हैं।",
+  "Edit my education": "मेरी शिक्षा बदलें",
+  "Find your kind of teacher.": "अपने अनुरूप शिक्षक खोजें।",
+  "Browse reviewed subjects, education levels, teaching modes and fees.":
+    "जाँचे विषय, शिक्षा स्तर, पढ़ाने के तरीके और शुल्क देखें।",
+  "Student enquiries record your criteria for staff review. Matching, teacher replies, hiring and optional guardian invitations are separate steps.":
+    "विद्यार्थी पूछताछ आपकी ज़रूरतें कर्मचारी समीक्षा के लिए दर्ज करती है। मिलान, जवाब, नियुक्ति और वैकल्पिक अभिभावक निमंत्रण अलग कदम हैं।",
+  "Account privacy and deletion": "खाते की गोपनीयता और मिटाना",
+  "Latest invitation status loaded. Review it before creating or replacing a code.":
+    "निमंत्रण की नई स्थिति लोड है। कोड बनाने या बदलने से पहले जाँचें।",
+  "The invitation result was not confirmed.":
+    "निमंत्रण के नतीजे की पुष्टि नहीं हुई।",
+  "Invitation created. Its code is shown only in this page session. Earlier codes no longer work.":
+    "निमंत्रण बना है। कोड केवल इस पृष्ठ के सत्र में दिखेगा। पुराने कोड बंद हैं।",
+  "The request was already completed. Its private code cannot be shown again. Refresh the status, then explicitly replace the invitation if you need a new code.":
+    "अनुरोध पहले पूरा हुआ। निजी कोड फिर नहीं दिख सकता। स्थिति लोड करें और नए कोड के लिए निमंत्रण बदलने की पुष्टि करें।",
+  "We couldn’t confirm the invitation. Retry this same request to check it without creating another code.":
+    "निमंत्रण की पुष्टि नहीं हुई। दूसरा कोड बनाए बिना जाँचने के लिए यही अनुरोध फिर भेजें।",
+  "No invitation yet": "अभी निमंत्रण नहीं है",
+  "Invitation ready": "निमंत्रण तैयार है",
+  "Better Call Sir · Find your kind of teacher":
+    "Better Call Sir · अपने अनुरूप शिक्षक खोजें",
+  "Find a teacher who understands your child. Maths and Science tuition for Classes 6–10 in Raipur.":
+    "रायपुर में शुरुआती शिक्षा, स्कूल या कॉलेज के लिए ऑनलाइन या घर पर उपयुक्त शिक्षक खोजें।",
+  College: "कॉलेज",
+  " · Year ": " · वर्ष ",
+  "Early years": "शुरुआती शिक्षा",
+  "Learner profile": "विद्यार्थी प्रोफ़ाइल",
+  "Learner name or alias": "विद्यार्थी का नाम या उपनाम",
+  "School / institution name": "स्कूल / संस्थान का नाम",
+  "Guardian verification is required before entering learner details.":
+    "विद्यार्थी का विवरण दर्ज करने से पहले अभिभावक सत्यापन ज़रूरी है।",
+  "Review guardian consent before entering learner details.":
+    "विद्यार्थी का विवरण दर्ज करने से पहले अभिभावक सहमति देखें।",
+  "Learner profile changes are paused while your deletion request is reviewed.":
+    "मिटाने के अनुरोध की समीक्षा तक विद्यार्थी प्रोफ़ाइल के बदलाव रुके हैं।",
+  "You can view your linked profile. Your guardian currently manages education details.":
+    "जुड़ी प्रोफ़ाइल देख सकते हैं। अभी अभिभावक शिक्षा विवरण सँभालता है।",
+  "This learner profile was deleted and cannot be restored by editing.":
+    "प्रोफ़ाइल मिटाई गई है और बदलाव से वापस नहीं आ सकती।",
+  "This learner profile is linked to enquiry or learning history. Direct edits are unavailable. Use privacy requests for name corrections, or contact support to review education changes.":
+    "प्रोफ़ाइल पूछताछ या पढ़ाई इतिहास से जुड़ी है। सीधे बदलाव उपलब्ध नहीं हैं। नाम सुधारने के लिए गोपनीयता अनुरोध या शिक्षा बदलाव के लिए सहायता लें।",
+  "We couldn’t load the latest learner profile. Your current edits are retained. Try opening the profile again.":
+    "नई विद्यार्थी प्रोफ़ाइल लोड नहीं हुई। वर्तमान बदलाव सुरक्षित हैं। प्रोफ़ाइल फिर खोलें।",
+  "Enter 1–20 distinct subjects, separated by commas. Each can have up to 60 characters.":
+    "अल्पविराम से अलग 1–20 अलग विषय दें। हर विषय अधिकतम 60 अक्षर हो।",
+  "Choose Nursery, KG1 or KG2.": "नर्सरी, KG1 या KG2 चुनें।",
+  "Enter a whole study year from 1 to 10.": "1 से 10 तक पूरा पढ़ाई वर्ष दें।",
+  "We couldn’t confirm whether your changes were saved. Retry the same save; your update will be applied only once.":
+    "बदलाव सहेजने की पुष्टि नहीं हुई। वही प्रयास फिर करें; बदलाव केवल एक बार लागू होगा।",
+  "We couldn’t confirm whether the profile was saved. Retry this save; the same request will not create a second profile.":
+    "प्रोफ़ाइल सहेजने की पुष्टि नहीं हुई। फिर सहेजें; उसी अनुरोध से दूसरी प्रोफ़ाइल नहीं बनेगी।",
+  "The profile could not be saved.": "प्रोफ़ाइल सहेजी नहीं गई।",
+  "Use a familiar name or alias, up to 40 characters.":
+    "अधिकतम 40 अक्षर का पहचाना नाम या उपनाम दें।",
+  "For example CBSE, ICSE, CGBSE or your state board.":
+    "जैसे CBSE, ICSE, CGBSE या राज्य बोर्ड।",
+  "Separate subjects with commas, for example English, Maths, Science.":
+    "विषय अल्पविराम से अलग करें, जैसे अंग्रेज़ी, गणित, विज्ञान।",
+  "Subjects: ": "विषय: ",
+  Sunday: "रविवार",
+  Monday: "सोमवार",
+  Tuesday: "मंगलवार",
+  Wednesday: "बुधवार",
+  Thursday: "गुरुवार",
+  Friday: "शुक्रवार",
+  Saturday: "शनिवार",
+  "Use nonoverlapping 20–120 minute times, future dates within one year, a reason and the review confirmation. Online lessons allow up to 40 minutes.":
+    "20–120 मिनट के बिना टकराव वाले समय, एक वर्ष के भीतर भावी तारीख़ें, कारण और पुष्टि दें। ऑनलाइन कक्षाएँ अधिकतम 40 मिनट की हैं।",
+  "Weekly timetable proposed. Both parties must accept it before lessons are booked.":
+    "साप्ताहिक समय-सारणी प्रस्तावित है। बुकिंग से पहले दोनों पक्ष स्वीकार करेंगे।",
+  "Review this timetable and confirm the effect before saving.":
+    "सहेजने से पहले समय-सारणी और असर की पुष्टि करें।",
+  "Your timetable acceptance is saved. Lessons are booked only after both parties accept and availability checks pass.":
+    "स्वीकृति सहेजी है। दोनों के स्वीकार करने और उपलब्धता जाँच सफल होने पर कक्षाएँ बुक होंगी।",
+  "The agreed timetable was checked and available lessons booked within its rolling 60-day horizon.":
+    "सहमत समय-सारणी जाँची गई और अगले 60 दिनों की उपलब्ध कक्षाएँ बुक हुईं।",
+  "Choose a valid date range of up to one year.":
+    "अधिकतम एक वर्ष की मान्य अवधि चुनें।",
+  "Choose a rating and review who will see your feedback before sending.":
+    "रेटिंग चुनें और भेजने से पहले जाँचें कि प्रतिक्रिया कौन देखेगा।",
+  "Your private lesson feedback is recorded.":
+    "कक्षा की निजी प्रतिक्रिया दर्ज है।",
+  "Review the attendance, give a reason and confirm before saving. Delivered revision lessons also need a recap.":
+    "उपस्थिति जाँचें, कारण दें और सहेजने की पुष्टि करें। पूरी पुनरावृत्ति कक्षा का सारांश भी चाहिए।",
+  "Attendance dispute recorded. This lesson is excluded from totals while support reviews it.":
+    "उपस्थिति विवाद दर्ज है। समीक्षा तक कक्षा कुल से बाहर है।",
+  "Your attendance confirmation is recorded.":
+    "उपस्थिति की आपकी पुष्टि दर्ज है।",
+  "Attendance record saved.": "उपस्थिति का रिकॉर्ड सहेजा गया।",
+  "Choose how helpful this lesson was.": "चुनें कि कक्षा कितनी उपयोगी थी।",
+  "Keep your comment within 1,000 characters.":
+    "टिप्पणी अधिकतम 1,000 अक्षर की रखें।",
+  "Needs support": "मदद चाहिए",
+  "Could be clearer": "और स्पष्ट हो सकती है",
+  Good: "अच्छी",
+  "Very helpful": "बहुत उपयोगी",
+  Excellent: "बेहतरीन",
+  Runs: "मिलान प्रयास",
+  "Refresh current request, eligibility and run history before deciding.":
+    "निर्णय से पहले वर्तमान अनुरोध, पात्रता और मिलान इतिहास लोड करें।",
+  "Choose 1–10 currently eligible candidates from this run and add a publication reason. Remove candidates that changed or rerun matching.":
+    "इस मिलान से 1–10 वर्तमान पात्र शिक्षक चुनें और प्रकाशन का कारण दें। बदले शिक्षक हटाएँ या मिलान फिर चलाएँ।",
+  "Acknowledge the reviewed effects before confirming.":
+    "पुष्टि से पहले समीक्षित असर स्वीकार करें।",
+  "Matching run recorded. Review its result before publishing.":
+    "मिलान दर्ज है। प्रकाशन से पहले नतीजा देखें।",
+  "Reviewed shortlist published. Teacher acceptance and guardian selection are still required.":
+    "समीक्षित सूची प्रकाशित है। शिक्षक की स्वीकृति और अभिभावक का चयन अभी ज़रूरी हैं।",
+  "Published at ": "प्रकाशित हुआ ",
+  "not recorded": "दर्ज नहीं है",
+  "Review this decision and confirm before saving.":
+    "सहेजने से पहले निर्णय की समीक्षा और पुष्टि करें।",
+  "Write a note of up to 5,000 characters.": "अधिकतम 5,000 अक्षर का नोट लिखें।",
+  "Choose one of your learners.": "अपने विद्यार्थियों में से चुनें।",
+  "This note is no longer available. Refresh the notes.":
+    "नोट अब उपलब्ध नहीं है। नोट्स फिर लोड करें।",
+  "Choose a named active teacher for this learner.":
+    "इस विद्यार्थी का नामित सक्रिय शिक्षक चुनें।",
+  "Note saved privately.": "नोट निजी सहेजा गया।",
+  "Sharing saved for the named teacher.":
+    "नामित शिक्षक के लिए साझाकरण सहेजा गया।",
+  "Teacher access withdrawn.": "शिक्षक की पहुँच वापस ली गई।",
+  "Your acknowledgement is recorded.": "आपके पढ़ने की पुष्टि दर्ज है।",
+  "your named teacher": "आपका नामित शिक्षक",
+  "Terms pending": "शर्तें बाकी हैं",
+  "Awaiting matching": "मिलान का इंतज़ार",
+  "No match yet": "अभी मिलान नहीं मिला",
+  "Shortlist published": "शिक्षक सूची प्रकाशित है",
+  "Refresh the arrangement and check current guardian consent before deciding.":
+    "निर्णय से पहले व्यवस्था फिर लोड करके अभिभावक की वर्तमान सहमति जाँचें।",
+  "Explain the reason in 1–1,000 characters.":
+    "1–1,000 अक्षरों में कारण बताएँ।",
+  "Check the locality, ₹500–₹20,000 budget and nonoverlapping weekly day/time ranges of at least 20 minutes.":
+    "इलाका, ₹500–₹20,000 बजट और कम से कम 20 मिनट के बिना टकराव वाले साप्ताहिक समय जाँचें।",
+  "Check the locality, ₹500–₹20,000 budget and 1–6 nonoverlapping IST windows, 20–120 minutes long, from one hour to 60 days ahead.":
+    "इलाका, ₹500–₹20,000 बजट और एक घंटे से 60 दिनों में 20–120 मिनट के 1–6 बिना टकराव वाले IST समय जाँचें।",
+  "Acknowledge the effects before confirming.":
+    "पुष्टि से पहले असर स्वीकार करें।",
+  "The arrangement is closed. Past records remain available.":
+    "व्यवस्था बंद है। पुराने रिकॉर्ड उपलब्ध रहेंगे।",
+  "The old arrangement is closed and your replacement request is recorded. A new teacher has not been assigned.":
+    "पुरानी व्यवस्था बंद है और शिक्षक बदलने का अनुरोध दर्ज है। नया शिक्षक नियुक्त नहीं हुआ है।",
+  "No linked replacement is shown in the latest request history.":
+    "नवीनतम इतिहास में संबंधित बदलाव अनुरोध नहीं दिखा।",
+  "Published shortlist": "प्रकाशित सूची",
+  "Shown to guardian": "अभिभावक को दिखाई गई",
+  "Demo completion": "डेमो पूरा होना",
+  "Recorded starts": "दर्ज शुरुआत",
+  "Live mode": "लाइव मोड",
+  "Sandbox mode": "परीक्षण मोड",
+  "Mode unrecorded": "मोड दर्ज नहीं है",
+  "Recorded capture amount": "दर्ज मिली भुगतान राशि",
+  "Load the current evidence/checks and enter a reason within the stated limit.":
+    "वर्तमान प्रमाण/जाँच लोड करें और सीमा में कारण दें।",
+  "Only current quarantined evidence can be retried.":
+    "केवल मौजूदा अलग रखे प्रमाण का फिर प्रयास हो सकता है।",
+  "Approval requires current passed checks for all four kinds, clean evidence, fee acceptance and no failed check on this revision.":
+    "स्वीकृति के लिए चारों प्रकार की वर्तमान सफल जाँच, सुरक्षित प्रमाण, शुल्क की स्वीकृति और संशोधन में कोई असफल जाँच न होना ज़रूरी है।",
+  "Choose matching clean evidence, a pending application, validity within the next 365 days and acknowledge full capability coverage when required.":
+    "मेल खाता सुरक्षित प्रमाण, लंबित आवेदन, अगले 365 दिनों में मान्यता और जहाँ ज़रूरी हो पूरी पढ़ाने की क्षमता की पुष्टि चुनें।",
+  "Acknowledge this reviewed decision before saving.":
+    "सहेजने से पहले समीक्षित निर्णय की पुष्टि करें।",
+  "Screening assessment recorded. Teacher approval remains a separate decision.":
+    "जाँच का आकलन दर्ज है। शिक्षक की स्वीकृति अलग निर्णय है।",
+  "Scan retry queued. The evidence remains quarantined.":
+    "स्कैन का प्रयास कतार में है। प्रमाण अलग ही रखा है।",
+  "Teacher review decision recorded.": "शिक्षक की समीक्षा का निर्णय दर्ज है।",
+  "Teacher decision: ": "शिक्षक का निर्णय: ",
+  "Choose a learner, an eligible expert, a specific brief and a start at least one hour ahead and within 60 days.":
+    "विद्यार्थी, पात्र विशेषज्ञ, स्पष्ट ज़रूरत और कम से कम एक घंटे बाद व 60 दिनों में शुरुआत चुनें।",
+  "Review the session scope and hold conditions before saving.":
+    "सहेजने से पहले सत्र का दायरा और आरक्षण की शर्तें देखें।",
+  "Revision hold saved. Expert scope acceptance and payment are still required before booking confirmation.":
+    "पुनरावृत्ति का आरक्षण सहेजा है। पक्की बुकिंग से पहले विशेषज्ञ की स्वीकृति और भुगतान चाहिए।",
+  "Review this decision and give a cancellation reason before saving.":
+    "सहेजने से पहले निर्णय जाँचें और रद्द करने का कारण दें।",
+  "Expert scope acceptance saved. The guardian still needs to review checkout.":
+    "विशेषज्ञ की दायरा स्वीकृति सहेजी है। अभिभावक को भुगतान देखना होगा।",
+  "Cancellation saved. Any captured payment requires separate refund processing and settlement.":
+    "रद्द करना सहेजा है। मिले भुगतान की पैसे वापसी और निपटान अलग हैं।",
+  "Recurring tuition": "नियमित ट्यूशन",
+  "Revision sessions": "पुनरावृत्ति सत्र",
+  "Completed lessons": "पूरी कक्षाएँ",
+  "Distinct students taught": "पढ़ाए गए अलग विद्यार्थी",
+  "Active assigned students": "सक्रिय सौंपे विद्यार्थी",
+  "Attendance recorded": "उपस्थिति दर्ज है",
+  "Completed lesson records": "पूरी कक्षाओं के रिकॉर्ड",
+  "Current authenticator status could not be verified.":
+    "प्रमाणक की वर्तमान स्थिति सत्यापित नहीं हुई।",
+  "Current authenticator status is unavailable.":
+    "प्रमाणक की वर्तमान स्थिति उपलब्ध नहीं है।",
+  "Use a fresh authenticator code to verify staff access.":
+    "कर्मचारी पहुँच सत्यापित करने के लिए नया प्रमाणक कोड दें।",
+  "Setup details could not be verified.": "तैयारी का विवरण सत्यापित नहीं हुआ।",
+  "Add this setup key to your authenticator, then enter its current code.":
+    "सेटअप कुंजी प्रमाणक में जोड़कर वर्तमान कोड दें।",
+  " Retry setup or return to sign-in; an existing confirmed authenticator cannot be replaced here.":
+    " तैयारी फिर करें या प्रवेश पर लौटें; यहाँ मौजूदा पुष्ट प्रमाणक नहीं बदल सकता।",
+  "Enter a complete 22-character recovery code.":
+    "पूरा 22 अक्षर का बहाली कोड दें।",
+  "Enter the current six-digit authenticator code.":
+    "वर्तमान छह अंकों का प्रमाणक कोड दें।",
+  "The verification response could not be confirmed.":
+    "सत्यापन के जवाब की पुष्टि नहीं हुई।",
+  "Authenticator confirmed. Save these eight private recovery codes before continuing.":
+    "प्रमाणक पुष्ट है। आगे बढ़ने से पहले आठ निजी बहाली कोड सहेजें।",
+  "Authenticator verified. Checking current staff access…":
+    "प्रमाणक सत्यापित है। मौजूदा कर्मचारी पहुँच जाँची जा रही है…",
+  "The result could not be confirmed. Check current verification before trying anything else; do not resend a used code.":
+    "नतीजे की पुष्टि नहीं हुई। कुछ और करने से पहले वर्तमान सत्यापन जाँचें; इस्तेमाल कोड फिर न भेजें।",
+  "Verification is recorded. If recovery codes were not received, replace them using a fresh authenticator code before continuing.":
+    "सत्यापन दर्ज है। बहाली कोड न मिले हों तो नए प्रमाणक कोड से उन्हें बदलकर आगे बढ़ें।",
+  "No current staff verification is recorded. Use a new authenticator code; the previous code may have been consumed.":
+    "वर्तमान कर्मचारी सत्यापन दर्ज नहीं है। नया प्रमाणक कोड इस्तेमाल करें; पुराना कोड उपयोग हो सकता है।",
+  " Staff records remain hidden.": " कर्मचारी रिकॉर्ड छिपे रहेंगे।",
+  "Staff access is verified.": "कर्मचारी की पहुँच सत्यापित है।",
+  Child: "बच्चा",
+  "The service did not confirm this learner’s student session.":
+    "सेवा ने विद्यार्थी सत्र की पुष्टि नहीं की।",
+  "Confirm that you are authorizing the intended student browser.":
+    "इच्छित विद्यार्थी ब्राउज़र को अनुमति देने की पुष्टि करें।",
+  "We couldn’t confirm the device switch. Check device access before trying again.":
+    "उपकरण बदलने की पुष्टि नहीं हुई। फिर कोशिश से पहले उसकी पहुँच जाँचें।",
+  "Add a reason and confirm the student access to revoke.":
+    "कारण दें और हटने वाली पहुँच की पुष्टि करें।",
+  "Selected student session revoked.": "चुने विद्यार्थी सत्र की अनुमति हटी।",
+  "All student access revoked. A guardian must authorize access again.":
+    "विद्यार्थी की सारी पहुँच हटी। अभिभावक को फिर अनुमति देनी होगी।",
+  "We couldn’t confirm the revocation. Retry this same change before making edits.":
+    "पहुँच हटने की पुष्टि नहीं हुई। बदलाव से पहले यही प्रयास फिर करें।",
+  "Use up to 60 characters without line breaks or control characters.":
+    "बिना नई पंक्ति या नियंत्रण चिह्न के अधिकतम 60 अक्षर दें।",
+  "This session is no longer listed. Refresh student access before continuing.":
+    "सत्र अब सूची में नहीं है। आगे बढ़ने से पहले पहुँच फिर लोड करें।",
+  "The service did not confirm the device label.":
+    "सेवा ने उपकरण के नाम की पुष्टि नहीं की।",
+  "Device label saved. Student access is unchanged.":
+    "उपकरण का नाम सहेजा। विद्यार्थी की पहुँच नहीं बदली।",
+  "Device label cleared. Student access is unchanged.":
+    "उपकरण का नाम हटाया। विद्यार्थी की पहुँच नहीं बदली।",
+  "We couldn’t confirm the device label. Retry the same change before editing.":
+    "नाम की पुष्टि नहीं हुई। बदलने से पहले वही प्रयास फिर करें।",
+  "Latest student access loaded. Review the current sessions before confirming.":
+    "विद्यार्थी की नई पहुँच लोड है। पुष्टि से पहले वर्तमान सत्र देखें।",
+  Rename: "नाम बदलें",
+  Name: "नाम",
+  "Consent is still active. Review the withdrawal before confirming again.":
+    "सहमति अभी सक्रिय है। फिर पुष्टि से पहले वापस लेने की समीक्षा करें।",
+  "Confirm that you understand what withdrawal pauses.":
+    "पुष्टि करें कि आप समझते हैं, वापस लेने से क्या रुकता है।",
+  "We couldn’t confirm withdrawal. Check consent status before trying again.":
+    "वापस लेने की पुष्टि नहीं हुई। फिर कोशिश से पहले सहमति जाँचें।",
+  "A student session was not confirmed.": "विद्यार्थी सत्र की पुष्टि नहीं हुई।",
+  "Enter the invitation code and confirm the intended student device.":
+    "निमंत्रण कोड दें और इच्छित उपकरण की पुष्टि करें।",
+  "Enter your private invitation code.": "निजी निमंत्रण कोड दें।",
+  "Confirm that this is the intended student device.":
+    "इच्छित विद्यार्थी उपकरण होने की पुष्टि करें।",
+  "We couldn’t confirm activation. Check device access before using the invitation again.":
+    "सक्रिय होने की पुष्टि नहीं हुई। निमंत्रण फिर उपयोग करने से पहले उपकरण की पहुँच जाँचें।",
+  "student-locality-help student-enquiry-locality-error":
+    "student-locality-help student-enquiry-locality-error",
+  "I need guardian help": "मुझे अभिभावक की मदद चाहिए",
+  "Review your education details and confirm they are correct.":
+    "शिक्षा विवरण जाँचें और सही होने की पुष्टि करें।",
+  "Choose how much help you want.": "चुनें कि कितनी मदद चाहिए।",
+  "Choose up to 20 distinct subjects, with up to 60 characters each.":
+    "अधिकतम 20 अलग विषय चुनें, हर विषय अधिकतम 60 अक्षर का हो।",
+  "Use 500 characters or fewer.": "अधिकतम 500 अक्षर इस्तेमाल करें।",
+  "Setup was not confirmed.": "तैयारी की पुष्टि नहीं हुई।",
+  "We couldn’t confirm whether your setup was saved. Retry the same setup before changing details.":
+    "तैयारी सहेजने की पुष्टि नहीं हुई। बदलाव से पहले वही तैयारी फिर सहेजें।",
+  "Awaiting owner": "मालिक के जवाब का इंतज़ार",
+  "Load the current case and enter a relevant message within the stated limit.":
+    "वर्तमान मामला लोड करें और सीमा में संबंधित संदेश दें।",
+  "This case cannot receive replies until an allowed reopen is recorded.":
+    "अनुमत रूप से फिर खुलने तक मामला जवाब नहीं ले सकता।",
+  "Review the current case transition. Closed cases cannot be reopened.":
+    "वर्तमान स्थिति बदलाव जाँचें। बंद मामले फिर नहीं खुल सकते।",
+  "Review the message visibility and effects before confirming.":
+    "पुष्टि से पहले संदेश की दृश्यता और असर जाँचें।",
+  "Private staff note recorded.": "निजी कर्मचारी नोट दर्ज है।",
+  "Case-owner reply recorded.": "मामले के मालिक को जवाब दर्ज है।",
+  "Case status and assignment decision recorded.":
+    "मामले की स्थिति और जिम्मेदारी का निर्णय दर्ज है।",
+  "Another staff member ": "दूसरा कर्मचारी ",
+  "assign to you": "आपको सौंपना",
+  "release to the unassigned queue": "बिना सौंपे कतार में छोड़ना",
+  "keep assignment": "जिम्मेदारी बनाए रखना",
+  Demo: "डेमो",
+  "Demo · ": "डेमो · ",
+  "Dispute outcome recorded. Linked support progress is updated; financial settlement remains separate.":
+    "विवाद का नतीजा दर्ज है। संबंधित सहायता प्रगति बदली है; वित्तीय निपटान अलग है।",
+  "Load an open scoped dispute, choose the reviewed outcome and add a reason.":
+    "दायरे का खुला विवाद लोड करें, समीक्षित नतीजा चुनें और कारण दें।",
+  "Acknowledge the evidence and recorded outcome before confirming.":
+    "पुष्टि से पहले प्रमाण और दर्ज नतीजा स्वीकार करें।",
+  "Dispute outcome recorded.": "विवाद का नतीजा दर्ज है।",
+  "Choose one support context.": "सहायता का एक ही संदर्भ चुनें।",
+  "Class 10": "कक्षा 10",
+  "Class 12": "कक्षा 12",
+  "College / undergraduate": "कॉलेज / स्नातक",
+  Postgraduate: "स्नातकोत्तर",
+  India: "भारत",
+  "street address": "पूरा पता",
+  "PIN code": "पिन कोड",
+  "Enter a valid six-digit Indian PIN code.":
+    "मान्य छह अंकों का भारतीय पिन कोड दें।",
+  "Record your Class 10 milestone.": "कक्षा 10 का पड़ाव दर्ज करें।",
+  "Enter the institution.": "संस्थान दर्ज करें।",
+  "Enter the board, stream or degree.": "बोर्ड, संकाय या डिग्री दर्ज करें।",
+  "Enter a valid completion or expected year.":
+    "पूरा होने का मान्य या अपेक्षित वर्ष दें।",
+  "Choose the official result format.": "आधिकारिक परिणाम का तरीका चुनें।",
+  "Enter your official result.": "आधिकारिक परिणाम दर्ज करें।",
+  "Percentage must be between 0 and 100.":
+    "प्रतिशत 0 और 100 के बीच होना चाहिए।",
+  "Enter a valid total or CGPA scale.": "मान्य कुल अंक या CGPA पैमाना दें।",
+  "Enter the institution, employer or independent tuition practice.":
+    "संस्थान, नियोक्ता या स्वतंत्र ट्यूशन का नाम दें।",
+  "Enter your role.": "अपनी भूमिका दर्ज करें।",
+  "Enter a valid start year.": "शुरुआत का मान्य वर्ष दें।",
+  "Enter a valid end year.": "समाप्ति का मान्य वर्ष दें।",
+  "House / office and street address": "घर / कार्यालय और सड़क का पता",
+  "Apartment / landmark (optional)": "अपार्टमेंट / पहचान की जगह (वैकल्पिक)",
+  "Address locality": "पते का इलाका",
+  City: "शहर",
+  State: "राज्य",
+  "Milestone status": "पड़ाव की स्थिति",
+  "School / college / university": "स्कूल / कॉलेज / विश्वविद्यालय",
+  "Board and stream": "बोर्ड और संकाय",
+  "Degree and specialization": "डिग्री और विशेषज्ञता",
+  "Expected completion year": "पूरा होने का अपेक्षित वर्ष",
+  "Completion year": "पूरा होने का वर्ष",
+  "Official result format": "आधिकारिक परिणाम का तरीका",
+  "Percentage (%)": "प्रतिशत (%)",
+  "Marks obtained": "प्राप्त अंक",
+  "Total marks": "कुल अंक",
+  "CGPA scale (out of)": "CGPA का पैमाना (कुल)",
+  "Official equivalent percentage (optional)":
+    "आधिकारिक समतुल्य प्रतिशत (वैकल्पिक)",
+  "Enter only an institution-issued equivalence. We do not invent a CGPA conversion.":
+    "केवल संस्थान का जारी समतुल्य प्रतिशत दें। हम CGPA का मनमाना रूपांतरण नहीं करते।",
+  "Institution / employer / tuition practice": "संस्थान / नियोक्ता / ट्यूशन",
+  "Your role": "आपकी भूमिका",
+  "Start year": "शुरुआत का वर्ष",
+  "End year (leave blank if current)": "समाप्ति का वर्ष (वर्तमान हो तो खाली)",
+  "Experience certificate or reference": "अनुभव प्रमाणपत्र या संदर्भ",
+  Evidence: "प्रमाण",
+  "Add a teaching headline.": "पढ़ाने का छोटा परिचय जोड़ें।",
+  "Tell us about your teaching.": "अपने पढ़ाने के बारे में बताएँ।",
+  "Enter 0–60 whole years.": "0–60 पूरे वर्ष दर्ज करें।",
+  "Declare at least one teaching area.": "कम से कम एक शिक्षण क्षेत्र बताएँ।",
+  "Choose at least one language.": "कम से कम एक भाषा चुनें।",
+  "Choose at least one lesson format.": "कम से कम एक पढ़ाने का तरीका चुनें।",
+  "Enter ₹500–₹20,000, with up to two decimal places.":
+    "अधिकतम दो दशमलव के साथ ₹500–₹20,000 दर्ज करें।",
+  "Choose no lock-in, 15 days or 30 days.":
+    "बिना न्यूनतम अवधि, 15 दिन या 30 दिन चुनें।",
+  "Choose whether you offer an optional demo.":
+    "चुनें कि वैकल्पिक डेमो देंगे या नहीं।",
+  "Choose at least one locality for home tuition.":
+    "घर पर ट्यूशन के लिए कम से कम एक इलाका चुनें।",
+  "Your teaching": "आपका पढ़ाना",
+  "Private address": "निजी पता",
+  "Education & previous work": "शिक्षा और पिछला काम",
+  "Teaching preferences": "पढ़ाने की पसंद",
+  "Review application": "आवेदन जाँचें",
+  "Accept the stated fee terms and account changes before submitting.":
+    "भेजने से पहले शुल्क शर्तें और खाते के बदलाव स्वीकार करें।",
+  "We couldn’t confirm the save. Your changes are here; retry before leaving.":
+    "सहेजने की पुष्टि नहीं हुई। बदलाव यहीं हैं; छोड़ने से पहले फिर प्रयास करें।",
+  "The result was not confirmed.": "नतीजे की पुष्टि नहीं हुई।",
+  "We couldn’t confirm the result. Retry the same submission before making edits.":
+    "नतीजे की पुष्टि नहीं हुई। बदलाव से पहले वही अनुरोध फिर भेजें।",
+  "Your name": "आपका नाम",
+  "Teaching headline": "पढ़ाने का छोटा परिचय",
+  "A short introduction families will see on your approved profile.":
+    "स्वीकृत प्रोफ़ाइल पर परिवार को दिखने वाला छोटा परिचय।",
+  "About your teaching": "आपके पढ़ाने के बारे में",
+  "Years of teaching experience": "पढ़ाने के अनुभव के वर्ष",
+  "Enter whole years; 0 is welcome if you are starting out.":
+    "पूरे वर्ष दें; शुरुआत कर रहे हों तो 0 भी मान्य है।",
+  "Teaching languages": "पढ़ाने की भाषाएँ",
+  "Lesson formats": "पढ़ाने के तरीके",
+  "Home tuition localities": "घर पर ट्यूशन के इलाके",
+  "Monthly tuition (₹)": "मासिक ट्यूशन (₹)",
+  "₹500–₹20,000. This is your proposed tuition, not a payment collected now.":
+    "₹500–₹20,000। यह प्रस्तावित ट्यूशन है, अभी लिया जा रहा भुगतान नहीं।",
+  "Education milestones": "शिक्षा के पड़ाव",
+  "Displayed publicly as your preference. Cancellation restrictions are not currently enforced.":
+    "आपकी पसंद के रूप में सार्वजनिक दिखेगा। रद्द करने की पाबंदी अभी लागू नहीं है।",
+  "Optional demo": "वैकल्पिक डेमो",
+  "Families will see a demo-availability highlight.":
+    "परिवार डेमो की उपलब्धता का संकेत देखेगा।",
+  "Families can discuss tuition without requesting a demo.":
+    "परिवार बिना डेमो ट्यूशन पर चर्चा कर सकता है।",
+  "Coverage & tuition": "दायरा और ट्यूशन",
+  Yes: "हाँ",
+  No: "नहीं",
+  "teaching profile": "शिक्षक प्रोफ़ाइल",
+  "private address": "निजी पता",
+  "previous work": "पिछला काम",
+  "lock-in preference": "न्यूनतम अवधि की पसंद",
+  "demo preference": "डेमो की पसंद",
+  "We couldn’t confirm the discard. Retry the same action before leaving.":
+    "हटाने की पुष्टि नहीं हुई। पृष्ठ छोड़ने से पहले वही प्रयास फिर करें।",
+  "Submitted for review": "समीक्षा के लिए भेजा",
+  "Changes requested": "बदलाव माँगे गए",
+  Approved: "स्वीकृत",
+  Suspended: "निलंबित",
+  "Choose a PDF, PNG or JPEG to upload.":
+    "अपलोड करने के लिए PDF, PNG या JPEG चुनें।",
+  "Choose a nonempty PDF, PNG or JPEG of at most 5 MiB.":
+    "अधिकतम 5 MiB की गैर-खाली PDF, PNG या JPEG चुनें।",
+  "The file could not be read. Choose it again.":
+    "फ़ाइल पढ़ी नहीं गई। फिर चुनें।",
+  "We couldn’t confirm this upload. Retry the same file before choosing another.":
+    "अपलोड की पुष्टि नहीं हुई। दूसरी फ़ाइल चुनने से पहले वही फ़ाइल फिर भेजें।",
+  Revision: "पुनरावृत्ति",
+  "Regular tuition": "नियमित ट्यूशन",
+  "Calls (unavailable)": "कॉल (उपलब्ध नहीं)",
+  "Midnight (next day)": "आधी रात (अगला दिन)",
+  "We couldn’t confirm the change. Retry this change before making edits or leaving this page.":
+    "बदलाव की पुष्टि नहीं हुई। बदलने या पृष्ठ छोड़ने से पहले वही प्रयास फिर करें।",
+  "Latest schedule and profile loaded. Your form entries are preserved; review them before saving.":
+    "नया समय और प्रोफ़ाइल लोड हैं। फ़ॉर्म की जानकारी सुरक्षित है; सहेजने से पहले जाँचें।",
+  "Choose a start time.": "शुरुआत का समय चुनें।",
+  "Choose an end time after the start, on the same day or at midnight.":
+    "उसी दिन शुरुआत के बाद या आधी रात का अंत चुनें।",
+  "Choose ordered dates with an end date from today through the next 365 days.":
+    "सही क्रम में तारीख़ें दें; अंत आज से अगले 365 दिनों में हो।",
+  "Weekly availability saved. Accepted bookings are unchanged.":
+    "साप्ताहिक उपलब्धता सहेजी है। स्वीकृत बुकिंग नहीं बदलीं।",
+  "Enter 1–100 students, as a whole number.":
+    "1–100 विद्यार्थी पूरे अंक में दर्ज करें।",
+  "Student capacity and travel preference saved.":
+    "विद्यार्थी क्षमता और यात्रा की पसंद सहेजी गई।",
+  "Choose a future leave start in IST.":
+    "IST में भविष्य की छुट्टी की शुरुआत चुनें।",
+  "Choose an end after the start, within the next 60 days.":
+    "शुरुआत के बाद अगले 60 दिनों में अंत चुनें।",
+  "Add a reason of 1–300 characters.": "1–300 अक्षर का कारण दें।",
+  "Leave saved. This period is unavailable for new bookings.":
+    "छुट्टी सहेजी है। इस अवधि में नई बुकिंग नहीं होगी।",
+  "Add a reason for this change.": "इस बदलाव का कारण जोड़ें।",
+  "This schedule item is no longer in the current list. Refresh the schedule.":
+    "यह समय मौजूदा सूची में नहीं है। समय फिर लोड करें।",
+  "Leave cancelled. Weekly availability applies again.":
+    "छुट्टी रद्द है। साप्ताहिक उपलब्धता फिर लागू है।",
+  "Weekly hours reopened.": "साप्ताहिक समय फिर खुला।",
+  "Weekly hours paused. Accepted bookings are unchanged.":
+    "साप्ताहिक समय रुका। स्वीकृत बुकिंग नहीं बदलीं।",
+  "Session type": "सत्र का प्रकार",
+  "Day of the week": "हफ़्ते का दिन",
+  "Start time (IST)": "शुरुआत का समय (IST)",
+  "End time (IST)": "अंत का समय (IST)",
+  "Available through": "इस तारीख़ तक उपलब्ध",
+  Reopen: "फिर खोलें",
+  "Maximum students": "अधिकतम विद्यार्थी",
+  "Leave starts (IST)": "छुट्टी की शुरुआत (IST)",
+  "Leave ends (IST)": "छुट्टी का अंत (IST)",
+  "Reason for leave": "छुट्टी का कारण",
+  "Visible only in your private calendar and authorized records. Share only what is needed.":
+    "केवल निजी कैलेंडर और अधिकृत रिकॉर्ड में दिखता है। केवल ज़रूरी जानकारी दें।",
+  "Reason for change": "बदलाव का कारण",
+  "enter 1–40 distinct subjects, with up to 60 characters each.":
+    "1–40 अलग विषय दें, हर विषय अधिकतम 60 अक्षर का हो।",
+  "enter distinct boards and choose at least one class.":
+    "अलग बोर्ड दर्ज करें और कम से कम एक कक्षा चुनें।",
+  "choose Nursery, KG1 or KG2.": "नर्सरी, KG1 या KG2 चुनें।",
+  "enter the course or degree and choose at least one year.":
+    "पाठ्यक्रम या डिग्री दें और कम से कम एक वर्ष चुनें।",
+  "Declare 1–200 subject and education combinations. Split only the areas you actually teach.":
+    "विषय और शिक्षा के 1–200 मेल बताएँ। केवल वास्तव में पढ़ाने वाले क्षेत्र अलग करें।",
+  "Two teaching areas repeat the same subject and education details. Combine them or remove the repeated selection.":
+    "दो क्षेत्रों में वही विषय और शिक्षा दोहराई गई है। उन्हें मिलाएँ या दोहराया चयन हटाएँ।",
+  "Use up to 40 subjects and 20 school boards in total.":
+    "कुल अधिकतम 40 विषय और 20 स्कूल बोर्ड दें।",
+  Candidate: "सुझाया शिक्षक",
+  "The service did not confirm the result.": "सेवा ने नतीजे की पुष्टि नहीं की।",
+  "Review a current teacher option and confirm your choice.":
+    "वर्तमान शिक्षक विकल्प जाँचकर पसंद की पुष्टि करें।",
+  "Teacher choice saved. This does not assign a teacher or start tuition.":
+    "शिक्षक की पसंद सहेजी है। नियुक्ति या ट्यूशन शुरू नहीं हुई।",
+  "Confirm that you want to open tuition terms for this teacher.":
+    "इस शिक्षक के लिए ट्यूशन शर्तें खोलने की पुष्टि करें।",
+  "Tuition terms created. Continue to hiring confirmation to review the amount and both parties’ acceptance.":
+    "ट्यूशन शर्तें बनी हैं। राशि और दोनों पक्षों की स्वीकृति देखने के लिए नियुक्ति की पुष्टि पर जाएँ।",
+  "Confirm valid nonoverlapping weekly time ranges and acknowledge the shortlist reset.":
+    "मान्य बिना टकराव वाले साप्ताहिक समय और सूची हटाने की पुष्टि करें।",
+  "Confirm nonoverlapping 20–120 minute windows, at least one hour ahead and within 60 days, and acknowledge the shortlist reset.":
+    "एक घंटे बाद और 60 दिनों में 20–120 मिनट के बिना टकराव वाले समय और सूची हटाने की पुष्टि करें।",
+  "Availability preferences saved. The previous shortlist has been cleared for a new review.":
+    "उपलब्धता की पसंद सहेजी है। नई समीक्षा के लिए पिछली सूची हटाई गई।",
+  "Enquiry saved": "पूछताछ सहेजी गई",
+  "Teacher interest received": "शिक्षक की रुचि मिली",
+  "Awaiting reviewed teacher options": "समीक्षित शिक्षक विकल्पों का इंतज़ार",
+  "Teacher choice recorded": "शिक्षक की पसंद दर्ज है",
+  "Choose your teacher": "अपना शिक्षक चुनें",
+  "Confirm hiring terms": "नियुक्ति की शर्तों की पुष्टि करें",
+  "Review monthly hiring terms": "मासिक नियुक्ति की शर्तें देखें",
+  "This teacher option expired. Refresh the shortlist before proposing a demo.":
+    "शिक्षक विकल्प समाप्त है। डेमो देने से पहले सूची फिर लोड करें।",
+  "Demo proposal saved. Both you and the teacher must accept the same time before it is confirmed.":
+    "डेमो प्रस्ताव सहेजा है। पुष्टि से पहले आपको और शिक्षक को एक समय स्वीकार करना होगा।",
+  "Choose a 20–40 minute demo at least one hour ahead and within 60 days.":
+    "कम से कम एक घंटे बाद और 60 दिनों में 20–40 मिनट का डेमो चुनें।",
+  "Confirm the agreement or actual start details before saving.":
+    "सहेजने से पहले समझौते या वास्तविक शुरुआत का विवरण पुष्ट करें।",
+  "Your tuition-term acceptance is saved.":
+    "ट्यूशन शर्तों की आपकी स्वीकृति सहेजी है।",
+  "Your first paid lesson confirmation is saved. Teacher receipt confirmation is separate.":
+    "पहली सशुल्क कक्षा की पुष्टि सहेजी है। शिक्षक को मिलने की पुष्टि अलग है।",
+  "Your lesson and tuition-receipt confirmation is saved. Guardian start confirmation is separate.":
+    "कक्षा और ट्यूशन मिलने की पुष्टि सहेजी है। अभिभावक की शुरुआत की पुष्टि अलग है।",
+  Escape: "Escape",
+  "M15 60 Q70 65 105 40 T225 15": "M15 60 Q70 65 105 40 T225 15",
+  "M205 13 L225 15 L218 35": "M205 13 L225 15 L218 35",
+  "A few details about their class, subject and what works for your family.":
+    "कक्षा, विषय और परिवार की पसंद के बारे में कुछ जानकारी।",
+  "Meet teachers who fit": "उपयुक्त शिक्षक से मिलें",
+  "Reviewed coverage and clear reasons for each suitable option.":
+    "जाँची योग्यता और हर उपयुक्त विकल्प के स्पष्ट कारण।",
+  "Start with a conversation": "बातचीत से शुरुआत करें",
+  "Agree a demo, confirm the details and take the next step together.":
+    "डेमो तय करें, विवरण पुष्ट करें और साथ अगला कदम लें।",
+  "Education profiles": "शिक्षा प्रोफ़ाइल",
+  "Enquiries & teacher choices": "पूछताछ और शिक्षक की पसंद",
+  "Arrangements & replacement": "व्यवस्थाएँ और शिक्षक बदलना",
+  "Privacy & data": "गोपनीयता और डेटा",
+  "Independent students": "स्वतंत्र विद्यार्थी",
+  "Student arrangements": "विद्यार्थी की व्यवस्थाएँ",
+  "Profile & evidence": "प्रोफ़ाइल और प्रमाण",
+  "Control console": "नियंत्रण कंसोल",
+  "Student enquiries": "विद्यार्थी पूछताछ",
+  "Finance & records": "वित्त और रिकॉर्ड",
+  "Reports & cohorts": "रिपोर्ट और समूह",
+  "Saved. Your dashboard is up to date.": "सहेजा गया। डैशबोर्ड अद्यतन है।",
+  "Open requests": "खुले अनुरोध",
+  "Pending teachers": "लंबित शिक्षक",
+  "Active placements": "सक्रिय नियुक्तियाँ",
+  "Students taught": "पढ़ाए विद्यार्थी",
+  "Active students": "सक्रिय विद्यार्थी",
+  "This browser is still signed in as the guardian. Review learner access before authorizing this device again.":
+    "ब्राउज़र अभी अभिभावक खाते में है। फिर उपकरण अधिकृत करने से पहले विद्यार्थी की पहुँच जाँचें।",
+  "A different account is active. Return to sign-in before continuing.":
+    "दूसरा खाता सक्रिय है। आगे बढ़ने से पहले प्रवेश पर लौटें।",
+  Waitlist: "प्रतीक्षा सूची",
+  "Complete each learning criterion and confirm that you understand the waitlist.":
+    "पढ़ाई की हर ज़रूरत पूरी करें और प्रतीक्षा सूची समझने की पुष्टि करें।",
+  "The waitlist result was not confirmed.":
+    "प्रतीक्षा सूची के नतीजे की पुष्टि नहीं हुई।",
+  "We couldn’t confirm your request. Retry the same criteria before making another request.":
+    "अनुरोध की पुष्टि नहीं हुई। दूसरा बनाने से पहले वही ज़रूरत फिर भेजें।",
+  "This region accepts ordinary teacher enquiries. Send a free enquiry or browse teachers; a teacher still needs to be available.":
+    "इस क्षेत्र में सामान्य शिक्षक पूछताछ उपलब्ध है। मुफ़्त पूछताछ भेजें या शिक्षक देखें; उपलब्ध शिक्षक अभी भी ज़रूरी है।",
+  "For example, ICSE": "जैसे ICSE",
+  "For example, English": "जैसे अंग्रेज़ी",
+  "City / region": "शहर / क्षेत्र",
+  "For example, Raipur": "जैसे रायपुर",
+  HOME: "घर पर",
+  ACCEPT_TERMS: "शर्तें स्वीकार करें",
+  CONFIRM_START: "शुरुआत की पुष्टि करें",
+  SAFETY: "सुरक्षा",
+  PAYMENT: "भुगतान",
+  GENERAL: "सामान्य",
+  IN_PROGRESS: "समीक्षा जारी",
+  WAITING_OWNER: "मालिक के जवाब का इंतज़ार",
+  ME: "मैं",
+  CONNECTED: "जुड़ा हुआ",
+  RECURRING: "नियमित",
+  CALL: "कॉल",
+  parent: "अभिभावक",
+  student: "विद्यार्थी",
+  enquiry: "पूछताछ",
+  INVOICE: "चालान",
+  HELD_SERVICE: "सेवा के कारण रुका",
+  HELD_CONFIRMATION: "पुष्टि के कारण रुका",
+  HELD_DISPUTE: "विवाद के कारण रुका",
+  REFUND_PENDING: "पैसे वापसी बाकी",
+  REVIEW_REQUIRED: "समीक्षा ज़रूरी",
+  CHECKOUTS: "भुगतान ऑर्डर",
+  PAYMENTS: "भुगतान",
+  REFUNDS: "पैसे वापसी",
+  PAYABLES: "देय राशियाँ",
+  STUDENT: "विद्यार्थी",
+  OPERATOR: "संचालन कर्मचारी",
+  REVIEWER: "समीक्षक",
+  FINANCE: "वित्त",
+  ADMIN: "प्रशासक",
+  INDEPENDENT_STUDENT: "स्वतंत्र विद्यार्थी",
+  ARRANGEMENTS: "व्यवस्थाएँ",
+  UNCONFIRMED: "पुष्टि नहीं हुई",
+  MANUAL: "खुद खोजें",
+  ASSISTED: "हमसे खोज करवाएँ",
+  INTERNAL: "आंतरिक",
+  ADVERTISED: "घोषित",
+  NO_SHOW: "अनुपस्थित",
+  CANCELLED: "रद्द",
+  SANDBOX: "परीक्षण",
+  SENT: "भेजा गया",
+  IDENTITY: "पहचान",
+  QUALIFICATIONS: "योग्यता",
+  CAPABILITY: "पढ़ाने की क्षमता",
+  REFERENCES: "संदर्भ",
+  QUARANTINED: "सुरक्षा जाँच तक अलग रखा",
+  CLEAN: "सुरक्षित",
+  INFECTED: "हानिकारक फ़ाइल",
+  NEEDS_SCHEDULE: "समय की पुष्टि चाहिए",
+  MATCHED: "मेल मिला",
+  NO_MATCH: "मेल नहीं मिला",
+  OPERATOR_PUBLISHED: "संचालन टीम ने प्रकाशित किया",
+  GUARDIAN_SHOWN: "अभिभावक को दिखाया",
+  GUARDIAN_SELECTED: "अभिभावक ने चुना",
+  DEMO_SELECTED: "डेमो चुना गया",
+  PARENT: "अभिभावक",
+  ENQUIRY: "पूछताछ",
+  DRAFT: "मसौदा",
+  CONSENT_PENDING: "सहमति बाकी",
+  READY: "तैयार",
+  SUPERSEDED: "नए संस्करण से बदला",
+  LIVE: "लाइव",
+  CREATING: "बन रहा है",
+  PAID: "भुगतान हुआ",
+  PAID_UNALLOCATED: "भुगतान हुआ, आवंटन नहीं",
+  AMOUNT_MISMATCH: "राशि मेल नहीं खाती",
+  ALREADY_PAID: "पहले भुगतान हो चुका",
+  IGNORED_UNKNOWN_ORDER: "अज्ञात ऑर्डर छोड़ दिया",
+  NOTE: "नोट",
+  FULFIL: "पूरा करें",
+  REJECT: "अस्वीकार करें",
+  UNRECORDED: "दर्ज नहीं",
+  proCalls: "Pro कॉल",
+  ai: "कृत्रिम बुद्धिमत्ता",
+  SYNTHETIC_DEVELOPMENT: "नमूना विकास संस्करण",
+  PRODUCTION: "उत्पादन",
+  LIVE_CONFIGURED: "लाइव विन्यास दर्ज",
+  DEVELOPMENT_ONLY: "केवल विकास संस्करण",
+  GLOBAL: "वैश्विक",
+  REGION: "क्षेत्र",
+  UNDERGRADUATE: "स्नातक",
+  MARKS: "अंक",
+  CERTIFICATE_AVAILABLE: "प्रमाणपत्र उपलब्ध",
+  REFERENCE_AVAILABLE: "संदर्भ उपलब्ध",
+  NOT_AVAILABLE: "उपलब्ध नहीं",
+  NONE: "कोई नहीं",
+  ACTIVATED: "सक्रिय किया गया",
+  ISSUED: "जारी किया गया",
+  CODE_UNAVAILABLE: "कोड उपलब्ध नहीं",
+  ARRANGEMENT: "व्यवस्था",
+  EDITABLE: "बदल सकते हैं",
+  HISTORY_LINKED: "इतिहास से जुड़ा",
+  READ_ONLY: "केवल देखने की अनुमति",
+  VERIFICATION_REQUIRED: "सत्यापन ज़रूरी",
+  CONSENT_REQUIRED: "सहमति ज़रूरी",
+  PRIVACY_PAUSED: "गोपनीयता के कारण रुका",
+  NOT_STARTED: "शुरू नहीं हुआ",
+  SELF_DIRECTED: "खुद पढ़ाई सँभालना",
+  GUARDIAN_GUIDED: "अभिभावक के मार्गदर्शन में",
+  SELF_DECLARED_18_PLUS: "18 वर्ष या अधिक की स्वघोषणा",
+  ACCOUNT_IN_USE: "खाता पहले से उपयोग में",
+  HIRED: "नियुक्ति पक्की",
+  UNSUPPORTED_REGION: "क्षेत्र सेवा दायरे से बाहर",
+  EMAIL_AFTER_MUTUAL_CONFIRMATION: "दोनों की पुष्टि के बाद ईमेल साझा",
+  ADVICE: "केवल सलाह",
+  REVOKED: "पहुँच वापस ली",
+  ACCEPT: "स्वीकार करें",
+  REVOKE: "पहुँच वापस लें",
+  account: "खाता",
+  "Classes {0}": "कक्षाएँ {0}",
+  "Years {0}": "वर्ष {0}",
+  "{0} · Years {1}": "{0} · वर्ष {1}",
+  "Reviewed education coverage": "जाँचा शिक्षा दायरा",
+  "Within budget": "बजट के भीतर",
+  "Overlapping availability": "उपलब्ध समय में मेल",
+  "Within budget and capacity, with overlapping availability":
+    "बजट और क्षमता के भीतर, उपलब्ध समय में मेल के साथ",
+  "Online lessons": "ऑनलाइन कक्षाएँ",
+  "{0} instruction": "{0} में पढ़ाई",
+  "Accepted travel to {0}": "{0} तक यात्रा स्वीकार की",
+  "Teaching area {0}: {1}": "शिक्षण क्षेत्र {0}: {1}",
+  "Enter your {0}.": "अपना {0} दर्ज करें।",
+  "Enter your street address.": "अपना पूरा पता दर्ज करें।",
+  "Enter your locality.": "अपना इलाका दर्ज करें।",
+  "Enter your city.": "अपना शहर दर्ज करें।",
+  "Enter your state.": "अपना राज्य दर्ज करें।",
+  "Enter your PIN code.": "अपना पिन कोड दर्ज करें।",
+  "A new verification code has been sent.": "नया सत्यापन कोड भेजा गया है।",
+  "Could not load the current account.": "मौजूदा खाता लोड नहीं हुआ।",
+  MFA: "MFA",
+  API: "API",
+  CGPA: "CGPA",
+  INR: "INR",
+  GOOGLE_MEET: "Google Meet",
+  en: "अंग्रेज़ी",
+  hi: "हिन्दी",
+  "application/pdf": "PDF",
+  "image/png": "PNG",
+  "image/jpeg": "JPEG",
+  "Recorded value": "दर्ज मान",
+  "No observation": "कोई अवलोकन नहीं",
+  "{0} · {1} years": "{0} · {1} वर्ष",
+  "{0} previous work records": "पिछले काम के {0} रिकॉर्ड",
+  "{0} days lock-in": "{0} दिन की न्यूनतम अवधि",
+  "{0} · Classes {1}": "{0} · कक्षाएँ {1}",
+  "Enter {0} (up to {1} characters).": "{0} दर्ज करें (अधिकतम {1} अक्षर)।",
+  "{0} {1} in Asia/Kolkata.": "{0} {1} भारतीय मानक समय में।",
+  "Not shown publicly": "सार्वजनिक नहीं दिखता",
+  "Consultation interest:": "परामर्श में रुचि:",
+  Classes: "कक्षाएँ",
+  Years: "वर्ष",
+  "This page could not be loaded.": "यह पृष्ठ लोड नहीं हुआ।",
+  "Your saved records are unchanged. Try again, return home or contact support.":
+    "आपके सहेजे रिकॉर्ड नहीं बदले हैं। फिर कोशिश करें, मुख्य पृष्ठ पर लौटें या सहायता लें।",
+  checkout: "भुगतान",
+  meetings: "बैठकें",
+  payments: "भुगतान",
+  notifications: "सूचनाएँ",
+  "evidence.scan_requested": "निजी प्रमाण का स्कैन माँगा गया",
+  "privacy.deletion_requested": "गोपनीयता का डेटा मिटाना माँगा गया",
+  "privacy.deletion_replay": "गोपनीयता का डेटा फिर मिटाना",
+  "Too big: expected string to have <={0} characters":
+    "अधिकतम {0} अक्षर दर्ज करें।",
+  "Too small: expected string to have >={0} characters":
+    "कम से कम {0} अक्षर दर्ज करें।",
+  "Invalid email address": "मान्य ईमेल पता दर्ज करें।",
+  Sun: "रवि",
+  Mon: "सोम",
+  Tue: "मंगल",
+  Wed: "बुध",
+  Thu: "गुरु",
+  Fri: "शुक्र",
+  Sat: "शनि",
+  "Invalid input: expected string, received undefined": "यह जानकारी भरें।",
+  "Invalid input: expected string, received null": "यह जानकारी भरें।",
+  "Invalid input: expected number, received NaN": "मान्य संख्या दर्ज करें।",
+  "Invalid input: expected number, received undefined":
+    "मान्य संख्या दर्ज करें।",
+  "Invalid input: expected boolean, received undefined": "एक विकल्प चुनें।",
+  "Invalid input: expected array, received undefined":
+    "कम से कम एक विकल्प चुनें।",
+  "Choose evidence file": "प्रमाण की फ़ाइल चुनें",
+  "Change evidence file": "प्रमाण की फ़ाइल बदलें",
+  "No file selected": "फ़ाइल नहीं चुनी गई",
+  coverage: "शिक्षण दायरा",
+  education: "शिक्षा",
+  "Subjects:": "विषय:",
+  Mathematics: "गणित",
+  "Social Science": "सामाजिक विज्ञान",
+  "Social Studies": "सामाजिक अध्ययन",
+  History: "इतिहास",
+  Geography: "भूगोल",
+  Sanskrit: "संस्कृत",
+  Urdu: "उर्दू",
+  Tamil: "तमिल",
+  Telugu: "तेलुगु",
+  Bengali: "बांग्ला",
+  Marathi: "मराठी",
+  Gujarati: "गुजराती",
+  Kannada: "कन्नड़",
+  Malayalam: "मलयालम",
+  Punjabi: "पंजाबी",
+  Odia: "ओड़िया",
+  Assamese: "असमिया",
+  Chhattisgarhi: "छत्तीसगढ़ी",
+};

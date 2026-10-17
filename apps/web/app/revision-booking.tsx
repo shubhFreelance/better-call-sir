@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { pilotLearner } from "./learner-education";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -37,6 +38,8 @@ export function RevisionBooking({
   session: Session | null;
   initialTeacher: string | null;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const client = useQueryClient();
   const guardian = session?.account.role === "GUARDIAN";
   const dashboard = useQuery({
@@ -56,68 +59,76 @@ export function RevisionBooking({
       <header className="revision-intro">
         <div>
           <BookOpen size={30} aria-hidden="true" />
-          <h1>One topic. A clearer next step.</h1>
+          <h1>{appText("One topic. A clearer next step.")}</h1>
           <p>
-            Choose the learner and a focused brief. Your expert reviews the
-            scope before checkout.
+            {appText(
+              "Choose the learner and a focused brief. Your expert reviews the scope before checkout.",
+            )}{" "}
           </p>
         </div>
         <div className="revision-duration">
-          <strong>20 or 40 minutes</strong>
+          <strong>{appText("20 or 40 minutes")}</strong>
           <p>
-            Current online sessions use Google Meet, with a 40-minute limit.
+            {appText(
+              "Current online sessions use Google Meet, with a 40-minute limit.",
+            )}{" "}
           </p>
           <small>
-            Practice and an expert recap. No syllabus or score guarantee.
+            {appText(
+              "Practice and an expert recap. No syllabus or score guarantee.",
+            )}{" "}
           </small>
         </div>
       </header>
       {!session ? (
         <Notice>
-          Sign in with a guardian account to book for a learner.{" "}
+          {appText("Sign in with a guardian account to book for a learner.")}{" "}
           <Link
             className="inline-link"
             href={`/login?next=${encodeURIComponent(`/revision${initialTeacher ? `?teacher=${encodeURIComponent(initialTeacher)}` : ""}`)}`}
           >
-            Sign in to book revision
+            {appText("Sign in to book revision")}{" "}
           </Link>
         </Notice>
       ) : !guardian ? (
         <Notice>
-          Only a guardian can book and pay for revision.{" "}
+          {appText("Only a guardian can book and pay for revision.")}{" "}
           <Link href="/dashboard" className="inline-link">
-            Return to your dashboard
+            {appText("Return to your dashboard")}{" "}
           </Link>
         </Notice>
       ) : !session.account.verified ? (
         <Notice>
-          Guardian adult verification is required before learner details and
-          booking are available.{" "}
+          {appText(
+            "Guardian adult verification is required before learner details and booking are available.",
+          )}{" "}
           <Link href="/onboarding/parent" className="inline-link">
-            Review guardian onboarding
+            {appText("Review guardian onboarding")}{" "}
           </Link>
         </Notice>
       ) : dashboard.isPending ? (
-        <p role="status">Loading your family’s booking permissions…</p>
+        <p role="status">
+          {appText("Loading your family’s booking permissions…")}
+        </p>
       ) : dashboard.error ? (
         <Notice error>
-          {dashboard.error.message}{" "}
+          {appError(dashboard.error.message)}{" "}
           <Button variant="outline" onClick={() => dashboard.refetch()}>
-            Retry family details
+            {appText("Retry family details")}{" "}
           </Button>
         </Notice>
       ) : !permitted ? (
         <Notice>
-          Active guardian consent is required to book revision.{" "}
+          {appText("Active guardian consent is required to book revision.")}{" "}
           <Link href="/onboarding/parent" className="inline-link">
-            Review guardian consent
+            {appText("Review guardian consent")}{" "}
           </Link>
         </Notice>
       ) : !dashboard.data?.children?.length ? (
         <Notice>
-          Add a learner before booking revision.{" "}
+          {appText("Add a learner before booking revision.")}{" "}
           <Link href="/onboarding/parent" className="inline-link">
-            Add a learner
+            {appText("Add a learner")}{" "}
           </Link>
         </Notice>
       ) : (
@@ -146,7 +157,9 @@ function RevisionForm({
   initialTeacher: string | null;
   refresh: () => Promise<Dashboard>;
 }) {
-  const learners=(d.children||[]).filter(pilotLearner);
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
+  const learners = (d.children || []).filter(pilotLearner);
   const [childId, setChildId] = useState(
       learners.length === 1 ? learners[0].id : "",
     ),
@@ -288,37 +301,48 @@ function RevisionForm({
   return (
     <div className="revision-columns">
       <aside className="revision-guide">
-        <h2>Keep the brief focused.</h2>
+        <h2>{appText("Keep the brief focused.")}</h2>
         <ol>
           <li>
-            <strong>Choose a topic</strong>
-            <span>Class, board, subject and the question to work through.</span>
-          </li>
-          <li>
-            <strong>Let the expert review</strong>
+            <strong>{appText("Choose a topic")}</strong>
             <span>
-              A ten-minute hold reserves the slot while the expert accepts your
-              scope.
+              {appText(
+                "Class, board, subject and the question to work through.",
+              )}
             </span>
           </li>
           <li>
-            <strong>Review and pay</strong>
+            <strong>{appText("Let the expert review")}</strong>
             <span>
-              Checkout confirms payment separately from the final slot
-              allocation.
+              {appText(
+                "A ten-minute hold reserves the slot while the expert accepts your scope.",
+              )}{" "}
+            </span>
+          </li>
+          <li>
+            <strong>{appText("Review and pay")}</strong>
+            <span>
+              {appText(
+                "Checkout confirms payment separately from the final slot allocation.",
+              )}{" "}
             </span>
           </li>
         </ol>
         <p>
-          Current development quotes: {exactMoney(30000)} for 20 minutes or{" "}
-          {exactMoney(60000)} for 40 minutes. The saved reservation owns the
-          exact price and policy.
+          {appText("Current development quotes:")}{" "}
+          {exactMoney(30000, appLocale)} {appText("for 20 minutes or")}{" "}
+          {exactMoney(60000, appLocale)}{" "}
+          {appText(
+            "for 40 minutes. The saved reservation owns the exact price and policy.",
+          )}{" "}
         </p>
       </aside>
       <section className="revision-form">
-        <h2>Plan your revision session</h2>
+        <h2>{appText("Plan your revision session")}</h2>
         <p>
-          Keep this page open until your hold is saved. All starts are in IST.
+          {appText(
+            "Keep this page open until your hold is saved. All starts are in IST.",
+          )}{" "}
         </p>
         <form
           noValidate
@@ -330,9 +354,9 @@ function RevisionForm({
           <fieldset disabled={locked}>
             <div className="booking-form-grid">
               <label>
-                Learner
+                {appText("Learner")}{" "}
                 <select
-                  aria-label="Learner"
+                  aria-label={appText("Learner")}
                   value={childId}
                   onChange={(e) => {
                     setChildId(e.target.value);
@@ -340,18 +364,19 @@ function RevisionForm({
                     setAgreed(false);
                   }}
                 >
-                  <option value="">Choose a learner</option>
+                  <option value="">{appText("Choose a learner")}</option>
                   {learners.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.alias} · {c.board}, Class {c.grade}
+                      {c.alias} · {c.board}
+                      {appText(", Class")} {c.grade}
                     </option>
                   ))}
                 </select>
               </label>
               <label>
-                Revision subject
+                {appText("Revision subject")}{" "}
                 <select
-                  aria-label="Revision subject"
+                  aria-label={appText("Revision subject")}
                   value={subject}
                   onChange={(e) => {
                     setSubject(e.target.value);
@@ -359,14 +384,14 @@ function RevisionForm({
                     setReview(false);
                   }}
                 >
-                  <option>Maths</option>
-                  <option>Science</option>
+                  <option>{appText("Maths")}</option>
+                  <option>{appText("Science")}</option>
                 </select>
               </label>
               <label>
-                Teaching language
+                {appText("Teaching language")}{" "}
                 <select
-                  aria-label="Teaching language"
+                  aria-label={appText("Teaching language")}
                   value={language}
                   onChange={(e) => {
                     setLanguage(e.target.value);
@@ -374,14 +399,14 @@ function RevisionForm({
                     setReview(false);
                   }}
                 >
-                  <option>English</option>
-                  <option>Hindi</option>
+                  <option>{appText("English")}</option>
+                  <option>{appText("Hindi")}</option>
                 </select>
               </label>
               <label>
-                Session duration
+                {appText("Session duration")}{" "}
                 <select
-                  aria-label="Session duration"
+                  aria-label={appText("Session duration")}
                   value={duration}
                   onChange={(e) => {
                     setDuration(e.target.value);
@@ -389,15 +414,15 @@ function RevisionForm({
                     setReview(false);
                   }}
                 >
-                  <option value="20">20 minutes</option>
-                  <option value="40">40 minutes</option>
+                  <option value="20">{appText("20 minutes")}</option>
+                  <option value="40">{appText("40 minutes")}</option>
                 </select>
               </label>
             </div>
             <label>
-              Revision expert
+              {appText("Revision expert")}{" "}
               <select
-                aria-label="Revision expert"
+                aria-label={appText("Revision expert")}
                 value={teacherId}
                 onChange={(e) => {
                   setTeacherId(e.target.value);
@@ -406,22 +431,28 @@ function RevisionForm({
                   setReview(false);
                 }}
               >
-                <option value="">Choose an eligible expert</option>
+                <option value="">{appText("Choose an eligible expert")}</option>
                 {experts.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.name} · {t.subjects.join(" & ")}
+                    {t.name} ·{" "}
+                    {t.subjects
+                      .map((value) => appCurriculum(value))
+                      .join(" & ")}
                   </option>
                 ))}
               </select>
             </label>
             {profiles.isPending && (
-              <p role="status">Loading eligible profiles…</p>
+              <p role="status">{appText("Loading eligible profiles…")}</p>
             )}
-            {profiles.error && <Notice error>{profiles.error.message}</Notice>}
+            {profiles.error && (
+              <Notice error>{appError(profiles.error.message)}</Notice>
+            )}
             {initialTeacher && !expert && (
               <p>
-                The chosen expert is not in the loaded eligible profiles. Load
-                more profiles or choose another expert.
+                {appText(
+                  "The chosen expert is not in the loaded eligible profiles. Load more profiles or choose another expert.",
+                )}{" "}
               </p>
             )}
             {profiles.hasNextPage && (
@@ -431,12 +462,12 @@ function RevisionForm({
                 disabled={profiles.isFetching}
                 onClick={() => profiles.fetchNextPage()}
               >
-                Load more expert profiles
+                {appText("Load more expert profiles")}{" "}
               </Button>
             )}
             <div className="booking-form-grid">
               <label>
-                Preferred start (IST)
+                {appText("Preferred start (IST)")}{" "}
                 <Input
                   type="datetime-local"
                   value={start}
@@ -448,7 +479,7 @@ function RevisionForm({
                 />
               </label>
               <label>
-                Check advertised date (IST)
+                {appText("Check advertised date (IST)")}{" "}
                 <Input
                   type="date"
                   value={availabilityDay}
@@ -465,19 +496,20 @@ function RevisionForm({
                 else setShowTimes(true);
               }}
             >
-              See available revision times
+              {appText("See available revision times")}{" "}
             </Button>
             {showTimes && times.isPending && expert && (
-              <p role="status">Checking advertised times…</p>
+              <p role="status">{appText("Checking advertised times…")}</p>
             )}
             {showTimes && times.error && (
-              <Notice error>{times.error.message}</Notice>
+              <Notice error>{appError(times.error.message)}</Notice>
             )}
             {times.data && showTimes && (
               <div className="revision-available">
                 <p>
-                  Advertised free times for the chosen date. Availability is
-                  rechecked when saving.
+                  {appText(
+                    "Advertised free times for the chosen date. Availability is rechecked when saving.",
+                  )}{" "}
                 </p>
                 {times.data.pages
                   .flatMap((p) => p.items)
@@ -492,12 +524,14 @@ function RevisionForm({
                         setAgreed(false);
                       }}
                     >
-                      {bookingTime(s.startsAt)}
+                      {bookingTime(s.startsAt, appLocale)}
                     </Button>
                   ))}
                 {!times.data.pages.some((p) => p.items.length) && (
                   <p>
-                    No advertised free times for this date. Choose another date.
+                    {appText(
+                      "No advertised free times for this date. Choose another date.",
+                    )}{" "}
                   </p>
                 )}
                 {times.hasNextPage && (
@@ -507,13 +541,13 @@ function RevisionForm({
                     disabled={times.isFetching}
                     onClick={() => times.fetchNextPage()}
                   >
-                    Load more revision times
+                    {appText("Load more revision times")}{" "}
                   </Button>
                 )}
               </div>
             )}
             <label>
-              Topic brief
+              {appText("Topic brief")}{" "}
               <Textarea
                 value={topic}
                 maxLength={1000}
@@ -523,31 +557,37 @@ function RevisionForm({
                   setReview(false);
                   setAgreed(false);
                 }}
-                placeholder="For example, Class 8 CBSE fractions: converting mixed numbers and checking signs"
+                placeholder={appText(
+                  "For example, Class 8 CBSE fractions: converting mixed numbers and checking signs",
+                )}
               />
             </label>
             <Button className="button" type="submit">
-              Review session request
+              {appText("Review session request")}{" "}
             </Button>
           </fieldset>
         </form>
         {review && (
           <div className="checkout-review" ref={confirmation} tabIndex={-1}>
-            <h3>Review your revision request</h3>
+            <h3>{appText("Review your revision request")}</h3>
             <p>
-              {learner?.alias} · {subject} · {language} · {duration} minutes
-              with {expert?.name}
+              {learner?.alias} · {appCurriculum(subject)} ·{" "}
+              {appCurriculum(language)} · {duration} {appText("minutes with")}{" "}
+              {expert?.name}
             </p>
             <p>
               {start &&
-                bookingTime(new Date(start + ":00+05:30").toISOString())}{" "}
-              IST
+                bookingTime(
+                  new Date(start + ":00+05:30").toISOString(),
+                  appLocale,
+                )}{" "}
+              {appText("IST")}{" "}
             </p>
             <p>{topic}</p>
             <p>
-              A hold lasts ten minutes. Expert scope acceptance and current
-              availability are required before checkout. No payment or booking
-              confirmation happens at this step.
+              {appText(
+                "A hold lasts ten minutes. Expert scope acceptance and current availability are required before checkout. No payment or booking confirmation happens at this step.",
+              )}{" "}
             </p>
             <fieldset disabled={locked}>
               <label className="booking-check">
@@ -557,15 +597,17 @@ function RevisionForm({
                   onChange={(e) => setAgreed(e.target.checked)}
                 />
                 <span>
-                  I reviewed this topic, learner, time and hold conditions.
+                  {appText(
+                    "I reviewed this topic, learner, time and hold conditions.",
+                  )}{" "}
                 </span>
               </label>
               <div className="booking-actions">
                 <Button variant="outline" onClick={() => setReview(false)}>
-                  Back to request
+                  {appText("Back to request")}{" "}
                 </Button>
                 <Button className="button" onClick={submit}>
-                  Request scope & hold slot
+                  {appText("Request scope & hold slot")}{" "}
                 </Button>
               </div>
             </fieldset>
@@ -574,18 +616,18 @@ function RevisionForm({
         <Feedback decision={decision} />
         {decision.conflict && (
           <Button variant="outline" onClick={() => decision.reload()}>
-            Refresh revision details
+            {appText("Refresh revision details")}{" "}
           </Button>
         )}
         {saved && (
           <Notice>
-            Hold saved until{" "}
+            {appText("Hold saved until")}{" "}
             {saved.expiresAt
-              ? bookingTime(saved.expiresAt)
-              : "its recorded expiry"}
+              ? bookingTime(saved.expiresAt, appLocale)
+              : appText("its recorded expiry")}
             .{" "}
             <Link href="/dashboard/bookings" className="inline-link">
-              Review your revision booking
+              {appText("Review your revision booking")}{" "}
             </Link>
           </Notice>
         )}
@@ -600,6 +642,8 @@ export function ReservationBookings({
   session: Session;
   dashboard: Dashboard;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const client = useQueryClient();
   async function refresh() {
     const current = await api<Dashboard>("/dashboard");
@@ -609,19 +653,20 @@ export function ReservationBookings({
   return (
     <section
       className="reservation-bookings"
-      aria-label="Revision and recurring bookings"
+      aria-label={appText("Revision and recurring bookings")}
     >
       <div className="booking-section-heading">
-        <h2>Booked learning, clearly tracked.</h2>
+        <h2>{appText("Booked learning, clearly tracked.")}</h2>
         {session.account.role === "GUARDIAN" && (
           <Link href="/revision" className="button">
-            Request revision
+            {appText("Request revision")}{" "}
           </Link>
         )}
       </div>
       <p>
-        Holds, expert acceptance, payment and confirmed bookings remain separate
-        states.
+        {appText(
+          "Holds, expert acceptance, payment and confirmed bookings remain separate states.",
+        )}{" "}
       </p>
       {d.reservations
         ?.filter((r) => r.kind !== "DEMO")
@@ -636,10 +681,11 @@ export function ReservationBookings({
         ))}
       {!d.reservations?.some((r) => r.kind !== "DEMO") && (
         <Notice>
-          No revision or recurring reservations in this view. Students can find
-          their own booked lessons and meeting access in{" "}
+          {appText(
+            "No revision or recurring reservations in this view. Students can find their own booked lessons and meeting access in",
+          )}{" "}
           <Link href="/dashboard/lessons" className="inline-link">
-            Classes & attendance
+            {appText("Classes & attendance")}{" "}
           </Link>
           .
         </Notice>
@@ -658,6 +704,8 @@ function ReservationCard({
   dashboard: Dashboard;
   refresh: () => Promise<Dashboard>;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const [now, setNow] = useState(Date.now()),
     [form, setForm] = useState<"scope" | "cancel" | null>(null),
     [agreed, setAgreed] = useState(false),
@@ -715,44 +763,50 @@ function ReservationCard({
       <div className="booking-section-heading">
         <div>
           <h3>
-            {r.kind === "REVISION" ? "Focused revision" : "Recurring lesson"} ·{" "}
-            {r.subject}
+            {r.kind === "REVISION"
+              ? appText("Focused revision")
+              : appText("Recurring lesson")}{" "}
+            · {appCurriculum(r.subject)}
           </h3>
           <p>
             {teacher}
-            {learner ? ` with ${learner}` : ""}
+            {learner ? appText(" with {0}", [learner]) : ""}
           </p>
         </div>
         <span className="booking-status">
-          {r.status === "HOLD" && !activeHold
-            ? "hold expired"
-            : r.status.toLowerCase().replaceAll("_", " ")}
+          {appText(
+            r.status === "HOLD" && !activeHold
+              ? appText("hold expired")
+              : r.status.toLowerCase().replaceAll("_", " "),
+          )}
         </span>
       </div>
       <p className="booking-time">
         <Clock size={16} aria-hidden="true" />
-        {bookingTime(r.startsAt)}–{bookingTime(r.endsAt)} IST
+        {bookingTime(r.startsAt, appLocale)}–{bookingTime(r.endsAt, appLocale)}{" "}
+        {appText("IST")}{" "}
       </p>
       {r.topic && <p>{r.topic}</p>}
       {r.kind === "REVISION" && (
         <p>
-          {r.language} · Expert scope {r.scopeAccepted ? "accepted" : "pending"}{" "}
-          · {exactMoney(r.amountPaise)} · {r.pricePolicyVersion}
+          {appCurriculum(r.language)} {appText("· Expert scope")}{" "}
+          {r.scopeAccepted ? appText("accepted") : appText("pending")} ·{" "}
+          {exactMoney(r.amountPaise, appLocale)} · {r.pricePolicyVersion}
         </p>
       )}
       {r.expiresAt && r.status === "HOLD" && (
         <p className="booking-help">
-          Hold expires {bookingTime(r.expiresAt)}. Expired holds cannot start
-          checkout.
+          {appText("Hold expires")} {bookingTime(r.expiresAt, appLocale)}
+          {appText(". Expired holds cannot start checkout.")}{" "}
         </p>
       )}
       {r.status === "PAID_UNALLOCATED" && (
         <Notice>
-          Payment was captured but this slot was not allocated. Refund
-          processing needs review; no settled refund or confirmed meeting is
-          promised.{" "}
+          {appText(
+            "Payment was captured but this slot was not allocated. Refund processing needs review; no settled refund or confirmed meeting is promised.",
+          )}{" "}
           <Link href="/support" className="inline-link">
-            Contact payment support
+            {appText("Contact payment support")}{" "}
           </Link>
         </Notice>
       )}
@@ -769,7 +823,7 @@ function ReservationCard({
                 setAgreed(false);
               }}
             >
-              Review topic scope
+              {appText("Review topic scope")}{" "}
             </Button>
           )}
         {guardian &&
@@ -783,7 +837,7 @@ function ReservationCard({
                 setAgreed(false);
               }}
             >
-              Review cancellation
+              {appText("Review cancellation")}{" "}
             </Button>
           )}
         <Button
@@ -791,25 +845,29 @@ function ReservationCard({
           disabled={decision.busy || decision.uncertain || paymentLocked}
           onClick={() => decision.reload()}
         >
-          Refresh booking
+          {appText("Refresh booking")}{" "}
         </Button>
       </div>
       {form && (
         <div className="checkout-review" ref={focus} tabIndex={-1}>
           <h4>
             {form === "scope"
-              ? "Review expert scope acceptance"
-              : "Review reservation cancellation"}
+              ? appText("Review expert scope acceptance")
+              : appText("Review reservation cancellation")}
           </h4>
           <p>
             {form === "scope"
-              ? "Accept only the brief, learner coverage and session time you can deliver. Payment is still separate."
-              : "This cancels the reservation and its future scheduled lesson/meeting. Captured payments follow the approved policy and refund processing; late cancellation may require support review."}
+              ? appText(
+                  "Accept only the brief, learner coverage and session time you can deliver. Payment is still separate.",
+                )
+              : appText(
+                  "This cancels the reservation and its future scheduled lesson/meeting. Captured payments follow the approved policy and refund processing; late cancellation may require support review.",
+                )}
           </p>
           <fieldset disabled={locked}>
             {form === "cancel" && (
               <label>
-                Reason for cancellation
+                {appText("Reason for cancellation")}{" "}
                 <Textarea
                   maxLength={300}
                   value={reason}
@@ -825,18 +883,22 @@ function ReservationCard({
               />
               <span>
                 {form === "scope"
-                  ? "I can deliver this topic brief at the recorded time."
-                  : "I reviewed the cancellation and pending refund implications."}
+                  ? appText(
+                      "I can deliver this topic brief at the recorded time.",
+                    )
+                  : appText(
+                      "I reviewed the cancellation and pending refund implications.",
+                    )}
               </span>
             </label>
             <div className="booking-actions">
               <Button variant="outline" onClick={() => setForm(null)}>
-                Keep booking
+                {appText("Keep booking")}{" "}
               </Button>
               <Button className="button" onClick={save}>
                 {form === "scope"
-                  ? "Accept topic scope"
-                  : "Confirm cancellation"}
+                  ? appText("Accept topic scope")
+                  : appText("Confirm cancellation")}
               </Button>
             </div>
           </fieldset>
@@ -892,11 +954,16 @@ export function PlacementInvoices({
   session: Session;
   dashboard: Dashboard;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const client = useQueryClient();
   if (session.account.role !== "TEACHER") return null;
   return (
-    <section className="placement-invoices" aria-label="Placement invoices">
-      <h3>Placement invoices</h3>
+    <section
+      className="placement-invoices"
+      aria-label={appText("Placement invoices")}
+    >
+      <h3>{appText("Placement invoices")}</h3>
       {d.invoices?.length ? (
         d.invoices.map((i) => {
           const invoice = i as typeof i & {
@@ -905,10 +972,13 @@ export function PlacementInvoices({
           };
           return (
             <div key={i.id} className="reservation-card-new">
-              <h4>Teacher placement fee · {exactMoney(i.amountPaise)}</h4>
+              <h4>
+                {appText("Teacher placement fee ·")}{" "}
+                {exactMoney(i.amountPaise, appLocale)}
+              </h4>
               <p>
-                {i.status.toLowerCase()} ·{" "}
-                {invoice.policyVersion || "Policy details unavailable"}
+                {appText(i.status.toLowerCase())} ·{" "}
+                {invoice.policyVersion || appText("Policy details unavailable")}
               </p>
               {invoice.version &&
                 invoice.policyVersion &&
@@ -945,8 +1015,9 @@ export function PlacementInvoices({
         })
       ) : (
         <Notice>
-          No placement invoices. Each party must independently confirm paid
-          tuition start and receipt first.
+          {appText(
+            "No placement invoices. Each party must independently confirm paid tuition start and receipt first.",
+          )}{" "}
         </Notice>
       )}
     </section>

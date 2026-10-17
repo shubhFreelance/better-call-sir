@@ -1,11 +1,12 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useState } from "react";
 import { MeetingAccess } from "./booking-payments";
 import { useQuery } from "@tanstack/react-query";
 import { api, Demo, Session, Teacher } from "@bcs/api-client";
 type Act = (path: string, body?: unknown) => Promise<unknown>;
-const date = (value: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+const date = (value: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     dateStyle: "medium",
     timeStyle: "short",
@@ -35,6 +36,8 @@ function DemoSlot({
   reschedule?: boolean;
   pending: boolean;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   return (
     <form
       className="form-panel"
@@ -51,29 +54,32 @@ function DemoSlot({
       }}
     >
       <label className="field">
-        <span>Demo start (IST)</span>
+        <span>{appText("Demo start (IST)")}</span>
         <input name="startsAt" type="datetime-local" required />
       </label>
       <label className="field">
-        <span>Demo duration</span>
+        <span>{appText("Demo duration")}</span>
         <select name="duration" defaultValue="30">
-          <option value="20">20 minutes</option>
-          <option value="30">30 minutes</option>
-          <option value="40">40 minutes</option>
+          <option value="20">{appText("20 minutes")}</option>
+          <option value="30">{appText("30 minutes")}</option>
+          <option value="40">{appText("40 minutes")}</option>
         </select>
       </label>
       {reschedule && (
         <label className="field">
-          <span>Reason for rescheduling</span>
+          <span>{appText("Reason for rescheduling")}</span>
           <input name="reason" required maxLength={300} />
         </label>
       )}
       <p className="muted">
-        At least one hour ahead, within 60 days. Both parties must accept the
-        same time. Proposals expire within 24 hours.
+        {appText(
+          "At least one hour ahead, within 60 days. Both parties must accept the same time. Proposals expire within 24 hours.",
+        )}{" "}
       </p>
       <button className="button secondary" type="submit" disabled={pending}>
-        {reschedule ? "Propose new demo time" : "Propose demo"}
+        {reschedule
+          ? appText("Propose new demo time")
+          : appText("Propose demo")}
       </button>
     </form>
   );
@@ -85,13 +91,15 @@ export function DemoJourney({
   session: Session | null;
   act: Act;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const query = useDemos(session);
   const teachers = useQuery({
     queryKey: ["teachers"],
     queryFn: () => api<{ items: Teacher[] }>("/teachers"),
   });
-  if (query.isLoading) return <p>Loading demos…</p>;
-  if (query.error) return <p role="alert">{query.error.message}</p>;
+  if (query.isLoading) return <p>{appText("Loading demos…")}</p>;
+  if (query.error) return <p role="alert">{appError(query.error.message)}</p>;
   if (!session || !query.data) return null;
   const reviewing = ["ADMIN", "OPERATOR"].includes(session.account.role);
   const items = reviewing
@@ -99,14 +107,20 @@ export function DemoJourney({
     : query.data.items;
   return (
     <section
-      aria-label={reviewing ? "Demo dispute reviews" : "Demo scheduling"}
+      aria-label={
+        reviewing ? appText("Demo dispute reviews") : appText("Demo scheduling")
+      }
     >
-      <h3>{reviewing ? "Demo dispute reviews" : "Your demos"}</h3>
+      <h3>
+        {reviewing ? appText("Demo dispute reviews") : appText("Your demos")}
+      </h3>
       {!items.length && (
         <p className="muted">
           {reviewing
-            ? "No demo disputes awaiting review."
-            : "Arrange a demo from an accepted teacher recommendation in Tuition requests."}
+            ? appText("No demo disputes awaiting review.")
+            : appText(
+                "Arrange a demo from an accepted teacher recommendation in Tuition requests.",
+              )}
         </p>
       )}
       {items.map((d) => (
@@ -138,6 +152,8 @@ function DemoCard({
   teacherName: string;
   act: Act;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [reason, setReason] = useState(""),
     [reschedule, setReschedule] = useState(false),
     [pending, setPending] = useState(false);
@@ -165,39 +181,52 @@ function DemoCard({
     <article
       className="panel demo-card"
       data-demo-id={d.id}
-      aria-label={`Demo with ${teacherName}`}
+      aria-label={appText("Demo with {0}", [teacherName])}
     >
       <div className="panel-title">
-        <h3>Demo with {teacherName}</h3>
+        <h3>
+          {appText("Demo with")} {teacherName}
+        </h3>
         <span className="badge">
           {d.status === "PROPOSED" && !proposed
-            ? "proposal expired"
-            : pretty(d.status)}
+            ? appText("proposal expired")
+            : appText(pretty(d.status))}
         </span>
       </div>
       <p>
-        {date(r.startsAt)} – {date(r.endsAt)} · IST
+        {date(r.startsAt, appLocale)} – {date(r.endsAt, appLocale)}{" "}
+        {appText("· IST")}{" "}
       </p>
       <p className="muted">
-        Version {d.version} · Guardian{" "}
-        {d.guardianAccepted ? "accepted" : "pending"} · Teacher{" "}
-        {d.teacherAccepted ? "accepted" : "pending"}
+        {appText("Version")} {d.version} {appText("· Guardian")}{" "}
+        {d.guardianAccepted ? appText("accepted") : appText("pending")}{" "}
+        {appText("· Teacher")}{" "}
+        {d.teacherAccepted ? appText("accepted") : appText("pending")}
       </p>
       {r.expiresAt && d.status === "PROPOSED" && (
-        <p>Accept before {date(r.expiresAt)}.</p>
+        <p>
+          {appText("Accept before")} {date(r.expiresAt, appLocale)}.
+        </p>
       )}
       <p className="muted">
-        This is a scheduling record. Private meeting access is provided
-        separately when a meeting is ready.
+        {appText(
+          "This is a scheduling record. Private meeting access is provided separately when a meeting is ready.",
+        )}{" "}
       </p>
       {d.status === "CONFIRMED" && (
         <MeetingAccess session={session} reservationId={r.id} confirmed />
       )}
-      {outcome && <p>Your recorded outcome: {pretty(outcome)}.</p>}
+      {outcome && (
+        <p>
+          {appText("Your recorded outcome:")} {appText(pretty(outcome))}.
+        </p>
+      )}
       {d.status === "DISPUTED" && (
         <p role="status">
-          Support case {d.supportCaseId}: awaiting operator review. Tuition
-          terms remain blocked.
+          {appText("Support case")} {d.supportCaseId}
+          {appText(
+            ": awaiting operator review. Tuition terms remain blocked.",
+          )}{" "}
         </p>
       )}
       {!reviewing && proposed && !accepted && (
@@ -210,7 +239,7 @@ function DemoCard({
             })
           }
         >
-          Accept demo time
+          {appText("Accept demo time")}{" "}
         </button>
       )}
       {!reviewing && future && ["PROPOSED", "CONFIRMED"].includes(d.status) && (
@@ -221,7 +250,7 @@ function DemoCard({
               disabled={pending}
               onClick={() => setReschedule(!reschedule)}
             >
-              Reschedule demo
+              {appText("Reschedule demo")}{" "}
             </button>
           </div>
           {reschedule && (
@@ -239,7 +268,7 @@ function DemoCard({
             />
           )}
           <label className="field">
-            <span>Cancellation reason</span>
+            <span>{appText("Cancellation reason")}</span>
             <input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -256,7 +285,7 @@ function DemoCard({
               })
             }
           >
-            Cancel demo
+            {appText("Cancel demo")}{" "}
           </button>
         </>
       )}
@@ -274,19 +303,19 @@ function DemoCard({
           }}
         >
           <label className="field">
-            <span>Demo outcome</span>
+            <span>{appText("Demo outcome")}</span>
             <select name="outcome">
-              <option value="COMPLETED">Completed</option>
-              <option value="NO_SHOW">No-show</option>
-              <option value="DISPUTED">Disputed</option>
+              <option value="COMPLETED">{appText("Completed")}</option>
+              <option value="NO_SHOW">{appText("No-show")}</option>
+              <option value="DISPUTED">{appText("Disputed")}</option>
             </select>
           </label>
           <label className="field">
-            <span>Outcome details</span>
+            <span>{appText("Outcome details")}</span>
             <textarea name="reason" required maxLength={1000} />
           </label>
           <button className="button" disabled={pending}>
-            Record demo outcome
+            {appText("Record demo outcome")}{" "}
           </button>
         </form>
       )}
@@ -304,18 +333,20 @@ function DemoCard({
           }}
         >
           <label className="field">
-            <span>Reviewed demo resolution</span>
+            <span>{appText("Reviewed demo resolution")}</span>
             <select name="resolution">
-              <option value="NOT_COMPLETED">Not completed</option>
-              <option value="COMPLETED">Completed after evidence review</option>
+              <option value="NOT_COMPLETED">{appText("Not completed")}</option>
+              <option value="COMPLETED">
+                {appText("Completed after evidence review")}
+              </option>
             </select>
           </label>
           <label className="field">
-            <span>Review evidence and reason</span>
+            <span>{appText("Review evidence and reason")}</span>
             <textarea name="reason" required maxLength={1000} />
           </label>
           <button className="button" disabled={pending}>
-            Resolve demo dispute
+            {appText("Resolve demo dispute")}{" "}
           </button>
         </form>
       )}

@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { validator } from "../helpers/contract";
@@ -714,7 +715,7 @@ test("no-match requests show a recovery path without claiming a teacher assignme
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Get help with this request" }),
-  ).toHaveAttribute("href", "/support");
+  ).toHaveAttribute("href", `/support?request=${requestId}`);
   await expect(
     page.getByRole("button", { name: "Select teacher", exact: true }),
   ).toHaveCount(0);
@@ -962,4 +963,13 @@ test("no-match recovery preserves the enquiry and offers availability, manual se
     }),
   ).toBeVisible();
   expect(state.paths.filter((p) => p.startsWith("POST"))).toEqual([]);
+});
+
+test("Hindi complete interface — शिक्षक की सूची और चयन", async ({ page }) => {
+  await chooseHindi(page);
+  await mock(page);
+  await page.goto("/dashboard/requests");
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
 });

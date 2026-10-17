@@ -477,10 +477,20 @@ test("guardian arranges and reschedules a demo; no-show reaches operator review"
     await panel
       .getByRole("button", { name: "Choose & arrange optional demo" })
       .click();
-    const slot = new Date();
-    slot.setUTCDate(slot.getUTCDate() + 40);
-    slot.setUTCHours(11, Date.now() % 50, 0, 0);
-    const ist = slot.toISOString().slice(0, 16);
+    async function freeDemoStart() {
+      const from = new Date(Date.now() + 40 * 86400000);
+      const through = new Date(from.getTime() + 7 * 86400000);
+      const response = await page.request.get(
+        `/api/v1/teachers/${ids.teacher}/availability?${new URLSearchParams({ kind: "DEMO", duration: "30", startsAt: from.toISOString(), endsAt: through.toISOString(), limit: "50" })}`,
+      );
+      expect(response.ok()).toBe(true);
+      const available = (await response.json()).items[0];
+      expect(available).toBeTruthy();
+      return new Date(new Date(available.startsAt).getTime() + 330 * 60000)
+        .toISOString()
+        .slice(0, 16);
+    }
+    const ist = await freeDemoStart();
     await panel.getByLabel("Demo start (IST)").fill(ist);
     await panel
       .getByRole("button", { name: "Propose demo", exact: true })
@@ -512,10 +522,7 @@ test("guardian arranges and reschedules a demo; no-show reaches operator review"
     await card
       .getByRole("button", { name: "Reschedule demo", exact: true })
       .click();
-    slot.setUTCDate(slot.getUTCDate() + 1);
-    await card
-      .getByLabel("Demo start (IST)")
-      .fill(slot.toISOString().slice(0, 16));
+    await card.getByLabel("Demo start (IST)").fill(await freeDemoStart());
     await card
       .getByLabel("Reason for rescheduling")
       .fill("Guardian schedule changed");
@@ -551,10 +558,21 @@ test("guardian arranges and reschedules a demo; no-show reaches operator review"
     );
     const db = new Pool({ connectionString });
     try {
-      await db.query(
-        'UPDATE "Reservation" SET "startsAt"=NOW()-INTERVAL \'2 hours\', "endsAt"=NOW()-INTERVAL \'1 hour\' WHERE id=$1 AND kind=\'DEMO\' AND "guardianId"=$2',
-        [demo.reservationId, ids.guardian],
+      const moved = await db.query(
+        `WITH free_slot AS (
+          SELECT NOW()::timestamp - n * INTERVAL '1 day' AS start
+          FROM generate_series(2, 365) AS days(n)
+          WHERE NOT EXISTS (
+            SELECT 1 FROM "Reservation" r
+            WHERE r."teacherId"=$3 AND r.id<>$1 AND r.status IN ('HOLD','CONFIRMED')
+              AND r."startsAt" < NOW()::timestamp - n * INTERVAL '1 day' + INTERVAL '1 hour'
+              AND r."endsAt" > NOW()::timestamp - n * INTERVAL '1 day'
+          ) ORDER BY n LIMIT 1
+        ) UPDATE "Reservation" own SET "startsAt"=free_slot.start, "endsAt"=free_slot.start + INTERVAL '1 hour'
+          FROM free_slot WHERE own.id=$1 AND own.kind='DEMO' AND own."guardianId"=$2`,
+        [demo.reservationId, ids.guardian, ids.teacher],
       );
+      expect(moved.rowCount).toBe(1);
     } finally {
       await db.end();
     }

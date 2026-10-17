@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -22,6 +23,8 @@ const splitSubjects = (text: string) =>
     .map((s) => s.trim())
     .filter(Boolean);
 export function StudentWelcome({ session }: { session: Session }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const query = useQuery({
     queryKey: ["student-setup", session.account.id],
     queryFn: ({ signal }) =>
@@ -35,30 +38,35 @@ export function StudentWelcome({ session }: { session: Session }) {
   return (
     <main className="container section student-welcome">
       <header className="wizard-title">
-        <h1>Set up your student space.</h1>
+        <h1>{appText("Set up your student space.")}</h1>
         <p>
-          Check what you’re learning, choose the help you want, and review your
-          setup before saving.
+          {appText(
+            "Check what you’re learning, choose the help you want, and review your setup before saving.",
+          )}{" "}
         </p>
       </header>
       <div className="student-welcome-layout">
         <div className="student-welcome-main">
           {query.isPending ? (
-            <p role="status">Loading your student setup…</p>
+            <p role="status">{appText("Loading your student setup…")}</p>
           ) : !query.data || denied ? (
             <section className="wizard-card">
               <Alert variant="destructive">
                 <AlertDescription>
                   {denied
-                    ? "Your student access or guardian permission needs review. Ask your guardian for help before continuing."
-                    : "We couldn’t load your saved student setup. Try again before entering details."}
+                    ? appText(
+                        "Your student access or guardian permission needs review. Ask your guardian for help before continuing.",
+                      )
+                    : appText(
+                        "We couldn’t load your saved student setup. Try again before entering details.",
+                      )}
                 </AlertDescription>
               </Alert>
               <Button onClick={() => query.refetch()}>
-                Retry loading student setup
+                {appText("Retry loading student setup")}{" "}
               </Button>
               <Link href="/dashboard" className="inline-link">
-                Open dashboard
+                {appText("Open dashboard")}{" "}
               </Link>
             </section>
           ) : (
@@ -66,14 +74,15 @@ export function StudentWelcome({ session }: { session: Session }) {
               {query.error && (
                 <Alert variant="destructive">
                   <AlertDescription>
-                    We couldn’t refresh your setup. Your edits are retained;
-                    reload the latest details before saving.
+                    {appText(
+                      "We couldn’t refresh your setup. Your edits are retained; reload the latest details before saving.",
+                    )}{" "}
                     <Button
                       variant="outline"
                       disabled={query.isFetching}
                       onClick={() => query.refetch()}
                     >
-                      Retry loading student setup
+                      {appText("Retry loading student setup")}{" "}
                     </Button>
                   </AlertDescription>
                 </Alert>
@@ -91,26 +100,28 @@ export function StudentWelcome({ session }: { session: Session }) {
           )}
         </div>
         <aside className="student-welcome-notice">
-          <h2>Your learning, with support.</h2>
+          <h2>{appText("Your learning, with support.")}</h2>
           <p>
-            You can explore teachers and tell us what works for you. Your
-            guardian currently sends enquiries, chooses teachers and agrees to
-            tuition terms.
+            {appText(
+              "You can explore teachers and tell us what works for you. Your guardian currently sends enquiries, chooses teachers and agrees to tuition terms.",
+            )}{" "}
           </p>
           <p>
-            Your support choice records the help you want. It does not change
-            these permissions.
+            {appText(
+              "Your support choice records the help you want. It does not change these permissions.",
+            )}{" "}
           </p>
-          <h3>Keep personal details private.</h3>
+          <h3>{appText("Keep personal details private.")}</h3>
           <p>
-            Do not add phone numbers, addresses, passwords or identity documents
-            to learning notes.
+            {appText(
+              "Do not add phone numbers, addresses, passwords or identity documents to learning notes.",
+            )}{" "}
           </p>
           <Link className="inline-link" href="/support">
-            Get help with your guardian
+            {appText("Get help with your guardian")}{" "}
           </Link>
           <Link className="inline-link" href="/teachers">
-            Explore teacher profiles
+            {appText("Explore teacher profiles")}{" "}
           </Link>
         </aside>
       </div>
@@ -128,6 +139,8 @@ function StudentSetupForm({
   readBlocked: boolean;
   onReload: () => Promise<unknown>;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const initial = context.progress.draft as Preferences,
     suggestions = context.learner.education.subjects;
   const [subjects, setSubjects] = useState(
@@ -263,54 +276,61 @@ function StudentSetupForm({
   if (!context.learner.enquiryEligible)
     return (
       <section className="wizard-card">
-        <h2>Review your education details.</h2>
+        <h2>{appText("Review your education details.")}</h2>
         <EducationSummary education={context.learner.education} />
         <Alert>
           <AlertDescription>
-            Some education details are missing. Ask your guardian to complete
-            your profile, then reload your setup.
+            {appText(
+              "Some education details are missing. Ask your guardian to complete your profile, then reload your setup.",
+            )}{" "}
           </AlertDescription>
         </Alert>
         <Button variant="outline" disabled={readBlocked} onClick={onReload}>
-          Reload student setup
+          {appText("Reload student setup")}{" "}
         </Button>
       </section>
     );
   return (
     <section
       className="wizard-card student-setup-form"
-      aria-label="Student onboarding"
+      aria-label={appText("Student onboarding")}
     >
-      <ol className="student-setup-steps" aria-label="Student setup progress">
+      <ol
+        className="student-setup-steps"
+        aria-label={appText("Student setup progress")}
+      >
         <li aria-current={!review ? "step" : undefined}>
-          1 · Details and support
+          {appText("1 · Details and support")}{" "}
         </li>
-        <li aria-current={review ? "step" : undefined}>2 · Review and save</li>
+        <li aria-current={review ? "step" : undefined}>
+          {appText("2 · Review and save")}
+        </li>
       </ol>
       <h2 ref={heading} tabIndex={-1}>
         {saved
-          ? "Your student setup is saved."
+          ? appText("Your student setup is saved.")
           : review
-            ? "Review your student setup"
-            : "What helps you learn?"}
+            ? appText("Review your student setup")
+            : appText("What helps you learn?")}
       </h2>
       {review ? (
         <div className="student-setup-review">
           <h3>{context.learner.alias}</h3>
           <EducationSummary education={context.learner.education} />
-          <h3>Support you want</h3>
-          <p>{supportLabels[review.managementPreference]}</p>
-          <h3>Learning preferences</h3>
+          <h3>{appText("Support you want")}</h3>
+          <p>{appText(supportLabels[review.managementPreference])}</p>
+          <h3>{appText("Learning preferences")}</h3>
           <p>
             {review.subjects?.length
-              ? review.subjects.join(", ")
-              : "No subjects selected"}
+              ? review.subjects.map((value) => appCurriculum(value)).join(", ")
+              : appText("No subjects selected")}
           </p>
-          <p>{review.language || "No language preference"}</p>
+          <p>{review.language || appText("No language preference")}</p>
           {review.learningPreferences && <p>{review.learningPreferences}</p>}
           <p>
-            Your guardian continues to handle enquiries, teacher choices and
-            tuition agreements.
+            {appText(
+              "Your guardian continues to handle enquiries, teacher choices and tuition agreements.",
+            )}{" "}
           </p>
         </div>
       ) : (
@@ -324,7 +344,7 @@ function StudentSetupForm({
         >
           <fieldset disabled={locked} className="wizard-fields">
             <div className="student-education-review">
-              <h3>Your education details</h3>
+              <h3>{appText("Your education details")}</h3>
               <strong>{context.learner.alias}</strong>
               <EducationSummary education={context.learner.education} />
               <label className="wizard-checkbox">
@@ -340,11 +360,12 @@ function StudentSetupForm({
                       : "student-education-help"
                   }
                 />
-                <span>These education details are correct</span>
+                <span>{appText("These education details are correct")}</span>
               </label>
               <small className="wizard-help" id="student-education-help">
-                If anything is wrong, ask your guardian to review it before
-                continuing.
+                {appText(
+                  "If anything is wrong, ask your guardian to review it before continuing.",
+                )}{" "}
               </small>
               {errors.education && (
                 <p
@@ -352,15 +373,18 @@ function StudentSetupForm({
                   role="alert"
                   className="field-error"
                 >
-                  {errors.education}
+                  {appError(errors.education)}
                 </p>
               )}
             </div>
             <fieldset className="student-support-choices">
-              <legend>How would you like to manage your learning?</legend>
+              <legend>
+                {appText("How would you like to manage your learning?")}
+              </legend>
               <p className="wizard-help" id="student-management-help">
-                Choose the support you want. Your current account permissions
-                stay as they are.
+                {appText(
+                  "Choose the support you want. Your current account permissions stay as they are.",
+                )}{" "}
               </p>
               {(["SELF_DIRECTED", "GUARDIAN_GUIDED"] as const).map(
                 (choice, i) => (
@@ -391,11 +415,15 @@ function StudentSetupForm({
                       }
                     />
                     <span>
-                      <strong>{supportLabels[choice]}</strong>
+                      <strong>{appText(supportLabels[choice])}</strong>
                       <small>
                         {i === 0
-                          ? "I want to organise my goals and explore teachers, with help when I ask for it."
-                          : "I want help understanding my needs and choosing a suitable teacher."}
+                          ? appText(
+                              "I want to organise my goals and explore teachers, with help when I ask for it.",
+                            )
+                          : appText(
+                              "I want help understanding my needs and choosing a suitable teacher.",
+                            )}
                       </small>
                     </span>
                   </label>
@@ -407,12 +435,14 @@ function StudentSetupForm({
                   id="student-management-error"
                   role="alert"
                 >
-                  {errors.management}
+                  {appError(errors.management)}
                 </p>
               )}
             </fieldset>
             <fieldset>
-              <legend>Subjects you want help with (optional)</legend>
+              <legend>
+                {appText("Subjects you want help with (optional)")}
+              </legend>
               <div className="teacher-choices">
                 {suggestions.map((s) => (
                   <label key={s} className="teacher-choice">
@@ -427,14 +457,14 @@ function StudentSetupForm({
                         )
                       }
                     />
-                    <span>{s}</span>
+                    <span>{appCurriculum(s)}</span>
                   </label>
                 ))}
               </div>
             </fieldset>
             <div className="field">
               <label htmlFor="student-other-subjects">
-                Other subjects (optional)
+                {appText("Other subjects (optional)")}{" "}
               </label>
               <Input
                 id="student-other-subjects"
@@ -449,8 +479,9 @@ function StudentSetupForm({
                 }
               />
               <small className="wizard-help" id="student-subjects-help">
-                Separate subjects with commas. Choose up to 20 subjects in
-                total.
+                {appText(
+                  "Separate subjects with commas. Choose up to 20 subjects in total.",
+                )}{" "}
               </small>
               {errors.subjects && (
                 <p
@@ -458,27 +489,27 @@ function StudentSetupForm({
                   role="alert"
                   id="student-subjects-error"
                 >
-                  {errors.subjects}
+                  {appError(errors.subjects)}
                 </p>
               )}
             </div>
             <div className="field">
               <label htmlFor="student-language">
-                Language you prefer (optional)
+                {appText("Language you prefer (optional)")}{" "}
               </label>
               <select
                 id="student-language"
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
               >
-                <option value="">No preference</option>
-                <option value="English">English</option>
-                <option value="Hindi">Hindi</option>
+                <option value="">{appText("No preference")}</option>
+                <option value="English">{appText("English")}</option>
+                <option value="Hindi">{appText("Hindi")}</option>
               </select>
             </div>
             <div className="field">
               <label htmlFor="student-learning-notes">
-                How do you like to learn? (optional)
+                {appText("How do you like to learn? (optional)")}{" "}
               </label>
               <Textarea
                 id="student-learning-notes"
@@ -490,30 +521,35 @@ function StudentSetupForm({
                 aria-describedby="student-notes-help"
               />
               <small id="student-notes-help" className="wizard-help">
-                For example, “Please explain with pictures and give me time to
-                try.” Keep personal details out. {notes.length}/500 characters.
+                {appText(
+                  "For example, “Please explain with pictures and give me time to try.” Keep personal details out.",
+                )}{" "}
+                {notes.length}
+                {appText("/500 characters.")}{" "}
               </small>
             </div>
           </fieldset>
           <p className="wizard-help">
-            Only the final confirmation saves your changes. Leaving or reloading
-            clears unsaved details.
+            {appText(
+              "Only the final confirmation saves your changes. Leaving or reloading clears unsaved details.",
+            )}{" "}
           </p>
         </form>
       )}
       {error && (
         <Alert variant="destructive" role="alert">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{appError(error)}</AlertDescription>
         </Alert>
       )}
       {conflict && (
         <div className="student-preferences-recovery">
           <p>
-            Your edits are retained. Reloading replaces them with the latest
-            saved setup and education details; review them again before saving.
+            {appText(
+              "Your edits are retained. Reloading replaces them with the latest saved setup and education details; review them again before saving.",
+            )}{" "}
           </p>
           <Button variant="outline" disabled={readBlocked} onClick={onReload}>
-            Reload latest student setup
+            {appText("Reload latest student setup")}{" "}
           </Button>
         </div>
       )}
@@ -532,13 +568,13 @@ function StudentSetupForm({
                 requestAnimationFrame(() => heading.current?.focus());
               }}
             >
-              Update student setup
+              {appText("Update student setup")}{" "}
             </Button>
             <Button asChild>
-              <Link href="/teachers">Explore teachers</Link>
+              <Link href="/teachers">{appText("Explore teachers")}</Link>
             </Button>
             <Link href="/dashboard" className="inline-link">
-              Open dashboard
+              {appText("Open dashboard")}{" "}
             </Link>
           </>
         ) : review ? (
@@ -554,7 +590,7 @@ function StudentSetupForm({
                 requestAnimationFrame(() => heading.current?.focus());
               }}
             >
-              Edit setup details
+              {appText("Edit setup details")}{" "}
             </Button>
             <Button
               key="confirm"
@@ -563,10 +599,10 @@ function StudentSetupForm({
               onClick={save}
             >
               {busy
-                ? "Saving student setup…"
+                ? appText("Saving student setup…")
                 : uncertain
-                  ? "Retry saving student setup"
-                  : "Confirm and save student setup"}
+                  ? appText("Retry saving student setup")
+                  : appText("Confirm and save student setup")}
             </Button>
           </>
         ) : (
@@ -577,10 +613,10 @@ function StudentSetupForm({
               type="submit"
               disabled={locked}
             >
-              Review student setup
+              {appText("Review student setup")}{" "}
             </Button>
             <Link href="/dashboard" className="inline-link">
-              Do this later
+              {appText("Do this later")}{" "}
             </Link>
           </>
         )}

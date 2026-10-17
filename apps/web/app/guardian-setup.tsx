@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,6 +15,8 @@ export function GuardianSetup({
   session: Session;
   onSessionChange: (session: Session) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const client = useQueryClient();
   const [accepted, setAccepted] = useState(false),
     [busy, setBusy] = useState(false),
@@ -94,24 +97,29 @@ export function GuardianSetup({
   return (
     <main className="container section guardian-setup">
       <header className="wizard-title">
-        <h1>A clear start for your learner.</h1>
+        <h1>{appText("A clear start for your learner.")}</h1>
         <p>
-          Set up your guardian account, add education details, then choose how
-          to find a teacher.
+          {appText(
+            "Set up your guardian account, add education details, then choose how to find a teacher.",
+          )}{" "}
         </p>
         <Link href="/dashboard" className="inline-link">
-          Back to dashboard
+          {appText("Back to dashboard")}{" "}
         </Link>
       </header>
       {status.isPending ? (
-        <p role="status">Loading your guardian setup…</p>
+        <p role="status">{appText("Loading your guardian setup…")}</p>
       ) : status.error || readError ? (
         <Alert variant="destructive">
           <AlertDescription>
-            {readError ||
-              "We couldn’t load your guardian setup. Refresh before continuing."}
+            {appError(
+              readError ||
+                appText(
+                  "We couldn’t load your guardian setup. Refresh before continuing.",
+                ),
+            )}
             <Button variant="outline" disabled={busy} onClick={refresh}>
-              Retry guardian setup
+              {appText("Retry guardian setup")}{" "}
             </Button>
           </AlertDescription>
         </Alert>
@@ -119,12 +127,13 @@ export function GuardianSetup({
         data && (
           <div className="guardian-setup-layout">
             <aside className="guardian-setup-path">
-              <h2>Your family, your pace.</h2>
+              <h2>{appText("Your family, your pace.")}</h2>
               <p>
-                Save a learner profile first. Finding a teacher is a separate
-                step you can return to.
+                {appText(
+                  "Save a learner profile first. Finding a teacher is a separate step you can return to.",
+                )}{" "}
               </p>
-              <ol aria-label="Guardian setup steps">
+              <ol aria-label={appText("Guardian setup steps")}>
                 {[
                   [
                     "Your account",
@@ -150,11 +159,15 @@ export function GuardianSetup({
                           : "setup-step-number"
                       }
                     >
-                      {done ? <Check size={18} aria-label="Complete" /> : i + 1}
+                      {done ? (
+                        <Check size={18} aria-label={appText("Complete")} />
+                      ) : (
+                        i + 1
+                      )}
                     </span>
                     <div>
-                      <h3>{title}</h3>
-                      <p>{description}</p>
+                      <h3>{appText(title)}</h3>
+                      <p>{appText(description)}</p>
                     </div>
                   </li>
                 ))}
@@ -162,17 +175,17 @@ export function GuardianSetup({
             </aside>
             <section
               className="guardian-setup-panel"
-              aria-label="Guardian setup next step"
+              aria-label={appText("Guardian setup next step")}
             >
               <div className="guardian-setup-account">
                 <ShieldCheck size={22} aria-hidden="true" />
                 <div>
                   <strong>{data.name}</strong>
                   <p>
-                    Guardian account ·{" "}
+                    {appText("Guardian account ·")}{" "}
                     {data.gate === "VERIFICATION_REQUIRED"
-                      ? "Verification pending"
-                      : "Verified"}
+                      ? appText("Verification pending")
+                      : appText("Verified")}
                   </p>
                 </div>
                 <Button
@@ -180,54 +193,57 @@ export function GuardianSetup({
                   disabled={busy || status.isFetching}
                   onClick={refresh}
                 >
-                  Refresh setup
+                  {appText("Refresh setup")}{" "}
                 </Button>
               </div>
               {message && (
                 <Alert variant="destructive">
-                  <AlertDescription>{message}</AlertDescription>
+                  <AlertDescription>{appText(message)}</AlertDescription>
                 </Alert>
               )}
               {data.gate === "VERIFICATION_REQUIRED" ? (
                 <>
-                  <h2>Guardian verification comes first.</h2>
+                  <h2>{appText("Guardian verification comes first.")}</h2>
                   <p>
-                    Your email sign-in does not verify your authority as a
-                    guardian. Approved verification is required before entering
-                    learner information.
+                    {appText(
+                      "Your email sign-in does not verify your authority as a guardian. Approved verification is required before entering learner information.",
+                    )}{" "}
                   </p>
                   <p>
-                    You can explore teachers while verification is pending. No
-                    learner details are needed here.
+                    {appText(
+                      "You can explore teachers while verification is pending. No learner details are needed here.",
+                    )}{" "}
                   </p>
                   <Link className="inline-link" href="/support">
-                    Get help with guardian verification
+                    {appText("Get help with guardian verification")}{" "}
                   </Link>
                 </>
               ) : data.gate === "PRIVACY_PAUSED" ? (
                 <>
-                  <h2>Learner setup is paused.</h2>
+                  <h2>{appText("Learner setup is paused.")}</h2>
                   <p>
-                    Your deletion request is being reviewed. Review its progress
-                    before adding learner details or starting a new enquiry.
+                    {appText(
+                      "Your deletion request is being reviewed. Review its progress before adding learner details or starting a new enquiry.",
+                    )}{" "}
                   </p>
                   <Button asChild>
                     <Link href="/dashboard/privacy">
-                      Review privacy request
+                      {appText("Review privacy request")}{" "}
                     </Link>
                   </Button>
                 </>
               ) : data.gate === "CONSENT_REQUIRED" ? (
                 <>
-                  <h2>Your permission comes first.</h2>
+                  <h2>{appText("Your permission comes first.")}</h2>
                   <p>
-                    We use learner education details and tuition needs to review
-                    teacher fit and manage learning records. This permission
-                    does not authorise AI training.
+                    {appText(
+                      "We use learner education details and tuition needs to review teacher fit and manage learning records. This permission does not authorise AI training.",
+                    )}{" "}
                   </p>
                   <p>
-                    You choose a teacher after reviewing suitable options. You
-                    can review or withdraw permission in Family access.
+                    {appText(
+                      "You choose a teacher after reviewing suitable options. You can review or withdraw permission in Family access.",
+                    )}{" "}
                   </p>
                   <form
                     onSubmit={(e) => {
@@ -244,14 +260,15 @@ export function GuardianSetup({
                         aria-describedby="guardian-permission-notice"
                       />
                       <span>
-                        I am the learner’s parent or lawful guardian. I agree to
-                        the use described above for tuition matching and
-                        learning records.
+                        {appText(
+                          "I am the learner’s parent or lawful guardian. I agree to the use described above for tuition matching and learning records.",
+                        )}{" "}
                       </span>
                     </label>
                     <p className="wizard-help" id="guardian-permission-notice">
-                      Current permission notice: development-v1. Saving
-                      permission does not send a tuition enquiry.
+                      {appText(
+                        "Current permission notice: development-v1. Saving permission does not send a tuition enquiry.",
+                      )}{" "}
                     </p>
                     <div className="wizard-actions">
                       {pending ? (
@@ -261,11 +278,13 @@ export function GuardianSetup({
                           disabled={busy}
                           onClick={refresh}
                         >
-                          Check permission status
+                          {appText("Check permission status")}{" "}
                         </Button>
                       ) : (
                         <Button type="submit" disabled={!accepted || locked}>
-                          {busy ? "Saving permission…" : "Agree and continue"}
+                          {busy
+                            ? appText("Saving permission…")
+                            : appText("Agree and continue")}
                         </Button>
                       )}
                     </div>
@@ -276,13 +295,16 @@ export function GuardianSetup({
                   {data.enquiryStatus === "DRAFT" && (
                     <Alert>
                       <AlertDescription>
-                        <strong>Your saved enquiry is waiting.</strong>
+                        <strong>
+                          {appText("Your saved enquiry is waiting.")}
+                        </strong>
                         <p>
-                          Your criteria are preserved. Resume when you’re ready;
-                          there’s no need to start again.
+                          {appText(
+                            "Your criteria are preserved. Resume when you’re ready; there’s no need to start again.",
+                          )}{" "}
                         </p>
                         <Link className="inline-link" href="/onboarding/parent">
-                          Resume saved enquiry
+                          {appText("Resume saved enquiry")}{" "}
                         </Link>
                       </AlertDescription>
                     </Alert>
@@ -290,17 +312,28 @@ export function GuardianSetup({
                   <GraduationCap size={30} aria-hidden="true" />
                   <h2>
                     {hasLearners
-                      ? "Your learner profiles are ready to review."
-                      : "Start with your first learner."}
+                      ? appText("Your learner profiles are ready to review.")
+                      : appText("Start with your first learner.")}
                   </h2>
                   <p>
                     {hasLearners
-                      ? `${data.learnerCount} ${data.learnerCount === 1 ? "learner has" : "learners have"} education details saved. You can manage these profiles or add another learner.`
-                      : "Add a learner’s education stage, school or college, subjects and current level. You can manage more than one learner from this guardian account."}
+                      ? appText(
+                          "{0} {1} education details saved. You can manage these profiles or add another learner.",
+                          [
+                            data.learnerCount,
+                            data.learnerCount === 1
+                              ? appText("learner has")
+                              : appText("learners have"),
+                          ],
+                        )
+                      : appText(
+                          "Add a learner’s education stage, school or college, subjects and current level. You can manage more than one learner from this guardian account.",
+                        )}
                   </p>
                   <p>
-                    Creating a profile does not send an enquiry, hire a teacher
-                    or activate student access.
+                    {appText(
+                      "Creating a profile does not send an enquiry, hire a teacher or activate student access.",
+                    )}{" "}
                   </p>
                   <div className="wizard-actions">
                     <Button asChild>
@@ -312,41 +345,43 @@ export function GuardianSetup({
                         }
                       >
                         {hasLearners
-                          ? "Manage or add learner profiles"
-                          : "Add learner profile"}
+                          ? appText("Manage or add learner profiles")
+                          : appText("Add learner profile")}
                       </Link>
                     </Button>
                     {hasLearners && (
                       <Link className="inline-link" href="/dashboard/family">
-                        Manage student access
+                        {appText("Manage student access")}{" "}
                       </Link>
                     )}
                   </div>
                   {hasLearners && (
                     <div className="guardian-setup-discovery">
                       <Search size={24} aria-hidden="true" />
-                      <h3>Find a teacher when you’re ready.</h3>
+                      <h3>{appText("Find a teacher when you’re ready.")}</h3>
                       <p>
-                        Browse profiles yourself, or share your criteria and let
-                        us help. A match still depends on reviewed coverage and
-                        teacher availability.
+                        {appText(
+                          "Browse profiles yourself, or share your criteria and let us help. A match still depends on reviewed coverage and teacher availability.",
+                        )}{" "}
                       </p>
                       <div className="wizard-actions">
                         <Button asChild variant="outline">
-                          <Link href="/teachers">Search teachers</Link>
+                          <Link href="/teachers">
+                            {appText("Search teachers")}
+                          </Link>
                         </Button>
                         <Link
                           className="inline-link"
                           href="/onboarding/parent?discovery=ASSISTED"
                         >
-                          Let us search for you
+                          {appText("Let us search for you")}{" "}
                         </Link>
                       </div>
                     </div>
                   )}
                   {data.enquiryStatus === "SUBMITTED" && (
                     <Link className="inline-link" href="/dashboard/requests">
-                      View your enquiries
+                      {appText("View your enquiries")}{" "}
                     </Link>
                   )}
                 </>
@@ -354,7 +389,7 @@ export function GuardianSetup({
               {!ready && (
                 <div className="guardian-setup-explore">
                   <Link href="/teachers" className="inline-link">
-                    Explore teacher profiles
+                    {appText("Explore teacher profiles")}{" "}
                   </Link>
                 </div>
               )}

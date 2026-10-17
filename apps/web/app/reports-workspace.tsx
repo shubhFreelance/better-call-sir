@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -58,22 +59,22 @@ const params = (range: Range) =>
       Date.parse(range.to + "T00:00:00+05:30") + 86400000,
     ).toISOString(),
   });
-const when = (value: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+const when = (value: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
-const money = (value: number) =>
-  new Intl.NumberFormat("en-IN", {
+const money = (value: number, locale = "en-IN") =>
+  new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "INR",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value / 100);
-const percent = (n: number, d: number) =>
+const percent = (n: number, d: number, locale = "en-IN") =>
   d
-    ? new Intl.NumberFormat("en-IN", {
+    ? new Intl.NumberFormat(locale, {
         style: "percent",
         maximumFractionDigits: 1,
       }).format(n / d)
@@ -89,15 +90,21 @@ const stages = [
   ["started", "Recorded starts"],
 ] as const;
 export function ReportsWorkspace({ session }: { session: Session }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   if (!["ADMIN", "OPERATOR", "FINANCE"].includes(session.account.role))
     return (
       <Notice error>
-        Staff reporting access is required to view these reports.
+        {appText(
+          "Staff reporting access is required to view these reports.",
+        )}{" "}
       </Notice>
     );
   return <Reports session={session} />;
 }
 function Reports({ session }: { session: Session }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [tab, setTab] = useState(
       session.account.role === "FINANCE" ? "finance" : "service",
     ),
@@ -107,20 +114,25 @@ function Reports({ session }: { session: Session }) {
     <div className="care-workspace reports-workspace">
       <section className="care-intro">
         <ChartNoAxesCombined size={28} aria-hidden="true" />
-        <h2>Follow the recorded journey.</h2>
+        <h2>{appText("Follow the recorded journey.")}</h2>
         <p>
-          Compare search paths with their real denominators. Keep unknown
-          outcomes visible and financial obligations separate from settlement.
+          {appText(
+            "Compare search paths with their real denominators. Keep unknown outcomes visible and financial obligations separate from settlement.",
+          )}{" "}
         </p>
       </section>
       <Period range={range} setRange={setRange} />
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="care-tabs" aria-label="Reporting views">
+        <TabsList className="care-tabs" aria-label={appText("Reporting views")}>
           {session.account.role !== "FINANCE" && (
-            <TabsTrigger value="service">Search & continuation</TabsTrigger>
+            <TabsTrigger value="service">
+              {appText("Search & continuation")}
+            </TabsTrigger>
           )}
           {session.account.role !== "OPERATOR" && (
-            <TabsTrigger value="finance">Capture & obligations</TabsTrigger>
+            <TabsTrigger value="finance">
+              {appText("Capture & obligations")}
+            </TabsTrigger>
           )}
         </TabsList>
         <TabsContent value="service">
@@ -136,9 +148,9 @@ function Reports({ session }: { session: Session }) {
         </TabsContent>
       </Tabs>
       <small className="care-help">
-        Reports use recorded development data and may include synthetic
-        fixtures. These observations do not establish learning improvement,
-        provider settlement or live pilot qualification.
+        {appText(
+          "Reports use recorded development data and may include synthetic fixtures. These observations do not establish learning improvement, provider settlement or live pilot qualification.",
+        )}{" "}
       </small>
     </div>
   );
@@ -150,15 +162,18 @@ function Period({
   range: Range;
   setRange: (r: Range) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [choice, setChoice] = useState("LAST30"),
     [draft, setDraft] = useState(range),
     [error, setError] = useState("");
   return (
     <section className="care-card reports-period">
-      <h3>Choose the reporting dates</h3>
+      <h3>{appText("Choose the reporting dates")}</h3>
       <p>
-        Dates use IST. Apply a preset or custom range to update the reports;
-        draft dates do not change the displayed results.
+        {appText(
+          "Dates use IST. Apply a preset or custom range to update the reports; draft dates do not change the displayed results.",
+        )}{" "}
       </p>
       <form
         className="care-fields"
@@ -180,7 +195,7 @@ function Period({
         }}
       >
         <div>
-          <label htmlFor="report-preset">Date preset</label>
+          <label htmlFor="report-preset">{appText("Date preset")}</label>
           <select
             id="report-preset"
             value={choice}
@@ -189,14 +204,16 @@ function Period({
               if (e.target.value !== "CUSTOM") setDraft(preset(e.target.value));
             }}
           >
-            <option value="LAST30">Last 30 calendar days</option>
-            <option value="MONTH">Current calendar month</option>
-            <option value="PREVIOUS">Previous calendar month</option>
-            <option value="CUSTOM">Custom dates</option>
+            <option value="LAST30">{appText("Last 30 calendar days")}</option>
+            <option value="MONTH">{appText("Current calendar month")}</option>
+            <option value="PREVIOUS">
+              {appText("Previous calendar month")}
+            </option>
+            <option value="CUSTOM">{appText("Custom dates")}</option>
           </select>
         </div>
         <div>
-          <label htmlFor="report-from">Report from (IST)</label>
+          <label htmlFor="report-from">{appText("Report from (IST)")}</label>
           <Input
             id="report-from"
             type="date"
@@ -208,7 +225,9 @@ function Period({
           />
         </div>
         <div>
-          <label htmlFor="report-through">Report through (IST)</label>
+          <label htmlFor="report-through">
+            {appText("Report through (IST)")}
+          </label>
           <Input
             id="report-through"
             type="date"
@@ -219,11 +238,12 @@ function Period({
             }}
           />
         </div>
-        <Button type="submit">Apply report dates</Button>
+        <Button type="submit">{appText("Apply report dates")}</Button>
       </form>
-      {error && <Notice error>{error}</Notice>}
+      {error && <Notice error>{appError(error)}</Notice>}
       <p>
-        Applied dates: {range.from} through {range.to} IST.
+        {appText("Applied dates:")} {range.from} {appText("through")} {range.to}{" "}
+        {appText("IST.")}{" "}
       </p>
     </section>
   );
@@ -239,6 +259,8 @@ function ServiceReport({
   region: string;
   setRegion: (region: string) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const choices = useQuery({
     queryKey: ["report-regions", session.account.id],
     queryFn: ({ signal }) =>
@@ -262,32 +284,33 @@ function ServiceReport({
   return (
     <>
       <section className="care-card">
-        <h3>Request cohorts by search path</h3>
+        <h3>{appText("Request cohorts by search path")}</h3>
         <p>
-          The date range selects when tuition requests were created. Milestones
-          reflect current recorded evidence as of the report timestamp, even if
-          it arrived later. Each request counts once per milestone; the bars do
-          not imply an ordered or completed service.
+          {appText(
+            "The date range selects when tuition requests were created. Milestones reflect current recorded evidence as of the report timestamp, even if it arrived later. Each request counts once per milestone; the bars do not imply an ordered or completed service.",
+          )}{" "}
         </p>
-        {choices.isPending && <p role="status">Loading reporting regions…</p>}
+        {choices.isPending && (
+          <p role="status">{appText("Loading reporting regions…")}</p>
+        )}
         {choices.error && (
           <Notice error>
-            Region choices unavailable.{" "}
+            {appText("Region choices unavailable.")}{" "}
             <Button variant="outline" onClick={() => choices.refetch()}>
-              Retry reporting regions
+              {appText("Retry reporting regions")}{" "}
             </Button>
           </Notice>
         )}
         {choices.data &&
           (session.account.role === "ADMIN" ? (
             <div className="reports-region">
-              <label htmlFor="report-region">Request region</label>
+              <label htmlFor="report-region">{appText("Request region")}</label>
               <select
                 id="report-region"
                 value={region}
                 onChange={(e) => setRegion(e.target.value)}
               >
-                <option value="">All regions</option>
+                <option value="">{appText("All regions")}</option>
                 {choices.data.items.map((r) => (
                   <option key={r.region} value={r.region}>
                     {r.region}
@@ -296,32 +319,39 @@ function ServiceReport({
               </select>
               {choices.data.limited && (
                 <small>
-                  First 100 region choices; All regions includes the full
-                  reporting scope.
+                  {appText(
+                    "First 100 region choices; All regions includes the full reporting scope.",
+                  )}{" "}
                 </small>
               )}
             </div>
           ) : (
             <p>
-              Assigned reporting region: {choices.data.items[0]?.region}.
-              Requests outside this region are excluded.
+              {appText("Assigned reporting region:")}{" "}
+              {choices.data.items[0]?.region}
+              {appText(". Requests outside this region are excluded.")}{" "}
             </p>
           ))}
-        {report.isPending && <p role="status">Loading request cohorts…</p>}
+        {report.isPending && (
+          <p role="status">{appText("Loading request cohorts…")}</p>
+        )}
         {report.error && (
           <Notice error>
-            Request cohort report unavailable.{" "}
+            {appText("Request cohort report unavailable.")}{" "}
             <Button variant="outline" onClick={() => report.refetch()}>
-              Retry request cohorts
+              {appText("Retry request cohorts")}{" "}
             </Button>
           </Notice>
         )}
         {data && !report.error && (
           <>
             <p>
-              Shown scope: {data.region || "All regions"}. Cohort interval:{" "}
-              {when(data.window.from)}–{when(data.window.to)} IST (end
-              excluded). Outcomes recorded as of {when(data.asOf)} IST.
+              {appText("Shown scope:")} {data.region || appText("All regions")}
+              {appText(". Cohort interval:")}{" "}
+              {when(data.window.from, appLocale)}–
+              {when(data.window.to, appLocale)}{" "}
+              {appText("IST (end excluded). Outcomes recorded as of")}{" "}
+              {when(data.asOf, appLocale)} {appText("IST.")}{" "}
             </p>
             {data.items.length ? (
               <>
@@ -330,11 +360,13 @@ function ServiceReport({
                     manual: { label: "Manual search" },
                     assisted: { label: "Let us search for you" },
                   }}
-                  aria-label="Recorded request milestones by search path"
+                  aria-label={appText(
+                    "Recorded request milestones by search path",
+                  )}
                 >
                   <BarChart
                     data={stages.map(([key, stage]) => ({
-                      stage,
+                      stage: appText(stage),
                       manual:
                         data.items.find(
                           (r) => r.discoveryMethod === "MANUAL",
@@ -365,14 +397,14 @@ function ServiceReport({
                     />
                     <Bar
                       dataKey="manual"
-                      name="Manual search"
+                      name={appText("Manual search")}
                       fill="var(--primary)"
                       maxBarSize={20}
                       isAnimationActive={false}
                     />
                     <Bar
                       dataKey="assisted"
-                      name="Let us search for you"
+                      name={appText("Let us search for you")}
                       fill="var(--green)"
                       stroke="var(--primary)"
                       maxBarSize={20}
@@ -387,51 +419,62 @@ function ServiceReport({
                     );
                     return (
                       <section key={method}>
-                        <h4>{names[method]}</h4>
+                        <h4>{appText(names[method])}</h4>
                         {row ? (
                           <>
                             <p>
-                              {row.requests} requests form this path's
-                              denominator.
+                              {row.requests}{" "}
+                              {appText(
+                                "requests form this path's denominator.",
+                              )}{" "}
                             </p>
                             <table>
                               <caption>
-                                {names[method]} recorded milestones
+                                {appText(names[method])}{" "}
+                                {appText("recorded milestones")}{" "}
                               </caption>
                               <thead>
                                 <tr>
-                                  <th scope="col">Milestone</th>
-                                  <th scope="col">Requests</th>
-                                  <th scope="col">Of cohort</th>
+                                  <th scope="col">{appText("Milestone")}</th>
+                                  <th scope="col">{appText("Requests")}</th>
+                                  <th scope="col">{appText("Of cohort")}</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {stages.map(([key, name]) => (
                                   <tr key={key}>
-                                    <th scope="row">{name}</th>
+                                    <th scope="row">{appText(name)}</th>
                                     <td>
                                       {row[key]} / {row.requests}
                                     </td>
-                                    <td>{percent(row[key], row.requests)}</td>
+                                    <td>
+                                      {percent(
+                                        row[key],
+                                        row.requests,
+                                        appLocale,
+                                      )}
+                                    </td>
                                   </tr>
                                 ))}
                               </tbody>
                             </table>
                             <p>
-                              Recorded start conversion:{" "}
+                              {appText("Recorded start conversion:")}{" "}
                               {row.conversion.numerator} /{" "}
                               {row.conversion.denominator} (
                               {percent(
                                 row.conversion.numerator,
                                 row.conversion.denominator,
+                                appLocale,
                               )}
                               ).
                             </p>
                           </>
                         ) : (
                           <p>
-                            No request cohort for this path in the selected
-                            dates and region.
+                            {appText(
+                              "No request cohort for this path in the selected dates and region.",
+                            )}{" "}
                           </p>
                         )}
                       </section>
@@ -441,8 +484,9 @@ function ServiceReport({
               </>
             ) : (
               <p>
-                No requests were recorded in this cohort. Conversion is not
-                estimable.
+                {appText(
+                  "No requests were recorded in this cohort. Conversion is not estimable.",
+                )}{" "}
               </p>
             )}
           </>
@@ -454,23 +498,22 @@ function ServiceReport({
               disabled={report.isFetching}
               onClick={() => report.refetch()}
             >
-              Refresh request cohorts
+              {appText("Refresh request cohorts")}{" "}
             </Button>
           </div>
         )}
       </section>
       {data && !report.error && (
         <section className="care-card">
-          <h3>Day-30 continuation evidence</h3>
+          <h3>{appText("Day-30 continuation evidence")}</h3>
           <p>
-            Only starts at least 30 days old and qualified observations
-            contribute to the known-outcome rate. Unknown, missing and immature
-            records stay visible; no response is not a failed outcome. This is
-            continuation evidence, not a learning-improvement score.
+            {appText(
+              "Only starts at least 30 days old and qualified observations contribute to the known-outcome rate. Unknown, missing and immature records stay visible; no response is not a failed outcome. This is continuation evidence, not a learning-improvement score.",
+            )}{" "}
           </p>
           <ContinuationSummary
             metrics={data.continuation}
-            title="All search paths"
+            title={appText("All search paths")}
           />
           {data.continuationByMethod.length > 0 && (
             <div className="reports-tables">
@@ -478,7 +521,7 @@ function ServiceReport({
                 <ContinuationSummary
                   key={c.discoveryMethod}
                   metrics={c}
-                  title={names[c.discoveryMethod]}
+                  title={appText(names[c.discoveryMethod])}
                 />
               ))}
             </div>
@@ -495,42 +538,45 @@ function ContinuationSummary({
   metrics: Continuation;
   title: string;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   return (
     <section className="reports-continuation">
-      <h4>{title}</h4>
+      <h4>{appText(title)}</h4>
       <p className="reports-rate">
         {c.rate === null
-          ? "Not estimable"
-          : percent(c.continued, c.denominator)}
+          ? appText("Not estimable")
+          : percent(c.continued, c.denominator, appLocale)}
       </p>
       <p>
-        {c.continued} continued / {c.denominator} known mature outcomes.
-        Observation coverage: {c.observed} / {c.mature} mature starts (
-        {percent(c.observed, c.mature)}).
+        {c.continued} {appText("continued /")} {c.denominator}{" "}
+        {appText("known mature outcomes. Observation coverage:")} {c.observed} /{" "}
+        {c.mature} {appText("mature starts (")}
+        {percent(c.observed, c.mature, appLocale)}).
       </p>
       <dl>
         <div>
-          <dt>Known continued</dt>
+          <dt>{appText("Known continued")}</dt>
           <dd>{c.continued}</dd>
         </div>
         <div>
-          <dt>Known stopped</dt>
+          <dt>{appText("Known stopped")}</dt>
           <dd>{c.stopped}</dd>
         </div>
         <div>
-          <dt>Unknown outcome</dt>
+          <dt>{appText("Unknown outcome")}</dt>
           <dd>{c.unknown}</dd>
         </div>
         <div>
-          <dt>Missing qualified observation</dt>
+          <dt>{appText("Missing qualified observation")}</dt>
           <dd>{c.missingObservation}</dd>
         </div>
         <div>
-          <dt>Not yet mature</dt>
+          <dt>{appText("Not yet mature")}</dt>
           <dd>{c.immature}</dd>
         </div>
         <div>
-          <dt>Placement missing start evidence</dt>
+          <dt>{appText("Placement missing start evidence")}</dt>
           <dd>{c.missingStartEvidence}</dd>
         </div>
       </dl>
@@ -538,6 +584,8 @@ function ContinuationSummary({
   );
 }
 function FinanceReport({ session, range }: { session: Session; range: Range }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const query = useQuery({
     queryKey: ["financial-report", session.account.id, range],
     queryFn: ({ signal }) =>
@@ -555,59 +603,73 @@ function FinanceReport({ session, range }: { session: Session; range: Range }) {
   return (
     <>
       <section className="care-card">
-        <h3>Recorded captures by provider mode</h3>
+        <h3>{appText("Recorded captures by provider mode")}</h3>
         <p>
-          Global finance scope. Captures are local payment records, not verified
-          bank settlement. Sandbox records and unrecorded modes are shown
-          separately.
+          {appText(
+            "Global finance scope. Captures are local payment records, not verified bank settlement. Sandbox records and unrecorded modes are shown separately.",
+          )}{" "}
         </p>
-        {query.isPending && <p role="status">Loading financial report…</p>}
+        {query.isPending && (
+          <p role="status">{appText("Loading financial report…")}</p>
+        )}
         {query.error && (
           <Notice error>
-            Financial report unavailable.{" "}
+            {appText("Financial report unavailable.")}{" "}
             <Button variant="outline" onClick={() => query.refetch()}>
-              Retry financial report
+              {appText("Retry financial report")}{" "}
             </Button>
           </Notice>
         )}
         {data && !query.error && (
           <>
             <p>
-              Record-creation interval: {when(data.window.from)}–
-              {when(data.window.to)} IST (end excluded). Snapshot{" "}
-              {when(data.asOf)} IST.
+              {appText("Record-creation interval:")}{" "}
+              {when(data.window.from, appLocale)}–
+              {when(data.window.to, appLocale)}{" "}
+              {appText("IST (end excluded). Snapshot")}{" "}
+              {when(data.asOf, appLocale)} {appText("IST.")}{" "}
             </p>
-            <p className="reports-rate">{money(data.captured.amountPaise)}</p>
+            <p className="reports-rate">
+              {money(data.captured.amountPaise, appLocale)}
+            </p>
             <p>
-              {data.captured.count} recorded captures · settlement unverified.
+              {data.captured.count}{" "}
+              {appText("recorded captures · settlement unverified.")}{" "}
             </p>
             {!data.captureModes ? (
               <Notice error>
-                Provider-mode classification is unavailable. Refresh the report
-                before comparing live and sandbox captures.
+                {appText(
+                  "Provider-mode classification is unavailable. Refresh the report before comparing live and sandbox captures.",
+                )}{" "}
               </Notice>
             ) : !data.captureModes.length ? (
               <p>
-                No captures in this period; no provider-mode comparison is
-                available.
+                {appText(
+                  "No captures in this period; no provider-mode comparison is available.",
+                )}{" "}
               </p>
             ) : (
               <>
                 <ChartContainer
                   config={{ amountPaise: { label: "Recorded capture amount" } }}
-                  aria-label="Recorded capture amounts by provider mode"
+                  aria-label={appText(
+                    "Recorded capture amounts by provider mode",
+                  )}
                 >
                   <BarChart
                     data={data.captureModes.map((m) => ({
                       ...m,
-                      mode: modeName(m.providerMode),
+                      mode: appText(modeName(m.providerMode)),
                     }))}
                     layout="vertical"
                     accessibilityLayer
                     margin={{ right: 20 }}
                   >
                     <CartesianGrid horizontal={false} />
-                    <XAxis type="number" tickFormatter={money} />
+                    <XAxis
+                      type="number"
+                      tickFormatter={(value) => money(value, appLocale)}
+                    />
                     <YAxis
                       type="category"
                       dataKey="mode"
@@ -616,11 +678,15 @@ function FinanceReport({ session, range }: { session: Session; range: Range }) {
                       axisLine={false}
                     />
                     <ChartTooltip
-                      content={<ChartTooltipContent valueFormatter={money} />}
+                      content={
+                        <ChartTooltipContent
+                          valueFormatter={(value) => money(value, appLocale)}
+                        />
+                      }
                     />
                     <Bar
                       dataKey="amountPaise"
-                      name="Recorded amount"
+                      name={appText("Recorded amount")}
                       maxBarSize={38}
                       isAnimationActive={false}
                     >
@@ -641,20 +707,20 @@ function FinanceReport({ session, range }: { session: Session; range: Range }) {
                   </BarChart>
                 </ChartContainer>
                 <table>
-                  <caption>Provider-mode capture records</caption>
+                  <caption>{appText("Provider-mode capture records")}</caption>
                   <thead>
                     <tr>
-                      <th scope="col">Recorded mode</th>
-                      <th scope="col">Records</th>
-                      <th scope="col">Amount</th>
+                      <th scope="col">{appText("Recorded mode")}</th>
+                      <th scope="col">{appText("Records")}</th>
+                      <th scope="col">{appText("Amount")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.captureModes.map((m) => (
                       <tr key={m.providerMode}>
-                        <th scope="row">{modeName(m.providerMode)}</th>
+                        <th scope="row">{appText(modeName(m.providerMode))}</th>
                         <td>{m.count}</td>
-                        <td>{money(m.amountPaise)}</td>
+                        <td>{money(m.amountPaise, appLocale)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -666,60 +732,65 @@ function FinanceReport({ session, range }: { session: Session; range: Range }) {
       </section>
       {data && !query.error && (
         <section className="care-card">
-          <h3>Separate financial obligations</h3>
+          <h3>{appText("Separate financial obligations")}</h3>
           <p>
-            Refund requests and teacher payables use their creation dates in
-            this period. Invoice dues are current across all dates. These
-            independent measures must not be added or subtracted to calculate a
-            cash balance.
+            {appText(
+              "Refund requests and teacher payables use their creation dates in this period. Invoice dues are current across all dates. These independent measures must not be added or subtracted to calculate a cash balance.",
+            )}{" "}
           </p>
           <dl className="reports-obligations">
             <div>
-              <dt>Pending refund requests</dt>
-              <dd>{money(data.pendingRefunds.amountPaise)}</dd>
+              <dt>{appText("Pending refund requests")}</dt>
+              <dd>{money(data.pendingRefunds.amountPaise, appLocale)}</dd>
               <dd className="reports-detail">
                 <small>
-                  {data.pendingRefunds.count} requests · refund settlement
-                  unverified
+                  {data.pendingRefunds.count}{" "}
+                  {appText("requests · refund settlement unverified")}{" "}
                 </small>
               </dd>
             </div>
             <div>
-              <dt>Outstanding platform invoices</dt>
-              <dd>{money(data.outstandingInvoices.amountPaise)}</dd>
+              <dt>{appText("Outstanding platform invoices")}</dt>
+              <dd>{money(data.outstandingInvoices.amountPaise, appLocale)}</dd>
               <dd className="reports-detail">
                 <small>
-                  {data.outstandingInvoices.count} invoices · current across all
-                  dates
+                  {data.outstandingInvoices.count}{" "}
+                  {appText("invoices · current across all dates")}{" "}
                 </small>
               </dd>
             </div>
           </dl>
-          <h4>Teacher payable obligations</h4>
+          <h4>{appText("Teacher payable obligations")}</h4>
           {data.teacherPayables.length ? (
             <table>
               <caption>
-                Payables created in this period; payout settlement unverified
+                {appText(
+                  "Payables created in this period; payout settlement unverified",
+                )}{" "}
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Recorded status</th>
-                  <th scope="col">Records</th>
-                  <th scope="col">Amount</th>
+                  <th scope="col">{appText("Recorded status")}</th>
+                  <th scope="col">{appText("Records")}</th>
+                  <th scope="col">{appText("Amount")}</th>
                 </tr>
               </thead>
               <tbody>
                 {data.teacherPayables.map((p) => (
                   <tr key={p.status}>
-                    <th scope="row">{label(p.status)}</th>
+                    <th scope="row">{appText(label(p.status))}</th>
                     <td>{p.count}</td>
-                    <td>{money(p.amountPaise)}</td>
+                    <td>{money(p.amountPaise, appLocale)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           ) : (
-            <p>No teacher payable records were created in this period.</p>
+            <p>
+              {appText(
+                "No teacher payable records were created in this period.",
+              )}
+            </p>
           )}
           <div className="care-actions">
             <Button
@@ -727,10 +798,10 @@ function FinanceReport({ session, range }: { session: Session; range: Range }) {
               onClick={() => query.refetch()}
               disabled={query.isFetching}
             >
-              Refresh financial report
+              {appText("Refresh financial report")}{" "}
             </Button>
             <Link href="/dashboard/finance">
-              Inspect invoices, captures and obligations
+              {appText("Inspect invoices, captures and obligations")}{" "}
             </Link>
           </div>
         </section>

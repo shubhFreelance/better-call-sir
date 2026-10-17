@@ -1,3 +1,5 @@
+import { translateText } from "../../apps/web/app/locale";
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import { teacherDetails } from "../../packages/test-fixtures/src";
 import AxeBuilder from "@axe-core/playwright";
@@ -1217,4 +1219,152 @@ test("duplicate teaching areas are blocked before the application can reach revi
   await expect(
     page.getByRole("heading", { name: "Review your application" }),
   ).toHaveCount(0);
+});
+
+test("Hindi complete interface — शिक्षक आवेदन", async ({ page }) => {
+  await chooseHindi(page);
+  await mock(page);
+  await page.goto("/onboarding/teacher");
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
+});
+
+test("Hindi full teacher application validates, reviews authored evidence and retries canonical payload unchanged", async ({
+  page,
+}) => {
+  const t = (text: string) => translateText(true, text);
+  const next = (name: string) =>
+    page.getByRole("button", {
+      name: translateText(true, "Continue to {0}", [t(name.toLowerCase())]),
+      exact: true,
+    });
+  await chooseHindi(page);
+  const state = await mock(page, { uncertain: true });
+  await page.goto("/onboarding/teacher");
+  await next("Private address").click();
+  await expect(page.locator("#teacher-headline-error")).toHaveText(
+    "यह जानकारी भरें।",
+  );
+  await page.getByLabel(t("Teaching headline"), { exact: true }).fill("Open");
+  await page
+    .getByLabel(t("About your teaching"), { exact: true })
+    .fill("Teacher");
+  await page
+    .getByLabel(t("Years of teaching experience"), { exact: true })
+    .fill("4");
+  await next("Private address").click();
+  for (const [name, value] of Object.entries({
+    "House / office and street address": "12 Synthetic Road",
+    "Address locality": "Shankar Nagar",
+    City: "Raipur",
+    State: "Chhattisgarh",
+    "PIN code": "492001",
+  }))
+    await page.getByLabel(t(name), { exact: true }).fill(value);
+  await next("Education & previous work").click();
+  for (const [name, year] of [
+    ["Class 10", "2010"],
+    ["Class 12", "2012"],
+  ]) {
+    const row = page.getByRole("region", { name: t(name), exact: true });
+    await row.getByLabel(t("Milestone status")).selectOption("COMPLETED");
+    await row.getByLabel(t("School / college / university")).fill("Open");
+    await row.getByLabel(t("Board and stream")).fill("CBSE");
+    await row.getByLabel(t("Completion year"), { exact: true }).fill(year);
+    await row
+      .getByLabel(t("Official result format"))
+      .selectOption("PERCENTAGE");
+    await row.getByLabel(t("Percentage (%)")).fill("80");
+  }
+  await next("Teaching preferences").click();
+  await page
+    .getByLabel(t("Subjects in teaching area") + " 1", { exact: true })
+    .fill("Maths");
+  await page
+    .getByLabel(t("Boards in teaching area") + " 1", { exact: true })
+    .fill("CBSE");
+  for (const label of ["Class 8", "Hindi", "Online"])
+    await page.getByRole("checkbox", { name: t(label), exact: true }).check();
+  await page.getByLabel(t("Monthly tuition (₹)")).fill("2500.50");
+  await page.getByRole("radio", { name: t("Yes, I can offer a demo") }).check();
+  await page
+    .getByRole("radio", {
+      name: translateText(true, "Yes, {0} days", [15]),
+      exact: true,
+    })
+    .check();
+  await next("Review application").click();
+  await expect(page.locator(".wizard-review")).toContainText("Teacher");
+  await expect(page.locator(".wizard-review")).toContainText("Open");
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
+  const axe = await new AxeBuilder({ page }).analyze();
+  expect(
+    axe.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact || ""),
+    ),
+  ).toEqual([]);
+  await page.screenshot({
+    path: "test-results/hindi-teacher-review-mobile.png",
+    fullPage: true,
+  });
+  await page.getByRole("checkbox", { name: /मैं खाते के बदलाव/ }).check();
+  await page
+    .getByRole("button", { name: t("Submit teacher application"), exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", {
+      name: t("Submit teacher application"),
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: t("Submit teacher application"), exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: t("Your teacher workspace."),
+      exact: true,
+    }),
+  ).toBeVisible();
+  expect(state.bodies).toHaveLength(2);
+  expect(state.bodies[0]).toEqual(state.bodies[1]);
+  expect(state.keys[0]).toBe(state.keys[1]);
+  expect(state.getProfile()).toMatchObject({
+    headline: "Open",
+    bio: "Teacher",
+    languages: ["Hindi"],
+    modes: ["ONLINE"],
+    monthlyPaise: 250050,
+    demoOptIn: true,
+    lockInDays: 15,
+  });
+  await expect(
+    page.getByRole("button", { name: t("Choose evidence file"), exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel(t("Check category"), { exact: true })
+    .selectOption("QUALIFICATIONS");
+  await page
+    .getByLabel(t("Private evidence file"), { exact: true })
+    .setInputFiles({
+      name: "Teacher.pdf",
+      mimeType: "application/pdf",
+      buffer: Buffer.from("%PDF-1.4 Synthetic Hindi evidence"),
+    });
+  await page
+    .getByRole("button", { name: t("Upload private evidence"), exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      t("Private evidence uploaded. Check its safety-scan status below."),
+      { exact: true },
+    ),
+  ).toBeVisible();
+  expect(state.uploadBodies[0]).toMatchObject({
+    kind: "QUALIFICATIONS",
+    mediaType: "application/pdf",
+  });
 });

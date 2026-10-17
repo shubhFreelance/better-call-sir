@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import type { components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -77,12 +78,16 @@ export function WeeklySummary({
   preferences: Weekly;
   hindi?: boolean;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   return (
     <ul className="tuition-windows">
       {preferences.weekly.map((w, i) => (
         <li key={i}>
-          {(hindi ? hindiDays : weekdays)[w.weekday]} · {clock(w.startMinute)}–
-          {w.endMinute === 1440 ? "24:00" : clock(w.endMinute)} IST
+          {appText((hindi ? hindiDays : weekdays)[w.weekday])} ·{" "}
+          {clock(w.startMinute)}–
+          {w.endMinute === 1440 ? "24:00" : clock(w.endMinute)}{" "}
+          {appText("IST")}{" "}
         </li>
       ))}
     </ul>
@@ -95,9 +100,11 @@ export function AvailabilityMode({
   weekly: boolean;
   onChange: (v: boolean) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   return (
     <fieldset className="availability-mode">
-      <legend>How would you like to share availability?</legend>
+      <legend>{appText("How would you like to share availability?")}</legend>
       <label>
         <input
           type="radio"
@@ -105,7 +112,7 @@ export function AvailabilityMode({
           checked={weekly}
           onChange={() => onChange(true)}
         />{" "}
-        Weekly preferences
+        {appText("Weekly preferences")}{" "}
       </label>
       <label>
         <input
@@ -114,7 +121,7 @@ export function AvailabilityMode({
           checked={!weekly}
           onChange={() => onChange(false)}
         />{" "}
-        Specific dates (optional)
+        {appText("Specific dates (optional)")}{" "}
       </label>
     </fieldset>
   );
@@ -128,18 +135,22 @@ export function WeeklyAvailability({
   hindi?: boolean;
   onChange: (rows: WeeklyRange[]) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   return (
     <div className="weekly-availability">
       <p>
         {hindi
           ? "भारतीय समय के अनुसार सुविधाजनक दिन और समय चुनें। इनसे शिक्षक खोजने में मदद मिलेगी; कक्षा बुक या अवधि तय नहीं होगी।"
-          : "Choose suitable weekdays and broad time ranges in India Standard Time. These help us find a teacher; they do not book classes or set a lesson length."}
+          : appText(
+              "Choose suitable weekdays and broad time ranges in India Standard Time. These help us find a teacher; they do not book classes or set a lesson length.",
+            )}
       </p>
       {rows.map((r, i) => (
         <div className="weekly-range" key={i}>
           <div className="field">
             <label htmlFor={`weekly-day-${i}`}>
-              {hindi ? "पसंदीदा दिन" : "Preferred day"} {i + 1}
+              {hindi ? "पसंदीदा दिन" : appText("Preferred day")} {i + 1}
             </label>
             <select
               id={`weekly-day-${i}`}
@@ -152,10 +163,12 @@ export function WeeklyAvailability({
                 )
               }
             >
-              <option value="">{hindi ? "दिन चुनें" : "Choose a day"}</option>
+              <option value="">
+                {hindi ? "दिन चुनें" : appText("Choose a day")}
+              </option>
               {(hindi ? hindiDays : weekdays).map((d, n) => (
                 <option key={d} value={n}>
-                  {d}
+                  {appText(d)}
                 </option>
               ))}
             </select>
@@ -166,11 +179,11 @@ export function WeeklyAvailability({
                 {key === "start"
                   ? hindi
                     ? "कब से उपलब्ध"
-                    : "Available from"
+                    : appText("Available from")
                   : hindi
                     ? "कब तक उपलब्ध"
-                    : "Available until"}{" "}
-                {i + 1} (IST)
+                    : appText("Available until")}{" "}
+                {i + 1} {appText("(IST)")}{" "}
               </label>
               <Input
                 id={`weekly-${key}-${i}`}
@@ -193,7 +206,7 @@ export function WeeklyAvailability({
               onClick={() => onChange(rows.filter((_, n) => n !== i))}
               aria-label={`${hindi ? "समय हटाएँ" : "Remove weekly range"} ${i + 1}`}
             >
-              {hindi ? "हटाएँ" : "Remove"}
+              {hindi ? "हटाएँ" : appText("Remove")}
             </Button>
           )}
         </div>
@@ -204,12 +217,14 @@ export function WeeklyAvailability({
         disabled={rows.length >= 14}
         onClick={() => onChange([...rows, ...emptyWeekly()])}
       >
-        {hindi ? "एक और दिन/समय जोड़ें" : "Add another day/time range"}
+        {hindi ? "एक और दिन/समय जोड़ें" : appText("Add another day/time range")}
       </Button>
       <p className="wizard-help">
         {hindi
           ? "एक दिन के समय आपस में नहीं टकराने चाहिए। दिन के अंत की मध्यरात्रि के लिए 00:00 चुनें।"
-          : "Ranges must not overlap on the same day. Use 00:00 as the end time for midnight at the end of that day."}
+          : appText(
+              "Ranges must not overlap on the same day. Use 00:00 as the end time for midnight at the end of that day.",
+            )}
       </p>
     </div>
   );

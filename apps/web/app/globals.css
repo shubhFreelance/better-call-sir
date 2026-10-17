@@ -5135,3 +5135,17 @@ footer[lang="hi"] :is(.eyebrow, .footer-bottom) { font-size: 12px; }
   .mobile-nav-actions { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; }
   .mobile-nav-actions > button { min-height: 44px; }
 }
+
+html[lang="hi"] :is(h1,h2,h3,h4,.eyebrow) { letter-spacing: 0; }
+html[lang="hi"] :is(label,button,p,small,legend,summary) { line-height: 1.7; }
+html[lang="hi"] :is(button,.button,.text-button,.inline-link) { white-space: normal; overflow-wrap: anywhere; }
+html[lang="hi"] :is(h1,h2,h3,h4) { line-height: 1.4; overflow-wrap: anywhere; }
+html[lang="hi"] :is(input,select,textarea) { font-family: var(--font-family); }
+@media (max-width: 640px) {
+  html[lang="hi"] :is(.wizard-actions,.care-actions,.staff-actions,.decision-actions) { flex-wrap: wrap; }
+  html[lang="hi"] :is(.wizard-actions,.care-actions,.staff-actions,.decision-actions)>button { min-height: 48px; }
+}
+
+/* Keep the localized upload input clipped despite the shared input sizing rules. */
+.teacher-upload .field { position: relative; }
+.teacher-upload [type="file"].sr-only { width: 1px; height: 1px; max-width: 1px; padding: 0; margin: 0; border: 0; inset: 0 auto auto 0; }

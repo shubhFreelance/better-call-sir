@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
@@ -16,8 +17,8 @@ type SwitchCallbacks = {
 };
 type Child = components["schemas"]["Child"];
 type Sessions = components["schemas"]["StudentSessions"];
-const date = (iso: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+const date = (iso: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     day: "numeric",
     month: "short",
@@ -34,6 +35,8 @@ function Notice({
   children: ReactNode;
   error?: boolean;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   return (
     <Alert
       variant={error ? "destructive" : "default"}
@@ -54,16 +57,19 @@ export function FamilyAccess({
   consentActive: boolean;
   onSessionChange: (s: Session) => void;
 } & SwitchCallbacks) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   if (!session.account.verified)
     return (
       <section className="panel">
-        <h2>Guardian verification is pending.</h2>
+        <h2>{appText("Guardian verification is pending.")}</h2>
         <p>
-          Student authorization requires an approved guardian account and active
-          consent.
+          {appText(
+            "Student authorization requires an approved guardian account and active consent.",
+          )}{" "}
         </p>
         <Link href="/onboarding/parent" className="button">
-          Review guardian onboarding
+          {appText("Review guardian onboarding")}{" "}
         </Link>
       </section>
     );
@@ -88,6 +94,8 @@ function VerifiedFamily({
   consentActive: boolean;
   onSessionChange: (s: Session) => void;
 } & SwitchCallbacks) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const params = useSearchParams();
   const children = useQuery({
     queryKey: ["family-children", session.account.id],
@@ -105,31 +113,33 @@ function VerifiedFamily({
   return (
     <div className="family-access">
       <section className="panel">
-        <h2>Learners & student access</h2>
+        <h2>{appText("Learners & student access")}</h2>
         <p>
-          Create a learner’s first invitation, authorize this browser for an
-          existing learner, or revoke student sessions. No child email or phone
-          number is required.
+          {appText(
+            "Create a learner’s first invitation, authorize this browser for an existing learner, or revoke student sessions. No child email or phone number is required.",
+          )}{" "}
         </p>
         {!consentActive && (
           <Notice>
-            Guardian consent is not active. New invitations and device
-            authorization are paused. You can still revoke existing student
-            sessions.
+            {appText(
+              "Guardian consent is not active. New invitations and device authorization are paused. You can still revoke existing student sessions.",
+            )}{" "}
           </Notice>
         )}
         {children.isPending ? (
-          <p role="status">Loading your learners…</p>
+          <p role="status">{appText("Loading your learners…")}</p>
         ) : children.error ? (
           <>
-            <Notice error>{children.error.message}</Notice>
+            <Notice error>{appError(children.error.message)}</Notice>
             <Button variant="outline" onClick={() => children.refetch()}>
-              Retry learners
+              {appText("Retry learners")}{" "}
             </Button>
           </>
         ) : child ? (
           <div className="field">
-            <label htmlFor="family-learner">Choose a learner</label>
+            <label htmlFor="family-learner">
+              {appText("Choose a learner")}
+            </label>
             <select
               id="family-learner"
               value={child.id}
@@ -138,16 +148,20 @@ function VerifiedFamily({
             >
               {children.data?.items.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.alias} · {educationLabel(c)}
+                  {c.alias} · {appText(educationLabel(c))}
                 </option>
               ))}
             </select>
           </div>
         ) : (
-          <p>No learners yet. Add an education profile to get started.</p>
+          <p>
+            {appText(
+              "No learners yet. Add an education profile to get started.",
+            )}
+          </p>
         )}
         <Link href="/dashboard/learners" className="inline-link">
-          Add or view education profiles
+          {appText("Add or view education profiles")}{" "}
         </Link>
       </section>
       {child && (
@@ -189,6 +203,8 @@ function LearnerAccess({
   onLockChange: (locked: boolean) => void;
   onSessionChange: (s: Session) => void;
 } & SwitchCallbacks) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const client = useQueryClient();
   const [pageCursors, setPageCursors] = useState<string[]>([]);
   const cursor = pageCursors.at(-1);
@@ -456,35 +472,38 @@ function LearnerAccess({
   return (
     <section className="panel family-student-access">
       <div className="panel-title">
-        <h2>{child.alias}’s student space</h2>
+        <h2>
+          {child.alias}
+          {appText("’s student space")}
+        </h2>
         <Button variant="outline" disabled={locked} onClick={refresh}>
-          Refresh student access
+          {appText("Refresh student access")}{" "}
         </Button>
       </div>
-      <p>{educationLabel(child)}</p>
+      <p>{appText(educationLabel(child))}</p>
       {query.isPending ? (
-        <p role="status">Loading student access…</p>
+        <p role="status">{appText("Loading student access…")}</p>
       ) : query.error ? (
-        <Notice error>{query.error.message}</Notice>
+        <Notice error>{appError(query.error.message)}</Notice>
       ) : (
         query.data && (
           <>
             <p className="badge">
               {!child.studentAccountId
-                ? "Not activated"
+                ? appText("Not activated")
                 : query.data.accessRevoked
-                  ? "Access revoked"
-                  : "Student space activated"}
+                  ? appText("Access revoked")
+                  : appText("Student space activated")}
             </p>
             {child.studentAccountId ? (
               <>
                 <h3 ref={pageHeading} tabIndex={-1}>
-                  Authorized student sessions
+                  {appText("Authorized student sessions")}{" "}
                 </h3>
                 <p className="wizard-help">
-                  Give each session a name you recognize, such as “Study
-                  tablet”. Labels are private reminders, not verified device
-                  information. Browse all current sessions, 20 per page.
+                  {appText(
+                    "Give each session a name you recognize, such as “Study tablet”. Labels are private reminders, not verified device information. Browse all current sessions, 20 per page.",
+                  )}{" "}
                 </p>
                 {query.data.items.length ? (
                   <ul className="family-session-list">
@@ -492,10 +511,16 @@ function LearnerAccess({
                       <li key={device.familyId}>
                         <div>
                           <strong>
-                            {device.deviceLabel || "Unnamed student device"}
+                            {device.deviceLabel ||
+                              appText("Unnamed student device")}
                           </strong>
-                          <p>Session {device.familyId.slice(0, 8)}</p>
-                          <p>Expires {date(device.expiresAt)} IST</p>
+                          <p>
+                            {appText("Session")} {device.familyId.slice(0, 8)}
+                          </p>
+                          <p>
+                            {appText("Expires")}{" "}
+                            {date(device.expiresAt, appLocale)} {appText("IST")}
+                          </p>
                         </div>
                         <div className="family-device-actions">
                           <Button
@@ -508,19 +533,26 @@ function LearnerAccess({
                               query.data.accessRevoked
                             }
                             onClick={() => choose("label", device.familyId)}
-                            aria-label={`${device.deviceLabel ? "Rename" : "Name"} device ${device.familyId.slice(0, 8)}`}
+                            aria-label={appText("{0} device {1}", [
+                              device.deviceLabel
+                                ? appText("Rename")
+                                : appText("Name"),
+                              device.familyId.slice(0, 8),
+                            ])}
                           >
                             {device.deviceLabel
-                              ? "Rename device"
-                              : "Name device"}
+                              ? appText("Rename device")
+                              : appText("Name device")}
                           </Button>
                           <Button
                             variant="outline"
                             disabled={locked || conflict || query.isFetching}
                             onClick={() => choose("revoke", device.familyId)}
-                            aria-label={`Revoke session ${device.familyId.slice(0, 8)}`}
+                            aria-label={appText("Revoke session {0}", [
+                              device.familyId.slice(0, 8),
+                            ])}
                           >
-                            Revoke session
+                            {appText("Revoke session")}{" "}
                           </Button>
                         </div>
                       </li>
@@ -529,8 +561,10 @@ function LearnerAccess({
                 ) : (
                   <p>
                     {cursor
-                      ? "No active student sessions on this page. Go back to previous devices or refresh the list."
-                      : "No active student sessions."}
+                      ? appText(
+                          "No active student sessions on this page. Go back to previous devices or refresh the list.",
+                        )
+                      : appText("No active student sessions.")}
                   </p>
                 )}
                 <div className="wizard-actions">
@@ -540,9 +574,11 @@ function LearnerAccess({
                       locked || conflict || !consentActive || query.isFetching
                     }
                     onClick={() => choose("authorize")}
-                    aria-label={`Authorize this device for ${child.alias}`}
+                    aria-label={appText("Authorize this device for {0}", [
+                      child.alias,
+                    ])}
                   >
-                    Authorize this device
+                    {appText("Authorize this device")}{" "}
                   </Button>
                   <Button
                     variant="outline"
@@ -555,7 +591,7 @@ function LearnerAccess({
                     }
                     onClick={() => choose("revoke")}
                   >
-                    Revoke all student access
+                    {appText("Revoke all student access")}{" "}
                   </Button>
                 </div>
               </>
@@ -575,9 +611,11 @@ function LearnerAccess({
       {child.studentAccountId && (
         <nav
           className="family-device-pagination"
-          aria-label="Student device pages"
+          aria-label={appText("Student device pages")}
         >
-          <p role="status">Device page {pageCursors.length + 1}</p>
+          <p role="status">
+            {appText("Device page")} {pageCursors.length + 1}
+          </p>
           <div className="family-device-actions">
             {pageCursors.length > 0 && (
               <Button
@@ -585,7 +623,7 @@ function LearnerAccess({
                 disabled={locked || query.isFetching || !!action}
                 onClick={() => browseDevices(pageCursors.slice(0, -1))}
               >
-                Previous devices
+                {appText("Previous devices")}{" "}
               </Button>
             )}
             {query.data?.nextCursor && !query.error && (
@@ -596,13 +634,15 @@ function LearnerAccess({
                   browseDevices([...pageCursors, query.data!.nextCursor!])
                 }
               >
-                Next devices
+                {appText("Next devices")}{" "}
               </Button>
             )}
           </div>
           {action && (pageCursors.length > 0 || query.data?.nextCursor) && (
             <p className="wizard-help">
-              Finish or cancel this change before browsing devices.
+              {appText(
+                "Finish or cancel this change before browsing devices.",
+              )}{" "}
             </p>
           )}
         </nav>
@@ -620,21 +660,30 @@ function LearnerAccess({
         >
           <h3>
             {action === "authorize"
-              ? `Switch this device to ${child.alias}?`
+              ? appText("Switch this device to {0}?", [child.alias])
               : action === "label"
-                ? "Name this student device"
+                ? appText("Name this student device")
                 : familyId
-                  ? `Revoke session ${familyId.slice(0, 8)}?`
-                  : `Revoke all access for ${child.alias}?`}
+                  ? appText("Revoke session {0}?", [familyId.slice(0, 8)])
+                  : appText("Revoke all access for {0}?", [child.alias])}
           </h3>
           <p>
             {action === "authorize"
-              ? "This browser will switch from your guardian account to a restricted student session. Other guardian devices stay signed in. Use the device intended for the learner."
+              ? appText(
+                  "This browser will switch from your guardian account to a restricted student session. Other guardian devices stay signed in. Use the device intended for the learner.",
+                )
               : action === "label"
-                ? `Label session ${familyId?.slice(0, 8)} so you can recognize it later. Naming it does not change who can sign in.`
+                ? appText(
+                    "Label session {0} so you can recognize it later. Naming it does not change who can sign in.",
+                    [familyId?.slice(0, 8)],
+                  )
                 : familyId
-                  ? "This session and its refresh access will stop. Other student sessions remain authorized."
-                  : "All student sessions and their refresh access will stop. Access stays blocked until a guardian authorizes a device again."}
+                  ? appText(
+                      "This session and its refresh access will stop. Other student sessions remain authorized.",
+                    )
+                  : appText(
+                      "All student sessions and their refresh access will stop. Access stays blocked until a guardian authorizes a device again.",
+                    )}
           </p>
           <fieldset
             className="wizard-fields"
@@ -647,7 +696,7 @@ function LearnerAccess({
             {action === "label" && (
               <div className="field">
                 <label htmlFor="student-device-label">
-                  Device label (optional)
+                  {appText("Device label (optional)")}{" "}
                 </label>
                 <Input
                   id="student-device-label"
@@ -657,15 +706,16 @@ function LearnerAccess({
                   onChange={(e) => setDeviceLabel(e.target.value)}
                 />
                 <p id="student-device-label-help" className="wizard-help">
-                  Use a simple name. Leave blank to clear the label. Avoid
-                  names, contact details and passwords.
+                  {appText(
+                    "Use a simple name. Leave blank to clear the label. Avoid names, contact details and passwords.",
+                  )}{" "}
                 </p>
               </div>
             )}
             {action === "revoke" && (
               <div className="field">
                 <label htmlFor="student-revocation-reason">
-                  Reason for revoking access
+                  {appText("Reason for revoking access")}{" "}
                 </label>
                 <Textarea
                   id="student-revocation-reason"
@@ -685,8 +735,12 @@ function LearnerAccess({
                 />
                 <span>
                   {action === "revoke"
-                    ? "I understand which student access will be revoked."
-                    : "I am the learner’s guardian and will authorize only the intended student device."}
+                    ? appText(
+                        "I understand which student access will be revoked.",
+                      )
+                    : appText(
+                        "I am the learner’s guardian and will authorize only the intended student device.",
+                      )}
                 </span>
               </label>
             )}
@@ -697,22 +751,22 @@ function LearnerAccess({
                 className="button secondary"
                 onClick={() => setAction(null)}
               >
-                Cancel
+                {appText("Cancel")}{" "}
               </Button>
               <Button className="button" type="submit">
                 {action === "authorize"
-                  ? "Confirm student device switch"
+                  ? appText("Confirm student device switch")
                   : action === "label"
-                    ? "Save device label"
-                    : "Confirm access revocation"}
+                    ? appText("Save device label")
+                    : appText("Confirm access revocation")}
               </Button>
             </div>
           </fieldset>
         </form>
       )}
-      {error && <Notice error>{error}</Notice>}
-      {success && <Notice>{success}</Notice>}
-      {busy && <p role="status">Updating student access…</p>}
+      {error && <Notice error>{appError(error)}</Notice>}
+      {success && <Notice>{appText(success)}</Notice>}
+      {busy && <p role="status">{appText("Updating student access…")}</p>}
       {uncertain && (
         <Button
           className="button"
@@ -720,14 +774,15 @@ function LearnerAccess({
           onClick={action === "label" ? saveLabel : revoke}
         >
           {action === "label"
-            ? "Retry device label"
-            : "Retry access revocation"}
+            ? appText("Retry device label")
+            : appText("Retry access revocation")}
         </Button>
       )}
       {conflict && (
         <p className="wizard-help">
-          Refresh student access to load the current learner version. Your
-          entered details remain here. Review them again before saving.
+          {appText(
+            "Refresh student access to load the current learner version. Your entered details remain here. Review them again before saving.",
+          )}{" "}
         </p>
       )}
     </section>
@@ -744,6 +799,8 @@ function FamilyConsent({
   blocked: boolean;
   onLockChange: (locked: boolean) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const client = useQueryClient();
   const [confirm, setConfirm] = useState(false),
     [agreed, setAgreed] = useState(false),
@@ -804,11 +861,15 @@ function FamilyConsent({
   }
   return (
     <section className="panel family-consent">
-      <h2>Guardian consent</h2>
+      <h2>{appText("Guardian consent")}</h2>
       <p>
         {active
-          ? "Consent is active. You can pause new matching and learner-data changes by withdrawing it. Student sessions are revoked when you withdraw."
-          : "Consent is pending or withdrawn. New matching and student authorization remain paused."}
+          ? appText(
+              "Consent is active. You can pause new matching and learner-data changes by withdrawing it. Student sessions are revoked when you withdraw.",
+            )
+          : appText(
+              "Consent is pending or withdrawn. New matching and student authorization remain paused.",
+            )}
       </p>
       {active ? (
         confirm ? (
@@ -830,8 +891,9 @@ function FamilyConsent({
                   onChange={(e) => setAgreed(e.target.checked)}
                 />
                 <span>
-                  I understand that withdrawal pauses new matching and
-                  child-data changes, and revokes student sessions.
+                  {appText(
+                    "I understand that withdrawal pauses new matching and child-data changes, and revokes student sessions.",
+                  )}{" "}
                 </span>
               </label>
               <div className="wizard-actions">
@@ -841,10 +903,10 @@ function FamilyConsent({
                   className="button secondary"
                   onClick={() => setConfirm(false)}
                 >
-                  Keep consent active
+                  {appText("Keep consent active")}{" "}
                 </Button>
                 <Button type="submit" className="button">
-                  Confirm consent withdrawal
+                  {appText("Confirm consent withdrawal")}{" "}
                 </Button>
               </div>
             </fieldset>
@@ -855,18 +917,18 @@ function FamilyConsent({
             disabled={busy || uncertain || blocked}
             onClick={() => setConfirm(true)}
           >
-            Withdraw guardian consent
+            {appText("Withdraw guardian consent")}{" "}
           </Button>
         )
       ) : (
         <Link className="inline-link" href="/onboarding/parent">
-          Review consent in onboarding
+          {appText("Review consent in onboarding")}{" "}
         </Link>
       )}
-      {error && <Notice error>{error}</Notice>}
+      {error && <Notice error>{appError(error)}</Notice>}
       {uncertain && (
         <Button className="button" disabled={busy} onClick={check}>
-          Check consent status
+          {appText("Check consent status")}{" "}
         </Button>
       )}
     </section>
@@ -881,6 +943,8 @@ export function StudentActivation({
   session: Session;
   onSessionChange: (s: Session) => void;
 } & SwitchCallbacks) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const client = useQueryClient();
   const [token, setToken] = useState(""),
     [agreed, setAgreed] = useState(false),
@@ -947,10 +1011,11 @@ export function StudentActivation({
   return (
     <main className="container narrow section">
       <div className="wizard-title">
-        <h1>Your learning, in your own space.</h1>
+        <h1>{appText("Your learning, in your own space.")}</h1>
         <p>
-          A guardian-authorized student space, without a child’s email or phone
-          number.
+          {appText(
+            "A guardian-authorized student space, without a child’s email or phone number.",
+          )}{" "}
         </p>
       </div>
       <form
@@ -961,22 +1026,26 @@ export function StudentActivation({
           activate();
         }}
       >
-        <h2>Authorize the student device</h2>
+        <h2>{appText("Authorize the student device")}</h2>
         <p>
-          You’re signed in as {session.account.name}. Only the guardian who
-          created this invitation can activate it.
+          {appText("You’re signed in as")} {session.account.name}
+          {appText(
+            ". Only the guardian who created this invitation can activate it.",
+          )}{" "}
         </p>
         <Notice>
-          This browser will switch to the learner’s student session. Guardian
-          purchases, consent controls and private notes will stay out of the
-          student interface.
+          {appText(
+            "This browser will switch to the learner’s student session. Guardian purchases, consent controls and private notes will stay out of the student interface.",
+          )}{" "}
         </Notice>
         <fieldset
           className="wizard-fields"
           disabled={busy || !session.account.verified}
         >
           <div className="field">
-            <label htmlFor="student-token">Guardian invitation code</label>
+            <label htmlFor="student-token">
+              {appText("Guardian invitation code")}
+            </label>
             <Input
               id="student-token"
               aria-invalid={!!fieldErrors.token}
@@ -995,7 +1064,7 @@ export function StudentActivation({
                 className="field-error"
                 role="alert"
               >
-                {fieldErrors.token}
+                {appError(fieldErrors.token)}
               </small>
             )}
           </div>
@@ -1013,8 +1082,9 @@ export function StudentActivation({
               onChange={(e) => setAgreed(e.target.checked)}
             />
             <span>
-              I am the inviting guardian and this is the intended student
-              device.
+              {appText(
+                "I am the inviting guardian and this is the intended student device.",
+              )}{" "}
             </span>
           </label>
           {fieldErrors.confirmation && (
@@ -1023,23 +1093,24 @@ export function StudentActivation({
               className="field-error"
               role="alert"
             >
-              {fieldErrors.confirmation}
+              {appError(fieldErrors.confirmation)}
             </small>
           )}
           <Button type="submit" className="button">
-            Authorize student access
+            {appText("Authorize student access")}{" "}
           </Button>
         </fieldset>
         {!session.account.verified && (
           <Notice>
-            Guardian verification is pending. Student authorization is
-            unavailable until your account is approved.
+            {appText(
+              "Guardian verification is pending. Student authorization is unavailable until your account is approved.",
+            )}{" "}
           </Notice>
         )}
-        {error && <Notice error>{error}</Notice>}
-        {busy && <p role="status">Authorizing student access…</p>}
+        {error && <Notice error>{appError(error)}</Notice>}
+        {busy && <p role="status">{appText("Authorizing student access…")}</p>}
         <Link className="inline-link" href="/dashboard/family">
-          Return to learners & access
+          {appText("Return to learners & access")}{" "}
         </Link>
       </form>
     </main>

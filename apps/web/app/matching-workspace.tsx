@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { WeeklySummary } from "./weekly-availability";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -8,15 +9,17 @@ import { api, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { Notice, Feedback, useDecision } from "./tuition-workflow";
-const money = (p: number) =>
-  new Intl.NumberFormat("en-IN", {
+const money = (p: number, locale = "en-IN") =>
+  new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 2,
   }).format(p / 100);
-const when = (iso: string) =>
-  new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+const when = (iso: string, locale = "en-IN") =>
+  new Date(iso).toLocaleString(locale, { timeZone: "Asia/Kolkata" });
 export function MatchingWorkspace({ session }: { session: Session }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const allowed = ["ADMIN", "OPERATOR"].includes(session.account.role),
     params = useSearchParams(),
     [selected, setSelected] = useState(params.get("request") || ""),
@@ -36,55 +39,61 @@ export function MatchingWorkspace({ session }: { session: Session }) {
   if (!allowed)
     return (
       <Notice>
-        Matching review belongs to authorized operators and administrators.
+        {appText(
+          "Matching review belongs to authorized operators and administrators.",
+        )}{" "}
       </Notice>
     );
   return (
     <div className="care-workspace">
       <section className="care-intro">
         <Users size={28} aria-hidden="true" />
-        <h2>A shortlist with reasons.</h2>
+        <h2>{appText("A shortlist with reasons.")}</h2>
         <p>
-          Review the eligible pool, choose a clear order and publish only after
-          checking the current criteria. Rules guide the list; teacher
-          acceptance and guardian choice remain separate.
+          {appText(
+            "Review the eligible pool, choose a clear order and publish only after checking the current criteria. Rules guide the list; teacher acceptance and guardian choice remain separate.",
+          )}{" "}
         </p>
       </section>
       <div className="care-toolbar">
-        <label htmlFor="matching-request">Open tuition request</label>
+        <label htmlFor="matching-request">
+          {appText("Open tuition request")}
+        </label>
         <select
           id="matching-request"
           value={selected}
           disabled={locked}
           onChange={(e) => setSelected(e.target.value)}
         >
-          <option value="">Choose a request</option>
+          <option value="">{appText("Choose a request")}</option>
           {open.map((r) => (
             <option key={r.id} value={r.id}>
-              {r.subject} — {r.locality} —{" "}
+              {appCurriculum(r.subject)} — {r.locality} —{" "}
               {r.discoveryMethod === "MANUAL"
-                ? "Direct search"
-                : "Assisted search"}{" "}
+                ? appText("Direct search")
+                : appText("Assisted search")}{" "}
               — {r.id.slice(0, 8)}
             </option>
           ))}
         </select>
       </div>
-      {queue.isPending && <p role="status">Loading matching queue…</p>}
+      {queue.isPending && (
+        <p role="status">{appText("Loading matching queue…")}</p>
+      )}
       {queue.error && (
         <Notice error>
-          Request queue is unavailable.{" "}
+          {appText("Request queue is unavailable.")}{" "}
           <Button
             variant="outline"
             disabled={locked}
             onClick={() => queue.refetch()}
           >
-            Retry matching queue
+            {appText("Retry matching queue")}{" "}
           </Button>
         </Notice>
       )}
       {!queue.isPending && !queue.error && !open.length && (
-        <Notice>No open requests in this queue.</Notice>
+        <Notice>{appText("No open requests in this queue.")}</Notice>
       )}
       {open.some((r) => r.id === selected) ? (
         <MatchRequest
@@ -97,16 +106,16 @@ export function MatchingWorkspace({ session }: { session: Session }) {
         !queue.isPending &&
         open.length > 0 && (
           <Notice>
-            Choose a request from this authorized queue. It contains the latest
-            50 records.
+            {appText(
+              "Choose a request from this authorized queue. It contains the latest 50 records.",
+            )}{" "}
           </Notice>
         )
       )}
       <small className="care-help">
-        Latest 50 requests and matching runs; up to 10 shortlist candidates from
-        a rules pool bounded at 200 teachers. A match is not an assignment or
-        guaranteed supply. Notification delivery and live operator staffing
-        remain unqualified.
+        {appText(
+          "Latest 50 requests and matching runs; up to 10 shortlist candidates from a rules pool bounded at 200 teachers. A match is not an assignment or guaranteed supply. Notification delivery and live operator staffing remain unqualified.",
+        )}{" "}
       </small>
     </div>
   );
@@ -120,6 +129,8 @@ function MatchRequest({
   id: string;
   onLock: (v: boolean) => void;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const detail = useQuery({
     queryKey: ["operator-request", session.account.id, id],
     queryFn: ({ signal }) =>
@@ -289,20 +300,20 @@ function MatchRequest({
             void decision.reload();
           }}
         >
-          Refresh matching details
+          {appText("Refresh matching details")}{" "}
         </Button>
       )}
       {unavailable && (
         <Notice error>
-          Matching details are loading or unavailable. Guardian
-          verification/consent, an open request and regional access are
-          required.{" "}
+          {appText(
+            "Matching details are loading or unavailable. Guardian verification/consent, an open request and regional access are required.",
+          )}{" "}
           <Button
             variant="outline"
             disabled={decision.uncertain || !!action}
             onClick={() => decision.reload()}
           >
-            Reload matching details
+            {appText("Reload matching details")}{" "}
           </Button>
         </Notice>
       )}
@@ -310,35 +321,37 @@ function MatchRequest({
         <section className="care-card">
           <span className="care-status">
             {request.discoveryMethod === "MANUAL"
-              ? "Direct search"
-              : "Assisted search"}
+              ? appText("Direct search")
+              : appText("Assisted search")}
           </span>
           <h3>
-            {request.subject} · {request.locality}
+            {appCurriculum(request.subject)} · {request.locality}
           </h3>
           <p>
-            {request.mode === "HOME" ? "At home" : "Online"} ·{" "}
-            {request.language} · {money(request.budgetPaise)} monthly budget
+            {request.mode === "HOME" ? appText("At home") : appText("Online")} ·{" "}
+            {appCurriculum(request.language)} ·{" "}
+            {money(request.budgetPaise, appLocale)}{" "}
+            {appText("monthly budget")}{" "}
           </p>
           <p>
             {request.discoveryMethod === "MANUAL"
-              ? "Only the guardian’s chosen teacher is considered."
-              : "An operator reviews the eligible pool for the guardian."}{" "}
-            Current request version {request.version}.
+              ? appText("Only the guardian’s chosen teacher is considered.")
+              : appText(
+                  "An operator reviews the eligible pool for the guardian.",
+                )}{" "}
+            {appText("Current request version")} {request.version}.
           </p>
-          <h4>Required eligibility</h4>
+          <h4>{appText("Required eligibility")}</h4>
           <p>
-            Current screening and fee acceptance; learner stage, class/board or course/year;
-            subject/language/format; budget; home travel/locality where
-            relevant; available capacity and a current availability overlap.
-            Replacement requests exclude the previous teacher. These
-            requirements cannot be overridden.
+            {appText(
+              "Current screening and fee acceptance; learner stage, class/board or course/year; subject/language/format; budget; home travel/locality where relevant; available capacity and a current availability overlap. Replacement requests exclude the previous teacher. These requirements cannot be overridden.",
+            )}{" "}
           </p>
           <p>
-            Schedule:{" "}
+            {appText("Schedule:")}{" "}
             {request.scheduleStatus === "CONFIRMED"
-              ? "Confirmed preferences"
-              : "Needs confirmation"}
+              ? appText("Confirmed preferences")
+              : appText("Needs confirmation")}
           </p>
           {request.schedulePreferences &&
           "weekly" in request.schedulePreferences ? (
@@ -346,7 +359,8 @@ function MatchRequest({
           ) : (
             request.schedulePreferences?.slots.map((s, i) => (
               <p key={i}>
-                {when(s.startsAt)}–{when(s.endsAt)} IST
+                {when(s.startsAt, appLocale)}–{when(s.endsAt, appLocale)}{" "}
+                {appText("IST")}{" "}
               </p>
             ))
           )}
@@ -357,7 +371,7 @@ function MatchRequest({
           disabled={unavailable || decision.locked || !!action}
           onClick={() => begin("run")}
         >
-          Review new matching run
+          {appText("Review new matching run")}{" "}
         </Button>
         <Button
           disabled={
@@ -368,55 +382,66 @@ function MatchRequest({
           }
           onClick={() => begin("publish")}
         >
-          Review shortlist publication
+          {appText("Review shortlist publication")}{" "}
         </Button>
         <Button
           variant="outline"
           disabled={decision.locked || !!action}
           onClick={() => decision.reload()}
         >
-          Refresh matching workspace
+          {appText("Refresh matching workspace")}{" "}
         </Button>
       </div>
       {latest?.result === "NEEDS_SCHEDULE" && (
         <Notice>
-          Ask the guardian to confirm fresh future availability before running
-          matching again. No shortlist is ready to publish.
+          {appText(
+            "Ask the guardian to confirm fresh future availability before running matching again. No shortlist is ready to publish.",
+          )}{" "}
         </Notice>
       )}
       {latest?.result === "NO_MATCH" && (
         <Notice>
-          No eligible teacher was found in this run. Review criteria and teacher
-          supply; ask the guardian to update their needs or availability. Do not
-          bypass hard requirements.
+          {appText(
+            "No eligible teacher was found in this run. Review criteria and teacher supply; ask the guardian to update their needs or availability. Do not bypass hard requirements.",
+          )}{" "}
         </Notice>
       )}
       <section className="care-card">
-        <h3>Current shortlist candidates</h3>
+        <h3>{appText("Current shortlist candidates")}</h3>
         {!items.length && !unavailable && (
-          <p>No candidates yet. Build a run and review its result.</p>
+          <p>
+            {appText("No candidates yet. Build a run and review its result.")}
+          </p>
         )}
         {items.map((c) => (
           <article className="privacy-record" key={c.id}>
             <span className="care-status">
               {c.eligibleNow
-                ? "Currently eligible"
-                : "Not currently selectable"}
+                ? appText("Currently eligible")
+                : appText("Not currently selectable")}
             </span>
             <h4>{c.teacherName}</h4>
             <p>
-              Rules score: {c.score} · Teacher response:{" "}
-              {c.response.toLowerCase()} ·{" "}
+              {appText("Rules score:")} {c.score}{" "}
+              {appText("· Teacher response:")}{" "}
+              {appText(c.response.toLowerCase())} ·{" "}
               {c.presentedAt
-                ? "Published at " + when(c.presentedAt) + " IST"
-                : "Not published"}
+                ? appText("Published at {0} IST", [
+                    when(c.presentedAt, appLocale),
+                  ])
+                : appText("Not published")}
             </p>
             <ul>
               {c.reasons.map((r, i) => (
-                <li key={i}>{r}</li>
+                <li key={i}>{appText(r)}</li>
               ))}
             </ul>
-            {c.expiresAt && <small>Expires {when(c.expiresAt)} IST</small>}
+            {c.expiresAt && (
+              <small>
+                {appText("Expires")} {when(c.expiresAt, appLocale)}{" "}
+                {appText("IST")}
+              </small>
+            )}
           </article>
         ))}
       </section>
@@ -424,10 +449,10 @@ function MatchRequest({
         <section className="care-card care-editor">
           <h3>
             {action === "run"
-              ? "Review a fresh rules run"
+              ? appText("Review a fresh rules run")
               : review
-                ? "Review the ordered shortlist"
-                : "Choose and order the shortlist"}
+                ? appText("Review the ordered shortlist")
+                : appText("Choose and order the shortlist")}
           </h3>
           <form
             noValidate
@@ -447,8 +472,9 @@ function MatchRequest({
               {action === "publish" && !review ? (
                 <>
                   <p>
-                    Choose eligible candidates only. Ordering and exclusion are
-                    recorded; the server rechecks eligibility at publication.
+                    {appText(
+                      "Choose eligible candidates only. Ordering and exclusion are recorded; the server rechecks eligibility at publication.",
+                    )}{" "}
                   </p>
                   {items.map((c) => (
                     <label className="care-check reviewer-coverage" key={c.id}>
@@ -467,8 +493,8 @@ function MatchRequest({
                       <span>
                         {c.teacherName} —{" "}
                         {c.eligibleNow
-                          ? "Eligible"
-                          : "Changed; remove from this selection"}
+                          ? appText("Eligible")
+                          : appText("Changed; remove from this selection")}
                       </span>
                     </label>
                   ))}
@@ -477,7 +503,7 @@ function MatchRequest({
                       <li key={id}>
                         <strong>
                           {items.find((c) => c.id === id)?.teacherName ||
-                            "Candidate no longer in this run"}
+                            appText("Candidate no longer in this run")}
                         </strong>
                         <div className="care-actions">
                           <Button
@@ -486,7 +512,8 @@ function MatchRequest({
                             disabled={i === 0}
                             onClick={() => move(i, -1)}
                           >
-                            Move candidate {i + 1} up
+                            {appText("Move candidate")} {i + 1}{" "}
+                            {appText("up")}{" "}
                           </Button>
                           <Button
                             variant="outline"
@@ -494,7 +521,8 @@ function MatchRequest({
                             disabled={i === order.length - 1}
                             onClick={() => move(i, 1)}
                           >
-                            Move candidate {i + 1} down
+                            {appText("Move candidate")} {i + 1}{" "}
+                            {appText("down")}{" "}
                           </Button>
                           <Button
                             variant="outline"
@@ -503,14 +531,14 @@ function MatchRequest({
                               setOrder(order.filter((x) => x !== id))
                             }
                           >
-                            Remove candidate {i + 1}
+                            {appText("Remove candidate")} {i + 1}
                           </Button>
                         </div>
                       </li>
                     ))}
                   </ol>
                   <label htmlFor="matching-reason">
-                    Reason for shortlist and adjustments
+                    {appText("Reason for shortlist and adjustments")}{" "}
                   </label>
                   <Textarea
                     id="matching-reason"
@@ -523,13 +551,14 @@ function MatchRequest({
               ) : (
                 <div className="care-review">
                   <h4>
-                    Request {id.slice(0, 8)} · Version {request?.version}
+                    {appText("Request")} {id.slice(0, 8)} {appText("· Version")}{" "}
+                    {request?.version}
                   </h4>
                   {action === "run" ? (
                     <p>
-                      A new run rechecks the eligible pool and clears the
-                      previous shortlist and saved teacher choice. Publication
-                      and assignment remain separate decisions.
+                      {appText(
+                        "A new run rechecks the eligible pool and clears the previous shortlist and saved teacher choice. Publication and assignment remain separate decisions.",
+                      )}{" "}
                     </p>
                   ) : (
                     <>
@@ -538,16 +567,14 @@ function MatchRequest({
                         {order.map((id) => (
                           <li key={id}>
                             {items.find((c) => c.id === id)?.teacherName ||
-                              "Candidate changed"}
+                              appText("Candidate changed")}
                           </li>
                         ))}
                       </ol>
                       <p>
-                        This ordered set replaces the current publication.
-                        Excluded candidates stop being shown; current
-                        eligibility, expiry and run ownership are rechecked.
-                        Publishing does not record a guardian view or assign a
-                        teacher.
+                        {appText(
+                          "This ordered set replaces the current publication. Excluded candidates stop being shown; current eligibility, expiry and run ownership are rechecked. Publishing does not record a guardian view or assign a teacher.",
+                        )}{" "}
                       </p>
                     </>
                   )}
@@ -558,10 +585,12 @@ function MatchRequest({
                       onChange={(e) => setAgreed(e.target.checked)}
                     />
                     <span>
-                      I reviewed the criteria and effects and want to{" "}
+                      {appText(
+                        "I reviewed the criteria and effects and want to",
+                      )}{" "}
                       {action === "run"
-                        ? "create this matching run"
-                        : "publish this ordered shortlist"}
+                        ? appText("create this matching run")
+                        : appText("publish this ordered shortlist")}
                       .
                     </span>
                   </label>
@@ -578,17 +607,17 @@ function MatchRequest({
                   }
                 >
                   {review && action === "publish"
-                    ? "Back to adjustments"
-                    : "Cancel decision"}
+                    ? appText("Back to adjustments")
+                    : appText("Cancel decision")}
                 </Button>
                 <Button type="submit">
                   {review
                     ? action === "run"
-                      ? "Confirm matching run"
-                      : "Publish reviewed shortlist"
+                      ? appText("Confirm matching run")
+                      : appText("Publish reviewed shortlist")
                     : action === "run"
-                      ? "Review matching run"
-                      : "Review publication"}
+                      ? appText("Review matching run")
+                      : appText("Review publication")}
                 </Button>
               </div>
             </fieldset>
@@ -596,28 +625,51 @@ function MatchRequest({
         </section>
       )}
       <section className="care-card">
-        <h3>Matching run history</h3>
+        <h3>{appText("Matching run history")}</h3>
         {!history.isPending &&
           !history.error &&
-          !history.data?.items.length && <p>No matching runs yet.</p>}
+          !history.data?.items.length && (
+            <p>{appText("No matching runs yet.")}</p>
+          )}
         {history.data?.items.map((r) => (
           <details className="privacy-record" key={r.id}>
             <summary>
-              {r.result.replaceAll("_", " ").toLowerCase()} · Request version{" "}
-              {r.requestVersion} · {when(r.createdAt)} IST
+              {appText(r.result.replaceAll("_", " ").toLowerCase())}{" "}
+              {appText("· Request version")} {r.requestVersion} ·{" "}
+              {when(r.createdAt, appLocale)} {appText("IST")}{" "}
             </summary>
             <p>
-              Rules: {r.rankerVersion} · Feature version: {r.featureVersion}
+              {appText("Rules:")} {r.rankerVersion}{" "}
+              {appText("· Feature version:")} {r.featureVersion}
             </p>
             <p>
-              Recorded learner coverage: {r.requestFeatures.educationStage==='COLLEGE'?`${String(r.requestFeatures.courseName||'College')} · Year ${String(r.requestFeatures.studyYear||'not recorded')}`:r.requestFeatures.educationStage==='EARLY_YEARS'?String(r.requestFeatures.earlyYearsLevel||'Early years'):`Class ${String(r.requestFeatures.grade??'not recorded')} · ${String(r.requestFeatures.board??'not recorded')}`}.{' '}
+              {appText("Recorded learner coverage:")}{" "}
+              {r.requestFeatures.educationStage === "COLLEGE"
+                ? appText("{0} · Year {1}", [
+                    String(r.requestFeatures.courseName || appText("College")),
+                    String(
+                      r.requestFeatures.studyYear || appText("not recorded"),
+                    ),
+                  ])
+                : r.requestFeatures.educationStage === "EARLY_YEARS"
+                  ? String(r.requestFeatures.earlyYearsLevel || "Early years")
+                  : appText("Class {0} · {1}", [
+                      String(
+                        r.requestFeatures.grade ?? appText("not recorded"),
+                      ),
+                      String(
+                        r.requestFeatures.board ?? appText("not recorded"),
+                      ),
+                    ])}
+              .{" "}
               {r.eligiblePool.poolLimited
-                ? "This run was pool-limited."
-                : "No pool-limit flag recorded."}
+                ? appText("This run was pool-limited.")
+                : appText("No pool-limit flag recorded.")}
             </p>
             <p>
-              Historical evidence does not qualify a candidate for a new
-              publication; the current server checks remain authoritative.
+              {appText(
+                "Historical evidence does not qualify a candidate for a new publication; the current server checks remain authoritative.",
+              )}{" "}
             </p>
           </details>
         ))}

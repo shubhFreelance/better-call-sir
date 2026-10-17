@@ -1,3 +1,5 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
+import { translateText } from "../../apps/web/app/locale";
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { beginGuardian, reviewGuardian } from "./guardian-journey";
@@ -980,5 +982,100 @@ test("weekly enquiry preferences save, resume and review without choosing class 
       exact: true,
     }),
   ).toBeVisible();
+  expect(state.getResources()).toBe(1);
+});
+
+test("Hindi full guardian enquiry preserves learner text, weekly criteria and identical completion retries", async ({
+  page,
+}) => {
+  const t = (text: string) => translateText(true, text);
+  await chooseHindi(page);
+  const state = await additionalDraftMock(page, "uncertain");
+  await page.goto("/onboarding/parent");
+  await page
+    .getByRole("button", { name: t("Create another request"), exact: true })
+    .click();
+  await page.getByRole("checkbox").check();
+  await page
+    .getByRole("button", { name: t("Agree and continue"), exact: true })
+    .click();
+  await page.getByLabel(t("Learner alias"), { exact: true }).fill("Open");
+  await page.getByLabel(t("School name"), { exact: true }).fill("Teacher");
+  await page
+    .getByLabel(t("Subjects studied in this class"), { exact: true })
+    .fill("Maths, Science, English, Hindi");
+  await page
+    .getByRole("button", { name: t("Continue to tuition needs"), exact: true })
+    .click();
+  await page.getByLabel(t("Monthly tuition budget (₹)")).fill("3500.29");
+  await page
+    .getByRole("button", { name: t("Continue to schedule"), exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: t("Review request"), exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      t(
+        "Choose a weekday and nonoverlapping time ranges of at least 20 minutes. End times must be later on the same day.",
+      ),
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await page
+    .getByLabel(t("Preferred day") + " 1", { exact: true })
+    .selectOption("1");
+  await page
+    .getByLabel(t("Available from") + " 1 (IST)", { exact: true })
+    .fill("16:00");
+  await page
+    .getByLabel(t("Available until") + " 1 (IST)", { exact: true })
+    .fill("20:00");
+  await page.getByLabel(t("Schedule notes (optional)")).fill("Open");
+  await page
+    .getByRole("button", { name: t("Review request"), exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: t("Review your tuition request"),
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.locator(".wizard-review")).toContainText("Open");
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
+  await page.screenshot({
+    path: "test-results/hindi-guardian-review-mobile.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: t("Submit tuition request"), exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      t(
+        "We couldn’t confirm the result. Retry this submission before making edits.",
+      ),
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: t("Submit tuition request"), exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: t("Your tuition request is saved."),
+      exact: true,
+    }),
+  ).toBeVisible();
+  const completions = state.writes.filter((w) =>
+    w.path.endsWith("/completions"),
+  );
+  expect(completions).toHaveLength(2);
+  expect(completions[0]).toEqual(completions[1]);
+  const drafts = state.writes.filter((w) => w.path.endsWith("/drafts"));
+  expect(JSON.stringify(drafts.at(-1)?.body)).toContain("350029");
+  expect(JSON.stringify(drafts.at(-1)?.body)).toContain("Teacher");
   expect(state.getResources()).toBe(1);
 });

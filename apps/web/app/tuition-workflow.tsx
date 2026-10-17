@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import {
   WeeklyAvailability,
   WeeklySummary,
@@ -35,14 +36,14 @@ import {
 type Request = components["schemas"]["TuitionRequestDetails"];
 type Candidate = components["schemas"]["Candidate"];
 type Demo = components["schemas"]["Demo"];
-const money = (paise: number) =>
-  new Intl.NumberFormat("en-IN", {
+const money = (paise: number, locale = "en-IN") =>
+  new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 2,
   }).format(paise / 100);
-const when = (iso: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+const when = (iso: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     day: "numeric",
     month: "short",
@@ -62,6 +63,8 @@ export function Notice({
   children: ReactNode;
   error?: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <Alert
       variant={error ? "destructive" : "default"}
@@ -186,12 +189,18 @@ export function Feedback({
   decision: ReturnType<typeof useDecision>;
   translate?: (text: string) => string;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <>
-      {decision.error && <Notice error>{translate(decision.error)}</Notice>}
-      {decision.success && <Notice>{translate(decision.success)}</Notice>}
+      {decision.error && (
+        <Notice error>{appError(translate(decision.error))}</Notice>
+      )}
+      {decision.success && (
+        <Notice>{appText(translate(decision.success))}</Notice>
+      )}
       {decision.busy && (
-        <p role="status">{translate("Saving your decision…")}</p>
+        <p role="status">{appText(translate("Saving your decision…"))}</p>
       )}
       {decision.uncertain && (
         <Button
@@ -199,7 +208,7 @@ export function Feedback({
           disabled={decision.busy}
           onClick={() => decision.run()}
         >
-          {translate("Retry same decision")}
+          {appText(translate("Retry same decision"))}
         </Button>
       )}
     </>
@@ -212,6 +221,8 @@ export function TuitionRequests({
   session: Session;
   dashboard: Dashboard;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const params = useSearchParams();
   const [selected, setSelected] = useState(
       params.get("request") || d.requests?.[0]?.id || "",
@@ -232,27 +243,31 @@ export function TuitionRequests({
     <div className="tuition-workspace">
       <section className="panel">
         <div className="panel-title">
-          <h2>Your tuition requests</h2>
+          <h2>{appText("Your tuition requests")}</h2>
           <Link href="/onboarding/parent" className="button secondary">
-            New request
+            {appText("New request")}{" "}
           </Link>
         </div>
         <p>
-          Compare teacher options and review tuition terms. A demo is optional
-          when the teacher offers one. Your choices stay with you.
+          {appText(
+            "Compare teacher options and review tuition terms. A demo is optional when the teacher offers one. Your choices stay with you.",
+          )}{" "}
         </p>
         {!permitted && (
           <Notice>
-            Guardian verification and active consent are required before making
-            new tuition decisions.{" "}
+            {appText(
+              "Guardian verification and active consent are required before making new tuition decisions.",
+            )}{" "}
             <Link href="/onboarding/parent" className="inline-link">
-              Review guardian onboarding
+              {appText("Review guardian onboarding")}{" "}
             </Link>
           </Notice>
         )}
         {request ? (
           <div className="field">
-            <label htmlFor="tuition-request">Choose a tuition request</label>
+            <label htmlFor="tuition-request">
+              {appText("Choose a tuition request")}
+            </label>
             <select
               id="tuition-request"
               value={request.id}
@@ -262,22 +277,25 @@ export function TuitionRequests({
               {d.requests?.map((r) => (
                 <option key={r.id} value={r.id}>
                   {d.children?.find((c) => c.id === r.childId)?.alias ||
-                    "Learner"}{" "}
-                  · {r.subject} · {r.mode === "HOME" ? "At home" : "Online"} ·{" "}
-                  {new Date(r.createdAt).toLocaleDateString("en-IN")}
+                    appText("Learner")}{" "}
+                  · {appCurriculum(r.subject)} ·{" "}
+                  {r.mode === "HOME" ? appText("At home") : appText("Online")} ·{" "}
+                  {new Date(r.createdAt).toLocaleDateString(appLocale)}
                 </option>
               ))}
             </select>
           </div>
         ) : selected ? (
           <Notice error>
-            This enquiry is not available in your current request list.{" "}
+            {appText(
+              "This enquiry is not available in your current request list.",
+            )}{" "}
             <Link className="inline-link" href="/dashboard">
-              Return to your enquiries
+              {appText("Return to your enquiries")}{" "}
             </Link>
           </Notice>
         ) : (
-          <p>No requests yet. Tell us what your family needs.</p>
+          <p>{appText("No requests yet. Tell us what your family needs.")}</p>
         )}
       </section>
       {request && (
@@ -306,6 +324,8 @@ function RequestReview({
   permitted: boolean;
   onLockChange: (locked: boolean) => void;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const client = useQueryClient();
   const detail = useQuery({
     queryKey: ["request", session.account.id, requestId],
@@ -413,17 +433,18 @@ function RequestReview({
   if (detail.isPending)
     return (
       <section className="panel">
-        <p role="status">Loading the current shortlist…</p>
+        <p role="status">{appText("Loading the current shortlist…")}</p>
       </section>
     );
   if (detail.error || !request)
     return (
       <section className="panel">
         <Notice error>
-          {detail.error?.message || "Request details are unavailable."}
+          {appError(detail.error?.message) ||
+            appText("Request details are unavailable.")}
         </Notice>
         <Button variant="outline" onClick={() => detail.refetch()}>
-          Retry request details
+          {appText("Retry request details")}{" "}
         </Button>
       </section>
     );
@@ -517,43 +538,49 @@ function RequestReview({
     <section className="panel tuition-request-review">
       <div className="panel-title">
         <h2>
-          {child?.alias || "Your learner"} · {request.subject}
+          {child?.alias || appText("Your learner")} ·{" "}
+          {appCurriculum(request.subject)}
         </h2>
         <Button
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
         >
-          Refresh shortlist
+          {appText("Refresh shortlist")}{" "}
         </Button>
       </div>
       <dl className="tuition-summary">
         <div>
-          <dt>Discovery</dt>
+          <dt>{appText("Discovery")}</dt>
           <dd>
             {request.discoveryMethod === "MANUAL"
-              ? "Search · your selected teacher"
-              : "Let us search for you"}
+              ? appText("Search · your selected teacher")
+              : appText("Let us search for you")}
           </dd>
         </div>
         <div>
-          <dt>Lessons</dt>
+          <dt>{appText("Lessons")}</dt>
           <dd>
-            {request.mode === "HOME" ? "At home" : "Online"} ·{" "}
-            {request.language} · {request.locality}
+            {request.mode === "HOME" ? appText("At home") : appText("Online")} ·{" "}
+            {appCurriculum(request.language)} · {request.locality}
           </dd>
         </div>
         <div>
-          <dt>Monthly budget</dt>
-          <dd>Up to {money(request.budgetPaise)}</dd>
+          <dt>{appText("Monthly budget")}</dt>
+          <dd>
+            {appText("Up to")} {money(request.budgetPaise, appLocale)}
+          </dd>
         </div>
         <div>
-          <dt>Request status</dt>
-          <dd>{request.status.toLowerCase().replaceAll("_", " ")}</dd>
+          <dt>{appText("Request status")}</dt>
+          <dd>{appText(request.status.toLowerCase().replaceAll("_", " "))}</dd>
         </div>
       </dl>
       <p>{request.schedule}</p>
-      <ol className="enquiry-progress" aria-label="Enquiry to hiring progress">
+      <ol
+        className="enquiry-progress"
+        aria-label={appText("Enquiry to hiring progress")}
+      >
         {[
           "Enquiry saved",
           request.candidates.some(
@@ -586,12 +613,12 @@ function RequestReview({
                 : undefined
             }
           >
-            {label}
+            {appText(label)}
           </li>
         ))}
       </ol>
       <h3 id="enquiry-availability" tabIndex={-1}>
-        Your availability preferences
+        {appText("Your availability preferences")}{" "}
       </h3>
       {request.schedulePreferences &&
       "weekly" in request.schedulePreferences ? (
@@ -600,19 +627,22 @@ function RequestReview({
         <ul className="tuition-windows">
           {request.schedulePreferences.slots.map((w) => (
             <li key={w.startsAt}>
-              {when(w.startsAt)}–{when(w.endsAt)} IST
+              {when(w.startsAt, appLocale)}–{when(w.endsAt, appLocale)}{" "}
+              {appText("IST")}{" "}
             </li>
           ))}
         </ul>
       ) : (
         <p>
-          No structured availability is confirmed yet. Share time windows before
-          a shortlist can be reviewed.
+          {appText(
+            "No structured availability is confirmed yet. Share time windows before a shortlist can be reviewed.",
+          )}{" "}
         </p>
       )}
       <p className="wizard-help">
-        These are preferences, not booked classes. Teacher options are reviewed
-        against current availability and capacity.
+        {appText(
+          "These are preferences, not booked classes. Teacher options are reviewed against current availability and capacity.",
+        )}{" "}
       </p>
       {!placement && request.status === "OPEN" && (
         <Button
@@ -648,7 +678,7 @@ function RequestReview({
             );
           }}
         >
-          Update availability preferences
+          {appText("Update availability preferences")}{" "}
         </Button>
       )}
       {scheduleOpen && (
@@ -661,10 +691,11 @@ function RequestReview({
             saveWindows();
           }}
         >
-          <h3>Update availability preferences</h3>
+          <h3>{appText("Update availability preferences")}</h3>
           <p>
-            Changing these windows clears the current reviewed shortlist and
-            teacher choice. Existing demo reservations are not cancelled.
+            {appText(
+              "Changing these windows clears the current reviewed shortlist and teacher choice. Existing demo reservations are not cancelled.",
+            )}{" "}
           </p>
           <fieldset disabled={blocked} className="wizard-fields">
             <AvailabilityMode
@@ -688,7 +719,8 @@ function RequestReview({
                   <div className="tuition-window" key={i}>
                     <div className="field">
                       <label htmlFor={`request-window-${i}`}>
-                        Preferred start {i + 1} (IST)
+                        {appText("Preferred start")} {i + 1}{" "}
+                        {appText("(IST)")}{" "}
                       </label>
                       <Input
                         id={`request-window-${i}`}
@@ -705,7 +737,7 @@ function RequestReview({
                     </div>
                     <div className="field">
                       <label htmlFor={`request-duration-${i}`}>
-                        Window duration {i + 1}
+                        {appText("Window duration")} {i + 1}
                       </label>
                       <select
                         id={`request-duration-${i}`}
@@ -720,7 +752,7 @@ function RequestReview({
                       >
                         {[20, 30, 40, 60, 90, 120].map((n) => (
                           <option key={n} value={n}>
-                            {n} minutes
+                            {n} {appText("minutes")}{" "}
                           </option>
                         ))}
                       </select>
@@ -732,9 +764,11 @@ function RequestReview({
                         onClick={() =>
                           setWindows((v) => v.filter((_, j) => j !== i))
                         }
-                        aria-label={`Remove availability window ${i + 1}`}
+                        aria-label={appText("Remove availability window {0}", [
+                          i + 1,
+                        ])}
                       >
-                        Remove
+                        {appText("Remove")}{" "}
                       </Button>
                     )}
                   </div>
@@ -747,7 +781,7 @@ function RequestReview({
                     setWindows((v) => [...v, { start: "", duration: "60" }])
                   }
                 >
-                  Add availability window
+                  {appText("Add availability window")}{" "}
                 </Button>
               </>
             )}
@@ -758,8 +792,9 @@ function RequestReview({
                 onChange={(e) => setAgreed(e.target.checked)}
               />
               <span>
-                I understand that the reviewed shortlist and teacher choice will
-                be reset.
+                {appText(
+                  "I understand that the reviewed shortlist and teacher choice will be reset.",
+                )}{" "}
               </span>
             </label>
             <div className="wizard-actions">
@@ -768,10 +803,10 @@ function RequestReview({
                 type="button"
                 onClick={() => setScheduleOpen(false)}
               >
-                Cancel
+                {appText("Cancel")}{" "}
               </Button>
               <Button className="button" type="submit">
-                Save availability preferences
+                {appText("Save availability preferences")}{" "}
               </Button>
             </div>
           </fieldset>
@@ -780,61 +815,77 @@ function RequestReview({
       {placement ? (
         <section
           className="enquiry-handoff"
-          aria-label="Hiring confirmation next step"
+          aria-label={appText("Hiring confirmation next step")}
         >
           <h3>
             {placement.guardianAccepted && placement.teacherAccepted
-              ? "Hiring terms confirmed"
-              : "Your hiring agreement is ready to review"}
+              ? appText("Hiring terms confirmed")
+              : appText("Your hiring agreement is ready to review")}
           </h3>
           <p>
-            Guardian: {placement.guardianAccepted ? "accepted" : "pending"} ·
-            Teacher: {placement.teacherAccepted ? "accepted" : "pending"}.
-            Review the current agreement and both parties’ confirmation. A demo
-            and class timetable are not required.
+            {appText("Guardian:")}{" "}
+            {placement.guardianAccepted
+              ? appText("accepted")
+              : appText("pending")}{" "}
+            {appText("· Teacher:")}{" "}
+            {placement.teacherAccepted
+              ? appText("accepted")
+              : appText("pending")}
+            {appText(
+              ". Review the current agreement and both parties’ confirmation. A demo and class timetable are not required.",
+            )}{" "}
           </p>
           <Link
             className="button"
             href={`/dashboard?arrangement=${placement.id}`}
           >
-            Continue to hiring confirmation
+            {appText("Continue to hiring confirmation")}{" "}
           </Link>
           <p className="wizard-help">
-            Confirmed hiring terms do not charge anyone or confirm that teaching
-            has started.
+            {appText(
+              "Confirmed hiring terms do not charge anyone or confirm that teaching has started.",
+            )}{" "}
           </p>
         </section>
       ) : (
         <>
-          <h3>Reviewed teacher options</h3>
+          <h3>{appText("Reviewed teacher options")}</h3>
           <p className="wizard-help">
-            Options are reviewed using your criteria. Teacher acceptance, your
-            choice and an optional demo are separate steps; no automatic
-            assignment is made.
+            {appText(
+              "Options are reviewed using your criteria. Teacher acceptance, your choice and an optional demo are separate steps; no automatic assignment is made.",
+            )}{" "}
           </p>
           {profiles.isPending && request.candidates.length > 0 && (
-            <p role="status">Loading teacher profiles…</p>
+            <p role="status">{appText("Loading teacher profiles…")}</p>
           )}
           {profiles.error && (
             <>
-              <Notice error>{profiles.error.message}</Notice>
+              <Notice error>{appError(profiles.error.message)}</Notice>
               <Button variant="outline" onClick={() => profiles.refetch()}>
-                Retry teacher profiles
+                {appText("Retry teacher profiles")}{" "}
               </Button>
             </>
           )}
           {!request.candidates.length && (
             <Notice>
               {request.status !== "OPEN"
-                ? "This request is no longer open for teacher choices."
+                ? appText("This request is no longer open for teacher choices.")
                 : completedDemos.length
-                  ? "No current shortlist options are shown. Review your completed demo below to open tuition terms."
+                  ? appText(
+                      "No current shortlist options are shown. Review your completed demo below to open tuition terms.",
+                    )
                   : request.matchStatus === "NO_MATCH"
-                    ? "No eligible teacher is on this shortlist right now. Review your criteria or contact support."
+                    ? appText(
+                        "No eligible teacher is on this shortlist right now. Review your criteria or contact support.",
+                      )
                     : request.scheduleStatus !== "CONFIRMED" ||
                         request.matchStatus === "NEEDS_SCHEDULE"
-                      ? "Confirm your availability preferences so a shortlist can be reviewed."
-                      : "Your shortlist is awaiting review or current teacher responses. Refresh later or contact support for help."}
+                      ? appText(
+                          "Confirm your availability preferences so a shortlist can be reviewed.",
+                        )
+                      : appText(
+                          "Your shortlist is awaiting review or current teacher responses. Refresh later or contact support for help.",
+                        )}
             </Notice>
           )}
           {request.status === "OPEN" &&
@@ -845,39 +896,39 @@ function RequestReview({
                 ))) && (
               <section
                 className="coverage-recovery"
-                aria-label="Enquiry recovery"
+                aria-label={appText("Enquiry recovery")}
               >
                 <h3>
                   {request.matchStatus === "NO_MATCH"
-                    ? "Keep your enquiry. Explore another path."
-                    : "These teacher options need another review."}
+                    ? appText("Keep your enquiry. Explore another path.")
+                    : appText("These teacher options need another review.")}
                 </h3>
                 <p>
-                  Your enquiry and learner details are preserved. Review your
-                  availability or ask support to review other eligible teachers.
-                  Changes to availability clear the old shortlist and choice
-                  only after your acknowledgement.
+                  {appText(
+                    "Your enquiry and learner details are preserved. Review your availability or ask support to review other eligible teachers. Changes to availability clear the old shortlist and choice only after your acknowledgement.",
+                  )}{" "}
                 </p>
                 <div className="wizard-actions">
                   <a className="inline-link" href="#enquiry-availability">
-                    Review availability
+                    {appText("Review availability")}{" "}
                   </a>
                   <Link className="inline-link" href="/teachers">
-                    Browse teachers manually
+                    {appText("Browse teachers manually")}{" "}
                   </Link>
                   <Link
                     className="inline-link"
                     href={`/support?request=${request.id}`}
                   >
-                    Ask for search support
+                    {appText("Ask for search support")}{" "}
                   </Link>
                 </div>
                 <p className="wizard-help">
-                  The waitlist is for a class, subject, board or city outside
-                  pilot coverage—not a guarantee of teacher availability.
+                  {appText(
+                    "The waitlist is for a class, subject, board or city outside pilot coverage—not a guarantee of teacher availability.",
+                  )}{" "}
                 </p>
                 <Link className="inline-link" href="/waitlist">
-                  Request future coverage
+                  {appText("Request future coverage")}{" "}
                 </Link>
               </section>
             )}
@@ -901,17 +952,21 @@ function RequestReview({
               >
                 <p className="tuition-response">
                   {c.response === "ACCEPTED"
-                    ? "Teacher has accepted this opportunity"
+                    ? appText("Teacher has accepted this opportunity")
                     : c.response === "DECLINED"
-                      ? "Teacher has declined this opportunity"
-                      : "Waiting for the teacher’s response"}
+                      ? appText("Teacher has declined this opportunity")
+                      : appText("Waiting for the teacher’s response")}
                 </p>
                 {demo && (
-                  <p>Demo: {demo.status.toLowerCase().replaceAll("_", " ")}</p>
+                  <p>
+                    {appText("Demo:")}{" "}
+                    {appText(demo.status.toLowerCase().replaceAll("_", " "))}
+                  </p>
                 )}
                 {c.expiresAt && (
                   <p className="wizard-help">
-                    Option expires {when(c.expiresAt)} IST.
+                    {appText("Option expires")} {when(c.expiresAt, appLocale)}{" "}
+                    {appText("IST.")}{" "}
                   </p>
                 )}
                 <div className="wizard-actions">
@@ -923,21 +978,23 @@ function RequestReview({
                         onClick={() => open("choice", c)}
                       >
                         {request.selectedCandidateId === c.id
-                          ? "Review teacher choice"
-                          : "Select teacher"}
+                          ? appText("Review teacher choice")
+                          : appText("Select teacher")}
                       </Button>
                       {demos.isPending ? (
-                        <p role="status">Loading demo progress…</p>
+                        <p role="status">{appText("Loading demo progress…")}</p>
                       ) : demos.error ? (
                         <Button
                           variant="outline"
                           onClick={() => demos.refetch()}
                         >
-                          Retry demo status
+                          {appText("Retry demo status")}{" "}
                         </Button>
                       ) : demo?.status === "COMPLETED" ? (
                         <p className="wizard-help">
-                          Review tuition terms from the completed demo below.
+                          {appText(
+                            "Review tuition terms from the completed demo below.",
+                          )}{" "}
                         </p>
                       ) : demo &&
                         ["PROPOSED", "CONFIRMED", "DISPUTED"].includes(
@@ -947,7 +1004,8 @@ function RequestReview({
                           href="/dashboard/bookings"
                           className="button secondary"
                         >
-                          Review demo · {demo.status.toLowerCase()}
+                          {appText("Review demo ·")}{" "}
+                          {appText(demo.status.toLowerCase())}
                         </Link>
                       ) : profile?.demoAvailable ? (
                         <Button
@@ -955,12 +1013,13 @@ function RequestReview({
                           disabled={blocked}
                           onClick={() => open("demo", c)}
                         >
-                          Choose & arrange optional demo
+                          {appText("Choose & arrange optional demo")}{" "}
                         </Button>
                       ) : (
                         <p className="wizard-help">
-                          Demo not currently offered. You can review tuition
-                          terms without a demo.
+                          {appText(
+                            "Demo not currently offered. You can review tuition terms without a demo.",
+                          )}{" "}
                         </p>
                       )}
                     </>
@@ -974,12 +1033,14 @@ function RequestReview({
                         disabled={blocked || demos.isPending || !!demos.error}
                         onClick={() => open("terms", c)}
                       >
-                        Review tuition terms without a demo
+                        {appText("Review tuition terms without a demo")}{" "}
                       </Button>
                     )}
                   {!current(c) && (
                     <p className="wizard-help">
-                      Refresh the shortlist before choosing this option.
+                      {appText(
+                        "Refresh the shortlist before choosing this option.",
+                      )}{" "}
                     </p>
                   )}
                 </div>
@@ -992,24 +1053,25 @@ function RequestReview({
               disabled={profiles.isFetchingNextPage}
               onClick={() => profiles.fetchNextPage()}
             >
-              Load more teacher profiles
+              {appText("Load more teacher profiles")}{" "}
             </Button>
           )}
           {missing && !profiles.hasNextPage && !profiles.isPending && (
             <p className="wizard-help">
-              Some public profiles are unavailable. Refresh the shortlist before
-              making a choice.
+              {appText(
+                "Some public profiles are unavailable. Refresh the shortlist before making a choice.",
+              )}{" "}
             </p>
           )}
         </>
       )}
       {!placement && completedDemos.length > 0 && (
         <section className="tuition-completed-demos">
-          <h3>Completed demos</h3>
+          <h3>{appText("Completed demos")}</h3>
           <p>
-            A completed demo stays available for agreement review after its
-            shortlist expires. Current fit and teacher acceptance will be
-            checked before terms are created.
+            {appText(
+              "A completed demo stays available for agreement review after its shortlist expires. Current fit and teacher acceptance will be checked before terms are created.",
+            )}{" "}
           </p>
           {completedDemos.map((d) => {
             const profile =
@@ -1017,8 +1079,13 @@ function RequestReview({
               dashboard.teachers?.find((t) => t.id === d.teacherId);
             return (
               <div className="tuition-candidate" key={d.id}>
-                <h4>{profile?.name || "Teacher profile not loaded"}</h4>
-                <p>{when(d.reservation.startsAt)} IST · Completed</p>
+                <h4>
+                  {profile?.name || appText("Teacher profile not loaded")}
+                </h4>
+                <p>
+                  {when(d.reservation.startsAt, appLocale)}{" "}
+                  {appText("IST · Completed")}
+                </p>
                 <Button
                   className="button"
                   disabled={blocked || !profile}
@@ -1028,7 +1095,7 @@ function RequestReview({
                     setScheduleOpen(false);
                   }}
                 >
-                  Review tuition terms
+                  {appText("Review tuition terms")}{" "}
                 </Button>
               </div>
             );
@@ -1039,10 +1106,10 @@ function RequestReview({
         <div className="tuition-confirm" tabIndex={-1}>
           <h3>
             {form.kind === "choice"
-              ? `Choose ${teacher.name}?`
+              ? appText("Choose {0}?", [teacher.name])
               : form.kind === "demo"
-                ? `Arrange a demo with ${teacher.name}`
-                : `Open tuition terms with ${teacher.name}?`}
+                ? appText("Arrange a demo with {0}", [teacher.name])
+                : appText("Open tuition terms with {0}?", [teacher.name])}
           </h3>
           {form.kind === "demo" ? (
             <DemoProposal
@@ -1080,13 +1147,20 @@ function RequestReview({
               }}
             >
               <p>
-                {money(teacher.monthlyPaise)} per month ·{" "}
-                {teacher.subjects.join(" & ")}
+                {money(teacher.monthlyPaise, appLocale)}{" "}
+                {appText("per month ·")}{" "}
+                {teacher.subjects
+                  .map((value) => appCurriculum(value))
+                  .join(" & ")}
               </p>
               <p>
                 {form.kind === "choice"
-                  ? "This saves your preferred teacher. It does not assign a teacher, confirm a demo or start paid tuition."
-                  : "A demo is optional. Opening terms creates a pending agreement; neither party has accepted it yet."}
+                  ? appText(
+                      "This saves your preferred teacher. It does not assign a teacher, confirm a demo or start paid tuition.",
+                    )
+                  : appText(
+                      "A demo is optional. Opening terms creates a pending agreement; neither party has accepted it yet.",
+                    )}
               </p>
               <fieldset disabled={blocked} className="wizard-fields">
                 <label className="wizard-checkbox">
@@ -1097,8 +1171,12 @@ function RequestReview({
                   />
                   <span>
                     {form.kind === "choice"
-                      ? "I understand this records my teacher choice without starting tuition."
-                      : "I want to open a pending tuition agreement with this teacher."}
+                      ? appText(
+                          "I understand this records my teacher choice without starting tuition.",
+                        )
+                      : appText(
+                          "I want to open a pending tuition agreement with this teacher.",
+                        )}
                   </span>
                 </label>
                 <div className="wizard-actions">
@@ -1107,12 +1185,12 @@ function RequestReview({
                     type="button"
                     onClick={() => setForm(null)}
                   >
-                    Cancel
+                    {appText("Cancel")}{" "}
                   </Button>
                   <Button className="button" type="submit">
                     {form.kind === "choice"
-                      ? "Confirm teacher choice"
-                      : "Open tuition agreement"}
+                      ? appText("Confirm teacher choice")
+                      : appText("Open tuition agreement")}
                   </Button>
                 </div>
               </fieldset>
@@ -1122,7 +1200,7 @@ function RequestReview({
       )}
       <Feedback decision={decision} />
       <Link href={`/support?request=${request.id}`} className="inline-link">
-        Get help with this request
+        {appText("Get help with this request")}{" "}
       </Link>
     </section>
   );
@@ -1144,6 +1222,8 @@ function CandidateCard({
   requestId: string;
   canRecord: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const tile = useRef<HTMLElement>(null),
     retry = useRef<{ key: string; body: unknown } | null>(null),
     sent = useRef(false);
@@ -1192,22 +1272,25 @@ function CandidateCard({
   return (
     <article ref={tile} className="tuition-candidate" data-candidate-id={c.id}>
       <div className="panel-title">
-        <h4>{profile?.name || "Teacher profile not loaded"}</h4>
-        {selected && <span className="badge">Your saved choice</span>}
+        <h4>{profile?.name || appText("Teacher profile not loaded")}</h4>
+        {selected && (
+          <span className="badge">{appText("Your saved choice")}</span>
+        )}
       </div>
       {profile && (
         <>
           <p>{profile.headline}</p>
           <p>
-            {money(profile.monthlyPaise)} per month · {profile.experience} years
-            teaching
+            {money(profile.monthlyPaise, appLocale)} {appText("per month ·")}{" "}
+            {profile.experience} {appText("years teaching")}{" "}
           </p>
           <Link href={`/teachers/${profile.slug}`} className="inline-link">
-            View {profile.name}’s profile
+            {appText("View")} {profile.name}
+            {appText("’s profile")}{" "}
           </Link>
         </>
       )}
-      <h5>Why this teacher was shortlisted</h5>
+      <h5>{appText("Why this teacher was shortlisted")}</h5>
       <ul>
         {c.reasons.map((reason, i) => (
           <li key={i}>{reason}</li>
@@ -1216,13 +1299,15 @@ function CandidateCard({
       {children}
       {error && (
         <p className="wizard-help" role="status">
-          We couldn’t confirm this shortlist view in your request history.{" "}
+          {appText(
+            "We couldn’t confirm this shortlist view in your request history.",
+          )}{" "}
           <Button
             variant="ghost"
             disabled={busy || !canRecord}
             onClick={recordView}
           >
-            Retry recording view
+            {appText("Retry recording view")}{" "}
           </Button>
         </p>
       )}
@@ -1242,6 +1327,8 @@ function DemoProposal({
   onCancel: () => void;
   onError: (message: string) => void;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const [start, setStart] = useState(""),
     [duration, setDuration] = useState("30"),
     [showTimes, setShowTimes] = useState(false);
@@ -1305,7 +1392,7 @@ function DemoProposal({
       <fieldset disabled={disabled} className="wizard-fields">
         <div className="tuition-window">
           <div className="field">
-            <label htmlFor="demo-start">Demo start (IST)</label>
+            <label htmlFor="demo-start">{appText("Demo start (IST)")}</label>
             <Input
               id="demo-start"
               type="datetime-local"
@@ -1317,7 +1404,7 @@ function DemoProposal({
             />
           </div>
           <div className="field">
-            <label htmlFor="demo-duration">Demo duration</label>
+            <label htmlFor="demo-duration">{appText("Demo duration")}</label>
             <select
               id="demo-duration"
               value={duration}
@@ -1325,36 +1412,36 @@ function DemoProposal({
             >
               {[20, 30, 40].map((n) => (
                 <option key={n} value={n}>
-                  {n} minutes
+                  {n} {appText("minutes")}{" "}
                 </option>
               ))}
             </select>
           </div>
         </div>
         <p className="wizard-help">
-          At least one hour ahead, within 60 days. Availability is checked when
-          you propose the time; both parties must then accept it. A demo
-          proposal is not a confirmed meeting.
+          {appText(
+            "At least one hour ahead, within 60 days. Availability is checked when you propose the time; both parties must then accept it. A demo proposal is not a confirmed meeting.",
+          )}{" "}
         </p>
         <Button
           type="button"
           variant="outline"
           onClick={() => setShowTimes(true)}
         >
-          Show advertised times for {day}
+          {appText("Show advertised times for")} {day}
         </Button>
         {showTimes &&
           (times.isPending ? (
-            <p role="status">Loading advertised demo times…</p>
+            <p role="status">{appText("Loading advertised demo times…")}</p>
           ) : times.error ? (
             <>
-              <Notice error>{times.error.message}</Notice>
+              <Notice error>{appError(times.error.message)}</Notice>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => times.refetch()}
               >
-                Retry advertised times
+                {appText("Retry advertised times")}{" "}
               </Button>
             </>
           ) : (
@@ -1372,14 +1459,15 @@ function DemoProposal({
                         setShowTimes(false);
                       }}
                     >
-                      {when(slot.startsAt)} IST
+                      {when(slot.startsAt, appLocale)} {appText("IST")}{" "}
                     </Button>
                   ))}
               </div>
               {!times.data?.pages.some((p) => p.items.length) && (
                 <p>
-                  No advertised free demo time for this date. Choose another
-                  date or ask for help.
+                  {appText(
+                    "No advertised free demo time for this date. Choose another date or ask for help.",
+                  )}{" "}
                 </p>
               )}
               {times.hasNextPage && (
@@ -1389,17 +1477,17 @@ function DemoProposal({
                   disabled={times.isFetchingNextPage}
                   onClick={() => times.fetchNextPage()}
                 >
-                  More advertised times
+                  {appText("More advertised times")}{" "}
                 </Button>
               )}
             </>
           ))}
         <div className="wizard-actions">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {appText("Cancel")}{" "}
           </Button>
           <Button className="button" type="submit">
-            Propose demo
+            {appText("Propose demo")}{" "}
           </Button>
         </div>
       </fieldset>
@@ -1413,9 +1501,14 @@ export function TuitionTerms({
   session: Session;
   dashboard: Dashboard;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   if (!["GUARDIAN", "TEACHER"].includes(session.account.role)) return null;
   return (
-    <section className="tuition-terms-list" aria-label="Tuition agreements">
+    <section
+      className="tuition-terms-list"
+      aria-label={appText("Tuition agreements")}
+    >
       {d.placements?.map((p) => (
         <TermsReview
           key={p.id}
@@ -1449,6 +1542,8 @@ function TermsReview({
   learner?: string;
   permitted: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const client = useQueryClient(),
     guardian = session.account.role === "GUARDIAN";
   const schedules = useQuery({
@@ -1501,58 +1596,76 @@ function TermsReview({
   return (
     <article className="panel tuition-term-card">
       <div className="panel-title">
-        <h2>Recurring tuition terms</h2>
+        <h2>{appText("Recurring tuition terms")}</h2>
         <span className="badge">
-          {p.status.toLowerCase().replaceAll("_", " ")}
+          {appText(p.status.toLowerCase().replaceAll("_", " "))}
         </span>
       </div>
       <h3>
-        {teacher?.name || "Teacher profile unavailable"}
+        {teacher?.name || appText("Teacher profile unavailable")}
         {learner ? ` · ${learner}` : ""}
       </h3>
-      <p className="wizard-help">Agreement {p.id.slice(0, 8)}</p>
-      <p className="tuition-price">{money(p.monthlyPaise)} per month</p>
+      <p className="wizard-help">
+        {appText("Agreement")} {p.id.slice(0, 8)}
+      </p>
+      <p className="tuition-price">
+        {money(p.monthlyPaise, appLocale)} {appText("per month")}
+      </p>
       <p>
-        Tuition is paid directly to the teacher. Policy:{" "}
-        {p.policyVersion || "details unavailable"}.
+        {appText("Tuition is paid directly to the teacher. Policy:")}{" "}
+        {p.policyVersion || appText("details unavailable")}.
       </p>
       <p className="wizard-help">
-        Proposed pilot placement fee for the teacher: 25% of first monthly
-        tuition, capped at ₹1,500, only after independent start and receipt
-        confirmations. Final live terms require review.
+        {appText(
+          "Proposed pilot placement fee for the teacher: 25% of first monthly tuition, capped at ₹1,500, only after independent start and receipt confirmations. Final live terms require review.",
+        )}{" "}
       </p>
       <dl className="tuition-summary">
         <div>
-          <dt>Guardian terms</dt>
-          <dd>{p.guardianAccepted ? "Accepted" : "Pending"}</dd>
+          <dt>{appText("Guardian terms")}</dt>
+          <dd>
+            {p.guardianAccepted ? appText("Accepted") : appText("Pending")}
+          </dd>
         </div>
         <div>
-          <dt>Teacher terms</dt>
-          <dd>{p.teacherAccepted ? "Accepted" : "Pending"}</dd>
+          <dt>{appText("Teacher terms")}</dt>
+          <dd>
+            {p.teacherAccepted ? appText("Accepted") : appText("Pending")}
+          </dd>
         </div>
         <div>
-          <dt>Guardian start</dt>
-          <dd>{p.guardianStarted ? "Confirmed" : "Pending"}</dd>
+          <dt>{appText("Guardian start")}</dt>
+          <dd>
+            {p.guardianStarted ? appText("Confirmed") : appText("Pending")}
+          </dd>
         </div>
         <div>
-          <dt>Teacher receipt</dt>
-          <dd>{p.teacherReceiptConfirmed ? "Confirmed" : "Pending"}</dd>
+          <dt>{appText("Teacher receipt")}</dt>
+          <dd>
+            {p.teacherReceiptConfirmed
+              ? appText("Confirmed")
+              : appText("Pending")}
+          </dd>
         </div>
       </dl>
       {schedules.isPending ? (
-        <p role="status">Loading timetable status…</p>
+        <p role="status">{appText("Loading timetable status…")}</p>
       ) : schedules.error ? (
         <>
-          <Notice error>{schedules.error.message}</Notice>
+          <Notice error>{appError(schedules.error.message)}</Notice>
           <Button variant="outline" onClick={() => schedules.refetch()}>
-            Retry timetable status
+            {appText("Retry timetable status")}{" "}
           </Button>
         </>
       ) : (
         <p>
           {timetable
-            ? "A recurring timetable has been accepted by both parties."
-            : "An agreed recurring timetable is still required before tuition starts."}
+            ? appText(
+                "A recurring timetable has been accepted by both parties.",
+              )
+            : appText(
+                "An agreed recurring timetable is still required before tuition starts.",
+              )}
         </p>
       )}
       <div className="wizard-actions">
@@ -1561,7 +1674,7 @@ function TermsReview({
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
         >
-          Refresh tuition terms
+          {appText("Refresh tuition terms")}{" "}
         </Button>
         {!accepted && (
           <Button
@@ -1572,7 +1685,7 @@ function TermsReview({
               setAgreed(false);
             }}
           >
-            Review & accept tuition terms
+            {appText("Review & accept tuition terms")}{" "}
           </Button>
         )}
         {p.guardianAccepted && p.teacherAccepted && !started && (
@@ -1585,18 +1698,23 @@ function TermsReview({
             }}
           >
             {guardian
-              ? "Confirm first paid lesson"
-              : "Confirm lesson & tuition receipt"}
+              ? appText("Confirm first paid lesson")
+              : appText("Confirm lesson & tuition receipt")}
           </Button>
         )}
       </div>
       {p.status === "CLOSED" && (
-        <p>This agreement is closed; further acceptances are unavailable.</p>
+        <p>
+          {appText(
+            "This agreement is closed; further acceptances are unavailable.",
+          )}
+        </p>
       )}
       {!teacher || !p.policyVersion ? (
         <p className="wizard-help">
-          Current teacher and policy details are required before accepting.
-          Refresh or contact support.
+          {appText(
+            "Current teacher and policy details are required before accepting. Refresh or contact support.",
+          )}{" "}
         </p>
       ) : null}
       {action && (
@@ -1610,17 +1728,24 @@ function TermsReview({
         >
           <h3>
             {action === "ACCEPT_TERMS"
-              ? "Review tuition terms"
+              ? appText("Review tuition terms")
               : guardian
-                ? "Confirm the actual first paid lesson"
-                : "Confirm the lesson and tuition receipt"}
+                ? appText("Confirm the actual first paid lesson")
+                : appText("Confirm the lesson and tuition receipt")}
           </h3>
           <p>
             {action === "ACCEPT_TERMS"
-              ? `You are accepting ${money(p.monthlyPaise)} per month with ${teacher?.name}. Both parties must accept these terms and a recurring timetable before tuition starts.`
+              ? appText(
+                  "You are accepting {0} per month with {1}. Both parties must accept these terms and a recurring timetable before tuition starts.",
+                  [money(p.monthlyPaise, appLocale), teacher?.name],
+                )
               : guardian
-                ? "Confirm only after the first paid lesson actually took place. This does not confirm the teacher’s receipt of tuition."
-                : "Confirm only after the paid lesson took place and you received the tuition. The guardian independently confirms the start."}
+                ? appText(
+                    "Confirm only after the first paid lesson actually took place. This does not confirm the teacher’s receipt of tuition.",
+                  )
+                : appText(
+                    "Confirm only after the paid lesson took place and you received the tuition. The guardian independently confirms the start.",
+                  )}
           </p>
           <fieldset
             disabled={decision.locked || !canAccept}
@@ -1634,10 +1759,14 @@ function TermsReview({
               />
               <span>
                 {action === "ACCEPT_TERMS"
-                  ? "I have reviewed the monthly amount, payment basis and stored policy terms."
+                  ? appText(
+                      "I have reviewed the monthly amount, payment basis and stored policy terms.",
+                    )
                   : guardian
-                    ? "The first paid lesson actually took place."
-                    : "The lesson took place and I received the tuition."}
+                    ? appText("The first paid lesson actually took place.")
+                    : appText(
+                        "The lesson took place and I received the tuition.",
+                      )}
               </span>
             </label>
             <div className="wizard-actions">
@@ -1646,12 +1775,12 @@ function TermsReview({
                 variant="outline"
                 onClick={() => setAction(null)}
               >
-                Cancel
+                {appText("Cancel")}{" "}
               </Button>
               <Button className="button" type="submit">
                 {action === "ACCEPT_TERMS"
-                  ? "Accept tuition terms"
-                  : "Save start confirmation"}
+                  ? appText("Accept tuition terms")
+                  : appText("Save start confirmation")}
               </Button>
             </div>
           </fieldset>

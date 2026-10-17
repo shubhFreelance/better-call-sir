@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import {
   TeachingCoverageEditor,
   coverageGroups,
@@ -97,8 +98,8 @@ const localities = [
   "Civil Lines",
   "Mowa",
 ];
-const money = (paise: number) =>
-  new Intl.NumberFormat("en-IN", {
+const money = (paise: number, locale = "en-IN") =>
+  new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 2,
@@ -110,12 +111,16 @@ function Message({
   children: ReactNode;
   error?: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <Alert
       variant={error ? "destructive" : "default"}
       role={error ? "alert" : "status"}
     >
-      <AlertDescription>{children}</AlertDescription>
+      <AlertDescription>
+        {error ? appError(children) : appText(children)}
+      </AlertDescription>
     </Alert>
   );
 }
@@ -133,6 +138,8 @@ export function TeacherSetup({
   session: Session;
   onSessionChange: (s: Session) => void;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const [reload, setReload] = useState(0);
   const [refreshError, setRefreshError] = useState("");
   const progress = useQuery({
@@ -165,13 +172,15 @@ export function TeacherSetup({
   )
     return (
       <main className="container section">
-        <p role="status">Loading your teacher workspace…</p>
+        <p role="status">{appText("Loading your teacher workspace…")}</p>
       </main>
     );
   if (progress.error || owner.error)
     return (
       <main className="container narrow section">
-        <Message error>{(progress.error || owner.error)?.message}</Message>
+        <Message error>
+          {appError((progress.error || owner.error)?.message)}
+        </Message>
         <Button
           className="button"
           onClick={() => {
@@ -179,7 +188,7 @@ export function TeacherSetup({
             if (session.account.role === "TEACHER") owner.refetch();
           }}
         >
-          Try again
+          {appText("Try again")}{" "}
         </Button>
       </main>
     );
@@ -199,14 +208,15 @@ export function TeacherSetup({
     return (
       <main className="container narrow section wizard-success">
         <FileCheck2 size={40} />
-        <h1>Your application is saved.</h1>
+        <h1>{appText("Your application is saved.")}</h1>
         <p>
-          Open your teacher workspace to add private evidence and check your
-          review status.
+          {appText(
+            "Open your teacher workspace to add private evidence and check your review status.",
+          )}{" "}
         </p>
-        {refreshError && <Message error>{refreshError}</Message>}
+        {refreshError && <Message error>{appError(refreshError)}</Message>}
         <Button className="button" onClick={refreshSession}>
-          Open teacher workspace
+          {appText("Open teacher workspace")}{" "}
         </Button>
       </main>
     );
@@ -214,11 +224,12 @@ export function TeacherSetup({
     return (
       <main className="container narrow section">
         <Message error>
-          Your teacher profile could not be found. Contact support before
-          creating another application.
+          {appText(
+            "Your teacher profile could not be found. Contact support before creating another application.",
+          )}{" "}
         </Message>
         <Link href="/support" className="inline-link">
-          Contact support
+          {appText("Contact support")}{" "}
         </Link>
       </main>
     );
@@ -250,6 +261,8 @@ function ApplicationWizard({
   onReload: () => Promise<void>;
   onCancel?: () => void;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const draft = { ...profile, ...initial?.draft } as Partial<Application>;
   const [values, setValues] = useState<Partial<Application>>({
     name: session.account.name,
@@ -530,14 +543,14 @@ function ApplicationWizard({
     hint?: string,
   ) => (
     <div className="field">
-      <label htmlFor={`teacher-${key}`}>{label}</label>
+      <label htmlFor={`teacher-${key}`}>{appText(label)}</label>
       {control}
       {errors[key] ? (
         <small className="field-error" id={`teacher-${key}-error`} role="alert">
-          {errors[key]}
+          {appError(errors[key])}
         </small>
       ) : (
-        hint && <small className="wizard-help">{hint}</small>
+        hint && <small className="wizard-help">{appText(hint)}</small>
       )}
     </div>
   );
@@ -563,7 +576,7 @@ function ApplicationWizard({
     const selected = (values[key] || []) as (string | number)[];
     return (
       <fieldset className="teacher-choice-group">
-        <legend>{label}</legend>
+        <legend>{appText(label)}</legend>
         <div className="teacher-choices">
           {options.map((option) => (
             <label className="teacher-choice" key={option}>
@@ -583,7 +596,7 @@ function ApplicationWizard({
                   )
                 }
               />
-              <span>{labels?.[String(option)] || option}</span>
+              <span>{appText(labels?.[String(option)] || option)}</span>
             </label>
           ))}
         </div>
@@ -593,7 +606,7 @@ function ApplicationWizard({
             className="field-error"
             role="alert"
           >
-            {errors[key]}
+            {appError(errors[key])}
           </small>
         )}
       </fieldset>
@@ -603,13 +616,14 @@ function ApplicationWizard({
     return (
       <main className="container narrow section wizard-success">
         <FileCheck2 size={40} />
-        <h1>Your application is saved.</h1>
+        <h1>{appText("Your application is saved.")}</h1>
         <p>
-          It is submitted for review. Private evidence and current screening
-          checks are still required.
+          {appText(
+            "It is submitted for review. Private evidence and current screening checks are still required.",
+          )}{" "}
         </p>
         <Button className="button" onClick={onDone}>
-          Open teacher workspace
+          {appText("Open teacher workspace")}{" "}
         </Button>
       </main>
     );
@@ -618,17 +632,21 @@ function ApplicationWizard({
       <div className="wizard-title">
         <h1>
           {profile
-            ? "Update your teaching application."
-            : "Bring your kind of teaching."}
+            ? appText("Update your teaching application.")
+            : appText("Bring your kind of teaching.")}
         </h1>
         <p>
-          A focused application, followed by private evidence and an independent
-          review.
+          {appText(
+            "A focused application, followed by private evidence and an independent review.",
+          )}{" "}
         </p>
       </div>
       <div className="wizard-layout">
         <aside className="wizard-aside">
-          <ol className="wizard-steps" aria-label="Application progress">
+          <ol
+            className="wizard-steps"
+            aria-label={appText("Application progress")}
+          >
             {steps.map((s, i) => (
               <li
                 key={s}
@@ -638,20 +656,22 @@ function ApplicationWizard({
                 <span className="wizard-step-number">
                   {i < step ? <Check size={16} /> : i + 1}
                 </span>
-                <span className="wizard-step-name">{s}</span>
+                <span className="wizard-step-name">{appText(s)}</span>
               </li>
             ))}
           </ol>
           <div className="wizard-discovery">
             <GraduationCap size={24} />
-            <strong>For the Raipur pilot</strong>
+            <strong>{appText("For the Raipur pilot")}</strong>
             <p>
-              Early years, school and college. Select only the subjects and
-              curricula and languages you teach confidently.
+              {appText(
+                "Early years, school and college. Select only the subjects and curricula and languages you teach confidently.",
+              )}{" "}
             </p>
             <p>
-              Your application stays private until approved and eligible for
-              discovery.
+              {appText(
+                "Your application stays private until approved and eligible for discovery.",
+              )}{" "}
             </p>
           </div>
         </aside>
@@ -666,14 +686,16 @@ function ApplicationWizard({
         >
           <div className="wizard-topline">
             <span>
-              Step {step + 1} of {steps.length}
+              {appText("Step")} {step + 1} {appText("of")} {steps.length}
             </span>
             <span role="status">
-              {saved ? "Progress saved" : "Saved when you continue"}
+              {saved
+                ? appText("Progress saved")
+                : appText("Saved when you continue")}
             </span>
           </div>
           <h2 ref={heading} tabIndex={-1}>
-            {steps[step]}
+            {appText(steps[step])}
           </h2>
           <fieldset disabled={locked} className="wizard-fields">
             {step === 0 && (
@@ -776,13 +798,14 @@ function ApplicationWizard({
                 )}
                 <fieldset className="teacher-demo-choice">
                   <legend>
-                    Are you comfortable offering an optional demo?
+                    {appText(
+                      "Are you comfortable offering an optional demo?",
+                    )}{" "}
                   </legend>
                   <p className="wizard-help">
-                    A demo helps families assess teaching fit before deciding.
-                    It is optional and does not guarantee hiring. “Demo
-                    available” is highlighted on your approved public profile
-                    when you opt in.
+                    {appText(
+                      "A demo helps families assess teaching fit before deciding. It is optional and does not guarantee hiring. “Demo available” is highlighted on your approved public profile when you opt in.",
+                    )}{" "}
                   </p>
                   <label>
                     <input
@@ -791,7 +814,7 @@ function ApplicationWizard({
                       checked={values.demoOptIn === true}
                       onChange={() => change("demoOptIn", true)}
                     />{" "}
-                    Yes, I can offer a demo
+                    {appText("Yes, I can offer a demo")}{" "}
                   </label>
                   <label>
                     <input
@@ -800,11 +823,13 @@ function ApplicationWizard({
                       checked={values.demoOptIn === false}
                       onChange={() => change("demoOptIn", false)}
                     />{" "}
-                    No, I prefer to discuss tuition without a demo
+                    {appText(
+                      "No, I prefer to discuss tuition without a demo",
+                    )}{" "}
                   </label>
                   {errors.demoOptIn && (
                     <small role="alert" className="field-error">
-                      {errors.demoOptIn}
+                      {appError(errors.demoOptIn)}
                     </small>
                   )}
                 </fieldset>
@@ -812,11 +837,13 @@ function ApplicationWizard({
                   className="teacher-demo-choice teacher-lock-in-choice"
                   aria-describedby="lock-in-help"
                 >
-                  <legend>Do you want a minimum engagement period?</legend>
+                  <legend>
+                    {appText("Do you want a minimum engagement period?")}
+                  </legend>
                   <p id="lock-in-help" className="wizard-help">
-                    Choose your lock-in preference. Families will see it on your
-                    search card and profile. This records your preference;
-                    cancellation restrictions are not currently enforced.
+                    {appText(
+                      "Choose your lock-in preference. Families will see it on your search card and profile. This records your preference; cancellation restrictions are not currently enforced.",
+                    )}{" "}
                   </p>
                   {([0, 15, 30] as const).map((days) => (
                     <label key={days}>
@@ -831,8 +858,8 @@ function ApplicationWizard({
                         }
                       />
                       {days === 0
-                        ? "No, I do not require a lock-in"
-                        : `Yes, ${days} days`}
+                        ? appText("No, I do not require a lock-in")
+                        : appText("Yes, {0} days", [days])}
                     </label>
                   ))}
                   {errors.lockInDays && (
@@ -841,7 +868,7 @@ function ApplicationWizard({
                       role="alert"
                       className="field-error"
                     >
-                      {errors.lockInDays}
+                      {appError(errors.lockInDays)}
                     </small>
                   )}
                 </fieldset>
@@ -854,8 +881,9 @@ function ApplicationWizard({
                     }
                   />
                   <span>
-                    I’m interested in Parent Pro consultations. This records my
-                    preference; calling is currently unavailable.
+                    {appText(
+                      "I’m interested in Parent Pro consultations. This records my preference; calling is currently unavailable.",
+                    )}{" "}
                   </span>
                 </label>
               </>
@@ -916,23 +944,81 @@ Not shown publicly`,
                   ],
                   [
                     "Coverage & tuition",
-                    coverageText({ teachingCoverage: expanded.scopes }),
-                    `${values.languages?.join(", ")} · ${values.modes?.map((m) => (m === "HOME" ? "At home" : "Online")).join(", ")}\n${values.modes?.includes("HOME") ? values.localities?.join(", ") + "\n" : ""}${money(Math.round(Number(price) * 100))} per month\nConsultation interest: ${values.consultationOptIn ? "Yes" : "No"}`,
+                    coverageText(
+                      { teachingCoverage: expanded.scopes },
+                      appText,
+                    ),
+                    `${values.languages?.join(", ")} · ${values.modes?.map((m) => (m === "HOME" ? "At home" : "Online")).join(", ")}\n${values.modes?.includes("HOME") ? values.localities?.join(", ") + "\n" : ""}${money(Math.round(Number(price) * 100), appLocale)} per month\nConsultation interest: ${values.consultationOptIn ? "Yes" : "No"}`,
                   ],
                 ].map(([title, line, detail], i) => (
                   <div className="wizard-review-row" key={title}>
                     <div>
-                      <h3>{title}</h3>
-                      <p>{line}</p>
-                      <p className="teacher-review-detail">{detail}</p>
+                      <h3>{appText(title)}</h3>
+                      <p>
+                        {i === 0
+                          ? appText("{0} · {1} years", [values.name, years])
+                          : i === 2
+                            ? values.education
+                                ?.map(
+                                  (r) =>
+                                    `${appText(milestones[r.milestone])}: ${appText(r.status)}`,
+                                )
+                                .join(" · ")
+                            : appText(line)}
+                      </p>
+                      <p className="teacher-review-detail">
+                        {i === 0 ? (
+                          detail
+                        ) : i === 1 ? (
+                          <>
+                            {values.address?.locality}, {values.address?.city},{" "}
+                            {values.address?.state} {values.address?.postalCode}{" "}
+                            · {appText("India")}
+                            <br />
+                            {appText("Not shown publicly")}
+                          </>
+                        ) : i === 2 ? (
+                          detail
+                        ) : i === 6 ? (
+                          <>
+                            {values.languages
+                              ?.map((value) => appCurriculum(value))
+                              .join(", ")}{" "}
+                            ·{" "}
+                            {values.modes
+                              ?.map((value) => appText(value))
+                              .join(", ")}
+                            <br />
+                            {values.localities?.join(", ")}
+                            <br />
+                            {money(
+                              Math.round(Number(price) * 100),
+                              appLocale,
+                            )}{" "}
+                            {appText("per month")}
+                            <br />
+                            {appText("Consultation interest:")}{" "}
+                            {appText(values.consultationOptIn ? "Yes" : "No")}
+                          </>
+                        ) : i === 3 ? (
+                          values.employment
+                            ?.map(
+                              (r) =>
+                                `${r.organization} · ${r.role} · ${r.fromYear}–${r.toYear || appText("current")} · ${appText(r.proof)}`,
+                            )
+                            .join("\n") || appText("No previous work recorded.")
+                        ) : (
+                          appText(detail)
+                        )}
+                      </p>
                     </div>
                     <Button
                       variant="ghost"
                       type="button"
                       onClick={() => setStep([0, 1, 2, 2, 3, 3, 3][i])}
                     >
-                      Edit{" "}
-                      {
+                      {appText("Edit")}{" "}
+                      {appText(
                         [
                           "teaching profile",
                           "private address",
@@ -941,15 +1027,19 @@ Not shown publicly`,
                           "lock-in preference",
                           "demo preference",
                           "coverage",
-                        ][i]
-                      }
+                        ][i],
+                      )}
                     </Button>
                   </div>
                 ))}
                 <Message>
                   {profile
-                    ? "Resubmitting reopens screening, hides your profile from discovery and revokes existing private-note sharing. Accepted bookings are not cancelled."
-                    : "Submitting changes this account to a teacher account. To retain a separate guardian workspace, apply using a different email account."}
+                    ? appText(
+                        "Resubmitting reopens screening, hides your profile from discovery and revokes existing private-note sharing. Accepted bookings are not cancelled.",
+                      )
+                    : appText(
+                        "Submitting changes this account to a teacher account. To retain a separate guardian workspace, apply using a different email account.",
+                      )}
                 </Message>
                 <label className="wizard-checkbox">
                   <input
@@ -962,10 +1052,9 @@ Not shown publicly`,
                     }
                   />
                   <span>
-                    I acknowledge these account changes and the proposed pilot
-                    placement fee: 25% of first monthly tuition, capped at
-                    ₹1,500, after independently confirmed start and receipt.
-                    Final terms require review.
+                    {appText(
+                      "I acknowledge these account changes and the proposed pilot placement fee: 25% of first monthly tuition, capped at ₹1,500, after independently confirmed start and receipt. Final terms require review.",
+                    )}{" "}
                   </span>
                 </label>
                 {errors.terms && (
@@ -974,21 +1063,21 @@ Not shown publicly`,
                     className="field-error"
                     role="alert"
                   >
-                    {errors.terms}
+                    {appError(errors.terms)}
                   </small>
                 )}
                 <p className="wizard-help">
-                  Next: upload private evidence for identity, qualifications,
-                  teaching capability and references. Submission does not
-                  approve your profile.
+                  {appText(
+                    "Next: upload private evidence for identity, qualifications, teaching capability and references. Submission does not approve your profile.",
+                  )}{" "}
                 </p>
               </div>
             )}
           </fieldset>
-          {error && <Message error>{error}</Message>}
+          {error && <Message error>{appError(error)}</Message>}
           {conflict && (
             <Button type="button" variant="outline" onClick={onReload}>
-              Reload saved application
+              {appText("Reload saved application")}{" "}
             </Button>
           )}
           <div className="wizard-actions">
@@ -1000,7 +1089,7 @@ Not shown publicly`,
                 disabled={locked}
                 onClick={() => setStep((s) => s - 1)}
               >
-                Back
+                {appText("Back")}{" "}
               </Button>
             )}
             {onCancel && (
@@ -1010,7 +1099,7 @@ Not shown publicly`,
                 disabled={locked}
                 onClick={onCancel}
               >
-                Return to workspace
+                {appText("Return to workspace")}{" "}
               </Button>
             )}
             <Button
@@ -1019,12 +1108,14 @@ Not shown publicly`,
               disabled={busy || conflict || (uncertain && step < 4)}
             >
               {busy
-                ? "Saving…"
+                ? appText("Saving…")
                 : step < 4
-                  ? `Continue to ${steps[step + 1].toLowerCase()}`
+                  ? appText("Continue to {0}", [
+                      appText(steps[step + 1].toLowerCase()),
+                    ])
                   : profile
-                    ? "Resubmit for review"
-                    : "Submit teacher application"}
+                    ? appText("Resubmit for review")
+                    : appText("Submit teacher application")}
             </Button>
             {uncertain && step < 4 && (
               <Button
@@ -1036,16 +1127,15 @@ Not shown publicly`,
                   await advance();
                 }}
               >
-                Retry saving progress
+                {appText("Retry saving progress")}{" "}
               </Button>
             )}
           </div>
           {profile && (
             <p className="wizard-save-note">
-              Continue saves each completed step privately. Changes on the
-              current step are not saved until you continue. Your current
-              application stays unchanged until you review and resubmit; fee
-              acknowledgement must be renewed.
+              {appText(
+                "Continue saves each completed step privately. Changes on the current step are not saved until you continue. Your current application stays unchanged until you review and resubmit; fee acknowledgement must be renewed.",
+              )}{" "}
             </p>
           )}
         </form>
@@ -1066,6 +1156,8 @@ function RevisionEditor({
   onDone: () => Promise<void>;
   onReload: () => Promise<void>;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const draft = useQuery({
     queryKey: ["teacher-revision-draft", profile.id],
     queryFn: () =>
@@ -1120,18 +1212,22 @@ function RevisionEditor({
   if (draft.isPending || draft.isFetching)
     return (
       <main className="container narrow section">
-        <Message>Loading your saved revision…</Message>
+        <Message>{appText("Loading your saved revision…")}</Message>
       </main>
     );
   if (draft.error || !draft.data)
     return (
       <main className="container narrow section">
         <Message error>
-          Your saved revision could not be loaded. Try again before editing.
+          {appText(
+            "Your saved revision could not be loaded. Try again before editing.",
+          )}{" "}
         </Message>
-        <Button onClick={() => draft.refetch()}>Retry saved revision</Button>
+        <Button onClick={() => draft.refetch()}>
+          {appText("Retry saved revision")}
+        </Button>
         <Button variant="ghost" onClick={onCancel}>
-          Return to workspace
+          {appText("Return to workspace")}{" "}
         </Button>
       </main>
     );
@@ -1139,25 +1235,26 @@ function RevisionEditor({
     return (
       <main className="container narrow section">
         <section className="wizard-card revision-recovery">
-          <h1>Your application changed.</h1>
+          <h1>{appText("Your application changed.")}</h1>
           <p>
-            Your saved revision belongs to an earlier application version. It is
-            preserved here; review the current application before starting
-            again.
+            {appText(
+              "Your saved revision belongs to an earlier application version. It is preserved here; review the current application before starting again.",
+            )}{" "}
           </p>
           <dl className="review-list">
             <div>
-              <dt>Saved headline</dt>
-              <dd>{draft.data.draft.headline || "Not added"}</dd>
+              <dt>{appText("Saved headline")}</dt>
+              <dd>{draft.data.draft.headline || appText("Not added")}</dd>
             </div>
             <div>
-              <dt>Current headline</dt>
+              <dt>{appText("Current headline")}</dt>
               <dd>{profile.headline}</dd>
             </div>
           </dl>
           <p>
-            Discarding removes only this unfinished revision. Your current
-            application, evidence and reviewer decisions are kept.
+            {appText(
+              "Discarding removes only this unfinished revision. Your current application, evidence and reviewer decisions are kept.",
+            )}{" "}
           </p>
           <label className="check-line">
             <input
@@ -1167,34 +1264,36 @@ function RevisionEditor({
               onChange={(e) => setAcknowledged(e.target.checked)}
             />
             <span>
-              I understand that my saved revision edits will be discarded.
+              {appText(
+                "I understand that my saved revision edits will be discarded.",
+              )}{" "}
             </span>
           </label>
-          {error && <Message error>{error}</Message>}
+          {error && <Message error>{appError(error)}</Message>}
           <div className="wizard-actions">
             <Button
               variant="outline"
               disabled={busy || !!pending.current}
               onClick={onCancel}
             >
-              Keep saved revision
+              {appText("Keep saved revision")}{" "}
             </Button>
             <Button
               disabled={busy || (!acknowledged && !pending.current)}
               onClick={discard}
             >
               {busy
-                ? "Discarding…"
+                ? appText("Discarding…")
                 : pending.current
-                  ? "Retry discarding revision"
-                  : "Discard saved revision"}
+                  ? appText("Retry discarding revision")
+                  : appText("Discard saved revision")}
             </Button>
             <Button
               variant="ghost"
               disabled={busy || !!pending.current}
               onClick={onReload}
             >
-              Reload current application
+              {appText("Reload current application")}{" "}
             </Button>
           </div>
         </section>
@@ -1227,6 +1326,8 @@ function TeacherWorkspace({
   profile: Profile;
   onReload: () => Promise<void>;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const [edit, setEdit] = useState(false);
   const [scheduleLocked, setScheduleLocked] = useState(false);
   const evidence = useQuery({
@@ -1258,10 +1359,14 @@ function TeacherWorkspace({
   return (
     <main className="container section">
       <div className="wizard-title">
-        <h1>Your teacher workspace.</h1>
-        <p>Manage your application, private evidence and teaching schedule.</p>
+        <h1>{appText("Your teacher workspace.")}</h1>
+        <p>
+          {appText(
+            "Manage your application, private evidence and teaching schedule.",
+          )}
+        </p>
         <a href="#teaching-schedule" className="inline-link">
-          Manage teaching schedule
+          {appText("Manage teaching schedule")}{" "}
         </a>
       </div>
       <div className="wizard-layout">
@@ -1271,29 +1376,38 @@ function TeacherWorkspace({
             <strong>{profile.name}</strong>
             <p>{profile.headline}</p>
             <p>
-              {profile.subjects.join(", ")} · {money(profile.monthlyPaise)} per
-              month
+              {profile.subjects.map((value) => appCurriculum(value)).join(", ")}{" "}
+              · {money(profile.monthlyPaise, appLocale)}{" "}
+              {appText("per month")}{" "}
             </p>
             <a href="#teaching-schedule" className="inline-link">
-              Manage teaching schedule
+              {appText("Manage teaching schedule")}{" "}
             </a>
             <Link href="/dashboard" className="inline-link">
-              Open teacher dashboard
+              {appText("Open teacher dashboard")}{" "}
             </Link>
           </div>
         </aside>
         <div className="teacher-workspace">
           <section className="wizard-card">
-            <h2>Application status</h2>
-            <p className="badge">{status}</p>
+            <h2>{appText("Application status")}</h2>
+            <p className="badge">{appText(status)}</p>
             <p>
               {profile.status === "APPROVED"
-                ? "Your application is approved. Discovery also depends on current screening and availability."
+                ? appText(
+                    "Your application is approved. Discovery also depends on current screening and availability.",
+                  )
                 : profile.status === "CHANGES_REQUESTED"
-                  ? "Your reviewer requested changes. Contact support for clarification, then update your application or evidence."
+                  ? appText(
+                      "Your reviewer requested changes. Contact support for clarification, then update your application or evidence.",
+                    )
                   : profile.status === "SUSPENDED"
-                    ? "Your profile is suspended. Contact support for the next steps."
-                    : "Your profile stays private while identity, qualification, capability and reference checks are reviewed."}
+                    ? appText(
+                        "Your profile is suspended. Contact support for the next steps.",
+                      )
+                    : appText(
+                        "Your profile stays private while identity, qualification, capability and reference checks are reviewed.",
+                      )}
             </p>
             <div className="wizard-actions">
               <Button
@@ -1302,17 +1416,17 @@ function TeacherWorkspace({
                 onClick={onReload}
                 disabled={scheduleLocked}
               >
-                Refresh review status
+                {appText("Refresh review status")}{" "}
               </Button>
               <Button
                 variant="ghost"
                 disabled={scheduleLocked}
                 onClick={() => setEdit(true)}
               >
-                Edit application
+                {appText("Edit application")}{" "}
               </Button>
               <Link href="/support" className="inline-link">
-                Contact support
+                {appText("Contact support")}{" "}
               </Link>
             </div>
           </section>
@@ -1320,18 +1434,16 @@ function TeacherWorkspace({
             <TeacherDetailsSummary profile={profile} />
           </section>
           <section className="wizard-card">
-            <h2>Private screening evidence</h2>
+            <h2>{appText("Private screening evidence")}</h2>
             <p>
-              Upload only documents needed for your checks. Files are stored
-              privately and must pass a safety scan before they can be
-              downloaded. A clean scan does not mean your application is
-              approved.
+              {appText(
+                "Upload only documents needed for your checks. Files are stored privately and must pass a safety scan before they can be downloaded. A clean scan does not mean your application is approved.",
+              )}{" "}
             </p>
             <p className="wizard-help">
-              Use Qualifications for Class 10/12 marksheets, college and
-              postgraduate certificates. Use References for previous-work
-              experience certificates or reference evidence. Upload each
-              document separately.
+              {appText(
+                "Use Qualifications for Class 10/12 marksheets, college and postgraduate certificates. Use References for previous-work experience certificates or reference evidence. Upload each document separately.",
+              )}{" "}
             </p>
             <EvidenceUpload
               session={session}
@@ -1341,12 +1453,12 @@ function TeacherWorkspace({
               }}
             />
             {evidence.isPending ? (
-              <p role="status">Loading evidence…</p>
+              <p role="status">{appText("Loading evidence…")}</p>
             ) : evidence.error ? (
               <>
-                <Message error>{evidence.error.message}</Message>
+                <Message error>{appError(evidence.error.message)}</Message>
                 <Button variant="outline" onClick={() => evidence.refetch()}>
-                  Retry evidence list
+                  {appText("Retry evidence list")}{" "}
                 </Button>
               </>
             ) : evidence.data?.items.length ? (
@@ -1355,29 +1467,31 @@ function TeacherWorkspace({
                   <li key={file.id}>
                     <div>
                       <strong>
-                        {file.kind.toLowerCase().replaceAll("_", " ")}
+                        {appText(file.kind.toLowerCase().replaceAll("_", " "))}
                       </strong>
                       <p>
-                        {Math.ceil(file.size / 1024)} KB ·{" "}
-                        {new Date(file.uploadedAt).toLocaleDateString("en-IN")}
+                        {Math.ceil(file.size / 1024)} {appText("KB ·")}{" "}
+                        {new Date(file.uploadedAt).toLocaleDateString(
+                          appLocale,
+                        )}
                       </p>
                     </div>
                     <div>
                       <span>
                         {file.status === "CLEAN"
-                          ? "Safety scan complete"
+                          ? appText("Safety scan complete")
                           : file.status === "QUARANTINED"
-                            ? "Awaiting safety scan"
+                            ? appText("Awaiting safety scan")
                             : file.status === "INFECTED"
-                              ? "Blocked by safety scan"
-                              : "Deleted"}
+                              ? appText("Blocked by safety scan")
+                              : appText("Deleted")}
                       </span>
                       {file.status === "CLEAN" && (
                         <a
                           className="inline-link"
                           href={`/api/v1/evidence/${file.id}/content`}
                         >
-                          Download private file
+                          {appText("Download private file")}{" "}
                         </a>
                       )}
                     </div>
@@ -1386,8 +1500,9 @@ function TeacherWorkspace({
               </ul>
             ) : (
               <p className="wizard-help">
-                No evidence uploaded yet. Start with the documents for your
-                identity check.
+                {appText(
+                  "No evidence uploaded yet. Start with the documents for your identity check.",
+                )}{" "}
               </p>
             )}
           </section>
@@ -1410,6 +1525,8 @@ function EvidenceUpload({
   profile: Profile;
   onUploaded: () => Promise<void>;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const [kind, setKind] = useState("IDENTITY"),
     [file, setFile] = useState<File | null>(null),
     [busy, setBusy] = useState(false),
@@ -1417,7 +1534,8 @@ function EvidenceUpload({
     [error, setError] = useState(""),
     [saved, setSaved] = useState(false);
   const pending = useRef<{ body: unknown; key: string } | null>(null),
-    input = useRef<HTMLInputElement>(null);
+    input = useRef<HTMLInputElement>(null),
+    fileChooser = useRef<HTMLButtonElement>(null);
   const allowed =
     profile.status === "SUBMITTED" || profile.status === "CHANGES_REQUESTED";
   async function upload() {
@@ -1425,7 +1543,8 @@ function EvidenceUpload({
     setSaved(false);
     if (!file) {
       setError("Choose a PDF, PNG or JPEG to upload.");
-      input.current?.focus();
+      if (appLocale === "hi-IN") fileChooser.current?.focus();
+      else input.current?.focus();
       return;
     }
     if (
@@ -1485,9 +1604,9 @@ function EvidenceUpload({
   if (!allowed)
     return (
       <Message>
-        Uploads are available while an application is submitted or changes are
-        requested. To change an approved profile, resubmit your application for
-        a new review.
+        {appText(
+          "Uploads are available while an application is submitted or changes are requested. To change an approved profile, resubmit your application for a new review.",
+        )}{" "}
       </Message>
     );
   return (
@@ -1500,7 +1619,7 @@ function EvidenceUpload({
     >
       <fieldset disabled={busy || uncertain} className="wizard-fields">
         <div className="field">
-          <label htmlFor="evidence-kind">Check category</label>
+          <label htmlFor="evidence-kind">{appText("Check category")}</label>
           <select
             id="evidence-kind"
             value={kind}
@@ -1513,19 +1632,23 @@ function EvidenceUpload({
               (k) => (
                 <option key={k} value={k}>
                   {k === "CAPABILITY"
-                    ? "Teaching capability"
-                    : k.charAt(0) + k.slice(1).toLowerCase()}
+                    ? appText("Teaching capability")
+                    : appText(k.charAt(0) + k.slice(1).toLowerCase())}
                 </option>
               ),
             )}
           </select>
         </div>
         <div className="field">
-          <label htmlFor="evidence-file">Private evidence file</label>
+          <label htmlFor="evidence-file">
+            {appText("Private evidence file")}
+          </label>
           <Input
             id="evidence-file"
             ref={input}
             type="file"
+            className={appLocale === "hi-IN" ? "sr-only" : undefined}
+            tabIndex={appLocale === "hi-IN" ? -1 : undefined}
             accept="application/pdf,image/png,image/jpeg"
             onChange={(e) => {
               setFile(e.target.files?.[0] || null);
@@ -1535,23 +1658,44 @@ function EvidenceUpload({
             }}
             aria-describedby="evidence-help"
           />
+          {appLocale === "hi-IN" && (
+            <>
+              <Button
+                ref={fileChooser}
+                type="button"
+                variant="outline"
+                onClick={() => input.current?.click()}
+              >
+                {appText(
+                  file ? "Change evidence file" : "Choose evidence file",
+                )}
+              </Button>
+              <small role="status">
+                {file?.name || appText("No file selected")}
+              </small>
+            </>
+          )}
           <small id="evidence-help" className="wizard-help">
-            PDF, PNG or JPEG, up to 5 MiB. Files remain private.
+            {appText(
+              "PDF, PNG or JPEG, up to 5 MiB. Files remain private.",
+            )}{" "}
           </small>
         </div>
       </fieldset>
-      {error && <Message error>{error}</Message>}
+      {error && <Message error>{appError(error)}</Message>}
       {saved && (
         <Message>
-          Private evidence uploaded. Check its safety-scan status below.
+          {appText(
+            "Private evidence uploaded. Check its safety-scan status below.",
+          )}{" "}
         </Message>
       )}
       <Button className="button" type="submit" disabled={busy}>
         {busy
-          ? "Uploading…"
+          ? appText("Uploading…")
           : uncertain
-            ? "Retry private upload"
-            : "Upload private evidence"}
+            ? appText("Retry private upload")
+            : appText("Upload private evidence")}
       </Button>
     </form>
   );

@@ -29,13 +29,14 @@
     "contract:lint": "redocly lint contracts/openapi.yaml",
     "test:mock": "tsx --test tests/mock.test.ts",
     "security:secrets": "node scripts/secrets-scan.mjs",
-    "test:security": "tsx --test tests/security.test.ts tests/ci-evidence.test.ts tests/client.test.ts",
+    "test:security": "tsx --test tests/security.test.ts tests/ci-evidence.test.ts tests/client.test.ts tests/localization.test.ts",
     "security:tooling": "npm audit",
     "scanner:test:setup": "node scripts/clamav-test-setup.mjs",
     "security:history": "node scripts/history-secrets.mjs",
     "security:bundle": "node scripts/secrets-scan.mjs --bundle",
     "ops:backup": "node --env-file=.env scripts/backup.mjs",
-    "test:production-browser": "playwright test --config playwright.production.config.mts"
+    "test:production-browser": "playwright test --config playwright.production.config.mts",
+    "test:localization": "tsx --test tests/localization.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "5.2.2",

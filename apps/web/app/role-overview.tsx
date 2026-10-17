@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import { useState } from "react";
 import Link from "next/link";
@@ -16,15 +17,15 @@ import { Notice } from "./tuition-workflow";
 type Summary = components["schemas"]["LearningDashboard"];
 type Metrics = components["schemas"]["LearningMetrics"];
 type Range = { from: string; to: string };
-const date = (value: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+const date = (value: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
-const percent = (n: number, d: number) =>
+const percent = (n: number, d: number, locale = "en-IN") =>
   d
-    ? new Intl.NumberFormat("en-IN", {
+    ? new Intl.NumberFormat(locale, {
         style: "percent",
         maximumFractionDigits: 1,
       }).format(n / d)
@@ -58,6 +59,8 @@ export function RoleOverview({
   session: Session;
   dashboard: Dashboard;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const teacher = session.account.role === "TEACHER",
     guardian = session.account.role === "GUARDIAN";
   const [range, setRange] = useState<Range | null>(null),
@@ -86,17 +89,23 @@ export function RoleOverview({
         <BookOpen size={30} aria-hidden="true" />
         <h2>
           {teacher
-            ? "Your teaching, with a clear record."
+            ? appText("Your teaching, with a clear record.")
             : guardian
-              ? "Your family’s learning, together."
-              : "Your next step in learning."}
+              ? appText("Your family’s learning, together.")
+              : appText("Your next step in learning.")}
         </h2>
         <p>
           {teacher
-            ? "See your assigned learners, recorded teaching and attendance that needs attention."
+            ? appText(
+                "See your assigned learners, recorded teaching and attendance that needs attention.",
+              )
             : guardian
-              ? "Follow each learner’s classes, teachers and next steps in one place."
-              : "Your classes, teachers and attendance belong here. Your guardian manages purchases and family permissions."}
+              ? appText(
+                  "Follow each learner’s classes, teachers and next steps in one place.",
+                )
+              : appText(
+                  "Your classes, teachers and attendance belong here. Your guardian manages purchases and family permissions.",
+                )}
         </p>
       </section>
       {guardian &&
@@ -105,10 +114,14 @@ export function RoleOverview({
           dashboard.consent.withdrawnAt) && (
           <Notice>
             {!session.account.verified
-              ? "Guardian verification is pending. Learner entry and student authorization are unavailable until your account is approved."
-              : "Guardian consent is pending or withdrawn. New matching and student authorization are paused."}{" "}
+              ? appText(
+                  "Guardian verification is pending. Learner entry and student authorization are unavailable until your account is approved.",
+                )
+              : appText(
+                  "Guardian consent is pending or withdrawn. New matching and student authorization are paused.",
+                )}{" "}
             <Link className="inline-link" href="/onboarding/parent">
-              Review guardian onboarding
+              {appText("Review guardian onboarding")}{" "}
             </Link>
           </Notice>
         )}
@@ -118,15 +131,21 @@ export function RoleOverview({
           setCursors([]);
         }}
       />
-      {query.isPending && <p role="status">Loading your recorded activity…</p>}
+      {query.isPending && (
+        <p role="status">{appText("Loading your recorded activity…")}</p>
+      )}
       {query.error && (
         <Notice error>
-          Recorded activity could not be refreshed.{" "}
+          {appText("Recorded activity could not be refreshed.")}{" "}
           {data
-            ? "The displayed records are from the last successful read."
-            : "Totals are unavailable; this is not a zero-activity result."}{" "}
+            ? appText(
+                "The displayed records are from the last successful read.",
+              )
+            : appText(
+                "Totals are unavailable; this is not a zero-activity result.",
+              )}{" "}
           <Button variant="outline" onClick={() => query.refetch()}>
-            Retry recorded activity
+            {appText("Retry recorded activity")}{" "}
           </Button>
         </Notice>
       )}
@@ -136,35 +155,40 @@ export function RoleOverview({
             className="care-card role-activity"
             aria-label={
               guardian
-                ? "Family activity"
+                ? appText("Family activity")
                 : teacher
-                  ? "Teaching activity"
-                  : "Your learning activity"
+                  ? appText("Teaching activity")
+                  : appText("Your learning activity")
             }
           >
             <div className="role-section-heading">
               <h3>
                 {teacher
-                  ? "Teaching activity"
+                  ? appText("Teaching activity")
                   : guardian
-                    ? "Family activity"
-                    : "Your learning activity"}
+                    ? appText("Family activity")
+                    : appText("Your learning activity")}
               </h3>
               <Button
                 variant="outline"
                 disabled={query.isFetching}
                 onClick={() => query.refetch()}
               >
-                Refresh activity
+                {appText("Refresh activity")}{" "}
               </Button>
             </div>
             <p>
-              {date(data.window.from)}–{date(data.window.to)} IST (end
-              excluded). Lesson start selects this period.
+              {date(data.window.from, appLocale)}–
+              {date(data.window.to, appLocale)}{" "}
+              {appText(
+                "IST (end excluded). Lesson start selects this period.",
+              )}{" "}
             </p>
             <p className="care-help">
-              Updated {date(data.lastUpdated)} IST. Counts reflect current
-              records, including later corrections.
+              {appText("Updated")} {date(data.lastUpdated, appLocale)}{" "}
+              {appText(
+                "IST. Counts reflect current records, including later corrections.",
+              )}{" "}
             </p>
             <dl className="role-metrics">
               {(teacher
@@ -191,114 +215,126 @@ export function RoleOverview({
                   ]
               ).map(([label, value]) => (
                 <div key={label}>
-                  <dt>{label}</dt>
+                  <dt>{appText(label)}</dt>
                   <dd>{value}</dd>
                 </div>
               ))}
             </dl>
             <p className="care-help">
-              Classes taken count completed, undisputed lessons marked present
-              or late after lesson end. Completed lesson records describe status
-              separately. Counts describe service activity, not learning
-              improvement.
+              {appText(
+                "Classes taken count completed, undisputed lessons marked present or late after lesson end. Completed lesson records describe status separately. Counts describe service activity, not learning improvement.",
+              )}{" "}
             </p>
             {teacher && (
               <div className="role-teaching-evidence">
                 <div>
-                  <h4>Attendance completeness</h4>
+                  <h4>{appText("Attendance completeness")}</h4>
                   <strong>
                     {percent(
                       data.metrics.attendanceRecorded,
                       data.metrics.attendanceDue,
+                      appLocale,
                     )}
                   </strong>
                   <p>
-                    {data.metrics.attendanceRecorded} undisputed attendance
-                    records / {data.metrics.attendanceDue} ended, non-cancelled
-                    lessons. Pending and disputed records remain outside the
-                    numerator.
+                    {data.metrics.attendanceRecorded}{" "}
+                    {appText("undisputed attendance records /")}{" "}
+                    {data.metrics.attendanceDue}{" "}
+                    {appText(
+                      "ended, non-cancelled lessons. Pending and disputed records remain outside the numerator.",
+                    )}{" "}
                   </p>
                 </div>
                 <div>
-                  <h4>Private feedback sample</h4>
+                  <h4>{appText("Private feedback sample")}</h4>
                   <strong>
                     {data.metrics.feedbackAverage == null
-                      ? "No eligible feedback"
-                      : `${new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(data.metrics.feedbackAverage)} / 5`}
+                      ? appText("No eligible feedback")
+                      : `${new Intl.NumberFormat(appLocale, { maximumFractionDigits: 2 }).format(data.metrics.feedbackAverage)} / 5`}
                   </strong>
                   <p>
-                    {data.metrics.feedbackSampleSize ?? 0} eligible attended
-                    lessons with feedback. This is a recorded rating average;
-                    comments remain in your private lesson history.
+                    {data.metrics.feedbackSampleSize ?? 0}{" "}
+                    {appText(
+                      "eligible attended lessons with feedback. This is a recorded rating average; comments remain in your private lesson history.",
+                    )}{" "}
                   </p>
                 </div>
               </div>
             )}
             {!data.metrics.lessons && (
               <Notice>
-                No lesson records start in this period. Upcoming lessons and
-                current assignments can still appear below.
+                {appText(
+                  "No lesson records start in this period. Upcoming lessons and current assignments can still appear below.",
+                )}{" "}
               </Notice>
             )}
             <ServiceTable metrics={data.metrics} rows={data.serviceKinds} />
             <dl className="role-record-status">
               <div>
-                <dt>Attendance pending</dt>
+                <dt>{appText("Attendance pending")}</dt>
                 <dd>{data.metrics.pendingAttendance}</dd>
               </div>
               <div>
-                <dt>Recorded absences</dt>
+                <dt>{appText("Recorded absences")}</dt>
                 <dd>{data.metrics.absent}</dd>
               </div>
               <div>
-                <dt>Cancelled lessons</dt>
+                <dt>{appText("Cancelled lessons")}</dt>
                 <dd>{data.metrics.cancelled}</dd>
               </div>
               {teacher && (
                 <div>
-                  <dt>Disputed lesson records</dt>
+                  <dt>{appText("Disputed lesson records")}</dt>
                   <dd>{data.metrics.disputed}</dd>
                 </div>
               )}
               {teacher && (
                 <div>
-                  <dt>Pending family confirmations</dt>
+                  <dt>{appText("Pending family confirmations")}</dt>
                   <dd>{data.metrics.pendingConfirmations}</dd>
                 </div>
               )}
             </dl>
             <p className="care-help">
-              Attendance and cancellation counts describe these lesson records;
-              they do not assign responsibility or infer a teacher no-show.
+              {appText(
+                "Attendance and cancellation counts describe these lesson records; they do not assign responsibility or infer a teacher no-show.",
+              )}{" "}
             </p>
             <DemoSummary demos={data.demos} />
             <Link className="inline-link" href="/dashboard/lessons">
-              Open calendar & attendance history
+              {appText("Open calendar & attendance history")}{" "}
             </Link>
           </section>
           {teacher && (
             <section className="care-card">
-              <h3>Your teaching profile</h3>
+              <h3>{appText("Your teaching profile")}</h3>
               {data.profile ? (
                 <>
                   <strong>{data.profile.name}</strong>
                   <p>
-                    {data.profile.subjects.join(" & ")} · Recorded status:{" "}
-                    {data.profile.status.toLowerCase().replaceAll("_", " ")}
+                    {data.profile.subjects
+                      .map((value) => appCurriculum(value))
+                      .join(" & ")}{" "}
+                    {appText("· Recorded status:")}{" "}
+                    {appText(
+                      data.profile.status.toLowerCase().replaceAll("_", " "),
+                    )}
                   </p>
                   <p className="care-help">
-                    Approval depends on current screening and available
-                    capacity.
+                    {appText(
+                      "Approval depends on current screening and available capacity.",
+                    )}{" "}
                   </p>
                 </>
               ) : (
                 <p>
-                  No teaching profile yet. Complete your teacher application
-                  before assignments can be confirmed.
+                  {appText(
+                    "No teaching profile yet. Complete your teacher application before assignments can be confirmed.",
+                  )}{" "}
                 </p>
               )}
               <Link className="inline-link" href="/onboarding/teacher">
-                Review teacher application
+                {appText("Review teacher application")}{" "}
               </Link>
             </section>
           )}
@@ -306,39 +342,49 @@ export function RoleOverview({
             className="role-learners"
             aria-label={
               teacher
-                ? "Assigned learner records"
+                ? appText("Assigned learner records")
                 : guardian
-                  ? "Your learners"
-                  : "Your learner record"
+                  ? appText("Your learners")
+                  : appText("Your learner record")
             }
           >
             <div className="role-section-heading">
               <h3>
                 {teacher
-                  ? "Assigned learner records"
+                  ? appText("Assigned learner records")
                   : guardian
-                    ? "Your learners"
-                    : "Your learner record"}
+                    ? appText("Your learners")
+                    : appText("Your learner record")}
               </h3>
               {guardian && (
                 <Link className="inline-link" href="/onboarding/parent">
-                  Add a learner through tuition onboarding
+                  {appText("Add a learner through tuition onboarding")}{" "}
                 </Link>
               )}
             </div>
             <p className="care-help">
               {guardian || teacher
-                ? "Current assignments and the next scheduled lesson are independent of the selected period. History can include ended assignments. Each page shows up to 20 learners; the totals above cover all authorized records."
-                : "Your current teacher and next scheduled class appear here, independently of the activity dates you choose."}
+                ? appText(
+                    "Current assignments and the next scheduled lesson are independent of the selected period. History can include ended assignments. Each page shows up to 20 learners; the totals above cover all authorized records.",
+                  )
+                : appText(
+                    "Your current teacher and next scheduled class appear here, independently of the activity dates you choose.",
+                  )}
             </p>
             {!data.learners.length && (
               <div className="care-card">
                 <p>
                   {teacher
-                    ? "No authorized learner assignments or lesson/demo history yet."
+                    ? appText(
+                        "No authorized learner assignments or lesson/demo history yet.",
+                      )
                     : guardian
-                      ? "No learners yet. Complete guardian onboarding to add a learner and their tuition needs."
-                      : "No authorized learner record is available. Ask your guardian to review access."}
+                      ? appText(
+                          "No learners yet. Complete guardian onboarding to add a learner and their tuition needs.",
+                        )
+                      : appText(
+                          "No authorized learner record is available. Ask your guardian to review access.",
+                        )}
                 </p>
               </div>
             )}
@@ -347,57 +393,60 @@ export function RoleOverview({
                 <article
                   className="care-card role-learner"
                   key={item.learner.id}
-                  aria-label={`${item.learner.alias}’s learning`}
+                  aria-label={appText("{0}’s learning", [item.learner.alias])}
                 >
                   <header>
                     <h4>{item.learner.alias}</h4>
-                    <p>
-                      {educationLabel(item.learner)}
-                    </p>
+                    <p>{appText(educationLabel(item.learner))}</p>
                   </header>
                   <dl className="role-record-status">
                     <div>
-                      <dt>Classes taken in this period</dt>
+                      <dt>{appText("Classes taken in this period")}</dt>
                       <dd>{item.metrics.classesTaken}</dd>
                     </div>
                     <div>
-                      <dt>Cancelled lessons</dt>
+                      <dt>{appText("Cancelled lessons")}</dt>
                       <dd>{item.metrics.cancelled}</dd>
                     </div>
                     <div>
-                      <dt>Pending family confirmations</dt>
+                      <dt>{appText("Pending family confirmations")}</dt>
                       <dd>{item.metrics.pendingConfirmations}</dd>
                     </div>
                     <div>
-                      <dt>Disputed records</dt>
+                      <dt>{appText("Disputed records")}</dt>
                       <dd>{item.metrics.disputed}</dd>
                     </div>
                   </dl>
                   <div className="role-next">
                     <h5>
-                      <CalendarDays size={17} aria-hidden="true" /> Next
-                      scheduled class
+                      <CalendarDays size={17} aria-hidden="true" />{" "}
+                      {appText("Next scheduled class")}{" "}
                     </h5>
                     {item.nextLesson ? (
                       <>
-                        <strong>{item.nextLesson.subject}</strong>
+                        <strong>
+                          {appCurriculum(item.nextLesson.subject)}
+                        </strong>
                         <p>
-                          {date(item.nextLesson.startsAt)}–
-                          {date(item.nextLesson.endsAt)} IST
+                          {date(item.nextLesson.startsAt, appLocale)}–
+                          {date(item.nextLesson.endsAt, appLocale)}{" "}
+                          {appText("IST")}{" "}
                         </p>
                         <p>
-                          {kind(item.nextLesson.kind)} with{" "}
-                          {item.nextLesson.teacherName}
+                          {appText(kind(item.nextLesson.kind))}{" "}
+                          {appText("with")} {item.nextLesson.teacherName}
                         </p>
                       </>
                     ) : (
-                      <p>No upcoming scheduled lesson is recorded.</p>
+                      <p>
+                        {appText("No upcoming scheduled lesson is recorded.")}
+                      </p>
                     )}
                   </div>
                   <div className="role-assignments">
                     <h5>
-                      Current recurring teacher
-                      {item.assignments.length === 1 ? "" : "s"}
+                      {appText("Current recurring teacher")}{" "}
+                      {item.assignments.length === 1 ? "" : appText("s")}
                     </h5>
                     {item.assignments.length ? (
                       <ul>
@@ -405,19 +454,25 @@ export function RoleOverview({
                           <li key={`${a.teacherId}:${a.subject}:${i}`}>
                             <strong>{a.name}</strong>
                             <span>
-                              {a.subject} · Profile status:{" "}
-                              {a.status.toLowerCase().replaceAll("_", " ")}
+                              {appCurriculum(a.subject)}{" "}
+                              {appText("· Profile status:")}{" "}
+                              {appText(
+                                a.status.toLowerCase().replaceAll("_", " "),
+                              )}
                             </span>
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p>No active recurring teacher assignment yet.</p>
+                      <p>
+                        {appText("No active recurring teacher assignment yet.")}
+                      </p>
                     )}
                     {item.assignmentsLimited && (
                       <p className="care-help">
-                        Showing the first 20 current assignments. Contact
-                        support to review additional assignments.
+                        {appText(
+                          "Showing the first 20 current assignments. Contact support to review additional assignments.",
+                        )}{" "}
                       </p>
                     )}
                   </div>
@@ -427,7 +482,8 @@ export function RoleOverview({
                       className="inline-link"
                       href={`/dashboard/family?learner=${item.learner.id}`}
                     >
-                      Manage {item.learner.alias}’s access
+                      {appText("Manage")} {item.learner.alias}
+                      {appText("’s access")}{" "}
                     </Link>
                   )}
                 </article>
@@ -442,9 +498,11 @@ export function RoleOverview({
                   }
                   onClick={() => setCursors((v) => v.slice(0, -1))}
                 >
-                  Previous learners
+                  {appText("Previous learners")}{" "}
                 </Button>
-                <span>Page {cursors.length + 1}</span>
+                <span>
+                  {appText("Page")} {cursors.length + 1}
+                </span>
                 <Button
                   variant="outline"
                   disabled={
@@ -452,56 +510,61 @@ export function RoleOverview({
                   }
                   onClick={() => setCursors((v) => [...v, data.nextCursor!])}
                 >
-                  Next learners
+                  {appText("Next learners")}{" "}
                 </Button>
               </div>
             )}
           </section>
           {guardian && (
             <section className="care-card role-family-actions">
-              <h3>Family next steps</h3>
+              <h3>{appText("Family next steps")}</h3>
               <div>
                 <Link className="inline-link" href="/dashboard/bookings">
-                  Review revision bookings
+                  {appText("Review revision bookings")}{" "}
                 </Link>
                 <Link className="inline-link" href="/dashboard/requests">
-                  Review tuition requests & demos
+                  {appText("Review tuition requests & demos")}{" "}
                 </Link>
                 <Link className="inline-link" href="/dashboard/family">
-                  Manage student devices
+                  {appText("Manage student devices")}{" "}
                 </Link>
               </div>
-              <h4>Recorded Parent Pro allowance</h4>
+              <h4>{appText("Recorded Parent Pro allowance")}</h4>
               {data.membership ? (
                 <>
                   <p>
-                    {data.membership.allowance} recorded allowance;{" "}
-                    {data.membership.used} used; {data.membership.reserved}{" "}
-                    reserved. Unreserved recorded balance:{" "}
+                    {data.membership.allowance} {appText("recorded allowance;")}{" "}
+                    {data.membership.used} {appText("used;")}{" "}
+                    {data.membership.reserved}{" "}
+                    {appText("reserved. Unreserved recorded balance:")}{" "}
                     {Math.max(
                       0,
                       data.membership.allowance -
                         data.membership.used -
                         data.membership.reserved,
                     )}
-                    . Period ends {date(data.membership.periodEnd)} IST.
+                    {appText(". Period ends")}{" "}
+                    {date(data.membership.periodEnd, appLocale)}{" "}
+                    {appText("IST.")}{" "}
                   </p>
                   <p>
-                    Recorded status: {data.membership.status.toLowerCase()}.{" "}
+                    {appText("Recorded status:")}{" "}
+                    {appText(data.membership.status.toLowerCase())}.{" "}
                     {new Date(data.membership.periodEnd).getTime() <= Date.now()
-                      ? "This recorded period has ended."
+                      ? appText("This recorded period has ended.")
                       : ""}
                   </p>
                 </>
               ) : (
-                <p>No recorded membership allowance.</p>
+                <p>{appText("No recorded membership allowance.")}</p>
               )}
               <p className="care-help">
-                Masked call delivery remains disabled. These development records
-                do not establish a live calling entitlement.
+                {appText(
+                  "Masked call delivery remains disabled. These development records do not establish a live calling entitlement.",
+                )}{" "}
               </p>
               <Link className="inline-link" href="/dashboard/pro">
-                Review Parent Pro records
+                {appText("Review Parent Pro records")}{" "}
               </Link>
             </section>
           )}
@@ -517,6 +580,8 @@ function ServiceTable({
   rows: Summary["serviceKinds"];
   metrics: Metrics;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const display = [
     "RECURRING",
     "REVISION",
@@ -526,14 +591,14 @@ function ServiceTable({
   ];
   return (
     <div className="role-service">
-      <h4>Lessons by service</h4>
-      <table aria-label="Lesson service breakdown">
+      <h4>{appText("Lessons by service")}</h4>
+      <table aria-label={appText("Lesson service breakdown")}>
         <thead>
           <tr>
-            <th scope="col">Service</th>
-            <th scope="col">Classes taken</th>
-            <th scope="col">Completed</th>
-            <th scope="col">Records</th>
+            <th scope="col">{appText("Service")}</th>
+            <th scope="col">{appText("Classes taken")}</th>
+            <th scope="col">{appText("Completed")}</th>
+            <th scope="col">{appText("Records")}</th>
           </tr>
         </thead>
         <tbody>
@@ -541,7 +606,7 @@ function ServiceTable({
             const m = rows.find((r) => r.kind === k)?.metrics;
             return (
               <tr key={k}>
-                <th scope="row">{kind(k)}</th>
+                <th scope="row">{appText(kind(k))}</th>
                 <td>{m?.classesTaken ?? 0}</td>
                 <td>{m?.completedLessons ?? 0}</td>
                 <td>{m?.lessons ?? 0}</td>
@@ -549,7 +614,7 @@ function ServiceTable({
             );
           })}
           <tr>
-            <th scope="row">All lessons</th>
+            <th scope="row">{appText("All lessons")}</th>
             <td>{metrics.classesTaken}</td>
             <td>{metrics.completedLessons}</td>
             <td>{metrics.lessons}</td>
@@ -557,35 +622,42 @@ function ServiceTable({
         </tbody>
       </table>
       <p className="care-help">
-        Demos are shown separately below and are not added to these lesson
-        totals.
+        {appText(
+          "Demos are shown separately below and are not added to these lesson totals.",
+        )}{" "}
       </p>
     </div>
   );
 }
 function DemoSummary({ demos }: { demos: Summary["demos"] }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <div className="role-demo">
-      <h4>Demos in this period</h4>
+      <h4>{appText("Demos in this period")}</h4>
       <p>
-        {demos.scheduled} bookings · {demos.completed} completed ·{" "}
-        {demos.cancelled} cancelled · {demos.noShow} reported no-shows ·{" "}
-        {demos.disputed} disputed.
+        {demos.scheduled} {appText("bookings ·")} {demos.completed}{" "}
+        {appText("completed ·")} {demos.cancelled} {appText("cancelled ·")}{" "}
+        {demos.noShow} {appText("reported no-shows ·")} {demos.disputed}{" "}
+        {appText("disputed.")}{" "}
       </p>
       <p className="care-help">
-        A no-show report may also be disputed. These are recorded outcomes, not
-        extra classes taken.
+        {appText(
+          "A no-show report may also be disputed. These are recorded outcomes, not extra classes taken.",
+        )}{" "}
       </p>
     </div>
   );
 }
 function LearningPeriod({ apply }: { apply: (range: Range | null) => void }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const [choice, setChoice] = useState("ROLLING"),
     [draft, setDraft] = useState<Range>(() => preset("MONTH")),
     [error, setError] = useState("");
   return (
     <section className="care-card">
-      <h3>Choose the activity period</h3>
+      <h3>{appText("Choose the activity period")}</h3>
       <form
         className="care-fields"
         onSubmit={(e) => {
@@ -611,7 +683,7 @@ function LearningPeriod({ apply }: { apply: (range: Range | null) => void }) {
         }}
       >
         <div>
-          <label htmlFor="activity-preset">Date preset</label>
+          <label htmlFor="activity-preset">{appText("Date preset")}</label>
           <select
             id="activity-preset"
             value={choice}
@@ -621,16 +693,20 @@ function LearningPeriod({ apply }: { apply: (range: Range | null) => void }) {
                 setDraft(preset(e.target.value));
             }}
           >
-            <option value="ROLLING">Rolling 30 days</option>
-            <option value="MONTH">Current month</option>
-            <option value="PREVIOUS">Previous calendar month</option>
-            <option value="CUSTOM">Custom dates</option>
+            <option value="ROLLING">{appText("Rolling 30 days")}</option>
+            <option value="MONTH">{appText("Current month")}</option>
+            <option value="PREVIOUS">
+              {appText("Previous calendar month")}
+            </option>
+            <option value="CUSTOM">{appText("Custom dates")}</option>
           </select>
         </div>
         {choice !== "ROLLING" && (
           <>
             <div>
-              <label htmlFor="activity-from">Activity from (IST)</label>
+              <label htmlFor="activity-from">
+                {appText("Activity from (IST)")}
+              </label>
               <Input
                 id="activity-from"
                 type="date"
@@ -643,7 +719,9 @@ function LearningPeriod({ apply }: { apply: (range: Range | null) => void }) {
               />
             </div>
             <div>
-              <label htmlFor="activity-through">Activity through (IST)</label>
+              <label htmlFor="activity-through">
+                {appText("Activity through (IST)")}
+              </label>
               <Input
                 id="activity-through"
                 type="date"
@@ -657,13 +735,14 @@ function LearningPeriod({ apply }: { apply: (range: Range | null) => void }) {
             </div>
           </>
         )}
-        <Button type="submit">Apply activity dates</Button>
+        <Button type="submit">{appText("Apply activity dates")}</Button>
       </form>
       <p className="care-help">
-        Rolling 30 days ends at the report read time. Calendar dates cover whole
-        IST days. Draft changes apply only when you choose Apply activity dates.
+        {appText(
+          "Rolling 30 days ends at the report read time. Calendar dates cover whole IST days. Draft changes apply only when you choose Apply activity dates.",
+        )}{" "}
       </p>
-      {error && <Notice error>{error}</Notice>}
+      {error && <Notice error>{appError(error)}</Notice>}
     </section>
   );
 }

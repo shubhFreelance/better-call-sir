@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation, curriculumText } from "./locale";
 import type { components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -183,12 +184,20 @@ export function flatCoverage(scopes: TeachingScope[]) {
     ],
   };
 }
-export function coverageText(t: Declared) {
+export function coverageText(
+  t: Declared,
+  translate: (text: string) => string = (text) => text,
+) {
   return coverageGroups(t)
     .filter((g) => g.subjects)
     .map(
       (g) =>
-        `${g.subjects} · ${g.stage === "SCHOOL" ? `${g.boards} · Classes ${[...new Set(g.grades)].sort((a, b) => a - b).join(", ")}` : g.stage === "EARLY_YEARS" ? g.levels.map((l) => (l === "NURSERY" ? "Nursery" : l)).join(", ") : `${g.courseName} · Years ${[...new Set(g.years)].sort((a, b) => a - b).join(", ")}`}`,
+        `${g.subjects
+          .split(",")
+          .map((s) => curriculumText(s.trim(), translate))
+          .join(
+            ", ",
+          )} · ${g.stage === "SCHOOL" ? `${g.boards} · ${translate("Classes")} ${[...new Set(g.grades)].sort((a, b) => a - b).join(", ")}` : g.stage === "EARLY_YEARS" ? g.levels.map((l) => (l === "NURSERY" ? translate("Nursery") : l)).join(", ") : `${g.courseName} · ${translate("Years")} ${[...new Set(g.years)].sort((a, b) => a - b).join(", ")}`}`,
     )
     .join("\n");
 }
@@ -199,14 +208,18 @@ export function TeachingCoverageSummary({
   profile: Declared;
   compact?: boolean;
 }) {
-  const lines = coverageText(profile).split("\n").filter(Boolean);
+  const { appText, appError, appLocale } = useAppTranslation();
+
+  const lines = coverageText(profile, appText).split("\n").filter(Boolean);
   return (
     <div className="teaching-coverage-summary">
       {lines.slice(0, compact ? 3 : undefined).map((line, i) => (
-        <p key={i}>{line}</p>
+        <p key={i}>{appText(line)}</p>
       ))}
       {compact && lines.length > 3 && (
-        <p>+{lines.length - 3} more teaching areas on the profile</p>
+        <p>
+          +{lines.length - 3} {appText("more teaching areas on the profile")}
+        </p>
       )}
     </div>
   );
@@ -220,6 +233,8 @@ export function TeachingCoverageEditor({
   onChange: (groups: CoverageGroup[]) => void;
   error?: string;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   function change(index: number, patch: Partial<CoverageGroup>) {
     onChange(groups.map((g, i) => (i === index ? { ...g, ...patch } : g)));
   }
@@ -240,33 +255,35 @@ export function TeachingCoverageEditor({
       className="teaching-coverage-editor"
       aria-labelledby="coverage-heading"
     >
-      <h3 id="coverage-heading">What do you teach?</h3>
+      <h3 id="coverage-heading">{appText("What do you teach?")}</h3>
       <p className="wizard-help">
-        Create a separate teaching area when the subject, curriculum or course
-        differs. Each subject applies to every selected class, level or year
-        within that area. All declarations need screening.
+        {appText(
+          "Create a separate teaching area when the subject, curriculum or course differs. Each subject applies to every selected class, level or year within that area. All declarations need screening.",
+        )}{" "}
       </p>
       {groups.map((g, i) => (
         <section
           key={i}
           className="teaching-coverage-group"
-          aria-label={`Teaching area ${i + 1}`}
+          aria-label={appText("Teaching area {0}", [i + 1])}
         >
           <div className="hiring-section-heading">
-            <h4>Teaching area {i + 1}</h4>
+            <h4>
+              {appText("Teaching area")} {i + 1}
+            </h4>
             {groups.length > 1 && (
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => onChange(groups.filter((_, n) => n !== i))}
               >
-                Remove teaching area {i + 1}
+                {appText("Remove teaching area")} {i + 1}
               </Button>
             )}
           </div>
           <div className="field">
             <label htmlFor={`coverage-stage-${i}`}>
-              Education stage for teaching area {i + 1}
+              {appText("Education stage for teaching area")} {i + 1}
             </label>
             <select
               id={`coverage-stage-${i}`}
@@ -275,14 +292,16 @@ export function TeachingCoverageEditor({
                 change(i, { stage: e.target.value as CoverageGroup["stage"] })
               }
             >
-              <option value="SCHOOL">School — Classes 1–12</option>
-              <option value="EARLY_YEARS">Early years — Nursery / KG</option>
-              <option value="COLLEGE">College / university</option>
+              <option value="SCHOOL">{appText("School — Classes 1–12")}</option>
+              <option value="EARLY_YEARS">
+                {appText("Early years — Nursery / KG")}
+              </option>
+              <option value="COLLEGE">{appText("College / university")}</option>
             </select>
           </div>
           <div className="field">
             <label htmlFor={`coverage-subjects-${i}`}>
-              Subjects in teaching area {i + 1}
+              {appText("Subjects in teaching area")} {i + 1}
             </label>
             <Input
               id={`coverage-subjects-${i}`}
@@ -293,14 +312,16 @@ export function TeachingCoverageEditor({
               aria-describedby={error ? "teaching-coverage-error" : undefined}
             />
             <small className="wizard-help">
-              Separate subjects with commas, for example Physics, Chemistry.
+              {appText(
+                "Separate subjects with commas, for example Physics, Chemistry.",
+              )}{" "}
             </small>
           </div>
           {g.stage === "SCHOOL" && (
             <>
               <div className="field">
                 <label htmlFor={`coverage-boards-${i}`}>
-                  Boards in teaching area {i + 1}
+                  {appText("Boards in teaching area")} {i + 1}
                 </label>
                 <Input
                   id={`coverage-boards-${i}`}
@@ -309,11 +330,13 @@ export function TeachingCoverageEditor({
                   onChange={(e) => change(i, { boards: e.target.value })}
                 />
                 <small className="wizard-help">
-                  For example CBSE, ICSE or your state board.
+                  {appText("For example CBSE, ICSE or your state board.")}{" "}
                 </small>
               </div>
               <fieldset className="coverage-picks">
-                <legend>Classes in teaching area {i + 1}</legend>
+                <legend>
+                  {appText("Classes in teaching area")} {i + 1}
+                </legend>
                 {Array.from({ length: 12 }, (_, n) => n + 1).map((n) => (
                   <label key={n}>
                     <input
@@ -321,7 +344,7 @@ export function TeachingCoverageEditor({
                       checked={g.grades.includes(n)}
                       onChange={() => toggle(i, "grades", n)}
                     />
-                    Class {n}
+                    {appText("Class")} {n}
                   </label>
                 ))}
               </fieldset>
@@ -329,7 +352,9 @@ export function TeachingCoverageEditor({
           )}
           {g.stage === "EARLY_YEARS" && (
             <fieldset className="coverage-picks">
-              <legend>Levels in teaching area {i + 1}</legend>
+              <legend>
+                {appText("Levels in teaching area")} {i + 1}
+              </legend>
               {["NURSERY", "KG1", "KG2"].map((level) => (
                 <label key={level}>
                   <input
@@ -337,7 +362,7 @@ export function TeachingCoverageEditor({
                     checked={g.levels.includes(level)}
                     onChange={() => toggle(i, "levels", level)}
                   />
-                  {level === "NURSERY" ? "Nursery" : level}
+                  {level === "NURSERY" ? appText("Nursery") : level}
                 </label>
               ))}
             </fieldset>
@@ -346,7 +371,7 @@ export function TeachingCoverageEditor({
             <>
               <div className="field">
                 <label htmlFor={`coverage-course-${i}`}>
-                  Course / degree in teaching area {i + 1}
+                  {appText("Course / degree in teaching area")} {i + 1}
                 </label>
                 <Input
                   id={`coverage-course-${i}`}
@@ -355,12 +380,15 @@ export function TeachingCoverageEditor({
                   onChange={(e) => change(i, { courseName: e.target.value })}
                 />
                 <small className="wizard-help">
-                  Use the course name learners use, for example BSc Physics.
-                  Matching also checks the study year.
+                  {appText(
+                    "Use the course name learners use, for example BSc Physics. Matching also checks the study year.",
+                  )}{" "}
                 </small>
               </div>
               <fieldset className="coverage-picks">
-                <legend>Study years in teaching area {i + 1}</legend>
+                <legend>
+                  {appText("Study years in teaching area")} {i + 1}
+                </legend>
                 {Array.from({ length: 10 }, (_, n) => n + 1).map((n) => (
                   <label key={n}>
                     <input
@@ -368,7 +396,7 @@ export function TeachingCoverageEditor({
                       checked={g.years.includes(n)}
                       onChange={() => toggle(i, "years", n)}
                     />
-                    Year {n}
+                    {appText("Year")} {n}
                   </label>
                 ))}
               </fieldset>
@@ -378,7 +406,7 @@ export function TeachingCoverageEditor({
       ))}
       {error && (
         <p id="teaching-coverage-error" className="field-error" role="alert">
-          {error}
+          {appError(error)}
         </p>
       )}
       <Button
@@ -387,7 +415,7 @@ export function TeachingCoverageEditor({
         disabled={groups.length >= 20}
         onClick={() => onChange([...groups, emptyCoverageGroup()])}
       >
-        Add teaching area
+        {appText("Add teaching area")}{" "}
       </Button>
     </section>
   );

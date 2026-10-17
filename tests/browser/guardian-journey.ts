@@ -8,7 +8,10 @@ export async function beginGuardian(page: Page) {
   await agree.click();
   await expect(page.getByLabel("Learner alias", { exact: true })).toBeVisible();
 }
-export async function existingLearner(page: Page, label = "Aarav · Class 8") {
+export async function existingLearner(
+  page: Page,
+  label = "Aarav · Class 8 · CBSE",
+) {
   await page.getByLabel("Link an existing learner").selectOption({ label });
   if (await page.getByLabel("School name", { exact: true }).isEditable())
     await page

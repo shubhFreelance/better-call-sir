@@ -23,6 +23,6 @@ export async function api<T>(path:string,options:{method?:string;body?:unknown;c
   if (!response.ok) throw new ApiError(response.status,typeof result?.code==='string'?result.code:'ERROR',typeof result?.message==='string'?result.message:'Unable to complete this action.',result?.fieldErrors);
   return result as T;
 }
-export const rupees=(paise:number)=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(paise/100);
+export const rupees=(paise:number,locale='en-IN')=>new Intl.NumberFormat(locale,{style:'currency',currency:'INR',maximumFractionDigits:0}).format(paise/100);
 
 export interface Demo {id:string;requestId:string;teacherId:string;guardianId:string;reservationId:string;status:string;guardianAccepted:boolean;teacherAccepted:boolean;guardianOutcome:string|null;teacherOutcome:string|null;supportCaseId:string|null;version:number;createdAt:string;reservation:Reservation}

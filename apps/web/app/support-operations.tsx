@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -21,32 +22,37 @@ const labels: Record<string, string> = {
   RESOLVED: "Resolved",
   CLOSED: "Closed",
 };
-const when = (s: string) =>
-    new Date(s).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+const when = (s: string, locale = "en-IN") =>
+    new Date(s).toLocaleString(locale, { timeZone: "Asia/Kolkata" }),
   label = (s: string) =>
     s
       .toLowerCase()
       .replaceAll("_", " ")
       .replace(/^./, (v) => v.toUpperCase());
 export function SupportOperations({ session }: { session: Session }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const [tab, setTab] = useState("cases"),
     [locked, setLocked] = useState(false);
   if (!["ADMIN", "OPERATOR"].includes(session.account.role))
     return (
       <Notice>
-        Support operations belong to authorized operators and administrators.{" "}
-        <Link href="/support">Your private support cases</Link> remain separate.
+        {appText(
+          "Support operations belong to authorized operators and administrators.",
+        )}{" "}
+        <Link href="/support">{appText("Your private support cases")}</Link>{" "}
+        {appText("remain separate.")}{" "}
       </Notice>
     );
   return (
     <div className="care-workspace">
       <section className="care-intro">
         <LifeBuoy size={28} aria-hidden="true" />
-        <h2>Every concern, a clear next step.</h2>
+        <h2>{appText("Every concern, a clear next step.")}</h2>
         <p>
-          Review regional cases, distinguish private staff notes from owner
-          replies, and resolve demo or attendance disputes from the recorded
-          evidence. Safety reporting stays free.
+          {appText(
+            "Review regional cases, distinguish private staff notes from owner replies, and resolve demo or attendance disputes from the recorded evidence. Safety reporting stays free.",
+          )}{" "}
         </p>
       </section>
       <Tabs
@@ -55,15 +61,18 @@ export function SupportOperations({ session }: { session: Session }) {
           if (!locked) setTab(v);
         }}
       >
-        <TabsList className="care-tabs" aria-label="Support operation queues">
+        <TabsList
+          className="care-tabs"
+          aria-label={appText("Support operation queues")}
+        >
           <TabsTrigger value="cases" disabled={locked}>
-            Cases
+            {appText("Cases")}{" "}
           </TabsTrigger>
           <TabsTrigger value="demos" disabled={locked}>
-            Demo disputes
+            {appText("Demo disputes")}{" "}
           </TabsTrigger>
           <TabsTrigger value="lessons" disabled={locked}>
-            Attendance disputes
+            {appText("Attendance disputes")}{" "}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="cases">
@@ -77,11 +86,9 @@ export function SupportOperations({ session }: { session: Session }) {
         </TabsContent>
       </Tabs>
       <small className="care-help">
-        Case/update and attendance queues are paginated. Demo history is the
-        latest 100 records. Self-assignment and release support team handoff;
-        staff provisioning remains separate. These actions do not settle refunds
-        or payouts. Live support hours, notification delivery and safeguarding
-        procedures remain unqualified.
+        {appText(
+          "Case/update and attendance queues are paginated. Demo history is the latest 100 records. Self-assignment and release support team handoff; staff provisioning remains separate. These actions do not settle refunds or payouts. Live support hours, notification delivery and safeguarding procedures remain unqualified.",
+        )}{" "}
       </small>
     </div>
   );
@@ -93,6 +100,8 @@ function CaseQueue({
   session: Session;
   onLock: (v: boolean) => void;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const params = useSearchParams(),
     [selected, setSelected] = useState(params.get("case") || ""),
     [status, setStatus] = useState(""),
@@ -119,7 +128,7 @@ function CaseQueue({
     <>
       <div className="care-fields">
         <div>
-          <label htmlFor="ops-status">Case status</label>
+          <label htmlFor="ops-status">{appText("Case status")}</label>
           <select
             id="ops-status"
             value={status}
@@ -129,16 +138,16 @@ function CaseQueue({
               setSelected("");
             }}
           >
-            <option value="">All statuses</option>
+            <option value="">{appText("All statuses")}</option>
             {Object.entries(labels).map(([v, s]) => (
               <option key={v} value={v}>
-                {s}
+                {appText(s)}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label htmlFor="ops-category">Case category</label>
+          <label htmlFor="ops-category">{appText("Case category")}</label>
           <select
             id="ops-category"
             value={category}
@@ -148,7 +157,7 @@ function CaseQueue({
               setSelected("");
             }}
           >
-            <option value="">All categories</option>
+            <option value="">{appText("All categories")}</option>
             {[
               "SAFETY",
               "REPLACEMENT",
@@ -160,13 +169,13 @@ function CaseQueue({
               "PAID_BOOKING_REVIEW",
             ].map((s) => (
               <option key={s} value={s}>
-                {label(s)}
+                {appText(label(s))}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label htmlFor="ops-assignment">Assignment filter</label>
+          <label htmlFor="ops-assignment">{appText("Assignment filter")}</label>
           <select
             id="ops-assignment"
             value={assignment}
@@ -176,31 +185,31 @@ function CaseQueue({
               setSelected("");
             }}
           >
-            <option value="">All assignments</option>
-            <option value="ME">Assigned to me</option>
-            <option value="UNASSIGNED">Unassigned</option>
+            <option value="">{appText("All assignments")}</option>
+            <option value="ME">{appText("Assigned to me")}</option>
+            <option value="UNASSIGNED">{appText("Unassigned")}</option>
           </select>
         </div>
       </div>
-      {list.isPending && <p role="status">Loading cases…</p>}
+      {list.isPending && <p role="status">{appText("Loading cases…")}</p>}
       {list.error && (
         <Notice error>
-          Case queue could not be loaded.{" "}
+          {appText("Case queue could not be loaded.")}{" "}
           <Button
             variant="outline"
             disabled={locked}
             onClick={() => list.refetch()}
           >
-            Retry case queue
+            {appText("Retry case queue")}{" "}
           </Button>
         </Notice>
       )}
       <section className="care-card">
-        <h3>Case queue</h3>
+        <h3>{appText("Case queue")}</h3>
         {!list.isPending &&
           !list.error &&
           !list.data?.pages.some((p) => p.items.length) && (
-            <p>No cases for these filters.</p>
+            <p>{appText("No cases for these filters.")}</p>
           )}
         <div className="ops-case-list">
           {list.data?.pages
@@ -213,7 +222,8 @@ function CaseQueue({
                 aria-pressed={selected === c.id}
                 onClick={() => setSelected(c.id)}
               >
-                {label(c.category)} · {labels[c.status]} · {c.id.slice(0, 8)}
+                {appText(label(c.category))} · {appText(labels[c.status])} ·{" "}
+                {c.id.slice(0, 8)}
               </Button>
             ))}
         </div>
@@ -223,7 +233,7 @@ function CaseQueue({
             disabled={locked || list.isFetching}
             onClick={() => list.fetchNextPage()}
           >
-            Load more cases
+            {appText("Load more cases")}{" "}
           </Button>
         )}
       </section>
@@ -253,6 +263,8 @@ function StaffCase({
   onLock: (v: boolean) => void;
   refreshList: () => Promise<void>;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const details = useInfiniteQuery({
     queryKey: ["staff-case-detail", session.account.id, id],
     initialPageParam: "",
@@ -390,39 +402,45 @@ function StaffCase({
             void decision.reload();
           }}
         >
-          Refresh current staff case
+          {appText("Refresh current staff case")}{" "}
         </Button>
       )}
       {details.error && (
         <Notice error>
-          This case is unavailable or outside your authorized scope.{" "}
+          {appText(
+            "This case is unavailable or outside your authorized scope.",
+          )}{" "}
           <Button
             variant="outline"
             disabled={decision.uncertain}
             onClick={() => details.refetch()}
           >
-            Retry staff case
+            {appText("Retry staff case")}{" "}
           </Button>
         </Notice>
       )}
-      {details.isPending && <p role="status">Loading case conversation…</p>}
+      {details.isPending && (
+        <p role="status">{appText("Loading case conversation…")}</p>
+      )}
       {c && !details.error && (
         <section className="care-card care-editor">
           <span className="care-status">
-            {labels[c.status]} · {c.region}
+            {appText(labels[c.status])} · {c.region}
           </span>
           <h3>
-            {label(c.category)} · Case {id.slice(0, 8)}
+            {appText(label(c.category))} {appText("· Case")} {id.slice(0, 8)}
           </h3>
           <p>{c.description}</p>
           <p>
-            Assignment:{" "}
+            {appText("Assignment:")}{" "}
             {c.assignedToId === session.account.id
-              ? "You"
+              ? appText("You")
               : c.assignedToId
-                ? "Another staff member " + c.assignedToId.slice(0, 8)
-                : "Unassigned"}{" "}
-            · Version {c.version}
+                ? appText("Another staff member {0}", [
+                    c.assignedToId.slice(0, 8),
+                  ])
+                : appText("Unassigned")}{" "}
+            {appText("· Version")} {c.version}
           </p>
           {c.studentEnquiryId && (
             <Link
@@ -431,21 +449,27 @@ function StaffCase({
                 "/dashboard/student-enquiries?enquiry=" + c.studentEnquiryId
               }
             >
-              Review linked student enquiry
+              {appText("Review linked student enquiry")}{" "}
             </Link>
           )}
           {c.placementId && (
-            <small>Linked arrangement {c.placementId.slice(0, 8)}</small>
+            <small>
+              {appText("Linked arrangement")} {c.placementId.slice(0, 8)}
+            </small>
           )}
-          {c.resolution && <Notice>Recorded resolution: {c.resolution}</Notice>}
-          <h4>Conversation and staff notes</h4>
+          {c.resolution && (
+            <Notice>
+              {appText("Recorded resolution:")} {c.resolution}
+            </Notice>
+          )}
+          <h4>{appText("Conversation and staff notes")}</h4>
           {details.hasNextPage && (
             <Button
               variant="outline"
               disabled={decision.locked || !!action || details.isFetching}
               onClick={() => details.fetchNextPage()}
             >
-              Load earlier staff updates
+              {appText("Load earlier staff updates")}{" "}
             </Button>
           )}
           <ol className="support-updates">
@@ -457,17 +481,21 @@ function StaffCase({
                   <div>
                     <strong>
                       {u.author === "YOU"
-                        ? "You"
+                        ? appText("You")
                         : u.author === "CASE_OWNER"
-                          ? "Case owner"
-                          : "Support"}
+                          ? appText("Case owner")
+                          : appText("Support")}
                     </strong>
                     <span className="care-status">
-                      {u.internal ? "Staff only" : "Visible to case owner"}
+                      {u.internal
+                        ? appText("Staff only")
+                        : appText("Visible to case owner")}
                     </span>
                   </div>
                   <p>{u.message}</p>
-                  <small>{when(u.createdAt)} IST</small>
+                  <small>
+                    {when(u.createdAt, appLocale)} {appText("IST")}
+                  </small>
                 </li>
               ))}
           </ol>
@@ -480,21 +508,21 @@ function StaffCase({
               }
               onClick={() => begin("reply")}
             >
-              Write reply or staff note
+              {appText("Write reply or staff note")}{" "}
             </Button>
             <Button
               variant="outline"
               disabled={decision.locked || !!action || c.status === "CLOSED"}
               onClick={() => begin("triage")}
             >
-              Review status and assignment
+              {appText("Review status and assignment")}{" "}
             </Button>
             <Button
               variant="outline"
               disabled={decision.locked || !!action}
               onClick={() => decision.reload()}
             >
-              Refresh case conversation
+              {appText("Refresh case conversation")}{" "}
             </Button>
           </div>
           {action && (
@@ -519,7 +547,7 @@ function StaffCase({
                       <div className="care-fields">
                         <div>
                           <label htmlFor="staff-case-status">
-                            Next case status
+                            {appText("Next case status")}{" "}
                           </label>
                           <select
                             id="staff-case-status"
@@ -532,14 +560,14 @@ function StaffCase({
                                 value={v}
                                 disabled={!transitions[c.status].includes(v)}
                               >
-                                {s}
+                                {appText(s)}
                               </option>
                             ))}
                           </select>
                         </div>
                         <div>
                           <label htmlFor="staff-case-assignee">
-                            Assignment decision
+                            {appText("Assignment decision")}{" "}
                           </label>
                           <select
                             id="staff-case-assignee"
@@ -547,11 +575,13 @@ function StaffCase({
                             onChange={(e) => setAssignment(e.target.value)}
                           >
                             <option value="keep">
-                              Keep current assignment
+                              {appText("Keep current assignment")}{" "}
                             </option>
-                            <option value="me">Assign to me</option>
+                            <option value="me">
+                              {appText("Assign to me")}
+                            </option>
                             <option value="unassigned">
-                              Release to unassigned queue
+                              {appText("Release to unassigned queue")}{" "}
                             </option>
                           </select>
                         </div>
@@ -564,15 +594,16 @@ function StaffCase({
                           onChange={(e) => setInternal(e.target.checked)}
                         />
                         <span>
-                          Staff-only note: hide this message from the case
-                          owner.
+                          {appText(
+                            "Staff-only note: hide this message from the case owner.",
+                          )}{" "}
                         </span>
                       </label>
                     )}
                     <label htmlFor="staff-case-message">
                       {action === "reply"
-                        ? "Case message"
-                        : "Reason for status/assignment"}
+                        ? appText("Case message")
+                        : appText("Reason for status/assignment")}
                     </label>
                     <Textarea
                       id="staff-case-message"
@@ -583,27 +614,48 @@ function StaffCase({
                     />
                     <p>
                       {action === "triage"
-                        ? "Triage reasons are visible to the case owner. Use the dispute tabs for demo/attendance outcomes; case triage alone does not decide a lesson outcome."
+                        ? appText(
+                            "Triage reasons are visible to the case owner. Use the dispute tabs for demo/attendance outcomes; case triage alone does not decide a lesson outcome.",
+                          )
                         : internal
-                          ? "This note is visible only to authorized support staff."
-                          : "This reply is visible to the case owner."}
+                          ? appText(
+                              "This note is visible only to authorized support staff.",
+                            )
+                          : appText("This reply is visible to the case owner.")}
                     </p>
                   </>
                 ) : (
                   <div className="care-review">
                     <h4>
-                      Case {id.slice(0, 8)} · Version {c.version}
+                      {appText("Case")} {id.slice(0, 8)} {appText("· Version")}{" "}
+                      {c.version}
                     </h4>
                     <p>{message}</p>
                     <p>
                       {action === "reply"
                         ? internal
-                          ? "Visibility: authorized staff only."
-                          : "Visibility: case owner and authorized staff."
-                        : `Record ${labels[targetStatus]}; ${assignment === "me" ? "assign to you" : assignment === "unassigned" ? "release to the unassigned queue" : "keep assignment"}. The reason is visible to the case owner.`}
+                          ? appText("Visibility: authorized staff only.")
+                          : appText(
+                              "Visibility: case owner and authorized staff.",
+                            )
+                        : appText(
+                            "Record {0}; {1}. The reason is visible to the case owner.",
+                            [
+                              appText(labels[targetStatus]),
+                              assignment === "me"
+                                ? appText("assign to you")
+                                : assignment === "unassigned"
+                                  ? appText("release to the unassigned queue")
+                                  : appText("keep assignment"),
+                            ],
+                          )}
                     </p>
                     {targetStatus === "CLOSED" && action === "triage" && (
-                      <p>Closing is final; this case cannot be reopened.</p>
+                      <p>
+                        {appText(
+                          "Closing is final; this case cannot be reopened.",
+                        )}
+                      </p>
                     )}
                     <label className="care-check">
                       <input
@@ -612,8 +664,9 @@ function StaffCase({
                         onChange={(e) => setAgreed(e.target.checked)}
                       />
                       <span>
-                        I reviewed this case, message visibility and effects,
-                        and want to record the decision.
+                        {appText(
+                          "I reviewed this case, message visibility and effects, and want to record the decision.",
+                        )}{" "}
                       </span>
                     </label>
                   </div>
@@ -628,10 +681,14 @@ function StaffCase({
                         : (setAction(""), setMessage(""))
                     }
                   >
-                    {review ? "Back to editing" : "Cancel case decision"}
+                    {review
+                      ? appText("Back to editing")
+                      : appText("Cancel case decision")}
                   </Button>
                   <Button type="submit">
-                    {review ? "Confirm case decision" : "Review case decision"}
+                    {review
+                      ? appText("Confirm case decision")
+                      : appText("Review case decision")}
                   </Button>
                 </div>
               </fieldset>
@@ -654,6 +711,8 @@ function DisputeQueue({
   kind: "demo" | "lesson";
   onLock: (v: boolean) => void;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const [selected, setSelected] = useState<Dispute | null>(null),
     [locked, setLocked] = useState(false),
     [notice, setNotice] = useState("");
@@ -699,26 +758,28 @@ function DisputeQueue({
   }
   return (
     <>
-      {notice && <Notice>{notice}</Notice>}
+      {notice && <Notice>{appText(notice)}</Notice>}
       <section className="care-card">
         <h3>
-          {kind === "demo" ? "Demo outcome disputes" : "Attendance disputes"}
+          {kind === "demo"
+            ? appText("Demo outcome disputes")
+            : appText("Attendance disputes")}
         </h3>
-        {query.isPending && <p role="status">Loading disputes…</p>}
+        {query.isPending && <p role="status">{appText("Loading disputes…")}</p>}
         {query.error && (
           <Notice error>
-            Scoped dispute records are unavailable.{" "}
+            {appText("Scoped dispute records are unavailable.")}{" "}
             <Button
               variant="outline"
               disabled={locked}
               onClick={() => refresh()}
             >
-              Retry dispute queue
+              {appText("Retry dispute queue")}{" "}
             </Button>
           </Notice>
         )}
         {!query.isPending && !query.error && !rows.length && (
-          <p>No open disputes in these records.</p>
+          <p>{appText("No open disputes in these records.")}</p>
         )}
         <div className="ops-case-list">
           {rows.map((r) => (
@@ -733,19 +794,21 @@ function DisputeQueue({
               }}
             >
               {"reservation" in r
-                ? "Demo · " + when(r.reservation.startsAt)
+                ? appText("Demo · {0}", [
+                    when(r.reservation.startsAt, appLocale),
+                  ])
                 : r.learner.alias +
                   " · " +
                   r.subject +
                   " · " +
-                  when(r.startsAt)}{" "}
-              IST
+                  when(r.startsAt, appLocale)}{" "}
+              {appText("IST")}{" "}
             </Button>
           ))}
         </div>
         <div className="care-actions">
           <Button variant="outline" disabled={locked} onClick={() => refresh()}>
-            Refresh dispute queue
+            {appText("Refresh dispute queue")}{" "}
           </Button>
           {kind === "lesson" && lessons.hasNextPage && (
             <Button
@@ -753,7 +816,7 @@ function DisputeQueue({
               disabled={locked || lessons.isFetching}
               onClick={() => lessons.fetchNextPage()}
             >
-              Load more attendance disputes
+              {appText("Load more attendance disputes")}{" "}
             </Button>
           )}
         </div>
@@ -795,6 +858,8 @@ function DisputeReview({
   onSaved: () => void;
   onCancel: () => void;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const demo = "reservation" in item ? item : null,
     lesson = "attendance" in item ? item : null,
     [choice, setChoice] = useState(""),
@@ -866,47 +931,60 @@ function DisputeReview({
   }
   return (
     <section className="care-card care-editor">
-      <h3>{demo ? "Review demo outcome" : "Review recorded attendance"}</h3>
+      <h3>
+        {demo
+          ? appText("Review demo outcome")
+          : appText("Review recorded attendance")}
+      </h3>
       <p>
-        Record {item.id.slice(0, 8)} · Version {item.version}
+        {appText("Record")} {item.id.slice(0, 8)} {appText("· Version")}{" "}
+        {item.version}
       </p>
       {demo ? (
         <>
           <p>
-            Guardian report: {demo.guardianOutcome || "Not recorded"} · Teacher
-            report: {demo.teacherOutcome || "Not recorded"}
+            {appText("Guardian report:")}{" "}
+            {demo.guardianOutcome || appText("Not recorded")}{" "}
+            {appText("· Teacher report:")}{" "}
+            {demo.teacherOutcome || appText("Not recorded")}
           </p>
           <p>
-            {when(demo.reservation.startsAt)}–{when(demo.reservation.endsAt)}{" "}
-            IST
+            {when(demo.reservation.startsAt, appLocale)}–
+            {when(demo.reservation.endsAt, appLocale)} {appText("IST")}{" "}
           </p>
           {context.data && (
             <>
-              <h4>Linked case evidence</h4>
+              <h4>{appText("Linked case evidence")}</h4>
               <p>{context.data.description}</p>
               {context.data.updates.map((u) => (
                 <p key={u.id}>
-                  {u.internal ? "Staff note" : "Case conversation"}: {u.message}
+                  {u.internal
+                    ? appText("Staff note")
+                    : appText("Case conversation")}
+                  : {u.message}
                 </p>
               ))}
               <small>
-                Latest 20 case updates. The case queue contains earlier history.
+                {appText(
+                  "Latest 20 case updates. The case queue contains earlier history.",
+                )}{" "}
               </small>
             </>
           )}
           {context.isPending && (
-            <p role="status">Loading linked case evidence…</p>
+            <p role="status">{appText("Loading linked case evidence…")}</p>
           )}
           {context.error && (
             <Notice error>
-              Linked case evidence is unavailable; resolution is blocked until
-              it loads.{" "}
+              {appText(
+                "Linked case evidence is unavailable; resolution is blocked until it loads.",
+              )}{" "}
               <Button
                 variant="outline"
                 disabled={decision.locked}
                 onClick={() => context.refetch()}
               >
-                Retry dispute evidence
+                {appText("Retry dispute evidence")}{" "}
               </Button>
             </Notice>
           )}
@@ -915,18 +993,24 @@ function DisputeReview({
         lesson && (
           <>
             <p>
-              {lesson.learner.alias} · Class {lesson.learner.grade} ·{" "}
-              {lesson.learner.board} · {lesson.subject} · {lesson.teacher.name}
+              {lesson.learner.alias} {appText("· Class")} {lesson.learner.grade}{" "}
+              · {lesson.learner.board} · {appCurriculum(lesson.subject)} ·{" "}
+              {lesson.teacher.name}
             </p>
             <p>
-              {when(lesson.startsAt)}–{when(lesson.endsAt)} IST · Attendance:{" "}
-              {label(lesson.attendance)}
+              {when(lesson.startsAt, appLocale)}–
+              {when(lesson.endsAt, appLocale)} {appText("IST · Attendance:")}{" "}
+              {appText(label(lesson.attendance))}
             </p>
-            {lesson.recap && <p>Teacher recap: {lesson.recap}</p>}
+            {lesson.recap && (
+              <p>
+                {appText("Teacher recap:")} {lesson.recap}
+              </p>
+            )}
             {lesson.participantReviews.map((r, i) => (
               <p key={i}>
-                {label(r.action)} for lesson version {r.lessonVersion}:{" "}
-                {r.reason}
+                {appText(label(r.action))} {appText("for lesson version")}{" "}
+                {r.lessonVersion}: {r.reason}
               </p>
             ))}
           </>
@@ -934,9 +1018,9 @@ function DisputeReview({
       )}
       {!available && (
         <Notice>
-          This record is no longer in the current open queue, or current records
-          are unavailable. Your local assessment remains below; refresh or
-          cancel before choosing another record.
+          {appText(
+            "This record is no longer in the current open queue, or current records are unavailable. Your local assessment remains below; refresh or cancel before choosing another record.",
+          )}{" "}
         </Notice>
       )}
       <Feedback decision={decision} />
@@ -950,7 +1034,7 @@ function DisputeReview({
             void decision.reload();
           }}
         >
-          Refresh current dispute
+          {appText("Refresh current dispute")}{" "}
         </Button>
       )}
       <form
@@ -970,24 +1054,26 @@ function DisputeReview({
         <fieldset disabled={decision.locked}>
           {!review ? (
             <>
-              <label htmlFor="ops-outcome">Reviewed outcome</label>
+              <label htmlFor="ops-outcome">{appText("Reviewed outcome")}</label>
               <select
                 id="ops-outcome"
                 value={choice}
                 onChange={(e) => setChoice(e.target.value)}
               >
-                <option value="">Choose after reviewing evidence</option>
+                <option value="">
+                  {appText("Choose after reviewing evidence")}
+                </option>
                 {(demo
                   ? ["COMPLETED", "NOT_COMPLETED"]
                   : ["PRESENT", "LATE", "ABSENT"]
                 ).map((v) => (
                   <option key={v} value={v}>
-                    {label(v)}
+                    {appText(label(v))}
                   </option>
                 ))}
               </select>
               <label htmlFor="ops-evidence-reason">
-                Evidence and reason for resolution
+                {appText("Evidence and reason for resolution")}{" "}
               </label>
               <Textarea
                 id="ops-evidence-reason"
@@ -1000,14 +1086,14 @@ function DisputeReview({
           ) : (
             <div className="care-review">
               <h4>
-                {demo ? "Demo outcome" : "Attendance"}: {label(choice)}
+                {demo ? appText("Demo outcome") : appText("Attendance")}:{" "}
+                {appText(label(choice))}
               </h4>
               <p>{reason}</p>
               <p>
-                This records the reviewed outcome and updates eligible linked
-                support cases. Attendance correction may change a held payable's
-                eligibility; refunds and actual payouts require separate finance
-                review and settlement.
+                {appText(
+                  "This records the reviewed outcome and updates eligible linked support cases. Attendance correction may change a held payable's eligibility; refunds and actual payouts require separate finance review and settlement.",
+                )}{" "}
               </p>
               <label className="care-check">
                 <input
@@ -1016,8 +1102,9 @@ function DisputeReview({
                   onChange={(e) => setAgreed(e.target.checked)}
                 />
                 <span>
-                  I reviewed the participant evidence and outcome and want to
-                  record this audited resolution.
+                  {appText(
+                    "I reviewed the participant evidence and outcome and want to record this audited resolution.",
+                  )}{" "}
                 </span>
               </label>
             </div>
@@ -1028,10 +1115,14 @@ function DisputeReview({
               type="button"
               onClick={() => (review ? setReview(false) : onCancel())}
             >
-              {review ? "Back to evidence" : "Cancel dispute review"}
+              {review
+                ? appText("Back to evidence")
+                : appText("Cancel dispute review")}
             </Button>
             <Button type="submit" disabled={!available}>
-              {review ? "Confirm dispute resolution" : "Review dispute outcome"}
+              {review
+                ? appText("Confirm dispute resolution")
+                : appText("Review dispute outcome")}
             </Button>
           </div>
         </fieldset>

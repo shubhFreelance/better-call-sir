@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { useAppTranslation } from "../../app/locale";
 import * as Recharts from "recharts";
 import { cn } from "../../lib/utils";
 export type ChartConfig = Record<string, { label: string }>;
@@ -13,8 +14,15 @@ export function ChartContainer({
   config: ChartConfig;
   children: React.ReactElement;
 }) {
+  const { appText } = useAppTranslation();
+  const translated = Object.fromEntries(
+    Object.entries(config).map(([key, item]) => [
+      key,
+      { ...item, label: appText(item.label) },
+    ]),
+  );
   return (
-    <ChartContext.Provider value={config}>
+    <ChartContext.Provider value={translated}>
       <div
         data-slot="chart"
         role="group"
@@ -40,23 +48,24 @@ export function ChartTooltipContent({
   label?: unknown;
   valueFormatter?: (v: number) => string;
 }) {
+  const { appText, appLocale } = useAppTranslation();
   const config = React.useContext(ChartContext);
   if (!active || !payload?.length) return null;
   return (
     <div className="reports-tooltip">
       <strong>
         {typeof label === "string" || typeof label === "number"
-          ? label
-          : "Recorded value"}
+          ? appText(label)
+          : appText("Recorded value")}
       </strong>
       {payload.map((p, i) => (
         <p key={i}>
           {config[String(p.dataKey)]?.label ||
-            (typeof p.name === "string" ? p.name : "Recorded value")}
+            (typeof p.name === "string" ? p.name : appText("Recorded value"))}
           :{" "}
           {typeof p.value === "number" && Number.isFinite(p.value)
             ? valueFormatter(p.value)
-            : "No observation"}
+            : appText("No observation")}
         </p>
       ))}
     </div>

@@ -1,3 +1,5 @@
+import { teacherDetails } from "../../packages/test-fixtures/src";
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import type { components } from "@bcs/api-client";
@@ -228,7 +230,7 @@ test("real teacher schedule saves capacity, weekly IST hours and leave, with ver
       "X-CSRF-Token": session.csrfToken,
       "Idempotency-Key": crypto.randomUUID(),
     },
-    data: application,
+    data: { ...application, ...teacherDetails, lockInDays: 0 },
   });
   expect(response.status()).toBe(201);
   const teacher = await response.json();
@@ -484,4 +486,13 @@ test("student accounts cannot load teacher schedule data", async ({ page }) => {
     page.getByRole("heading", { name: "A teacher account is required." }),
   ).toBeVisible();
   expect(new Set(requests)).toEqual(new Set(["/api/v1/auth/session"]));
+});
+
+test("Hindi complete interface — शिक्षक का समय और छुट्टी", async ({ page }) => {
+  await chooseHindi(page);
+  await setup(page);
+  await page.goto("/onboarding/teacher#schedule");
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
 });

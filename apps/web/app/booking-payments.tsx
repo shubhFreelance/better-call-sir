@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import Link from "next/link";
@@ -37,14 +38,14 @@ declare global {
     Razorpay?: new (options: GatewayOptions) => Gateway;
   }
 }
-export const exactMoney = (paise: number) =>
-  new Intl.NumberFormat("en-IN", {
+export const exactMoney = (paise: number, locale = "en-IN") =>
+  new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 2,
   }).format(paise / 100);
-export const bookingTime = (iso: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+export const bookingTime = (iso: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     day: "numeric",
     month: "short",
@@ -69,6 +70,8 @@ export function MeetingAccess({
   reservationId: string;
   confirmed: boolean;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const now = useClock();
   const participant = ["GUARDIAN", "TEACHER", "STUDENT"].includes(
     session.account.role,
@@ -117,50 +120,63 @@ export function MeetingAccess({
     } catch {}
   }
   return (
-    <section className="booking-meeting" aria-label="Private meeting access">
+    <section
+      className="booking-meeting"
+      aria-label={appText("Private meeting access")}
+    >
       <div className="booking-meeting-title">
         <Video size={20} aria-hidden="true" />
-        <h4>Your private meeting</h4>
+        <h4>{appText("Your private meeting")}</h4>
         <span className="booking-status">
           {meeting?.providerMode === "SANDBOX"
-            ? "Development preview"
-            : meeting?.status.toLowerCase() || "Awaiting meeting"}
+            ? appText("Development preview")
+            : meeting?.status.toLowerCase() || appText("Awaiting meeting")}
         </span>
       </div>
-      {query.isPending && <p role="status">Checking private meeting access…</p>}
+      {query.isPending && (
+        <p role="status">{appText("Checking private meeting access…")}</p>
+      )}
       {query.error && (
         <Notice error>
-          {query.error.message} Refresh access or contact support.
+          {appError(query.error.message)}{" "}
+          {appText("Refresh access or contact support.")}{" "}
         </Notice>
       )}
       {!query.isPending && !query.error && !meeting && (
         <p>
-          A private meeting has not been created for this booking. Home lessons
-          do not need a meeting link; contact support if an online link is
-          missing.
+          {appText(
+            "A private meeting has not been created for this booking. Home lessons do not need a meeting link; contact support if an online link is missing.",
+          )}{" "}
         </p>
       )}
       {meeting?.providerMode === "SANDBOX" && (
         <p>
-          This development meeting cannot be joined. No live Google Meet session
-          is provided.
+          {appText(
+            "This development meeting cannot be joined. No live Google Meet session is provided.",
+          )}{" "}
         </p>
       )}
       {meeting?.providerMode === "LIVE" && (
         <p>
           {meeting.status === "FAILED"
-            ? "Meeting delivery needs attention. Contact support; refreshing checks the current state."
+            ? appText(
+                "Meeting delivery needs attention. Contact support; refreshing checks the current state.",
+              )
             : meeting.status === "CANCELLED"
-              ? "This meeting is cancelled."
+              ? appText("This meeting is cancelled.")
               : meeting.status === "PENDING"
-                ? "Your private meeting is being prepared."
+                ? appText("Your private meeting is being prepared.")
                 : join
-                  ? "Your join window is open."
+                  ? appText("Your join window is open.")
                   : now > new Date(meeting.endsAt).getTime() + 900000
-                    ? "The meeting join window has ended."
+                    ? appText("The meeting join window has ended.")
                     : meeting.canJoin
-                      ? "A valid Google Meet link is unavailable. Contact support."
-                      : "The join link appears from ten minutes before the scheduled start until fifteen minutes after the scheduled end."}
+                      ? appText(
+                          "A valid Google Meet link is unavailable. Contact support.",
+                        )
+                      : appText(
+                          "The join link appears from ten minutes before the scheduled start until fifteen minutes after the scheduled end.",
+                        )}
         </p>
       )}
       <div className="booking-actions">
@@ -172,7 +188,7 @@ export function MeetingAccess({
             rel="noopener noreferrer"
             referrerPolicy="no-referrer"
           >
-            Join Google Meet
+            {appText("Join Google Meet")}{" "}
           </a>
         )}
         <Button
@@ -180,10 +196,10 @@ export function MeetingAccess({
           disabled={query.isFetching}
           onClick={() => query.refetch()}
         >
-          Refresh meeting access
+          {appText("Refresh meeting access")}{" "}
         </Button>
         <Link href="/support" className="inline-link">
-          Get meeting help
+          {appText("Get meeting help")}{" "}
         </Link>
       </div>
     </section>
@@ -212,6 +228,8 @@ export function CheckoutReview({
   onLock?: (locked: boolean) => void;
   payable: boolean;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const nonce = useScriptNonce();
   const allowed =
     kind === "REVISION"
@@ -480,7 +498,9 @@ export function CheckoutReview({
     <section
       className="checkout-card"
       aria-label={
-        kind === "REVISION" ? "Revision checkout" : "Invoice checkout"
+        kind === "REVISION"
+          ? appText("Revision checkout")
+          : appText("Invoice checkout")
       }
     >
       <div className="checkout-amount">
@@ -488,71 +508,85 @@ export function CheckoutReview({
         <div>
           <span>
             {kind === "REVISION"
-              ? "Revision session total"
-              : "Teacher placement fee"}
+              ? appText("Revision session total")
+              : appText("Teacher placement fee")}
           </span>
-          <strong>{exactMoney(amountPaise)}</strong>
-          <small>INR · {policy}</small>
+          <strong>{exactMoney(amountPaise, appLocale)}</strong>
+          <small>
+            {appText("INR ·")} {policy}
+          </small>
         </div>
       </div>
       <div className="checkout-body">
         <h4>
           {matches && order?.status === "PAID"
-            ? "Payment captured by the server"
+            ? appText("Payment captured by the server")
             : order
-              ? "Your saved checkout"
-              : "Review before payment"}
+              ? appText("Your saved checkout")
+              : appText("Review before payment")}
         </h4>
         <p>
           {kind === "REVISION"
-            ? "Expert scope acceptance, payment capture and slot allocation are separate checks. The booking is confirmed only when its status says confirmed."
-            : "This pays the teacher placement invoice. Family tuition is paid directly to the teacher."}
+            ? appText(
+                "Expert scope acceptance, payment capture and slot allocation are separate checks. The booking is confirmed only when its status says confirmed.",
+              )
+            : appText(
+                "This pays the teacher placement invoice. Family tuition is paid directly to the teacher.",
+              )}
         </p>
-        {query.isPending && <p role="status">Checking saved checkout…</p>}
-        {query.error && <Notice error>{query.error.message}</Notice>}
+        {query.isPending && (
+          <p role="status">{appText("Checking saved checkout…")}</p>
+        )}
+        {query.error && <Notice error>{appError(query.error.message)}</Notice>}
         {order && (
           <p className="checkout-reference">
-            Order {order.id.slice(0, 8)} ·{" "}
-            {order.status.toLowerCase().replaceAll("_", " ")}
+            {appText("Order")} {order.id.slice(0, 8)} ·{" "}
+            {appText(order.status.toLowerCase().replaceAll("_", " "))}
           </p>
         )}
         {order && !matches && (
           <Notice error>
-            The saved order does not match this amount or booking. Contact
-            support before paying.
+            {appText(
+              "The saved order does not match this amount or booking. Contact support before paying.",
+            )}{" "}
           </Notice>
         )}
         {order?.providerMode === "SANDBOX" && (
           <Notice>
-            This is a local sandbox order. It cannot charge money or open
-            Razorpay. No live payment is confirmed.
+            {appText(
+              "This is a local sandbox order. It cannot charge money or open Razorpay. No live payment is confirmed.",
+            )}{" "}
           </Notice>
         )}
         {matches && order?.status === "PAID" && (
           <Notice>
-            Payment capture is recorded. Review the booking or invoice status
-            separately; refunds and settlement are separate processes.
+            {appText(
+              "Payment capture is recorded. Review the booking or invoice status separately; refunds and settlement are separate processes.",
+            )}{" "}
           </Notice>
         )}
         {order?.status === "FAILED" && (
           <Notice>
-            Checkout needs provider review. Contact support before creating
-            another payment.
+            {appText(
+              "Checkout needs provider review. Contact support before creating another payment.",
+            )}{" "}
           </Notice>
         )}
         {order?.providerMode === "LIVE" &&
           order.status === "CREATED" &&
           !query.data?.publicKeyId && (
             <Notice>
-              Razorpay checkout configuration is unavailable. Your order remains
-              saved; contact support.
+              {appText(
+                "Razorpay checkout configuration is unavailable. Your order remains saved; contact support.",
+              )}{" "}
             </Notice>
           )}
-        {notice && <Notice>{notice}</Notice>}
+        {notice && <Notice>{appText(notice)}</Notice>}
         {scriptError && (
           <Notice error>
-            Secure checkout could not load. Refresh the page to retry this saved
-            order.
+            {appText(
+              "Secure checkout could not load. Refresh the page to retry this saved order.",
+            )}{" "}
           </Notice>
         )}
         <div className="booking-actions">
@@ -562,7 +596,7 @@ export function CheckoutReview({
               disabled={locked}
               onClick={() => setReview(true)}
             >
-              Review payment
+              {appText("Review payment")}{" "}
             </Button>
           )}
           {providerReady && !scriptError && (
@@ -575,10 +609,10 @@ export function CheckoutReview({
               }}
             >
               {gatewayBusy
-                ? "Checkout open…"
+                ? appText("Checkout open…")
                 : needsCheck
-                  ? "Awaiting payment confirmation"
-                  : "Continue to Razorpay"}
+                  ? appText("Awaiting payment confirmation")
+                  : appText("Continue to Razorpay")}
             </Button>
           )}
           {payable &&
@@ -590,7 +624,7 @@ export function CheckoutReview({
                 disabled={locked}
                 onClick={() => setReview(true)}
               >
-                Review payment terms
+                {appText("Review payment terms")}{" "}
               </Button>
             )}
           <Button
@@ -601,22 +635,26 @@ export function CheckoutReview({
               else void check();
             }}
           >
-            Check payment status
+            {appText("Check payment status")}{" "}
           </Button>
           {scriptError && (
             <Button variant="outline" onClick={() => window.location.reload()}>
-              Refresh page to reload checkout
+              {appText("Refresh page to reload checkout")}{" "}
             </Button>
           )}
         </div>
         {review && (
           <div className="checkout-review" ref={focus} tabIndex={-1}>
-            <h4>Confirm the payment basis</h4>
+            <h4>{appText("Confirm the payment basis")}</h4>
             <p>
-              {exactMoney(amountPaise)} under {policy}.{" "}
+              {exactMoney(amountPaise, appLocale)} {appText("under")} {policy}.{" "}
               {kind === "REVISION"
-                ? "No syllabus or score guarantee. Cancellation, allocation loss and refunds require the current policy and support review; no settled refund is promised."
-                : "The server-owned invoice amount and policy apply. This is separate from monthly tuition."}
+                ? appText(
+                    "No syllabus or score guarantee. Cancellation, allocation loss and refunds require the current policy and support review; no settled refund is promised.",
+                  )
+                : appText(
+                    "The server-owned invoice amount and policy apply. This is separate from monthly tuition.",
+                  )}
             </p>
             <fieldset disabled={locked}>
               <label className="booking-check">
@@ -626,19 +664,22 @@ export function CheckoutReview({
                   onChange={(e) => setAgreed(e.target.checked)}
                 />
                 <span>
-                  I reviewed the exact amount, payment basis and pending
-                  refund/settlement limits.
+                  {appText(
+                    "I reviewed the exact amount, payment basis and pending refund/settlement limits.",
+                  )}{" "}
                 </span>
               </label>
               <div className="booking-actions">
                 <Button variant="outline" onClick={() => setReview(false)}>
-                  Cancel review
+                  {appText("Cancel review")}{" "}
                 </Button>
                 <Button
                   className="button"
                   onClick={() => (order ? setReview(false) : void create())}
                 >
-                  {order ? "Save payment review" : "Create secure checkout"}
+                  {order
+                    ? appText("Save payment review")
+                    : appText("Create secure checkout")}
                 </Button>
               </div>
             </fieldset>
@@ -646,7 +687,7 @@ export function CheckoutReview({
         )}
         <Feedback decision={decision} />
         <Link href="/support" className="inline-link">
-          Get payment help
+          {appText("Get payment help")}{" "}
         </Link>
       </div>
       {loadScript && !scriptError && (

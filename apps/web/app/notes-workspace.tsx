@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -20,8 +21,8 @@ import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
 import { Feedback, Notice, useDecision } from "./tuition-workflow";
 type Note = components["schemas"]["NoteRecord"];
-const date = (value: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+const date = (value: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -34,6 +35,8 @@ export function NotesWorkspace({
   session: Session;
   dashboard: Dashboard;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const allowed = ["GUARDIAN", "TEACHER"].includes(session.account.role),
     guardian = session.account.role === "GUARDIAN";
   const query = useQuery({
@@ -164,8 +167,9 @@ export function NotesWorkspace({
   if (!allowed)
     return (
       <Notice>
-        Private notes are available to guardians and the teacher they choose to
-        share with.
+        {appText(
+          "Private notes are available to guardians and the teacher they choose to share with.",
+        )}{" "}
       </Notice>
     );
   const writing = mode === "create" || mode === "edit";
@@ -176,50 +180,76 @@ export function NotesWorkspace({
           <NotebookPen size={30} aria-hidden="true" />
           <h2>
             {guardian
-              ? "Small details. Thoughtful support."
-              : "A little context for your next lesson."}
+              ? appText("Small details. Thoughtful support.")
+              : appText("A little context for your next lesson.")}
           </h2>
           <p>
             {guardian
-              ? "Keep learning preferences in one private place. You choose what to share and which teacher can read it."
-              : "Read only the notes a guardian has chosen to share with you. Acknowledge them once you’ve reviewed the current version."}
+              ? appText(
+                  "Keep learning preferences in one private place. You choose what to share and which teacher can read it.",
+                )
+              : appText(
+                  "Read only the notes a guardian has chosen to share with you. Acknowledge them once you’ve reviewed the current version.",
+                )}
           </p>
         </div>
         <aside>
           <LockKeyhole size={24} aria-hidden="true" />
           <strong>
-            {guardian ? "Private comes first" : "Shared by invitation"}
+            {guardian
+              ? appText("Private comes first")
+              : appText("Shared by invitation")}
           </strong>
           <p>
             {guardian
-              ? "Every new or edited note stays private until you name an active teacher."
-              : "Access depends on an active placement and guardian consent."}
+              ? appText(
+                  "Every new or edited note stays private until you name an active teacher.",
+                )
+              : appText(
+                  "Access depends on an active placement and guardian consent.",
+                )}
           </p>
         </aside>
       </section>
       {!guardian && (
         <Notice>
-          Use these notes only to support the learner’s teaching. Avoid copying
-          them into personal messages or documents.
+          {appText(
+            "Use these notes only to support the learner’s teaching. Avoid copying them into personal messages or documents.",
+          )}{" "}
         </Notice>
       )}
       {guardian && !permitted && (
         <Notice>
-          Verified guardian access and active consent are required to create,
-          edit or share notes.{" "}
-          <Link href="/dashboard/family">Review learner access</Link>.
+          {appText(
+            "Verified guardian access and active consent are required to create, edit or share notes.",
+          )}{" "}
+          <Link href="/dashboard/family">
+            {appText("Review learner access")}
+          </Link>
+          .
         </Notice>
       )}
       {guardian && permitted && !d.children?.length && (
         <Notice>
-          Add a learner before writing a private learning note.{" "}
-          <Link href="/onboarding/parent">Complete learner onboarding</Link>.
+          {appText("Add a learner before writing a private learning note.")}{" "}
+          <Link href="/onboarding/parent">
+            {appText("Complete learner onboarding")}
+          </Link>
+          .
         </Notice>
       )}
       <div className="notes-toolbar">
         <div>
-          <h3>{guardian ? "Your learning notes" : "Notes shared with you"}</h3>
-          <p>Up to 50 most recent notes, with current sharing status.</p>
+          <h3>
+            {guardian
+              ? appText("Your learning notes")
+              : appText("Notes shared with you")}
+          </h3>
+          <p>
+            {appText(
+              "Up to 50 most recent notes, with current sharing status.",
+            )}
+          </p>
         </div>
         <div>
           <Button
@@ -227,14 +257,14 @@ export function NotesWorkspace({
             disabled={decision.locked || query.isFetching || mode !== null}
             onClick={() => query.refetch()}
           >
-            Refresh notes
+            {appText("Refresh notes")}{" "}
           </Button>
           {guardian && (
             <Button
               disabled={!canCreate || launchBlocked}
               onClick={() => open("create")}
             >
-              Write a private note
+              {appText("Write a private note")}{" "}
             </Button>
           )}
         </div>
@@ -246,15 +276,15 @@ export function NotesWorkspace({
           disabled={decision.busy}
           onClick={() => decision.reload()}
         >
-          Refresh current note
+          {appText("Refresh current note")}{" "}
         </Button>
       )}
-      {query.isPending && <p role="status">Loading your notes…</p>}
+      {query.isPending && <p role="status">{appText("Loading your notes…")}</p>}
       {query.error && (
         <Notice error>
-          Notes could not be loaded. Your edits stay here.{" "}
+          {appText("Notes could not be loaded. Your edits stay here.")}{" "}
           <Button variant="outline" onClick={() => query.refetch()}>
-            Retry notes
+            {appText("Retry notes")}{" "}
           </Button>
         </Notice>
       )}
@@ -264,26 +294,27 @@ export function NotesWorkspace({
             <span className="notes-step">
               {writing
                 ? reviewing
-                  ? "Review before saving"
-                  : "Learning context"
-                : "Review access"}
+                  ? appText("Review before saving")
+                  : appText("Learning context")
+                : appText("Review access")}
             </span>
             <h3>
               {mode === "create"
-                ? "Write a private note"
+                ? appText("Write a private note")
                 : mode === "edit"
-                  ? "Edit your note"
+                  ? appText("Edit your note")
                   : mode === "share"
-                    ? "Choose who can read this note"
+                    ? appText("Choose who can read this note")
                     : mode === "withdraw"
-                      ? "Withdraw teacher access"
-                      : "Acknowledge the shared note"}
+                      ? appText("Withdraw teacher access")
+                      : appText("Acknowledge the shared note")}
             </h3>
           </header>
           {mode !== "create" && !note && (
             <Notice error>
-              The note is no longer in your current notes. Cancel this decision
-              and refresh.
+              {appText(
+                "The note is no longer in your current notes. Cancel this decision and refresh.",
+              )}{" "}
             </Notice>
           )}
           <form
@@ -314,9 +345,9 @@ export function NotesWorkspace({
                 <>
                   <div className="notes-field">
                     {mode === "create" ? (
-                      <label htmlFor="note-learner">Learner</label>
+                      <label htmlFor="note-learner">{appText("Learner")}</label>
                     ) : (
-                      <span>Learner</span>
+                      <span>{appText("Learner")}</span>
                     )}
                     {mode === "create" ? (
                       <select
@@ -324,10 +355,10 @@ export function NotesWorkspace({
                         value={childId}
                         onChange={(e) => setChildId(e.target.value)}
                       >
-                        <option value="">Choose a learner</option>
+                        <option value="">{appText("Choose a learner")}</option>
                         {d.children?.map((c) => (
                           <option key={c.id} value={c.id}>
-                            {c.alias} · {educationLabel(c)}
+                            {c.alias} · {appText(educationLabel(c))}
                           </option>
                         ))}
                       </select>
@@ -338,7 +369,9 @@ export function NotesWorkspace({
                     )}
                   </div>
                   <div className="notes-field">
-                    <label htmlFor="learning-note">Learning note</label>
+                    <label htmlFor="learning-note">
+                      {appText("Learning note")}
+                    </label>
                     <Textarea
                       id="learning-note"
                       value={text}
@@ -349,15 +382,16 @@ export function NotesWorkspace({
                     />
                   </div>
                   <small id="note-help">
-                    {text.length}/5,000 characters. Include practical learning
-                    preferences; leave out passwords, contact details and
-                    unnecessary sensitive information.
+                    {text.length}
+                    {appText(
+                      "/5,000 characters. Include practical learning preferences; leave out passwords, contact details and unnecessary sensitive information.",
+                    )}{" "}
                   </small>
                   {mode === "edit" && note?.sharedTeacherId && (
                     <Notice>
-                      Saving edits withdraws the existing teacher’s access and
-                      clears their acknowledgement. Review sharing again after
-                      saving.
+                      {appText(
+                        "Saving edits withdraws the existing teacher’s access and clears their acknowledgement. Review sharing again after saving.",
+                      )}{" "}
                     </Notice>
                   )}
                 </>
@@ -367,23 +401,25 @@ export function NotesWorkspace({
                     <ShieldCheck size={22} aria-hidden="true" />
                     <strong>
                       {writing
-                        ? "Saved privately"
+                        ? appText("Saved privately")
                         : mode === "share"
-                          ? "Only the teacher you select"
+                          ? appText("Only the teacher you select")
                           : mode === "withdraw"
-                            ? "Future access will stop"
-                            : "Confirm you reviewed this version"}
+                            ? appText("Future access will stop")
+                            : appText("Confirm you reviewed this version")}
                     </strong>
                   </div>
                   <p className="notes-preview">{writing ? text : note?.text}</p>
                   {mode === "share" && (
                     <label>
-                      Teacher to share with
+                      {appText("Teacher to share with")}{" "}
                       <select
                         value={recipient}
                         onChange={(e) => setRecipient(e.target.value)}
                       >
-                        <option value="">Choose a named teacher</option>
+                        <option value="">
+                          {appText("Choose a named teacher")}
+                        </option>
                         {teachers.map((t) => (
                           <option key={t.id} value={t.id}>
                             {t.name}
@@ -395,29 +431,32 @@ export function NotesWorkspace({
                   {mode === "share" &&
                     (!teachers.length ? (
                       <p>
-                        No named active teacher is available for this learner.
-                        Keep the note private and review your tuition agreement.
+                        {appText(
+                          "No named active teacher is available for this learner. Keep the note private and review your tuition agreement.",
+                        )}{" "}
                       </p>
                     ) : (
                       <p>
-                        The selected teacher can read the entire note and
-                        acknowledge it. Other teachers and students cannot
-                        access it.
+                        {appText(
+                          "The selected teacher can read the entire note and acknowledge it. Other teachers and students cannot access it.",
+                        )}{" "}
                       </p>
                     ))}
                   {mode === "withdraw" && (
                     <p>
-                      Access for{" "}
+                      {appText("Access for")}{" "}
                       {note?.sharedTeacher?.name ||
-                        "the previously named teacher"}{" "}
-                      will stop. This cannot recall information they already
-                      read.
+                        appText("the previously named teacher")}{" "}
+                      {appText(
+                        "will stop. This cannot recall information they already read.",
+                      )}{" "}
                     </p>
                   )}
                   {mode === "edit" && (
                     <p>
-                      The edited note will be private. Its previous sharing and
-                      acknowledgement will be cleared.
+                      {appText(
+                        "The edited note will be private. Its previous sharing and acknowledgement will be cleared.",
+                      )}{" "}
                     </p>
                   )}
                   <label className="notes-check">
@@ -428,12 +467,20 @@ export function NotesWorkspace({
                     />
                     <span>
                       {writing
-                        ? "I reviewed this note and want to save it privately."
+                        ? appText(
+                            "I reviewed this note and want to save it privately.",
+                          )
                         : mode === "share"
-                          ? "I reviewed the full note and want to share it with this named teacher."
+                          ? appText(
+                              "I reviewed the full note and want to share it with this named teacher.",
+                            )
                           : mode === "withdraw"
-                            ? "I want to withdraw this teacher’s access to the note."
-                            : "I have read this shared note and understand its learning context."}
+                            ? appText(
+                                "I want to withdraw this teacher’s access to the note.",
+                              )
+                            : appText(
+                                "I have read this shared note and understand its learning context.",
+                              )}
                     </span>
                   </label>
                 </div>
@@ -446,7 +493,9 @@ export function NotesWorkspace({
                     writing && reviewing ? setReviewing(false) : close()
                   }
                 >
-                  {writing && reviewing ? "Back to editing" : "Cancel"}
+                  {writing && reviewing
+                    ? appText("Back to editing")
+                    : appText("Cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -457,13 +506,13 @@ export function NotesWorkspace({
                 >
                   {writing
                     ? reviewing
-                      ? "Save note privately"
-                      : "Review private note"
+                      ? appText("Save note privately")
+                      : appText("Review private note")
                     : mode === "share"
-                      ? "Confirm sharing"
+                      ? appText("Confirm sharing")
                       : mode === "withdraw"
-                        ? "Withdraw access"
-                        : "Confirm acknowledgement"}
+                        ? appText("Withdraw access")
+                        : appText("Confirm acknowledgement")}
                 </Button>
               </div>
             </fieldset>
@@ -475,13 +524,17 @@ export function NotesWorkspace({
           <LockKeyhole size={30} aria-hidden="true" />
           <h3>
             {guardian
-              ? "A private place to start."
-              : "No notes shared with you yet."}
+              ? appText("A private place to start.")
+              : appText("No notes shared with you yet.")}
           </h3>
           <p>
             {guardian
-              ? "Write a short note about what helps your learner. Sharing is always a separate decision."
-              : "Guardians choose which learning notes to share. No private notes appear here."}
+              ? appText(
+                  "Write a short note about what helps your learner. Sharing is always a separate decision.",
+                )
+              : appText(
+                  "Guardians choose which learning notes to share. No private notes appear here.",
+                )}
           </p>
         </div>
       )}
@@ -493,30 +546,34 @@ export function NotesWorkspace({
                 <UserRound size={19} aria-hidden="true" />
                 <h3>{n.learner.alias}</h3>
                 <span>
-                  Class {n.learner.grade} · {n.learner.board}
+                  {appText("Class")} {n.learner.grade} · {n.learner.board}
                 </span>
               </div>
               <span
                 className={`notes-state ${n.sharingActive ? "shared" : "private"}`}
               >
                 {!n.sharedTeacherId
-                  ? "Private · only you"
+                  ? appText("Private · only you")
                   : n.sharingActive
-                    ? `Shared with ${n.sharedTeacher?.name || "your named teacher"}`
-                    : "Sharing paused"}
+                    ? appText("Shared with {0}", [
+                        n.sharedTeacher?.name || appText("your named teacher"),
+                      ])
+                    : appText("Sharing paused")}
               </span>
             </header>
             <p className="notes-text">{n.text}</p>
             <footer>
-              <small>Created {date(n.createdAt)}</small>
+              <small>
+                {appText("Created")} {date(n.createdAt, appLocale)}
+              </small>
               {n.acknowledgedAt && n.sharingActive ? (
                 <span className="notes-ack">
                   <Check size={16} aria-hidden="true" />
-                  Acknowledged {date(n.acknowledgedAt)}
+                  {appText("Acknowledged")} {date(n.acknowledgedAt, appLocale)}
                 </span>
               ) : n.sharingActive ? (
                 <span className="notes-awaiting">
-                  Awaiting teacher acknowledgement
+                  {appText("Awaiting teacher acknowledgement")}{" "}
                 </span>
               ) : null}
             </footer>
@@ -529,7 +586,7 @@ export function NotesWorkspace({
                       disabled={launchBlocked || !permitted}
                       onClick={() => open("edit", n)}
                     >
-                      Edit note
+                      {appText("Edit note")}{" "}
                     </Button>
                     <Button
                       variant={n.sharedTeacherId ? "outline" : "default"}
@@ -539,8 +596,8 @@ export function NotesWorkspace({
                       }
                     >
                       {n.sharedTeacherId
-                        ? "Review withdrawal"
-                        : "Review sharing"}
+                        ? appText("Review withdrawal")
+                        : appText("Review sharing")}
                     </Button>
                   </>
                 ) : (
@@ -549,7 +606,7 @@ export function NotesWorkspace({
                       disabled={launchBlocked}
                       onClick={() => open("ack", n)}
                     >
-                      Acknowledge note
+                      {appText("Acknowledge note")}{" "}
                     </Button>
                   )
                 )}

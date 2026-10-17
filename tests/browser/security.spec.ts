@@ -91,6 +91,31 @@ async function staffMock(page: Page, mode = "verify") {
         });
       throw new Error("Unexpected mutation " + path);
     }
+    if (path.endsWith("/admin/console"))
+      return route.fulfill({
+        json: check("AdminConsole", {
+          asOf: new Date().toISOString(),
+          mode: "SYNTHETIC_DEVELOPMENT",
+          flags: [],
+          accounts: 0,
+          pendingPrivacy: 0,
+          supply: [],
+          supplyLimit: 50,
+          commercial: {
+            placementExamples: [],
+            revisionPrices: [],
+            currency: "INR",
+            editable: false,
+          },
+          integrations: [],
+          release: {
+            authorized: false,
+            status: "BLOCKED",
+            providerQualification: "PENDING",
+          },
+          staffAdministration: "PENDING_INDEPENDENT_APPROVAL_WORKFLOW",
+        }),
+      });
     if (path.endsWith("/dashboard"))
       return route.fulfill({
         json: {

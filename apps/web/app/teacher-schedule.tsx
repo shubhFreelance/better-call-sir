@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -51,8 +52,8 @@ const minutes = (value: string) =>
   /^\d{2}:\d{2}$/.test(value)
     ? Number(value.slice(0, 2)) * 60 + Number(value.slice(3))
     : NaN;
-const when = (iso: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+const when = (iso: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     day: "numeric",
     month: "short",
@@ -67,6 +68,8 @@ function Notice({
   children: ReactNode;
   error?: boolean;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   return (
     <Alert
       variant={error ? "destructive" : "default"}
@@ -85,6 +88,8 @@ export function TeacherSchedule({
   profile: Profile;
   onLockChange: (locked: boolean) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const client = useQueryClient();
   const calendar = useQuery({
     queryKey: ["teacher-calendar", profile.id],
@@ -351,7 +356,7 @@ export function TeacherSchedule({
   ) {
     return (
       <div className="field">
-        <label htmlFor={`schedule-${key}`}>{label}</label>
+        <label htmlFor={`schedule-${key}`}>{appText(label)}</label>
         {control}
         {fields[key] ? (
           <small
@@ -359,10 +364,10 @@ export function TeacherSchedule({
             id={`schedule-${key}-error`}
             className="field-error"
           >
-            {fields[key]}
+            {appError(fields[key])}
           </small>
         ) : (
-          hint && <small className="wizard-help">{hint}</small>
+          hint && <small className="wizard-help">{appText(hint)}</small>
         )}
       </div>
     );
@@ -382,10 +387,11 @@ export function TeacherSchedule({
     <section className="wizard-card teacher-schedule" id="teaching-schedule">
       <div className="schedule-heading">
         <div>
-          <h2>Your teaching schedule</h2>
+          <h2>{appText("Your teaching schedule")}</h2>
           <p>
-            Declare your hours, capacity and time away. All times are in IST
-            (Asia/Kolkata).
+            {appText(
+              "Declare your hours, capacity and time away. All times are in IST (Asia/Kolkata).",
+            )}{" "}
           </p>
         </div>
         <Button
@@ -394,7 +400,7 @@ export function TeacherSchedule({
           disabled={busy || uncertain}
           onClick={refresh}
         >
-          Refresh schedule
+          {appText("Refresh schedule")}{" "}
         </Button>
       </div>
       <Tabs
@@ -407,21 +413,25 @@ export function TeacherSchedule({
           setChange(null);
         }}
       >
-        <TabsList className="schedule-tabs" aria-label="Teaching schedule">
+        <TabsList
+          className="schedule-tabs"
+          aria-label={appText("Teaching schedule")}
+        >
           <TabsTrigger value="hours" disabled={locked}>
-            Weekly hours
+            {appText("Weekly hours")}{" "}
           </TabsTrigger>
           <TabsTrigger value="capacity" disabled={locked}>
-            Capacity
+            {appText("Capacity")}{" "}
           </TabsTrigger>
           <TabsTrigger value="leave" disabled={locked}>
-            Leave
+            {appText("Leave")}{" "}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="hours">
           <p className="wizard-help">
-            Weekly hours offer time for new bookings; they do not create
-            lessons. Pausing hours does not cancel accepted bookings.
+            {appText(
+              "Weekly hours offer time for new bookings; they do not create lessons. Pausing hours does not cancel accepted bookings.",
+            )}{" "}
           </p>
           <form
             noValidate
@@ -447,7 +457,7 @@ export function TeacherSchedule({
                       .filter(([k]) => k !== "CALL")
                       .map(([k, label]) => (
                         <option key={k} value={k}>
-                          {label}
+                          {appText(label)}
                         </option>
                       ))}
                   </select>,
@@ -462,7 +472,7 @@ export function TeacherSchedule({
                   >
                     {days.map((day, i) => (
                       <option key={day} value={i}>
-                        {day}
+                        {appText(day)}
                       </option>
                     ))}
                   </select>,
@@ -499,7 +509,9 @@ export function TeacherSchedule({
                   checked={midnight}
                   onChange={(e) => setMidnight(e.target.checked)}
                 />
-                <span>End at midnight (start of the next day)</span>
+                <span>
+                  {appText("End at midnight (start of the next day)")}
+                </span>
               </label>
               <div className="schedule-grid">
                 {field(
@@ -528,29 +540,32 @@ export function TeacherSchedule({
                 )}
               </div>
               <Button className="button" type="submit">
-                Add weekly hours
+                {appText("Add weekly hours")}{" "}
               </Button>
             </fieldset>
           </form>
           {calendar.data && (
             <div className="schedule-saved">
-              <h3>Saved weekly hours</h3>
+              <h3>{appText("Saved weekly hours")}</h3>
               {calendar.data.patterns.length ? (
                 <ul className="teacher-evidence-list">
                   {calendar.data.patterns.map((pattern) => (
                     <li key={pattern.id}>
                       <div>
                         <strong>
-                          {days[pattern.weekday]} · {kinds[pattern.kind]}
+                          {appText(days[pattern.weekday])} ·{" "}
+                          {appText(kinds[pattern.kind])}
                         </strong>
                         <p>
                           {clock(pattern.startMinute)}–
-                          {clock(pattern.endMinute)} IST
+                          {clock(pattern.endMinute)} {appText("IST")}{" "}
                         </p>
                         <p>
-                          {pattern.validFrom.slice(0, 10)} to{" "}
+                          {pattern.validFrom.slice(0, 10)} {appText("to")}{" "}
                           {pattern.validUntil.slice(0, 10)} ·{" "}
-                          {pattern.active ? "Active" : "Paused"}
+                          {pattern.active
+                            ? appText("Active")
+                            : appText("Paused")}
                         </p>
                       </div>
                       <Button
@@ -560,17 +575,26 @@ export function TeacherSchedule({
                         onClick={() =>
                           selectChange("pattern", pattern, !pattern.active)
                         }
-                        aria-label={`${pattern.active ? "Pause" : "Reopen"} ${days[pattern.weekday]} ${kinds[pattern.kind]} hours ${clock(pattern.startMinute)}–${clock(pattern.endMinute)} IST`}
+                        aria-label={appText("{0} {1} {2} hours {3}–{4} IST", [
+                          pattern.active ? appText("Pause") : appText("Reopen"),
+                          appText(days[pattern.weekday]),
+                          appText(kinds[pattern.kind]),
+                          clock(pattern.startMinute),
+                          clock(pattern.endMinute),
+                        ])}
                       >
-                        {pattern.active ? "Pause hours" : "Reopen hours"}
+                        {pattern.active
+                          ? appText("Pause hours")
+                          : appText("Reopen hours")}
                       </Button>
                     </li>
                   ))}
                 </ul>
               ) : (
                 <p className="wizard-help">
-                  No weekly hours yet. Add a time window for each type of
-                  session you offer.
+                  {appText(
+                    "No weekly hours yet. Add a time window for each type of session you offer.",
+                  )}{" "}
                 </p>
               )}
             </div>
@@ -578,8 +602,9 @@ export function TeacherSchedule({
         </TabsContent>
         <TabsContent value="capacity">
           <p className="wizard-help">
-            Capacity is the maximum number of active or committed students you
-            can support. It cannot be reduced below your current commitments.
+            {appText(
+              "Capacity is the maximum number of active or committed students you can support. It cannot be reduced below your current commitments.",
+            )}{" "}
           </p>
           <form
             noValidate
@@ -613,24 +638,27 @@ export function TeacherSchedule({
                   onChange={(e) => setTravel(e.target.checked)}
                 />
                 <span>
-                  I can travel for home tuition within my declared localities.
+                  {appText(
+                    "I can travel for home tuition within my declared localities.",
+                  )}{" "}
                 </span>
               </label>
               <p className="wizard-help">
-                Home tuition matching requires both this travel preference and
-                home tuition localities in your application.
+                {appText(
+                  "Home tuition matching requires both this travel preference and home tuition localities in your application.",
+                )}{" "}
               </p>
               <Button className="button" type="submit">
-                Save capacity & travel
+                {appText("Save capacity & travel")}{" "}
               </Button>
             </fieldset>
           </form>
         </TabsContent>
         <TabsContent value="leave">
           <p className="wizard-help">
-            Leave blocks new bookings during the selected period. Accepted or
-            held bookings must be resolved first; they will not be cancelled
-            automatically.
+            {appText(
+              "Leave blocks new bookings during the selected period. Accepted or held bookings must be resolved first; they will not be cancelled automatically.",
+            )}{" "}
           </p>
           <form
             noValidate
@@ -681,20 +709,21 @@ export function TeacherSchedule({
                 "Visible only in your private calendar and authorized records. Share only what is needed.",
               )}
               <Button className="button" type="submit">
-                Add leave
+                {appText("Add leave")}{" "}
               </Button>
             </fieldset>
           </form>
           {calendar.data && (
             <div className="schedule-saved">
-              <h3>Saved leave</h3>
+              <h3>{appText("Saved leave")}</h3>
               {calendar.data.exceptions.length ? (
                 <ul className="teacher-evidence-list">
                   {calendar.data.exceptions.map((leave) => (
                     <li key={leave.id}>
                       <div>
                         <strong>
-                          {when(leave.startsAt)}–{when(leave.endsAt)} IST
+                          {when(leave.startsAt, appLocale)}–
+                          {when(leave.endsAt, appLocale)} {appText("IST")}{" "}
                         </strong>
                         <p>{leave.reason}</p>
                       </div>
@@ -703,15 +732,17 @@ export function TeacherSchedule({
                         type="button"
                         disabled={locked}
                         onClick={() => selectChange("leave", leave, false)}
-                        aria-label={`Cancel leave starting ${when(leave.startsAt)}`}
+                        aria-label={appText("Cancel leave starting {0}", [
+                          when(leave.startsAt, appLocale),
+                        ])}
                       >
-                        Cancel leave
+                        {appText("Cancel leave")}{" "}
                       </Button>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="wizard-help">No leave recorded.</p>
+                <p className="wizard-help">{appText("No leave recorded.")}</p>
               )}
             </div>
           )}
@@ -728,15 +759,19 @@ export function TeacherSchedule({
         >
           <h3>
             {change.type === "leave"
-              ? "Cancel this leave?"
+              ? appText("Cancel this leave?")
               : change.active
-                ? "Reopen these hours?"
-                : "Pause these hours?"}
+                ? appText("Reopen these hours?")
+                : appText("Pause these hours?")}
           </h3>
           <p className="wizard-help">
             {change.type === "leave"
-              ? "Your declared weekly hours will apply again during this period."
-              : "Accepted bookings are unchanged. This affects availability for new bookings."}
+              ? appText(
+                  "Your declared weekly hours will apply again during this period.",
+                )
+              : appText(
+                  "Accepted bookings are unchanged. This affects availability for new bookings.",
+                )}
           </p>
           <fieldset disabled={locked} className="wizard-fields">
             {field(
@@ -758,26 +793,30 @@ export function TeacherSchedule({
                 type="button"
                 onClick={() => setChange(null)}
               >
-                Keep current schedule
+                {appText("Keep current schedule")}{" "}
               </Button>
               <Button className="button" type="submit">
-                Confirm schedule change
+                {appText("Confirm schedule change")}{" "}
               </Button>
             </div>
           </fieldset>
         </form>
       )}
-      {calendar.isPending && <p role="status">Loading your saved schedule…</p>}
+      {calendar.isPending && (
+        <p role="status">{appText("Loading your saved schedule…")}</p>
+      )}
       {calendar.error && (
         <Notice error>
-          {calendar.error.message} Your schedule is unavailable; refresh before
-          making changes.
+          {appError(calendar.error.message)}{" "}
+          {appText(
+            "Your schedule is unavailable; refresh before making changes.",
+          )}{" "}
         </Notice>
       )}
-      {error && <Notice error>{error}</Notice>}
+      {error && <Notice error>{appError(error)}</Notice>}
       {reschedule && (
         <Link className="inline-link" href="/dashboard/bookings">
-          Review accepted bookings
+          {appText("Review accepted bookings")}{" "}
         </Link>
       )}
       {uncertain && (
@@ -787,22 +826,22 @@ export function TeacherSchedule({
           disabled={busy}
           onClick={() => run()}
         >
-          Retry schedule change
+          {appText("Retry schedule change")}{" "}
         </Button>
       )}
       {conflict && (
         <p className="wizard-help">
-          Refresh the schedule to load its current version. Your form entries
-          will stay here.
+          {appText(
+            "Refresh the schedule to load its current version. Your form entries will stay here.",
+          )}{" "}
         </p>
       )}
-      {busy && <p role="status">Saving your schedule…</p>}
-      {success && <Notice>{success}</Notice>}
+      {busy && <p role="status">{appText("Saving your schedule…")}</p>}
+      {success && <Notice>{appText(success)}</Notice>}
       <p className="wizard-save-note">
-        Form entries are saved only when you confirm an action. Keep this page
-        open until the result is confirmed. Calls are currently unavailable. The
-        saved schedule shows up to 50 weekly windows and 50 active leave
-        periods.
+        {appText(
+          "Form entries are saved only when you confirm an action. Keep this page open until the result is confirmed. Calls are currently unavailable. The saved schedule shows up to 50 weekly windows and 50 active leave periods.",
+        )}{" "}
       </p>
     </section>
   );

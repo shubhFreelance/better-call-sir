@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { ids } from "../../packages/test-fixtures/src";
 import { randomUUID } from "node:crypto";
 import { test, expect, type Page } from "@playwright/test";
@@ -343,7 +344,10 @@ test("teacher acknowledges a current shared note without a guardian editor", asy
   const state = await mock(page, "teacher", "TEACHER");
   await page.goto("/dashboard/notes");
   await expect(
-    page.getByRole("link", { name: "Shared learning notes", exact: true }),
+    page.getByRole("heading", {
+      name: "Learning context, shared with you.",
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Write a private note", exact: true }),
@@ -364,19 +368,15 @@ test("teacher acknowledges a current shared note without a guardian editor", asy
   await expect(
     page.getByRole("button", { name: "Acknowledge note", exact: true }),
   ).toHaveCount(0);
-  await page
-    .locator(".notes-workspace")
-    .screenshot({
-      path: "test-results/notes-teacher.png",
-      style: "nextjs-portal{display:none!important}",
-    });
+  await page.locator(".notes-workspace").screenshot({
+    path: "test-results/notes-teacher.png",
+    style: "nextjs-portal{display:none!important}",
+  });
   await page.setViewportSize({ width: 360, height: 800 });
-  await page
-    .locator(".notes-workspace")
-    .screenshot({
-      path: "test-results/notes-teacher-mobile.png",
-      style: "nextjs-portal{display:none!important}",
-    });
+  await page.locator(".notes-workspace").screenshot({
+    path: "test-results/notes-teacher-mobile.png",
+    style: "nextjs-portal{display:none!important}",
+  });
 });
 test("student direct access never queries notes and inactive consent disables guardian writes", async ({
   page,
@@ -558,4 +558,13 @@ test("guardians without a learner receive an onboarding path instead of an unusa
     page.getByRole("link", { name: "Complete learner onboarding" }),
   ).toHaveAttribute("href", "/onboarding/parent");
   expect(state.writes).toHaveLength(0);
+});
+
+test("Hindi complete interface — पढ़ाई के निजी नोट्स", async ({ page }) => {
+  await chooseHindi(page);
+  await mock(page);
+  await page.goto("/dashboard/notes");
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
 });

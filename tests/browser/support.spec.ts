@@ -312,6 +312,7 @@ test("unknown reply uses the same current version, message and retry key", async
 }) => {
   const s = await mock(page, "uncertain-reply");
   await page.goto("/support?case=" + caseId);
+  await expect(page).toHaveURL(/case=[a-f0-9-]{36}/);
   await reply(page);
   await page.getByRole("button", { name: "Send reply", exact: true }).click();
   await expect(

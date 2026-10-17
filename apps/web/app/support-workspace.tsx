@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -43,6 +44,8 @@ export function SupportWorkspace({
   hindi?: boolean;
   onLanguageChange: (hindi: boolean) => void;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const t = (text: string) => supportText(hindi, text);
   const router = useRouter(),
     params = useSearchParams(),
@@ -280,45 +283,54 @@ export function SupportWorkspace({
       lang={hindi ? "hi" : "en"}
     >
       <div className="independent-language">
-        <label htmlFor="support-language">Language / भाषा</label>
+        <label htmlFor="support-language">{appText("Language / भाषा")}</label>
         <select
           id="support-language"
           value={hindi ? "hi" : "en"}
           onChange={(e) => onLanguageChange(e.target.value === "hi")}
         >
-          <option value="en">English</option>
+          <option value="en">{appText("English")}</option>
           <option value="hi">हिन्दी</option>
         </select>
       </div>
       <section className="support-intro">
         <LifeBuoy size={30} aria-hidden="true" />
-        <h1>{t("A clear path to help.")}</h1>
+        <h1>{appText(t("A clear path to help."))}</h1>
         <p>
-          {t(
-            "Ask a question, report a concern and follow the conversation in one place. Safety reporting and support are free, with or without Pro.",
+          {appText(
+            t(
+              "Ask a question, report a concern and follow the conversation in one place. Safety reporting and support are free, with or without Pro.",
+            ),
           )}{" "}
         </p>
       </section>
-      <aside className="support-safety" aria-label={t("Safety guidance")}>
+      <aside
+        className="support-safety"
+        aria-label={appText(t("Safety guidance"))}
+      >
         <ShieldCheck size={24} aria-hidden="true" />
         <div>
           <strong>
-            {t("For immediate danger, contact emergency services.")}
+            {appText(t("For immediate danger, contact emergency services."))}
           </strong>
           <p>
-            <a href="tel:112">{t("Call 112 in India")}</a>
-            {t(
-              ". This development service has no live emergency response.",
+            <a href="tel:112">{appText(t("Call 112 in India"))}</a>
+            {appText(
+              t(". This development service has no live emergency response."),
             )}{" "}
-            {t(
-              session?.account.role === "STUDENT"
-                ? "If it is safe, tell a trusted adult."
-                : "",
+            {appText(
+              t(
+                session?.account.role === "STUDENT"
+                  ? "If it is safe, tell a trusted adult."
+                  : "",
+              ),
             )}
           </p>
           <p>
-            {t(
-              "To record a safety concern here, choose “Safety concern” when creating a case. No payment is required.",
+            {appText(
+              t(
+                "To record a safety concern here, choose “Safety concern” when creating a case. No payment is required.",
+              ),
             )}{" "}
           </p>
         </div>
@@ -326,26 +338,28 @@ export function SupportWorkspace({
       {!session ? (
         <Notice>
           <Link href="/login?next=%2Fsupport">
-            {t("Sign in to submit or view your private cases")}{" "}
+            {appText(t("Sign in to submit or view your private cases"))}{" "}
           </Link>
-          {t(". Emergency guidance is available without signing in.")}{" "}
+          {appText(
+            t(". Emergency guidance is available without signing in."),
+          )}{" "}
         </Notice>
       ) : !canUse ? (
         <Notice>
-          {t("To review support cases, open your")}{" "}
-          <Link href="/dashboard">{t("staff dashboard")}</Link>
+          {appText(t("To review support cases, open your"))}{" "}
+          <Link href="/dashboard">{appText(t("staff dashboard"))}</Link>
         </Notice>
       ) : (
         <>
           <div className="support-toolbar">
-            <h2>{t("Your support cases")}</h2>
+            <h2>{appText(t("Your support cases"))}</h2>
             <div className="support-toolbar-actions">
               <Button
                 variant="outline"
                 disabled={locked}
                 onClick={() => decision.reload()}
               >
-                {t("Refresh cases")}{" "}
+                {appText(t("Refresh cases"))}{" "}
               </Button>
               <Button
                 disabled={
@@ -360,24 +374,26 @@ export function SupportWorkspace({
                   decision.invalid("");
                 }}
               >
-                {t("Create a case")}{" "}
+                {appText(t("Create a case"))}{" "}
               </Button>
             </div>
           </div>
           {hasContext && (
             <section
               className="support-linked-context"
-              aria-label={t("Linked support context")}
+              aria-label={appText(t("Linked support context"))}
             >
               {context.isPending ? (
                 <p role="status">
-                  {t("Loading the linked enquiry or arrangement…")}
+                  {appText(t("Loading the linked enquiry or arrangement…"))}
                 </p>
               ) : context.error || !context.data ? (
                 <>
                   <Notice error>
-                    {t(
-                      "This support link could not be verified. No case will be sent against an unavailable enquiry or arrangement.",
+                    {appText(
+                      t(
+                        "This support link could not be verified. No case will be sent against an unavailable enquiry or arrangement.",
+                      ),
                     )}{" "}
                   </Notice>
                   <Button
@@ -385,26 +401,32 @@ export function SupportWorkspace({
                     variant="outline"
                     onClick={() => context.refetch()}
                   >
-                    {t("Retry support context")}{" "}
+                    {appText(t("Retry support context"))}{" "}
                   </Button>
                 </>
               ) : (
                 <>
                   <h2>
-                    {t(
-                      context.data.kind === "ENQUIRY"
-                        ? "Help with this enquiry"
-                        : "Help with this arrangement",
+                    {appText(
+                      t(
+                        context.data.kind === "ENQUIRY"
+                          ? "Help with this enquiry"
+                          : "Help with this arrangement",
+                      ),
                     )}
                   </h2>
                   <p>
-                    {context.data.subject} ·{" "}
-                    {t(context.data.mode === "HOME" ? "At home" : "Online")}{" "}
-                    {t("· Reference")} {context.data.id.slice(0, 8)}
+                    {appCurriculum(context.data.subject)} ·{" "}
+                    {appText(
+                      t(context.data.mode === "HOME" ? "At home" : "Online"),
+                    )}{" "}
+                    {appText(t("· Reference"))} {context.data.id.slice(0, 8)}
                   </p>
                   <p>
-                    {t(
-                      "Your related cases and their progress appear below. Other participants’ conversations stay private.",
+                    {appText(
+                      t(
+                        "Your related cases and their progress appear below. Other participants’ conversations stay private.",
+                      ),
                     )}{" "}
                   </p>
                   <div className="wizard-actions">
@@ -423,14 +445,14 @@ export function SupportWorkspace({
                             : "/dashboard/enquiries"
                       }
                     >
-                      {t("Return to enquiry progress")}{" "}
+                      {appText(t("Return to enquiry progress"))}{" "}
                     </Link>
                     {context.data.placementId && (
                       <Link
                         className="inline-link"
                         href={`/dashboard?arrangement=${context.data.placementId}`}
                       >
-                        {t("Review hiring confirmation")}{" "}
+                        {appText(t("Review hiring confirmation"))}{" "}
                       </Link>
                     )}
                     {context.data.canRequestReplacement && (
@@ -438,7 +460,7 @@ export function SupportWorkspace({
                         className="inline-link"
                         href={`/dashboard/arrangements?placement=${context.data.placementId}`}
                       >
-                        {t("Review replacement options")}{" "}
+                        {appText(t("Review replacement options"))}{" "}
                       </Link>
                     )}
                   </div>
@@ -463,13 +485,15 @@ export function SupportWorkspace({
                 void decision.reload();
               }}
             >
-              {t("Refresh current case")}{" "}
+              {appText(t("Refresh current case"))}{" "}
             </Button>
           )}
           {composing && (
             <section className="support-compose" ref={form} tabIndex={-1}>
               <h2>
-                {t(review ? "Review your request" : "Tell us what you need")}
+                {appText(
+                  t(review ? "Review your request" : "Tell us what you need"),
+                )}
               </h2>
               <form
                 noValidate
@@ -496,7 +520,7 @@ export function SupportWorkspace({
                   {!review ? (
                     <>
                       <label htmlFor="support-category">
-                        {t("What can we help with?")}{" "}
+                        {appText(t("What can we help with?"))}{" "}
                       </label>
                       <select
                         id="support-category"
@@ -509,12 +533,12 @@ export function SupportWorkspace({
                           )
                           .map(([key, title]) => (
                             <option key={key} value={key}>
-                              {t(title)}
+                              {appText(t(title))}
                             </option>
                           ))}
                       </select>
                       <label htmlFor="support-description">
-                        {t("Tell us what happened")}{" "}
+                        {appText(t("Tell us what happened"))}{" "}
                       </label>
                       <Textarea
                         id="support-description"
@@ -526,18 +550,22 @@ export function SupportWorkspace({
                       />
                       <small id="support-writing-help">
                         {description.length}
-                        {t(
-                          "/3,000 characters. Include only what helps resolve this case; avoid passwords and unnecessary personal details.",
+                        {appText(
+                          t(
+                            "/3,000 characters. Include only what helps resolve this case; avoid passwords and unnecessary personal details.",
+                          ),
                         )}{" "}
                       </small>
                     </>
                   ) : (
                     <div className="support-review">
-                      <strong>{t(categories[category])}</strong>
+                      <strong>{appText(t(categories[category]))}</strong>
                       <p>{description}</p>
                       <p>
-                        {t(
-                          "This records a private request. It does not arrange emergency response, change a teacher assignment or confirm a refund.",
+                        {appText(
+                          t(
+                            "This records a private request. It does not arrange emergency response, change a teacher assignment or confirm a refund.",
+                          ),
                         )}{" "}
                       </p>
                       <label className="support-check">
@@ -547,8 +575,10 @@ export function SupportWorkspace({
                           onChange={(e) => setAgreed(e.target.checked)}
                         />
                         <span>
-                          {t(
-                            "I reviewed this request and want to send it to support.",
+                          {appText(
+                            t(
+                              "I reviewed this request and want to send it to support.",
+                            ),
                           )}{" "}
                         </span>
                       </label>
@@ -564,10 +594,14 @@ export function SupportWorkspace({
                           : (setComposing(false), setDescription(""))
                       }
                     >
-                      {t(review ? "Back to editing" : "Cancel request")}
+                      {appText(
+                        t(review ? "Back to editing" : "Cancel request"),
+                      )}
                     </Button>
                     <Button type="submit">
-                      {t(review ? "Send support request" : "Review request")}
+                      {appText(
+                        t(review ? "Send support request" : "Review request"),
+                      )}
                     </Button>
                   </div>
                 </fieldset>
@@ -577,9 +611,9 @@ export function SupportWorkspace({
           <div className="support-layout">
             <section
               className="support-history"
-              aria-label={t("Your case history")}
+              aria-label={appText(t("Your case history"))}
             >
-              <label htmlFor="case-filter">{t("Case status")}</label>
+              <label htmlFor="case-filter">{appText(t("Case status"))}</label>
               <select
                 id="case-filter"
                 value={filter}
@@ -590,31 +624,33 @@ export function SupportWorkspace({
                   router.replace(caseUrl(), { scroll: false });
                 }}
               >
-                <option value="">{t("All statuses")}</option>
+                <option value="">{appText(t("All statuses"))}</option>
                 {Object.entries(statuses).map(([key, title]) => (
                   <option key={key} value={key}>
-                    {t(title)}
+                    {appText(t(title))}
                   </option>
                 ))}
               </select>
               {list.isPending && (
                 <p role="status">
-                  {t(
-                    hasContext && context.error
-                      ? "A verified context is needed to load related history."
-                      : "Loading your case history…",
+                  {appText(
+                    t(
+                      hasContext && context.error
+                        ? "A verified context is needed to load related history."
+                        : "Loading your case history…",
+                    ),
                   )}
                 </p>
               )}
               {list.error && (
                 <Notice error>
-                  {t("Case history could not be loaded.")}{" "}
+                  {appText(t("Case history could not be loaded."))}{" "}
                   <Button
                     variant="outline"
                     onClick={() => list.refetch()}
                     disabled={decision.uncertain}
                   >
-                    {t("Retry case history")}{" "}
+                    {appText(t("Retry case history"))}{" "}
                   </Button>
                 </Notice>
               )}
@@ -623,10 +659,12 @@ export function SupportWorkspace({
                 !list.data?.pages.some((p) => p.items.length) && (
                   <div className="support-empty">
                     <MessageSquare size={24} aria-hidden="true" />
-                    <h3>{t("No cases for this status.")}</h3>
+                    <h3>{appText(t("No cases for this status."))}</h3>
                     <p>
-                      {t(
-                        "Create a case to start a private support conversation, or choose another status.",
+                      {appText(
+                        t(
+                          "Create a case to start a private support conversation, or choose another status.",
+                        ),
                       )}{" "}
                     </p>
                   </div>
@@ -642,14 +680,18 @@ export function SupportWorkspace({
                     aria-pressed={selected === c.id}
                     onClick={() => pick(c.id)}
                   >
-                    <span>{t(categories[c.category] || c.category)}</span>
+                    <span>
+                      {appText(t(categories[c.category] || c.category))}
+                    </span>
                     <strong>
-                      {t("Case")} {c.id.slice(0, 8)}
+                      {appText(t("Case"))} {c.id.slice(0, 8)}
                     </strong>
                     <span className="support-status">
-                      {t(statuses[c.status])}
+                      {appText(t(statuses[c.status]))}
                     </span>
-                    <small>{date(c.createdAt, hindi)} IST</small>
+                    <small>
+                      {date(c.createdAt, hindi)} {appText("IST")}
+                    </small>
                   </button>
                 ))}
               {list.hasNextPage && (
@@ -658,21 +700,23 @@ export function SupportWorkspace({
                   disabled={locked || list.isFetching}
                   onClick={() => list.fetchNextPage()}
                 >
-                  {t("Load more cases")}{" "}
+                  {appText(t("Load more cases"))}{" "}
                 </Button>
               )}
             </section>
             <section
               className="support-detail"
-              aria-label={t("Case conversation")}
+              aria-label={appText(t("Case conversation"))}
             >
               {!selected ? (
                 <div className="support-empty">
                   <MessageSquare size={28} aria-hidden="true" />
-                  <h3>{t("Choose a case to follow its progress.")}</h3>
+                  <h3>{appText(t("Choose a case to follow its progress."))}</h3>
                   <p>
-                    {t(
-                      "Replies and status changes appear here. Only your own cases are listed.",
+                    {appText(
+                      t(
+                        "Replies and status changes appear here. Only your own cases are listed.",
+                      ),
                     )}{" "}
                   </p>
                 </div>
@@ -680,24 +724,28 @@ export function SupportWorkspace({
                 <>
                   {detail.isPending && (
                     <p role="status">
-                      {t(
-                        hasContext && context.error
-                          ? "Resolve the support context before opening this case."
-                          : "Loading case details…",
+                      {appText(
+                        t(
+                          hasContext && context.error
+                            ? "Resolve the support context before opening this case."
+                            : "Loading case details…",
+                        ),
                       )}
                     </p>
                   )}
                   {detail.error && (
                     <Notice error>
-                      {t(
-                        "This case could not be loaded or is no longer accessible. Your reply stays here.",
+                      {appText(
+                        t(
+                          "This case could not be loaded or is no longer accessible. Your reply stays here.",
+                        ),
                       )}{" "}
                       <Button
                         variant="outline"
                         disabled={decision.uncertain}
                         onClick={() => detail.refetch()}
                       >
-                        {t("Retry case details")}{" "}
+                        {appText(t("Retry case details"))}{" "}
                       </Button>
                     </Notice>
                   )}
@@ -706,30 +754,33 @@ export function SupportWorkspace({
                       <header className="support-case-heading">
                         <div>
                           <small>
-                            {t("Case")} {item.id.slice(0, 8)}
+                            {appText(t("Case"))} {item.id.slice(0, 8)}
                           </small>
                           <h2>
-                            {t(categories[item.category] || item.category)}
+                            {appText(
+                              t(categories[item.category] || item.category),
+                            )}
                           </h2>
                         </div>
                         <span className="support-status">
-                          {t(statuses[item.status])}
+                          {appText(t(statuses[item.status]))}
                         </span>
                       </header>
                       <div className="support-original">
-                        <h3>{t("Your original request")}</h3>
+                        <h3>{appText(t("Your original request"))}</h3>
                         <p>{item.description}</p>
                         <small>
-                          {t("Created")} {date(item.createdAt, hindi)} IST
+                          {appText(t("Created"))} {date(item.createdAt, hindi)}{" "}
+                          {appText("IST")}{" "}
                         </small>
                       </div>
                       {item.resolution && (
                         <Notice>
-                          {t("Resolution:")} {item.resolution}
+                          {appText(t("Resolution:"))} {item.resolution}
                         </Notice>
                       )}
                       <h3 className="support-updates-heading">
-                        {t("Case updates")}
+                        {appText(t("Case updates"))}
                       </h3>
                       {detail.hasNextPage && (
                         <Button
@@ -737,7 +788,7 @@ export function SupportWorkspace({
                           disabled={decision.locked || detail.isFetching}
                           onClick={() => detail.fetchNextPage()}
                         >
-                          {t("Load earlier updates")}{" "}
+                          {appText(t("Load earlier updates"))}{" "}
                         </Button>
                       )}
                       <ol className="support-updates">
@@ -749,15 +800,19 @@ export function SupportWorkspace({
                             <li key={u.id}>
                               <div>
                                 <strong>
-                                  {t(
-                                    u.author === "YOU"
-                                      ? "You"
-                                      : u.author === "CASE_OWNER"
-                                        ? "Participant"
-                                        : "Support",
+                                  {appText(
+                                    t(
+                                      u.author === "YOU"
+                                        ? "You"
+                                        : u.author === "CASE_OWNER"
+                                          ? "Participant"
+                                          : "Support",
+                                    ),
                                   )}
                                 </strong>
-                                <small>{date(u.createdAt, hindi)} IST</small>
+                                <small>
+                                  {date(u.createdAt, hindi)} {appText("IST")}
+                                </small>
                               </div>
                               <p>{u.message}</p>
                             </li>
@@ -765,18 +820,22 @@ export function SupportWorkspace({
                       </ol>
                       {!item.updates.length && (
                         <p className="support-help">
-                          {t(
-                            "No replies yet. Recorded requests are not a promise of immediate response.",
+                          {appText(
+                            t(
+                              "No replies yet. Recorded requests are not a promise of immediate response.",
+                            ),
                           )}{" "}
                         </p>
                       )}
                       {!composing &&
                         (["RESOLVED", "CLOSED"].includes(item.status) ? (
                           <Notice>
-                            {t(
-                              item.status === "CLOSED"
-                                ? "This case is closed and cannot receive replies. Create a new case if you need further help."
-                                : "This case is resolved and cannot receive replies. Create a new case if you need further help.",
+                            {appText(
+                              t(
+                                item.status === "CLOSED"
+                                  ? "This case is closed and cannot receive replies. Create a new case if you need further help."
+                                  : "This case is resolved and cannot receive replies. Create a new case if you need further help.",
+                              ),
                             )}
                           </Notice>
                         ) : (
@@ -804,10 +863,10 @@ export function SupportWorkspace({
                           >
                             <fieldset disabled={decision.locked || composing}>
                               {review ? (
-                                <h3>{t("Review your reply")}</h3>
+                                <h3>{appText(t("Review your reply"))}</h3>
                               ) : (
                                 <label htmlFor="case-reply">
-                                  {t("Add a reply")}
+                                  {appText(t("Add a reply"))}
                                 </label>
                               )}
                               {review ? (
@@ -822,8 +881,10 @@ export function SupportWorkspace({
                                       }
                                     />
                                     <span>
-                                      {t(
-                                        "I reviewed this reply and want to add it to the case.",
+                                      {appText(
+                                        t(
+                                          "I reviewed this reply and want to add it to the case.",
+                                        ),
                                       )}{" "}
                                     </span>
                                   </label>
@@ -838,8 +899,10 @@ export function SupportWorkspace({
                                 />
                               )}
                               <small>
-                                {t(
-                                  "Replies remain part of this case. Send only relevant information.",
+                                {appText(
+                                  t(
+                                    "Replies remain part of this case. Send only relevant information.",
+                                  ),
                                 )}{" "}
                               </small>
                               <div className="support-actions">
@@ -850,10 +913,14 @@ export function SupportWorkspace({
                                     review ? setReview(false) : setReply("")
                                   }
                                 >
-                                  {t(review ? "Edit reply" : "Discard reply")}
+                                  {appText(
+                                    t(review ? "Edit reply" : "Discard reply"),
+                                  )}
                                 </Button>
                                 <Button type="submit">
-                                  {t(review ? "Send reply" : "Review reply")}
+                                  {appText(
+                                    t(review ? "Send reply" : "Review reply"),
+                                  )}
                                 </Button>
                               </div>
                             </fieldset>

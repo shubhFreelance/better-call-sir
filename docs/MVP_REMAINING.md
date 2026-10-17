@@ -4,7 +4,7 @@ Reviewed against the owner's Version 3 PRD, the delivery board and implementatio
 
 ## Current owner-directed scope
 
-The owner narrowed the next MVP on 14 October 2026 to teacher discovery, enquiries and hiring. [Current scope and priorities](MVP_SCOPE.md) supersede the original class-management launch requirements. H1 discovery/profile emphasis and H4 dashboards focused on hiring are implemented in development. Guardian enquiry drafts, weekly availability, teacher revisions, student preferences, invitation recovery and connected enquiry-to-hiring confirmation are implemented. No-match and future-coverage recovery are implemented. Remaining work covers access polish, localization and launch qualification. Individual class booking, timetables, attendance/lesson feedback and related provider qualification move to later scale. Existing implementations and their limits remain recorded below. Authentication, consent, teacher screening, privacy, support and applicable security/release requirements still apply.
+The owner narrowed the next MVP on 14 October 2026 to teacher discovery, enquiries and hiring. [Current scope and priorities](MVP_SCOPE.md) supersede the original class-management launch requirements. H1 discovery/profile emphasis and H4 dashboards focused on hiring are implemented in development. Guardian enquiry drafts, weekly availability, teacher revisions, student preferences, invitation recovery and connected enquiry-to-hiring confirmation are implemented. No-match and future-coverage recovery are implemented. Whole-app English/Hindi localization is complete. Remaining work covers access polish and launch qualification. Individual class booking, timetables, attendance/lesson feedback and related provider qualification move to later scale. Existing implementations and their limits remain recorded below. Authentication, consent, teacher screening, privacy, support and applicable security/release requirements still apply.
 
 The inventory below preserves the broader backlog; it is not an instruction to complete every class-management item before the focused hiring MVP. F22–F25/B12 are reprioritized by relevance to the current journey; class-specific finance/Meet items are deferred unless separately required by an approved hiring payment flow.
 
@@ -22,15 +22,16 @@ Guardian draft management now includes an explicit acknowledged discard for unfi
 
 Weekly enquiry availability is implemented across intake, draft recovery, family updates and operator summaries. New enquiries default to weekday/time ranges; legacy dated windows remain supported. Current overlap matching retains leave/reservation/capacity checks without class creation. Teacher-revision drafts and other recovery/navigation work remain open.
 
+F24 is complete across all forms, role dashboards, staff consoles, retained legacy workflows, validation, recovery screens, accessibility copy and typography. Server-rendered language, metadata, dates/currency and charts follow the same English/Hindi choice. API enums and authored content remain unchanged. See `remaing.md` and the final F24 sprint entry for acceptance evidence.
+
 ## Frontend work still open
 
 | # | Work remaining | Backend position |
 | --- | --- | --- |
 | F22 | Remaining access polish, device labels and final cross-journey recovery review | Primary onboarding, preferences, teacher revisions and invitation recovery are implemented. |
-| F24 | Full English/Hindi localization: all forms, notices, validation, dashboard/console copy and typography | Existing language toggle covers only part of the product. |
 | F25 | Finish remaining legacy screens/components and demo booking-detail forms using the shared shadcn controls and deliberate palette; review every loading/error/empty/retry state on mobile and keyboard | Incremental migration is underway. Initial demo controls and service/console screens are not all at the new standard. |
 
-The next practical sprint is remaining H5 localization/polish and focused launch qualification. F9 checkout/provider qualification is tracked below rather than described as live-ready.
+The next practical sprint is remaining H5 cross-flow polish and focused launch qualification. F9 checkout/provider qualification is tracked below rather than described as live-ready.
 
 ## Backend implementation and contract gaps
 

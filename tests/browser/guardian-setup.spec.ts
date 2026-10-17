@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { operationValidator } from "../helpers/contract";
@@ -481,3 +482,12 @@ test("real guardian gives permission, saves a KG profile and returns to teacher 
     await db.end();
   }
 });
+
+ test("Hindi complete interface — अभिभावक खाता, शुरुआत और अनुमति", async ({ page }) => {
+ await chooseHindi(page);
+ await mock(page);
+ await page.goto("/onboarding/guardian");
+ await checkHindi(page);
+ await page.setViewportSize({ width: 360, height: 800 });
+ await checkHindi(page);
+ });

@@ -1,5 +1,9 @@
 "use client";
-import {TeachingCoverageSummary,type TeachingScope} from "./teaching-coverage";
+import { useAppTranslation } from "./locale";
+import {
+  TeachingCoverageSummary,
+  type TeachingScope,
+} from "./teaching-coverage";
 import { TeacherLockIn } from "./teacher-lock-in";
 import type { ReactNode } from "react";
 import type { components } from "@bcs/api-client";
@@ -12,8 +16,10 @@ export type TeacherDetails = {
   address: Address;
   education: Education[];
   employment: Employment[];
-  teachingCoverage?:TeachingScope[]|null;
-  subjects?:string[];boards?:string[];grades?:number[];
+  teachingCoverage?: TeachingScope[] | null;
+  subjects?: string[];
+  boards?: string[];
+  grades?: number[];
   demoOptIn?: boolean;
   lockInDays?: number | null;
 };
@@ -135,6 +141,8 @@ export function TeacherDetailsForm({
   ) => void;
   errors: Record<string, string>;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const addr = values.address || emptyDetails.address,
     education = values.education || emptyDetails.education,
     employment = values.employment || [];
@@ -149,16 +157,18 @@ export function TeacherDetailsForm({
     hint?: string,
   ) => (
     <div className="field">
-      <label htmlFor={"teacher-" + key}>{label}</label>
-      {input({
-        id: "teacher-" + key,
-        "aria-invalid": !!errors[key],
-        "aria-describedby": errors[key] ? "error-" + key : undefined,
-      })}
-      {hint && <small className="wizard-help">{hint}</small>}
+      <label htmlFor={"teacher-" + key}>{appText(label)}</label>
+      {appError(
+        input({
+          id: "teacher-" + key,
+          "aria-invalid": !!errors[key],
+          "aria-describedby": errors[key] ? "error-" + key : undefined,
+        }),
+      )}
+      {hint && <small className="wizard-help">{appText(hint)}</small>}
       {errors[key] && (
         <small id={"error-" + key} className="field-error" role="alert">
-          {errors[key]}
+          {appError(errors[key])}
         </small>
       )}
     </div>
@@ -172,8 +182,9 @@ export function TeacherDetailsForm({
   return part === "address" ? (
     <>
       <p className="wizard-help">
-        Your full address stays private for verification and administration.
-        Families see your chosen home-tuition service areas, never this address.
+        {appText(
+          "Your full address stays private for verification and administration. Families see your chosen home-tuition service areas, never this address.",
+        )}{" "}
       </p>
       {Object.entries({
         line1: "House / office and street address",
@@ -207,24 +218,25 @@ export function TeacherDetailsForm({
         </div>
       ))}
       <p className="wizard-help">
-        Country: India. Public service coverage is selected in the
-        teaching-preferences step.
+        {appText(
+          "Country: India. Public service coverage is selected in the teaching-preferences step.",
+        )}{" "}
       </p>
     </>
   ) : (
     <>
       <p className="wizard-help">
-        Record all four milestones. Choose “Pursuing” or “Not applicable” where
-        appropriate. Marks, institution details and documents stay private;
-        declarations still need independent review.
+        {appText(
+          "Record all four milestones. Choose “Pursuing” or “Not applicable” where appropriate. Marks, institution details and documents stay private; declarations still need independent review.",
+        )}{" "}
       </p>
       {education.map((r, i) => (
         <section
           className="teacher-milestone"
           key={r.milestone}
-          aria-label={milestones[r.milestone]}
+          aria-label={appText(milestones[r.milestone])}
         >
-          <h3>{milestones[r.milestone]}</h3>
+          <h3>{appText(milestones[r.milestone])}</h3>
           {field(`education.${i}.status`, "Milestone status", (a) => (
             <select
               {...a}
@@ -238,10 +250,12 @@ export function TeacherDetailsForm({
                 )
               }
             >
-              <option value="COMPLETED">Completed</option>
-              <option value="PURSUING">Pursuing</option>
+              <option value="COMPLETED">{appText("Completed")}</option>
+              <option value="PURSUING">{appText("Pursuing")}</option>
               {r.milestone !== "CLASS_10" && (
-                <option value="NOT_APPLICABLE">Not applicable</option>
+                <option value="NOT_APPLICABLE">
+                  {appText("Not applicable")}
+                </option>
               )}
             </select>
           ))}
@@ -313,10 +327,16 @@ export function TeacherDetailsForm({
                           })
                         }
                       >
-                        <option value="">Choose a format</option>
-                        <option value="PERCENTAGE">Percentage</option>
-                        <option value="MARKS">Marks obtained / total</option>
-                        <option value="CGPA">CGPA and scale</option>
+                        <option value="">{appText("Choose a format")}</option>
+                        <option value="PERCENTAGE">
+                          {appText("Percentage")}
+                        </option>
+                        <option value="MARKS">
+                          {appText("Marks obtained / total")}
+                        </option>
+                        <option value="CGPA">
+                          {appText("CGPA and scale")}
+                        </option>
                       </select>
                     ),
                   )}
@@ -370,8 +390,8 @@ export function TeacherDetailsForm({
                     )}
                   {r.grading === "MARKS" && r.score !== null && r.outOf && (
                     <p className="wizard-help">
-                      Calculated percentage:{" "}
-                      {new Intl.NumberFormat("en-IN", {
+                      {appText("Calculated percentage:")}{" "}
+                      {new Intl.NumberFormat(appLocale, {
                         maximumFractionDigits: 2,
                       }).format((r.score / r.outOf) * 100)}
                       %.
@@ -405,19 +425,21 @@ export function TeacherDetailsForm({
         </section>
       ))}
       <section className="teacher-work-history">
-        <h3>Previous teaching work</h3>
+        <h3>{appText("Previous teaching work")}</h3>
         <p className="wizard-help">
-          Include schools, institutes or independent tuition. If you have no
-          previous work, leave this list empty. Certificates and references are
-          uploaded privately after application submission.
+          {appText(
+            "Include schools, institutes or independent tuition. If you have no previous work, leave this list empty. Certificates and references are uploaded privately after application submission.",
+          )}{" "}
         </p>
         {employment.map((r, i) => (
           <section
             className="teacher-employment"
             key={i}
-            aria-label={`Previous work ${i + 1}`}
+            aria-label={appText("Previous work {0}", [i + 1])}
           >
-            <h4>Previous work {i + 1}</h4>
+            <h4>
+              {appText("Previous work")} {i + 1}
+            </h4>
             {(["organization", "role", "fromYear", "toYear"] as const).map(
               (key) => (
                 <div key={key}>
@@ -478,13 +500,13 @@ export function TeacherDetailsForm({
                   }
                 >
                   <option value="CERTIFICATE_AVAILABLE">
-                    I can provide an experience certificate
+                    {appText("I can provide an experience certificate")}{" "}
                   </option>
                   <option value="REFERENCE_AVAILABLE">
-                    I can provide a reference
+                    {appText("I can provide a reference")}{" "}
                   </option>
                   <option value="NOT_AVAILABLE">
-                    Neither is currently available
+                    {appText("Neither is currently available")}{" "}
                   </option>
                 </select>
               ),
@@ -499,7 +521,7 @@ export function TeacherDetailsForm({
                 )
               }
             >
-              Remove previous work {i + 1}
+              {appText("Remove previous work")} {i + 1}
             </Button>
           </section>
         ))}
@@ -520,7 +542,7 @@ export function TeacherDetailsForm({
             ])
           }
         >
-          Add previous work
+          {appText("Add previous work")}{" "}
         </Button>
       </section>
     </>
@@ -532,35 +554,43 @@ export function TeacherDetailsSummary({
 }: {
   profile: components["schemas"]["PrivateTeacher"];
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const a = profile.address;
   return (
     <section
       className="teacher-private-summary"
-      aria-label="Private onboarding details"
+      aria-label={appText("Private onboarding details")}
     >
-      <h3>Private onboarding details</h3>
+      <h3>{appText("Private onboarding details")}</h3>
       <p className="wizard-help">
-        These are submitted declarations for verification. They are not
-        published with the teacher profile.
+        {appText(
+          "These are submitted declarations for verification. They are not published with the teacher profile.",
+        )}{" "}
       </p>
-      <h4>Complete address</h4>
+      <h4>{appText("Complete address")}</h4>
       {a ? (
         <p>
           {a.line1} {a.line2}
           <br />
-          {a.locality}, {a.city}, {a.state} {a.postalCode} · {a.country}
+          {a.locality}, {a.city}, {a.state} {a.postalCode} ·{" "}
+          {appText(a.country)}
         </p>
       ) : (
-        <p>Address not yet recorded. Update the application before approval.</p>
+        <p>
+          {appText(
+            "Address not yet recorded. Update the application before approval.",
+          )}
+        </p>
       )}
-      <h4>Education and results</h4>
+      <h4>{appText("Education and results")}</h4>
       {profile.education?.length ? (
         <ul>
           {profile.education.map((r) => (
             <li key={r.milestone}>
               <strong>
-                {milestones[r.milestone]}:{" "}
-                {r.status.toLowerCase().replaceAll("_", " ")}
+                {appText(milestones[r.milestone])}:{" "}
+                {appText(r.status.toLowerCase().replaceAll("_", " "))}
               </strong>
               {r.status !== "NOT_APPLICABLE" && (
                 <p>
@@ -577,9 +607,9 @@ export function TeacherDetailsSummary({
           ))}
         </ul>
       ) : (
-        <p>Education milestones not yet recorded.</p>
+        <p>{appText("Education milestones not yet recorded.")}</p>
       )}
-      <h4>Previous work and proof declarations</h4>
+      <h4>{appText("Previous work and proof declarations")}</h4>
       {profile.employment?.length ? (
         <ul>
           {profile.employment.map((r, i) => (
@@ -588,37 +618,39 @@ export function TeacherDetailsSummary({
                 {r.organization} · {r.role}
               </strong>
               <p>
-                {r.fromYear}–{r.toYear || "current"} ·{" "}
-                {r.proof.toLowerCase().replaceAll("_", " ")}
+                {r.fromYear}–{r.toYear || appText("current")} ·{" "}
+                {appText(r.proof.toLowerCase().replaceAll("_", " "))}
               </p>
             </li>
           ))}
         </ul>
       ) : (
-        <p>No previous work recorded.</p>
+        <p>{appText("No previous work recorded.")}</p>
       )}
-      <h4>Declared teaching areas</h4>
-      <TeachingCoverageSummary profile={profile}/>
-      <h4>Lock-in preference</h4>
+      <h4>{appText("Declared teaching areas")}</h4>
+      <TeachingCoverageSummary profile={profile} />
+      <h4>{appText("Lock-in preference")}</h4>
       <TeacherLockIn days={profile.lockInDays} />
       <p className="wizard-help">
-        A declared preference; cancellation restrictions are not currently
-        enforced.
+        {appText(
+          "A declared preference; cancellation restrictions are not currently enforced.",
+        )}{" "}
       </p>
-      <h4>Optional demo preference</h4>
+      <h4>{appText("Optional demo preference")}</h4>
       <p>
         {profile.demoOptIn === true
-          ? "Demo offered"
+          ? appText("Demo offered")
           : profile.demoOptIn === false
-            ? "Demo not offered"
-            : "Preference not yet recorded"}
-        . This preference is separate from qualification approval.
+            ? appText("Demo not offered")
+            : appText("Preference not yet recorded")}
+        {appText(
+          ". This preference is separate from qualification approval.",
+        )}{" "}
       </p>
       <p className="wizard-help">
-        Review qualification certificates/marksheets and previous-work
-        certificates or references in the private evidence list below. A
-        declaration does not establish that a certificate has been uploaded or
-        verified.
+        {appText(
+          "Review qualification certificates/marksheets and previous-work certificates or references in the private evidence list below. A declaration does not establish that a certificate has been uploaded or verified.",
+        )}{" "}
       </p>
     </section>
   );

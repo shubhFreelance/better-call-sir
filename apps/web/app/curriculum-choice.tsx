@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useState } from "react";
 import { Input } from "../components/ui/input";
 export const subjectSuggestions = [
@@ -37,6 +38,8 @@ export function CurriculumChoice({
   error?: boolean;
   errorId?: string;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [custom, setCustom] = useState(!!value && !suggestions.includes(value));
   const showCustom = custom || (!!value && !suggestions.includes(value));
   return (
@@ -58,19 +61,21 @@ export function CurriculumChoice({
         aria-invalid={error}
         aria-describedby={errorId}
       >
-        <option value="">{anyLabel || "Choose an option"}</option>
+        <option value="">
+          {appText(anyLabel) || appText("Choose an option")}
+        </option>
         {suggestions.map((s) => (
           <option key={s} value={s}>
-            {s}
+            {appText(s)}
           </option>
         ))}
         <option value="__CUSTOM__">
-          Enter another {customLabel.toLowerCase()}
+          {appText("Enter another")} {appText(customLabel.toLowerCase())}
         </option>
       </select>
       {showCustom && (
         <div className="field">
-          <label htmlFor={id + "-custom"}>{customLabel}</label>
+          <label htmlFor={id + "-custom"}>{appText(customLabel)}</label>
           <Input
             id={id + "-custom"}
             value={value}

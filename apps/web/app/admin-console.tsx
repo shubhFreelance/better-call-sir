@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import { useState, useRef } from "react";
 import Link from "next/link";
@@ -25,27 +26,33 @@ type Action =
   | { kind: "job"; item: Job }
   | { kind: "replay"; item: Deletion };
 const label = (v: string) => v.toLowerCase().replaceAll("_", " ");
-const when = (v: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+const when = (v: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(v));
-const money = (v: number) =>
-  new Intl.NumberFormat("en-IN", {
+const money = (v: number, locale = "en-IN") =>
+  new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "INR",
     minimumFractionDigits: 2,
   }).format(v / 100);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function AdminConsole({ session }: { session: Session }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   if (session.account.role !== "ADMIN")
     return (
-      <Notice error>Administrator access is required for this console.</Notice>
+      <Notice error>
+        {appText("Administrator access is required for this console.")}
+      </Notice>
     );
   return <ConsoleWorkspace session={session} />;
 }
 function ConsoleWorkspace({ session }: { session: Session }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [tab, setTab] = useState("overview"),
     [selected, setSelected] = useState<Action | null>(null);
   const current = useQuery({
@@ -62,16 +69,17 @@ function ConsoleWorkspace({ session }: { session: Session }) {
     <div className="care-workspace admin-workspace">
       <section className="care-intro">
         <ShieldCheck size={28} aria-hidden="true" />
-        <h2>Make every decision traceable.</h2>
+        <h2>{appText("Make every decision traceable.")}</h2>
         <p>
-          Inspect supervised account links, review privacy decisions and recover
-          permitted work. Every change needs a reason and a current record.
+          {appText(
+            "Inspect supervised account links, review privacy decisions and recover permitted work. Every change needs a reason and a current record.",
+          )}{" "}
         </p>
       </section>
       <Notice>
-        Private administrator workspace. Live release is blocked. Staff
-        provisioning and commercial policy editing await their independent
-        approval and version-history workflows.
+        {appText(
+          "Private administrator workspace. Live release is blocked. Staff provisioning and commercial policy editing await their independent approval and version-history workflows.",
+        )}{" "}
       </Notice>
       <Tabs
         value={tab}
@@ -79,7 +87,10 @@ function ConsoleWorkspace({ session }: { session: Session }) {
           if (!selected) setTab(v);
         }}
       >
-        <TabsList className="care-tabs" aria-label="Administrator workspaces">
+        <TabsList
+          className="care-tabs"
+          aria-label={appText("Administrator workspaces")}
+        >
           {[
             ["overview", "Overview & controls"],
             ["people", "People & linkage"],
@@ -88,37 +99,41 @@ function ConsoleWorkspace({ session }: { session: Session }) {
             ["audit", "Audit history"],
           ].map(([v, n]) => (
             <TabsTrigger key={v} value={v} disabled={!!selected}>
-              {n}
+              {appText(n)}
             </TabsTrigger>
           ))}
         </TabsList>
         <TabsContent value="overview">
-          {current.isPending && <p role="status">Loading console state…</p>}
+          {current.isPending && (
+            <p role="status">{appText("Loading console state…")}</p>
+          )}
           {current.error && (
             <Notice error>
-              Console state could not be loaded.{" "}
+              {appText("Console state could not be loaded.")}{" "}
               <Button
                 variant="outline"
                 disabled={!!selected}
                 onClick={() => current.refetch()}
               >
-                Retry console state
+                {appText("Retry console state")}{" "}
               </Button>
             </Notice>
           )}
           {current.data && !current.error && (
             <>
               <section className="care-card">
-                <h3>Feature controls</h3>
+                <h3>{appText("Feature controls")}</h3>
                 <p>
-                  Recorded {when(current.data.asOf)} IST. Mode:{" "}
-                  {label(current.data.mode)}. A flag change does not authorize
-                  release or prove provider readiness.
+                  {appText("Recorded")} {when(current.data.asOf, appLocale)}{" "}
+                  {appText("IST. Mode:")} {appText(label(current.data.mode))}
+                  {appText(
+                    ". A flag change does not authorize release or prove provider readiness.",
+                  )}{" "}
                 </p>
                 <p>
-                  {current.data.accounts} account records ·{" "}
-                  {current.data.pendingPrivacy} privacy requests awaiting
-                  review.
+                  {current.data.accounts} {appText("account records ·")}{" "}
+                  {current.data.pendingPrivacy}{" "}
+                  {appText("privacy requests awaiting review.")}{" "}
                 </p>
                 <div className="admin-controls">
                   {current.data.flags.map((f) => (
@@ -126,19 +141,20 @@ function ConsoleWorkspace({ session }: { session: Session }) {
                       <div>
                         <strong>
                           {f.name === "proCalls"
-                            ? "Masked calls"
-                            : label(f.name)}
+                            ? appText("Masked calls")
+                            : appText(label(f.name))}
                         </strong>
                         <p>
                           <span className="care-status">
-                            {f.enabled ? "Enabled" : "Paused"}
+                            {f.enabled ? appText("Enabled") : appText("Paused")}
                           </span>{" "}
-                          · Version {f.version}
+                          {appText("· Version")} {f.version}
                         </p>
                         {!f.enabled && f.name !== "revision" && (
                           <small>
-                            Activation is blocked until reviewed
-                            provider/release evidence exists.
+                            {appText(
+                              "Activation is blocked until reviewed provider/release evidence exists.",
+                            )}{" "}
                           </small>
                         )}
                       </div>
@@ -149,18 +165,21 @@ function ConsoleWorkspace({ session }: { session: Session }) {
                         }
                         onClick={() => setSelected({ kind: "flag", item: f })}
                       >
-                        {f.enabled ? "Review pause" : "Review enable"} {f.name}
+                        {f.enabled
+                          ? appText("Review pause")
+                          : appText("Review enable")}{" "}
+                        {appText(f.name)}
                       </Button>
                     </article>
                   ))}
                 </div>
               </section>
               <section className="care-card">
-                <h3>Regional supply snapshot</h3>
+                <h3>{appText("Regional supply snapshot")}</h3>
                 <p>
-                  Recorded teacher profile statuses, grouped by region. Approval
-                  status alone does not prove current screening, available
-                  capacity or a qualified pilot supply.
+                  {appText(
+                    "Recorded teacher profile statuses, grouped by region. Approval status alone does not prove current screening, available capacity or a qualified pilot supply.",
+                  )}{" "}
                 </p>
                 {current.data.supply.length ? (
                   <ul className="admin-supply">
@@ -168,44 +187,50 @@ function ConsoleWorkspace({ session }: { session: Session }) {
                       <li key={r.region + r.status}>
                         <strong>{r.region}</strong>
                         <span>
-                          {label(r.status)} · {r.count} profiles
+                          {appText(label(r.status))} · {r.count}{" "}
+                          {appText("profiles")}{" "}
                         </span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p>No supply records.</p>
+                  <p>{appText("No supply records.")}</p>
                 )}
                 <small>
-                  Up to {current.data.supplyLimit} region/status groups. Region
-                  and service configuration changes remain pending.
+                  {appText("Up to")} {current.data.supplyLimit}{" "}
+                  {appText(
+                    "region/status groups. Region and service configuration changes remain pending.",
+                  )}{" "}
                 </small>
               </section>
               <section className="care-card">
-                <h3>Current commercial rules</h3>
+                <h3>{appText("Current commercial rules")}</h3>
                 <p>
-                  Read-only examples from the code's current pricing functions.
-                  Accepted terms remain immutable; policy editing, history and
-                  rollback require the separate configuration workflow.
+                  {appText(
+                    "Read-only examples from the code's current pricing functions. Accepted terms remain immutable; policy editing, history and rollback require the separate configuration workflow.",
+                  )}{" "}
                 </p>
                 <div className="admin-policy">
                   <div>
-                    <h4>Placement fee examples</h4>
+                    <h4>{appText("Placement fee examples")}</h4>
                     <ul>
                       {current.data.commercial.placementExamples.map((p) => (
                         <li key={p.monthlyPaise}>
-                          {money(p.monthlyPaise)} monthly tuition →{" "}
-                          {money(p.feePaise)} platform fee
+                          {money(p.monthlyPaise, appLocale)}{" "}
+                          {appText("monthly tuition →")}{" "}
+                          {money(p.feePaise, appLocale)}{" "}
+                          {appText("platform fee")}{" "}
                         </li>
                       ))}
                     </ul>
                   </div>
                   <div>
-                    <h4>Revision prices</h4>
+                    <h4>{appText("Revision prices")}</h4>
                     <ul>
                       {current.data.commercial.revisionPrices.map((p) => (
                         <li key={p.minutes}>
-                          {p.minutes} minutes · {money(p.amountPaise)}
+                          {p.minutes} {appText("minutes ·")}{" "}
+                          {money(p.amountPaise, appLocale)}
                         </li>
                       ))}
                     </ul>
@@ -213,38 +238,46 @@ function ConsoleWorkspace({ session }: { session: Session }) {
                 </div>
               </section>
               <section className="care-card">
-                <h3>Integration and release state</h3>
+                <h3>{appText("Integration and release state")}</h3>
                 <p>
-                  These are configured modes, not uptime checks or
-                  qualification. Current live adapters remain unqualified.
+                  {appText(
+                    "These are configured modes, not uptime checks or qualification. Current live adapters remain unqualified.",
+                  )}{" "}
                 </p>
                 <ul>
                   {current.data.integrations.map((i) => (
                     <li key={i.name}>
-                      {i.name}: {label(i.mode)}
+                      {i.name}: {appText(label(i.mode))}
                     </li>
                   ))}
                 </ul>
                 <Notice error>
-                  Live release: {label(current.data.release.status)}. Provider
-                  qualification:{" "}
-                  {label(current.data.release.providerQualification)}. This
-                  console cannot override the release verifier.
+                  {appText("Live release:")}{" "}
+                  {appText(label(current.data.release.status))}
+                  {appText(". Provider qualification:")}{" "}
+                  {appText(label(current.data.release.providerQualification))}
+                  {appText(
+                    ". This console cannot override the release verifier.",
+                  )}{" "}
                 </Notice>
               </section>
               <section className="care-card">
-                <h3>Specialist workspaces</h3>
+                <h3>{appText("Specialist workspaces")}</h3>
                 <div className="care-actions">
                   <Link href="/dashboard/review">
-                    Teacher screening & private evidence
+                    {appText("Teacher screening & private evidence")}{" "}
                   </Link>
-                  <Link href="/dashboard/matching">Matching & publication</Link>
-                  <Link href="/dashboard/support">Support & disputes</Link>
+                  <Link href="/dashboard/matching">
+                    {appText("Matching & publication")}
+                  </Link>
+                  <Link href="/dashboard/support">
+                    {appText("Support & disputes")}
+                  </Link>
                   <Link href="/dashboard/reports">
-                    Operational reports & cohorts
+                    {appText("Operational reports & cohorts")}{" "}
                   </Link>
                   <Link href="/dashboard/finance">
-                    Finance & recorded obligations
+                    {appText("Finance & recorded obligations")}{" "}
                   </Link>
                 </div>
               </section>
@@ -292,15 +325,16 @@ function ConsoleWorkspace({ session }: { session: Session }) {
         </TabsContent>
       </Tabs>
       <small className="care-help">
-        Sensitive account grants, impersonation and arbitrary database edits are
-        unavailable. B2/B3 retain staff approval/provisioning and commercial
-        configuration work. Live provider delivery, backup restore and
-        operational release acceptance remain separate.
+        {appText(
+          "Sensitive account grants, impersonation and arbitrary database edits are unavailable. B2/B3 retain staff approval/provisioning and commercial configuration work. Live provider delivery, backup restore and operational release acceptance remain separate.",
+        )}{" "}
       </small>
     </div>
   );
 }
 function People({ session }: { session: Session }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [role, setRole] = useState(""),
     [draft, setDraft] = useState(""),
     [id, setId] = useState(""),
@@ -332,11 +366,11 @@ function People({ session }: { session: Session }) {
   return (
     <>
       <section className="care-card">
-        <h3>People & supervised linkage</h3>
+        <h3>{appText("People & supervised linkage")}</h3>
         <p>
-          Minimal account status and supervised learner/teacher links. Contact
-          details, notes, feedback, session credentials and impersonation are
-          excluded.
+          {appText(
+            "Minimal account status and supervised learner/teacher links. Contact details, notes, feedback, session credentials and impersonation are excluded.",
+          )}{" "}
         </p>
         <form
           className="care-fields"
@@ -352,7 +386,7 @@ function People({ session }: { session: Session }) {
           }}
         >
           <div>
-            <label htmlFor="admin-role">Account role</label>
+            <label htmlFor="admin-role">{appText("Account role")}</label>
             <select
               id="admin-role"
               value={role}
@@ -361,7 +395,7 @@ function People({ session }: { session: Session }) {
                 setSelected("");
               }}
             >
-              <option value="">All roles</option>
+              <option value="">{appText("All roles")}</option>
               {[
                 "GUARDIAN",
                 "STUDENT",
@@ -372,14 +406,14 @@ function People({ session }: { session: Session }) {
                 "ADMIN",
               ].map((r) => (
                 <option key={r} value={r}>
-                  {label(r)}
+                  {appText(label(r))}
                 </option>
               ))}
             </select>
           </div>
           <div>
             <label htmlFor="admin-account-id">
-              Exact account ID (optional)
+              {appText("Exact account ID (optional)")}{" "}
             </label>
             <Input
               id="admin-account-id"
@@ -387,22 +421,24 @@ function People({ session }: { session: Session }) {
               onChange={(e) => setDraft(e.target.value)}
             />
           </div>
-          <Button type="submit">Apply account ID</Button>
+          <Button type="submit">{appText("Apply account ID")}</Button>
         </form>
-        {error && <Notice error>{error}</Notice>}
-        {list.isPending && <p role="status">Loading account directory…</p>}
+        {error && <Notice error>{appError(error)}</Notice>}
+        {list.isPending && (
+          <p role="status">{appText("Loading account directory…")}</p>
+        )}
         {list.error && (
           <Notice error>
-            Account directory unavailable.{" "}
+            {appText("Account directory unavailable.")}{" "}
             <Button variant="outline" onClick={() => list.refetch()}>
-              Retry account directory
+              {appText("Retry account directory")}{" "}
             </Button>
           </Notice>
         )}
         {!list.isPending &&
           !list.error &&
           !list.data?.pages.some((p) => p.items.length) && (
-            <p>No accounts match these filters.</p>
+            <p>{appText("No accounts match these filters.")}</p>
           )}
         <div className="admin-controls">
           {list.data?.pages
@@ -412,9 +448,9 @@ function People({ session }: { session: Session }) {
                 <div>
                   <strong>{a.name}</strong>
                   <p>
-                    {label(a.role)} · {a.region} ·{" "}
-                    {a.disabled ? "Disabled" : "Enabled"} ·{" "}
-                    {a.verified ? "Verified" : "Unverified"}
+                    {appText(label(a.role))} · {a.region} ·{" "}
+                    {a.disabled ? appText("Disabled") : appText("Enabled")} ·{" "}
+                    {a.verified ? appText("Verified") : appText("Unverified")}
                   </p>
                   <small>{a.id}</small>
                 </div>
@@ -424,7 +460,7 @@ function People({ session }: { session: Session }) {
                   aria-pressed={selected === a.id}
                   onClick={() => setSelected(a.id)}
                 >
-                  Inspect linkage {a.id.slice(0, 8)}
+                  {appText("Inspect linkage")} {a.id.slice(0, 8)}
                 </Button>
               </article>
             ))}
@@ -435,19 +471,21 @@ function People({ session }: { session: Session }) {
             disabled={list.isFetching}
             onClick={() => list.fetchNextPage()}
           >
-            Load more accounts
+            {appText("Load more accounts")}{" "}
           </Button>
         )}
       </section>
       {selected && (
         <section className="care-card">
-          <h3>Recorded account linkage</h3>
-          {detail.isPending && <p role="status">Loading supervised linkage…</p>}
+          <h3>{appText("Recorded account linkage")}</h3>
+          {detail.isPending && (
+            <p role="status">{appText("Loading supervised linkage…")}</p>
+          )}
           {detail.error && (
             <Notice error>
-              Linkage unavailable.{" "}
+              {appText("Linkage unavailable.")}{" "}
               <Button variant="outline" onClick={() => detail.refetch()}>
-                Retry account linkage
+                {appText("Retry account linkage")}{" "}
               </Button>
             </Notice>
           )}
@@ -460,34 +498,45 @@ function People({ session }: { session: Session }) {
                 <ul>
                   {detail.data.children.map((c) => (
                     <li key={c.id}>
-                      {c.alias} · {c.grade===null?educationLabel(c):`Class ${c.grade}, ${c.board}`}
+                      {c.alias} ·{" "}
+                      {c.grade === null
+                        ? appText(educationLabel(c))
+                        : appText("Class {0}, {1}", [c.grade, c.board])}
                       <p>
-                        Learner {c.id}
+                        {appText("Learner")} {c.id}
                         <br />
-                        Guardian {c.guardianId}
+                        {appText("Guardian")} {c.guardianId}
                         <br />
                         {c.studentAccountId
-                          ? `Student ${c.studentAccountId} · ${c.studentAccessRevokedAt ? "Access revoked" : "Access link recorded; consent must also remain active"}`
-                          : "No student account link"}
+                          ? appText("Student {0} · {1}", [
+                              c.studentAccountId,
+                              c.studentAccessRevokedAt
+                                ? appText("Access revoked")
+                                : appText(
+                                    "Access link recorded; consent must also remain active",
+                                  ),
+                            ])
+                          : appText("No student account link")}
                       </p>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p>No guardian/student learner links recorded.</p>
+                <p>{appText("No guardian/student learner links recorded.")}</p>
               )}
               {detail.data.teacher && (
                 <p>
-                  Teacher {detail.data.teacher.id} ·{" "}
-                  {label(detail.data.teacher.status)} ·{" "}
-                  {detail.data.teacher.region} · Profile revision{" "}
+                  {appText("Teacher")} {detail.data.teacher.id} ·{" "}
+                  {appText(label(detail.data.teacher.status))} ·{" "}
+                  {detail.data.teacher.region} {appText("· Profile revision")}{" "}
                   {detail.data.teacher.profileRevision}
                 </p>
               )}
               <small>
-                Latest {detail.data.limit} linkage records. Staff grants,
-                verification and account changes require their separate approved
-                workflow.
+                {appText("Latest")} {detail.data.limit}{" "}
+                {appText(
+                  "linkage records. Staff grants, verification and account changes require their separate approved workflow.",
+                )}{" "}
               </small>
             </>
           )}
@@ -505,6 +554,8 @@ function PrivacyReview({
   selected: Extract<Action, { kind: "privacy" }> | null;
   select: (a: Action | null) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [status, setStatus] = useState("PENDING");
   const list = useInfiniteQuery({
     queryKey: ["admin-privacy", session.account.id, status],
@@ -526,13 +577,15 @@ function PrivacyReview({
   return (
     <>
       <section className="care-card">
-        <h3>Private correction & deletion review</h3>
+        <h3>{appText("Private correction & deletion review")}</h3>
         <p>
-          Review the recorded request and policy before acting. Rejecting a
-          deletion request does not automatically restore consent, student
-          access or teacher approval.
+          {appText(
+            "Review the recorded request and policy before acting. Rejecting a deletion request does not automatically restore consent, student access or teacher approval.",
+          )}{" "}
         </p>
-        <label htmlFor="admin-privacy-status">Privacy request status</label>
+        <label htmlFor="admin-privacy-status">
+          {appText("Privacy request status")}
+        </label>
         <select
           id="admin-privacy-status"
           value={status}
@@ -541,45 +594,51 @@ function PrivacyReview({
         >
           {["PENDING", "COMPLETED", "REJECTED"].map((s) => (
             <option key={s} value={s}>
-              {label(s)}
+              {appText(label(s))}
             </option>
           ))}
         </select>
-        {list.isPending && <p role="status">Loading privacy requests…</p>}
+        {list.isPending && (
+          <p role="status">{appText("Loading privacy requests…")}</p>
+        )}
         {list.error && (
           <Notice error>
-            Privacy queue unavailable.{" "}
+            {appText("Privacy queue unavailable.")}{" "}
             <Button
               variant="outline"
               disabled={!!selected}
               onClick={() => list.refetch()}
             >
-              Retry privacy queue
+              {appText("Retry privacy queue")}{" "}
             </Button>
           </Notice>
         )}
         {!list.isPending && !list.error && !rows.length && (
-          <p>No privacy requests in this status.</p>
+          <p>{appText("No privacy requests in this status.")}</p>
         )}
         <div className="admin-controls">
           {rows.map((p) => (
             <article key={p.id}>
               <div>
-                <span className="care-status">{label(p.status)}</span>
+                <span className="care-status">{appText(label(p.status))}</span>
                 <h4>
-                  {label(p.kind)} · {label(p.scope)}
+                  {appText(label(p.kind))} · {appText(label(p.scope))}
                 </h4>
                 <p>{p.reason}</p>
                 <small>
-                  {p.id} · Version {p.version} · {when(p.createdAt)} IST
+                  {p.id} {appText("· Version")} {p.version} ·{" "}
+                  {when(p.createdAt, appLocale)} {appText("IST")}{" "}
                 </small>
                 {p.resolution && (
                   <p>
-                    Recorded outcome: {p.resolution} · Policy {p.policyVersion}
+                    {appText("Recorded outcome:")} {p.resolution}{" "}
+                    {appText("· Policy")} {p.policyVersion}
                   </p>
                 )}
                 {p.accountId === session.account.id && (
-                  <p>Another administrator must review your request.</p>
+                  <p>
+                    {appText("Another administrator must review your request.")}
+                  </p>
                 )}
               </div>
               <Button
@@ -592,7 +651,7 @@ function PrivacyReview({
                 }
                 onClick={() => select({ kind: "privacy", item: p })}
               >
-                Review privacy request {p.id.slice(0, 8)}
+                {appText("Review privacy request")} {p.id.slice(0, 8)}
               </Button>
             </article>
           ))}
@@ -603,7 +662,7 @@ function PrivacyReview({
             disabled={!!selected || list.isFetching}
             onClick={() => list.fetchNextPage()}
           >
-            Load more privacy requests
+            {appText("Load more privacy requests")}{" "}
           </Button>
         )}
       </section>
@@ -634,6 +693,8 @@ function Recovery({
   selected: Action | null;
   select: (a: Action | null) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [status, setStatus] = useState("FAILED");
   const jobs = useQuery({
     queryKey: ["admin-jobs", session.account.id, status],
@@ -682,49 +743,56 @@ function Recovery({
   return (
     <>
       <section className="care-card">
-        <h3>Recovery queue</h3>
+        <h3>{appText("Recovery queue")}</h3>
         <p>
-          Sanitized oldest-50 unprocessed jobs. Only exhausted private
-          scan/deletion jobs have this reviewed retry; payment, meeting and
-          delivery jobs require their dedicated recovery workflow. A queued
-          retry does not prove processing.
+          {appText(
+            "Sanitized oldest-50 unprocessed jobs. Only exhausted private scan/deletion jobs have this reviewed retry; payment, meeting and delivery jobs require their dedicated recovery workflow. A queued retry does not prove processing.",
+          )}{" "}
         </p>
-        <label htmlFor="admin-job-status">Recovery job filter</label>
+        <label htmlFor="admin-job-status">
+          {appText("Recovery job filter")}
+        </label>
         <select
           id="admin-job-status"
           value={status}
           disabled={!!selected}
           onChange={(e) => setStatus(e.target.value)}
         >
-          <option value="FAILED">Exhausted attempts</option>
-          <option value="PENDING">All unprocessed (including exhausted)</option>
+          <option value="FAILED">{appText("Exhausted attempts")}</option>
+          <option value="PENDING">
+            {appText("All unprocessed (including exhausted)")}
+          </option>
         </select>
-        {jobs.isPending && <p role="status">Loading recovery jobs…</p>}
+        {jobs.isPending && (
+          <p role="status">{appText("Loading recovery jobs…")}</p>
+        )}
         {jobs.error && (
           <Notice error>
-            Recovery jobs unavailable.{" "}
+            {appText("Recovery jobs unavailable.")}{" "}
             <Button
               variant="outline"
               disabled={!!selected}
               onClick={() => jobs.refetch()}
             >
-              Retry recovery queue
+              {appText("Retry recovery queue")}{" "}
             </Button>
           </Notice>
         )}
         {jobs.data && !jobs.error && !jobs.data.items.length && (
-          <p>No recovery jobs in this filter.</p>
+          <p>{appText("No recovery jobs in this filter.")}</p>
         )}
         <div className="admin-controls">
           {jobs.data?.items.map((j) => (
             <article key={j.id}>
               <div>
-                <strong>{label(j.type)}</strong>
+                <strong>{appText(label(j.type))}</strong>
                 <p>
-                  {j.attempts} attempts · {when(j.createdAt)} IST
+                  {j.attempts} {appText("attempts ·")}{" "}
+                  {when(j.createdAt, appLocale)} {appText("IST")}{" "}
                 </p>
                 <small>
-                  Job {j.id} · Resource {j.aggregateId}
+                  {appText("Job")} {j.id} {appText("· Resource")}{" "}
+                  {j.aggregateId}
                 </small>
               </div>
               <Button
@@ -741,54 +809,57 @@ function Recovery({
                 }
                 onClick={() => select({ kind: "job", item: j })}
               >
-                Review retry {j.id.slice(0, 8)}
+                {appText("Review retry")} {j.id.slice(0, 8)}
               </Button>
             </article>
           ))}
         </div>
       </section>
       <section className="care-card">
-        <h3>Backup deletion replay ledger</h3>
+        <h3>{appText("Backup deletion replay ledger")}</h3>
         <p>
-          Immutable deletion markers preserve policy and retention exceptions.
-          Replay after a separately verified restore to reapply application
-          scrubbing. This does not perform or qualify a backup restore, erase
-          external backups or verify private-file delivery.
+          {appText(
+            "Immutable deletion markers preserve policy and retention exceptions. Replay after a separately verified restore to reapply application scrubbing. This does not perform or qualify a backup restore, erase external backups or verify private-file delivery.",
+          )}{" "}
         </p>
-        {ledger.isPending && <p role="status">Loading deletion ledger…</p>}
+        {ledger.isPending && (
+          <p role="status">{appText("Loading deletion ledger…")}</p>
+        )}
         {ledger.error && (
           <Notice error>
-            Deletion ledger unavailable.{" "}
+            {appText("Deletion ledger unavailable.")}{" "}
             <Button
               variant="outline"
               disabled={!!selected}
               onClick={() => ledger.refetch()}
             >
-              Retry deletion ledger
+              {appText("Retry deletion ledger")}{" "}
             </Button>
           </Notice>
         )}
         {!ledger.isPending && !ledger.error && !ledgerRows.length && (
-          <p>No deletion markers recorded.</p>
+          <p>{appText("No deletion markers recorded.")}</p>
         )}
         <div className="admin-controls">
           {ledgerRows.map((r) => (
             <article key={r.id}>
               <div>
                 <strong>
-                  {label(r.scope)} · {r.id}
+                  {appText(label(r.scope))} · {r.id}
                 </strong>
                 <p>
-                  Policy {r.policyVersion} · {r.retentionReason}
+                  {appText("Policy")} {r.policyVersion} · {r.retentionReason}
                 </p>
-                <small>{when(r.createdAt)} IST</small>
+                <small>
+                  {when(r.createdAt, appLocale)} {appText("IST")}
+                </small>
               </div>
               <Button
                 variant="outline"
                 disabled={!!selected || !!ledger.error}
                 onClick={() => select({ kind: "replay", item: r })}
               >
-                Review replay {r.id.slice(0, 8)}
+                {appText("Review replay")} {r.id.slice(0, 8)}
               </Button>
             </article>
           ))}
@@ -799,7 +870,7 @@ function Recovery({
             disabled={!!selected || ledger.isFetching}
             onClick={() => ledger.fetchNextPage()}
           >
-            Load more deletion markers
+            {appText("Load more deletion markers")}{" "}
           </Button>
         )}
       </section>
@@ -823,6 +894,8 @@ function Recovery({
   );
 }
 function AuditHistory({ session }: { session: Session }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [draft, setDraft] = useState(""),
     [action, setAction] = useState("");
   const list = useInfiniteQuery({
@@ -839,10 +912,11 @@ function AuditHistory({ session }: { session: Session }) {
   });
   return (
     <section className="care-card">
-      <h3>Append-only audit history</h3>
+      <h3>{appText("Append-only audit history")}</h3>
       <p>
-        Recorded actions, resources and reasons. Raw before/after payloads and
-        actor credentials are excluded. Reads are audited too.
+        {appText(
+          "Recorded actions, resources and reasons. Raw before/after payloads and actor credentials are excluded. Reads are audited too.",
+        )}{" "}
       </p>
       <form
         className="care-fields"
@@ -853,7 +927,7 @@ function AuditHistory({ session }: { session: Session }) {
       >
         <div>
           <label htmlFor="admin-audit-action">
-            Exact audit action (optional)
+            {appText("Exact audit action (optional)")}{" "}
           </label>
           <Input
             id="admin-audit-action"
@@ -862,31 +936,34 @@ function AuditHistory({ session }: { session: Session }) {
             onChange={(e) => setDraft(e.target.value)}
           />
         </div>
-        <Button type="submit">Apply audit action</Button>
+        <Button type="submit">{appText("Apply audit action")}</Button>
       </form>
-      {list.isPending && <p role="status">Loading audit history…</p>}
+      {list.isPending && (
+        <p role="status">{appText("Loading audit history…")}</p>
+      )}
       {list.error && (
         <Notice error>
-          Audit history unavailable.{" "}
+          {appText("Audit history unavailable.")}{" "}
           <Button variant="outline" onClick={() => list.refetch()}>
-            Retry audit history
+            {appText("Retry audit history")}{" "}
           </Button>
         </Notice>
       )}
       {!list.isPending &&
         !list.error &&
         !list.data?.pages.some((p) => p.items.length) && (
-          <p>No audit records match this action.</p>
+          <p>{appText("No audit records match this action.")}</p>
         )}
       <ol className="admin-audit">
         {list.data?.pages
           .flatMap((p) => p.items)
           .map((a) => (
             <li key={a.id}>
-              <strong>{label(a.action)}</strong>
+              <strong>{appText(label(a.action))}</strong>
               <p>{a.reason}</p>
               <small>
-                Resource {a.aggregateId} · {when(a.createdAt)} IST
+                {appText("Resource")} {a.aggregateId} ·{" "}
+                {when(a.createdAt, appLocale)} {appText("IST")}{" "}
               </small>
             </li>
           ))}
@@ -897,7 +974,7 @@ function AuditHistory({ session }: { session: Session }) {
           disabled={list.isFetching}
           onClick={() => list.fetchNextPage()}
         >
-          Load earlier audit records
+          {appText("Load earlier audit records")}{" "}
         </Button>
       )}
     </section>
@@ -916,6 +993,8 @@ function AdminDecision({
   onClose: () => void;
   available?: boolean;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [choice, setChoice] = useState(""),
     [reason, setReason] = useState(""),
     [policy, setPolicy] = useState(""),
@@ -1062,60 +1141,80 @@ function AdminDecision({
   }
   return (
     <section className="care-card care-editor">
-      <h3>{title}</h3>
+      <h3>{appText(title)}</h3>
       <p>
-        Record {identity}
-        {"version" in action.item ? ` · Version ${action.item.version}` : ""}
+        {appText("Record")} {identity}
+        {"version" in action.item
+          ? appText(" · Version {0}", [action.item.version])
+          : ""}
       </p>
       {action.kind === "privacy" && (
         <>
           <p>
-            Account {action.item.accountId} · {label(action.item.scope)}{" "}
-            {action.item.resourceId}
+            {appText("Account")} {action.item.accountId} ·{" "}
+            {appText(label(action.item.scope))} {action.item.resourceId}
           </p>
-          <p>Owner request: {action.item.reason}</p>
+          <p>
+            {appText("Owner request:")} {action.item.reason}
+          </p>
           {action.item.correction && (
-            <p>Proposed correction: {action.item.correction}</p>
+            <p>
+              {appText("Proposed correction:")} {action.item.correction}
+            </p>
           )}
           <Notice>
             {action.item.kind === "DELETION"
-              ? "Deletion scrubs the selected scope while retaining financial, learning, safety and audit evidence under the recorded exception. Private-file processing and backup replay remain separate. Rejection does not restore paused consent or approval."
+              ? appText(
+                  "Deletion scrubs the selected scope while retaining financial, learning, safety and audit evidence under the recorded exception. Private-file processing and backup replay remain separate. Rejection does not restore paused consent or approval.",
+                )
               : action.item.scope === "NOTE"
-                ? "Fulfilment applies the recorded note correction, returns the note to private and clears previous acknowledgement. Rejection records the assessment without applying the proposed correction."
-                : "Fulfilment applies the recorded name correction in its owned scope. Verification, consent and approval remain separate; rejection leaves the proposed correction unapplied."}
+                ? appText(
+                    "Fulfilment applies the recorded note correction, returns the note to private and clears previous acknowledgement. Rejection records the assessment without applying the proposed correction.",
+                  )
+                : appText(
+                    "Fulfilment applies the recorded name correction in its owned scope. Verification, consent and approval remain separate; rejection leaves the proposed correction unapplied.",
+                  )}
           </Notice>
         </>
       )}
       {action.kind === "flag" && (
         <Notice>
-          {flagTarget ? "Enable" : "Pause"} {action.item.name}. Existing
-          financial/service evidence is preserved. This does not authorize a
-          production cohort or override the release gate.
+          {flagTarget ? appText("Enable") : appText("Pause")}{" "}
+          {appText(action.item.name)}
+          {appText(
+            ". Existing financial/service evidence is preserved. This does not authorize a production cohort or override the release gate.",
+          )}{" "}
         </Notice>
       )}
       {action.kind === "job" && (
         <Notice>
-          Retry {action.item.type} for resource {action.item.aggregateId}. The
-          server rechecks its current private-media state. Payment, meeting and
-          notification recovery are not performed by this action.
+          {appText("Retry")} {appText(action.item.type)}{" "}
+          {appText("for resource")} {action.item.aggregateId}
+          {appText(
+            ". The server rechecks its current private-media state. Payment, meeting and notification recovery are not performed by this action.",
+          )}{" "}
         </Notice>
       )}
       {action.kind === "replay" && (
         <Notice>
-          Reapply application scrubbing for {label(action.item.scope)}{" "}
-          {action.item.resourceId}. Retention policy {action.item.policyVersion}
-          : {action.item.retentionReason}. Restore validation and
-          external-backup erasure are separate.
+          {appText("Reapply application scrubbing for")}{" "}
+          {appText(label(action.item.scope))} {action.item.resourceId}
+          {appText(". Retention policy")} {action.item.policyVersion}:{" "}
+          {action.item.retentionReason}
+          {appText(
+            ". Restore validation and external-backup erasure are separate.",
+          )}{" "}
         </Notice>
       )}
       {!available && !saved && (
         <Notice error>
-          This record is no longer actionable in the current queue. Close this
-          review and inspect its recorded outcome.
+          {appText(
+            "This record is no longer actionable in the current queue. Close this review and inspect its recorded outcome.",
+          )}{" "}
         </Notice>
       )}
-      {decision.error && <Notice error>{decision.error}</Notice>}
-      {decision.success && <Notice>{decision.success}</Notice>}
+      {decision.error && <Notice error>{appError(decision.error)}</Notice>}
+      {decision.success && <Notice>{appText(decision.success)}</Notice>}
       {!saved && !review && (
         <form
           onSubmit={(e) => {
@@ -1131,19 +1230,27 @@ function AdminDecision({
             {action.kind === "privacy" && (
               <>
                 <div>
-                  <label htmlFor="admin-decision">Privacy decision</label>
+                  <label htmlFor="admin-decision">
+                    {appText("Privacy decision")}
+                  </label>
                   <select
                     id="admin-decision"
                     value={choice}
                     onChange={(e) => setChoice(e.target.value)}
                   >
-                    <option value="">Choose after reviewing</option>
-                    <option value="FULFIL">Fulfil request</option>
-                    <option value="REJECT">Reject with recorded reason</option>
+                    <option value="">
+                      {appText("Choose after reviewing")}
+                    </option>
+                    <option value="FULFIL">{appText("Fulfil request")}</option>
+                    <option value="REJECT">
+                      {appText("Reject with recorded reason")}
+                    </option>
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="admin-policy">Reviewed policy version</label>
+                  <label htmlFor="admin-policy">
+                    {appText("Reviewed policy version")}
+                  </label>
                   <Input
                     id="admin-policy"
                     value={policy}
@@ -1154,7 +1261,7 @@ function AdminDecision({
                 {choice === "FULFIL" && action.item.kind === "DELETION" && (
                   <div>
                     <label htmlFor="admin-retention">
-                      Approved retention exception
+                      {appText("Approved retention exception")}{" "}
                     </label>
                     <Input
                       id="admin-retention"
@@ -1169,7 +1276,7 @@ function AdminDecision({
             {action.kind === "replay" && (
               <div>
                 <label htmlFor="admin-restore">
-                  Verified restore reference
+                  {appText("Verified restore reference")}{" "}
                 </label>
                 <Input
                   id="admin-restore"
@@ -1180,7 +1287,9 @@ function AdminDecision({
               </div>
             )}
             <div>
-              <label htmlFor="admin-reason">Reason for this decision</label>
+              <label htmlFor="admin-reason">
+                {appText("Reason for this decision")}
+              </label>
               <Input
                 id="admin-reason"
                 value={reason}
@@ -1192,7 +1301,9 @@ function AdminDecision({
                 onChange={(e) => setReason(e.target.value)}
               />
             </div>
-            <Button type="submit">Review effects and reason</Button>
+            <Button type="submit">
+              {appText("Review effects and reason")}
+            </Button>
           </fieldset>
         </form>
       )}
@@ -1202,12 +1313,17 @@ function AdminDecision({
             <p>{reason}</p>
             {action.kind === "privacy" && (
               <p>
-                Decision: {label(choice)} · Policy {policy}
-                {retention ? ` · Retention exception: ${retention}` : ""}
+                {appText("Decision:")} {appText(label(choice))}{" "}
+                {appText("· Policy")} {policy}
+                {retention
+                  ? appText(" · Retention exception: {0}", [retention])
+                  : ""}
               </p>
             )}
             {action.kind === "replay" && (
-              <p>Verified restore reference: {restore}</p>
+              <p>
+                {appText("Verified restore reference:")} {restore}
+              </p>
             )}
             <label className="care-check">
               <input
@@ -1216,8 +1332,9 @@ function AdminDecision({
                 disabled={decision.locked}
                 onChange={(e) => setAgreed(e.target.checked)}
               />
-              I reviewed this evidence, reason and effects, and want to record
-              this decision.
+              {appText(
+                "I reviewed this evidence, reason and effects, and want to record this decision.",
+              )}{" "}
             </label>
           </div>
           <div className="care-actions">
@@ -1229,20 +1346,20 @@ function AdminDecision({
                 setAgreed(false);
               }}
             >
-              Back to decision details
+              {appText("Back to decision details")}{" "}
             </Button>
             <Button
               disabled={decision.locked || !agreed || !available}
               onClick={save}
             >
-              Confirm reviewed decision
+              {appText("Confirm reviewed decision")}{" "}
             </Button>
           </div>
         </>
       )}
       {decision.uncertain && (
         <Button disabled={decision.busy} onClick={() => decision.run()}>
-          Retry identical administrator decision
+          {appText("Retry identical administrator decision")}{" "}
         </Button>
       )}
       {decision.conflict && (
@@ -1254,7 +1371,7 @@ function AdminDecision({
             setAgreed(false);
           }}
         >
-          Refresh administrator review
+          {appText("Refresh administrator review")}{" "}
         </Button>
       )}
       <div className="care-actions">
@@ -1268,11 +1385,13 @@ function AdminDecision({
               setAgreed(false);
             }}
           >
-            Reload current decision record
+            {appText("Reload current decision record")}{" "}
           </Button>
         )}
         <Button variant="outline" disabled={decision.locked} onClick={onClose}>
-          {saved ? "Close recorded decision" : "Discard decision draft"}
+          {saved
+            ? appText("Close recorded decision")
+            : appText("Discard decision draft")}
         </Button>
       </div>
     </section>

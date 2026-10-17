@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { validator } from "../helpers/contract";
@@ -736,3 +737,12 @@ test("privacy rejection records a reason without promising restored consent", as
     page.getByRole("button", { name: /restore consent|restore approval/i }),
   ).toHaveCount(0);
 });
+
+ test("Hindi complete interface — प्रशासक नियंत्रण और ऑडिट", async ({ page }) => {
+ await chooseHindi(page);
+ await mock(page);
+ await page.goto("/dashboard/admin");
+ await checkHindi(page);
+ await page.setViewportSize({ width: 360, height: 800 });
+ await checkHindi(page);
+ });

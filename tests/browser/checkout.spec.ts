@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { validator } from "../helpers/contract";
@@ -888,3 +889,12 @@ test("real revision hold, expert scope, paused checkout and synthetic capture pr
     card.getByRole("link", { name: "Join Google Meet" }),
   ).toHaveCount(0);
 });
+
+ test("Hindi complete interface — पुनरावृत्ति और भुगतान", async ({ page }) => {
+ await chooseHindi(page);
+ await mock(page, "form");
+ await page.goto("/revision");
+ await checkHindi(page);
+ await page.setViewportSize({ width: 360, height: 800 });
+ await checkHindi(page);
+ });

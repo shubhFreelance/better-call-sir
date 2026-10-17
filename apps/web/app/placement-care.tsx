@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { CurriculumChoice, subjectSuggestions } from "./curriculum-choice";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -26,8 +27,8 @@ import {
   weeklyPreferences,
 } from "./weekly-availability";
 type Request = components["schemas"]["TuitionRequest"];
-const money = (paise: number) =>
-  new Intl.NumberFormat("en-IN", {
+const money = (paise: number, locale = "en-IN") =>
+  new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 2,
@@ -48,6 +49,8 @@ export function PlacementCare({
   session: Session;
   dashboard: Dashboard;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const linkedPlacement = useSearchParams().get("placement"),
     lastLink = useRef(linkedPlacement);
   const client = useQueryClient(),
@@ -228,19 +231,19 @@ export function PlacementCare({
   if (!canUse)
     return (
       <Notice>
-        These arrangement decisions belong to your guardian.{" "}
-        <Link href="/dashboard">Return to your dashboard</Link>.
+        {appText("These arrangement decisions belong to your guardian.")}{" "}
+        <Link href="/dashboard">{appText("Return to your dashboard")}</Link>.
       </Notice>
     );
   return (
     <div className="care-workspace">
       <section className="care-intro">
         <RefreshCw aria-hidden="true" size={28} />
-        <h2>When the fit needs to change.</h2>
+        <h2>{appText("When the fit needs to change.")}</h2>
         <p>
-          Review your current arrangement, end future commitments or ask us to
-          look for a replacement teacher. Support and replacement requests do
-          not require Pro.
+          {appText(
+            "Review your current arrangement, end future commitments or ask us to look for a replacement teacher. Support and replacement requests do not require Pro.",
+          )}{" "}
         </p>
       </section>
       <Feedback decision={decision} />
@@ -254,40 +257,50 @@ export function PlacementCare({
             void decision.reload();
           }}
         >
-          Refresh arrangement
+          {appText("Refresh arrangement")}{" "}
         </Button>
       )}
       {!permitted && (
         <Notice>
-          Current verified guardian consent is required for these decisions.{" "}
+          {appText(
+            "Current verified guardian consent is required for these decisions.",
+          )}{" "}
           <Link href="/support">
-            Help and safety reporting remain available
+            {appText("Help and safety reporting remain available")}{" "}
           </Link>
           .
         </Notice>
       )}
       {requests.error && (
         <Notice error>
-          Request criteria could not be loaded.{" "}
+          {appText("Request criteria could not be loaded.")}{" "}
           <Button
             variant="outline"
             disabled={decision.uncertain}
             onClick={() => requests.refetch()}
           >
-            Retry criteria
+            {appText("Retry criteria")}{" "}
           </Button>
         </Notice>
       )}
       {!d.placements?.length ? (
         <section className="care-card">
-          <h3>No tuition arrangements yet.</h3>
-          <p>Your arrangements appear after tuition terms are opened.</p>
-          <Link href="/dashboard/requests">Review your tuition requests</Link>
+          <h3>{appText("No tuition arrangements yet.")}</h3>
+          <p>
+            {appText(
+              "Your arrangements appear after tuition terms are opened.",
+            )}
+          </p>
+          <Link href="/dashboard/requests">
+            {appText("Review your tuition requests")}
+          </Link>
         </section>
       ) : (
         <>
           <div className="care-toolbar">
-            <label htmlFor="care-placement">Tuition arrangement</label>
+            <label htmlFor="care-placement">
+              {appText("Tuition arrangement")}
+            </label>
             <select
               id="care-placement"
               value={selected}
@@ -301,11 +314,11 @@ export function PlacementCare({
               {d.placements.map((x) => (
                 <option key={x.id} value={x.id}>
                   {d.children?.find((c) => c.id === x.childId)?.alias ||
-                    "Learner"}{" "}
+                    appText("Learner")}{" "}
                   —{" "}
                   {d.teachers?.find((t) => t.id === x.teacherId)?.name ||
-                    `Teacher ${x.teacherId.slice(0, 8)}`}{" "}
-                  — {labels[x.status] || x.status}
+                    appText("Teacher {0}", [x.teacherId.slice(0, 8)])}{" "}
+                  — {appText(labels[x.status]) || x.status}
                 </option>
               ))}
             </select>
@@ -314,14 +327,14 @@ export function PlacementCare({
               disabled={locked}
               onClick={() => decision.reload()}
             >
-              Refresh arrangements
+              {appText("Refresh arrangements")}{" "}
             </Button>
           </div>
           {selected && !p && (
             <Notice error>
-              The linked arrangement is unavailable in this view. Return to your
-              hiring dashboard or contact support; another arrangement has not
-              been substituted.
+              {appText(
+                "The linked arrangement is unavailable in this view. Return to your hiring dashboard or contact support; another arrangement has not been substituted.",
+              )}{" "}
             </Notice>
           )}
           {p && (
@@ -329,53 +342,60 @@ export function PlacementCare({
               <header>
                 <div>
                   <span className="care-status">
-                    {labels[p.status] || p.status}
+                    {appText(labels[p.status]) || p.status}
                   </span>
                   <h3>
                     {d.children?.find((c) => c.id === p.childId)?.alias ||
-                      "Learner"}
-                    ’s arrangement
+                      appText("Learner")}
+                    {appText("’s arrangement")}{" "}
                   </h3>
                   <p>
                     {d.teachers?.find((t) => t.id === p.teacherId)?.name ||
-                      `Teacher ${p.teacherId.slice(0, 8)}`}{" "}
-                    · {money(p.monthlyPaise)} monthly
+                      appText("Teacher {0}", [p.teacherId.slice(0, 8)])}{" "}
+                    · {money(p.monthlyPaise, appLocale)}{" "}
+                    {appText("monthly")}{" "}
                   </p>
                 </div>
               </header>
               <Link className="inline-link" href={`/support?placement=${p.id}`}>
-                Help and case progress for this arrangement
+                {appText("Help and case progress for this arrangement")}{" "}
               </Link>
               {source && (
                 <p>
-                  {source.subject} ·{" "}
-                  {source.mode === "HOME" ? "At home" : "Online"} ·{" "}
-                  {source.language} · {source.locality}
+                  {appCurriculum(source.subject)} ·{" "}
+                  {source.mode === "HOME"
+                    ? appText("At home")
+                    : appText("Online")}{" "}
+                  · {appCurriculum(source.language)} · {source.locality}
                 </p>
               )}
               {p.status === "CLOSED" ? (
                 <Notice>
-                  This arrangement is closed.{" "}
+                  {appText("This arrangement is closed.")}{" "}
                   {replacement ? (
                     <>
-                      Replacement request:{" "}
-                      {labels[replacement.status] || replacement.status};{" "}
-                      {labels[replacement.matchStatus || ""] ||
+                      {appText("Replacement request:")}{" "}
+                      {appText(labels[replacement.status]) ||
+                        replacement.status}
+                      ;{" "}
+                      {appText(labels[replacement.matchStatus || ""]) ||
                         replacement.matchStatus ||
-                        "Matching status unavailable"}
+                        appText("Matching status unavailable")}
                       .{" "}
                       <Link
                         href={`/dashboard/requests?request=${replacement.id}`}
                       >
-                        Review replacement progress
+                        {appText("Review replacement progress")}{" "}
                       </Link>
                       .
                     </>
                   ) : (
-                    "No linked replacement is shown in the latest request history."
+                    appText(
+                      "No linked replacement is shown in the latest request history.",
+                    )
                   )}{" "}
                   <Link href={`/support?placement=${p.id}`}>
-                    View support history
+                    {appText("View support history")}{" "}
                   </Link>
                   .
                 </Notice>
@@ -391,14 +411,14 @@ export function PlacementCare({
                       }
                       onClick={() => begin("replace")}
                     >
-                      Request a replacement
+                      {appText("Request a replacement")}{" "}
                     </Button>
                     <Button
                       variant="outline"
                       disabled={!permitted || decision.locked}
                       onClick={() => begin("close")}
                     >
-                      Close arrangement
+                      {appText("Close arrangement")}{" "}
                     </Button>
                   </div>
                 )
@@ -408,7 +428,7 @@ export function PlacementCare({
           {result && (
             <Notice>
               <Link href={"/support?case=" + result.caseId}>
-                Open the linked support case
+                {appText("Open the linked support case")}{" "}
               </Link>
               {result.requestId && (
                 <>
@@ -417,21 +437,23 @@ export function PlacementCare({
                   <Link
                     href={`/dashboard/requests?request=${result.requestId}`}
                   >
-                    Review your replacement request
+                    {appText("Review your replacement request")}{" "}
                   </Link>
                 </>
               )}
-              . A recorded request does not confirm a refund or a new teacher.
+              {appText(
+                ". A recorded request does not confirm a refund or a new teacher.",
+              )}{" "}
             </Notice>
           )}
           {action && (
             <section className="care-card care-editor">
               <h3>
                 {review
-                  ? "Review the effects"
+                  ? appText("Review the effects")
                   : action === "replace"
-                    ? "Your replacement criteria"
-                    : "Close this arrangement"}
+                    ? appText("Your replacement criteria")
+                    : appText("Close this arrangement")}
               </h3>
               <form
                 noValidate
@@ -451,8 +473,10 @@ export function PlacementCare({
                   {!review ? (
                     <>
                       <label htmlFor="care-reason">
-                        Reason for{" "}
-                        {action === "replace" ? "replacement" : "closure"}
+                        {appText("Reason for")}{" "}
+                        {action === "replace"
+                          ? appText("replacement")
+                          : appText("closure")}
                       </label>
                       <Textarea
                         id="care-reason"
@@ -462,15 +486,16 @@ export function PlacementCare({
                         onChange={(e) => setReason(e.target.value)}
                       />
                       <small>
-                        Include only information needed for this decision.
-                        Report urgent safety concerns through Help & safety.
+                        {appText(
+                          "Include only information needed for this decision. Report urgent safety concerns through Help & safety.",
+                        )}{" "}
                       </small>
                       {action === "replace" && (
                         <>
                           <p>
-                            The same learner and region are retained. Review
-                            these criteria and add fresh availability; the
-                            previous teacher is excluded.
+                            {appText(
+                              "The same learner and region are retained. Review these criteria and add fresh availability; the previous teacher is excluded.",
+                            )}{" "}
                           </p>
                           <div className="care-fields">
                             {(["subject", "mode", "language"] as const).map(
@@ -478,7 +503,7 @@ export function PlacementCare({
                                 <div key={key}>
                                   <label htmlFor={"care-" + key}>
                                     {key === "mode"
-                                      ? "Teaching format"
+                                      ? appText("Teaching format")
                                       : key[0].toUpperCase() + key.slice(1)}
                                   </label>
                                   {key === "subject" ? (
@@ -489,7 +514,7 @@ export function PlacementCare({
                                         setCriteria({ ...criteria, subject: v })
                                       }
                                       suggestions={subjectSuggestions}
-                                      customLabel="Subject name"
+                                      customLabel={appText("Subject name")}
                                     />
                                   ) : (
                                     <select
@@ -508,9 +533,9 @@ export function PlacementCare({
                                       ).map((v) => (
                                         <option key={v} value={v}>
                                           {v === "ONLINE"
-                                            ? "Online"
+                                            ? appText("Online")
                                             : v === "HOME"
-                                              ? "At home"
+                                              ? appText("At home")
                                               : v}
                                         </option>
                                       ))}
@@ -520,7 +545,9 @@ export function PlacementCare({
                               ),
                             )}
                             <div>
-                              <label htmlFor="care-locality">Locality</label>
+                              <label htmlFor="care-locality">
+                                {appText("Locality")}
+                              </label>
                               <Input
                                 id="care-locality"
                                 value={criteria.locality}
@@ -535,7 +562,7 @@ export function PlacementCare({
                             </div>
                             <div>
                               <label htmlFor="care-budget">
-                                Monthly budget (₹)
+                                {appText("Monthly budget (₹)")}{" "}
                               </label>
                               <Input
                                 id="care-budget"
@@ -550,7 +577,7 @@ export function PlacementCare({
                               />
                             </div>
                           </div>
-                          <h4>Fresh availability in IST</h4>
+                          <h4>{appText("Fresh availability in IST")}</h4>
                           <AvailabilityMode
                             weekly={weeklyMode}
                             onChange={setWeeklyMode}
@@ -563,15 +590,16 @@ export function PlacementCare({
                           ) : (
                             <>
                               <p>
-                                Choose 1–6 windows of 20–120 minutes, from one
-                                hour to 60 days ahead. These are preferences,
-                                not confirmed bookings.
+                                {appText(
+                                  "Choose 1–6 windows of 20–120 minutes, from one hour to 60 days ahead. These are preferences, not confirmed bookings.",
+                                )}{" "}
                               </p>
                               {windows.map((w, i) => (
                                 <div className="care-window" key={i}>
                                   <div>
                                     <label htmlFor={"care-time-" + i}>
-                                      Window {i + 1} starts (IST)
+                                      {appText("Window")} {i + 1}{" "}
+                                      {appText("starts (IST)")}{" "}
                                     </label>
                                     <Input
                                       id={"care-time-" + i}
@@ -590,7 +618,8 @@ export function PlacementCare({
                                   </div>
                                   <div>
                                     <label htmlFor={"care-duration-" + i}>
-                                      Duration {i + 1} (minutes)
+                                      {appText("Duration")} {i + 1}{" "}
+                                      {appText("(minutes)")}{" "}
                                     </label>
                                     <Input
                                       id={"care-duration-" + i}
@@ -622,7 +651,7 @@ export function PlacementCare({
                                       )
                                     }
                                   >
-                                    Remove window {i + 1}
+                                    {appText("Remove window")} {i + 1}
                                   </Button>
                                 </div>
                               ))}
@@ -637,7 +666,7 @@ export function PlacementCare({
                                   ])
                                 }
                               >
-                                Add availability window
+                                {appText("Add availability window")}{" "}
                               </Button>
                             </>
                           )}
@@ -648,36 +677,46 @@ export function PlacementCare({
                     <div className="care-review">
                       <h4>
                         {action === "replace"
-                          ? "Close and request replacement"
-                          : "Close without replacement"}
+                          ? appText("Close and request replacement")
+                          : appText("Close without replacement")}
                       </h4>
                       <p>{reason}</p>
                       <ul>
                         <li>
-                          Future scheduled lessons, their reservations and
-                          meeting access are cancelled.
+                          {appText(
+                            "Future scheduled lessons, their reservations and meeting access are cancelled.",
+                          )}{" "}
                         </li>
                         <li>
-                          Pending/accepted timetables end. Existing past lesson
-                          and financial records remain.
+                          {appText(
+                            "Pending/accepted timetables end. Existing past lesson and financial records remain.",
+                          )}{" "}
                         </li>
                         <li>
-                          Notes shared with this teacher become private.
-                          Information already read cannot be recalled.
+                          {appText(
+                            "Notes shared with this teacher become private. Information already read cannot be recalled.",
+                          )}{" "}
                         </li>
                         <li>
-                          No refund or replacement teacher is confirmed by this
-                          action. Any financial question needs support review.
+                          {appText(
+                            "No refund or replacement teacher is confirmed by this action. Any financial question needs support review.",
+                          )}{" "}
                         </li>
                       </ul>
                       {action === "replace" && (
                         <>
                           <p>
-                            {criteria.subject} ·{" "}
-                            {criteria.mode === "HOME" ? "At home" : "Online"} ·{" "}
-                            {criteria.language} · {criteria.locality} ·{" "}
-                            {money(Math.round(Number(criteria.budget) * 100))}{" "}
-                            budget
+                            {appCurriculum(criteria.subject)} ·{" "}
+                            {criteria.mode === "HOME"
+                              ? appText("At home")
+                              : appText("Online")}{" "}
+                            · {appCurriculum(criteria.language)} ·{" "}
+                            {criteria.locality} ·{" "}
+                            {money(
+                              Math.round(Number(criteria.budget) * 100),
+                              appLocale,
+                            )}{" "}
+                            {appText("budget")}{" "}
                           </p>
                           {weeklyMode && weeklyPreferences(weekly) ? (
                             <WeeklySummary
@@ -687,17 +726,16 @@ export function PlacementCare({
                             <ul>
                               {windows.map((w, i) => (
                                 <li key={i}>
-                                  {w.start.replace("T", " ")} IST · {w.duration}{" "}
-                                  minutes
+                                  {w.start.replace("T", " ")} {appText("IST ·")}{" "}
+                                  {w.duration} {appText("minutes")}{" "}
                                 </li>
                               ))}
                             </ul>
                           )}
                           <p>
-                            The previous teacher is excluded. A replacement
-                            follows the teacher shortlist and mutually reviewed
-                            hiring terms. A demo is optional; no class timetable
-                            is required to accept hiring terms.
+                            {appText(
+                              "The previous teacher is excluded. A replacement follows the teacher shortlist and mutually reviewed hiring terms. A demo is optional; no class timetable is required to accept hiring terms.",
+                            )}{" "}
                           </p>
                         </>
                       )}
@@ -708,10 +746,12 @@ export function PlacementCare({
                           onChange={(e) => setAgreed(e.target.checked)}
                         />
                         <span>
-                          I reviewed these effects and want to{" "}
+                          {appText("I reviewed these effects and want to")}{" "}
                           {action === "replace"
-                            ? "close this arrangement and request a replacement"
-                            : "close this arrangement"}
+                            ? appText(
+                                "close this arrangement and request a replacement",
+                              )
+                            : appText("close this arrangement")}
                           .
                         </span>
                       </label>
@@ -727,14 +767,16 @@ export function PlacementCare({
                           : (setAction(""), setReason(""))
                       }
                     >
-                      {review ? "Back to editing" : "Cancel decision"}
+                      {review
+                        ? appText("Back to editing")
+                        : appText("Cancel decision")}
                     </Button>
                     <Button type="submit">
                       {review
                         ? action === "replace"
-                          ? "Confirm closure and replacement"
-                          : "Confirm closure"
-                        : "Review decision"}
+                          ? appText("Confirm closure and replacement")
+                          : appText("Confirm closure")
+                        : appText("Review decision")}
                     </Button>
                   </div>
                 </fieldset>
@@ -742,9 +784,9 @@ export function PlacementCare({
             </section>
           )}
           <small className="care-help">
-            This view uses your current dashboard and latest 50 requests. For
-            earlier cases or financial questions, use Help & safety. Development
-            support has no live operator or notification delivery.
+            {appText(
+              "This view uses your current dashboard and latest 50 requests. For earlier cases or financial questions, use Help & safety. Development support has no live operator or notification delivery.",
+            )}{" "}
           </small>
         </>
       )}

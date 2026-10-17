@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { api, type Session, type components } from "@bcs/api-client";
@@ -40,14 +41,14 @@ const statuses: { [K in Kind]: string[] } = {
   ],
 };
 const label = (s: string) => s.toLowerCase().replaceAll("_", " ");
-const money = (n: number) =>
-  new Intl.NumberFormat("en-IN", {
+const money = (n: number, locale = "en-IN") =>
+  new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "INR",
     minimumFractionDigits: 2,
   }).format(n / 100);
-const when = (s: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+const when = (s: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     dateStyle: "medium",
     timeStyle: "short",
@@ -58,13 +59,19 @@ const day = (offset = 0) =>
     .slice(0, 10);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function FinanceWorkspace({ session }: { session: Session }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   if (!["ADMIN", "FINANCE"].includes(session.account.role))
     return (
-      <Notice error>Finance access is required to view these records.</Notice>
+      <Notice error>
+        {appText("Finance access is required to view these records.")}
+      </Notice>
     );
   return <Finance session={session} />;
 }
 function Finance({ session }: { session: Session }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [kind, setKind] = useState<Kind>("INVOICES"),
     [status, setStatus] = useState(""),
     [id, setId] = useState(""),
@@ -93,25 +100,25 @@ function Finance({ session }: { session: Session }) {
     <div className="care-workspace finance-workspace">
       <section className="care-intro">
         <Landmark size={28} aria-hidden="true" />
-        <h2>Every amount, with its evidence.</h2>
+        <h2>{appText("Every amount, with its evidence.")}</h2>
         <p>
-          Review recorded invoices, captures and obligations. Query a checkout's
-          provider status without treating it as settlement or changing its
-          payment state.
+          {appText(
+            "Review recorded invoices, captures and obligations. Query a checkout's provider status without treating it as settlement or changing its payment state.",
+          )}{" "}
         </p>
       </section>
       <Notice>
-        Development finance workspace. Captured funds, pending refunds and
-        eligible teacher payables are separate records. Provider settlement is
-        unverified; refund and payout execution remain pending.
+        {appText(
+          "Development finance workspace. Captured funds, pending refunds and eligible teacher payables are separate records. Provider settlement is unverified; refund and payout execution remain pending.",
+        )}{" "}
       </Notice>
       <FinanceSummary session={session} locked={locked} />
       <section className="care-card">
-        <h3>Financial records</h3>
+        <h3>{appText("Financial records")}</h3>
         <p>
-          ADMIN and FINANCE have audited global finance access. This queue uses
-          stable record-ID order, not chronological order; dates are shown only
-          when recorded.
+          {appText(
+            "ADMIN and FINANCE have audited global finance access. This queue uses stable record-ID order, not chronological order; dates are shown only when recorded.",
+          )}{" "}
         </p>
         <form
           className="care-fields"
@@ -128,7 +135,7 @@ function Finance({ session }: { session: Session }) {
           }}
         >
           <div>
-            <label htmlFor="finance-kind">Record type</label>
+            <label htmlFor="finance-kind">{appText("Record type")}</label>
             <select
               id="finance-kind"
               value={kind}
@@ -144,13 +151,13 @@ function Finance({ session }: { session: Session }) {
             >
               {kinds.map((k) => (
                 <option key={k} value={k}>
-                  {names[k]}
+                  {appText(names[k])}
                 </option>
               ))}
             </select>
           </div>
           <div>
-            <label htmlFor="finance-status">Recorded status</label>
+            <label htmlFor="finance-status">{appText("Recorded status")}</label>
             <select
               id="finance-status"
               value={status}
@@ -160,16 +167,18 @@ function Finance({ session }: { session: Session }) {
                 setSelected(null);
               }}
             >
-              {<option value="">All statuses</option>}
+              {<option value="">{appText("All statuses")}</option>}
               {statuses[kind].map((s) => (
                 <option key={s} value={s}>
-                  {label(s)}
+                  {appText(label(s))}
                 </option>
               ))}
             </select>
           </div>
           <div>
-            <label htmlFor="finance-id">Exact record ID (optional)</label>
+            <label htmlFor="finance-id">
+              {appText("Exact record ID (optional)")}
+            </label>
             <Input
               id="finance-id"
               value={id}
@@ -179,50 +188,55 @@ function Finance({ session }: { session: Session }) {
             />
           </div>
           <Button type="submit" disabled={locked}>
-            Apply record ID
+            {appText("Apply record ID")}{" "}
           </Button>
         </form>
-        {error && <Notice error>{error}</Notice>}
-        {list.isPending && <p role="status">Loading financial records…</p>}
+        {error && <Notice error>{appError(error)}</Notice>}
+        {list.isPending && (
+          <p role="status">{appText("Loading financial records…")}</p>
+        )}
         {list.error && (
           <Notice error>
-            Financial records could not be loaded.{" "}
+            {appText("Financial records could not be loaded.")}{" "}
             <Button
               variant="outline"
               disabled={locked}
               onClick={() => list.refetch()}
             >
-              Retry financial records
+              {appText("Retry financial records")}{" "}
             </Button>
           </Notice>
         )}
         {!list.isPending && !list.error && !rows.length && (
-          <p>No records match these filters.</p>
+          <p>{appText("No records match these filters.")}</p>
         )}
         <div className="finance-ledger">
           {rows.map((row) => (
             <article key={row.id}>
               <div>
-                <span className="care-status">{label(row.status)}</span>
+                <span className="care-status">
+                  {appText(label(row.status))}
+                </span>
                 <h4>
-                  {money(row.amountPaise)} <small>{row.currency}</small>
+                  {money(row.amountPaise, appLocale)}{" "}
+                  <small>{row.currency}</small>
                 </h4>
                 <p>
-                  {names[row.kind]} · {row.id}
+                  {appText(names[row.kind])} · {row.id}
                 </p>
                 <p>
                   {row.providerMode === "SANDBOX"
-                    ? "Local sandbox evidence"
+                    ? appText("Local sandbox evidence")
                     : row.providerMode === "LIVE"
-                      ? "Live provider mode; settlement unverified"
-                      : "Provider mode not recorded"}
+                      ? appText("Live provider mode; settlement unverified")
+                      : appText("Provider mode not recorded")}
                 </p>
               </div>
               <div>
                 <p>
                   {row.createdAt
-                    ? when(row.createdAt) + " IST"
-                    : "Creation date not recorded"}
+                    ? appText("{0} IST", [when(row.createdAt, appLocale)])
+                    : appText("Creation date not recorded")}
                 </p>
                 <Button
                   variant="outline"
@@ -230,7 +244,7 @@ function Finance({ session }: { session: Session }) {
                   aria-pressed={selected?.id === row.id}
                   onClick={() => setSelected(row)}
                 >
-                  Inspect record {row.id.slice(0, 8)}
+                  {appText("Inspect record")} {row.id.slice(0, 8)}
                 </Button>
               </div>
             </article>
@@ -243,7 +257,7 @@ function Finance({ session }: { session: Session }) {
               disabled={locked || list.isFetching}
               onClick={() => list.fetchNextPage()}
             >
-              Load more financial records
+              {appText("Load more financial records")}{" "}
             </Button>
           )}
           <Button
@@ -251,7 +265,7 @@ function Finance({ session }: { session: Session }) {
             disabled={locked || list.isFetching}
             onClick={() => list.refetch()}
           >
-            Refresh financial records
+            {appText("Refresh financial records")}{" "}
           </Button>
         </div>
       </section>
@@ -266,10 +280,9 @@ function Finance({ session }: { session: Session }) {
         />
       )}
       <small className="care-help">
-        Queues page 20 records at a time. Eligible payables are obligations, not
-        payouts. Pending refunds have no provider settlement evidence. Periodic
-        provider reconciliation, refunds, payouts and immutable adjustments
-        remain tracked separately.
+        {appText(
+          "Queues page 20 records at a time. Eligible payables are obligations, not payouts. Pending refunds have no provider settlement evidence. Periodic provider reconciliation, refunds, payouts and immutable adjustments remain tracked separately.",
+        )}{" "}
       </small>
     </div>
   );
@@ -281,6 +294,8 @@ function FinanceSummary({
   session: Session;
   locked: boolean;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [draft, setDraft] = useState({ from: day(-30), to: day() }),
     [range, setRange] = useState(draft),
     [error, setError] = useState("");
@@ -296,11 +311,11 @@ function FinanceSummary({
   });
   return (
     <section className="care-card">
-      <h3>Recorded amounts and obligations</h3>
+      <h3>{appText("Recorded amounts and obligations")}</h3>
       <p>
-        Capture, refund-request and payable totals use the date range below.
-        Outstanding invoices are current across all dates. Local sandbox
-        captures may be included; these totals are not bank settlement.
+        {appText(
+          "Capture, refund-request and payable totals use the date range below. Outstanding invoices are current across all dates. Local sandbox captures may be included; these totals are not bank settlement.",
+        )}{" "}
       </p>
       <form
         className="care-fields"
@@ -322,7 +337,7 @@ function FinanceSummary({
         }}
       >
         <div>
-          <label htmlFor="finance-from">Recorded from (IST)</label>
+          <label htmlFor="finance-from">{appText("Recorded from (IST)")}</label>
           <Input
             id="finance-from"
             type="date"
@@ -332,7 +347,9 @@ function FinanceSummary({
           />
         </div>
         <div>
-          <label htmlFor="finance-to">Recorded through (IST)</label>
+          <label htmlFor="finance-to">
+            {appText("Recorded through (IST)")}
+          </label>
           <Input
             id="finance-to"
             type="date"
@@ -342,73 +359,81 @@ function FinanceSummary({
           />
         </div>
         <Button type="submit" disabled={locked}>
-          Apply report dates
+          {appText("Apply report dates")}{" "}
         </Button>
       </form>
-      {error && <Notice error>{error}</Notice>}
-      {report.isPending && <p role="status">Loading recorded totals…</p>}
+      {error && <Notice error>{appError(error)}</Notice>}
+      {report.isPending && (
+        <p role="status">{appText("Loading recorded totals…")}</p>
+      )}
       {report.error && (
         <Notice error>
-          Recorded totals could not be loaded.{" "}
+          {appText("Recorded totals could not be loaded.")}{" "}
           <Button
             variant="outline"
             disabled={locked}
             onClick={() => report.refetch()}
           >
-            Retry finance totals
+            {appText("Retry finance totals")}{" "}
           </Button>
         </Notice>
       )}
       {report.data && !report.error && (
         <>
           <p>
-            Shown range: {when(report.data.window.from)}–
-            {when(report.data.window.to)} IST (end excluded). Recorded as of{" "}
-            {when(report.data.asOf)} IST.
+            {appText("Shown range:")} {when(report.data.window.from, appLocale)}
+            –{when(report.data.window.to, appLocale)}{" "}
+            {appText("IST (end excluded). Recorded as of")}{" "}
+            {when(report.data.asOf, appLocale)} {appText("IST.")}{" "}
           </p>
           <dl className="finance-amounts">
             <div>
-              <dt>Recorded captures</dt>
-              <dd>{money(report.data.captured.amountPaise)}</dd>
+              <dt>{appText("Recorded captures")}</dt>
+              <dd>{money(report.data.captured.amountPaise, appLocale)}</dd>
               <dd>
                 <small>
-                  {report.data.captured.count} payment records · settlement
-                  unverified
+                  {report.data.captured.count}{" "}
+                  {appText("payment records · settlement unverified")}{" "}
                 </small>
               </dd>
             </div>
             <div>
-              <dt>Pending refund requests</dt>
-              <dd>{money(report.data.pendingRefunds.amountPaise)}</dd>
+              <dt>{appText("Pending refund requests")}</dt>
+              <dd>
+                {money(report.data.pendingRefunds.amountPaise, appLocale)}
+              </dd>
               <dd>
                 <small>
-                  {report.data.pendingRefunds.count} requests · not refunded
+                  {report.data.pendingRefunds.count}{" "}
+                  {appText("requests · not refunded")}{" "}
                 </small>
               </dd>
             </div>
             <div>
-              <dt>Outstanding invoices</dt>
-              <dd>{money(report.data.outstandingInvoices.amountPaise)}</dd>
+              <dt>{appText("Outstanding invoices")}</dt>
+              <dd>
+                {money(report.data.outstandingInvoices.amountPaise, appLocale)}
+              </dd>
               <dd>
                 <small>
-                  {report.data.outstandingInvoices.count} invoices · current
-                  across all dates
+                  {report.data.outstandingInvoices.count}{" "}
+                  {appText("invoices · current across all dates")}{" "}
                 </small>
               </dd>
             </div>
           </dl>
-          <h4>Teacher obligations by recorded status</h4>
+          <h4>{appText("Teacher obligations by recorded status")}</h4>
           {report.data.teacherPayables.length ? (
             <ul>
               {report.data.teacherPayables.map((p) => (
                 <li key={p.status}>
-                  {label(p.status)}: {money(p.amountPaise)} · {p.count} records
-                  · not paid out
+                  {appText(label(p.status))}: {money(p.amountPaise, appLocale)}{" "}
+                  · {p.count} {appText("records · not paid out")}{" "}
                 </li>
               ))}
             </ul>
           ) : (
-            <p>No teacher payable records in this range.</p>
+            <p>{appText("No teacher payable records in this range.")}</p>
           )}
         </>
       )}
@@ -428,6 +453,8 @@ function FinanceRecord({
   onLock: (v: boolean) => void;
   onClose: () => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [review, setReview] = useState(false),
     [reason, setReason] = useState(""),
     [agreed, setAgreed] = useState(false),
@@ -494,67 +521,82 @@ function FinanceRecord({
   }
   return (
     <section className="care-card care-editor">
-      <h3>Inspect financial record</h3>
+      <h3>{appText("Inspect financial record")}</h3>
       <span className="care-status">
-        {names[record.kind]} · {label(record.status)}
+        {appText(names[record.kind])} · {appText(label(record.status))}
       </span>
       <dl className="finance-detail">
-        <dt>Record ID</dt>
+        <dt>{appText("Record ID")}</dt>
         <dd>{record.id}</dd>
-        <dt>Recorded amount</dt>
-        <dd>{money(record.amountPaise)}</dd>
-        <dt>Linked reference ID</dt>
-        <dd>{record.referenceId || "No linked reference"}</dd>
-        <dt>Policy version</dt>
-        <dd>{record.policyVersion || "Not recorded"}</dd>
-        <dt>Recorded eligibility date</dt>
+        <dt>{appText("Recorded amount")}</dt>
+        <dd>{money(record.amountPaise, appLocale)}</dd>
+        <dt>{appText("Linked reference ID")}</dt>
+        <dd>{record.referenceId || appText("No linked reference")}</dd>
+        <dt>{appText("Policy version")}</dt>
+        <dd>{record.policyVersion || appText("Not recorded")}</dd>
+        <dt>{appText("Recorded eligibility date")}</dt>
         <dd>
           {record.eligibleAt
-            ? when(record.eligibleAt) + " IST; payout unverified"
-            : "No eligibility date recorded"}
+            ? appText("{0} IST; payout unverified", [
+                when(record.eligibleAt, appLocale),
+              ])
+            : appText("No eligibility date recorded")}
         </dd>
       </dl>
-      {record.reason && <p>Recorded reason: {record.reason}</p>}
+      {record.reason && (
+        <p>
+          {appText("Recorded reason:")} {record.reason}
+        </p>
+      )}
       {record.checkoutOrderId ? (
         <>
-          <h4>Linked checkout</h4>
+          <h4>{appText("Linked checkout")}</h4>
           <p>{record.checkoutOrderId}</p>
-          {order.isPending && <p role="status">Loading current checkout…</p>}
+          {order.isPending && (
+            <p role="status">{appText("Loading current checkout…")}</p>
+          )}
           {order.error && (
             <Notice error>
-              Current checkout is unavailable.{" "}
+              {appText("Current checkout is unavailable.")}{" "}
               <Button
                 variant="outline"
                 disabled={decision.locked}
                 onClick={() => order.refetch()}
               >
-                Retry current checkout
+                {appText("Retry current checkout")}{" "}
               </Button>
             </Notice>
           )}
           {order.data && !order.error && (
             <>
               <p>
-                Current local order: {label(order.data.status)} · Version{" "}
-                {order.data.version} · {money(order.data.amountPaise)}
+                {appText("Current local order:")}{" "}
+                {appText(label(order.data.status))} {appText("· Version")}{" "}
+                {order.data.version} ·{" "}
+                {money(order.data.amountPaise, appLocale)}
               </p>
               <p>
                 {order.data.providerMode === "SANDBOX"
-                  ? "Sandbox query returns local evidence only and never contacts Razorpay."
-                  : "This queries Razorpay order status. Signed capture processing remains separate; a paid provider status does not repair or settle the local order."}
+                  ? appText(
+                      "Sandbox query returns local evidence only and never contacts Razorpay.",
+                    )
+                  : appText(
+                      "This queries Razorpay order status. Signed capture processing remains separate; a paid provider status does not repair or settle the local order.",
+                    )}
               </p>
               {order.data.providerMode === "LIVE" &&
                 !order.data.providerOrderId && (
                   <Notice error>
-                    No provider order ID is recorded. Provider-attempt recovery
-                    is required before a provider query.
+                    {appText(
+                      "No provider order ID is recorded. Provider-attempt recovery is required before a provider query.",
+                    )}{" "}
                   </Notice>
                 )}
               {!review && (
                 <div className="care-fields">
                   <div>
                     <label htmlFor="reconcile-reason">
-                      Reason for provider query
+                      {appText("Reason for provider query")}{" "}
                     </label>
                     <Input
                       id="reconcile-reason"
@@ -582,7 +624,7 @@ function FinanceRecord({
                       setResult(null);
                     }}
                   >
-                    Review provider query
+                    {appText("Review provider query")}{" "}
                   </Button>
                 </div>
               )}
@@ -590,17 +632,18 @@ function FinanceRecord({
                 <>
                   <div className="care-review">
                     <p>
-                      Checkout {order.data.id} · Version {order.data.version}
+                      {appText("Checkout")} {order.data.id}{" "}
+                      {appText("· Version")} {order.data.version}
                     </p>
                     <p>{reason}</p>
                     <p>
-                      Query{" "}
+                      {appText("Query")}{" "}
                       {order.data.providerMode === "SANDBOX"
-                        ? "local sandbox"
-                        : "provider"}{" "}
-                      status. This records an audited query; it does not settle
-                      funds, execute a refund/payout, or change the local
-                      captured state.
+                        ? appText("local sandbox")
+                        : appText("provider")}{" "}
+                      {appText(
+                        "status. This records an audited query; it does not settle funds, execute a refund/payout, or change the local captured state.",
+                      )}{" "}
                     </p>
                     <label className="care-check">
                       <input
@@ -609,8 +652,9 @@ function FinanceRecord({
                         disabled={decision.locked}
                         onChange={(e) => setAgreed(e.target.checked)}
                       />
-                      I reviewed this order and understand that the query does
-                      not establish settlement.
+                      {appText(
+                        "I reviewed this order and understand that the query does not establish settlement.",
+                      )}{" "}
                     </label>
                   </div>
                   <div className="care-actions">
@@ -622,13 +666,13 @@ function FinanceRecord({
                         setAgreed(false);
                       }}
                     >
-                      Back to query reason
+                      {appText("Back to query reason")}{" "}
                     </Button>
                     <Button
                       disabled={decision.locked || !agreed}
                       onClick={save}
                     >
-                      Confirm provider query
+                      {appText("Confirm provider query")}{" "}
                     </Button>
                   </div>
                 </>
@@ -638,14 +682,16 @@ function FinanceRecord({
         </>
       ) : (
         <p>
-          No checkout is linked to this record. Provider query is unavailable.
+          {appText(
+            "No checkout is linked to this record. Provider query is unavailable.",
+          )}{" "}
         </p>
       )}
-      {decision.error && <Notice error>{decision.error}</Notice>}
-      {decision.success && <Notice>{decision.success}</Notice>}
+      {decision.error && <Notice error>{appError(decision.error)}</Notice>}
+      {decision.success && <Notice>{appText(decision.success)}</Notice>}
       {decision.uncertain && (
         <Button disabled={decision.busy} onClick={() => decision.run()}>
-          Retry identical provider query
+          {appText("Retry identical provider query")}{" "}
         </Button>
       )}
       {decision.conflict && (
@@ -657,17 +703,20 @@ function FinanceRecord({
             setAgreed(false);
           }}
         >
-          Refresh for renewed review
+          {appText("Refresh for renewed review")}{" "}
         </Button>
       )}
       {result && (
         <Notice>
-          Recorded query result:{" "}
-          {result.status === "LOCAL_SANDBOX_ONLY"
-            ? "Local sandbox only"
-            : result.status}
-          . Local checkout status returned: {label(result.order.status)}.
-          Provider settlement remains unverified.
+          {appText("Recorded query result:")}{" "}
+          {appText(
+            result.status === "LOCAL_SANDBOX_ONLY"
+              ? appText("Local sandbox only")
+              : result.status,
+          )}
+          {appText(". Local checkout status returned:")}{" "}
+          {appText(label(result.order.status))}
+          {appText(". Provider settlement remains unverified.")}{" "}
         </Notice>
       )}
       <div className="care-actions">
@@ -681,11 +730,11 @@ function FinanceRecord({
               setAgreed(false);
             }}
           >
-            Discard query draft
+            {appText("Discard query draft")}{" "}
           </Button>
         )}
         <Button variant="outline" disabled={locked} onClick={onClose}>
-          Close record inspection
+          {appText("Close record inspection")}{" "}
         </Button>
       </div>
     </section>

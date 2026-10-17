@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { validator } from "../helpers/contract";
@@ -580,3 +581,12 @@ test("replacement accepts broad weekly preferences and links to exact recorded p
     page.getByRole("link", { name: "Review replacement progress" }),
   ).toHaveAttribute("href", "/dashboard/requests?request=" + replacement);
 });
+
+ test("Hindi complete interface — व्यवस्था और शिक्षक बदलाव", async ({ page }) => {
+ await chooseHindi(page);
+ await mock(page);
+ await page.goto("/dashboard/arrangements");
+ await checkHindi(page);
+ await page.setViewportSize({ width: 360, height: 800 });
+ await checkHindi(page);
+ });

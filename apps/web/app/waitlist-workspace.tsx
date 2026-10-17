@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import { useRef, useState } from "react";
 import Link from "next/link";
@@ -10,38 +11,43 @@ import { Alert, AlertDescription } from "../components/ui/alert";
 type Entry = components["schemas"]["Waitlist"];
 type Criteria = components["schemas"]["WaitlistInput"];
 export function WaitlistWorkspace({ session }: { session: Session | null }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const guardian = session?.account.role === "GUARDIAN";
   return (
     <main className="container section coverage-workspace">
       <header className="wizard-title">
-        <h1>Tell us where to grow next.</h1>
+        <h1>{appText("Tell us where to grow next.")}</h1>
         <p>
-          Need teachers in a region we do not serve yet? Record stage-specific
-          learning criteria without adding a learner’s personal details.
+          {appText(
+            "Need teachers in a region we do not serve yet? Record stage-specific learning criteria without adding a learner’s personal details.",
+          )}{" "}
         </p>
       </header>
       <div className="coverage-layout">
         <aside className="coverage-notice">
-          <h2>Coverage is different from availability.</h2>
+          <h2>{appText("Coverage is different from availability.")}</h2>
           <p>
-            For an in-scope request with no suitable teacher right now, keep
-            your enquiry and review availability or ask support for
-            alternatives.
+            {appText(
+              "For an in-scope request with no suitable teacher right now, keep your enquiry and review availability or ask support for alternatives.",
+            )}{" "}
           </p>
           <Link className="inline-link" href="/teachers">
-            Browse current teachers
+            {appText("Browse current teachers")}{" "}
           </Link>
-          <h3>What the waitlist means</h3>
+          <h3>{appText("What the waitlist means")}</h3>
           <p>
-            This records interest in future coverage. It does not book a teacher
-            or promise a start date or notification.
+            {appText(
+              "This records interest in future coverage. It does not book a teacher or promise a start date or notification.",
+            )}{" "}
           </p>
           <p>
-            Share only learning criteria. Do not enter a learner’s name, school,
-            address or contact details.
+            {appText(
+              "Share only learning criteria. Do not enter a learner’s name, school, address or contact details.",
+            )}{" "}
           </p>
           <Link className="inline-link" href="/dashboard/requests">
-            Review existing enquiries
+            {appText("Review existing enquiries")}{" "}
           </Link>
         </aside>
         <div className="coverage-content">
@@ -51,20 +57,22 @@ export function WaitlistWorkspace({ session }: { session: Session | null }) {
             <section className="wizard-card">
               <h2>
                 {session
-                  ? "Ask your guardian to record interest."
-                  : "A guardian can join the waitlist."}
+                  ? appText("Ask your guardian to record interest.")
+                  : appText("A guardian can join the waitlist.")}
               </h2>
               <p>
-                Your guardian manages enquiries and private waitlist requests.
+                {appText(
+                  "Your guardian manages enquiries and private waitlist requests.",
+                )}{" "}
               </p>
               {!session && (
                 <Link className="button" href="/login?next=%2Fwaitlist">
-                  Sign in as a guardian
+                  {appText("Sign in as a guardian")}{" "}
                 </Link>
               )}
               {session && (
                 <Link className="inline-link" href="/dashboard">
-                  Open dashboard
+                  {appText("Open dashboard")}{" "}
                 </Link>
               )}
             </section>
@@ -75,6 +83,8 @@ export function WaitlistWorkspace({ session }: { session: Session | null }) {
   );
 }
 function WaitlistForm({ session }: { session: Session }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const client = useQueryClient(),
     key = ["scope-waitlist", session.account.id];
   const query = useQuery({
@@ -229,56 +239,73 @@ function WaitlistForm({ session }: { session: Session }) {
         }}
       >
         <h2 ref={heading} tabIndex={-1}>
-          {saved ? "Your interest is recorded." : "Request future coverage"}
+          {saved
+            ? appText("Your interest is recorded.")
+            : appText("Request future coverage")}
         </h2>
         {!session.account.verified && (
           <Alert>
             <AlertDescription>
-              Guardian verification is pending. Complete approved verification
-              and active consent before recording interest.{" "}
+              {appText(
+                "Guardian verification is pending. Complete approved verification and active consent before recording interest.",
+              )}{" "}
               <Link className="inline-link" href="/onboarding/parent">
-                Review guardian onboarding
+                {appText("Review guardian onboarding")}{" "}
               </Link>
             </AlertDescription>
           </Alert>
         )}
-        {query.isPending && <p role="status">Loading your saved requests…</p>}
+        {query.isPending && (
+          <p role="status">{appText("Loading your saved requests…")}</p>
+        )}
         <fieldset
           disabled={locked || query.isPending}
           className="wizard-fields"
         >
           <div className="coverage-fields">
             <div className="field">
-              <label htmlFor="waitlist-stage">Education stage</label>
+              <label htmlFor="waitlist-stage">
+                {appText("Education stage")}
+              </label>
               <select
                 id="waitlist-stage"
                 value={stage}
                 onChange={(e) => setStage(e.target.value as typeof stage)}
               >
-                <option value="SCHOOL">School — Classes 1–12</option>
-                <option value="EARLY_YEARS">Early years — Nursery / KG</option>
-                <option value="COLLEGE">College / university</option>
+                <option value="SCHOOL">
+                  {appText("School — Classes 1–12")}
+                </option>
+                <option value="EARLY_YEARS">
+                  {appText("Early years — Nursery / KG")}
+                </option>
+                <option value="COLLEGE">
+                  {appText("College / university")}
+                </option>
               </select>
             </div>
             {stage === "EARLY_YEARS" && (
               <div className="field">
-                <label htmlFor="waitlist-level">Early years level</label>
+                <label htmlFor="waitlist-level">
+                  {appText("Early years level")}
+                </label>
                 <select
                   id="waitlist-level"
                   value={level}
                   onChange={(e) => setLevel(e.target.value)}
                 >
-                  <option value="">Choose a level</option>
-                  <option value="NURSERY">Nursery</option>
-                  <option value="KG1">KG1</option>
-                  <option value="KG2">KG2</option>
+                  <option value="">{appText("Choose a level")}</option>
+                  <option value="NURSERY">{appText("Nursery")}</option>
+                  <option value="KG1">{appText("KG1")}</option>
+                  <option value="KG2">{appText("KG2")}</option>
                 </select>
               </div>
             )}
             {stage === "COLLEGE" && (
               <>
                 <div className="field">
-                  <label htmlFor="waitlist-course">Course / degree</label>
+                  <label htmlFor="waitlist-course">
+                    {appText("Course / degree")}
+                  </label>
                   <Input
                     id="waitlist-course"
                     value={courseName}
@@ -287,7 +314,7 @@ function WaitlistForm({ session }: { session: Session }) {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="waitlist-year">Study year</label>
+                  <label htmlFor="waitlist-year">{appText("Study year")}</label>
                   <Input
                     id="waitlist-year"
                     value={studyYear}
@@ -301,7 +328,7 @@ function WaitlistForm({ session }: { session: Session }) {
             )}
             {stage === "SCHOOL" && (
               <div className="field">
-                <label htmlFor="waitlist-grade">Class</label>
+                <label htmlFor="waitlist-grade">{appText("Class")}</label>
                 <select
                   id="waitlist-grade"
                   aria-invalid={!!error && !grade}
@@ -311,10 +338,10 @@ function WaitlistForm({ session }: { session: Session }) {
                   value={grade}
                   onChange={(e) => setGrade(e.target.value)}
                 >
-                  <option value="">Choose a class</option>
+                  <option value="">{appText("Choose a class")}</option>
                   {Array.from({ length: 12 }, (_, i) => (
                     <option key={i} value={i + 1}>
-                      Class {i + 1}
+                      {appText("Class")} {i + 1}
                     </option>
                   ))}
                 </select>
@@ -359,7 +386,7 @@ function WaitlistForm({ session }: { session: Session }) {
               .filter(([id]) => id !== "board" || stage === "SCHOOL")
               .map(([id, label, value, set, max, placeholder]) => (
                 <div className="field" key={id}>
-                  <label htmlFor={`waitlist-${id}`}>{label}</label>
+                  <label htmlFor={`waitlist-${id}`}>{appText(label)}</label>
                   <Input
                     id={`waitlist-${id}`}
                     aria-invalid={!!error && !value.trim()}
@@ -369,19 +396,19 @@ function WaitlistForm({ session }: { session: Session }) {
                     value={value}
                     onChange={(e) => set(e.target.value)}
                     maxLength={max}
-                    placeholder={placeholder}
+                    placeholder={appText(placeholder)}
                   />
                 </div>
               ))}
             <div className="field">
-              <label htmlFor="waitlist-mode">Tuition format</label>
+              <label htmlFor="waitlist-mode">{appText("Tuition format")}</label>
               <select
                 id="waitlist-mode"
                 value={mode}
                 onChange={(e) => setMode(e.target.value as "ONLINE" | "HOME")}
               >
-                <option value="ONLINE">Online</option>
-                <option value="HOME">At home</option>
+                <option value="ONLINE">{appText("Online")}</option>
+                <option value="HOME">{appText("At home")}</option>
               </select>
             </div>
           </div>
@@ -397,23 +424,24 @@ function WaitlistForm({ session }: { session: Session }) {
               onChange={(e) => setAgreed(e.target.checked)}
             />
             <span>
-              I understand this records interest only, with no teacher, start
-              date or notification guaranteed.
+              {appText(
+                "I understand this records interest only, with no teacher, start date or notification guaranteed.",
+              )}{" "}
             </span>
           </label>
         </fieldset>
         {error && (
           <Alert id="waitlist-errors" variant="destructive" role="alert">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{appError(error)}</AlertDescription>
           </Alert>
         )}
         {code === "SUPPORTED_SCOPE" && (
           <div className="wizard-actions">
             <Link className="button" href="/onboarding/parent">
-              Send a free enquiry
+              {appText("Send a free enquiry")}{" "}
             </Link>
             <Link className="inline-link" href="/teachers">
-              Browse teachers
+              {appText("Browse teachers")}{" "}
             </Link>
           </div>
         )}
@@ -426,16 +454,19 @@ function WaitlistForm({ session }: { session: Session }) {
                 : "/onboarding/parent"
             }
           >
-            Review permission and verification
+            {appText("Review permission and verification")}{" "}
           </Link>
         )}
         {saved ? (
           <>
             <p role="status">
-              Recorded · pending. No learner profile or tuition enquiry was
-              created.
+              {appText(
+                "Recorded · pending. No learner profile or tuition enquiry was created.",
+              )}{" "}
             </p>
-            <p>Reference: {saved.id}</p>
+            <p>
+              {appText("Reference:")} {saved.id}
+            </p>
             <Button
               type="button"
               variant="outline"
@@ -454,7 +485,7 @@ function WaitlistForm({ session }: { session: Session }) {
                 setError("");
               }}
             >
-              Record another coverage request
+              {appText("Record another coverage request")}{" "}
             </Button>
           </>
         ) : (
@@ -471,39 +502,41 @@ function WaitlistForm({ session }: { session: Session }) {
             }
           >
             {busy
-              ? "Saving…"
+              ? appText("Saving…")
               : uncertain
-                ? "Retry same waitlist request"
-                : "Record my interest"}
+                ? appText("Retry same waitlist request")
+                : appText("Record my interest")}
           </Button>
         )}
       </form>
       <section className="wizard-card coverage-history">
         <div className="panel-title">
-          <h2>Your coverage requests</h2>
+          <h2>{appText("Your coverage requests")}</h2>
           <Button
             variant="outline"
             disabled={busy || uncertain || query.isFetching}
             onClick={() => query.refetch()}
           >
-            Refresh coverage requests
+            {appText("Refresh coverage requests")}{" "}
           </Button>
         </div>
         <p className="wizard-help">
-          Your latest 50 recorded requests. Status does not confirm teacher
-          supply or a place in a queue.
+          {appText(
+            "Your latest 50 recorded requests. Status does not confirm teacher supply or a place in a queue.",
+          )}{" "}
         </p>
         {query.error ? (
           <Alert variant="destructive">
             <AlertDescription>
-              Saved requests could not be loaded. Refresh before creating
-              another request.
+              {appText(
+                "Saved requests could not be loaded. Refresh before creating another request.",
+              )}{" "}
             </AlertDescription>
           </Alert>
         ) : query.isPending ? (
-          <p role="status">Loading recorded requests…</p>
+          <p role="status">{appText("Loading recorded requests…")}</p>
         ) : !query.data?.items.length ? (
-          <p>No coverage requests recorded yet.</p>
+          <p>{appText("No coverage requests recorded yet.")}</p>
         ) : (
           <ul>
             {query.data.items.map((e) => (
@@ -511,22 +544,22 @@ function WaitlistForm({ session }: { session: Session }) {
                 <h3>
                   {e.educationStage === "COLLEGE" ||
                   e.educationStage === "EARLY_YEARS"
-                    ? educationLabel(e)
-                    : `Class ${e.grade}`}{" "}
-                  · {e.subject}
+                    ? appText(educationLabel(e))
+                    : appText("Class {0}", [e.grade])}{" "}
+                  · {appCurriculum(e.subject)}
                 </h3>
                 <p>
                   {e.board && <>{e.board} · </>}
-                  {e.language} · {e.region} ·{" "}
-                  {e.mode === "HOME" ? "At home" : "Online"}
+                  {appCurriculum(e.language)} · {e.region} ·{" "}
+                  {e.mode === "HOME" ? appText("At home") : appText("Online")}
                 </p>
-                <span className="badge">Recorded · pending</span>
+                <span className="badge">{appText("Recorded · pending")}</span>
                 <p className="wizard-help">
-                  Recorded{" "}
-                  {new Date(e.createdAt).toLocaleString("en-IN", {
+                  {appText("Recorded")}{" "}
+                  {new Date(e.createdAt).toLocaleString(appLocale, {
                     timeZone: "Asia/Kolkata",
                   })}{" "}
-                  IST · Reference {e.id.slice(0, 8)}
+                  {appText("IST · Reference")} {e.id.slice(0, 8)}
                 </p>
               </li>
             ))}

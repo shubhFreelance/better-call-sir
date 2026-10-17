@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import { teacherDetails } from "../../packages/test-fixtures/src";
 import AxeBuilder from "@axe-core/playwright";
@@ -656,4 +657,56 @@ test("capability review records exact early years, school and college teaching a
   expect(s.writes[0].body.coverage.teachingCoverage).toEqual(
     s.t().teachingCoverage,
   );
+});
+
+test("Hindi complete interface — शिक्षक की जाँच और प्रमाण", async ({
+  page,
+}) => {
+  await chooseHindi(page);
+  await mock(page);
+  await page.goto("/dashboard/review");
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
+});
+
+test("Hindi staff MFA keeps private queues closed and a reviewed decision sends canonical status", async ({
+  page,
+}) => {
+  await chooseHindi(page);
+  let state = await mock(page, "mfa");
+  await page.goto("/dashboard/review");
+  await expect(page.getByLabel("प्रमाणक कोड", { exact: true })).toBeVisible();
+  await checkHindi(page);
+  expect(state.reads.some((p) => p.includes("/admin/teachers"))).toBe(false);
+  await page.unrouteAll();
+  state = await mock(page, "ready");
+  await page.reload();
+  await page
+    .getByRole("button", { name: "शिक्षक निर्णय की समीक्षा करें", exact: true })
+    .click();
+  await page
+    .getByLabel("शिक्षक का निर्णय", { exact: true })
+    .selectOption("CHANGES_REQUESTED");
+  await page.getByLabel("दर्ज निर्णय का कारण").fill("Teacher");
+  await page
+    .getByRole("button", { name: "आकलन की समीक्षा करें", exact: true })
+    .click();
+  await page.getByRole("checkbox", { name: /मैंने आवेदन/ }).check();
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
+  await page.screenshot({
+    path: "test-results/hindi-reviewer-decision-mobile.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "समीक्षक निर्णय की पुष्टि करें", exact: true })
+    .click();
+  await expect(
+    page.getByText("शिक्षक की समीक्षा का निर्णय दर्ज है।", { exact: true }),
+  ).toBeVisible();
+  expect(state.writes[0].body).toMatchObject({
+    status: "CHANGES_REQUESTED",
+    reason: "Teacher",
+  });
 });

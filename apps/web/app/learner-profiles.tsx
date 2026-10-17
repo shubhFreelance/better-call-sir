@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -45,6 +46,8 @@ const gateMessages = {
   READY: "",
 };
 export function LearnerProfiles({ session }: { session: Session }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const client = useQueryClient(),
     params = useSearchParams(),
     router = useRouter();
@@ -311,7 +314,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
       <div className="field">
         <label htmlFor={props.id}>
           {name === "institutionName" && values.stage === "COLLEGE"
-            ? "College / institution name"
+            ? appText("College / institution name")
             : fieldLabels[name]}
         </label>
         {control || (
@@ -333,12 +336,12 @@ export function LearnerProfiles({ session }: { session: Session }) {
         )}
         {errors[name] ? (
           <small id={props.id + "-error"} role="alert" className="field-error">
-            {errors[name]}
+            {appError(errors[name])}
           </small>
         ) : (
           hint && (
             <small id={props.id + "-hint"} className="wizard-help">
-              {hint}
+              {appText(hint)}
             </small>
           )
         )}
@@ -350,72 +353,84 @@ export function LearnerProfiles({ session }: { session: Session }) {
       <header className="wizard-title">
         <h1>
           {session.account.role === "STUDENT"
-            ? "Your education profile."
-            : "Every learner has a different starting point."}
+            ? appText("Your education profile.")
+            : appText("Every learner has a different starting point.")}
         </h1>
         <p>
-          School, early years or college: keep the details that help explain
-          what they’re learning.
+          {appText(
+            "School, early years or college: keep the details that help explain what they’re learning.",
+          )}{" "}
         </p>
         <Link href="/dashboard" className="inline-link">
-          Back to dashboard
+          {appText("Back to dashboard")}{" "}
         </Link>
         {session.account.role === "GUARDIAN" && (
           <Link href="/onboarding/guardian" className="inline-link">
-            Guardian setup
+            {appText("Guardian setup")}{" "}
           </Link>
         )}
       </header>
       <div className="learner-profile-layout">
         <aside className="learner-profile-intro">
-          <h2>Start with the learner.</h2>
+          <h2>{appText("Start with the learner.")}</h2>
           <p>
-            Saving an education profile does not send an enquiry, hire a teacher
-            or activate a student account.
+            {appText(
+              "Saving an education profile does not send an enquiry, hire a teacher or activate a student account.",
+            )}{" "}
           </p>
           <p>
-            Teacher enquiries support early years, school and college. Each
-            match still needs an available teacher whose current reviewed
-            coverage fits the learner.
+            {appText(
+              "Teacher enquiries support early years, school and college. Each match still needs an available teacher whose current reviewed coverage fits the learner.",
+            )}{" "}
           </p>
           <p>
-            These details are private. Add education information only; do not
-            enter identity documents or contact details.
+            {appText(
+              "These details are private. Add education information only; do not enter identity documents or contact details.",
+            )}{" "}
           </p>
         </aside>
         <div className="learner-profile-main">
           {saved && (
             <Alert>
               <AlertDescription>
-                <strong>{saved.alias}’s profile is saved.</strong>
+                <strong>
+                  {saved.alias}
+                  {appText("’s profile is saved.")}
+                </strong>
                 <p>
                   {saved.enquiryEligible
-                    ? "You can select this learner when starting a supported tuition enquiry."
-                    : "The profile is saved. Complete its education details before starting an enquiry."}
+                    ? appText(
+                        "You can select this learner when starting a supported tuition enquiry.",
+                      )
+                    : appText(
+                        "The profile is saved. Complete its education details before starting an enquiry.",
+                      )}
                 </p>
                 <Link href="/onboarding/guardian" className="inline-link">
-                  Continue guardian setup
+                  {appText("Continue guardian setup")}{" "}
                 </Link>
                 {saved.enquiryEligible && (
                   <Link className="inline-link" href="/onboarding/parent">
-                    Start a tuition enquiry
+                    {appText("Start a tuition enquiry")}{" "}
                   </Link>
                 )}
                 <Link
                   className="inline-link"
                   href={"/dashboard/family?learner=" + saved.id}
                 >
-                  Manage student access
+                  {appText("Manage student access")}{" "}
                 </Link>
               </AlertDescription>
             </Alert>
           )}
           {openingId && (
-            <p role="status">Loading the latest learner profile…</p>
+            <p role="status">
+              {appText("Loading the latest learner profile…")}
+            </p>
           )}
           {openError && (
             <Alert variant="destructive">
-              <AlertDescription>{openError}</AlertDescription>
+              <AlertDescription>{appError(openError)}</AlertDescription>
             </Alert>
           )}
           {editNotice && (
@@ -423,26 +438,29 @@ export function LearnerProfiles({ session }: { session: Session }) {
               <AlertDescription>
                 {editNotice}
                 <Link href="/dashboard/privacy" className="inline-link">
-                  Review privacy and correction requests
+                  {appText("Review privacy and correction requests")}{" "}
                 </Link>
                 <Link href="/dashboard/support" className="inline-link">
-                  Get help with education details
+                  {appText("Get help with education details")}{" "}
                 </Link>
               </AlertDescription>
             </Alert>
           )}
-          {query.isPending && <p role="status">Loading learner profiles…</p>}
+          {query.isPending && (
+            <p role="status">{appText("Loading learner profiles…")}</p>
+          )}
           {query.error && (
             <Alert variant="destructive">
               <AlertDescription>
-                We couldn’t load the current learner profiles. Your form is
-                retained; refresh before saving a profile.
+                {appText(
+                  "We couldn’t load the current learner profiles. Your form is retained; refresh before saving a profile.",
+                )}{" "}
                 <Button
                   disabled={locked}
                   variant="outline"
                   onClick={() => query.refetch()}
                 >
-                  Retry learner profiles
+                  {appText("Retry learner profiles")}{" "}
                 </Button>
                 {cursor && (
                   <Button
@@ -450,7 +468,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     variant="ghost"
                     onClick={() => setCursor(null)}
                   >
-                    Return to first page
+                    {appText("Return to first page")}{" "}
                   </Button>
                 )}
               </AlertDescription>
@@ -461,12 +479,12 @@ export function LearnerProfiles({ session }: { session: Session }) {
               {query.data.creationStatus !== "READY" && (
                 <Alert>
                   <AlertDescription>
-                    {gateMessages[query.data.creationStatus]}
+                    {appText(gateMessages[query.data.creationStatus])}
                     {["VERIFICATION_REQUIRED", "CONSENT_REQUIRED"].includes(
                       query.data.creationStatus,
                     ) && (
                       <Link href="/onboarding/guardian" className="inline-link">
-                        Review guardian onboarding
+                        {appText("Review guardian onboarding")}{" "}
                       </Link>
                     )}
                   </AlertDescription>
@@ -475,10 +493,10 @@ export function LearnerProfiles({ session }: { session: Session }) {
               {!editing && (!adding || query.data.items.length > 0) && (
                 <section
                   className="care-card"
-                  aria-label="Saved learner profiles"
+                  aria-label={appText("Saved learner profiles")}
                 >
                   <div className="hiring-section-heading">
-                    <h2>Saved profiles</h2>
+                    <h2>{appText("Saved profiles")}</h2>
                     {session.account.role === "GUARDIAN" && !adding && (
                       <Button
                         disabled={!ready || locked}
@@ -496,12 +514,12 @@ export function LearnerProfiles({ session }: { session: Session }) {
                           requestAnimationFrame(() => heading.current?.focus());
                         }}
                       >
-                        Add learner profile
+                        {appText("Add learner profile")}{" "}
                       </Button>
                     )}
                   </div>
                   {!query.data.items.length ? (
-                    <p>No learner profiles saved yet.</p>
+                    <p>{appText("No learner profiles saved yet.")}</p>
                   ) : (
                     <ul className="learner-education-list">
                       {query.data.items.map((p) => (
@@ -514,16 +532,22 @@ export function LearnerProfiles({ session }: { session: Session }) {
                               disabled={!ready || locked || adding}
                               onClick={() => openEdit(p.id)}
                             >
-                              Edit profile for {p.alias}
+                              {appText("Edit profile for")} {p.alias}
                             </Button>
                           )}
                           <p className="care-help">
                             {p.enquiryEligible
-                              ? "Education details are ready for an enquiry. Teacher fit and availability still need to be checked."
+                              ? appText(
+                                  "Education details are ready for an enquiry. Teacher fit and availability still need to be checked.",
+                                )
                               : !p.education.institutionName ||
                                   !p.education.subjects.length
-                                ? "Education details are incomplete. Review guardian onboarding before sending an enquiry."
-                                : "Complete the education details before requesting a teacher."}
+                                ? appText(
+                                    "Education details are incomplete. Review guardian onboarding before sending an enquiry.",
+                                  )
+                                : appText(
+                                    "Complete the education details before requesting a teacher.",
+                                  )}
                           </p>
                         </li>
                       ))}
@@ -536,7 +560,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                         disabled={locked || adding || query.isFetching}
                         onClick={() => setCursor(null)}
                       >
-                        First page
+                        {appText("First page")}{" "}
                       </Button>
                     )}
                     {query.data.nextCursor && (
@@ -545,7 +569,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                         disabled={locked || adding || query.isFetching}
                         onClick={() => setCursor(query.data!.nextCursor)}
                       >
-                        Next profiles
+                        {appText("Next profiles")}{" "}
                       </Button>
                     )}
                   </div>
@@ -557,28 +581,33 @@ export function LearnerProfiles({ session }: { session: Session }) {
             <section
               className="wizard-card"
               aria-label={
-                editing ? "Edit learner profile" : "New learner profile"
+                editing
+                  ? appText("Edit learner profile")
+                  : appText("New learner profile")
               }
             >
               <p className="wizard-save-note">
-                All fields shown are required. Details stay in this form until
-                you confirm the save. Leaving or reloading clears unsaved
-                details.
+                {appText(
+                  "All fields shown are required. Details stay in this form until you confirm the save. Leaving or reloading clears unsaved details.",
+                )}{" "}
               </p>
               <h2 ref={heading} tabIndex={-1}>
                 {review
-                  ? "Review the learner profile"
+                  ? appText("Review the learner profile")
                   : editing
-                    ? "Edit education details"
-                    : "Add education details"}
+                    ? appText("Edit education details")
+                    : appText("Add education details")}
               </h2>
               {editing && (
                 <div className="learner-profile-edit-context">
-                  <strong>Updating {editing.alias}’s education profile</strong>
+                  <strong>
+                    {appText("Updating")} {editing.alias}
+                    {appText("’s education profile")}
+                  </strong>
                   <p>
-                    Review every change before saving. Student access
-                    permissions stay as they are. Profiles used in an enquiry or
-                    learning history need a correction review.
+                    {appText(
+                      "Review every change before saving. Student access permissions stay as they are. Profiles used in an enquiry or learning history need a correction review.",
+                    )}{" "}
                   </p>
                 </div>
               )}
@@ -587,8 +616,9 @@ export function LearnerProfiles({ session }: { session: Session }) {
                   <h3>{review.alias}</h3>
                   <EducationSummary education={review.education} />
                   <p>
-                    You manage this learner’s education details. Saving this
-                    profile does not change student access permissions.
+                    {appText(
+                      "You manage this learner’s education details. Saving this profile does not change student access permissions.",
+                    )}{" "}
                   </p>
                 </>
               ) : (
@@ -604,14 +634,18 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     disabled={locked || stale || !ready}
                     className="learner-education-fields"
                   >
-                    <legend className="sr-only">Learner education</legend>
+                    <legend className="sr-only">
+                      {appText("Learner education")}
+                    </legend>
                     {field(
                       "alias",
                       undefined,
                       "Use a familiar name or alias, up to 40 characters.",
                     )}
                     <div className="field">
-                      <label htmlFor="education-stage">Education stage</label>
+                      <label htmlFor="education-stage">
+                        {appText("Education stage")}
+                      </label>
                       <select
                         id="education-stage"
                         value={values.stage}
@@ -621,10 +655,14 @@ export function LearnerProfiles({ session }: { session: Session }) {
                         }}
                       >
                         <option value="EARLY_YEARS">
-                          Early years — Nursery / KG
+                          {appText("Early years — Nursery / KG")}{" "}
                         </option>
-                        <option value="SCHOOL">School — Classes 1–12</option>
-                        <option value="COLLEGE">College / university</option>
+                        <option value="SCHOOL">
+                          {appText("School — Classes 1–12")}
+                        </option>
+                        <option value="COLLEGE">
+                          {appText("College / university")}
+                        </option>
                       </select>
                     </div>
                     {values.stage === "EARLY_YEARS" &&
@@ -639,10 +677,12 @@ export function LearnerProfiles({ session }: { session: Session }) {
                             errors.level ? "education-level-error" : undefined
                           }
                         >
-                          <option value="">Choose early years level</option>
-                          <option value="NURSERY">Nursery</option>
-                          <option value="KG1">KG1</option>
-                          <option value="KG2">KG2</option>
+                          <option value="">
+                            {appText("Choose early years level")}
+                          </option>
+                          <option value="NURSERY">{appText("Nursery")}</option>
+                          <option value="KG1">{appText("KG1")}</option>
+                          <option value="KG2">{appText("KG2")}</option>
                         </select>,
                       )}
                     {values.stage === "SCHOOL" && (
@@ -658,10 +698,10 @@ export function LearnerProfiles({ session }: { session: Session }) {
                               errors.grade ? "education-grade-error" : undefined
                             }
                           >
-                            <option value="">Choose class</option>
+                            <option value="">{appText("Choose class")}</option>
                             {Array.from({ length: 12 }, (_, i) => (
                               <option key={i + 1} value={i + 1}>
-                                Class {i + 1}
+                                {appText("Class")} {i + 1}
                               </option>
                             ))}
                           </select>,
@@ -690,21 +730,21 @@ export function LearnerProfiles({ session }: { session: Session }) {
               )}
               {message && (
                 <Alert variant="destructive">
-                  <AlertDescription>{message}</AlertDescription>
+                  <AlertDescription>{appText(message)}</AlertDescription>
                 </Alert>
               )}
               {stale && editing && (
                 <Alert>
                   <AlertDescription>
-                    The saved profile changed or can no longer be edited. Your
-                    edits are retained. Reloading discards them; review the
-                    latest profile before saving again.
+                    {appText(
+                      "The saved profile changed or can no longer be edited. Your edits are retained. Reloading discards them; review the latest profile before saving again.",
+                    )}{" "}
                     <Button
                       variant="outline"
                       disabled={locked}
                       onClick={() => openEdit(editing.id)}
                     >
-                      Discard edits and reload profile
+                      {appText("Discard edits and reload profile")}{" "}
                     </Button>
                   </AlertDescription>
                 </Alert>
@@ -715,7 +755,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                   disabled={locked}
                   onClick={() => openEdit(editing.id)}
                 >
-                  Retry opening profile
+                  {appText("Retry opening profile")}{" "}
                 </Button>
               )}
               <div className="wizard-actions">
@@ -729,7 +769,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                         setMessage("");
                       }}
                     >
-                      Edit details
+                      {appText("Edit details")}{" "}
                     </Button>
                     <Button
                       disabled={
@@ -738,12 +778,12 @@ export function LearnerProfiles({ session }: { session: Session }) {
                       onClick={save}
                     >
                       {busy
-                        ? "Saving profile…"
+                        ? appText("Saving profile…")
                         : uncertain
-                          ? "Retry profile save"
+                          ? appText("Retry profile save")
                           : editing
-                            ? "Confirm and save changes"
-                            : "Confirm and save profile"}
+                            ? appText("Confirm and save changes")
+                            : appText("Confirm and save profile")}
                     </Button>
                   </>
                 ) : (
@@ -752,7 +792,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     form="learner-education-form"
                     disabled={locked || stale || !ready}
                   >
-                    Review learner profile
+                    {appText("Review learner profile")}{" "}
                   </Button>
                 )}
                 <Button
@@ -767,7 +807,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     setMessage("");
                   }}
                 >
-                  Cancel
+                  {appText("Cancel")}{" "}
                 </Button>
               </div>
             </section>
@@ -782,25 +822,29 @@ export function EducationSummary({
 }: {
   education: Profile["education"];
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <div className="learner-education-summary">
       <p>
         {e.stage === "SCHOOL"
-          ? `Class ${e.grade} · ${e.board}`
+          ? appText("Class {0} · {1}", [e.grade, e.board])
           : e.stage === "EARLY_YEARS"
             ? e.level === "NURSERY"
-              ? "Nursery"
+              ? appText("Nursery")
               : e.level === "KG1"
-                ? "KG1"
-                : "KG2"
-            : `${e.courseName || "College"}${e.studyYear ? " · Year " + e.studyYear : ""}`}
+                ? appText("KG1")
+                : appText("KG2")
+            : `${e.courseName || appText("College")}${e.studyYear ? " · " + appText("Year") + " " + e.studyYear : ""}`}
       </p>
       {e.institutionName && <p>{e.institutionName}</p>}
       {e.stage === "COLLEGE" && e.university && <p>{e.university}</p>}
       <p>
         {e.subjects.length
-          ? "Subjects: " + e.subjects.join(", ")
-          : "Subjects not yet recorded."}
+          ? appText("Subjects: {0}", [
+              e.subjects.map((value) => appCurriculum(value)).join(", "),
+            ])
+          : appText("Subjects not yet recorded.")}
       </p>
     </div>
   );

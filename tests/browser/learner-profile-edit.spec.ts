@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { operationValidator } from "../helpers/contract";
@@ -526,3 +527,12 @@ test("confirmed update followed by a failed list refresh never reopens save or s
   ).toHaveCount(0);
   expect(state.writes).toHaveLength(1);
 });
+
+ test("Hindi complete interface — विद्यार्थी की शिक्षा का संपादन", async ({ page }) => {
+ await chooseHindi(page);
+ await mock(page);
+ await page.goto("/dashboard/learners");
+ await checkHindi(page);
+ await page.setViewportSize({ width: 360, height: 800 });
+ await checkHindi(page);
+ });

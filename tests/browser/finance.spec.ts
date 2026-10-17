@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { validator } from "../helpers/contract";
@@ -568,3 +569,12 @@ test("finance report and record read failures recover independently", async ({
     page.getByRole("button", { name: "Inspect record 20000000" }),
   ).toBeVisible();
 });
+
+ test("Hindi complete interface — वित्त और मिलान", async ({ page }) => {
+ await chooseHindi(page);
+ await mock(page);
+ await page.goto("/dashboard/finance");
+ await checkHindi(page);
+ await page.setViewportSize({ width: 360, height: 800 });
+ await checkHindi(page);
+ });

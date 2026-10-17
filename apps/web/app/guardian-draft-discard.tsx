@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
@@ -19,6 +20,8 @@ export function GuardianDraftDiscard({
   label?: string;
   onLockChange?: (locked: boolean) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [review, setReview] = useState(false),
     [ack, setAck] = useState(false),
     [busy, setBusy] = useState(false),
@@ -113,35 +116,37 @@ export function GuardianDraftDiscard({
           setAck(false);
         }}
       >
-        {label}
+        {appText(label)}
       </Button>
     );
   return (
     <section
       className="guardian-draft-discard"
-      aria-label="Discard draft review"
+      aria-label={appText("Discard draft review")}
     >
       <h3 ref={heading} tabIndex={-1}>
-        Discard this unfinished enquiry?
+        {appText("Discard this unfinished enquiry?")}{" "}
       </h3>
       <p>
-        This removes the saved criteria for this draft and any unsaved changes
-        in this form. You will start again with your teacher choice.
+        {appText(
+          "This removes the saved criteria for this draft and any unsaved changes in this form. You will start again with your teacher choice.",
+        )}{" "}
       </p>
       <p>
-        Your submitted enquiries, learner profiles and confirmed arrangements
-        stay saved. This does not cancel a teacher arrangement or request
-        deletion of your account.
+        {appText(
+          "Your submitted enquiries, learner profiles and confirmed arrangements stay saved. This does not cancel a teacher arrangement or request deletion of your account.",
+        )}{" "}
       </p>
       {error && (
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{appError(error)}</AlertDescription>
         </Alert>
       )}
       {unavailable ? (
         <p role="status">
-          This draft is empty or already submitted. There is no unfinished draft
-          to discard.
+          {appText(
+            "This draft is empty or already submitted. There is no unfinished draft to discard.",
+          )}{" "}
         </p>
       ) : (
         <label className="care-ack">
@@ -151,8 +156,9 @@ export function GuardianDraftDiscard({
             disabled={locked}
             onChange={(e) => setAck(e.target.checked)}
           />{" "}
-          I understand that this unfinished draft and my unsaved edits will be
-          lost.
+          {appText(
+            "I understand that this unfinished draft and my unsaved edits will be lost.",
+          )}{" "}
         </label>
       )}
       <div className="wizard-actions">
@@ -165,20 +171,20 @@ export function GuardianDraftDiscard({
             pending.current = null;
           }}
         >
-          Keep draft
+          {appText("Keep draft")}{" "}
         </Button>
         {conflict ? (
           <Button disabled={busy} onClick={reload}>
-            Reload saved draft
+            {appText("Reload saved draft")}{" "}
           </Button>
         ) : (
           !unavailable && (
             <Button disabled={busy || (!ack && !uncertain)} onClick={discard}>
               {busy
-                ? "Discarding…"
+                ? appText("Discarding…")
                 : uncertain
-                  ? "Retry same discard"
-                  : "Confirm discard & continue"}
+                  ? appText("Retry same discard")
+                  : appText("Confirm discard & continue")}
             </Button>
           )
         )}

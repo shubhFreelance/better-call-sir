@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { validator } from "../helpers/contract";
@@ -578,3 +579,12 @@ test("real MFA staff reads isolated historical request cohorts and exact date bo
     await db.$disconnect();
   }
 });
+
+ test("Hindi complete interface — रिपोर्ट और चार्ट", async ({ page }) => {
+ await chooseHindi(page);
+ await mock(page);
+ await page.goto("/dashboard/reports");
+ await checkHindi(page);
+ await page.setViewportSize({ width: 360, height: 800 });
+ await checkHindi(page);
+ });

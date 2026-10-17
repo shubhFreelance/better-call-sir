@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import { beginGuardian } from "./guardian-journey";
 import AxeBuilder from "@axe-core/playwright";
@@ -406,3 +407,12 @@ test("school education records Class 12 and explains that teacher fit is still c
     subjects: ["Physics", "Chemistry", "Maths"],
   });
 });
+
+ test("Hindi complete interface — विद्यार्थी शिक्षा और प्रोफ़ाइल", async ({ page }) => {
+ await chooseHindi(page);
+ await mock(page);
+ await page.goto("/dashboard/learners");
+ await checkHindi(page);
+ await page.setViewportSize({ width: 360, height: 800 });
+ await checkHindi(page);
+ });

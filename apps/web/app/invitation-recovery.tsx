@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -23,6 +24,8 @@ export function InvitationRecovery({
   consentActive: boolean;
   onLockChange: (locked: boolean) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const client = useQueryClient(),
     queryKey = ["child-invitation", session.account.id, childId];
   const query = useQuery({
@@ -161,25 +164,29 @@ export function InvitationRecovery({
   return (
     <div className="invitation-recovery">
       <div className="panel-title">
-        <h3>Student invitation</h3>
+        <h3>{appText("Student invitation")}</h3>
         <Button
           variant="outline"
           disabled={busy || uncertain || blocked || !consentActive}
           onClick={refresh}
         >
-          Refresh invitation status
+          {appText("Refresh invitation status")}{" "}
         </Button>
       </div>
       {!consentActive ? (
         <p>
-          Active guardian consent is required to create or replace invitations.
+          {appText(
+            "Active guardian consent is required to create or replace invitations.",
+          )}{" "}
         </p>
       ) : query.isPending || query.isFetching ? (
-        <p role="status">Loading invitation status…</p>
+        <p role="status">{appText("Loading invitation status…")}</p>
       ) : query.error ? (
         <Alert variant="destructive">
           <AlertDescription>
-            Invitation status could not be loaded. Refresh before continuing.
+            {appText(
+              "Invitation status could not be loaded. Refresh before continuing.",
+            )}{" "}
           </AlertDescription>
         </Alert>
       ) : (
@@ -197,18 +204,17 @@ export function InvitationRecovery({
             </p>
             {current.expiresAt && current.state !== "ACTIVATED" && (
               <p>
-                Invitation expiry:{" "}
-                {new Date(current.expiresAt).toLocaleString("en-IN", {
+                {appText("Invitation expiry:")}{" "}
+                {new Date(current.expiresAt).toLocaleString(appLocale, {
                   timeZone: "Asia/Kolkata",
                 })}{" "}
-                IST.
+                {appText("IST.")}{" "}
               </p>
             )}
             <p className="wizard-help">
-              Lost a code or returned to this page? Codes cannot be retrieved.
-              Replacing an invitation invalidates all earlier codes for this
-              learner. Existing student accounts are managed through device
-              access.
+              {appText(
+                "Lost a code or returned to this page? Codes cannot be retrieved. Replacing an invitation invalidates all earlier codes for this learner. Existing student accounts are managed through device access.",
+              )}{" "}
             </p>
             {current.state !== "ACTIVATED" && !review && (
               <Button
@@ -221,14 +227,15 @@ export function InvitationRecovery({
                 }}
               >
                 {current.state === "NONE"
-                  ? "Create first student invitation"
-                  : "Replace student invitation"}
+                  ? appText("Create first student invitation")
+                  : appText("Replace student invitation")}
               </Button>
             )}
             {current.state === "ACTIVATED" && (
               <p>
-                Refresh student access to manage the learner’s authorized
-                devices.
+                {appText(
+                  "Refresh student access to manage the learner’s authorized devices.",
+                )}{" "}
               </p>
             )}
           </>
@@ -244,14 +251,13 @@ export function InvitationRecovery({
         >
           <h3>
             {current?.state === "NONE"
-              ? "Create a first invitation?"
-              : "Replace this learner’s invitation?"}
+              ? appText("Create a first invitation?")
+              : appText("Replace this learner’s invitation?")}
           </h3>
           <p>
-            The new invitation lasts 24 hours and is single-use. All earlier
-            codes stop working. Only you, signed in as the inviting guardian on
-            the intended student device, can activate it. This does not switch
-            your current account.
+            {appText(
+              "The new invitation lasts 24 hours and is single-use. All earlier codes stop working. Only you, signed in as the inviting guardian on the intended student device, can activate it. This does not switch your current account.",
+            )}{" "}
           </p>
           <fieldset className="wizard-fields" disabled={locked || conflict}>
             <label className="wizard-checkbox">
@@ -261,9 +267,9 @@ export function InvitationRecovery({
                 onChange={(e) => setAgreed(e.target.checked)}
               />
               <span>
-                I am the learner’s guardian and will authorize only the intended
-                student device. I understand that earlier invitation codes will
-                stop working.
+                {appText(
+                  "I am the learner’s guardian and will authorize only the intended student device. I understand that earlier invitation codes will stop working.",
+                )}{" "}
               </span>
             </label>
             <div className="wizard-actions">
@@ -272,12 +278,12 @@ export function InvitationRecovery({
                 variant="outline"
                 onClick={() => setReview(false)}
               >
-                Cancel
+                {appText("Cancel")}{" "}
               </Button>
               <Button type="submit" disabled={!agreed}>
                 {current?.state === "NONE"
-                  ? "Create invitation"
-                  : "Confirm invitation replacement"}
+                  ? appText("Create invitation")
+                  : appText("Confirm invitation replacement")}
               </Button>
             </div>
           </fieldset>
@@ -285,18 +291,22 @@ export function InvitationRecovery({
       )}
       {invite && (
         <div className="family-invitation">
-          <h3>Invitation for {alias}</h3>
+          <h3>
+            {appText("Invitation for")} {alias}
+          </h3>
           <p>
-            Expires{" "}
-            {new Date(invite.expiresAt).toLocaleString("en-IN", {
+            {appText("Expires")}{" "}
+            {new Date(invite.expiresAt).toLocaleString(appLocale, {
               timeZone: "Asia/Kolkata",
             })}{" "}
-            IST. Single-use; only the inviting guardian can activate it.
+            {appText(
+              "IST. Single-use; only the inviting guardian can activate it.",
+            )}{" "}
           </p>
           {reveal ? (
             <div className="field">
               <label htmlFor="student-invitation-code">
-                Private invitation code
+                {appText("Private invitation code")}{" "}
               </label>
               <Input
                 id="student-invitation-code"
@@ -306,47 +316,59 @@ export function InvitationRecovery({
                 value={invite.token}
               />
               <Button variant="ghost" onClick={() => setReveal(false)}>
-                Hide invitation code
+                {appText("Hide invitation code")}{" "}
               </Button>
             </div>
           ) : (
             <Button variant="outline" onClick={() => setReveal(true)}>
-              Reveal invitation code
+              {appText("Reveal invitation code")}{" "}
             </Button>
           )}
           <ol>
-            <li>Open student onboarding on the intended device.</li>
-            <li>Sign in with your own guardian account on that device.</li>
-            <li>Paste the code and confirm the switch to the student space.</li>
+            <li>
+              {appText("Open student onboarding on the intended device.")}
+            </li>
+            <li>
+              {appText(
+                "Sign in with your own guardian account on that device.",
+              )}
+            </li>
+            <li>
+              {appText(
+                "Paste the code and confirm the switch to the student space.",
+              )}
+            </li>
           </ol>
           <p className="wizard-help">
-            Keep this code private. It is not saved in browser storage or placed
-            in a link.
+            {appText(
+              "Keep this code private. It is not saved in browser storage or placed in a link.",
+            )}{" "}
           </p>
           <Link className="inline-link" href="/onboarding/student">
-            Open student onboarding
+            {appText("Open student onboarding")}{" "}
           </Link>
         </div>
       )}
       {error && (
         <Alert variant="destructive" role="alert">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{appError(error)}</AlertDescription>
         </Alert>
       )}
       {notice && (
         <Alert role="status">
-          <AlertDescription>{notice}</AlertDescription>
+          <AlertDescription>{appText(notice)}</AlertDescription>
         </Alert>
       )}
       {uncertain && (
         <Button disabled={busy} onClick={issue}>
-          Retry invitation request
+          {appText("Retry invitation request")}{" "}
         </Button>
       )}
       {conflict && (
         <p>
-          Refresh invitation status and review it before creating or replacing a
-          code.
+          {appText(
+            "Refresh invitation status and review it before creating or replacing a code.",
+          )}{" "}
         </p>
       )}
     </div>

@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { validator } from "../helpers/contract";
@@ -856,3 +857,12 @@ test("saved hiring acceptance with a failed refresh prevents a duplicate write",
   ).toBeDisabled();
   expect(state.writes).toHaveLength(1);
 });
+
+ test("Hindi complete interface — नियुक्ति सारांश और शर्तें", async ({ page }) => {
+ await chooseHindi(page);
+ await mock(page);
+ await page.goto("/dashboard");
+ await checkHindi(page);
+ await page.setViewportSize({ width: 360, height: 800 });
+ await checkHindi(page);
+ });

@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -40,6 +41,8 @@ export function StaffAccess({
   children: ReactNode;
   onSignIn: () => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const path = usePathname();
   return session &&
     staffRole(session.account.role) &&
@@ -67,6 +70,8 @@ function VerifiedStaff({
   onSignIn: () => void;
   managing: boolean;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const client = useQueryClient(),
     key = ["mfa-status", session.account.id];
   const query = useQuery({
@@ -146,14 +151,14 @@ function VerifiedStaff({
   if (query.isPending)
     return (
       <main className="container narrow section">
-        <p role="status">Checking staff access…</p>
+        <p role="status">{appText("Checking staff access…")}</p>
       </main>
     );
   return (
     <MfaPanel
       session={session}
       status={query.data}
-      statusError={query.error?.message}
+      statusError={appError(query.error?.message)}
       refresh={refresh}
       complete={complete}
       hold={setHold}
@@ -178,6 +183,8 @@ function MfaPanel({
   hold: (value: boolean) => void;
   onSignIn: () => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const [secret, setSecret] = useState(""),
     [code, setCode] = useState(""),
     [recovery, setRecovery] = useState(false),
@@ -371,42 +378,46 @@ function MfaPanel({
       <header className="staff-security-heading">
         <ShieldCheck size={28} aria-hidden="true" />
         <div>
-          <h1>Protect your staff access.</h1>
+          <h1>{appText("Protect your staff access.")}</h1>
           <p>
-            Verify an independent authenticator before opening private staff
-            records.
+            {appText(
+              "Verify an independent authenticator before opening private staff records.",
+            )}{" "}
           </p>
         </div>
-        <span>{session.account.role.toLowerCase()}</span>
+        <span>{appText(session.account.role.toLowerCase())}</span>
       </header>
       <section
         className="panel staff-security-form"
-        aria-label="Staff authenticator"
+        aria-label={appText("Staff authenticator")}
       >
         {statusError && (
           <Notice error>
-            {statusError} Return to sign-in if your primary session expired.
+            {appError(statusError)}{" "}
+            {appText("Return to sign-in if your primary session expired.")}{" "}
           </Notice>
         )}
-        {message && <Notice>{message}</Notice>}
-        {error && <Notice error>{error}</Notice>}
+        {message && <Notice>{appText(message)}</Notice>}
+        {error && <Notice error>{appError(error)}</Notice>}
         {!status && !statusError && (
-          <p role="status">Checking your authenticator…</p>
+          <p role="status">{appText("Checking your authenticator…")}</p>
         )}
         {status?.enabled && (
           <p>
             {verified
-              ? "Staff verification is current."
-              : "A fresh verification is required."}{" "}
-            {status.recoveryCodesRemaining} recovery codes remain.
+              ? appText("Staff verification is current.")
+              : appText("A fresh verification is required.")}{" "}
+            {status.recoveryCodesRemaining}{" "}
+            {appText("recovery codes remain.")}{" "}
           </p>
         )}
         {status && !status.enabled && !secret && !codes.length && (
           <>
-            <h2>Add your authenticator</h2>
+            <h2>{appText("Add your authenticator")}</h2>
             <p>
-              Use an authenticator app on your phone. Setup requires a recent
-              sign-in and expires after ten minutes.
+              {appText(
+                "Use an authenticator app on your phone. Setup requires a recent sign-in and expires after ten minutes.",
+              )}{" "}
             </p>
             <Button
               className="button"
@@ -414,21 +425,25 @@ function MfaPanel({
               onClick={enroll}
             >
               <KeyRound size={18} aria-hidden="true" />
-              Set up authenticator
+              {appText("Set up authenticator")}{" "}
             </Button>
           </>
         )}
         {secret && (
           <div className="staff-security-private">
-            <h2>Your private setup key</h2>
+            <h2>{appText("Your private setup key")}</h2>
             <p>
-              Add “Better Call Sir” in your authenticator using this key. Keep
-              it private.
+              {appText(
+                "Add “Better Call Sir” in your authenticator using this key. Keep it private.",
+              )}{" "}
             </p>
-            <code aria-label="Authenticator setup key">{secret}</code>
+            <code aria-label={appText("Authenticator setup key")}>
+              {secret}
+            </code>
             <small>
-              This key stays in page memory and is cleared after verification or
-              leaving this screen.
+              {appText(
+                "This key stays in page memory and is cleared after verification or leaving this screen.",
+              )}{" "}
             </small>
           </div>
         )}
@@ -438,10 +453,10 @@ function MfaPanel({
             <form onSubmit={verify}>
               <label htmlFor="staff-code">
                 {replace
-                  ? "New authenticator code"
+                  ? appText("New authenticator code")
                   : recovery
-                    ? "Single-use recovery code"
-                    : "Authenticator code"}
+                    ? appText("Single-use recovery code")
+                    : appText("Authenticator code")}
               </label>
               <Input
                 id="staff-code"
@@ -458,10 +473,16 @@ function MfaPanel({
               />
               <p id="staff-code-help">
                 {replace
-                  ? "Use a fresh six-digit code. Replacing recovery codes invalidates every previous code."
+                  ? appText(
+                      "Use a fresh six-digit code. Replacing recovery codes invalidates every previous code.",
+                    )
                   : recovery
-                    ? "Recovery consumes one code and signs out other staff session families."
-                    : "Enter the current six-digit code. A code cannot be reused after verification."}
+                    ? appText(
+                        "Recovery consumes one code and signs out other staff session families.",
+                      )
+                    : appText(
+                        "Enter the current six-digit code. A code cannot be reused after verification.",
+                      )}
               </p>
               <div className="staff-security-actions">
                 <Button
@@ -469,7 +490,9 @@ function MfaPanel({
                   type="submit"
                   disabled={busy || uncertain}
                 >
-                  {replace ? "Replace recovery codes" : "Verify staff access"}
+                  {replace
+                    ? appText("Replace recovery codes")
+                    : appText("Verify staff access")}
                 </Button>
                 {status?.enabled && !replace && (
                   <Button
@@ -482,8 +505,8 @@ function MfaPanel({
                     }}
                   >
                     {recovery
-                      ? "Use authenticator instead"
-                      : "Use a recovery code"}
+                      ? appText("Use authenticator instead")
+                      : appText("Use a recovery code")}
                   </Button>
                 )}
                 {replace && (
@@ -495,7 +518,7 @@ function MfaPanel({
                       setCode("");
                     }}
                   >
-                    Cancel replacement
+                    {appText("Cancel replacement")}{" "}
                   </Button>
                 )}
               </div>
@@ -503,14 +526,15 @@ function MfaPanel({
           )}
         {codes.length > 0 && (
           <div className="staff-security-private">
-            <h2>Save your recovery codes</h2>
+            <h2>{appText("Save your recovery codes")}</h2>
             <p>
-              Keep these in a password manager. Each works once; they will not
-              be shown again after leaving this page.
+              {appText(
+                "Keep these in a password manager. Each works once; they will not be shown again after leaving this page.",
+              )}{" "}
             </p>
             <ul
               className="staff-recovery-codes"
-              aria-label="Private recovery codes"
+              aria-label={appText("Private recovery codes")}
             >
               {codes.map((value) => (
                 <li key={value}>
@@ -525,20 +549,22 @@ function MfaPanel({
                 disabled={busy}
                 onChange={(e) => setSaved(e.target.checked)}
               />
-              I saved these recovery codes securely.
+              {appText("I saved these recovery codes securely.")}{" "}
             </label>
             <Button
               className="button"
               disabled={!saved || busy}
               onClick={finish}
             >
-              Continue with verified access
+              {appText("Continue with verified access")}{" "}
             </Button>
           </div>
         )}
         <div className="staff-security-actions">
           <Button variant="outline" disabled={busy} onClick={inspect}>
-            {busy ? "Checking…" : "Check current verification"}
+            {busy
+              ? appText("Checking…")
+              : appText("Check current verification")}
           </Button>
           {verified && !codes.length && !uncertain && !replace && (
             <Button
@@ -550,21 +576,21 @@ function MfaPanel({
                 setCode("");
               }}
             >
-              Replace recovery codes
+              {appText("Replace recovery codes")}{" "}
             </Button>
           )}
           {verified && inspected && !codes.length && !uncertain && (
             <Button className="button" disabled={busy} onClick={finish}>
-              Continue with recorded verification
+              {appText("Continue with recorded verification")}{" "}
             </Button>
           )}
           <Button variant="outline" disabled={busy} onClick={onSignIn}>
-            Return to sign-in
+            {appText("Return to sign-in")}{" "}
           </Button>
         </div>
         {verified && !codes.length && !uncertain && (
           <Link href="/dashboard" className="inline-link">
-            Return to staff workspace
+            {appText("Return to staff workspace")}{" "}
           </Link>
         )}
       </section>

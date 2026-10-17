@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
@@ -42,8 +43,8 @@ const dateISO = (offset = 0) =>
   new Date(Date.now() + offset * 86400000 + 330 * 60000)
     .toISOString()
     .slice(0, 10);
-const dayLabel = (iso: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+const dayLabel = (iso: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     day: "numeric",
     month: "short",
@@ -51,8 +52,8 @@ const dayLabel = (iso: string) =>
   }).format(new Date(iso));
 const time = (minute: number) =>
   `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`;
-const localTime = (iso: string) =>
-  new Intl.DateTimeFormat("en-IN", {
+const localTime = (iso: string, locale = "en-IN") =>
+  new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
     hour: "numeric",
     minute: "2-digit",
@@ -65,6 +66,8 @@ function Notice({
   children: React.ReactNode;
   error?: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <Alert
       variant={error ? "destructive" : "default"}
@@ -81,10 +84,14 @@ export function LearningWorkspace({
   session: Session;
   dashboard: Dashboard;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   if (!["GUARDIAN", "TEACHER", "STUDENT"].includes(session.account.role))
     return (
       <Notice>
-        Classes are available to guardians, teachers and students.
+        {appText(
+          "Classes are available to guardians, teachers and students.",
+        )}{" "}
       </Notice>
     );
   return (
@@ -92,25 +99,30 @@ export function LearningWorkspace({
       <header className="learning-intro">
         <div>
           <CalendarDays size={30} aria-hidden="true" />
-          <h2>A steady rhythm for learning.</h2>
+          <h2>{appText("A steady rhythm for learning.")}</h2>
           <p>
-            Agree a weekly timetable. Keep each lesson and its attendance in
-            view.
+            {appText(
+              "Agree a weekly timetable. Keep each lesson and its attendance in view.",
+            )}{" "}
           </p>
         </div>
         <div className="learning-intro-note">
-          <span className="learning-timezone">Asia/Kolkata</span>
-          <p>All times are shown in IST.</p>
+          <span className="learning-timezone">{appText("Asia/Kolkata")}</span>
+          <p>{appText("All times are shown in IST.")}</p>
           <small>
-            Timetable agreement and tuition-start confirmation are separate
-            steps.
+            {appText(
+              "Timetable agreement and tuition-start confirmation are separate steps.",
+            )}{" "}
           </small>
         </div>
       </header>
       {session.account.role !== "STUDENT" && (
-        <section aria-label="Weekly timetables" className="learning-timetables">
+        <section
+          aria-label={appText("Weekly timetables")}
+          className="learning-timetables"
+        >
           <div className="learning-section-title">
-            <h2>Your weekly rhythm</h2>
+            <h2>{appText("Your weekly rhythm")}</h2>
             <Link
               href={
                 session.account.role === "TEACHER"
@@ -119,7 +131,7 @@ export function LearningWorkspace({
               }
               className="inline-link"
             >
-              Review tuition terms
+              {appText("Review tuition terms")}{" "}
             </Link>
           </div>
           {d.placements?.length ? (
@@ -133,8 +145,9 @@ export function LearningWorkspace({
             ))
           ) : (
             <Notice>
-              No tuition agreement yet. Complete a demo and open tuition terms
-              before proposing a timetable.
+              {appText(
+                "No tuition agreement yet. Complete a demo and open tuition terms before proposing a timetable.",
+              )}{" "}
             </Notice>
           )}
         </section>
@@ -144,10 +157,12 @@ export function LearningWorkspace({
   );
 }
 function WeekStrip({ schedule }: { schedule: Schedule }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <div
       className={`learning-week ${schedule.status === "ACCEPTED" ? "agreed" : ""}`}
-      aria-label="Weekly times in IST"
+      aria-label={appText("Weekly times in IST")}
     >
       {[1, 2, 3, 4, 5, 6, 0].map((day) => (
         <div
@@ -156,7 +171,7 @@ function WeekStrip({ schedule }: { schedule: Schedule }) {
             schedule.slots.some((s) => s.weekday === day) ? "has-lesson" : ""
           }
         >
-          <strong>{days[day].slice(0, 3)}</strong>
+          <strong>{appText(days[day].slice(0, 3))}</strong>
           {schedule.slots
             .filter((s) => s.weekday === day)
             .map((s, i) => (
@@ -182,6 +197,8 @@ function Timetable({
   placement: Placement;
   dashboard: Dashboard;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const client = useQueryClient();
   // shortcut: the timetable API returns 50 entries; paginate when it supplies a cursor.
   const query = useQuery({
@@ -332,34 +349,41 @@ function Timetable({
     });
   }
   return (
-    <article className="learning-timetable">
+    <article className="learning-timetable" data-placement-id={p.id}>
       <div className="learning-agreement-title">
         <div>
-          <h3>{teacher?.name || "Tuition agreement"}</h3>
-          <p>{learner?.alias || `Agreement ${p.id.slice(0, 8)}`}</p>
+          <h3>{teacher?.name || appText("Tuition agreement")}</h3>
+          <p>
+            {learner?.alias || appText("Agreement {0}", [p.id.slice(0, 8)])}
+          </p>
         </div>
         <span className={`learning-state ${accepted ? "accepted" : "pending"}`}>
           {closed
-            ? "Closed"
+            ? appText("Closed")
             : accepted
-              ? "Timetable agreed"
-              : "Awaiting a timetable"}
+              ? appText("Timetable agreed")
+              : appText("Awaiting a timetable")}
         </span>
       </div>
       {!permitted && (
         <Notice>
-          Active guardian consent and verification are required to manage this
-          timetable.
+          {appText(
+            "Active guardian consent and verification are required to manage this timetable.",
+          )}{" "}
         </Notice>
       )}
-      {query.isPending && <p role="status">Loading weekly timetables…</p>}
-      {query.error && <Notice error>{query.error.message}</Notice>}
+      {query.isPending && (
+        <p role="status">{appText("Loading weekly timetables…")}</p>
+      )}
+      {query.error && <Notice error>{appError(query.error.message)}</Notice>}
       {!query.isPending && !query.error && !current.length && (
         <div className="learning-empty">
           <Clock size={24} aria-hidden="true" />
-          <p>Make space for regular learning.</p>
+          <p>{appText("Make space for regular learning.")}</p>
           <small>
-            Propose the days and times that work for this tuition agreement.
+            {appText(
+              "Propose the days and times that work for this tuition agreement.",
+            )}{" "}
           </small>
         </div>
       )}
@@ -369,16 +393,17 @@ function Timetable({
           <section
             key={s.id}
             className="learning-schedule"
-            aria-label={`${label(s.status)} timetable`}
+            aria-label={appText("{0} timetable", [appText(label(s.status))])}
           >
             <div className="learning-schedule-heading">
               <h4>
                 {s.status === "ACCEPTED"
-                  ? "Agreed weekly timetable"
-                  : "Proposed weekly timetable"}
+                  ? appText("Agreed weekly timetable")
+                  : appText("Proposed weekly timetable")}
               </h4>
               <span>
-                {dayLabel(s.validFrom)}–{dayLabel(s.validUntil)}
+                {dayLabel(s.validFrom, appLocale)}–
+                {dayLabel(s.validUntil, appLocale)}
               </span>
             </div>
             <WeekStrip schedule={s} />
@@ -386,28 +411,33 @@ function Timetable({
             <div className="learning-party-row">
               <span>
                 <Check size={15} aria-hidden="true" />
-                Guardian: {s.guardianAccepted ? "accepted" : "pending"}
+                {appText("Guardian:")}{" "}
+                {s.guardianAccepted ? appText("accepted") : appText("pending")}
               </span>
               <span>
                 <Check size={15} aria-hidden="true" />
-                Teacher: {s.teacherAccepted ? "accepted" : "pending"}
+                {appText("Teacher:")}{" "}
+                {s.teacherAccepted ? appText("accepted") : appText("pending")}
               </span>
             </div>
             {s.status === "ACCEPTED" && (
               <p className="learning-help">
-                Booking checks cover a rolling 60 days
+                {appText("Booking checks cover a rolling 60 days")}{" "}
                 {s.materializedUntil
-                  ? `, last checked through ${dayLabel(s.materializedUntil)}`
+                  ? appText(", last checked through {0}", [
+                      dayLabel(s.materializedUntil, appLocale),
+                    ])
                   : ""}
-                . Individual booked lessons appear below; cancelled lessons
-                remain in the record.
+                {appText(
+                  ". Individual booked lessons appear below; cancelled lessons remain in the record.",
+                )}{" "}
               </p>
             )}
             {s.extensionRetryAt && (
               <Notice>
-                A booking check needs review. Next recorded retry:{" "}
-                {dayLabel(s.extensionRetryAt)}. Contact support if lessons are
-                missing.
+                {appText("A booking check needs review. Next recorded retry:")}{" "}
+                {dayLabel(s.extensionRetryAt, appLocale)}
+                {appText(". Contact support if lessons are missing.")}{" "}
               </Notice>
             )}
             {s.status === "PROPOSED" && !ownAccepted && (
@@ -420,12 +450,14 @@ function Timetable({
                   setAgreed(false);
                 }}
               >
-                Review & accept timetable
+                {appText("Review & accept timetable")}{" "}
               </Button>
             )}
             {s.status === "PROPOSED" && ownAccepted && (
               <p className="learning-help">
-                Your acceptance is recorded. Waiting for the other party.
+                {appText(
+                  "Your acceptance is recorded. Waiting for the other party.",
+                )}{" "}
               </p>
             )}
             {s.status === "ACCEPTED" && (
@@ -438,7 +470,7 @@ function Timetable({
                   setAgreed(false);
                 }}
               >
-                Check upcoming bookings
+                {appText("Check upcoming bookings")}{" "}
               </Button>
             )}
           </section>
@@ -446,12 +478,14 @@ function Timetable({
       })}
       {!closed && (!p.guardianAccepted || !p.teacherAccepted) && (
         <Notice>
-          Both parties must accept tuition terms before agreeing this timetable.{" "}
+          {appText(
+            "Both parties must accept tuition terms before agreeing this timetable.",
+          )}{" "}
           <Link
             className="inline-link"
             href={guardian ? "/dashboard/requests" : "/dashboard/bookings"}
           >
-            Review terms
+            {appText("Review terms")}{" "}
           </Link>
         </Notice>
       )}
@@ -461,7 +495,7 @@ function Timetable({
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
         >
-          Refresh timetable
+          {appText("Refresh timetable")}{" "}
         </Button>
         {!closed && (
           <Button
@@ -473,31 +507,34 @@ function Timetable({
               setAgreed(false);
             }}
           >
-            Propose {accepted ? "a replacement" : "weekly times"}
+            {appText("Propose")}{" "}
+            {accepted ? appText("a replacement") : appText("weekly times")}
           </Button>
         )}
       </div>
       {query.data?.items.length === 50 && (
         <p className="learning-help">
-          This view contains the latest 50 timetables. Contact support for older
-          agreements.
+          {appText(
+            "This view contains the latest 50 timetables. Contact support for older agreements.",
+          )}{" "}
         </p>
       )}
       {open && (
         <div className="learning-review" ref={confirmation} tabIndex={-1}>
           <h4>
             {accepted
-              ? "Review a replacement timetable"
-              : "Propose weekly times"}
+              ? appText("Review a replacement timetable")
+              : appText("Propose weekly times")}
           </h4>
           <p>
-            Every time is in IST. Online lessons allow up to 40 minutes. Home
-            lessons allow 20–120 minutes.
+            {appText(
+              "Every time is in IST. Online lessons allow up to 40 minutes. Home lessons allow 20–120 minutes.",
+            )}{" "}
           </p>
           <p>
-            A new proposal replaces any pending proposal. After both parties
-            accept, booked future lessons at least one hour away may be
-            cancelled and replaced; earlier commitments remain.
+            {appText(
+              "A new proposal replaces any pending proposal. After both parties accept, booked future lessons at least one hour away may be cancelled and replaced; earlier commitments remain.",
+            )}{" "}
           </p>
           <form
             noValidate
@@ -509,7 +546,7 @@ function Timetable({
             <fieldset disabled={blocked}>
               <div className="learning-form-grid">
                 <label>
-                  First valid date
+                  {appText("First valid date")}{" "}
                   <Input
                     type="date"
                     value={from}
@@ -517,7 +554,7 @@ function Timetable({
                   />
                 </label>
                 <label>
-                  Last valid date
+                  {appText("Last valid date")}{" "}
                   <Input
                     type="date"
                     value={until}
@@ -528,9 +565,9 @@ function Timetable({
               {slots.map((s, i) => (
                 <div className="learning-slot-row" key={i}>
                   <label>
-                    Day {i + 1}
+                    {appText("Day")} {i + 1}
                     <select
-                      aria-label={`Day ${i + 1}`}
+                      aria-label={appText("Day {0}", [i + 1])}
                       value={s.weekday}
                       onChange={(e) =>
                         setSlots(
@@ -542,13 +579,13 @@ function Timetable({
                     >
                       {days.map((d, k) => (
                         <option key={d} value={k}>
-                          {d}
+                          {appText(d)}
                         </option>
                       ))}
                     </select>
                   </label>
                   <label>
-                    Start time {i + 1} (IST)
+                    {appText("Start time")} {i + 1} {appText("(IST)")}{" "}
                     <Input
                       type="time"
                       value={s.start}
@@ -562,9 +599,9 @@ function Timetable({
                     />
                   </label>
                   <label>
-                    Duration {i + 1}
+                    {appText("Duration")} {i + 1}
                     <select
-                      aria-label={`Duration ${i + 1}`}
+                      aria-label={appText("Duration {0}", [i + 1])}
                       value={s.duration}
                       onChange={(e) =>
                         setSlots(
@@ -578,7 +615,7 @@ function Timetable({
                         .filter((n) => request?.mode !== "ONLINE" || n <= 40)
                         .map((n) => (
                           <option key={n} value={n}>
-                            {n} minutes
+                            {n} {appText("minutes")}{" "}
                           </option>
                         ))}
                     </select>
@@ -586,11 +623,11 @@ function Timetable({
                   <Button
                     type="button"
                     variant="ghost"
-                    aria-label={`Remove weekly time ${i + 1}`}
+                    aria-label={appText("Remove weekly time {0}", [i + 1])}
                     disabled={slots.length === 1}
                     onClick={() => setSlots(slots.filter((_, j) => j !== i))}
                   >
-                    Remove
+                    {appText("Remove")}{" "}
                   </Button>
                 </div>
               ))}
@@ -605,15 +642,17 @@ function Timetable({
                   ])
                 }
               >
-                Add weekly time
+                {appText("Add weekly time")}{" "}
               </Button>
               <label>
-                Reason for these times
+                {appText("Reason for these times")}{" "}
                 <Textarea
                   value={reason}
                   maxLength={300}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="For example, after-school Maths practice"
+                  placeholder={appText(
+                    "For example, after-school Maths practice",
+                  )}
                 />
               </label>
               <label className="learning-check">
@@ -623,7 +662,9 @@ function Timetable({
                   onChange={(e) => setAgreed(e.target.checked)}
                 />
                 <span>
-                  I have reviewed these times and the replacement policy.
+                  {appText(
+                    "I have reviewed these times and the replacement policy.",
+                  )}{" "}
                 </span>
               </label>
               <div className="learning-actions">
@@ -632,10 +673,10 @@ function Timetable({
                   variant="outline"
                   onClick={() => setOpen(false)}
                 >
-                  Cancel
+                  {appText("Cancel")}{" "}
                 </Button>
                 <Button className="button" type="submit">
-                  Save timetable proposal
+                  {appText("Save timetable proposal")}{" "}
                 </Button>
               </div>
             </fieldset>
@@ -646,14 +687,18 @@ function Timetable({
         <div className="learning-review" ref={confirmation} tabIndex={-1}>
           <h4>
             {form.kind === "accept"
-              ? "Review timetable acceptance"
-              : "Check upcoming bookings"}
+              ? appText("Review timetable acceptance")
+              : appText("Check upcoming bookings")}
           </h4>
           <WeekStrip schedule={chosen} />
           <p>
             {form.kind === "accept"
-              ? "Both parties must accept this version. Availability is checked before lessons are booked. Accepting a replacement may cancel and replace scheduled lessons at least one hour away; earlier commitments remain."
-              : "This checks available lessons against the agreed timetable, within the next 60 days and its validity dates. It does not confirm paid tuition start or attendance."}
+              ? appText(
+                  "Both parties must accept this version. Availability is checked before lessons are booked. Accepting a replacement may cancel and replace scheduled lessons at least one hour away; earlier commitments remain.",
+                )
+              : appText(
+                  "This checks available lessons against the agreed timetable, within the next 60 days and its validity dates. It does not confirm paid tuition start or attendance.",
+                )}
           </p>
           <fieldset disabled={blocked}>
             <label className="learning-check">
@@ -663,17 +708,19 @@ function Timetable({
                 onChange={(e) => setAgreed(e.target.checked)}
               />
               <span>
-                I have reviewed the timetable and understand this action.
+                {appText(
+                  "I have reviewed the timetable and understand this action.",
+                )}{" "}
               </span>
             </label>
             <div className="learning-actions">
               <Button variant="outline" onClick={() => setForm(null)}>
-                Cancel
+                {appText("Cancel")}{" "}
               </Button>
               <Button className="button" onClick={confirm}>
                 {form.kind === "accept"
-                  ? "Accept this timetable"
-                  : "Confirm booking check"}
+                  ? appText("Accept this timetable")
+                  : appText("Confirm booking check")}
               </Button>
             </div>
           </fieldset>
@@ -684,6 +731,8 @@ function Timetable({
   );
 }
 function LearningRecords({ session }: { session: Session }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const client = useQueryClient();
   const [range, setRange] = useState({ from: dateISO(-30), to: dateISO(60) }),
     [draft, setDraft] = useState(range),
@@ -743,23 +792,27 @@ function LearningRecords({ session }: { session: Session }) {
         : b.startsAt.localeCompare(a.startsAt),
     );
   return (
-    <section className="learning-records" aria-label="Lesson records">
+    <section
+      className="learning-records"
+      aria-label={appText("Lesson records")}
+    >
       <div className="learning-section-title">
         <div>
           <BookOpen size={24} aria-hidden="true" />
-          <h2>Every lesson, in view.</h2>
+          <h2>{appText("Every lesson, in view.")}</h2>
         </div>
         <Button
           variant="outline"
           disabled={locked || query.isFetching}
           onClick={() => query.refetch()}
         >
-          Refresh lessons
+          {appText("Refresh lessons")}{" "}
         </Button>
       </div>
       <p>
-        Attendance totals include completed present or late lessons. Cancelled,
-        absent and disputed lessons are excluded.
+        {appText(
+          "Attendance totals include completed present or late lessons. Cancelled, absent and disputed lessons are excluded.",
+        )}{" "}
       </p>
       <form
         className="learning-date-filter"
@@ -771,7 +824,7 @@ function LearningRecords({ session }: { session: Session }) {
       >
         <fieldset disabled={locked}>
           <label>
-            Lessons from
+            {appText("Lessons from")}{" "}
             <Input
               type="date"
               value={draft.from}
@@ -779,7 +832,7 @@ function LearningRecords({ session }: { session: Session }) {
             />
           </label>
           <label>
-            Lessons through
+            {appText("Lessons through")}{" "}
             <Input
               type="date"
               value={draft.to}
@@ -787,28 +840,30 @@ function LearningRecords({ session }: { session: Session }) {
             />
           </label>
           <Button type="submit" variant="outline">
-            Apply dates
+            {appText("Apply dates")}{" "}
           </Button>
         </fieldset>
       </form>
-      {rangeError && <Notice error>{rangeError}</Notice>}
+      {rangeError && <Notice error>{appError(rangeError)}</Notice>}
       <Tabs value={view} onValueChange={setView}>
-        <TabsList aria-label="Lesson view">
+        <TabsList aria-label={appText("Lesson view")}>
           <TabsTrigger value="upcoming" disabled={locked}>
-            Upcoming
+            {appText("Upcoming")}{" "}
           </TabsTrigger>
           <TabsTrigger value="records" disabled={locked}>
-            Attendance & records
+            {appText("Attendance & records")}{" "}
           </TabsTrigger>
         </TabsList>
         {["upcoming", "records"].map((tab) => (
           <TabsContent value={tab} key={tab}>
-            {query.isPending && <p role="status">Loading lesson records…</p>}
+            {query.isPending && (
+              <p role="status">{appText("Loading lesson records…")}</p>
+            )}
             {query.error && (
               <Notice error>
-                {query.error.message}{" "}
+                {appError(query.error.message)}{" "}
                 <Button variant="outline" onClick={() => query.refetch()}>
-                  Retry lesson records
+                  {appText("Retry lesson records")}{" "}
                 </Button>
               </Notice>
             )}
@@ -817,13 +872,17 @@ function LearningRecords({ session }: { session: Session }) {
                 <CalendarDays size={28} aria-hidden="true" />
                 <h3>
                   {view === "upcoming"
-                    ? "No upcoming lessons in the loaded records."
-                    : "No lesson records for these dates."}
+                    ? appText("No upcoming lessons in the loaded records.")
+                    : appText("No lesson records for these dates.")}
                 </h3>
                 <p>
                   {query.hasNextPage
-                    ? "Load more lessons to check the rest of this date range."
-                    : "Adjust the dates or agree a timetable to see booked lessons here."}
+                    ? appText(
+                        "Load more lessons to check the rest of this date range.",
+                      )
+                    : appText(
+                        "Adjust the dates or agree a timetable to see booked lessons here.",
+                      )}
                 </p>
               </div>
             )}
@@ -844,8 +903,9 @@ function LearningRecords({ session }: { session: Session }) {
       </Tabs>
       <div className="learning-load">
         <span>
-          {records.length} loaded {records.length === 1 ? "record" : "records"}{" "}
-          in this date range
+          {records.length} {appText("loaded")}{" "}
+          {records.length === 1 ? appText("record") : appText("records")}{" "}
+          {appText("in this date range")}{" "}
         </span>
         {query.hasNextPage && (
           <Button
@@ -853,7 +913,9 @@ function LearningRecords({ session }: { session: Session }) {
             disabled={locked || query.isFetching}
             onClick={() => query.fetchNextPage()}
           >
-            {query.isFetchingNextPage ? "Loading…" : "Load more lessons"}
+            {query.isFetchingNextPage
+              ? appText("Loading…")
+              : appText("Load more lessons")}
           </Button>
         )}
       </div>
@@ -873,6 +935,8 @@ function LessonRecord({
   onLock: (id: string, locked: boolean) => void;
   blocked: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const teacher = session.account.role === "TEACHER";
   const [action, setAction] = useState<
       "attendance" | "CONFIRMED" | "DISPUTED" | "feedback" | null
@@ -993,13 +1057,13 @@ function LessonRecord({
       <div className="learning-lesson-top">
         <div className="learning-date-stamp">
           <strong>
-            {new Intl.DateTimeFormat("en-IN", {
+            {new Intl.DateTimeFormat(appLocale, {
               timeZone: "Asia/Kolkata",
               day: "numeric",
             }).format(new Date(l.startsAt))}
           </strong>
           <span>
-            {new Intl.DateTimeFormat("en-IN", {
+            {new Intl.DateTimeFormat(appLocale, {
               timeZone: "Asia/Kolkata",
               month: "short",
             }).format(new Date(l.startsAt))}
@@ -1007,68 +1071,82 @@ function LessonRecord({
         </div>
         <div className="learning-lesson-details">
           <h3>
-            {l.subject} with {l.teacher.name}
+            {appCurriculum(l.subject)} {appText("with")} {l.teacher.name}
           </h3>
           <p>
-            {l.learner.alias} · {l.learner.board}, Class {l.learner.grade}
+            {l.learner.alias} · {l.learner.board}
+            {appText(", Class")} {l.learner.grade}
           </p>
           <span>
-            {localTime(l.startsAt)}–{localTime(l.endsAt)} IST · {label(l.kind)}
+            {localTime(l.startsAt, appLocale)}–{localTime(l.endsAt, appLocale)}{" "}
+            {appText("IST ·")} {appText(label(l.kind))}
           </span>
         </div>
         <span
           className={`learning-state ${l.disputed ? "review" : l.status === "COMPLETED" && ["PRESENT", "LATE"].includes(l.attendance) ? "accepted" : l.status === "SCHEDULED" ? "pending" : "neutral"}`}
         >
           {l.disputed
-            ? "Attendance under review"
-            : `${label(l.status)} · ${label(l.attendance)}`}
+            ? appText("Attendance under review")
+            : `${appText(label(l.status))} · ${appText(label(l.attendance))}`}
         </span>
       </div>
       {l.recap && (
-        <section className="lesson-recap" aria-label="Teacher recap">
+        <section className="lesson-recap" aria-label={appText("Teacher recap")}>
           <div>
             <BookOpen size={20} aria-hidden="true" />
-            <h4>Teacher recap</h4>
+            <h4>{appText("Teacher recap")}</h4>
           </div>
           <p>{l.recap}</p>
           {l.recapSubmittedAt && (
-            <small>Recorded {dayLabel(l.recapSubmittedAt)}</small>
+            <small>
+              {appText("Recorded")} {dayLabel(l.recapSubmittedAt, appLocale)}
+            </small>
           )}
         </section>
       )}
       {l.myConfirmation && (
         <p className="lesson-personal-review" role="status">
           {l.myConfirmation.lessonVersion !== l.version
-            ? "You reviewed an earlier attendance record. Ask support to review the correction before adding feedback."
+            ? appText(
+                "You reviewed an earlier attendance record. Ask support to review the correction before adding feedback.",
+              )
             : l.myConfirmation.action === "CONFIRMED"
-              ? "You confirmed this attendance record."
-              : "You reported an attendance error. Support will review it."}
+              ? appText("You confirmed this attendance record.")
+              : appText(
+                  "You reported an attendance error. Support will review it.",
+                )}
         </p>
       )}
       {l.feedback && session.account.role !== "STUDENT" && (
         <section
           className="lesson-saved-feedback"
-          aria-label="Private lesson feedback"
+          aria-label={appText("Private lesson feedback")}
         >
           <div>
-            <h4>{teacher ? "Guardian feedback" : "Your lesson feedback"}</h4>
+            <h4>
+              {teacher
+                ? appText("Guardian feedback")
+                : appText("Your lesson feedback")}
+            </h4>
             <span className="lesson-rating-value">
-              {l.feedback.rating} out of 5
+              {l.feedback.rating} {appText("out of 5")}{" "}
             </span>
           </div>
           {l.feedback.comment ? (
             <p>{l.feedback.comment}</p>
           ) : (
-            <p>No written comment added.</p>
+            <p>{appText("No written comment added.")}</p>
           )}
           <small>
-            Recorded {dayLabel(l.feedback.createdAt)} · Private to the guardian
-            and this lesson’s teacher
+            {appText("Recorded")} {dayLabel(l.feedback.createdAt, appLocale)}{" "}
+            {appText(
+              "· Private to the guardian and this lesson’s teacher",
+            )}{" "}
           </small>
           {!teacher && (
             <p>
               <Link href="/support" className="inline-link">
-                Ask support for a correction
+                {appText("Ask support for a correction")}{" "}
               </Link>
             </p>
           )}
@@ -1079,9 +1157,9 @@ function LessonRecord({
         !l.feedbackEligible &&
         l.status === "COMPLETED" && (
           <p className="learning-help">
-            Feedback is available after you confirm the current attendance for a
-            present or late lesson, with active guardian consent. Resolve any
-            attendance review first.
+            {appText(
+              "Feedback is available after you confirm the current attendance for a present or late lesson, with active guardian consent. Resolve any attendance review first.",
+            )}{" "}
           </p>
         )}
       {l.reservationId && l.status === "SCHEDULED" && (
@@ -1093,27 +1171,33 @@ function LessonRecord({
       )}
       {l.disputed && (
         <p className="learning-help">
-          Excluded from attendance totals until support resolves the record.
+          {appText(
+            "Excluded from attendance totals until support resolves the record.",
+          )}{" "}
         </p>
       )}
       {l.confirmations.length > 0 && (
         <details className="learning-history">
           <summary>
-            Recorded attendance reviews ({l.confirmations.length})
+            {appText("Recorded attendance reviews (")}
+            {l.confirmations.length})
           </summary>
           <ul>
             {l.confirmations.map((c, i) => (
               <li key={i}>
-                {label(c.action)} · {dayLabel(c.createdAt)}
+                {appText(label(c.action))} · {dayLabel(c.createdAt, appLocale)}
               </li>
             ))}
           </ul>
-          <small>The record does not identify who submitted each review.</small>
+          <small>
+            {appText("The record does not identify who submitted each review.")}
+          </small>
           <p>
-            Each person can submit one attendance review per lesson. If you have
-            already reviewed it,{" "}
+            {appText(
+              "Each person can submit one attendance review per lesson. If you have already reviewed it,",
+            )}{" "}
             <Link href="/support" className="inline-link">
-              ask support to correct the record
+              {appText("ask support to correct the record")}{" "}
             </Link>
             .
           </p>
@@ -1126,7 +1210,7 @@ function LessonRecord({
             disabled={decision.locked || blocked}
             onClick={() => open("attendance")}
           >
-            Record attendance
+            {appText("Record attendance")}{" "}
           </Button>
         )}
         {canConfirm && (
@@ -1141,7 +1225,7 @@ function LessonRecord({
               }
               onClick={() => open("CONFIRMED")}
             >
-              Confirm attendance
+              {appText("Confirm attendance")}{" "}
             </Button>
             <Button
               variant="ghost"
@@ -1153,7 +1237,7 @@ function LessonRecord({
               }
               onClick={() => open("DISPUTED")}
             >
-              Report attendance error
+              {appText("Report attendance error")}{" "}
             </Button>
           </>
         )}
@@ -1164,7 +1248,7 @@ function LessonRecord({
               disabled={decision.locked || blocked}
               onClick={() => open("feedback")}
             >
-              Share lesson feedback
+              {appText("Share lesson feedback")}{" "}
             </Button>
           )}
       </div>
@@ -1172,12 +1256,13 @@ function LessonRecord({
         <div className="lesson-feedback-editor" ref={review} tabIndex={-1}>
           <h4>
             {reviewingFeedback
-              ? "Review your lesson feedback"
-              : "How did this lesson go?"}
+              ? appText("Review your lesson feedback")
+              : appText("How did this lesson go?")}
           </h4>
           <p>
-            Shared privately with this lesson’s teacher. Your feedback won’t
-            appear on their public profile.
+            {appText(
+              "Shared privately with this lesson’s teacher. Your feedback won’t appear on their public profile.",
+            )}{" "}
           </p>
           <form
             noValidate
@@ -1203,10 +1288,15 @@ function LessonRecord({
               {reviewingFeedback ? (
                 <div className="lesson-feedback-review">
                   <p>
-                    <strong>{rating} out of 5</strong> for {l.subject} on{" "}
-                    {dayLabel(l.startsAt)}
+                    <strong>
+                      {rating} {appText("out of 5")}
+                    </strong>{" "}
+                    {appText("for")} {appCurriculum(l.subject)} {appText("on")}{" "}
+                    {dayLabel(l.startsAt, appLocale)}
                   </p>
-                  <p>{comment.trim() || "No written comment added."}</p>
+                  <p>
+                    {comment.trim() || appText("No written comment added.")}
+                  </p>
                   <label className="learning-check">
                     <input
                       type="checkbox"
@@ -1214,15 +1304,16 @@ function LessonRecord({
                       onChange={(e) => setAgreed(e.target.checked)}
                     />
                     <span>
-                      I reviewed my feedback and understand it will be shared
-                      with this lesson’s teacher.
+                      {appText(
+                        "I reviewed my feedback and understand it will be shared with this lesson’s teacher.",
+                      )}{" "}
                     </span>
                   </label>
                 </div>
               ) : (
                 <>
                   <fieldset className="lesson-rating-options">
-                    <legend>How helpful was this lesson?</legend>
+                    <legend>{appText("How helpful was this lesson?")}</legend>
                     {[
                       ["1", "Needs support"],
                       ["2", "Could be clearer"],
@@ -1242,13 +1333,15 @@ function LessonRecord({
                           onChange={() => setRating(value)}
                         />
                         <span>
-                          <strong>{value}</strong> {title}
+                          <strong>{value}</strong> {appText(title)}
                         </span>
                       </label>
                     ))}
                   </fieldset>
                   <label>
-                    What worked well, or could be better? (optional)
+                    {appText(
+                      "What worked well, or could be better? (optional)",
+                    )}{" "}
                     <Textarea
                       value={comment}
                       maxLength={1000}
@@ -1257,8 +1350,10 @@ function LessonRecord({
                     />
                   </label>
                   <small id={`feedback-help-${l.id}`}>
-                    {comment.length}/1,000 characters. Keep the comment about
-                    this lesson; leave out contact details.
+                    {comment.length}
+                    {appText(
+                      "/1,000 characters. Keep the comment about this lesson; leave out contact details.",
+                    )}{" "}
                   </small>
                 </>
               )}
@@ -1272,7 +1367,9 @@ function LessonRecord({
                       : setAction(null)
                   }
                 >
-                  {reviewingFeedback ? "Edit feedback" : "Cancel feedback"}
+                  {reviewingFeedback
+                    ? appText("Edit feedback")
+                    : appText("Cancel feedback")}
                 </Button>
                 <Button
                   type="submit"
@@ -1281,16 +1378,16 @@ function LessonRecord({
                   }
                 >
                   {reviewingFeedback
-                    ? "Send private feedback"
-                    : "Review feedback"}
+                    ? appText("Send private feedback")
+                    : appText("Review feedback")}
                 </Button>
               </div>
             </fieldset>
           </form>
           <p className="learning-help">
-            For a safety concern,{" "}
+            {appText("For a safety concern,")}{" "}
             <Link href="/support" className="inline-link">
-              contact support
+              {appText("contact support")}{" "}
             </Link>
             .
           </p>
@@ -1300,15 +1397,24 @@ function LessonRecord({
         <div className="learning-review" ref={review} tabIndex={-1}>
           <h4>
             {action === "attendance"
-              ? "Record lesson attendance"
+              ? appText("Record lesson attendance")
               : action === "CONFIRMED"
-                ? "Review attendance confirmation"
-                : "Report an attendance error"}
+                ? appText("Review attendance confirmation")
+                : appText("Report an attendance error")}
           </h4>
           <p>
             {action === "DISPUTED"
-              ? "Explain what is incorrect. This opens a support review and excludes the lesson from attendance totals."
-              : `Review the ${label(l.attendance)} record for ${l.learner.alias} on ${dayLabel(l.startsAt)}. Confirm only what actually happened.`}
+              ? appText(
+                  "Explain what is incorrect. This opens a support review and excludes the lesson from attendance totals.",
+                )
+              : appText(
+                  "Review the {0} record for {1} on {2}. Confirm only what actually happened.",
+                  [
+                    appText(label(l.attendance)),
+                    l.learner.alias,
+                    dayLabel(l.startsAt, appLocale),
+                  ],
+                )}
           </p>
           <form
             noValidate
@@ -1320,22 +1426,22 @@ function LessonRecord({
             <fieldset disabled={decision.locked || blocked}>
               {action === "attendance" && (
                 <label>
-                  Attendance
+                  {appText("Attendance")}{" "}
                   <select
-                    aria-label="Attendance"
+                    aria-label={appText("Attendance")}
                     value={attendance}
                     onChange={(e) => setAttendance(e.target.value)}
                   >
-                    <option value="PRESENT">Present</option>
-                    <option value="LATE">Late</option>
-                    <option value="ABSENT">Absent</option>
+                    <option value="PRESENT">{appText("Present")}</option>
+                    <option value="LATE">{appText("Late")}</option>
+                    <option value="ABSENT">{appText("Absent")}</option>
                   </select>
                 </label>
               )}
               <label>
                 {action === "DISPUTED"
-                  ? "What is incorrect?"
-                  : "Reason for this record"}
+                  ? appText("What is incorrect?")
+                  : appText("Reason for this record")}
                 <Textarea
                   value={reason}
                   maxLength={action === "attendance" ? 300 : 500}
@@ -1344,15 +1450,19 @@ function LessonRecord({
               </label>
               {action === "attendance" && l.kind === "REVISION" && (
                 <label>
-                  Revision recap
-                  {attendance !== "ABSENT" ? " (required)" : " (optional)"}
+                  {appText("Revision recap")}{" "}
+                  {attendance !== "ABSENT"
+                    ? appText(" (required)")
+                    : appText(" (optional)")}
                   <Textarea
                     value={recap}
                     maxLength={2000}
                     onChange={(e) => setRecap(e.target.value)}
                   />
                   <small>
-                    Summarize the topic covered and the learner’s next step.
+                    {appText(
+                      "Summarize the topic covered and the learner’s next step.",
+                    )}{" "}
                   </small>
                 </label>
               )}
@@ -1364,8 +1474,12 @@ function LessonRecord({
                 />
                 <span>
                   {action === "DISPUTED"
-                    ? "I want support to review this attendance record."
-                    : "I have reviewed this lesson and the attendance details are accurate."}
+                    ? appText(
+                        "I want support to review this attendance record.",
+                      )
+                    : appText(
+                        "I have reviewed this lesson and the attendance details are accurate.",
+                      )}
                 </span>
               </label>
               <div className="learning-actions">
@@ -1374,14 +1488,14 @@ function LessonRecord({
                   variant="outline"
                   onClick={() => setAction(null)}
                 >
-                  Cancel
+                  {appText("Cancel")}{" "}
                 </Button>
                 <Button className="button" type="submit">
                   {action === "DISPUTED"
-                    ? "Submit attendance dispute"
+                    ? appText("Submit attendance dispute")
                     : action === "CONFIRMED"
-                      ? "Save attendance confirmation"
-                      : "Save attendance record"}
+                      ? appText("Save attendance confirmation")
+                      : appText("Save attendance record")}
                 </Button>
               </div>
             </fieldset>
@@ -1395,7 +1509,7 @@ function LessonRecord({
           disabled={decision.busy}
           onClick={() => decision.reload()}
         >
-          Refresh attendance record
+          {appText("Refresh attendance record")}{" "}
         </Button>
       )}
     </article>

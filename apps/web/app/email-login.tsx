@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { z } from "zod";
 import { signInCopy, type SignInError } from "./sign-in-copy";
@@ -42,6 +43,8 @@ export function EmailLogin({
   onLanguageChange: (hindi: boolean) => void;
   onSignedIn: (session: Session) => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const t = signInCopy[hindi ? "hi" : "en"];
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -162,14 +165,14 @@ export function EmailLogin({
     <div className="auth-layout">
       <section className="auth-card" aria-labelledby="auth-title">
         <div className="auth-language">
-          <label htmlFor="signin-language">Language / भाषा</label>
+          <label htmlFor="signin-language">{appText("Language / भाषा")}</label>
           <select
             id="signin-language"
             value={hindi ? "hi" : "en"}
             onChange={(event) => onLanguageChange(event.target.value === "hi")}
             disabled={busy}
           >
-            <option value="en">English</option>
+            <option value="en">{appText("English")}</option>
             <option value="hi">हिन्दी</option>
           </select>
         </div>
@@ -204,7 +207,9 @@ export function EmailLogin({
         </p>
         {errors.server && (
           <Alert variant="destructive" role="alert">
-            <AlertDescription>{t.errors[errors.server]}</AlertDescription>
+            <AlertDescription>
+              {appError(t.errors[errors.server])}
+            </AlertDescription>
           </Alert>
         )}
         {!challenge ? (
@@ -228,7 +233,7 @@ export function EmailLogin({
             />
             {errors.name ? (
               <p id="signin-name-error" className="auth-field-error">
-                {t.errors[errors.name]}
+                {appError(t.errors[errors.name])}
               </p>
             ) : (
               <p id="signin-name-help" className="auth-help">
@@ -245,7 +250,7 @@ export function EmailLogin({
               autoCapitalize="none"
               spellCheck={false}
               maxLength={254}
-              placeholder="you@example.com"
+              placeholder={appText("you@example.com")}
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -257,7 +262,7 @@ export function EmailLogin({
             />
             {errors.email && (
               <p id="signin-email-error" className="auth-field-error">
-                {t.errors[errors.email]}
+                {appError(t.errors[errors.email])}
               </p>
             )}
             <Button
@@ -322,7 +327,7 @@ export function EmailLogin({
                 className="auth-field-error"
                 role="alert"
               >
-                {t.errors[errors.code]}
+                {appError(t.errors[errors.code])}
               </p>
             )}
             <p id="signin-code-help" className="auth-help">

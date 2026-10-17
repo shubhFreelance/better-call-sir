@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -18,6 +19,8 @@ export function StudentSupporters({
   session: Session;
   hindi?: boolean;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const t = copy(hindi),
     owner = session.account.role === "INDEPENDENT_STUDENT",
     params = useSearchParams(),
@@ -78,44 +81,56 @@ export function StudentSupporters({
             )}
       </p>
       <div className="student-support-explainer">
-        <h2>{t("Decide what help you want", "तय करें कि कैसी मदद चाहिए")}</h2>
+        <h2>
+          {appText(t("Decide what help you want", "तय करें कि कैसी मदद चाहिए"))}
+        </h2>
         <dl>
-          <dt>{t("Advice only", "केवल सलाह")}</dt>
+          <dt>{appText(t("Advice only", "केवल सलाह"))}</dt>
           <dd>
-            {t(
-              "View shared education, enquiries, shortlist and arrangement progress. No edits or decisions.",
-              "साझा पढ़ाई, पूछताछ, शिक्षक सूची और व्यवस्था की प्रगति देखें। बदलाव या निर्णय नहीं।",
+            {appText(
+              t(
+                "View shared education, enquiries, shortlist and arrangement progress. No edits or decisions.",
+                "साझा पढ़ाई, पूछताछ, शिक्षक सूची और व्यवस्था की प्रगति देखें। बदलाव या निर्णय नहीं।",
+              ),
             )}
           </dd>
-          <dt>{t("Manage learning decisions", "पढ़ाई के निर्णय सँभालें")}</dt>
+          <dt>
+            {appText(t("Manage learning decisions", "पढ़ाई के निर्णय सँभालें"))}
+          </dt>
           <dd>
-            {t(
-              "Also edit education, send enquiries, choose a teacher, accept hiring and mutual email-sharing terms, close arrangements or request a replacement.",
-              "पढ़ाई बदलें, पूछताछ भेजें, शिक्षक चुनें, नियुक्ति और ईमेल साझा करने की शर्तें स्वीकारें, व्यवस्था बंद करें या शिक्षक बदलने का अनुरोध करें।",
+            {appText(
+              t(
+                "Also edit education, send enquiries, choose a teacher, accept hiring and mutual email-sharing terms, close arrangements or request a replacement.",
+                "पढ़ाई बदलें, पूछताछ भेजें, शिक्षक चुनें, नियुक्ति और ईमेल साझा करने की शर्तें स्वीकारें, व्यवस्था बंद करें या शिक्षक बदलने का अनुरोध करें।",
+              ),
             )}
           </dd>
         </dl>
         <p>
-          {t(
-            "Neither option shares login codes, devices, account ownership, private support conversations or privacy/deletion controls. This is voluntary adult support, not proof of legal guardianship.",
-            "दोनों विकल्पों में लॉगिन कोड, उपकरण, खाते का स्वामित्व, निजी सहायता बातचीत या गोपनीयता/मिटाने का अधिकार साझा नहीं होता। यह वयस्क की स्वैच्छिक मदद है, कानूनी अभिभावक होने का प्रमाण नहीं।",
+          {appText(
+            t(
+              "Neither option shares login codes, devices, account ownership, private support conversations or privacy/deletion controls. This is voluntary adult support, not proof of legal guardianship.",
+              "दोनों विकल्पों में लॉगिन कोड, उपकरण, खाते का स्वामित्व, निजी सहायता बातचीत या गोपनीयता/मिटाने का अधिकार साझा नहीं होता। यह वयस्क की स्वैच्छिक मदद है, कानूनी अभिभावक होने का प्रमाण नहीं।",
+            ),
           )}
         </p>
       </div>
       <StudentFeedback decision={d} hindi={hindi} />
       {q.isPending && (
         <p role="status">
-          {t("Loading invitations…", "आमंत्रण लोड हो रहे हैं…")}
+          {appText(t("Loading invitations…", "आमंत्रण लोड हो रहे हैं…"))}
         </p>
       )}
       {q.error && (
         <Notice error>
-          {t(
-            "Invitation history is unavailable. Reload before making a decision.",
-            "आमंत्रण उपलब्ध नहीं हैं। निर्णय से पहले फिर लोड करें।",
+          {appText(
+            t(
+              "Invitation history is unavailable. Reload before making a decision.",
+              "आमंत्रण उपलब्ध नहीं हैं। निर्णय से पहले फिर लोड करें।",
+            ),
           )}{" "}
           <Button onClick={() => q.refetch()}>
-            {t("Try again", "फिर कोशिश करें")}
+            {appText(t("Try again", "फिर कोशिश करें"))}
           </Button>
         </Notice>
       )}
@@ -134,15 +149,17 @@ export function StudentSupporters({
       )}
       {owner && q.hasNextPage && (
         <p>
-          {t(
-            "Load the remaining history before creating or replacing an invitation.",
-            "आमंत्रण बनाने या बदलने से पहले बाकी इतिहास लोड करें।",
+          {appText(
+            t(
+              "Load the remaining history before creating or replacing an invitation.",
+              "आमंत्रण बनाने या बदलने से पहले बाकी इतिहास लोड करें।",
+            ),
           )}
         </p>
       )}
       {inviting && (
         <div className="student-review-panel">
-          <h2>{t("Invite by email", "ईमेल से आमंत्रित करें")}</h2>
+          <h2>{appText(t("Invite by email", "ईमेल से आमंत्रित करें"))}</h2>
           {!inviteReview ? (
             <form
               onSubmit={(e) => {
@@ -153,7 +170,9 @@ export function StudentSupporters({
             >
               <fieldset disabled={d.locked}>
                 <label className="field">
-                  {t("Supporter’s account email", "मददगार के खाते का ईमेल")}
+                  {appText(
+                    t("Supporter’s account email", "मददगार के खाते का ईमेल"),
+                  )}
                   <Input
                     type="email"
                     required
@@ -164,25 +183,27 @@ export function StudentSupporters({
                   />
                 </label>
                 <label className="field">
-                  {t("Permission", "अनुमति")}
+                  {appText(t("Permission", "अनुमति"))}
                   <select
-                    aria-label={t("Permission", "अनुमति")}
+                    aria-label={appText(t("Permission", "अनुमति"))}
                     value={mode}
                     onChange={(e) => setMode(e.target.value as typeof mode)}
                   >
                     <option value="ADVICE">
-                      {t("Advice only", "केवल सलाह")}
+                      {appText(t("Advice only", "केवल सलाह"))}
                     </option>
                     <option value="MANAGE">
-                      {t(
-                        "Manage learning decisions",
-                        "पढ़ाई के निर्णय सँभालें",
+                      {appText(
+                        t(
+                          "Manage learning decisions",
+                          "पढ़ाई के निर्णय सँभालें",
+                        ),
                       )}
                     </option>
                   </select>
                 </label>
                 <Button type="submit">
-                  {t("Review invitation", "आमंत्रण की समीक्षा करें")}
+                  {appText(t("Review invitation", "आमंत्रण की समीक्षा करें"))}
                 </Button>
               </fieldset>
             </form>
@@ -195,16 +216,20 @@ export function StudentSupporters({
                   : t("Advice only", "केवल सलाह")}
               </p>
               <p>
-                {t(
-                  "The invitation lasts seven days. Ask this person to sign in with this email as a guardian and open Supported students. Creating the invitation does not send an email or grant access before acceptance.",
-                  "आमंत्रण सात दिन मान्य है। इस व्यक्ति से इसी ईमेल के अभिभावक खाते में प्रवेश करके मदद वाले विद्यार्थी खोलने को कहें। आमंत्रण बनाने से ईमेल नहीं भेजा जाता और स्वीकारने से पहले अनुमति नहीं मिलती।",
+                {appText(
+                  t(
+                    "The invitation lasts seven days. Ask this person to sign in with this email as a guardian and open Supported students. Creating the invitation does not send an email or grant access before acceptance.",
+                    "आमंत्रण सात दिन मान्य है। इस व्यक्ति से इसी ईमेल के अभिभावक खाते में प्रवेश करके मदद वाले विद्यार्थी खोलने को कहें। आमंत्रण बनाने से ईमेल नहीं भेजा जाता और स्वीकारने से पहले अनुमति नहीं मिलती।",
+                  ),
                 )}
               </p>
               {pending && (
                 <Notice>
-                  {t(
-                    "The previous invitation will be revoked immediately.",
-                    "पहला आमंत्रण तुरंत रद्द हो जाएगा।",
+                  {appText(
+                    t(
+                      "The previous invitation will be revoked immediately.",
+                      "पहला आमंत्रण तुरंत रद्द हो जाएगा।",
+                    ),
                   )}
                 </Notice>
               )}
@@ -216,9 +241,11 @@ export function StudentSupporters({
                   onChange={(e) => setAgreed(e.target.checked)}
                 />
                 <span>
-                  {t(
-                    "I trust this person and authorize exactly the scope described above.",
-                    "मुझे इस व्यक्ति पर भरोसा है और ऊपर बताई अनुमति देता/देती हूँ।",
+                  {appText(
+                    t(
+                      "I trust this person and authorize exactly the scope described above.",
+                      "मुझे इस व्यक्ति पर भरोसा है और ऊपर बताई अनुमति देता/देती हूँ।",
+                    ),
                   )}
                 </span>
               </label>
@@ -228,7 +255,7 @@ export function StudentSupporters({
                   disabled={d.locked}
                   onClick={() => setInviteReview(false)}
                 >
-                  {t("Edit invitation", "आमंत्रण बदलें")}
+                  {appText(t("Edit invitation", "आमंत्रण बदलें"))}
                 </Button>
                 <Button
                   disabled={d.locked || !agreed || q.hasNextPage}
@@ -246,14 +273,14 @@ export function StudentSupporters({
                     })
                   }
                 >
-                  {t("Create invitation", "आमंत्रण बनाएँ")}
+                  {appText(t("Create invitation", "आमंत्रण बनाएँ"))}
                 </Button>
               </div>
             </>
           )}
           {!d.locked && (
             <Button variant="ghost" onClick={() => setInviting(false)}>
-              {t("Cancel", "रद्द करें")}
+              {appText(t("Cancel", "रद्द करें"))}
             </Button>
           )}
         </div>
@@ -284,9 +311,9 @@ export function StudentSupporters({
                 </p>
                 {i.status === "PENDING" && (
                   <p>
-                    {t("Invitation expires", "आमंत्रण समाप्त होगा")}{" "}
+                    {appText(t("Invitation expires", "आमंत्रण समाप्त होगा"))}{" "}
                     {new Date(i.expiresAt).toLocaleDateString(
-                      hindi ? "hi-IN" : "en-IN",
+                      hindi ? "hi-IN" : appLocale,
                     )}
                   </p>
                 )}
@@ -316,9 +343,11 @@ export function StudentSupporters({
                         i.studentAccountId
                       }
                     >
-                      {t(
-                        "Open shared learning profile",
-                        "साझा पढ़ाई की प्रोफ़ाइल खोलें",
+                      {appText(
+                        t(
+                          "Open shared learning profile",
+                          "साझा पढ़ाई की प्रोफ़ाइल खोलें",
+                        ),
                       )}
                     </Link>
                   )}
@@ -359,7 +388,7 @@ export function StudentSupporters({
               disabled={d.locked || q.isFetching}
               onClick={() => q.fetchNextPage()}
             >
-              {t("Load more invitations", "और आमंत्रण देखें")}
+              {appText(t("Load more invitations", "और आमंत्रण देखें"))}
             </Button>
           )}
         </>
@@ -401,9 +430,11 @@ export function StudentSupporters({
               onChange={(e) => setAgreed(e.target.checked)}
             />
             <span>
-              {t(
-                "I understand this decision.",
-                "मैं यह निर्णय समझता/समझती हूँ।",
+              {appText(
+                t(
+                  "I understand this decision.",
+                  "मैं यह निर्णय समझता/समझती हूँ।",
+                ),
               )}
             </span>
           </label>
@@ -413,7 +444,7 @@ export function StudentSupporters({
               disabled={d.locked}
               onClick={() => setReview(null)}
             >
-              {t("Go back", "वापस जाएँ")}
+              {appText(t("Go back", "वापस जाएँ"))}
             </Button>
             <Button
               disabled={d.locked || !agreed}
@@ -430,7 +461,7 @@ export function StudentSupporters({
                 })
               }
             >
-              {t("Confirm decision", "निर्णय की पुष्टि करें")}
+              {appText(t("Confirm decision", "निर्णय की पुष्टि करें"))}
             </Button>
           </div>
         </div>
@@ -455,6 +486,8 @@ function SupportedStudent({
   session: Session;
   hindi: boolean;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const t = copy(hindi),
     [editing, setEditing] = useState(false),
     q = useQuery({
@@ -469,20 +502,24 @@ function SupportedStudent({
     });
   return (
     <section className="care-section">
-      <h2>{t("Shared learning profile", "साझा पढ़ाई की प्रोफ़ाइल")}</h2>
+      <h2>
+        {appText(t("Shared learning profile", "साझा पढ़ाई की प्रोफ़ाइल"))}
+      </h2>
       {q.isPending && (
         <p role="status">
-          {t("Checking your access…", "आपकी अनुमति जाँच रहे हैं…")}
+          {appText(t("Checking your access…", "आपकी अनुमति जाँच रहे हैं…"))}
         </p>
       )}
       {q.error && (
         <Notice error>
-          {t(
-            "Access is unavailable or has been revoked. Ask the student to review their support settings.",
-            "अनुमति उपलब्ध नहीं है या हटा दी गई है। विद्यार्थी से मदद की सेटिंग जाँचने को कहें।",
+          {appText(
+            t(
+              "Access is unavailable or has been revoked. Ask the student to review their support settings.",
+              "अनुमति उपलब्ध नहीं है या हटा दी गई है। विद्यार्थी से मदद की सेटिंग जाँचने को कहें।",
+            ),
           )}{" "}
           <Button onClick={() => q.refetch()}>
-            {t("Check again", "फिर जाँचें")}
+            {appText(t("Check again", "फिर जाँचें"))}
           </Button>
         </Notice>
       )}
@@ -505,13 +542,18 @@ function SupportedStudent({
               className="button"
               href={"/dashboard/student-enquiries?student=" + enc(id)}
             >
-              {t("Enquiries and teacher choices", "पूछताछ और शिक्षक के विकल्प")}
+              {appText(
+                t(
+                  "Enquiries and teacher choices",
+                  "पूछताछ और शिक्षक के विकल्प",
+                ),
+              )}
             </Link>
             <Link
               className="button secondary"
               href={"/dashboard/student-arrangements?student=" + enc(id)}
             >
-              {t("Hiring and arrangements", "नियुक्ति और व्यवस्थाएँ")}
+              {appText(t("Hiring and arrangements", "नियुक्ति और व्यवस्थाएँ"))}
             </Link>
             {q.data.supportMode === "MANAGE" && (
               <Button variant="outline" onClick={() => setEditing(!editing)}>
@@ -552,6 +594,8 @@ export function StudentDevices({
   hindi?: boolean;
   onSignedOut: () => void;
 }) {
+  const { appText, appError, appLocale } = useAppTranslation();
+
   const t = copy(hindi),
     [review, setReview] = useState<{
       item: S["StudentDevice"];
@@ -589,37 +633,49 @@ export function StudentDevices({
   );
   return (
     <section className="student-workspace" lang={hindi ? "hi" : "en"}>
-      <h1>{t("Devices and account recovery", "उपकरण और खाते की वापसी")}</h1>
+      <h1>
+        {appText(t("Devices and account recovery", "उपकरण और खाते की वापसी"))}
+      </h1>
       <p>
-        {t(
-          "Name devices you recognize and sign out any you no longer use. Signing out this device returns you to email sign-in.",
-          "पहचाने हुए उपकरणों को नाम दें और जिनका उपयोग नहीं करते उनसे बाहर निकलें। इस उपकरण से बाहर निकलने पर ईमेल से फिर प्रवेश करना होगा।",
+        {appText(
+          t(
+            "Name devices you recognize and sign out any you no longer use. Signing out this device returns you to email sign-in.",
+            "पहचाने हुए उपकरणों को नाम दें और जिनका उपयोग नहीं करते उनसे बाहर निकलें। इस उपकरण से बाहर निकलने पर ईमेल से फिर प्रवेश करना होगा।",
+          ),
         )}
       </p>
       <aside className="student-support-explainer">
-        <h2>{t("Need to regain access?", "खाते में वापस प्रवेश चाहिए?")}</h2>
+        <h2>
+          {appText(t("Need to regain access?", "खाते में वापस प्रवेश चाहिए?"))}
+        </h2>
         <p>
-          {t(
-            "Sign in with the same account email and a fresh one-time code. Keep that mailbox secure. A learning supporter cannot receive your codes, change your login or recover your account for you. If you lose the mailbox, contact support; account ownership is never transferred automatically.",
-            "उसी खाते के ईमेल और नए एक बार के कोड से प्रवेश करें। ईमेल सुरक्षित रखें। मददगार आपके कोड नहीं पा सकता और लॉगिन या खाता वापस लेने का अधिकार नहीं रखता। ईमेल खो जाने पर सहायता लें; स्वामित्व अपने आप नहीं बदलता।",
+          {appText(
+            t(
+              "Sign in with the same account email and a fresh one-time code. Keep that mailbox secure. A learning supporter cannot receive your codes, change your login or recover your account for you. If you lose the mailbox, contact support; account ownership is never transferred automatically.",
+              "उसी खाते के ईमेल और नए एक बार के कोड से प्रवेश करें। ईमेल सुरक्षित रखें। मददगार आपके कोड नहीं पा सकता और लॉगिन या खाता वापस लेने का अधिकार नहीं रखता। ईमेल खो जाने पर सहायता लें; स्वामित्व अपने आप नहीं बदलता।",
+            ),
           )}
         </p>
         <Link className="inline-link" href="/support">
-          {t("Get account help", "खाते की सहायता लें")}
+          {appText(t("Get account help", "खाते की सहायता लें"))}
         </Link>
       </aside>
       <StudentFeedback decision={d} hindi={hindi} />
       {q.isPending && (
-        <p role="status">{t("Loading devices…", "उपकरण लोड हो रहे हैं…")}</p>
+        <p role="status">
+          {appText(t("Loading devices…", "उपकरण लोड हो रहे हैं…"))}
+        </p>
       )}
       {q.error && (
         <Notice error>
-          {t(
-            "Devices could not be loaded. Check your sign-in status and try again.",
-            "उपकरण लोड नहीं हुए। अपना प्रवेश जाँचकर फिर कोशिश करें।",
+          {appText(
+            t(
+              "Devices could not be loaded. Check your sign-in status and try again.",
+              "उपकरण लोड नहीं हुए। अपना प्रवेश जाँचकर फिर कोशिश करें।",
+            ),
           )}{" "}
           <Button onClick={() => refresh()}>
-            {t("Check access again", "अनुमति फिर जाँचें")}
+            {appText(t("Check access again", "अनुमति फिर जाँचें"))}
           </Button>
         </Notice>
       )}
@@ -640,9 +696,9 @@ export function StudentDevices({
                     · {i.familyId.slice(0, 8)}
                   </p>
                   <p>
-                    {t("Session expires", "प्रवेश समाप्त होगा")}{" "}
+                    {appText(t("Session expires", "प्रवेश समाप्त होगा"))}{" "}
                     {new Date(i.expiresAt).toLocaleDateString(
-                      hindi ? "hi-IN" : "en-IN",
+                      hindi ? "hi-IN" : appLocale,
                     )}
                   </p>
                   <div className="care-actions">
@@ -655,7 +711,7 @@ export function StudentDevices({
                         setAgreed(false);
                       }}
                     >
-                      {t("Name device", "उपकरण का नाम दें")}
+                      {appText(t("Name device", "उपकरण का नाम दें"))}
                     </Button>
                     <Button
                       variant="outline"
@@ -665,7 +721,7 @@ export function StudentDevices({
                         setAgreed(false);
                       }}
                     >
-                      {t("Sign out device", "उपकरण से बाहर निकलें")}
+                      {appText(t("Sign out device", "उपकरण से बाहर निकलें"))}
                     </Button>
                   </div>
                 </li>
@@ -673,9 +729,11 @@ export function StudentDevices({
           </ul>
           {!q.data.pages.some((p) => p.items.length) && (
             <Notice>
-              {t(
-                "No active devices on this page.",
-                "इस पृष्ठ पर सक्रिय उपकरण नहीं हैं।",
+              {appText(
+                t(
+                  "No active devices on this page.",
+                  "इस पृष्ठ पर सक्रिय उपकरण नहीं हैं।",
+                ),
               )}
             </Notice>
           )}
@@ -684,7 +742,7 @@ export function StudentDevices({
               disabled={d.locked || q.isFetching}
               onClick={() => q.fetchNextPage()}
             >
-              {t("Load more devices", "और उपकरण देखें")}
+              {appText(t("Load more devices", "और उपकरण देखें"))}
             </Button>
           )}
         </>
@@ -706,7 +764,7 @@ export function StudentDevices({
           </p>
           {review.action === "label" ? (
             <label className="field">
-              {t("Device name (optional)", "उपकरण का नाम (वैकल्पिक)")}
+              {appText(t("Device name (optional)", "उपकरण का नाम (वैकल्पिक)"))}
               <Input
                 value={label}
                 maxLength={60}
@@ -716,9 +774,11 @@ export function StudentDevices({
             </label>
           ) : (
             <p>
-              {t(
-                "This ends access for this device, including refreshed sessions. Your learning records stay in your account.",
-                "इससे इस उपकरण का प्रवेश बंद होगा, नए सत्र भी। पढ़ाई के रिकॉर्ड खाते में रहेंगे।",
+              {appText(
+                t(
+                  "This ends access for this device, including refreshed sessions. Your learning records stay in your account.",
+                  "इससे इस उपकरण का प्रवेश बंद होगा, नए सत्र भी। पढ़ाई के रिकॉर्ड खाते में रहेंगे।",
+                ),
               )}
             </p>
           )}
@@ -730,7 +790,7 @@ export function StudentDevices({
               onChange={(e) => setAgreed(e.target.checked)}
             />
             <span>
-              {t("I reviewed this change.", "मैंने यह बदलाव देखा है।")}
+              {appText(t("I reviewed this change.", "मैंने यह बदलाव देखा है।"))}
             </span>
           </label>
           <div className="care-actions">
@@ -739,7 +799,7 @@ export function StudentDevices({
               disabled={d.locked}
               onClick={() => setReview(null)}
             >
-              {t("Cancel", "रद्द करें")}
+              {appText(t("Cancel", "रद्द करें"))}
             </Button>
             <Button
               disabled={d.locked || !agreed}
@@ -784,9 +844,11 @@ export function StudentDevices({
                 }
               }}
             >
-              {t(
-                "Check whether I am still signed in",
-                "जाँचें कि अभी प्रवेश है या नहीं",
+              {appText(
+                t(
+                  "Check whether I am still signed in",
+                  "जाँचें कि अभी प्रवेश है या नहीं",
+                ),
               )}
             </Button>
           )}

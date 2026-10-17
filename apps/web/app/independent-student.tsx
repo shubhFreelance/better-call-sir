@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { StudentLearningSummary } from "./independent-journey";
 import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
@@ -14,9 +15,11 @@ type Education = components["schemas"]["IndependentStudentEducation"];
 type Context = components["schemas"]["IndependentStudentSignupContext"];
 const policyVersion = "independent-student-development-v1";
 function Message({ children }: { children: ReactNode }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <Alert>
-      <AlertDescription>{children}</AlertDescription>
+      <AlertDescription>{appText(children)}</AlertDescription>
     </Alert>
   );
 }
@@ -27,24 +30,26 @@ export function EducationSummary({
   education: Education;
   hindi: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   return (
     <dl className="independent-summary">
-      <dt>{hindi ? "पढ़ाई" : "Education"}</dt>
+      <dt>{hindi ? "पढ़ाई" : appText("Education")}</dt>
       <dd>
         {e.stage === "SCHOOL"
           ? `${hindi ? "कक्षा" : "Class"} ${e.grade} · ${e.board}`
           : `${e.courseName} · ${hindi ? "वर्ष" : "Year"} ${e.studyYear}`}
       </dd>
-      <dt>{hindi ? "संस्थान" : "Institution"}</dt>
+      <dt>{hindi ? "संस्थान" : appText("Institution")}</dt>
       <dd>{e.institutionName}</dd>
       {e.stage === "COLLEGE" && (
         <>
-          <dt>{hindi ? "विश्वविद्यालय" : "University"}</dt>
+          <dt>{hindi ? "विश्वविद्यालय" : appText("University")}</dt>
           <dd>{e.university}</dd>
         </>
       )}
-      <dt>{hindi ? "पढ़ने वाले विषय" : "Subjects studied"}</dt>
-      <dd>{e.subjects.join(", ")}</dd>
+      <dt>{hindi ? "पढ़ने वाले विषय" : appText("Subjects studied")}</dt>
+      <dd>{e.subjects.map((value) => appCurriculum(value)).join(", ")}</dd>
     </dl>
   );
 }
@@ -61,6 +66,8 @@ export function IndependentStudentSetup({
   onLanguageChange: (hindi: boolean) => void;
   editing?: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const router = useRouter(),
     client = useQueryClient();
   const [opening, setOpening] = useState(false),
@@ -94,13 +101,15 @@ export function IndependentStudentSetup({
       lang={hindi ? "hi" : "en"}
     >
       <div className="independent-language">
-        <label htmlFor="independent-language">{t("Language", "भाषा")}</label>
+        <label htmlFor="independent-language">
+          {appText(t("Language", "भाषा"))}
+        </label>
         <select
           id="independent-language"
           value={hindi ? "hi" : "en"}
           onChange={(event) => onLanguageChange(event.target.value === "hi")}
         >
-          <option value="en">English</option>
+          <option value="en">{appText("English")}</option>
           <option value="hi">हिन्दी</option>
         </select>
       </div>
@@ -111,50 +120,58 @@ export function IndependentStudentSetup({
             : t("Your learning. Your next step.", "आपकी पढ़ाई। आपका अगला कदम।")}
         </h1>
         <p>
-          {t(
-            "Set up a student account for your own learning, with clear choices about support.",
-            "अपनी पढ़ाई के लिए विद्यार्थी खाता बनाएँ और मदद का सही विकल्प चुनें।",
+          {appText(
+            t(
+              "Set up a student account for your own learning, with clear choices about support.",
+              "अपनी पढ़ाई के लिए विद्यार्थी खाता बनाएँ और मदद का सही विकल्प चुनें।",
+            ),
           )}
         </p>
       </header>
       <div className="independent-layout">
         <section
           className="independent-main"
-          aria-label={t("Student setup", "विद्यार्थी सेटअप")}
+          aria-label={appText(t("Student setup", "विद्यार्थी सेटअप"))}
         >
           {query.isPending && (
             <p role="status">
-              {t("Checking your account…", "आपका खाता जाँच रहे हैं…")}
+              {appText(t("Checking your account…", "आपका खाता जाँच रहे हैं…"))}
             </p>
           )}
           {query.error && (
             <Message>
-              {t(
-                "We couldn’t check your setup. No details have been submitted.",
-                "आपका सेटअप नहीं जाँच पाए। कोई जानकारी जमा नहीं हुई है।",
+              {appText(
+                t(
+                  "We couldn’t check your setup. No details have been submitted.",
+                  "आपका सेटअप नहीं जाँच पाए। कोई जानकारी जमा नहीं हुई है।",
+                ),
               )}{" "}
               <Button onClick={() => query.refetch()}>
-                {t("Retry account check", "खाता फिर जाँचें")}
+                {appText(t("Retry account check", "खाता फिर जाँचें"))}
               </Button>
             </Message>
           )}
           {!query.error && query.data?.status === "ACCOUNT_IN_USE" && (
             <Message>
-              {t(
-                "This email already has another setup. Keep that account, or sign out and use a separate student email.",
-                "इस ईमेल पर पहले से दूसरा सेटअप है। उसी खाते का इस्तेमाल करें या साइन आउट करके विद्यार्थी का अलग ईमेल इस्तेमाल करें।",
+              {appText(
+                t(
+                  "This email already has another setup. Keep that account, or sign out and use a separate student email.",
+                  "इस ईमेल पर पहले से दूसरा सेटअप है। उसी खाते का इस्तेमाल करें या साइन आउट करके विद्यार्थी का अलग ईमेल इस्तेमाल करें।",
+                ),
               )}{" "}
               <Link className="inline-link" href="/dashboard">
-                {t("Open my dashboard", "मेरा डैशबोर्ड खोलें")}
+                {appText(t("Open my dashboard", "मेरा डैशबोर्ड खोलें"))}
               </Link>
             </Message>
           )}
           {!query.error && query.data?.status === "COMPLETE" && !editing && (
             <div className="wizard-card">
               <h2>
-                {t(
-                  "Your student account is ready",
-                  "आपका विद्यार्थी खाता तैयार है",
+                {appText(
+                  t(
+                    "Your student account is ready",
+                    "आपका विद्यार्थी खाता तैयार है",
+                  ),
                 )}
               </h2>
               <EducationSummary
@@ -163,9 +180,11 @@ export function IndependentStudentSetup({
               />
               {sessionError && (
                 <Message>
-                  {t(
-                    "We couldn’t refresh your sign-in. Your profile is saved; retry opening the dashboard.",
-                    "साइन-इन फिर जाँच नहीं पाए। प्रोफ़ाइल सहेजी गई है; डैशबोर्ड फिर खोलें।",
+                  {appText(
+                    t(
+                      "We couldn’t refresh your sign-in. Your profile is saved; retry opening the dashboard.",
+                      "साइन-इन फिर जाँच नहीं पाए। प्रोफ़ाइल सहेजी गई है; डैशबोर्ड फिर खोलें।",
+                    ),
                   )}
                 </Message>
               )}
@@ -190,27 +209,37 @@ export function IndependentStudentSetup({
             )}
         </section>
         <aside className="independent-guide">
-          <h2>{t("A profile that belongs to you.", "आपकी अपनी प्रोफ़ाइल।")}</h2>
+          <h2>
+            {appText(
+              t("A profile that belongs to you.", "आपकी अपनी प्रोफ़ाइल।"),
+            )}
+          </h2>
           <p>
-            {t(
-              "Independent setup is currently for students who declare they are 18 or older and ready to manage their learning.",
-              "फ़िलहाल स्वतंत्र सेटअप उन विद्यार्थियों के लिए है जो 18 वर्ष या उससे अधिक होने और अपनी पढ़ाई सँभालने की घोषणा करते हैं।",
+            {appText(
+              t(
+                "Independent setup is currently for students who declare they are 18 or older and ready to manage their learning.",
+                "फ़िलहाल स्वतंत्र सेटअप उन विद्यार्थियों के लिए है जो 18 वर्ष या उससे अधिक होने और अपनी पढ़ाई सँभालने की घोषणा करते हैं।",
+              ),
             )}
           </p>
           <p>
-            {t(
-              "Your school, college and subjects stay private. Saving this profile does not send an enquiry or hire a teacher.",
-              "स्कूल, कॉलेज और विषयों की जानकारी निजी रहती है। प्रोफ़ाइल सहेजने से पूछताछ नहीं भेजी जाती और शिक्षक नियुक्त नहीं होता।",
+            {appText(
+              t(
+                "Your school, college and subjects stay private. Saving this profile does not send an enquiry or hire a teacher.",
+                "स्कूल, कॉलेज और विषयों की जानकारी निजी रहती है। प्रोफ़ाइल सहेजने से पूछताछ नहीं भेजी जाती और शिक्षक नियुक्त नहीं होता।",
+              ),
             )}
           </p>
           <p>
-            {t(
-              "After setup, you can invite a trusted supporter with advice or learning-management permissions. No one receives access from this form.",
-              "खाता बनने के बाद भरोसेमंद मददगार को सलाह या पढ़ाई सँभालने की अनुमति दे सकते हैं। इस फ़ॉर्म से किसी को अनुमति नहीं मिलती।",
+            {appText(
+              t(
+                "After setup, you can invite a trusted supporter with advice or learning-management permissions. No one receives access from this form.",
+                "खाता बनने के बाद भरोसेमंद मददगार को सलाह या पढ़ाई सँभालने की अनुमति दे सकते हैं। इस फ़ॉर्म से किसी को अनुमति नहीं मिलती।",
+              ),
             )}
           </p>
           <Link href="/teachers" className="inline-link">
-            {t("Explore teachers first", "पहले शिक्षक देखें")}
+            {appText(t("Explore teachers first", "पहले शिक्षक देखें"))}
           </Link>
         </aside>
       </div>
@@ -234,6 +263,8 @@ export function StudentForm({
   updatePath?: string;
   onSaved?: () => Promise<void>;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const t = (en: string, hi: string) => (hindi ? hi : en),
     router = useRouter(),
     client = useQueryClient();
@@ -454,7 +485,7 @@ export function StudentForm({
   ) {
     return (
       <div className="field" key={name}>
-        <label htmlFor={"independent-" + name}>{label}</label>
+        <label htmlFor={"independent-" + name}>{appText(label)}</label>
         <Input
           id={"independent-" + name}
           value={values[name]}
@@ -469,12 +500,12 @@ export function StudentForm({
         />
         {help && (
           <p className="care-help" id={name + "-help"}>
-            {help}
+            {appText(help)}
           </p>
         )}
         {errors[name] && (
           <p className="field-error" id={name + "-error"}>
-            {errors[name]}
+            {appError(errors[name])}
           </p>
         )}
       </div>
@@ -484,7 +515,7 @@ export function StudentForm({
     <div className="wizard-card independent-form">
       <ol
         className="student-setup-steps"
-        aria-label={t("Signup progress", "साइनअप के चरण")}
+        aria-label={appText(t("Signup progress", "साइनअप के चरण"))}
       >
         {[
           t("Readiness", "तैयारी"),
@@ -492,7 +523,7 @@ export function StudentForm({
           t("Review", "समीक्षा"),
         ].map((label, i) => (
           <li key={i} aria-current={step === i + 1 ? "step" : undefined}>
-            {i + 1}. {label}
+            {i + 1}. {appText(label)}
           </li>
         ))}
       </ol>
@@ -511,32 +542,36 @@ export function StudentForm({
       </h2>
       {error && (
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{appError(error)}</AlertDescription>
         </Alert>
       )}
       {profile?.editStatus === "PRIVACY_PAUSED" && (
         <Message>
-          {t(
-            "Profile changes are paused while your deletion request is reviewed.",
-            "आपके खाता मिटाने के अनुरोध की समीक्षा तक बदलाव रुके हुए हैं।",
+          {appText(
+            t(
+              "Profile changes are paused while your deletion request is reviewed.",
+              "आपके खाता मिटाने के अनुरोध की समीक्षा तक बदलाव रुके हुए हैं।",
+            ),
           )}
         </Message>
       )}
       {stale && (
         <Button variant="outline" onClick={() => reload()}>
-          {t("Discard edits and reload", "बदलाव छोड़ें और फिर लोड करें")}
+          {appText(
+            t("Discard edits and reload", "बदलाव छोड़ें और फिर लोड करें"),
+          )}
         </Button>
       )}
       {blocked && (
         <Link href="/login" className="inline-link">
-          {t("Sign in again", "फिर साइन इन करें")}
+          {appText(t("Sign in again", "फिर साइन इन करें"))}
         </Link>
       )}
       {step === 1 && (
         <>
           <fieldset className="student-support-choices">
             <legend>
-              {t("Choose the support you need", "ज़रूरी मदद चुनें")}
+              {appText(t("Choose the support you need", "ज़रूरी मदद चुनें"))}
             </legend>
             {[
               [
@@ -577,15 +612,17 @@ export function StudentForm({
                   onChange={() => setReadiness(value)}
                 />
                 <span>
-                  <strong>{label}</strong>
-                  <small>{help}</small>
+                  <strong>{appText(label)}</strong>
+                  <small>{appText(help)}</small>
                 </span>
               </label>
             ))}
           </fieldset>
           {readiness === "SELF_DIRECTED" && (
             <fieldset className="independent-age">
-              <legend>{t("Account eligibility", "खाते की पात्रता")}</legend>
+              <legend>
+                {appText(t("Account eligibility", "खाते की पात्रता"))}
+              </legend>
               {[
                 [
                   "ADULT",
@@ -604,13 +641,15 @@ export function StudentForm({
                     checked={age === value}
                     onChange={() => setAge(value)}
                   />
-                  <span>{label}</span>
+                  <span>{appText(label)}</span>
                 </label>
               ))}
               <p className="care-help">
-                {t(
-                  "Readiness and age are separate. This declaration is not an identity check.",
-                  "तैयारी और उम्र अलग बातें हैं। यह घोषणा पहचान का सत्यापन नहीं है।",
+                {appText(
+                  t(
+                    "Readiness and age are separate. This declaration is not an identity check.",
+                    "तैयारी और उम्र अलग बातें हैं। यह घोषणा पहचान का सत्यापन नहीं है।",
+                  ),
                 )}
               </p>
             </fieldset>
@@ -618,14 +657,18 @@ export function StudentForm({
           {(readiness === "GUARDIAN_GUIDED" ||
             (age === "UNDER_18" && readiness === "SELF_DIRECTED")) && (
             <Message>
-              {t(
-                "Ask your guardian to sign up with their own email, create your learner profile, then invite you. Your current email account has not been changed.",
-                "अपने अभिभावक से उनके ईमेल से खाता बनाकर आपकी विद्यार्थी प्रोफ़ाइल बनाने और आपको आमंत्रित करने को कहें। आपका मौजूदा ईमेल खाता नहीं बदला है।",
+              {appText(
+                t(
+                  "Ask your guardian to sign up with their own email, create your learner profile, then invite you. Your current email account has not been changed.",
+                  "अपने अभिभावक से उनके ईमेल से खाता बनाकर आपकी विद्यार्थी प्रोफ़ाइल बनाने और आपको आमंत्रित करने को कहें। आपका मौजूदा ईमेल खाता नहीं बदला है।",
+                ),
               )}{" "}
               <Link className="inline-link" href="/onboarding/student">
-                {t(
-                  "I already have a guardian invitation",
-                  "मेरे पास अभिभावक का आमंत्रण है",
+                {appText(
+                  t(
+                    "I already have a guardian invitation",
+                    "मेरे पास अभिभावक का आमंत्रण है",
+                  ),
                 )}
               </Link>
             </Message>
@@ -636,7 +679,7 @@ export function StudentForm({
               disabled={readiness !== "SELF_DIRECTED" || age !== "ADULT"}
               onClick={() => move(2)}
             >
-              {t("Continue to education", "पढ़ाई की जानकारी भरें")}
+              {appText(t("Continue to education", "पढ़ाई की जानकारी भरें"))}
             </Button>
           </div>
         </>
@@ -652,7 +695,7 @@ export function StudentForm({
           <fieldset disabled={locked} className="independent-fields">
             <div className="field">
               <label htmlFor="independent-stage">
-                {t("Education stage", "पढ़ाई का स्तर")}
+                {appText(t("Education stage", "पढ़ाई का स्तर"))}
               </label>
               <select
                 id="independent-stage"
@@ -662,16 +705,16 @@ export function StudentForm({
                 onChange={(event) => change("stage", event.target.value)}
               >
                 <option value="">
-                  {t("Choose your stage", "अपना स्तर चुनें")}
+                  {appText(t("Choose your stage", "अपना स्तर चुनें"))}
                 </option>
-                <option value="SCHOOL">{t("School", "स्कूल")}</option>
+                <option value="SCHOOL">{appText(t("School", "स्कूल"))}</option>
                 <option value="COLLEGE">
-                  {t("College / university", "कॉलेज / विश्वविद्यालय")}
+                  {appText(t("College / university", "कॉलेज / विश्वविद्यालय"))}
                 </option>
               </select>
               {errors.stage && (
                 <p className="field-error" id="stage-error">
-                  {errors.stage}
+                  {appError(errors.stage)}
                 </p>
               )}
             </div>
@@ -684,7 +727,7 @@ export function StudentForm({
               <>
                 <div className="field">
                   <label htmlFor="independent-grade">
-                    {t("Class", "कक्षा")}
+                    {appText(t("Class", "कक्षा"))}
                   </label>
                   <select
                     id="independent-grade"
@@ -694,7 +737,7 @@ export function StudentForm({
                     onChange={(event) => change("grade", event.target.value)}
                   >
                     <option value="">
-                      {t("Choose a class", "कक्षा चुनें")}
+                      {appText(t("Choose a class", "कक्षा चुनें"))}
                     </option>
                     {Array.from({ length: 12 }, (_, i) => (
                       <option key={i} value={i + 1}>
@@ -704,7 +747,7 @@ export function StudentForm({
                   </select>
                   {errors.grade && (
                     <p id="grade-error" className="field-error">
-                      {errors.grade}
+                      {appError(errors.grade)}
                     </p>
                   )}
                 </div>
@@ -752,11 +795,11 @@ export function StudentForm({
                 disabled={locked}
                 onClick={() => move(1)}
               >
-                {t("Back", "पीछे")}
+                {appText(t("Back", "पीछे"))}
               </Button>
             )}
             <Button key="education-review" type="submit" disabled={locked}>
-              {t("Review profile", "प्रोफ़ाइल की समीक्षा करें")}
+              {appText(t("Review profile", "प्रोफ़ाइल की समीक्षा करें"))}
             </Button>
           </div>
         </form>
@@ -771,9 +814,11 @@ export function StudentForm({
                 : t("Your permission", "आपकी सहमति")}
             </h3>
             <p>
-              {t(
-                "Your education details are used to maintain your private student profile and prepare teacher discovery. They are not published on teacher cards or shared with a guardian by this signup.",
-                "पढ़ाई की जानकारी आपकी निजी विद्यार्थी प्रोफ़ाइल रखने और शिक्षक खोज की तैयारी के लिए है। यह शिक्षक कार्ड पर प्रकाशित नहीं होती और इस साइनअप से किसी अभिभावक को नहीं मिलती।",
+              {appText(
+                t(
+                  "Your education details are used to maintain your private student profile and prepare teacher discovery. They are not published on teacher cards or shared with a guardian by this signup.",
+                  "पढ़ाई की जानकारी आपकी निजी विद्यार्थी प्रोफ़ाइल रखने और शिक्षक खोज की तैयारी के लिए है। यह शिक्षक कार्ड पर प्रकाशित नहीं होती और इस साइनअप से किसी अभिभावक को नहीं मिलती।",
+                ),
               )}
             </p>
             <label className="wizard-checkbox">
@@ -796,9 +841,11 @@ export function StudentForm({
               </span>
             </label>
             <p className="care-help">
-              {t(
-                "You can edit education details and request account correction or deletion from your dashboard.",
-                "डैशबोर्ड से पढ़ाई की जानकारी बदल सकते हैं और खाता सुधारने या मिटाने का अनुरोध कर सकते हैं।",
+              {appText(
+                t(
+                  "You can edit education details and request account correction or deletion from your dashboard.",
+                  "डैशबोर्ड से पढ़ाई की जानकारी बदल सकते हैं और खाता सुधारने या मिटाने का अनुरोध कर सकते हैं।",
+                ),
               )}
             </p>
           </div>
@@ -809,7 +856,7 @@ export function StudentForm({
               disabled={locked}
               onClick={() => move(2)}
             >
-              {t("Edit education", "पढ़ाई की जानकारी बदलें")}
+              {appText(t("Edit education", "पढ़ाई की जानकारी बदलें"))}
             </Button>
             <Button
               key="review-save"
@@ -838,9 +885,11 @@ export function StudentForm({
         </>
       )}
       <p className="care-help">
-        {t(
-          "Unsubmitted details stay on this page only. Reloading before saving clears them.",
-          "जमा करने से पहले जानकारी केवल इस पेज पर रहती है। सहेजने से पहले पेज फिर लोड करने पर यह हट जाएगी।",
+        {appText(
+          t(
+            "Unsubmitted details stay on this page only. Reloading before saving clears them.",
+            "जमा करने से पहले जानकारी केवल इस पेज पर रहती है। सहेजने से पहले पेज फिर लोड करने पर यह हट जाएगी।",
+          ),
         )}
       </p>
     </div>
@@ -853,6 +902,8 @@ export function IndependentStudentHome({
   session: Session;
   hindi: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const query = useQuery({
       queryKey: ["independent-profile", session.account.id],
       queryFn: ({ signal }) =>
@@ -863,25 +914,29 @@ export function IndependentStudentHome({
   return (
     <>
       <h1>
-        {t("Your learning starts here,", "आपकी पढ़ाई का अगला कदम,")}{" "}
+        {appText(t("Your learning starts here,", "आपकी पढ़ाई का अगला कदम,"))}{" "}
         {session.account.name}.
       </h1>
       <p>
-        {t(
-          "Your own profile, with a clear path to finding a teacher.",
-          "आपकी अपनी प्रोफ़ाइल और शिक्षक खोजने का साफ़ रास्ता।",
+        {appText(
+          t(
+            "Your own profile, with a clear path to finding a teacher.",
+            "आपकी अपनी प्रोफ़ाइल और शिक्षक खोजने का साफ़ रास्ता।",
+          ),
         )}
       </p>
       {query.isPending && (
         <p role="status">
-          {t("Loading your profile…", "आपकी प्रोफ़ाइल लोड हो रही है…")}
+          {appText(t("Loading your profile…", "आपकी प्रोफ़ाइल लोड हो रही है…"))}
         </p>
       )}
       {query.error && (
         <Message>
-          {t("We couldn’t load your profile.", "आपकी प्रोफ़ाइल लोड नहीं हुई।")}{" "}
+          {appText(
+            t("We couldn’t load your profile.", "आपकी प्रोफ़ाइल लोड नहीं हुई।"),
+          )}{" "}
           <Button onClick={() => query.refetch()}>
-            {t("Try again", "फिर कोशिश करें")}
+            {appText(t("Try again", "फिर कोशिश करें"))}
           </Button>
         </Message>
       )}
@@ -889,19 +944,23 @@ export function IndependentStudentHome({
       {query.data && (
         <div className="independent-layout">
           <section className="wizard-card independent-profile">
-            <h2>{t("My education", "मेरी पढ़ाई")}</h2>
+            <h2>{appText(t("My education", "मेरी पढ़ाई"))}</h2>
             <EducationSummary education={query.data.education} hindi={hindi} />
             <p>
-              {t(
-                "Learning preference: I manage my learning.",
-                "पढ़ाई का विकल्प: मैं अपनी पढ़ाई सँभालता/सँभालती हूँ।",
+              {appText(
+                t(
+                  "Learning preference: I manage my learning.",
+                  "पढ़ाई का विकल्प: मैं अपनी पढ़ाई सँभालता/सँभालती हूँ।",
+                ),
               )}
             </p>
             {query.data.editStatus === "PRIVACY_PAUSED" ? (
               <Message>
-                {t(
-                  "Education changes are paused while your deletion request is reviewed.",
-                  "खाता मिटाने के अनुरोध की समीक्षा तक पढ़ाई के बदलाव रुके हैं।",
+                {appText(
+                  t(
+                    "Education changes are paused while your deletion request is reviewed.",
+                    "खाता मिटाने के अनुरोध की समीक्षा तक पढ़ाई के बदलाव रुके हैं।",
+                  ),
                 )}
               </Message>
             ) : (
@@ -909,39 +968,47 @@ export function IndependentStudentHome({
                 className="button secondary"
                 href="/onboarding/independent-student?edit=1"
               >
-                {t("Edit my education", "पढ़ाई की जानकारी बदलें")}
+                {appText(t("Edit my education", "पढ़ाई की जानकारी बदलें"))}
               </Link>
             )}
           </section>
           <aside className="independent-guide">
             <h2>
-              {t("Find your kind of teacher.", "अपनी ज़रूरत का शिक्षक खोजें।")}
+              {appText(
+                t("Find your kind of teacher.", "अपनी ज़रूरत का शिक्षक खोजें।"),
+              )}
             </h2>
             <p>
-              {t(
-                "Browse reviewed subjects, education levels, teaching modes and fees.",
-                "समीक्षित विषय, पढ़ाई का स्तर, पढ़ाने का तरीका और फ़ीस देखें।",
+              {appText(
+                t(
+                  "Browse reviewed subjects, education levels, teaching modes and fees.",
+                  "समीक्षित विषय, पढ़ाई का स्तर, पढ़ाने का तरीका और फ़ीस देखें।",
+                ),
               )}
             </p>
             <Link href="/teachers" className="button">
-              {t("Explore teachers", "शिक्षक देखें")}
+              {appText(t("Explore teachers", "शिक्षक देखें"))}
             </Link>
             <p>
-              {t(
-                "Student enquiries record your criteria for staff review. Matching, teacher replies, hiring and optional guardian invitations are separate steps.",
-                "विद्यार्थी की पूछताछ में आपकी ज़रूरतें स्टाफ़ की समीक्षा के लिए सहेजी जाती हैं। मिलान, शिक्षक के जवाब, नियुक्ति और वैकल्पिक अभिभावक आमंत्रण अलग चरण हैं।",
+              {appText(
+                t(
+                  "Student enquiries record your criteria for staff review. Matching, teacher replies, hiring and optional guardian invitations are separate steps.",
+                  "विद्यार्थी की पूछताछ में आपकी ज़रूरतें स्टाफ़ की समीक्षा के लिए सहेजी जाती हैं। मिलान, शिक्षक के जवाब, नियुक्ति और वैकल्पिक अभिभावक आमंत्रण अलग चरण हैं।",
+                ),
               )}
             </p>
             <Link
               className="button secondary"
               href="/dashboard/enquiries?new=1"
             >
-              {t("Let us search for you", "हमें आपके लिए खोजने दें")}
+              {appText(t("Let us search for you", "हमें आपके लिए खोजने दें"))}
             </Link>
             <Link className="inline-link" href="/dashboard/privacy">
-              {t(
-                "Account privacy and deletion",
-                "खाते की गोपनीयता और मिटाने के अनुरोध",
+              {appText(
+                t(
+                  "Account privacy and deletion",
+                  "खाते की गोपनीयता और मिटाने के अनुरोध",
+                ),
               )}
             </Link>
           </aside>

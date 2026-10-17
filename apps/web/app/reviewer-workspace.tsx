@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { TeachingCoverageSummary, coverageText } from "./teaching-coverage";
 import { TeacherDetailsSummary } from "./teacher-details-form";
 import { useEffect, useState, useRef } from "react";
@@ -24,6 +25,8 @@ const label = (s: string) =>
     .replaceAll("_", " ")
     .replace(/^./, (v) => v.toUpperCase());
 export function ReviewerWorkspace({ session }: { session: Session }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const params = useSearchParams(),
     allowed = ["ADMIN", "REVIEWER"].includes(session.account.role),
     [selected, setSelected] = useState(params.get("teacher") || ""),
@@ -48,23 +51,25 @@ export function ReviewerWorkspace({ session }: { session: Session }) {
   if (!allowed)
     return (
       <Notice>
-        This workspace is restricted to authorized reviewers and administrators.
+        {appText(
+          "This workspace is restricted to authorized reviewers and administrators.",
+        )}{" "}
       </Notice>
     );
   return (
     <div className="care-workspace">
       <section className="care-intro">
         <ShieldCheck size={28} aria-hidden="true" />
-        <h2>Evidence before approval.</h2>
+        <h2>{appText("Evidence before approval.")}</h2>
         <p>
-          Review private evidence and record the full screening assessment for
-          the current application revision. Server MFA, regional scope and
-          independent review apply.
+          {appText(
+            "Review private evidence and record the full screening assessment for the current application revision. Server MFA, regional scope and independent review apply.",
+          )}{" "}
         </p>
       </section>
       <div className="care-fields">
         <div>
-          <label htmlFor="review-status">Queue status</label>
+          <label htmlFor="review-status">{appText("Queue status")}</label>
           <select
             id="review-status"
             disabled={locked}
@@ -74,53 +79,59 @@ export function ReviewerWorkspace({ session }: { session: Session }) {
               setSelected("");
             }}
           >
-            <option value="">All statuses</option>
+            <option value="">{appText("All statuses")}</option>
             {["SUBMITTED", "CHANGES_REQUESTED", "APPROVED", "SUSPENDED"].map(
               (s) => (
                 <option key={s} value={s}>
-                  {label(s)}
+                  {appText(label(s))}
                 </option>
               ),
             )}
           </select>
         </div>
         <div>
-          <label htmlFor="review-teacher">Teacher application</label>
+          <label htmlFor="review-teacher">
+            {appText("Teacher application")}
+          </label>
           <select
             id="review-teacher"
             disabled={locked}
             value={selected}
             onChange={(e) => setSelected(e.target.value)}
           >
-            <option value="">Choose an application</option>
+            <option value="">{appText("Choose an application")}</option>
             {teachers.map((t) => (
               <option key={t.id} value={t.id}>
-                {t.name} — {label(t.status)} — Revision {t.profileRevision}
+                {t.name} — {appText(label(t.status))} {appText("— Revision")}{" "}
+                {t.profileRevision}
               </option>
             ))}
           </select>
         </div>
       </div>
-      {queue.isPending && <p role="status">Loading review queue…</p>}
+      {queue.isPending && (
+        <p role="status">{appText("Loading review queue…")}</p>
+      )}
       {queue.error && (
         <Notice error>
-          Review queue could not be loaded.{" "}
+          {appText("Review queue could not be loaded.")}{" "}
           <Button
             variant="outline"
             disabled={locked}
             onClick={() => queue.refetch()}
           >
-            Retry review queue
+            {appText("Retry review queue")}{" "}
           </Button>
         </Notice>
       )}
       {!queue.isPending && !queue.error && !teachers.length && (
-        <Notice>No applications for this status.</Notice>
+        <Notice>{appText("No applications for this status.")}</Notice>
       )}
       {!queue.isPending && !teacher && teachers.length > 0 && (
         <Notice>
-          Choose an application from this queue. A requested application may be
-          outside your scope or the latest 50 entries.
+          {appText(
+            "Choose an application from this queue. A requested application may be outside your scope or the latest 50 entries.",
+          )}{" "}
         </Notice>
       )}
       {teacher && (
@@ -136,10 +147,9 @@ export function ReviewerWorkspace({ session }: { session: Session }) {
         />
       )}
       <small className="care-help">
-        Latest 50 queue entries, evidence items and screening records. Older
-        records require the administrative history workflow. Scanner clearance
-        is file safety, not identity or teaching approval. Live reviewer
-        staffing and production qualification remain open.
+        {appText(
+          "Latest 50 queue entries, evidence items and screening records. Older records require the administrative history workflow. Scanner clearance is file safety, not identity or teaching approval. Live reviewer staffing and production qualification remain open.",
+        )}{" "}
       </small>
     </div>
   );
@@ -155,6 +165,8 @@ function TeacherReview({
   onLock: (v: boolean) => void;
   refreshQueue: () => Promise<void>;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const own = t.accountId === session.account.id;
   const evidence = useQuery({
     queryKey: ["review-evidence", session.account.id, t.id],
@@ -359,25 +371,28 @@ function TeacherReview({
     <>
       <section className="care-card">
         <span className="care-status">
-          {label(t.status)} · Revision {t.profileRevision}
+          {appText(label(t.status))} {appText("· Revision")} {t.profileRevision}
         </span>
         <h3>{t.name}</h3>
         <p>{t.headline}</p>
         <p>{t.bio}</p>
         <TeachingCoverageSummary profile={t} />
         <p>
-          Teaching language and format: {t.languages.join(", ")} ·{" "}
+          {appText("Teaching language and format:")}{" "}
+          {t.languages.map((value) => appCurriculum(value)).join(", ")} ·{" "}
           {t.modes.map(label).join(", ")} ·{" "}
-          {t.localities.join(", ") || "No home localities"}
+          {t.localities.join(", ") || appText("No home localities")}
         </p>
         <p>
-          Fee terms: {t.feeTermsAcceptedAt ? "Accepted" : "Not accepted"} ·
-          Version {t.version}
+          {appText("Fee terms:")}{" "}
+          {t.feeTermsAcceptedAt ? appText("Accepted") : appText("Not accepted")}{" "}
+          {appText("· Version")} {t.version}
         </p>
         {own && (
           <Notice>
-            You cannot review your own application. Independent review is
-            required.
+            {appText(
+              "You cannot review your own application. Independent review is required.",
+            )}{" "}
           </Notice>
         )}
       </section>
@@ -395,7 +410,7 @@ function TeacherReview({
             void decision.reload();
           }}
         >
-          Refresh screening
+          {appText("Refresh screening")}{" "}
         </Button>
       )}
       {!own && (
@@ -406,7 +421,7 @@ function TeacherReview({
               disabled={decision.locked || !!action}
               onClick={() => decision.reload()}
             >
-              Refresh evidence and checks
+              {appText("Refresh evidence and checks")}{" "}
             </Button>
             <Button
               disabled={
@@ -418,45 +433,51 @@ function TeacherReview({
               }
               onClick={() => begin("check")}
             >
-              Record screening check
+              {appText("Record screening check")}{" "}
             </Button>
             <Button
               disabled={decision.locked || !!action || unavailable}
               onClick={() => begin("decision")}
             >
-              Review teacher decision
+              {appText("Review teacher decision")}{" "}
             </Button>
           </div>
           {(evidence.error || checks.error) && (
             <Notice error>
-              Private evidence or screening history is unavailable. Refresh
-              before making a decision.
+              {appText(
+                "Private evidence or screening history is unavailable. Refresh before making a decision.",
+              )}{" "}
             </Notice>
           )}
           <section className="care-card">
-            <h3>Private evidence</h3>
+            <h3>{appText("Private evidence")}</h3>
             {evidence.isPending && (
-              <p role="status">Loading private evidence…</p>
+              <p role="status">{appText("Loading private evidence…")}</p>
             )}
             {!evidence.isPending &&
               !evidence.error &&
-              !evidence.data?.items.length && <p>No evidence uploaded yet.</p>}
+              !evidence.data?.items.length && (
+                <p>{appText("No evidence uploaded yet.")}</p>
+              )}
             {evidence.data?.items.map((e) => (
               <article className="privacy-record" key={e.id}>
                 <h4>
-                  {label(e.kind)} · {label(e.status)}
+                  {appText(label(e.kind))} · {appText(label(e.status))}
                 </h4>
                 <p>
-                  {e.mediaType} · {Math.ceil(e.size / 1024)} KiB · Evidence{" "}
-                  {e.id.slice(0, 8)}
+                  {e.mediaType} · {Math.ceil(e.size / 1024)}{" "}
+                  {appText("KiB · Evidence")} {e.id.slice(0, 8)}
                 </p>
                 <small>
-                  Scanner: {e.scannerVersion || "Not recorded"} ·{" "}
+                  {appText("Scanner:")}{" "}
+                  {e.scannerVersion || appText("Not recorded")} ·{" "}
                   {e.scannedAt
-                    ? new Date(e.scannedAt).toLocaleString("en-IN", {
-                        timeZone: "Asia/Kolkata",
-                      }) + " IST"
-                    : "Not scanned"}
+                    ? appText("{0} IST", [
+                        new Date(e.scannedAt).toLocaleString(appLocale, {
+                          timeZone: "Asia/Kolkata",
+                        }),
+                      ])
+                    : appText("Not scanned")}
                 </small>
                 <div className="care-actions">
                   {e.status === "CLEAN" && (
@@ -466,7 +487,9 @@ function TeacherReview({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Download private {label(e.kind).toLowerCase()} evidence
+                      {appText("Download private")}{" "}
+                      {appText(label(e.kind).toLowerCase())}{" "}
+                      {appText("evidence")}{" "}
                     </a>
                   )}
                   {e.status === "QUARANTINED" && (
@@ -475,7 +498,7 @@ function TeacherReview({
                       disabled={decision.locked || !!action || unavailable}
                       onClick={() => begin("scan", e.id)}
                     >
-                      Review scan retry {e.id.slice(0, 8)}
+                      {appText("Review scan retry")} {e.id.slice(0, 8)}
                     </Button>
                   )}
                 </div>
@@ -483,38 +506,41 @@ function TeacherReview({
             ))}
           </section>
           <section className="care-card">
-            <h3>Screening history</h3>
+            <h3>{appText("Screening history")}</h3>
             <p>
               {ready
-                ? "Current visible checks meet the approval prerequisites; the server rechecks every decision."
-                : "Approval prerequisites are incomplete or blocked."}
+                ? appText(
+                    "Current visible checks meet the approval prerequisites; the server rechecks every decision.",
+                  )
+                : appText("Approval prerequisites are incomplete or blocked.")}
             </p>
             {failed && (
               <Notice error>
-                A failed check exists on this revision. Request changes and
-                require a new application revision before approval.
+                {appText(
+                  "A failed check exists on this revision. Request changes and require a new application revision before approval.",
+                )}{" "}
               </Notice>
             )}
             {checks.isPending && (
-              <p role="status">Loading screening history…</p>
+              <p role="status">{appText("Loading screening history…")}</p>
             )}
             {checks.data?.items.map((c) => (
               <article className="privacy-record" key={c.id}>
                 <h4>
-                  {label(c.kind)} · {label(c.result)} · Revision{" "}
-                  {c.profileRevision}
+                  {appText(label(c.kind))} · {appText(label(c.result))}{" "}
+                  {appText("· Revision")} {c.profileRevision}
                 </h4>
                 <p>{c.reason}</p>
                 <small>
-                  Valid until{" "}
-                  {new Date(c.validUntil).toLocaleString("en-IN", {
+                  {appText("Valid until")}{" "}
+                  {new Date(c.validUntil).toLocaleString(appLocale, {
                     timeZone: "Asia/Kolkata",
                   })}{" "}
-                  IST ·{" "}
+                  {appText("IST ·")}{" "}
                   {c.profileRevision === t.profileRevision
-                    ? "Current revision"
-                    : "Earlier revision"}{" "}
-                  · Policy {c.policyVersion}
+                    ? appText("Current revision")
+                    : appText("Earlier revision")}{" "}
+                  {appText("· Policy")} {c.policyVersion}
                 </small>
               </article>
             ))}
@@ -523,12 +549,12 @@ function TeacherReview({
             <section className="care-card care-editor">
               <h3>
                 {review
-                  ? "Confirm the recorded assessment"
+                  ? appText("Confirm the recorded assessment")
                   : action === "check"
-                    ? "Record an evidence-based screening check"
+                    ? appText("Record an evidence-based screening check")
                     : action === "scan"
-                      ? "Retry quarantined evidence scanning"
-                      : "Choose the teacher decision"}
+                      ? appText("Retry quarantined evidence scanning")
+                      : appText("Choose the teacher decision")}
               </h3>
               <form
                 noValidate
@@ -551,7 +577,9 @@ function TeacherReview({
                         <>
                           <div className="care-fields">
                             <div>
-                              <label htmlFor="screen-kind">Check kind</label>
+                              <label htmlFor="screen-kind">
+                                {appText("Check kind")}
+                              </label>
                               <select
                                 id="screen-kind"
                                 value={kind}
@@ -567,14 +595,14 @@ function TeacherReview({
                                     value={k}
                                     disabled={!availableKinds.includes(k)}
                                   >
-                                    {label(k)}
+                                    {appText(label(k))}
                                   </option>
                                 ))}
                               </select>
                             </div>
                             <div>
                               <label htmlFor="screen-evidence">
-                                Matching clean evidence
+                                {appText("Matching clean evidence")}{" "}
                               </label>
                               <select
                                 id="screen-evidence"
@@ -582,7 +610,7 @@ function TeacherReview({
                                 onChange={(e) => setEvidenceId(e.target.value)}
                               >
                                 <option value="">
-                                  Choose reviewed evidence
+                                  {appText("Choose reviewed evidence")}{" "}
                                 </option>
                                 {evidence.data?.items
                                   .filter(
@@ -591,28 +619,35 @@ function TeacherReview({
                                   )
                                   .map((e) => (
                                     <option key={e.id} value={e.id}>
-                                      {label(e.kind)} — {e.id.slice(0, 8)}
+                                      {appText(label(e.kind))} —{" "}
+                                      {e.id.slice(0, 8)}
                                     </option>
                                   ))}
                               </select>
                             </div>
                             <div>
                               <label htmlFor="screen-result">
-                                Assessment result
+                                {appText("Assessment result")}{" "}
                               </label>
                               <select
                                 id="screen-result"
                                 value={checkResult}
                                 onChange={(e) => setCheckResult(e.target.value)}
                               >
-                                <option value="">Choose a result</option>
-                                <option value="PASSED">Passed</option>
-                                <option value="FAILED">Failed</option>
+                                <option value="">
+                                  {appText("Choose a result")}
+                                </option>
+                                <option value="PASSED">
+                                  {appText("Passed")}
+                                </option>
+                                <option value="FAILED">
+                                  {appText("Failed")}
+                                </option>
                               </select>
                             </div>
                             <div>
                               <label htmlFor="screen-validity">
-                                Valid until (IST)
+                                {appText("Valid until (IST)")}{" "}
                               </label>
                               <Input
                                 id="screen-validity"
@@ -630,9 +665,10 @@ function TeacherReview({
                                 onChange={(e) => setCoverage(e.target.checked)}
                               />
                               <span>
-                                I assessed every declared teaching area,
-                                including its stage, subject and class/board or
-                                course/year: {coverageText(t)}
+                                {appText(
+                                  "I assessed every declared teaching area, including its stage, subject and class/board or course/year:",
+                                )}{" "}
+                                {appText(coverageText(t, appText))}
                               </span>
                             </label>
                           )}
@@ -641,7 +677,7 @@ function TeacherReview({
                       {action === "decision" && (
                         <>
                           <label htmlFor="teacher-decision">
-                            Teacher decision
+                            {appText("Teacher decision")}{" "}
                           </label>
                           <select
                             id="teacher-decision"
@@ -649,31 +685,31 @@ function TeacherReview({
                             onChange={(e) => setStatus(e.target.value)}
                           >
                             <option value="CHANGES_REQUESTED">
-                              Request changes
+                              {appText("Request changes")}{" "}
                             </option>
                             <option value="APPROVED" disabled={!ready}>
-                              Approve current revision
+                              {appText("Approve current revision")}{" "}
                             </option>
-                            <option value="SUSPENDED">Suspend teacher</option>
+                            <option value="SUSPENDED">
+                              {appText("Suspend teacher")}
+                            </option>
                           </select>
                           <p>
-                            Approval requires four current passed checks with
-                            clean evidence and accepted fee terms. Suspension
-                            removes discovery/new booking eligibility and shared
-                            note access; existing paid bookings require separate
-                            review.
+                            {appText(
+                              "Approval requires four current passed checks with clean evidence and accepted fee terms. Suspension removes discovery/new booking eligibility and shared note access; existing paid bookings require separate review.",
+                            )}{" "}
                           </p>
                         </>
                       )}
                       {action === "scan" && (
                         <p>
-                          A retry queues scanning and keeps this evidence
-                          quarantined. It does not declare the file safe or
-                          approve the teacher.
+                          {appText(
+                            "A retry queues scanning and keeps this evidence quarantined. It does not declare the file safe or approve the teacher.",
+                          )}{" "}
                         </p>
                       )}
                       <label htmlFor="review-reason">
-                        Reason for recorded decision
+                        {appText("Reason for recorded decision")}{" "}
                       </label>
                       <Textarea
                         id="review-reason"
@@ -683,35 +719,46 @@ function TeacherReview({
                         onChange={(e) => setReason(e.target.value)}
                       />
                       <small>
-                        Include an assessment or actionable changes. Avoid
-                        unnecessary personal details.
+                        {appText(
+                          "Include an assessment or actionable changes. Avoid unnecessary personal details.",
+                        )}{" "}
                       </small>
                     </>
                   ) : (
                     <div className="care-review">
                       <h4>
-                        {t.name} · Revision {t.profileRevision} · Version{" "}
-                        {t.version}
+                        {t.name} {appText("· Revision")} {t.profileRevision}{" "}
+                        {appText("· Version")} {t.version}
                       </h4>
                       <p>{reason}</p>
                       <p>
                         {action === "check"
-                          ? `${label(kind)}: ${label(checkResult)}. Evidence ${evidenceId.slice(0, 8)}; valid until ${validity.replace("T", " ")} IST.`
+                          ? appText(
+                              "{0}: {1}. Evidence {2}; valid until {3} IST.",
+                              [
+                                appText(label(kind)),
+                                appText(label(checkResult)),
+                                evidenceId.slice(0, 8),
+                                validity.replace("T", " "),
+                              ],
+                            )
                           : action === "scan"
-                            ? "Queue a private evidence scan retry."
-                            : "Teacher decision: " + label(status) + "."}
+                            ? appText("Queue a private evidence scan retry.")
+                            : appText("Teacher decision: {0}.", [
+                                appText(label(status)),
+                              ])}
                       </p>
                       {action === "check" && kind === "CAPABILITY" && (
                         <div>
-                          <p>Full teaching coverage assessed:</p>
+                          <p>{appText("Full teaching coverage assessed:")}</p>
                           <TeachingCoverageSummary profile={t} />
                         </div>
                       )}
                       {action === "decision" && status === "SUSPENDED" && (
                         <p>
-                          Discovery and new bookings stop; named note access is
-                          revoked. Existing paid bookings and refunds require
-                          separate review.
+                          {appText(
+                            "Discovery and new bookings stop; named note access is revoked. Existing paid bookings and refunds require separate review.",
+                          )}{" "}
                         </p>
                       )}
                       <label className="care-check">
@@ -722,8 +769,12 @@ function TeacherReview({
                         />
                         <span>
                           {action === "scan"
-                            ? "I reviewed the quarantine state and want to queue this audited scan retry."
-                            : "I independently reviewed this application, its available evidence and the current revision, and want to record this audited decision."}
+                            ? appText(
+                                "I reviewed the quarantine state and want to queue this audited scan retry.",
+                              )
+                            : appText(
+                                "I independently reviewed this application, its available evidence and the current revision, and want to record this audited decision.",
+                              )}
                         </span>
                       </label>
                     </div>
@@ -738,12 +789,14 @@ function TeacherReview({
                           : (setAction(""), setReason(""))
                       }
                     >
-                      {review ? "Back to editing" : "Cancel decision"}
+                      {review
+                        ? appText("Back to editing")
+                        : appText("Cancel decision")}
                     </Button>
                     <Button type="submit">
                       {review
-                        ? "Confirm reviewer decision"
-                        : "Review assessment"}
+                        ? appText("Confirm reviewer decision")
+                        : appText("Review assessment")}
                     </Button>
                   </div>
                 </fieldset>

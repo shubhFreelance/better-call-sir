@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { validator } from "../helpers/contract";
@@ -830,13 +831,7 @@ test("real guardian and teacher agree a timetable, review attendance and share p
   }
   await login(page, "Kavita");
   await page.goto("/dashboard/lessons");
-  const card = page
-    .locator(".learning-timetable")
-    .filter({
-      has: page.getByRole("heading", { name: "Ananya Sharma", exact: true }),
-    })
-    .filter({ has: page.getByText("Aarav", { exact: true }) })
-    .first();
+  const card = page.locator(`[data-placement-id="${ids.placement}"]`);
   await expect(card).toBeVisible();
   await card.getByRole("button", { name: /Propose/ }).click();
   await card.getByLabel("First valid date").fill(day(3));
@@ -877,20 +872,9 @@ test("real guardian and teacher agree a timetable, review attendance and share p
   try {
     await login(teacherPage, "Ananya");
     await teacherPage.goto("/dashboard/lessons");
-    const teacherCard = teacherPage
-      .locator(".learning-timetable")
-      .filter({
-        has: teacherPage.getByRole("heading", {
-          name: "Ananya Sharma",
-          exact: true,
-        }),
-      })
-      .filter({
-        has: teacherPage.getByText(`Agreement ${ids.placement.slice(0, 8)}`, {
-          exact: true,
-        }),
-      })
-      .first();
+    const teacherCard = teacherPage.locator(
+      `[data-placement-id="${ids.placement}"]`,
+    );
     await teacherCard
       .getByRole("button", { name: "Review & accept timetable" })
       .click();
@@ -1199,4 +1183,13 @@ test("mobile feedback has labelled keyboard controls, readable recap colors and 
     path: "test-results/lesson-feedback-desktop.png",
     fullPage: true,
   });
+});
+
+test("Hindi complete interface — समय-सारणी और उपस्थिति", async ({ page }) => {
+  await chooseHindi(page);
+  await mock(page);
+  await page.goto("/dashboard/lessons");
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
 });

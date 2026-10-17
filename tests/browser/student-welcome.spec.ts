@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { operationValidator, validator } from "../helpers/contract";
@@ -586,3 +587,12 @@ test("student setup and review have accessible desktop/mobile layouts with curre
     ),
   ).toBeVisible();
 });
+
+ test("Hindi complete interface — विद्यार्थी सहायता और पसंद", async ({ page }) => {
+ await chooseHindi(page);
+ await setup(page);
+ await page.goto("/onboarding/student");
+ await checkHindi(page);
+ await page.setViewportSize({ width: 360, height: 800 });
+ await checkHindi(page);
+ });

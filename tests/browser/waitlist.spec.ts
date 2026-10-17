@@ -1,3 +1,4 @@
+import { chooseHindi, checkHindi } from "../helpers/hindi";
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { validator } from "../helpers/contract";
@@ -361,3 +362,12 @@ for (const stage of ["EARLY_YEARS", "COLLEGE"])
     expect(state.writes[0].body).not.toHaveProperty("alias");
     await expect(page.getByLabel("Class", { exact: true })).toHaveCount(0);
   });
+
+ test("Hindi complete interface — प्रतीक्षा सूची", async ({ page }) => {
+ await chooseHindi(page);
+ await mock(page);
+ await page.goto("/waitlist");
+ await checkHindi(page);
+ await page.setViewportSize({ width: 360, height: 800 });
+ await checkHindi(page);
+ });

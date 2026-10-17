@@ -1,4 +1,5 @@
 "use client";
+import { useAppTranslation } from "./locale";
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -28,13 +29,15 @@ export function StudentFeedback({
   decision: ReturnType<typeof useDecision>;
   hindi?: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   if (!hindi)
     return (
       <>
         <Feedback decision={decision} />
         {decision.conflict && (
           <Button disabled={decision.busy} onClick={() => decision.reload()}>
-            Reload current details
+            {appText("Reload current details")}{" "}
           </Button>
         )}
       </>
@@ -78,22 +81,28 @@ function ListState({
   retry: () => unknown;
   hindi: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const t = copy(hindi);
   return (
     <>
       {pending && (
         <p role="status">
-          {t("Loading current details…", "मौजूदा जानकारी लोड हो रही है…")}
+          {appText(
+            t("Loading current details…", "मौजूदा जानकारी लोड हो रही है…"),
+          )}
         </p>
       )}
       {!!error && (
         <Notice error>
-          {t(
-            "These details could not be loaded. Check your access and try again.",
-            "जानकारी लोड नहीं हुई। अपनी अनुमति जाँचकर फिर कोशिश करें।",
+          {appText(
+            t(
+              "These details could not be loaded. Check your access and try again.",
+              "जानकारी लोड नहीं हुई। अपनी अनुमति जाँचकर फिर कोशिश करें।",
+            ),
           )}{" "}
           <Button variant="outline" onClick={retry}>
-            {t("Try again", "फिर कोशिश करें")}
+            {appText(t("Try again", "फिर कोशिश करें"))}
           </Button>
         </Notice>
       )}
@@ -113,6 +122,8 @@ export function IndependentJourney({
   canManage?: boolean;
   onSaved: () => Promise<void>;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const t = copy(hindi),
     staff = ["ADMIN", "OPERATOR"].includes(session.account.role),
     teacher = session.account.role === "TEACHER",
@@ -161,46 +172,56 @@ export function IndependentJourney({
         <>
           <ol
             className="student-progress"
-            aria-label={t("Hiring progress", "शिक्षक चुनने की प्रगति")}
+            aria-label={appText(t("Hiring progress", "शिक्षक चुनने की प्रगति"))}
           >
             <li data-complete={r.matchStatus !== "PENDING"}>
-              {t("Criteria received", "ज़रूरतें मिलीं")}
+              {appText(t("Criteria received", "ज़रूरतें मिलीं"))}
             </li>
             <li data-complete={r.items.some((c) => !!c.position)}>
-              {t("Staff shortlist", "स्टाफ़ की सूची")}
+              {appText(t("Staff shortlist", "स्टाफ़ की सूची"))}
             </li>
             <li data-complete={r.items.some((c) => c.response === "ACCEPTED")}>
-              {t("Teacher response", "शिक्षक का जवाब")}
+              {appText(t("Teacher response", "शिक्षक का जवाब"))}
             </li>
             <li data-complete={!!r.selectedCandidateId}>
-              {t("Choose and agree terms", "चुनें और शर्तें स्वीकारें")}
+              {appText(
+                t("Choose and agree terms", "चुनें और शर्तें स्वीकारें"),
+              )}
             </li>
           </ol>
           {r.matchStatus === "NO_MATCH" && (
             <Notice>
-              {t(
-                "No eligible teacher is available for these criteria right now. Keep this enquiry open for staff review, browse other subjects or formats, or withdraw it and send a revised brief.",
-                "अभी इन ज़रूरतों के लिए उपयुक्त शिक्षक उपलब्ध नहीं है। समीक्षा के लिए पूछताछ खुली रखें, दूसरे विषय या तरीके देखें, या इसे वापस लेकर नई ज़रूरतें भेजें।",
+              {appText(
+                t(
+                  "No eligible teacher is available for these criteria right now. Keep this enquiry open for staff review, browse other subjects or formats, or withdraw it and send a revised brief.",
+                  "अभी इन ज़रूरतों के लिए उपयुक्त शिक्षक उपलब्ध नहीं है। समीक्षा के लिए पूछताछ खुली रखें, दूसरे विषय या तरीके देखें, या इसे वापस लेकर नई ज़रूरतें भेजें।",
+                ),
               )}
             </Notice>
           )}
           {!r.items.length && r.matchStatus !== "NO_MATCH" && (
             <Notice>
-              {t(
-                "Your brief is waiting for a staff-reviewed shortlist. No teacher has been assigned. You can continue browsing while we review it.",
-                "आपकी ज़रूरतों की समीक्षा हो रही है। शिक्षक अभी तय नहीं हुआ है। तब तक आप शिक्षक खोज सकते हैं।",
+              {appText(
+                t(
+                  "Your brief is waiting for a staff-reviewed shortlist. No teacher has been assigned. You can continue browsing while we review it.",
+                  "आपकी ज़रूरतों की समीक्षा हो रही है। शिक्षक अभी तय नहीं हुआ है। तब तक आप शिक्षक खोज सकते हैं।",
+                ),
               )}
             </Notice>
           )}
           {staff && !r.selectedCandidateId && (
             <div className="student-review-panel">
               <h3>
-                {t("Review current eligibility", "मौजूदा पात्रता जाँचें")}
+                {appText(
+                  t("Review current eligibility", "मौजूदा पात्रता जाँचें"),
+                )}
               </h3>
               <p>
-                {t(
-                  "Run current coverage, privacy, availability and capacity checks. Results remain private until you publish the chosen order.",
-                  "पढ़ाई, गोपनीयता, समय और क्षमता जाँचें। क्रम प्रकाशित करने तक नतीजे निजी रहेंगे।",
+                {appText(
+                  t(
+                    "Run current coverage, privacy, availability and capacity checks. Results remain private until you publish the chosen order.",
+                    "पढ़ाई, गोपनीयता, समय और क्षमता जाँचें। क्रम प्रकाशित करने तक नतीजे निजी रहेंगे।",
+                  ),
                 )}
               </p>
               <label className="wizard-checkbox">
@@ -211,9 +232,11 @@ export function IndependentJourney({
                   onChange={(e) => setRunReview(e.target.checked)}
                 />
                 <span>
-                  {t(
-                    "I reviewed this enquiry and want a fresh matching run.",
-                    "मैंने पूछताछ की समीक्षा की है और नया मिलान चाहता/चाहती हूँ।",
+                  {appText(
+                    t(
+                      "I reviewed this enquiry and want a fresh matching run.",
+                      "मैंने पूछताछ की समीक्षा की है और नया मिलान चाहता/चाहती हूँ।",
+                    ),
                   )}
                 </span>
               </label>
@@ -227,7 +250,7 @@ export function IndependentJourney({
                   })
                 }
               >
-                {t("Run matching", "मिलान करें")}
+                {appText(t("Run matching", "मिलान करें"))}
               </Button>
             </div>
           )}
@@ -238,7 +261,8 @@ export function IndependentJourney({
                   <div>
                     <h3>{c.teacherName}</h3>
                     <p>
-                      {rupees(c.monthlyPaise)} {t("per month", "प्रति माह")}
+                      {rupees(c.monthlyPaise, appLocale)}{" "}
+                      {appText(t("per month", "प्रति माह"))}
                     </p>
                   </div>
                   <span className="student-status-tag">
@@ -261,19 +285,21 @@ export function IndependentJourney({
                       )}
                 </p>
                 <p>
-                  {t("Response window ends", "जवाब का समय समाप्त")}{" "}
+                  {appText(t("Response window ends", "जवाब का समय समाप्त"))}{" "}
                   {new Date(c.expiresAt).toLocaleString(
-                    hindi ? "hi-IN" : "en-IN",
+                    hindi ? "hi-IN" : appLocale,
                     { timeZone: "Asia/Kolkata" },
                   )}{" "}
-                  IST
+                  {appText("IST")}{" "}
                 </p>
                 {!d.locked && (
                   <Link
                     className="inline-link"
                     href={"/teachers/" + enc(c.teacherSlug)}
                   >
-                    {t("Read teacher profile", "शिक्षक की प्रोफ़ाइल पढ़ें")}
+                    {appText(
+                      t("Read teacher profile", "शिक्षक की प्रोफ़ाइल पढ़ें"),
+                    )}
                   </Link>
                 )}
                 {staff && !r.selectedCandidateId && (
@@ -315,7 +341,9 @@ export function IndependentJourney({
                         setAgreed(false);
                       }}
                     >
-                      {t("Review this choice", "इस विकल्प की समीक्षा करें")}
+                      {appText(
+                        t("Review this choice", "इस विकल्प की समीक्षा करें"),
+                      )}
                     </Button>
                   )}
               </li>
@@ -324,9 +352,11 @@ export function IndependentJourney({
           {staff && order.length > 0 && !r.selectedCandidateId && (
             <div className="student-review-panel">
               <p>
-                {t(
-                  "Teachers will appear in the order selected. Uncheck and select again to change the order. Publishing invites teacher responses; it does not hire anyone.",
-                  "शिक्षक चुने गए क्रम में दिखेंगे। क्रम बदलने के लिए हटाकर फिर चुनें। प्रकाशन केवल जवाब आमंत्रित करता है।",
+                {appText(
+                  t(
+                    "Teachers will appear in the order selected. Uncheck and select again to change the order. Publishing invites teacher responses; it does not hire anyone.",
+                    "शिक्षक चुने गए क्रम में दिखेंगे। क्रम बदलने के लिए हटाकर फिर चुनें। प्रकाशन केवल जवाब आमंत्रित करता है।",
+                  ),
                 )}
               </p>
               <Button
@@ -344,20 +374,27 @@ export function IndependentJourney({
                   })
                 }
               >
-                {t("Publish reviewed shortlist", "समीक्षित सूची प्रकाशित करें")}
+                {appText(
+                  t(
+                    "Publish reviewed shortlist",
+                    "समीक्षित सूची प्रकाशित करें",
+                  ),
+                )}
               </Button>
             </div>
           )}
           {review && !r.selectedCandidateId && (
             <div className="student-review-panel">
               <h3>
-                {t("Choose ", "चुनें ")}
+                {appText(t("Choose ", "चुनें "))}
                 {review.teacherName}?
               </h3>
               <p>
-                {t(
-                  "This opens a separate review of the monthly fee and coordination terms. Both you and the teacher must accept; no classes or payments are booked.",
-                  "इससे मासिक फ़ीस और संपर्क की शर्तें खुलेंगी। आपको और शिक्षक को अलग-अलग स्वीकार करना होगा। कोई कक्षा या भुगतान बुक नहीं होगा।",
+                {appText(
+                  t(
+                    "This opens a separate review of the monthly fee and coordination terms. Both you and the teacher must accept; no classes or payments are booked.",
+                    "इससे मासिक फ़ीस और संपर्क की शर्तें खुलेंगी। आपको और शिक्षक को अलग-अलग स्वीकार करना होगा। कोई कक्षा या भुगतान बुक नहीं होगा।",
+                  ),
                 )}
               </p>
               <label className="wizard-checkbox">
@@ -368,9 +405,11 @@ export function IndependentJourney({
                   onChange={(e) => setAgreed(e.target.checked)}
                 />
                 <span>
-                  {t(
-                    "I want to review hiring terms with this teacher.",
-                    "मैं इस शिक्षक के साथ शर्तों की समीक्षा करना चाहता/चाहती हूँ।",
+                  {appText(
+                    t(
+                      "I want to review hiring terms with this teacher.",
+                      "मैं इस शिक्षक के साथ शर्तों की समीक्षा करना चाहता/चाहती हूँ।",
+                    ),
                   )}
                 </span>
               </label>
@@ -380,7 +419,7 @@ export function IndependentJourney({
                   disabled={d.locked}
                   onClick={() => setReview(null)}
                 >
-                  {t("Keep comparing", "तुलना जारी रखें")}
+                  {appText(t("Keep comparing", "तुलना जारी रखें"))}
                 </Button>
                 <Button
                   disabled={d.locked || !agreed}
@@ -405,7 +444,7 @@ export function IndependentJourney({
                     })
                   }
                 >
-                  {t("Open hiring terms", "शर्तें देखें")}
+                  {appText(t("Open hiring terms", "शर्तें देखें"))}
                 </Button>
               </div>
             </div>
@@ -420,7 +459,9 @@ export function IndependentJourney({
                   : "")
               }
             >
-              {t("Continue to hiring terms", "नियुक्ति की शर्तें देखें")}
+              {appText(
+                t("Continue to hiring terms", "नियुक्ति की शर्तें देखें"),
+              )}
             </Link>
           )}
         </>
@@ -435,6 +476,8 @@ export function StudentOpportunities({
   session: Session;
   hindi?: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const t = copy(hindi),
     client = useQueryClient(),
     [review, setReview] = useState<{
@@ -466,16 +509,25 @@ export function StudentOpportunities({
   return (
     <section className="student-workspace" lang={hindi ? "hi" : "en"}>
       <h1>
-        {t("Independent student enquiries", "स्वतंत्र विद्यार्थियों की पूछताछ")}
+        {appText(
+          t(
+            "Independent student enquiries",
+            "स्वतंत्र विद्यार्थियों की पूछताछ",
+          ),
+        )}
       </h1>
       <p>
-        {t(
-          "Review the learning brief before showing interest. Accepting an enquiry starts a conversation; hiring needs a separate mutual agreement.",
-          "इच्छा जताने से पहले पढ़ाई की ज़रूरतें देखें। पूछताछ स्वीकारने के बाद भी नियुक्ति के लिए अलग सहमति ज़रूरी है।",
+        {appText(
+          t(
+            "Review the learning brief before showing interest. Accepting an enquiry starts a conversation; hiring needs a separate mutual agreement.",
+            "इच्छा जताने से पहले पढ़ाई की ज़रूरतें देखें। पूछताछ स्वीकारने के बाद भी नियुक्ति के लिए अलग सहमति ज़रूरी है।",
+          ),
         )}
       </p>
       <Link className="inline-link" href="/dashboard/student-arrangements">
-        {t("View student arrangements", "विद्यार्थी की व्यवस्थाएँ देखें")}
+        {appText(
+          t("View student arrangements", "विद्यार्थी की व्यवस्थाएँ देखें"),
+        )}
       </Link>
       <StudentFeedback decision={d} hindi={hindi} />
       <ListState
@@ -492,7 +544,7 @@ export function StudentOpportunities({
               .map((c) => (
                 <li key={c.id}>
                   <h2>
-                    {c.subject} ·{" "}
+                    {appCurriculum(c.subject)} ·{" "}
                     {c.mode === "HOME"
                       ? t("At home", "घर पर")
                       : t("Online", "ऑनलाइन")}
@@ -506,11 +558,11 @@ export function StudentOpportunities({
                       : c.educationScope.courseName +
                         " · " +
                         c.educationScope.studyYear}{" "}
-                    · {c.language}
+                    · {appCurriculum(c.language)}
                   </p>
                   <p>
-                    {c.locality} · {rupees(c.budgetPaise)}{" "}
-                    {t("monthly budget", "मासिक बजट")}
+                    {c.locality} · {rupees(c.budgetPaise, appLocale)}{" "}
+                    {appText(t("monthly budget", "मासिक बजट"))}
                   </p>
                   <WeeklySummary preferences={c.preferences} hindi={hindi} />
                   <p>
@@ -552,7 +604,7 @@ export function StudentOpportunities({
                       className="inline-link"
                       href={"/support?studentEnquiry=" + c.enquiryId}
                     >
-                      {t("Get private help", "निजी सहायता लें")}
+                      {appText(t("Get private help", "निजी सहायता लें"))}
                     </Link>
                   )}
                 </li>
@@ -560,9 +612,11 @@ export function StudentOpportunities({
           </ul>
           {!q.data.pages.some((p) => p.items.length) && (
             <Notice>
-              {t(
-                "No active student opportunities on this page. Keep your coverage and availability current.",
-                "इस पृष्ठ पर सक्रिय पूछताछ नहीं है। पढ़ाने के विषय और उपलब्ध समय अद्यतन रखें।",
+              {appText(
+                t(
+                  "No active student opportunities on this page. Keep your coverage and availability current.",
+                  "इस पृष्ठ पर सक्रिय पूछताछ नहीं है। पढ़ाने के विषय और उपलब्ध समय अद्यतन रखें।",
+                ),
               )}
             </Notice>
           )}
@@ -571,7 +625,7 @@ export function StudentOpportunities({
               disabled={d.locked || q.isFetching}
               onClick={() => q.fetchNextPage()}
             >
-              {t("Load more enquiries", "और पूछताछ देखें")}
+              {appText(t("Load more enquiries", "और पूछताछ देखें"))}
             </Button>
           )}
         </>
@@ -584,9 +638,11 @@ export function StudentOpportunities({
               : t("Decline this enquiry?", "यह पूछताछ मना करें?")}
           </h2>
           <p>
-            {t(
-              "Review the subject, fee range and weekly preferences above. This response does not book a class or confirm a hire.",
-              "ऊपर विषय, बजट और साप्ताहिक समय देखें। इस जवाब से कक्षा बुक या नियुक्ति तय नहीं होगी।",
+            {appText(
+              t(
+                "Review the subject, fee range and weekly preferences above. This response does not book a class or confirm a hire.",
+                "ऊपर विषय, बजट और साप्ताहिक समय देखें। इस जवाब से कक्षा बुक या नियुक्ति तय नहीं होगी।",
+              ),
             )}
           </p>
           <label className="wizard-checkbox">
@@ -597,9 +653,11 @@ export function StudentOpportunities({
               onChange={(e) => setAgreed(e.target.checked)}
             />
             <span>
-              {t(
-                "I reviewed this response.",
-                "मैंने इस जवाब की समीक्षा की है।",
+              {appText(
+                t(
+                  "I reviewed this response.",
+                  "मैंने इस जवाब की समीक्षा की है।",
+                ),
               )}
             </span>
           </label>
@@ -609,7 +667,7 @@ export function StudentOpportunities({
               disabled={d.locked}
               onClick={() => setReview(null)}
             >
-              {t("Go back", "वापस जाएँ")}
+              {appText(t("Go back", "वापस जाएँ"))}
             </Button>
             <Button
               disabled={d.locked || !agreed}
@@ -625,7 +683,7 @@ export function StudentOpportunities({
                 })
               }
             >
-              {t("Confirm response", "जवाब की पुष्टि करें")}
+              {appText(t("Confirm response", "जवाब की पुष्टि करें"))}
             </Button>
           </div>
         </div>
@@ -640,6 +698,8 @@ export function StudentArrangements({
   session: Session;
   hindi?: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const t = copy(hindi),
     params = useSearchParams(),
     studentId =
@@ -662,11 +722,13 @@ export function StudentArrangements({
   });
   return (
     <section className="student-workspace" lang={hindi ? "hi" : "en"}>
-      <h1>{t("Hiring and arrangements", "नियुक्ति और व्यवस्थाएँ")}</h1>
+      <h1>{appText(t("Hiring and arrangements", "नियुक्ति और व्यवस्थाएँ"))}</h1>
       <p>
-        {t(
-          "A clear record of the teacher, agreed fee and each person’s acceptance. Individual classes can be arranged separately.",
-          "शिक्षक, सहमत फ़ीस और दोनों की स्वीकृति का साफ़ रिकॉर्ड। अलग-अलग कक्षाएँ बाद में तय की जा सकती हैं।",
+        {appText(
+          t(
+            "A clear record of the teacher, agreed fee and each person’s acceptance. Individual classes can be arranged separately.",
+            "शिक्षक, सहमत फ़ीस और दोनों की स्वीकृति का साफ़ रिकॉर्ड। अलग-अलग कक्षाएँ बाद में तय की जा सकती हैं।",
+          ),
         )}
       </p>
       {id && (
@@ -678,7 +740,7 @@ export function StudentArrangements({
           hindi={hindi}
         />
       )}
-      <h2>{t("Arrangement history", "व्यवस्थाओं का इतिहास")}</h2>
+      <h2>{appText(t("Arrangement history", "व्यवस्थाओं का इतिहास"))}</h2>
       <ListState
         pending={q.isPending}
         error={q.error}
@@ -693,8 +755,9 @@ export function StudentArrangements({
               .map((a) => (
                 <li key={a.id}>
                   <h3>
-                    {a.terms.subject} · {rupees(a.terms.monthlyPaise)}{" "}
-                    {t("per month", "प्रति माह")}
+                    {appCurriculum(a.terms.subject)} ·{" "}
+                    {rupees(a.terms.monthlyPaise, appLocale)}{" "}
+                    {appText(t("per month", "प्रति माह"))}
                   </h3>
                   <p>
                     {a.status === "CONFIRMED"
@@ -714,22 +777,24 @@ export function StudentArrangements({
                       )
                     }
                   >
-                    {t("View arrangement", "व्यवस्था देखें")}
+                    {appText(t("View arrangement", "व्यवस्था देखें"))}
                   </Button>
                 </li>
               ))}
           </ul>
           {!q.data.pages.some((p) => p.items.length) && (
             <Notice>
-              {t(
-                "No arrangements yet. Choose an interested teacher from your enquiry shortlist to review terms.",
-                "अभी कोई व्यवस्था नहीं है। शर्तों की समीक्षा के लिए पूछताछ की सूची से इच्छुक शिक्षक चुनें।",
+              {appText(
+                t(
+                  "No arrangements yet. Choose an interested teacher from your enquiry shortlist to review terms.",
+                  "अभी कोई व्यवस्था नहीं है। शर्तों की समीक्षा के लिए पूछताछ की सूची से इच्छुक शिक्षक चुनें।",
+                ),
               )}
             </Notice>
           )}
           {q.hasNextPage && (
             <Button disabled={q.isFetching} onClick={() => q.fetchNextPage()}>
-              {t("Load more arrangements", "और व्यवस्थाएँ देखें")}
+              {appText(t("Load more arrangements", "और व्यवस्थाएँ देखें"))}
             </Button>
           )}
         </>
@@ -748,6 +813,8 @@ function StudentArrangementDetail({
   studentId: string;
   hindi: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const t = copy(hindi),
     client = useQueryClient(),
     teacher = session.account.role === "TEACHER",
@@ -832,9 +899,11 @@ function StudentArrangementDetail({
   return (
     <section className="student-terms-panel">
       <h2>
-        {t(
-          "Review your tuition arrangement",
-          "ट्यूशन की व्यवस्था की समीक्षा करें",
+        {appText(
+          t(
+            "Review your tuition arrangement",
+            "ट्यूशन की व्यवस्था की समीक्षा करें",
+          ),
         )}
       </h2>
       <StudentFeedback decision={d} hindi={hindi} />
@@ -848,9 +917,9 @@ function StudentArrangementDetail({
         <>
           <div className="student-terms-layout">
             <div>
-              <h3>{a.terms.subject}</h3>
+              <h3>{appCurriculum(a.terms.subject)}</h3>
               <p>
-                {t("Teacher", "शिक्षक")}:{" "}
+                {appText(t("Teacher", "शिक्षक"))}:{" "}
                 {teacher
                   ? session.account.name
                   : shortlist.data?.items.find(
@@ -858,19 +927,21 @@ function StudentArrangementDetail({
                     )?.teacherName || a.teacherId.slice(0, 8)}
               </p>
               <p className="student-terms-price">
-                {rupees(a.terms.monthlyPaise)}{" "}
-                <span>{t("per month", "प्रति माह")}</span>
+                {rupees(a.terms.monthlyPaise, appLocale)}{" "}
+                <span>{appText(t("per month", "प्रति माह"))}</span>
               </p>
               <dl className="independent-summary">
-                <dt>{t("Format", "तरीका")}</dt>
+                <dt>{appText(t("Format", "तरीका"))}</dt>
                 <dd>
                   {a.terms.mode === "HOME"
                     ? t("At home", "घर पर")
                     : t("Online", "ऑनलाइन")}{" "}
-                  · {a.terms.language}
+                  · {appCurriculum(a.terms.language)}
                 </dd>
                 <dt>
-                  {t("Teacher’s lock-in preference", "शिक्षक की अवधि की पसंद")}
+                  {appText(
+                    t("Teacher’s lock-in preference", "शिक्षक की अवधि की पसंद"),
+                  )}
                 </dt>
                 <dd>
                   {a.terms.lockInDays === null
@@ -879,32 +950,38 @@ function StudentArrangementDetail({
                       ? t("No lock-in", "कोई बाध्य अवधि नहीं")
                       : a.terms.lockInDays + t(" days", " दिन")}
                 </dd>
-                <dt>{t("Demo preference", "डेमो की पसंद")}</dt>
+                <dt>{appText(t("Demo preference", "डेमो की पसंद"))}</dt>
                 <dd>
                   {a.terms.demoAvailable
                     ? t("Teacher offers a demo", "शिक्षक डेमो देते हैं")
                     : t("No demo offered", "डेमो नहीं देते")}
                 </dd>
                 <dt>
-                  {t("Placement fee declaration", "प्लेसमेंट फ़ीस की घोषणा")}
+                  {appText(
+                    t("Placement fee declaration", "प्लेसमेंट फ़ीस की घोषणा"),
+                  )}
                 </dt>
                 <dd>
-                  {rupees(a.terms.platformFeePaise)} ·{" "}
-                  {t(
-                    "Recorded; no payment is taken here",
-                    "दर्ज है; यहाँ भुगतान नहीं लिया जाता",
+                  {rupees(a.terms.platformFeePaise, appLocale)} ·{" "}
+                  {appText(
+                    t(
+                      "Recorded; no payment is taken here",
+                      "दर्ज है; यहाँ भुगतान नहीं लिया जाता",
+                    ),
                   )}
                 </dd>
               </dl>
               <p>
-                {t(
-                  "The lock-in preference is recorded only. Cancellation or refund restrictions are not enforced here. These terms do not book classes, create invoices or charge a payment.",
-                  "अवधि की पसंद केवल दर्ज है। यहाँ रद्द करने या वापसी की रोक लागू नहीं है। इन शर्तों से कक्षा, चालान या भुगतान नहीं बनता।",
+                {appText(
+                  t(
+                    "The lock-in preference is recorded only. Cancellation or refund restrictions are not enforced here. These terms do not book classes, create invoices or charge a payment.",
+                    "अवधि की पसंद केवल दर्ज है। यहाँ रद्द करने या वापसी की रोक लागू नहीं है। इन शर्तों से कक्षा, चालान या भुगतान नहीं बनता।",
+                  ),
                 )}
               </p>
             </div>
             <aside className="student-agreement-status">
-              <h3>{t("Agreement status", "सहमति की स्थिति")}</h3>
+              <h3>{appText(t("Agreement status", "सहमति की स्थिति"))}</h3>
               <p>
                 {a.studentAcceptedAt
                   ? t("Student side accepted", "विद्यार्थी पक्ष ने स्वीकारा")
@@ -943,9 +1020,11 @@ function StudentArrangementDetail({
                     onChange={(e) => setAccepted(e.target.checked)}
                   />
                   <span>
-                    {t(
-                      "I accept these exact terms and authorize sharing the student’s and teacher’s account email addresses with each other after both sides confirm.",
-                      "मैं ये शर्तें स्वीकार करता/करती हूँ। दोनों की पुष्टि के बाद विद्यार्थी और शिक्षक के खाते के ईमेल एक-दूसरे से साझा करने की अनुमति देता/देती हूँ।",
+                    {appText(
+                      t(
+                        "I accept these exact terms and authorize sharing the student’s and teacher’s account email addresses with each other after both sides confirm.",
+                        "मैं ये शर्तें स्वीकार करता/करती हूँ। दोनों की पुष्टि के बाद विद्यार्थी और शिक्षक के खाते के ईमेल एक-दूसरे से साझा करने की अनुमति देता/देती हूँ।",
+                      ),
                     )}
                   </span>
                 </label>
@@ -965,13 +1044,19 @@ function StudentArrangementDetail({
                     })
                   }
                 >
-                  {t("Accept reviewed terms", "समीक्षित शर्तें स्वीकारें")}
+                  {appText(
+                    t("Accept reviewed terms", "समीक्षित शर्तें स्वीकारें"),
+                  )}
                 </Button>
               </div>
             )}
           {a.status === "CONFIRMED" && canManage && (
             <div className="student-review-panel">
-              <h3>{t("Coordinate with each other", "आपस में संपर्क करें")}</h3>
+              <h3>
+                {appText(
+                  t("Coordinate with each other", "आपस में संपर्क करें"),
+                )}
+              </h3>
               <Button
                 disabled={d.locked || contactBusy}
                 variant="outline"
@@ -981,7 +1066,7 @@ function StudentArrangementDetail({
                   ? t("Checking access…", "अनुमति जाँच रहे हैं…")
                   : t("Show agreed contact email", "सहमत संपर्क ईमेल देखें")}
               </Button>
-              {contactError && <Notice error>{contactError}</Notice>}
+              {contactError && <Notice error>{appError(contactError)}</Notice>}
               {contact && (
                 <p className="student-contact">
                   {contact.available && contact.email ? (
@@ -1007,7 +1092,7 @@ function StudentArrangementDetail({
                     : "/support"
                 }
               >
-                {t("Help and progress", "सहायता और प्रगति")}
+                {appText(t("Help and progress", "सहायता और प्रगति"))}
               </Link>
             )}
             {a.status !== "CLOSED" && canManage && (
@@ -1021,7 +1106,7 @@ function StudentArrangementDetail({
                     setAccepted(false);
                   }}
                 >
-                  {t("Close arrangement", "व्यवस्था बंद करें")}
+                  {appText(t("Close arrangement", "व्यवस्था बंद करें"))}
                 </Button>
                 {!teacher && a.enquiryId && (
                   <Button
@@ -1032,7 +1117,9 @@ function StudentArrangementDetail({
                       setClosing(false);
                     }}
                   >
-                    {t("Request a different teacher", "दूसरा शिक्षक माँगें")}
+                    {appText(
+                      t("Request a different teacher", "दूसरा शिक्षक माँगें"),
+                    )}
                   </Button>
                 )}
               </>
@@ -1040,15 +1127,19 @@ function StudentArrangementDetail({
           </div>
           {closing && (
             <div className="student-review-panel">
-              <h3>{t("Close this arrangement?", "यह व्यवस्था बंद करें?")}</h3>
+              <h3>
+                {appText(t("Close this arrangement?", "यह व्यवस्था बंद करें?"))}
+              </h3>
               <p>
-                {t(
-                  "This closes contact access and releases the teacher’s place. It does not cancel or refund external payments.",
-                  "इससे संपर्क की अनुमति और शिक्षक की जगह बंद होगी। बाहरी भुगतान रद्द या वापस नहीं होंगे।",
+                {appText(
+                  t(
+                    "This closes contact access and releases the teacher’s place. It does not cancel or refund external payments.",
+                    "इससे संपर्क की अनुमति और शिक्षक की जगह बंद होगी। बाहरी भुगतान रद्द या वापस नहीं होंगे।",
+                  ),
                 )}
               </p>
               <label className="field">
-                {t("Reason", "कारण")}
+                {appText(t("Reason", "कारण"))}
                 <Textarea
                   value={reason}
                   maxLength={1000}
@@ -1064,9 +1155,11 @@ function StudentArrangementDetail({
                   onChange={(e) => setAccepted(e.target.checked)}
                 />
                 <span>
-                  {t(
-                    "I understand and want to close it.",
-                    "मैं समझता/समझती हूँ और इसे बंद करना चाहता/चाहती हूँ।",
+                  {appText(
+                    t(
+                      "I understand and want to close it.",
+                      "मैं समझता/समझती हूँ और इसे बंद करना चाहता/चाहती हूँ।",
+                    ),
                   )}
                 </span>
               </label>
@@ -1084,7 +1177,7 @@ function StudentArrangementDetail({
                   })
                 }
               >
-                {t("Confirm closure", "बंद करने की पुष्टि करें")}
+                {appText(t("Confirm closure", "बंद करने की पुष्टि करें"))}
               </Button>
             </div>
           )}
@@ -1115,6 +1208,8 @@ function StudentReplacement({
   hindi: boolean;
   onSaved: () => Promise<void>;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const t = copy(hindi),
     router = useRouter(),
     [weekly, setWeekly] = useState(emptyWeekly),
@@ -1186,7 +1281,9 @@ function StudentReplacement({
   return (
     <div className="student-review-panel student-enquiry-form">
       <h3>
-        {t("Review a replacement brief", "बदले हुए शिक्षक की ज़रूरतें देखें")}
+        {appText(
+          t("Review a replacement brief", "बदले हुए शिक्षक की ज़रूरतें देखें"),
+        )}
       </h3>
       <StudentFeedback decision={d} hindi={hindi} />
       <ListState
@@ -1197,10 +1294,12 @@ function StudentReplacement({
       />
       {!review ? (
         <fieldset disabled={d.locked}>
-          <legend>{t("Your updated criteria", "आपकी नई ज़रूरतें")}</legend>
+          <legend>
+            {appText(t("Your updated criteria", "आपकी नई ज़रूरतें"))}
+          </legend>
           <div className="student-fields">
             <label className="field">
-              {t("Subject", "विषय")}
+              {appText(t("Subject", "विषय"))}
               <Input
                 value={subject}
                 maxLength={60}
@@ -1208,27 +1307,29 @@ function StudentReplacement({
               />
             </label>
             <label className="field">
-              {t("Format", "तरीका")}
+              {appText(t("Format", "तरीका"))}
               <select
                 value={mode}
                 onChange={(e) => setMode(e.target.value as typeof mode)}
               >
-                <option value="ONLINE">{t("Online", "ऑनलाइन")}</option>
-                <option value="HOME">{t("At home", "घर पर")}</option>
+                <option value="ONLINE">{appText(t("Online", "ऑनलाइन"))}</option>
+                <option value="HOME">{appText(t("At home", "घर पर"))}</option>
               </select>
             </label>
             <label className="field">
-              {t("Language", "भाषा")}
+              {appText(t("Language", "भाषा"))}
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as typeof language)}
               >
-                <option value="English">{t("English", "अंग्रेज़ी")}</option>
-                <option value="Hindi">{t("Hindi", "हिंदी")}</option>
+                <option value="English">
+                  {appText(t("English", "अंग्रेज़ी"))}
+                </option>
+                <option value="Hindi">{appText(t("Hindi", "हिंदी"))}</option>
               </select>
             </label>
             <label className="field">
-              {t("Locality", "इलाका")}
+              {appText(t("Locality", "इलाका"))}
               <Input
                 value={locality}
                 maxLength={80}
@@ -1236,7 +1337,7 @@ function StudentReplacement({
               />
             </label>
             <label className="field">
-              {t("Monthly budget (₹)", "मासिक बजट (₹)")}
+              {appText(t("Monthly budget (₹)", "मासिक बजट (₹)"))}
               <Input
                 value={budget}
                 inputMode="decimal"
@@ -1245,9 +1346,11 @@ function StudentReplacement({
             </label>
           </div>
           <label className="field">
-            {t(
-              "Why do you need a replacement?",
-              "शिक्षक क्यों बदलना चाहते हैं?",
+            {appText(
+              t(
+                "Why do you need a replacement?",
+                "शिक्षक क्यों बदलना चाहते हैं?",
+              ),
             )}
             <Textarea
               value={reason}
@@ -1266,15 +1369,17 @@ function StudentReplacement({
             }
             onClick={prepare}
           >
-            {t("Review replacement", "बदलाव की समीक्षा करें")}
+            {appText(t("Review replacement", "बदलाव की समीक्षा करें"))}
           </Button>
         </fieldset>
       ) : (
         <>
           <p>
-            {review.criteria.subject} · {review.criteria.mode} ·{" "}
-            {review.criteria.language} · {review.criteria.locality} ·{" "}
-            {rupees(review.criteria.budgetPaise)}
+            {appCurriculum(review.criteria.subject)} ·{" "}
+            {appText(review.criteria.mode)} ·{" "}
+            {appCurriculum(review.criteria.language)} ·{" "}
+            {review.criteria.locality} ·{" "}
+            {rupees(review.criteria.budgetPaise, appLocale)}
           </p>
           <p>{review.reason}</p>
           <WeeklySummary
@@ -1282,9 +1387,11 @@ function StudentReplacement({
             hindi={hindi}
           />
           <Notice>
-            {t(
-              "Confirming closes this arrangement and its contact access, creates a fresh assisted enquiry and a private replacement support request. The previous teacher is excluded. A replacement is not guaranteed and external payments are unchanged.",
-              "पुष्टि करने से मौजूदा व्यवस्था और संपर्क बंद होगा। नई सहायक पूछताछ और निजी सहायता अनुरोध बनेगा। पुराना शिक्षक बाहर रहेगा। नया शिक्षक मिलने की गारंटी नहीं है और बाहरी भुगतान नहीं बदलेंगे।",
+            {appText(
+              t(
+                "Confirming closes this arrangement and its contact access, creates a fresh assisted enquiry and a private replacement support request. The previous teacher is excluded. A replacement is not guaranteed and external payments are unchanged.",
+                "पुष्टि करने से मौजूदा व्यवस्था और संपर्क बंद होगा। नई सहायक पूछताछ और निजी सहायता अनुरोध बनेगा। पुराना शिक्षक बाहर रहेगा। नया शिक्षक मिलने की गारंटी नहीं है और बाहरी भुगतान नहीं बदलेंगे।",
+              ),
             )}
           </Notice>
           <label className="wizard-checkbox">
@@ -1295,9 +1402,11 @@ function StudentReplacement({
               onChange={(e) => setAgreed(e.target.checked)}
             />
             <span>
-              {t(
-                "I reviewed the brief and want to request a different teacher.",
-                "मैंने ज़रूरतें देखी हैं और दूसरा शिक्षक चाहता/चाहती हूँ।",
+              {appText(
+                t(
+                  "I reviewed the brief and want to request a different teacher.",
+                  "मैंने ज़रूरतें देखी हैं और दूसरा शिक्षक चाहता/चाहती हूँ।",
+                ),
               )}
             </span>
           </label>
@@ -1307,7 +1416,7 @@ function StudentReplacement({
               disabled={d.locked}
               onClick={() => setReview(null)}
             >
-              {t("Edit brief", "जानकारी बदलें")}
+              {appText(t("Edit brief", "जानकारी बदलें"))}
             </Button>
             <Button
               disabled={d.locked || !agreed}
@@ -1325,9 +1434,11 @@ function StudentReplacement({
                 })
               }
             >
-              {t(
-                "Confirm replacement request",
-                "बदलाव के अनुरोध की पुष्टि करें",
+              {appText(
+                t(
+                  "Confirm replacement request",
+                  "बदलाव के अनुरोध की पुष्टि करें",
+                ),
               )}
             </Button>
           </div>
@@ -1344,6 +1455,8 @@ export function StudentLearningSummary({
   session: Session;
   hindi?: boolean;
 }) {
+  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+
   const t = copy(hindi),
     enquiries = useQuery({
       queryKey: ["student-enquiries", "home", session.account.id],
@@ -1361,16 +1474,20 @@ export function StudentLearningSummary({
     });
   return (
     <section className="care-section">
-      <h2>{t("Your next learning decision", "पढ़ाई का आपका अगला निर्णय")}</h2>
+      <h2>
+        {appText(t("Your next learning decision", "पढ़ाई का आपका अगला निर्णय"))}
+      </h2>
       <p>
-        {t(
-          "Follow teacher responses and mutual agreement here. Open the full enquiry and arrangement histories to see more.",
-          "शिक्षक के जवाब और दोनों की सहमति यहाँ देखें। और रिकॉर्ड के लिए पूछताछ और व्यवस्थाओं का पूरा इतिहास खोलें।",
+        {appText(
+          t(
+            "Follow teacher responses and mutual agreement here. Open the full enquiry and arrangement histories to see more.",
+            "शिक्षक के जवाब और दोनों की सहमति यहाँ देखें। और रिकॉर्ड के लिए पूछताछ और व्यवस्थाओं का पूरा इतिहास खोलें।",
+          ),
         )}
       </p>
       <div className="student-fields">
         <section>
-          <h3>{t("Enquiry overview", "पूछताछ का अवलोकन")}</h3>
+          <h3>{appText(t("Enquiry overview", "पूछताछ का अवलोकन"))}</h3>
           <ListState
             pending={enquiries.isPending}
             error={enquiries.error}
@@ -1381,16 +1498,18 @@ export function StudentLearningSummary({
             <>
               {!enquiries.data.items.length && (
                 <p>
-                  {t(
-                    "No enquiries yet. Start with teacher search or an assisted brief.",
-                    "अभी पूछताछ नहीं है। शिक्षक खोजें या मदद से खोजने का अनुरोध भेजें।",
+                  {appText(
+                    t(
+                      "No enquiries yet. Start with teacher search or an assisted brief.",
+                      "अभी पूछताछ नहीं है। शिक्षक खोजें या मदद से खोजने का अनुरोध भेजें।",
+                    ),
                   )}
                 </p>
               )}
               <ul className="student-candidate-list">
                 {enquiries.data.items.map((e) => (
                   <li key={e.id}>
-                    <strong>{e.subject}</strong>
+                    <strong>{appCurriculum(e.subject)}</strong>
                     <p>
                       {e.status === "HIRED"
                         ? t("Both sides confirmed", "दोनों ने पुष्टि की")
@@ -1410,19 +1529,19 @@ export function StudentLearningSummary({
                       className="inline-link"
                       href={"/dashboard/enquiries?enquiry=" + e.id}
                     >
-                      {t("Open enquiry", "पूछताछ खोलें")}
+                      {appText(t("Open enquiry", "पूछताछ खोलें"))}
                     </Link>
                   </li>
                 ))}
               </ul>
               <Link className="inline-link" href="/dashboard/enquiries">
-                {t("All enquiry history", "पूछताछ का पूरा इतिहास")}
+                {appText(t("All enquiry history", "पूछताछ का पूरा इतिहास"))}
               </Link>
             </>
           )}
         </section>
         <section>
-          <h3>{t("Arrangement overview", "व्यवस्थाओं का अवलोकन")}</h3>
+          <h3>{appText(t("Arrangement overview", "व्यवस्थाओं का अवलोकन"))}</h3>
           <ListState
             pending={arrangements.isPending}
             error={arrangements.error}
@@ -1433,9 +1552,11 @@ export function StudentLearningSummary({
             <>
               {!arrangements.data.items.length && (
                 <p>
-                  {t(
-                    "After an interested teacher is chosen, review the exact terms here.",
-                    "इच्छुक शिक्षक चुनने के बाद यहाँ शर्तों की समीक्षा करें।",
+                  {appText(
+                    t(
+                      "After an interested teacher is chosen, review the exact terms here.",
+                      "इच्छुक शिक्षक चुनने के बाद यहाँ शर्तों की समीक्षा करें।",
+                    ),
                   )}
                 </p>
               )}
@@ -1443,7 +1564,8 @@ export function StudentLearningSummary({
                 {arrangements.data.items.map((a) => (
                   <li key={a.id}>
                     <strong>
-                      {a.terms.subject} · {rupees(a.terms.monthlyPaise)}
+                      {appCurriculum(a.terms.subject)} ·{" "}
+                      {rupees(a.terms.monthlyPaise, appLocale)}
                     </strong>
                     <p>
                       {a.status === "CONFIRMED"
@@ -1458,7 +1580,7 @@ export function StudentLearningSummary({
                         "/dashboard/student-arrangements?arrangement=" + a.id
                       }
                     >
-                      {t("Review arrangement", "व्यवस्था देखें")}
+                      {appText(t("Review arrangement", "व्यवस्था देखें"))}
                     </Link>
                   </li>
                 ))}
@@ -1467,7 +1589,7 @@ export function StudentLearningSummary({
                 className="inline-link"
                 href="/dashboard/student-arrangements"
               >
-                {t("All arrangements", "सभी व्यवस्थाएँ")}
+                {appText(t("All arrangements", "सभी व्यवस्थाएँ"))}
               </Link>
             </>
           )}
