@@ -5120,3 +5120,18 @@ footer {
     width: 100%;
   }
 }
+
+/* Anchor the disclosure to the header when translated preview text wraps. */
+.header { position: relative; }
+.mobile-nav-actions { display: none; }
+.dev-strip[lang="hi"], footer[lang="hi"] { line-height: 1.7; }
+.dev-strip[lang="hi"], footer[lang="hi"] .eyebrow { letter-spacing: 0; }
+.dev-strip[lang="hi"] { font-size: 11px; }
+footer[lang="hi"] :is(.eyebrow, .footer-bottom) { font-size: 12px; }
+@media (max-width: 800px) {
+  .header .top-nav { top: 100%; gap: 12px; }
+  .header .top-nav a { min-height: 44px; width: 100%; }
+  .header-actions > .language, .header-actions > .icon-button:not(.mobile-menu) { display: none; }
+  .mobile-nav-actions { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; }
+  .mobile-nav-actions > button { min-height: 44px; }
+}

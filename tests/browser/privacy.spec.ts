@@ -357,7 +357,7 @@ test("Hindi privacy correction translates validation and preserves the exact ent
   const s = await mock(page);
   await page.goto("/dashboard/privacy");
   const language = page.getByRole("button", {
-    name: "Switch English and Hindi",
+    name: /Switch English and Hindi|अंग्रेज़ी और हिन्दी बदलें/,
   });
   await language.click();
   await page

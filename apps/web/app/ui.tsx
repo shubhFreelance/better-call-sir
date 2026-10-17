@@ -32,6 +32,7 @@ import { SupportWorkspace } from "./support-workspace";
 import { NotesWorkspace } from "./notes-workspace";
 import {
   useEffect,
+  useRef,
   useState,
   createContext,
   useContext,
@@ -257,8 +258,15 @@ function PageTitle({
   );
 }
 function Logo() {
+  const { hindi } = useAuth();
   return (
-    <Link href="/" className="logo" aria-label="Better Call Sir home">
+    <Link
+      href="/"
+      className="logo"
+      aria-label={
+        hindi ? "Better Call Sir मुख्य पृष्ठ" : "Better Call Sir home"
+      }
+    >
       <span className="logo-mark">
         <BookOpen size={21} />
       </span>
@@ -273,29 +281,48 @@ function Header() {
   const { session, hindi, setHindi, setSession } = useAuth(),
     client = useQueryClient();
   const [open, setOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const router = useRouter();
   async function logout() {
     try {
       await api("/auth/logout", { method: "POST", csrf: session?.csrfToken });
       setSession(null);
+      setOpen(false);
       client.clear();
       router.push("/");
     } catch (e) {
-      alert((e as Error).message);
+      alert(
+        hindi
+          ? "साइन आउट की पुष्टि नहीं हुई। अपना खाता जाँचकर फिर कोशिश करें।"
+          : (e as Error).message,
+      );
     }
   }
   return (
     <>
-      <div className="dev-strip">
-        <span className="dev-dot" /> Development preview · Synthetic profiles
-        and accounts · No live payments or calls
+      <div className="dev-strip" lang={hindi ? "hi" : "en"}>
+        <span className="dev-dot" aria-hidden="true" />
+        {hindi
+          ? "विकास संस्करण · नमूना प्रोफ़ाइल और खाते · कोई लाइव भुगतान या कॉल नहीं"
+          : "Development preview · Synthetic profiles and accounts · No live payments or calls"}
       </div>
-      <header className="header" lang={hindi ? "hi" : "en"}>
+      <header
+        className="header"
+        lang={hindi ? "hi" : "en"}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && open) {
+            event.preventDefault();
+            setOpen(false);
+            menuButton.current?.focus();
+          }
+        }}
+      >
         <div className="container header-inner">
           <Logo />
           <nav
             className={open ? "top-nav open" : "top-nav"}
-            aria-label="Main navigation"
+            id="site-navigation"
+            aria-label={hindi ? "मुख्य नेविगेशन" : "Main navigation"}
           >
             <Link href="/teachers" onClick={() => setOpen(false)}>
               {hindi ? "शिक्षक खोजें" : "Find a teacher"}
@@ -306,12 +333,34 @@ function Header() {
             <Link href="/onboarding/teacher" onClick={() => setOpen(false)}>
               {hindi ? "शिक्षक बनें" : "Become a teacher"}
             </Link>
+            <div className="mobile-nav-actions">
+              <UiButton
+                variant="outline"
+                onClick={() => setHindi(!hindi)}
+                aria-label={
+                  hindi
+                    ? "अंग्रेज़ी और हिन्दी बदलें"
+                    : "Switch English and Hindi"
+                }
+              >
+                <Languages size={16} aria-hidden="true" />
+                {hindi ? "English" : "हिन्दी"}
+              </UiButton>
+              {session && (
+                <UiButton variant="outline" onClick={logout}>
+                  <LogOut size={18} aria-hidden="true" />
+                  {hindi ? "साइन आउट" : "Sign out"}
+                </UiButton>
+              )}
+            </div>
           </nav>
           <div className="header-actions">
             <button
               className="language"
               onClick={() => setHindi(!hindi)}
-              aria-label="Switch English and Hindi"
+              aria-label={
+                hindi ? "अंग्रेज़ी और हिन्दी बदलें" : "Switch English and Hindi"
+              }
             >
               <Languages size={16} />
               {hindi ? "English" : "हिन्दी"}
@@ -330,7 +379,7 @@ function Header() {
                 <button
                   className="icon-button"
                   onClick={logout}
-                  aria-label="Sign out"
+                  aria-label={hindi ? "साइन आउट" : "Sign out"}
                 >
                   <LogOut size={18} />
                 </button>
@@ -347,10 +396,14 @@ function Header() {
               </Link>
             )}
             <button
+              ref={menuButton}
               className="icon-button mobile-menu"
+              aria-controls="site-navigation"
               onClick={() => setOpen(!open)}
               aria-expanded={open}
-              aria-label="Toggle navigation"
+              aria-label={
+                hindi ? "नेविगेशन खोलें या बंद करें" : "Toggle navigation"
+              }
             >
               {open ? <X /> : <Menu />}
             </button>
@@ -361,37 +414,60 @@ function Header() {
   );
 }
 function Footer() {
+  const { hindi } = useAuth();
   return (
-    <footer>
+    <footer lang={hindi ? "hi" : "en"}>
       <div className="container footer-grid">
         <div>
           <Logo />
           <p>
-            A good teacher changes the way
-            <br />
-            you see what’s possible.
+            {hindi ? (
+              "एक अच्छा शिक्षक नई संभावनाएँ दिखाता है।"
+            ) : (
+              <>
+                A good teacher changes the way
+                <br />
+                you see what’s possible.
+              </>
+            )}
           </p>
         </div>
         <div>
-          <span className="eyebrow">MADE FOR YOUR FAMILY</span>
-          <Link href="/teachers">Find a teacher</Link>
-          <Link href="/onboarding/parent">Tell us what you need</Link>
-          <Link href="/support">Help & safety support</Link>
+          <span className="eyebrow">
+            {hindi ? "आपके परिवार के लिए" : "MADE FOR YOUR FAMILY"}
+          </span>
+          <Link href="/teachers">
+            {hindi ? "शिक्षक खोजें" : "Find a teacher"}
+          </Link>
+          <Link href="/onboarding/parent">
+            {hindi ? "अपनी ज़रूरत बताएँ" : "Tell us what you need"}
+          </Link>
+          <Link href="/support">
+            {hindi ? "मदद और सुरक्षा सहायता" : "Help & safety support"}
+          </Link>
         </div>
         <div>
-          <span className="eyebrow">STARTING CLOSE TO HOME</span>
+          <span className="eyebrow">
+            {hindi ? "आपके आसपास से शुरुआत" : "STARTING CLOSE TO HOME"}
+          </span>
           <p>
-            Raipur, Chhattisgarh
+            {hindi ? "रायपुर, छत्तीसगढ़" : "Raipur, Chhattisgarh"}
             <br />
-            Online & at-home lessons
+            {hindi ? "ऑनलाइन और घर पर पढ़ाई" : "Online & at-home lessons"}
             <br />
-            Early years, school & college
+            {hindi
+              ? "शुरुआती शिक्षा, स्कूल और कॉलेज"
+              : "Early years, school & college"}
           </p>
         </div>
       </div>
       <div className="container footer-bottom">
         <span>© {new Date().getFullYear()} Better Call Sir</span>
-        <span>A development build. Live services are not enabled.</span>
+        <span>
+          {hindi
+            ? "यह विकास संस्करण है। लाइव सेवाएँ चालू नहीं हैं।"
+            : "A development build. Live services are not enabled."}
+        </span>
       </div>
     </footer>
   );
@@ -2677,8 +2753,8 @@ function AppContent() {
         </main>
       )}
       <div hidden={!!transition}>
-        <a className="skip-link" href="#main">
-          Skip to content
+        <a className="skip-link" href="#main" lang={hindi ? "hi" : "en"}>
+          {hindi ? "मुख्य सामग्री पर जाएँ" : "Skip to content"}
         </a>
         <Header />
         {switchMessage && (
