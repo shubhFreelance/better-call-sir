@@ -6,6 +6,11 @@ import {
   translateText,
   rememberLanguage,
 } from "./locale";
+import {
+  emptyTeacherFilters,
+  useTeacherSearchState,
+  type TeacherSearchPage,
+} from "./teacher-search-state";
 import { StudentSupporters, StudentDevices } from "./independent-access";
 import {
   StudentArrangements,
@@ -73,6 +78,7 @@ import { DemoJourney } from "./demo-journey";
 import { StaffAccess, staffRole } from "./staff-access";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
+  type InfiniteData,
   QueryClient,
   QueryClientProvider,
   useInfiniteQuery,
@@ -856,29 +862,45 @@ function Teachers() {
   const independent = session?.account.role === "INDEPENDENT_STUDENT";
   const discoveryParams = useSearchParams();
   const [filterReset, setFilterReset] = useState(0);
-  const [stage, setStage] = useState(""),
-    [level, setLevel] = useState(""),
-    [courseName, setCourseName] = useState(""),
-    [studyYear, setStudyYear] = useState("");
-  function educationStage(next: string) {
-    setStage(next);
-    setGrade("");
-    setBoard("");
-    setLevel("");
-    setCourseName("");
-    setStudyYear("");
+  const [searchState, setSearchState] = useTeacherSearchState();
+  const { filters, results } = searchState;
+  const {
+    stage,
+    level,
+    courseName,
+    studyYear,
+    q,
+    subject,
+    mode,
+    board,
+    grade,
+    language,
+    locality,
+    maxMonthly,
+  } = filters;
+  function changeFilter(field: keyof typeof filters, value: string) {
+    setSearchState((current) => ({
+      ...current,
+      filters: { ...current.filters, [field]: value },
+    }));
   }
-  const [q, setQ] = useState(""),
-    [subject, setSubject] = useState(""),
-    [mode, setMode] = useState(""),
-    [board, setBoard] = useState(""),
-    [grade, setGrade] = useState(""),
-    [language, setLanguage] = useState(""),
-    [locality, setLocality] = useState(""),
-    [maxMonthly, setMaxMonthly] = useState(""),
-    [tab, setTab] = useState<"manual" | "assisted">(
-      discoveryParams.get("tab") === "assisted" ? "assisted" : "manual",
-    );
+  function educationStage(next: string) {
+    setSearchState((current) => ({
+      ...current,
+      filters: {
+        ...current.filters,
+        stage: next,
+        grade: "",
+        board: "",
+        level: "",
+        courseName: "",
+        studyYear: "",
+      },
+    }));
+  }
+  const [tab, setTab] = useState<"manual" | "assisted">(
+    discoveryParams.get("tab") === "assisted" ? "assisted" : "manual",
+  );
   useEffect(() => {
     setTab(discoveryParams.get("tab") === "assisted" ? "assisted" : "manual");
   }, [discoveryParams]);
@@ -896,10 +918,20 @@ function Teachers() {
   if (locality) params.set("locality", locality);
   if (maxMonthly)
     params.set("maxMonthlyPaise", String(Number(maxMonthly) * 100));
-  const query = useInfiniteQuery({
-    queryKey: ["teacher-search", params.toString()],
+  const searchKey = params.toString();
+  const saved = results?.key === searchKey ? results : undefined;
+  const query = useInfiniteQuery<
+    TeacherSearchPage,
+    Error,
+    InfiniteData<TeacherSearchPage, string>,
+    string[],
+    string
+  >({
+    queryKey: ["teacher-search", searchKey],
     initialPageParam: "",
+    initialDataUpdatedAt: saved?.updatedAt,
     initialData: () => {
+      if (saved) return saved.data;
       const first = !params.size
         ? client.getQueryData<{ items: Teacher[]; nextCursor?: string | null }>(
             ["teachers"],
@@ -910,10 +942,7 @@ function Teachers() {
     queryFn: ({ pageParam, signal }) => {
       const page = new URLSearchParams(params);
       if (pageParam) page.set("cursor", pageParam);
-      return api<{ items: Teacher[]; nextCursor?: string | null }>(
-        `/teachers?${page}`,
-        { signal },
-      );
+      return api<TeacherSearchPage>(`/teachers?${page}`, { signal });
     },
     getNextPageParam: (last, _pages, _lastParam, pageParams) =>
       last.nextCursor && !pageParams.includes(last.nextCursor)
@@ -921,6 +950,29 @@ function Teachers() {
         : undefined,
     retry: false,
   });
+  useEffect(() => {
+    if (!query.data || query.error || query.isFetching) return;
+    const data = query.data;
+    setSearchState((current) =>
+      current.filters !== filters ||
+      (current.results?.data === data &&
+        current.results.updatedAt === query.dataUpdatedAt &&
+        current.results.key === searchKey)
+        ? current
+        : {
+            ...current,
+            results: { key: searchKey, data, updatedAt: query.dataUpdatedAt },
+          },
+    );
+  }, [
+    filters,
+    searchKey,
+    query.data,
+    query.dataUpdatedAt,
+    query.error,
+    query.isFetching,
+    setSearchState,
+  ]);
   const teachers = [
     ...new Map(
       query.data?.pages
@@ -1001,7 +1053,7 @@ function Teachers() {
                 aria-label={appText("Search teachers")}
                 placeholder={appText("Search a teacher or subject")}
                 value={q}
-                onChange={(e) => setQ(e.target.value)}
+                onChange={(e) => changeFilter("q", e.target.value)}
               />
             </label>
             <div className="filter-select">
@@ -1033,7 +1085,7 @@ function Teachers() {
                 key={"subject-" + filterReset}
                 id="search-subject"
                 value={subject}
-                onChange={setSubject}
+                onChange={(value) => changeFilter("subject", value)}
                 suggestions={subjectSuggestions}
                 customLabel={appText("Subject name")}
                 anyLabel={appText("All subjects")}
@@ -1044,7 +1096,7 @@ function Teachers() {
               <select
                 aria-label={appText("Lesson mode")}
                 value={mode}
-                onChange={(e) => setMode(e.target.value)}
+                onChange={(e) => changeFilter("mode", e.target.value)}
               >
                 <option value="">{appText("At home & online")}</option>
                 <option value="HOME">{appText("At home")}</option>
@@ -1062,8 +1114,8 @@ function Teachers() {
                     id="search-board"
                     value={board}
                     onChange={(v) => {
-                      setBoard(v);
-                      if (v) setStage("SCHOOL");
+                      changeFilter("board", v);
+                      if (v) changeFilter("stage", "SCHOOL");
                     }}
                     suggestions={boardSuggestions}
                     customLabel={appText("Board name")}
@@ -1076,8 +1128,8 @@ function Teachers() {
                     aria-label={appText("Class")}
                     value={grade}
                     onChange={(e) => {
-                      setGrade(e.target.value);
-                      if (e.target.value) setStage("SCHOOL");
+                      changeFilter("grade", e.target.value);
+                      if (e.target.value) changeFilter("stage", "SCHOOL");
                     }}
                   >
                     <option value="">{appText("All classes")}</option>
@@ -1098,7 +1150,7 @@ function Teachers() {
                 <select
                   aria-label={appText("Early years level")}
                   value={level}
-                  onChange={(e) => setLevel(e.target.value)}
+                  onChange={(e) => changeFilter("level", e.target.value)}
                 >
                   <option value="">{appText("All early years levels")}</option>
                   <option value="NURSERY">{appText("Nursery")}</option>
@@ -1116,7 +1168,7 @@ function Teachers() {
                   <Input
                     aria-label={appText("Course / degree")}
                     value={courseName}
-                    onChange={(e) => setCourseName(e.target.value)}
+                    onChange={(e) => changeFilter("courseName", e.target.value)}
                     maxLength={160}
                     placeholder={appText("For example BSc Physics")}
                   />
@@ -1126,7 +1178,7 @@ function Teachers() {
                   <select
                     aria-label={appText("Study year")}
                     value={studyYear}
-                    onChange={(e) => setStudyYear(e.target.value)}
+                    onChange={(e) => changeFilter("studyYear", e.target.value)}
                   >
                     <option value="">{appText("All study years")}</option>
                     {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
@@ -1143,11 +1195,11 @@ function Teachers() {
               <select
                 aria-label={appText("Language")}
                 value={language}
-                onChange={(e) => setLanguage(e.target.value)}
+                onChange={(e) => changeFilter("language", e.target.value)}
               >
                 <option value="">{appText("Any language")}</option>
-                <option>{appText("English")}</option>
-                <option>{appText("Hindi")}</option>
+                <option value="English">{appText("English")}</option>
+                <option value="Hindi">{appText("Hindi")}</option>
               </select>
             </label>
             <label className="filter-select">
@@ -1155,7 +1207,7 @@ function Teachers() {
               <select
                 aria-label={appText("Locality")}
                 value={locality}
-                onChange={(e) => setLocality(e.target.value)}
+                onChange={(e) => changeFilter("locality", e.target.value)}
               >
                 <option value="">{appText("Any locality")}</option>
                 {[
@@ -1165,7 +1217,9 @@ function Teachers() {
                   "Civil Lines",
                   "Mowa",
                 ].map((l) => (
-                  <option key={l}>{appText(l)}</option>
+                  <option key={l} value={l}>
+                    {appText(l)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -1176,7 +1230,7 @@ function Teachers() {
               <select
                 aria-label={appText("Maximum monthly tuition")}
                 value={maxMonthly}
-                onChange={(e) => setMaxMonthly(e.target.value)}
+                onChange={(e) => changeFilter("maxMonthly", e.target.value)}
               >
                 <option value="">{appText("Any budget")}</option>
                 <option value="3000">{appText("Up to ₹3,000")}</option>
@@ -1191,15 +1245,7 @@ function Teachers() {
               className="reset-filters"
               onClick={() => {
                 setFilterReset((v) => v + 1);
-                setQ("");
-                educationStage("");
-                setSubject("");
-                setMode("");
-                setBoard("");
-                setGrade("");
-                setLanguage("");
-                setLocality("");
-                setMaxMonthly("");
+                setSearchState({ filters: { ...emptyTeacherFilters } });
               }}
             >
               {appText("Reset filters")}{" "}
@@ -3042,7 +3088,10 @@ function AppContent() {
   const client = useQueryClient(),
     router = useRouter(),
     path = usePathname();
+  const [, setPublicSearch] = useTeacherSearchState();
   function changeSession(next: Session | null) {
+    if (!next || (session && session.account.id !== next.account.id))
+      setPublicSearch({ filters: { ...emptyTeacherFilters } });
     setSession(next);
     setTransition(null);
     setSwitchMessage("");

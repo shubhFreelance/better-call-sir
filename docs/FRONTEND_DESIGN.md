@@ -19,7 +19,7 @@ Owner direction, 14 October 2026: design for finding and hiring a teacher. Follo
 
 Use self-hosted Manrope Variable for English interface text and headings; browser sans-serif fallback covers characters outside that font. The whole Hindi interface uses self-hosted Noto Sans Devanagari Variable with natural line height, zero negative heading tracking and wrapping mobile actions. Teal is paired with white on primary controls; lavender carries dark text rather than white text. Borders and disabled states are derived neutral colors; error red is reserved for errors.
 
-Teacher discovery uses two equally visible tabs above the page content. Manual search has a full-width text field, visibly labelled criteria in a four-column desktop/two-column mobile grid, then teacher cards. Assisted discovery explains what information is needed and leads into guardian criteria intake. A chosen teacher remains identified through sign-in and submission.
+Teacher discovery uses two equally visible tabs above the page content. Manual search has a full-width text field, visibly labelled criteria in a four-column desktop/two-column mobile grid, then teacher cards. Assisted discovery explains what information is needed and leads into guardian criteria intake. A chosen teacher remains identified through sign-in and submission. Returning from a public teacher profile preserves manual-search filters and loaded result pages in memory. Reset clears the search; a full reload starts fresh. Keep original result freshness and current API eligibility checks, and clear the public search after confirmed sign-out. Never persist these criteria in browser storage or extend private query-cache lifetimes for navigation convenience.
 
 ```text
 Teacher discovery
