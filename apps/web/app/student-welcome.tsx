@@ -62,7 +62,10 @@ export function StudentWelcome({ session }: { session: Session }) {
                       )}
                 </AlertDescription>
               </Alert>
-              <Button onClick={() => query.refetch()}>
+              <Button
+                disabled={query.isFetching}
+                onClick={() => query.refetch()}
+              >
                 {appText("Retry loading student setup")}{" "}
               </Button>
               <Link href="/dashboard" className="inline-link">

@@ -1,4 +1,8 @@
 "use client";
+import {
+  OnboardingReadBoundary,
+  onboardingAccessDenied,
+} from "./onboarding-read-boundary";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import {
@@ -219,13 +223,13 @@ export function GuardianOnboarding({
   const [verificationError, setVerificationError] = useState("");
   const progress = useQuery({
     queryKey: ["guardian-onboarding", session.account.id],
-    queryFn: () => api<Progress>("/onboarding/parent"),
+    queryFn: ({ signal }) => api<Progress>("/onboarding/parent", { signal }),
     retry: false,
     refetchOnWindowFocus: false,
   });
   const enquiry = useQuery({
     queryKey: ["guardian-enquiry-draft", session.account.id],
-    queryFn: () => api<Progress>("/onboarding/enquiry"),
+    queryFn: ({ signal }) => api<Progress>("/onboarding/enquiry", { signal }),
     enabled: session.account.verified,
     retry: false,
     refetchOnWindowFocus: false,
@@ -241,7 +245,8 @@ export function GuardianOnboarding({
       params.get("teacher") || initial?.draft.preferredTeacherId || "";
   const teacher = useQuery({
     queryKey: ["teacher", profile],
-    queryFn: () => api<Teacher>(`/teachers/${encodeURIComponent(profile!)}`),
+    queryFn: ({ signal }) =>
+      api<Teacher>(`/teachers/${encodeURIComponent(profile!)}`, { signal }),
     enabled: !!profile && !!teacherId,
     retry: false,
   });
@@ -299,21 +304,39 @@ export function GuardianOnboarding({
         </p>
       </main>
     );
-  const error = progress.error || enquiry.error || teacher.error;
-  if (error)
+  const error =
+    [progress.error, enquiry.error, teacher.error].find(
+      onboardingAccessDenied,
+    ) ||
+    progress.error ||
+    enquiry.error ||
+    teacher.error;
+  function retrySetup() {
+    void progress.refetch();
+    void enquiry.refetch();
+    if (profile) void teacher.refetch();
+  }
+  const checking =
+    progress.isFetching ||
+    enquiry.isFetching ||
+    (!!profile && teacher.isFetching);
+  if (
+    error &&
+    (!initial ||
+      !enquiry.data ||
+      (!!profile && !teacher.data) ||
+      onboardingAccessDenied(error))
+  )
     return (
       <main className="container narrow section">
         <Alert variant="destructive">
-          <AlertDescription>{appError(error.message)}</AlertDescription>
+          <AlertDescription>
+            {appText(
+              "We couldn’t load your saved setup. Check your account permissions and try again.",
+            )}
+          </AlertDescription>
         </Alert>
-        <Button
-          className="button"
-          onClick={() => {
-            progress.refetch();
-            enquiry.refetch();
-            if (profile) teacher.refetch();
-          }}
-        >
+        <Button className="button" disabled={checking} onClick={retrySetup}>
           {appText("Try again")}{" "}
         </Button>
         <Link className="inline-link" href="/teachers">
@@ -363,22 +386,24 @@ export function GuardianOnboarding({
     );
   if (!initial) return null;
   return (
-    <Wizard
-      key={`${session.account.id}:${reload}`}
-      session={session}
-      initial={initial}
-      enquiry={enquiry.data}
-      teacherId={teacherId}
-      teacher={teacher.data}
-      onReload={async () => {
-        const result = await progress.refetch();
-        const next = result.data?.completedResourceId
-          ? await enquiry.refetch()
-          : null;
-        if (result.data && !result.error && !next?.error)
-          setReload((v) => v + 1);
-      }}
-    />
+    <OnboardingReadBoundary error={error} busy={checking} onRetry={retrySetup}>
+      <Wizard
+        key={`${session.account.id}:${reload}`}
+        session={session}
+        initial={initial}
+        enquiry={enquiry.data}
+        teacherId={teacherId}
+        teacher={teacher.data}
+        onReload={async () => {
+          const result = await progress.refetch();
+          const next = result.data?.completedResourceId
+            ? await enquiry.refetch()
+            : null;
+          if (result.data && !result.error && !next?.error)
+            setReload((v) => v + 1);
+        }}
+      />
+    </OnboardingReadBoundary>
   );
 }
 function Wizard({

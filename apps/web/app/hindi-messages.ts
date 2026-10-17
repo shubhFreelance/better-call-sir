@@ -1,5 +1,14 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "We couldn’t load your saved setup. Check your account permissions and try again.":
+    "आपका सहेजा गया सेटअप लोड नहीं हो पाया। खाते की अनुमति जाँचकर फिर कोशिश करें।",
+  "Your application is saved, but we couldn’t open your teacher workspace. Try again.":
+    "आपका आवेदन सहेज दिया गया है, लेकिन शिक्षक कार्यक्षेत्र नहीं खुल पाया। फिर कोशिश करें।",
+  "Your saved setup could not be refreshed. Your edits are kept on this page. Retry before continuing.":
+    "सहेजा गया सेटअप फिर लोड नहीं हो पाया। आपके बदलाव इसी पेज पर सुरक्षित हैं। आगे बढ़ने से पहले फिर कोशिश करें।",
+  "Checking saved setup…": "सहेजा गया सेटअप जाँच रहे हैं…",
+  "Retry setup check": "सेटअप फिर जाँचें",
+  "Saved onboarding details": "सहेजी गई सेटअप जानकारी",
   Education: "पढ़ाई",
   Class: "कक्षा",
   Year: "वर्ष",

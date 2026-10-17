@@ -5165,3 +5165,8 @@ html[lang="hi"] :is(input,select,textarea) { font-family: var(--font-family); }
 .profile-navigation button, .profile-recovery .button { min-height: 48px; }
 .profile-recovery h1:focus-visible, .profile-main h1:focus-visible { outline: 2px solid var(--primary); outline-offset: 6px; }
 @media(max-width: 640px) { .profile-recovery { padding: 24px 20px; } .profile-recovery .wizard-actions { display: grid; grid-template-columns: minmax(0,1fr); } .profile-recovery .wizard-actions > * { width: 100%; text-align: center; } .profile-recovery .inline-link { min-height: 44px; justify-content: center; } }
+
+.onboarding-read-boundary { border: 0; margin: 0; padding: 0; min-width: 0; width: 100%; }
+.onboarding-read-boundary:disabled { opacity: .65; }
+.onboarding-read-notice { padding-top: 24px; }
+.onboarding-read-notice p { margin: 0 0 12px; }

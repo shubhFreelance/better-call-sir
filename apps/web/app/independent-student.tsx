@@ -1,4 +1,8 @@
 "use client";
+import {
+  OnboardingReadBoundary,
+  onboardingAccessDenied,
+} from "./onboarding-read-boundary";
 import { useAppTranslation } from "./locale";
 import { StudentLearningSummary } from "./independent-journey";
 import { useRef, useState, type ReactNode } from "react";
@@ -138,19 +142,28 @@ export function IndependentStudentSetup({
               {appText(t("Checking your account…", "आपका खाता जाँच रहे हैं…"))}
             </p>
           )}
-          {query.error && (
-            <Message>
-              {appText(
-                t(
-                  "We couldn’t check your setup. No details have been submitted.",
-                  "आपका सेटअप नहीं जाँच पाए। कोई जानकारी जमा नहीं हुई है।",
-                ),
-              )}{" "}
-              <Button onClick={() => query.refetch()}>
-                {appText(t("Retry account check", "खाता फिर जाँचें"))}
-              </Button>
-            </Message>
-          )}
+          {query.error &&
+            (!query.data ||
+              onboardingAccessDenied(query.error) ||
+              !(
+                query.data.status === "READY" ||
+                (editing && query.data.profile)
+              )) && (
+              <Message>
+                {appText(
+                  t(
+                    "We couldn’t check your setup. No details have been submitted.",
+                    "आपका सेटअप नहीं जाँच पाए। कोई जानकारी जमा नहीं हुई है।",
+                  ),
+                )}{" "}
+                <Button
+                  disabled={query.isFetching}
+                  onClick={() => query.refetch()}
+                >
+                  {appText(t("Retry account check", "खाता फिर जाँचें"))}
+                </Button>
+              </Message>
+            )}
           {!query.error && query.data?.status === "ACCOUNT_IN_USE" && (
             <Message>
               {appText(
@@ -195,17 +208,23 @@ export function IndependentStudentSetup({
               </Button>
             </div>
           )}
-          {!query.error &&
+          {!onboardingAccessDenied(query.error) &&
             (query.data?.status === "READY" ||
               (editing && query.data?.profile)) && (
-              <StudentForm
-                key={`${session.account.id}:${query.data.profile?.version || 0}`}
-                session={session}
-                profile={query.data.profile}
-                hindi={hindi}
-                onSessionChange={onSessionChange}
-                reload={() => query.refetch()}
-              />
+              <OnboardingReadBoundary
+                error={query.error}
+                busy={query.isFetching}
+                onRetry={() => query.refetch()}
+              >
+                <StudentForm
+                  key={`${session.account.id}:${query.data.profile?.version || 0}`}
+                  session={session}
+                  profile={query.data.profile}
+                  hindi={hindi}
+                  onSessionChange={onSessionChange}
+                  reload={() => query.refetch()}
+                />
+              </OnboardingReadBoundary>
             )}
         </section>
         <aside className="independent-guide">

@@ -329,3 +329,6 @@ Search keeps the existing teacher cards and manual/assisted tabs. A lavender con
 ## Teacher profile recovery
 
 A concise navigation row pairs the directory link with a shared outline Refresh profile control. Unavailable and temporarily unreadable profiles use a lavender recovery surface with teal headings, one primary retry and secondary manual/assisted discovery links. A failed refresh removes the cached profile and enquiry actions until a current read succeeds. Retry retains the recovery context while loading; headings receive keyboard focus after failure and successful recovery. On phones, actions stack with full-width touch targets. Interface copy is English/Hindi; raw server errors are never displayed.
+
+
+Onboarding recovery retains the current form and its uncertain-write identity during temporary setup-read failures. Keep it visibly inactive and inert until fresh context succeeds; retries restore focus without clearing local edits. Access denial removes private cached details. A confirmed teacher application with a failed workspace handoff offers opening recovery, not another application submission. English/Hindi copy must distinguish saved data from an unconfirmed write.

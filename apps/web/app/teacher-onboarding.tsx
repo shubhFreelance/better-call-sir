@@ -1,4 +1,8 @@
 "use client";
+import {
+  OnboardingReadBoundary,
+  onboardingAccessDenied,
+} from "./onboarding-read-boundary";
 import { useAppTranslation } from "./locale";
 import {
   TeachingCoverageEditor,
@@ -142,28 +146,36 @@ export function TeacherSetup({
 
   const [reload, setReload] = useState(0);
   const [refreshError, setRefreshError] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   const progress = useQuery({
     queryKey: ["teacher-onboarding", session.account.id],
-    queryFn: () => api<Progress>("/onboarding/teacher"),
+    queryFn: ({ signal }) => api<Progress>("/onboarding/teacher", { signal }),
     retry: false,
     refetchOnWindowFocus: false,
   });
   const owner = useQuery({
     queryKey: ["teacher-setup-profile", session.account.id],
-    queryFn: () => api<{ profile: Profile | null }>("/dashboard"),
+    queryFn: ({ signal }) =>
+      api<{ profile: Profile | null }>("/dashboard", { signal }),
     enabled: session.account.role === "TEACHER",
     retry: false,
     refetchOnWindowFocus: false,
   });
   const client = useQueryClient();
   async function refreshSession() {
+    if (refreshing) return;
+    setRefreshing(true);
     try {
       setRefreshError("");
       const next = await api<Session>("/auth/session");
       client.clear();
       onSessionChange(next);
     } catch (error) {
-      setRefreshError((error as Error).message);
+      setRefreshError(
+        "Your application is saved, but we couldn’t open your teacher workspace. Try again.",
+      );
+    } finally {
+      setRefreshing(false);
     }
   }
   if (
@@ -175,34 +187,52 @@ export function TeacherSetup({
         <p role="status">{appText("Loading your teacher workspace…")}</p>
       </main>
     );
-  if (progress.error || owner.error)
+  const readError =
+    [progress.error, owner.error].find(onboardingAccessDenied) ||
+    progress.error ||
+    owner.error;
+  const checking =
+    progress.isFetching ||
+    (session.account.role === "TEACHER" && owner.isFetching);
+  function retrySetup() {
+    void progress.refetch();
+    if (session.account.role === "TEACHER") void owner.refetch();
+  }
+  if (
+    readError &&
+    (!progress.data ||
+      (session.account.role === "TEACHER" && !owner.data) ||
+      onboardingAccessDenied(readError))
+  )
     return (
       <main className="container narrow section">
         <Message error>
-          {appError((progress.error || owner.error)?.message)}
+          {appText(
+            "We couldn’t load your saved setup. Check your account permissions and try again.",
+          )}
         </Message>
-        <Button
-          className="button"
-          onClick={() => {
-            progress.refetch();
-            if (session.account.role === "TEACHER") owner.refetch();
-          }}
-        >
+        <Button className="button" disabled={checking} onClick={retrySetup}>
           {appText("Try again")}{" "}
         </Button>
       </main>
     );
   if (session.account.role === "TEACHER" && owner.data?.profile)
     return (
-      <TeacherWorkspace
-        key={`${session.account.id}:${reload}`}
-        session={session}
-        profile={owner.data.profile}
-        onReload={async () => {
-          const result = await owner.refetch();
-          if (!result.error) setReload((v) => v + 1);
-        }}
-      />
+      <OnboardingReadBoundary
+        error={readError}
+        busy={checking}
+        onRetry={retrySetup}
+      >
+        <TeacherWorkspace
+          key={`${session.account.id}:${reload}`}
+          session={session}
+          profile={owner.data.profile}
+          onReload={async () => {
+            const result = await owner.refetch();
+            if (!result.error) setReload((v) => v + 1);
+          }}
+        />
+      </OnboardingReadBoundary>
     );
   if (progress.data?.completedResourceId)
     return (
@@ -215,7 +245,11 @@ export function TeacherSetup({
           )}{" "}
         </p>
         {refreshError && <Message error>{appError(refreshError)}</Message>}
-        <Button className="button" onClick={refreshSession}>
+        <Button
+          className="button"
+          disabled={refreshing}
+          onClick={refreshSession}
+        >
           {appText("Open teacher workspace")}{" "}
         </Button>
       </main>
@@ -234,16 +268,24 @@ export function TeacherSetup({
       </main>
     );
   return (
-    <ApplicationWizard
-      key={`${session.account.id}:${reload}`}
-      session={session}
-      initial={progress.data!}
-      onDone={refreshSession}
-      onReload={async () => {
-        const result = await progress.refetch();
-        if (!result.error) setReload((v) => v + 1);
-      }}
-    />
+    <OnboardingReadBoundary
+      error={readError}
+      busy={checking}
+      onRetry={retrySetup}
+    >
+      <ApplicationWizard
+        key={`${session.account.id}:${reload}`}
+        session={session}
+        initial={progress.data!}
+        onDone={refreshSession}
+        completionError={refreshError}
+        opening={refreshing}
+        onReload={async () => {
+          const result = await progress.refetch();
+          if (!result.error) setReload((v) => v + 1);
+        }}
+      />
+    </OnboardingReadBoundary>
   );
 }
 function ApplicationWizard({
@@ -253,8 +295,12 @@ function ApplicationWizard({
   onDone,
   onReload,
   onCancel,
+  completionError = "",
+  opening = false,
 }: {
   session: Session;
+  completionError?: string;
+  opening?: boolean;
   initial?: Progress;
   profile?: Profile;
   onDone: () => Promise<void>;
@@ -622,7 +668,8 @@ function ApplicationWizard({
             "It is submitted for review. Private evidence and current screening checks are still required.",
           )}{" "}
         </p>
-        <Button className="button" onClick={onDone}>
+        {completionError && <Message error>{appText(completionError)}</Message>}
+        <Button className="button" disabled={opening} onClick={onDone}>
           {appText("Open teacher workspace")}{" "}
         </Button>
       </main>
@@ -1160,9 +1207,10 @@ function RevisionEditor({
 
   const draft = useQuery({
     queryKey: ["teacher-revision-draft", profile.id],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api<RevisionProgress>(
         `/teacher-applications/${profile.id}/revision-draft`,
+        { signal },
       ),
     retry: false,
     refetchOnWindowFocus: false,
@@ -1209,13 +1257,13 @@ function RevisionEditor({
       setBusy(false);
     }
   }
-  if (draft.isPending || draft.isFetching)
+  if (draft.isPending)
     return (
       <main className="container narrow section">
         <Message>{appText("Loading your saved revision…")}</Message>
       </main>
     );
-  if (draft.error || !draft.data)
+  if (!draft.data || onboardingAccessDenied(draft.error))
     return (
       <main className="container narrow section">
         <Message error>
@@ -1300,21 +1348,27 @@ function RevisionEditor({
       </main>
     );
   return (
-    <ApplicationWizard
-      key={draft.data.version}
-      session={session}
-      profile={profile}
-      initial={{
-        kind: "TEACHER_REVISION",
-        state: profile.status,
-        draft: draft.data.draft as Partial<Application>,
-        version: draft.data.version,
-        completedResourceId: null,
-      }}
-      onCancel={onCancel}
-      onDone={onDone}
-      onReload={onReload}
-    />
+    <OnboardingReadBoundary
+      error={draft.error}
+      busy={draft.isFetching}
+      onRetry={() => draft.refetch()}
+    >
+      <ApplicationWizard
+        key={draft.data.version}
+        session={session}
+        profile={profile}
+        initial={{
+          kind: "TEACHER_REVISION",
+          state: profile.status,
+          draft: draft.data.draft as Partial<Application>,
+          version: draft.data.version,
+          completedResourceId: null,
+        }}
+        onCancel={onCancel}
+        onDone={onDone}
+        onReload={onReload}
+      />
+    </OnboardingReadBoundary>
   );
 }
 function TeacherWorkspace({

@@ -1,4 +1,5 @@
 "use client";
+import { onboardingAccessDenied } from "./onboarding-read-boundary";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
@@ -84,6 +85,10 @@ export function LearnerProfiles({ session }: { session: Session }) {
   const ready =
     query.data?.creationStatus === "READY" && !query.error && !query.isFetching;
   const locked = busy || uncertain || !!openingId;
+  const denied = onboardingAccessDenied(query.error);
+  useEffect(() => {
+    if (adding && !locked && ready) heading.current?.focus();
+  }, [adding, editing, review, locked, ready]);
   useEffect(() => {
     if (
       params.get("new") !== "1" ||
@@ -94,7 +99,6 @@ export function LearnerProfiles({ session }: { session: Session }) {
       return;
     setAdding(true);
     router.replace("/dashboard/learners", { scroll: false });
-    requestAnimationFrame(() => heading.current?.focus());
   }, [params, ready, adding, session.account.role, router]);
 
   async function openEdit(id: string) {
@@ -138,7 +142,6 @@ export function LearnerProfiles({ session }: { session: Session }) {
       setErrors({});
       setMessage("");
       setStale(false);
-      requestAnimationFrame(() => heading.current?.focus());
     } catch (error) {
       setOpenError(
         "We couldn’t load the latest learner profile. Your current edits are retained. Try opening the profile again.",
@@ -229,10 +232,9 @@ export function LearnerProfiles({ session }: { session: Session }) {
             };
     setReview({ alias: values.alias.trim(), education });
     setMessage("");
-    requestAnimationFrame(() => heading.current?.focus());
   }
   async function save() {
-    if (!review || stale || (!ready && !uncertain)) return;
+    if (!review || stale || denied || (!ready && !uncertain)) return;
     const attempt = pending.current || {
       body: editing
         ? {
@@ -390,7 +392,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
           </p>
         </aside>
         <div className="learner-profile-main">
-          {saved && (
+          {saved && !denied && (
             <Alert>
               <AlertDescription>
                 <strong>
@@ -474,7 +476,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
               </AlertDescription>
             </Alert>
           )}
-          {query.data && (
+          {query.data && !denied && (
             <>
               {query.data.creationStatus !== "READY" && (
                 <Alert>
@@ -511,7 +513,6 @@ export function LearnerProfiles({ session }: { session: Session }) {
                           setEditNotice("");
                           setSaved(null);
                           setMessage("");
-                          requestAnimationFrame(() => heading.current?.focus());
                         }}
                       >
                         {appText("Add learner profile")}{" "}
@@ -577,7 +578,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
               )}
             </>
           )}
-          {adding && (
+          {adding && !denied && (
             <section
               className="wizard-card"
               aria-label={

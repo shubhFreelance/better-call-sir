@@ -89,3 +89,6 @@ Public search and matching filter the same atomic coverage before pagination or 
 
 
 17 October 2026 — F24 is complete across the entire interface, including all forms, user/staff dashboards, validation, review/recovery, accessibility, charts and retained legacy workflows. Current language follows the shared preference and server cookie; authored text and canonical API values are preserved. This closes Hindi implementation without closing launch/provider gates.
+
+
+17 October 2026 — H2/F22 development onboarding/access recovery is complete for guardian, teacher, guardian-linked student and independent adult flows. Temporary setup-read failures preserve local edits and uncertain-write identities while blocking stale actions; denied reads remove cached private forms. Learner-editor focus follows committed state, and saved teacher applications recover workspace handoffs without resubmission. Earlier notes listing onboarding/revision/invitation/device polish as open are superseded by the tested completion in remaing.md and SPRINTS.md. Actual guardian verification (B1), under-18 independent authorization (L3), live notices/email and release/physical-device qualification remain separate and open.
