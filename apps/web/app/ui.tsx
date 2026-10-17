@@ -75,6 +75,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   QueryClient,
   QueryClientProvider,
+  useInfiniteQuery,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -848,6 +849,8 @@ function Home() {
 }
 function Teachers() {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+  const client = useQueryClient();
+  const resultSummary = useRef<HTMLSpanElement>(null);
 
   const { session } = useAuth();
   const independent = session?.account.role === "INDEPENDENT_STUDENT";
@@ -893,11 +896,42 @@ function Teachers() {
   if (locality) params.set("locality", locality);
   if (maxMonthly)
     params.set("maxMonthlyPaise", String(Number(maxMonthly) * 100));
-  const query = useQuery({
-    queryKey: params.size ? ["teachers", params.toString()] : ["teachers"],
-    queryFn: ({ signal }) =>
-      api<{ items: Teacher[] }>(`/teachers?${params}`, { signal }),
+  const query = useInfiniteQuery({
+    queryKey: ["teacher-search", params.toString()],
+    initialPageParam: "",
+    initialData: () => {
+      const first = !params.size
+        ? client.getQueryData<{ items: Teacher[]; nextCursor?: string | null }>(
+            ["teachers"],
+          )
+        : undefined;
+      return first ? { pages: [first], pageParams: [""] } : undefined;
+    },
+    queryFn: ({ pageParam, signal }) => {
+      const page = new URLSearchParams(params);
+      if (pageParam) page.set("cursor", pageParam);
+      return api<{ items: Teacher[]; nextCursor?: string | null }>(
+        `/teachers?${page}`,
+        { signal },
+      );
+    },
+    getNextPageParam: (last, _pages, _lastParam, pageParams) =>
+      last.nextCursor && !pageParams.includes(last.nextCursor)
+        ? last.nextCursor
+        : undefined,
+    retry: false,
   });
+  const teachers = [
+    ...new Map(
+      query.data?.pages
+        .flatMap((page) => page.items)
+        .map((teacher) => [teacher.id, teacher]),
+    ).values(),
+  ];
+  const unavailable = !!query.error && !query.isFetchNextPageError;
+  const lastCursor = query.data?.pages.at(-1)?.nextCursor;
+  const paginationBlocked =
+    !!lastCursor && !!query.data?.pageParams.includes(lastCursor);
   return (
     <main className="container section">
       <PageTitle
@@ -1007,7 +1041,11 @@ function Teachers() {
             </div>
             <label className="filter-select">
               <span className="filter-label">{appText("Lesson mode")}</span>
-              <select value={mode} onChange={(e) => setMode(e.target.value)}>
+              <select
+                aria-label={appText("Lesson mode")}
+                value={mode}
+                onChange={(e) => setMode(e.target.value)}
+              >
                 <option value="">{appText("At home & online")}</option>
                 <option value="HOME">{appText("At home")}</option>
                 <option value="ONLINE">{appText("Online")}</option>
@@ -1168,14 +1206,12 @@ function Teachers() {
             </UiButton>
           </div>
           <div className="results-heading">
-            <span role="status">
+            <span role="status" ref={resultSummary} tabIndex={-1}>
               {query.isPending
                 ? appText("Searching for teachers…")
-                : query.error
+                : unavailable
                   ? appText("Search unavailable")
-                  : appText("{0} teachers to get to know", [
-                      query.data?.items.length || 0,
-                    ])}
+                  : appText("{0} teachers to get to know", [teachers.length])}
             </span>
             <small>
               {appText("Synthetic profiles · prices are monthly tuition")}
@@ -1183,15 +1219,75 @@ function Teachers() {
           </div>
           <State
             loading={query.isPending}
-            error={query.error}
+            error={unavailable ? query.error : null}
             retry={() => query.refetch()}
           />
-          <div className="teacher-grid">
-            {query.data?.items.map((t) => (
-              <TeacherCard key={t.id} teacher={t} />
-            ))}
+          <div
+            className="teacher-grid"
+            id="teacher-search-results"
+            aria-busy={query.isFetching}
+          >
+            {!unavailable &&
+              teachers.map((t) => <TeacherCard key={t.id} teacher={t} />)}
           </div>
-          {query.data?.items.length === 0 && !query.error && (
+          {!unavailable && teachers.length > 0 && (
+            <section
+              className="search-pagination"
+              aria-label={appText("More teacher results")}
+            >
+              {query.isFetchNextPageError && (
+                <Notice error>
+                  {appText(
+                    "We couldn’t load more teachers. Your current results and filters are kept.",
+                  )}
+                </Notice>
+              )}
+              <p role="status">
+                {paginationBlocked
+                  ? appText(
+                      "More results could not be verified. Refresh this search to try again.",
+                    )
+                  : query.hasNextPage
+                    ? appText(
+                        "Showing {0} teachers. More matches are available.",
+                        [teachers.length],
+                      )
+                    : appText("All matching teachers are shown.")}
+              </p>
+              {(query.hasNextPage || paginationBlocked) && (
+                <UiButton
+                  type="button"
+                  variant="outline"
+                  disabled={query.isFetching}
+                  aria-controls="teacher-search-results"
+                  onClick={async () => {
+                    if (paginationBlocked) {
+                      await query.refetch();
+                      return;
+                    }
+                    const next = await query.fetchNextPage({
+                      cancelRefetch: false,
+                    });
+                    if (!next.isError && !next.data?.pages.at(-1)?.nextCursor)
+                      resultSummary.current?.focus();
+                  }}
+                >
+                  {query.isFetching
+                    ? appText(
+                        query.isFetchingNextPage
+                          ? "Loading more teachers…"
+                          : "Searching for teachers…",
+                      )
+                    : paginationBlocked
+                      ? appText("Refresh search")
+                      : query.isFetchNextPageError
+                        ? appText("Try loading more teachers again")
+                        : appText("Load more teachers")}
+                </UiButton>
+              )}
+            </section>
+          )}
+          {teachers.length === 0 && !query.isPending && !query.error && (
             <section
               className="coverage-recovery"
               aria-label={appText("Search recovery")}

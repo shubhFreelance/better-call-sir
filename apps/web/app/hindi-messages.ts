@@ -4592,4 +4592,17 @@ export const hindiMessages: Record<string, string> = {
   Odia: "ओड़िया",
   Assamese: "असमिया",
   Chhattisgarhi: "छत्तीसगढ़ी",
+  "More teacher results": "शिक्षकों के और नतीजे",
+  "We couldn’t load more teachers. Your current results and filters are kept.":
+    "और शिक्षकों की जानकारी लोड नहीं हुई। मौजूदा नतीजे और आपके फ़िल्टर सुरक्षित हैं।",
+  "Showing {0} teachers. More matches are available.":
+    "{0} शिक्षक दिखाए गए हैं। आपकी खोज के और नतीजे उपलब्ध हैं।",
+  "All matching teachers are shown.":
+    "खोज से मेल खाने वाले सभी शिक्षक दिखाए गए हैं।",
+  "Loading more teachers…": "और शिक्षक लोड हो रहे हैं…",
+  "Try loading more teachers again": "और शिक्षक लोड करने की फिर कोशिश करें",
+  "Load more teachers": "और शिक्षक देखें",
+  "More results could not be verified. Refresh this search to try again.":
+    "और नतीजों की पुष्टि नहीं हुई। फिर कोशिश करने के लिए खोज रीफ़्रेश करें।",
+  "Refresh search": "खोज रीफ़्रेश करें",
 };
