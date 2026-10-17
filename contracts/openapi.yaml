@@ -10494,7 +10494,7 @@
         "tags": [
           "backend-core"
         ],
-        "summary": "listOwnWaitlist",
+        "summary": "List owned future-coverage requests with stable pagination",
         "security": [
           {
             "cookieSession": []
@@ -10582,8 +10582,30 @@
             }
           }
         },
-        "description": "Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.",
-        "parameters": []
+        "description": "Guardian-owned history ordered by creation time descending, then ID descending. Newer requests do not move an existing cursor boundary. Unavailable cursors require restarting from the first page.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Owned last entry ID from the previous page. Missing or foreign anchors return 404."
+          }
+        ]
       }
     },
     "/admin/requests/{id}/recommendation-runs": {
@@ -30860,6 +30882,13 @@
             "items": {
               "$ref": "#/components/schemas/Waitlist"
             }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
           }
         },
         "required": [

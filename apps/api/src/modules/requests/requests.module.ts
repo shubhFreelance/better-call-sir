@@ -63,7 +63,13 @@ class RequestsController {
     const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(waitlistSchema,body);
     return this.service.once(req,actor,'waitlist.create',data,async db=>{await this.service.guardian(db,actor.id);const region=await db.region.findFirst({where:{id:{equals:data.region,mode:'insensitive'}}});if(region?.enabled)fail(409,'SUPPORTED_SCOPE','Use an ordinary tuition enquiry in supported regions. An enquiry does not promise teacher supply.');const entry=await db.waitlist.create({data:{guardianId:actor.id,educationStage:data.stage,grade:data.stage==='SCHOOL'?data.grade:null,board:data.stage==='SCHOOL'?data.board:null,earlyYearsLevel:data.stage==='EARLY_YEARS'?data.level:null,courseName:data.stage==='COLLEGE'?data.courseName:null,studyYear:data.stage==='COLLEGE'?data.studyYear:null,subject:data.subject,language:data.language,mode:data.mode,region:region?.id||data.region}});await this.service.audit(db,actor,req,'WAITLIST_CREATED',entry.id,'Guardian requested future region coverage without learner identity');return entry;});
   }
-  @Get('waitlist') async listWaitlist(@Req() req:HttpRequest){const actor=await this.service.actor(req,['GUARDIAN']);return {items:await this.service.db.waitlist.findMany({where:{guardianId:actor.id},orderBy:{createdAt:'desc'},take:50})};}
+  @Get('waitlist') async listWaitlist(@Req() req:HttpRequest,@Query() query:unknown){
+    const actor=await this.service.actor(req,['GUARDIAN']),data=parse(z.object({limit:z.coerce.number().int().min(1).max(50).default(50),cursor:uuid.optional()}).strict(),query),db=this.service.db;
+    const anchor=data.cursor?await db.waitlist.findFirst({where:{id:data.cursor,guardianId:actor.id},select:{createdAt:true,id:true}}):null;
+    if(data.cursor&&!anchor)fail(404,'NOT_FOUND','Waitlist cursor is unavailable.');
+    const rows=await db.waitlist.findMany({where:{guardianId:actor.id,...(anchor?{OR:[{createdAt:{lt:anchor.createdAt}},{createdAt:anchor.createdAt,id:{lt:anchor.id}}]}:{})},orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1}),items=rows.slice(0,data.limit);
+    return {items,nextCursor:rows.length>data.limit?items.at(-1)!.id:null};
+  }
 
   @Get('requests') async requests(@Req() req: Request) {
     const account=await this.service.actor(req,['GUARDIAN','ADMIN','OPERATOR']);

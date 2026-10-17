@@ -1,5 +1,7 @@
 # Delivery board
 
+17 October 2026 — B12/H5 waitlist-history API: `GET /waitlist` accepts optional `limit` (1–50, default 50) and an owned UUID cursor, returns optional `nextCursor`, and orders by creation time then ID descending. Cursor boundaries survive newer insertions and tied timestamps. Foreign, missing and deleted anchors return the same 404; strict validation and guardian-only access remain enforced. No schema migration or write-policy change. All 134 real-database API checks and 12 contract checks pass; contract lint passes with the two existing unused-component warnings. Generated client is updated. Frontend pagination follows separately; no merge or deployment.
+
 Source: **BetterCallSir_MVP_PRD.docx, Version 3.0, 11 October 2026**, supplied by the project owner. This board tracks implementation against that document; development demonstrations do not satisfy pilot release gates.
 
 ## Working agreement
