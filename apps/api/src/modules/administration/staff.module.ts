@@ -70,6 +70,7 @@ class StaffController {
      const created=await db.account.create({data:{email:row.email,name:row.name,role:row.role,region:row.region,authVersion:1}});
      await db.staffChange.update({where:{id},data:{targetAccountId:created.id}});
     }else{
+     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${row.targetAccountId!+':mfa'},0))`;
      const target=await db.account.findUnique({where:{id:row.targetAccountId!}});
      if(!target||!privileged(target.role)||target.email!==row.email||target.authVersion!==row.expectedAuthVersion)fail(409,'STALE_VERSION','Current staff access no longer matches this proposal.');
      if(target.role==='ADMIN'&&!target.disabled&&(row.kind==='SUSPEND'||row.kind==='CHANGE'&&row.role!=='ADMIN')&&await db.account.count({where:{role:'ADMIN',disabled:false}})<=2)fail(409,'ADMIN_QUORUM','Keep at least two active administrators.');

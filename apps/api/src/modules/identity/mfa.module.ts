@@ -8,6 +8,7 @@ const input=z.object({code:z.string().regex(/^(\d{6}|[A-Za-z0-9_-]{22})$/)}).str
 class MfaController {
  constructor(@Inject(AppService) private readonly service:AppService){}
  async identity(req:HttpRequest){const actor=await this.service.actor(req);if(!privileged(actor.role))fail(403,'FORBIDDEN','Authenticator verification is reserved for staff accounts.');const session=await this.service.db.session.findUniqueOrThrow({where:{accessHash:hash(req.cookies.bcs_access)}});return {actor,session};}
+ async current(db:DB,accountId:string,sessionId:string){const account=await db.account.findUnique({where:{id:accountId}}),session=await db.session.findUnique({where:{id:sessionId}});if(!account||account.disabled||!privileged(account.role)||!session||session.revoked||session.rotated||session.authVersion!==account.authVersion||session.expiresAt<=new Date()||session.accessExpiresAt<=new Date())fail(401,'SESSION_REVOKED','Sign in again before changing your authenticator.');}
  @Get('auth/mfa') async status(@Req() req:HttpRequest){const {actor,session}=await this.identity(req),credential=await this.service.db.mfaCredential.findUnique({where:{accountId:actor.id}});return {enabled:!!credential?.enabledAt,verifiedUntil:session.mfaVerifiedAt?new Date(session.mfaVerifiedAt.getTime()+600000):null,recoveryCodesRemaining:credential?.recoveryHashes.length||0};}
  @Post('auth/mfa/enrollment') async enroll(@Req() req:HttpRequest,@Body() body:unknown){
   parse(z.object({}).strict(),body);const {actor,session}=await this.identity(req);
@@ -15,6 +16,7 @@ class MfaController {
   await this.service.limit('mfa-enroll:'+actor.id,5);
   return this.service.db.$transaction(async db=>{
    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id+':mfa'},0))`;
+   await this.current(db,actor.id,session.id);
    const existing=await db.mfaCredential.findUnique({where:{accountId:actor.id}});if(existing?.enabledAt)fail(409,'MFA_ALREADY_ENABLED','Your authenticator is already enabled.');
    if(existing?.enrollmentExpiresAt&&existing.enrollmentExpiresAt>new Date()&&existing.enrollmentFamilyId!==session.familyId)fail(409,'ENROLLMENT_IN_PROGRESS','Another sign-in has pending enrollment. Wait for its ten-minute expiry.');
    let secret:string;
@@ -27,6 +29,7 @@ class MfaController {
   const {actor,session}=await this.identity(req),data=parse(input,body);await this.service.limit('mfa-verify:'+actor.id,5);
   const result=await this.service.db.$transaction(async db=>{
    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id+':mfa'},0))`;
+   await this.current(db,actor.id,session.id);
    const credential=await db.mfaCredential.findUnique({where:{accountId:actor.id}});if(!credential)return null;
    const current=await db.session.findUniqueOrThrow({where:{id:session.id}});if(current.revoked||current.rotated||current.expiresAt<=new Date())return null;
    if(!credential.enabledAt&&(credential.enrollmentFamilyId!==session.familyId||!credential.enrollmentExpiresAt||credential.enrollmentExpiresAt<=new Date()))return null;
@@ -46,6 +49,7 @@ class MfaController {
   const {actor,session}=await this.identity(req),data=parse(z.object({code:z.string().regex(/^\d{6}$/)}).strict(),body);await this.service.limit('mfa-verify:'+actor.id,5);
   return this.service.db.$transaction(async db=>{
    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id+':mfa'},0))`;
+   await this.current(db,actor.id,session.id);
    const credential=await db.mfaCredential.findUnique({where:{accountId:actor.id}});if(!credential?.enabledAt)fail(409,'MFA_REQUIRED','Enable an authenticator first.');
    let step;try{step=matchingStep(decryptMfa(credential.encryptedSecret,actor.id),data.code,credential.lastUsedStep);}catch{fail(503,'MFA_UNAVAILABLE','Authenticator verification is unavailable. Contact your administrator.');}if(step===null)fail(401,'INVALID_MFA','Use a new authenticator code.');
    const codes=Array.from({length:8},()=>randomBytes(16).toString('base64url'));
