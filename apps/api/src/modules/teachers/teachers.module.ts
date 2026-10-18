@@ -1,3 +1,4 @@
+import {pageQuery,pageResult} from '../../pagination';
 import {subjectSchema,boardSchema,teachingScopes,coverageProfile,declaredScopes} from '../../coverage';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
@@ -109,7 +110,11 @@ class TeachersController {
     });
   }
 
-  @Get('admin/teachers') async adminTeachers(@Req() req: Request) {const actor=await this.service.actor(req,['ADMIN','REVIEWER']);return {items:await this.db.teacher.findMany({where:actor.role==='ADMIN'?{}:{region:actor.region},orderBy:{status:'asc'},take:50})};}
+  @Get('admin/teachers') async adminTeachers(@Req() req: Request,@Query() query:unknown) {
+    const actor=await this.service.actor(req,['ADMIN','REVIEWER']),data=parse(pageQuery.extend({status:z.enum(['SUBMITTED','APPROVED','CHANGES_REQUESTED','SUSPENDED']).optional()}),query),where={...(actor.role==='ADMIN'?{}:{region:actor.region}),...(data.status?{status:data.status}:{})};
+    if(data.cursor&&!await this.db.teacher.count({where:{...where,id:data.cursor}}))fail(404,'NOT_FOUND','Teacher cursor is unavailable.');
+    return pageResult(await this.db.teacher.findMany({where:{...where,...(data.cursor?{id:{gt:data.cursor}}:{})},orderBy:{id:'asc'},take:data.limit+1}),data.limit);
+  }
 
   @Post('admin/teachers/:id/reviews') async review(@Req() req: HttpRequest,@Param('id') id: string,@Body() body: unknown) {
     parse(uuid,id);const actor=await this.service.actor(req,['ADMIN','REVIEWER']);
