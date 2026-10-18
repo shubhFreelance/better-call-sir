@@ -1,3 +1,4 @@
+import {learningAuthority} from './learning-management';
 import {guardianProof,linkVerifiedLearner} from '../verification/guardian-verification';
 import {Module,Controller,Get,Post,Param,Query,Req,Body,Inject} from '@nestjs/common';
 import type {Child} from '@prisma/client';
@@ -52,21 +53,21 @@ class LearnersController {
  }
  @Get('learner-profiles/:id') async detail(@Req() req:HttpRequest,@Param('id') id:string){
   parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','STUDENT']);
-  return this.service.db.$transaction(async db=>{const child=await this.service.child(db,actor,id);return {...learnerProjection(child),editStatus:actor.role==='STUDENT'?'READ_ONLY':await editStatus(db,child)};},{isolationLevel:'RepeatableRead'});
+  return this.service.db.$transaction(async db=>{const child=await this.service.child(db,actor,id);return {...learnerProjection(child),editStatus:actor.role==='STUDENT'&&child.learningManagementMode==='GUARDIAN_ONLY'?'READ_ONLY':await editStatus(db,child)};},{isolationLevel:'RepeatableRead'});
  }
  @Post('learner-profiles/:id/updates') async update(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
-  parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']),data=parse(profileInput.extend({expectedVersion:version,confirmed:z.literal(true)}),body);
+  parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','STUDENT']),data=parse(profileInput.extend({expectedVersion:version,confirmed:z.literal(true)}),body);
   return this.service.once(req,actor,'learner.update',data,async db=>{
-   await this.service.guardian(db,actor.id);
-   const child=await this.service.child(db,actor,id);
+   const child=await learningAuthority(db,this.service,actor,id,true);
+   if(actor.role==='STUDENT'&&data.alias!==child.alias)fail(403,'GUARDIAN_REQUIRED','Name corrections require guardian privacy review.');
    if(child.version!==data.expectedVersion)fail(409,'CONFLICT','This learner profile changed. Reload it before reviewing your changes again.');
    const state=await editStatus(db,child);
    if(state!=='EDITABLE')fail(409,state==='DELETED'?'PROFILE_DELETED':'PROFILE_HISTORY_LINKED',state==='DELETED'?'A deleted learner profile cannot be restored through editing.':'This profile is linked to enquiry or learning history. Use the privacy correction process instead.');
-   const updated=await db.child.updateMany({where:{id,guardianId:actor.id,version:data.expectedVersion},data:{alias:data.alias,...educationData(data.education),version:{increment:1}}});
+   const updated=await db.child.updateMany({where:{id,guardianId:child.guardianId,version:data.expectedVersion},data:{alias:data.alias,...educationData(data.education),version:{increment:1}}});
    if(!updated.count)fail(409,'CONFLICT','This learner profile changed. Reload it before reviewing your changes again.');
-   await this.service.audit(db,actor,req,'LEARNER_PROFILE_UPDATED',id,'Guardian confirmed an unlinked education profile update',undefined,{version:data.expectedVersion+1,educationStage:data.education.stage});
+   await this.service.audit(db,actor,req,'LEARNER_PROFILE_UPDATED',id,'Authorized family member confirmed an unlinked education profile update',undefined,{version:data.expectedVersion+1,educationStage:data.education.stage});
    return {...learnerProjection(await db.child.findUniqueOrThrow({where:{id}})),editStatus:'EDITABLE'};
-  });
+  },db=>learningAuthority(db,this.service,actor,id,true));
  }
 
 }

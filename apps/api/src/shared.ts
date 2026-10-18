@@ -79,13 +79,14 @@ export class AppService {
     return db.audit.create({data:{actorId:actor.id,action,aggregateId:id,reason,requestId:req.requestId || randomUUID(),before,after}});
   }
   async event(db: DB,type: string,id: string,version=1) {return db.outbox.create({data:{type,aggregateId:id,payload:{version}}});}
-  async once<T>(req: Request, actor: Account, operation: string, body: unknown, fn: (db: DB) => Promise<T>): Promise<T> {
+  async once<T>(req: Request, actor: Account, operation: string, body: unknown, fn: (db: DB) => Promise<T>, authorize?: (db: DB) => Promise<unknown>): Promise<T> {
     operation += ':' + req.path;
     const key = req.get('Idempotency-Key');
     if (!key || key.length > 128) fail(400,'IDEMPOTENCY_REQUIRED','A valid Idempotency-Key is required.');
     const digest = hash(JSON.stringify(body));
     return this.db.$transaction(async db => {
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id + operation + key},0))`;
+      if(authorize)await authorize(db);
       const prior = await db.idempotency.findUnique({where:{accountId_operation_key:{accountId:actor.id,operation,key}}});
       if (prior) {if (prior.hash !== digest) fail(409,'IDEMPOTENCY_CONFLICT','This retry key was used for a different request.'); return prior.result as T;}
       const result = await fn(db);

@@ -1,3 +1,4 @@
+import {learningAuthority,requestAuthority} from '../learners/learning-management';
 import {guardianProof,linkVerifiedLearner} from '../verification/guardian-verification';
 import {enabledRegion} from '../administration/commercial-policy';
 import {pageQuery,pageBefore,pageResult} from '../../pagination';
@@ -26,7 +27,7 @@ const waitlistSchema=z.preprocess(v=>v&&typeof v==='object'?{stage:'SCHOOL',...v
  z.object({...waitlistCommon,stage:z.literal('COLLEGE'),courseName:text(160),studyYear:z.number().int().min(1).max(10)}).strict(),
 ]));
 export const intakeSchema=z.object({schoolName:text(160).optional(),schoolSubjects:schoolSubjects.optional(),discoveryMethod:z.enum(['MANUAL','ASSISTED']).default('ASSISTED'),preferredTeacherId:uuid.optional(),childId:uuid.optional(),alias:text(40),grade:z.number().int().min(1).max(12).nullable().optional(),board:boardSchema.nullable().optional(),subject:subjectSchema,mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000),schedule:text(300),preferences:preferenceSchema.optional()}).strict();
-export async function createIntake(db:DB,service:AppService,account:Account,req:HttpRequest,data:z.infer<typeof intakeSchema>) {
+export async function createIntake(db:DB,service:AppService,account:Account,req:HttpRequest,data:z.infer<typeof intakeSchema>, initiator:Account=account) {
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${account.id},0))`;
       await service.guardian(db,account.id);
       if(data.discoveryMethod==='MANUAL'?!data.preferredTeacherId:!!data.preferredTeacherId)fail(400,'INVALID_DISCOVERY_PATH','Direct search requires a chosen teacher; assisted search uses the eligible pool.');
@@ -45,7 +46,7 @@ export async function createIntake(db:DB,service:AppService,account:Account,req:
       }
       if(!learnerScope(child,data.subject))fail(409,'LEARNER_DETAILS_REQUIRED','Complete the learner education profile before requesting a teacher.');
       const request=await db.tuitionRequest.create({data:{discoveryMethod:data.discoveryMethod,preferredTeacherId:data.preferredTeacherId,region:account.region,...(preferences?{schedulePreferences:preferences,scheduleStatus:'CONFIRMED'}:{}),guardianId:account.id,childId:child.id,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,schedule:data.schedule}});
-      await service.audit(db,account,req,'REQUEST_CREATED',request.id,'Guardian submitted supported tuition need',undefined,{region:request.region,scheduleStatus:request.scheduleStatus});await service.event(db,'request.created',request.id);return request;
+      await service.audit(db,initiator,req,'REQUEST_CREATED',request.id,'Family member submitted supported tuition need',undefined,{region:request.region,scheduleStatus:request.scheduleStatus});await service.event(db,'request.created',request.id);return request;
 }
 
 @Controller('api/v1')
@@ -53,16 +54,20 @@ class RequestsController {
   constructor(@Inject(AppService) private readonly service: AppService) {}
   get db() {return this.service.db;}
   @Post('requests') async createRequest(@Req() req: HttpRequest,@Body() body: unknown) {
-    const account=await this.service.actor(req,['GUARDIAN']);
+    const account=await this.service.actor(req,['GUARDIAN','STUDENT']);
     const data=parse(intakeSchema,body);
+    if(account.role==='STUDENT'&&!data.childId)fail(400,'LEARNER_REQUIRED','Choose your existing learner profile.');
+    const authorize=async(db:DB)=>account.role==='STUDENT'?learningAuthority(db,this.service,account,data.childId!,true):this.service.guardian(db,account.id);
     return this.service.once(req,account,'request.create',data,async db=>{
-      return createIntake(db,this.service,account,req,data);
-    });
+      const child=account.role==='STUDENT'?await learningAuthority(db,this.service,account,data.childId!,true):null;
+      const owner=child?await db.account.findUniqueOrThrow({where:{id:child.guardianId}}):account;
+      return createIntake(db,this.service,owner,req,data,account);
+    },authorize);
   }
 
   @Post('requests/:id/schedules') async schedule(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
-    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(preferenceUpdateSchema,body);const preferences=normalizedPreferences(data);if(!preferences)fail(400,'INVALID_SCHEDULE','Choose valid nonoverlapping weekly ranges, or future dated windows.');
-    return this.service.once(req,actor,'request.schedule',data,async db=>{await this.service.guardian(db,actor.id);const request=await db.tuitionRequest.findUnique({where:{id}});if(!request||request.guardianId!==actor.id)fail(404,'NOT_FOUND','Request not found.');const changed=await db.tuitionRequest.updateMany({where:{id,version:data.expectedVersion,status:'OPEN'},data:{schedulePreferences:preferences,scheduleStatus:'CONFIRMED',matchStatus:'PENDING',selectedCandidateId:null,version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Request changed or is not open.');await db.recommendation.updateMany({where:{requestId:id},data:{presentedAt:null,expiresAt:new Date(),version:{increment:1}}});await this.service.audit(db,actor,req,'REQUEST_SCHEDULE_CONFIRMED',id,'Guardian confirmed structured schedule',undefined,{timezone:preferences.timezone,windows:"weekly" in preferences?preferences.weekly!.length:preferences.slots!.length});await this.service.event(db,'request.schedule_confirmed',id,data.expectedVersion+1);return db.tuitionRequest.findUniqueOrThrow({where:{id}});});
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','STUDENT']);const data=parse(preferenceUpdateSchema,body);const preferences=normalizedPreferences(data);if(!preferences)fail(400,'INVALID_SCHEDULE','Choose valid nonoverlapping weekly ranges, or future dated windows.');
+    return this.service.once(req,actor,'request.schedule',data,async db=>{const request=await requestAuthority(db,this.service,actor,id,true);const changed=await db.tuitionRequest.updateMany({where:{id,version:data.expectedVersion,status:'OPEN'},data:{schedulePreferences:preferences,scheduleStatus:'CONFIRMED',matchStatus:'PENDING',selectedCandidateId:null,version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Request changed or is not open.');await db.recommendation.updateMany({where:{requestId:id},data:{presentedAt:null,expiresAt:new Date(),version:{increment:1}}});await this.service.audit(db,actor,req,'REQUEST_SCHEDULE_CONFIRMED',id,'Authorized family member confirmed structured schedule',undefined,{timezone:preferences.timezone,windows:"weekly" in preferences?preferences.weekly!.length:preferences.slots!.length});await this.service.event(db,'request.schedule_confirmed',id,data.expectedVersion+1);return db.tuitionRequest.findUniqueOrThrow({where:{id}});},db=>requestAuthority(db,this.service,actor,id,true));
   }
   @Post('waitlist') async waitlist(@Req() req:HttpRequest,@Body() body:unknown){
     const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(waitlistSchema,body);
@@ -77,16 +82,18 @@ class RequestsController {
   }
 
   @Get('requests') async requests(@Req() req: Request,@Query() query:unknown) {
-    const account=await this.service.actor(req,['GUARDIAN','ADMIN','OPERATOR']),data=parse(pageQuery.extend({status:z.enum(['OPEN','PLACED','CLOSED','MATCHED']).optional()}),query),where={...(account.role==='GUARDIAN'?{guardianId:account.id}:account.role==='OPERATOR'?{region:account.region}:{}),...(data.status?{status:data.status}:{})};
+    const account=await this.service.actor(req,['GUARDIAN','STUDENT','ADMIN','OPERATOR']),data=parse(pageQuery.extend({status:z.enum(['OPEN','PLACED','CLOSED','MATCHED']).optional()}),query),where={...(account.role==='GUARDIAN'?{guardianId:account.id}:account.role==='STUDENT'?{childId:(await this.db.child.findUniqueOrThrow({where:{studentAccountId:account.id}})).id}:account.role==='OPERATOR'?{region:account.region}:{}),...(data.status?{status:data.status}:{})};
+    if(account.role==='STUDENT'){const child=await this.db.child.findUniqueOrThrow({where:{studentAccountId:account.id}});await learningAuthority(this.db,this.service,account,child.id);}
     const anchor=data.cursor?await this.db.tuitionRequest.findFirst({where:{...where,id:data.cursor},select:{id:true,createdAt:true}}):null;
     if(data.cursor&&!anchor)fail(404,'NOT_FOUND','Request cursor is unavailable.');
     return pageResult(await this.db.tuitionRequest.findMany({where:{...where,...pageBefore(anchor)},orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1}),data.limit);
   }
 
   @Get('requests/:id') async request(@Req() req: Request,@Param('id') id: string) {
-    parse(uuid,id);const account=await this.service.actor(req,['GUARDIAN','ADMIN','OPERATOR']);
+    parse(uuid,id);const account=await this.service.actor(req,['GUARDIAN','STUDENT','ADMIN','OPERATOR']);
     const request=await this.db.tuitionRequest.findUnique({where:{id}});
     if (!request || (account.role==='GUARDIAN' && request.guardianId!==account.id) || (account.role==='OPERATOR'&&request?.region!==account.region)) fail(404,'NOT_FOUND','Request not found.');
+    if(account.role==='STUDENT')await requestAuthority(this.db,this.service,account,id);
     const child=await this.db.child.findUniqueOrThrow({where:{id:request.childId}}),candidates=[];
     const consent=await this.db.consent.findUnique({where:{guardianId:request.guardianId}});
     if(request.status==='OPEN'&&consent&&!consent.withdrawnAt)for(const candidate of await this.db.recommendation.findMany({where:{requestId:id,presentedAt:{not:null},expiresAt:{gt:new Date()}},orderBy:{position:'asc'}})){const teacher=await this.db.teacher.findUniqueOrThrow({where:{id:candidate.teacherId}});if(await matched(this.db,request,child,teacher))candidates.push(candidate);}

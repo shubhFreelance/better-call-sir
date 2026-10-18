@@ -1,3 +1,4 @@
+import {familyActor,requestAuthority} from '../learners/learning-management';
 import {pageQuery,pageResult} from '../../pagination';
 import {coverageWhere,learnerScope,educationCaption} from '../../coverage';
 import {
@@ -32,7 +33,8 @@ import {
 @Controller("api/v1")
 class MatchingController {
   constructor(@Inject(AppService) private readonly service: AppService) {}
-  async request(db: DB, actor: Account, id: string) {
+  async request(db: DB, actor: Account, id: string, write=true) {
+    if(familyActor(actor)){const request=await requestAuthority(db,this.service,actor,id,write);if(request.status!=="OPEN")fail(409,"CONFLICT","Request is not open.");return request;}
     let request = await db.tuitionRequest.findUnique({ where: { id } });
     if (
       !request ||
@@ -210,7 +212,7 @@ class MatchingController {
         scheduleStatus: request.scheduleStatus,
         poolLimited: teachers.length > 200,
       };
-    });
+    },db=>actor.role==="STUDENT"?requestAuthority(db,this.service,actor,id,req.path.endsWith("/selections")):Promise.resolve());
   }
   @Get("admin/requests/:id/recommendations") async candidates(@Req() req:HttpRequest,@Param('id') id:string){
     parse(uuid,id);const actor=await this.service.actor(req,['ADMIN','OPERATOR']);
@@ -355,8 +357,7 @@ class MatchingController {
           { presentationId: presentation.id, candidateIds: data.candidateIds },
         );
         return { items, presentationId: presentation.id, runId: run.id };
-      },
-    );
+      },db=>actor.role==="STUDENT"?requestAuthority(db,this.service,actor,id,req.path.endsWith("/selections")):Promise.resolve());
   }
   @Post("requests/:id/presentations") async exposure(
     @Req() req: HttpRequest,
@@ -364,7 +365,7 @@ class MatchingController {
     @Body() body: unknown,
   ) {
     parse(uuid, id);
-    const actor = await this.service.actor(req, ["GUARDIAN"]);
+    const actor = await this.service.actor(req, ["GUARDIAN","STUDENT"]);
     const data = parse(
       z
         .object({ runId: uuid, candidateIds: z.array(uuid).min(1).max(10) })
@@ -378,7 +379,7 @@ class MatchingController {
       "matching.exposure",
       data,
       async (db) => {
-        const request = await this.request(db, actor, id);
+        const request = await this.request(db, actor, id,false);
         const child = await db.child.findUniqueOrThrow({
           where: { id: request.childId },
         });
@@ -415,8 +416,7 @@ class MatchingController {
             reason: "Guardian client confirmed rendered candidates",
           },
         });
-      },
-    );
+      },db=>actor.role==="STUDENT"?requestAuthority(db,this.service,actor,id,req.path.endsWith("/selections")):Promise.resolve());
   }
   @Post("candidates/:id/responses") async response(
     @Req() req: HttpRequest,
@@ -503,8 +503,7 @@ class MatchingController {
           },
         );
         return updated;
-      },
-    );
+      },db=>actor.role==="STUDENT"?requestAuthority(db,this.service,actor,id,req.path.endsWith("/selections")):Promise.resolve());
   }
   @Post("requests/:id/selections") async select(
     @Req() req: HttpRequest,
@@ -512,7 +511,7 @@ class MatchingController {
     @Body() body: unknown,
   ) {
     parse(uuid, id);
-    const actor = await this.service.actor(req, ["GUARDIAN"]);
+    const actor = await this.service.actor(req, ["GUARDIAN","STUDENT"]);
     const data = parse(
       z
         .object({
@@ -564,7 +563,7 @@ class MatchingController {
             candidateId: candidate.id,
             runId: candidate.runId,
             actorId: actor.id,
-            action: "GUARDIAN_SELECTED",
+            action: actor.role==="STUDENT"?"STUDENT_SELECTED":"GUARDIAN_SELECTED",
             candidateVersion: candidate.version,
           },
         });
@@ -572,9 +571,9 @@ class MatchingController {
           db,
           actor,
           req,
-          "GUARDIAN_CANDIDATE_SELECTED",
+          actor.role==="STUDENT"?"STUDENT_CANDIDATE_SELECTED":"GUARDIAN_CANDIDATE_SELECTED",
           id,
-          "Guardian selected without automatic assignment",
+          "Authorized family member selected without automatic assignment",
           undefined,
           { decisionId: decision.id, candidateId: candidate.id },
         );
@@ -586,8 +585,7 @@ class MatchingController {
           },
         });
         return { ...decision, requestVersion: updated.version };
-      },
-    );
+      },db=>actor.role==="STUDENT"?requestAuthority(db,this.service,actor,id,req.path.endsWith("/selections")):Promise.resolve());
   }
 }
 @Module({ imports: [PersistenceModule], controllers: [MatchingController] })

@@ -109,7 +109,7 @@ export async function linkVerifiedLearner(
     );
   await db.child.update({
     where: { id: childId },
-    data: { guardianVerificationId: proof.id },
+    data: { guardianVerificationId: proof.id, learningManagementMode: proof.managementMode, learningManagementVersion: { increment: 1 } },
   });
   if (!proof.studentAccountId) return;
   await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${proof.studentAccountId},0))`;

@@ -1,3 +1,4 @@
+import {familyActor,requestAuthority} from '../learners/learning-management';
 import {pageQuery,pageBefore,pageResult} from '../../pagination';
 import {
   Module,
@@ -61,16 +62,23 @@ class DemosController {
     if (
       !demo ||
       (!review &&
-        (actor.role === "GUARDIAN"
-          ? demo.guardianId !== actor.id
+        (familyActor(actor)
+          ? actor.role==='GUARDIAN'?demo.guardianId !== actor.id:false
           : demo.teacherId !== teacher?.id))
     )
       fail(404, "NOT_FOUND", "Demo not found.");
     if (review && actor.role==="OPERATOR") {const request=await db.tuitionRequest.findUniqueOrThrow({where:{id:demo.requestId}});if(request.region!==actor.region) fail(404,"NOT_FOUND","Demo not found.");}
+    if(actor.role==='STUDENT')await requestAuthority(db,this.service,actor,demo.requestId,true);
     await this.service.guardian(db, demo.guardianId);
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${demo.teacherId},0))`;
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
     return db.demo.findUniqueOrThrow({ where: { id } });
+  }
+  async studentDecision(db:DB,actor:Account,req:HttpRequest){
+    if(actor.role!=='STUDENT')return;
+    const requestId=req.params.id?(await db.demo.findUnique({where:{id:String(req.params.id)}}))?.requestId:req.body.requestId;
+    if(!requestId)fail(404,'NOT_FOUND','Demo access is unavailable.');
+    await requestAuthority(db,this.service,actor,requestId,true);
   }
   async eligible(db: DB, demo: Pick<Demo, "requestId" | "teacherId">) {
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${demo.teacherId},0))`;
@@ -114,31 +122,29 @@ class DemosController {
     };
   }
   @Get("demos") async list(@Req() req:HttpRequest,@Query() query:unknown) {
-    const actor=await this.service.actor(req,['GUARDIAN','TEACHER','ADMIN','OPERATOR']),data=parse(pageQuery.extend({requestId:uuid.optional(),status:z.string().trim().min(1).max(40).optional()}),query),db=this.service.db;
+    const actor=await this.service.actor(req,['GUARDIAN','STUDENT','TEACHER','ADMIN','OPERATOR']),data=parse(pageQuery.extend({requestId:uuid.optional(),status:z.string().trim().min(1).max(40).optional()}),query),db=this.service.db;
+    const linked=actor.role==='STUDENT'?await db.child.findUniqueOrThrow({where:{studentAccountId:actor.id}}):null;
+    if(linked)await this.service.guardian(db,linked.guardianId);
+    const ownedRequests=linked?await db.tuitionRequest.findMany({where:{childId:linked.id},select:{id:true}}):[];
     const teacher=actor.role==='TEACHER'?await db.teacher.findUnique({where:{accountId:actor.id}}):null;
     if(actor.role==='TEACHER'&&!teacher)return {items:[],nextCursor:null};
     const regionalRequests=actor.role==='OPERATOR'?await db.tuitionRequest.findMany({where:{region:actor.region},select:{id:true}}):[];
     const consent=await db.consent.findMany({where:{withdrawnAt:null,...(actor.role==='GUARDIAN'?{guardianId:actor.id}:{})},select:{guardianId:true}});
     // Eligibility filters precede the page limit so inaccessible demos cannot starve visible history.
-    const where={AND:[{guardianId:{in:consent.map(c=>c.guardianId)}},...(actor.role==='GUARDIAN'?[{guardianId:actor.id}]:actor.role==='TEACHER'?[{teacherId:teacher!.id}]:actor.role==='OPERATOR'?[{requestId:{in:regionalRequests.map(r=>r.id)}}]:[]),...(data.requestId?[{requestId:data.requestId}]:[]),...(data.status?[{status:data.status}]:[])]};
+    const where={AND:[{guardianId:{in:consent.map(c=>c.guardianId)}},...(actor.role==='STUDENT'?[{requestId:{in:ownedRequests.map(r=>r.id)}}]:actor.role==='GUARDIAN'?[{guardianId:actor.id}]:actor.role==='TEACHER'?[{teacherId:teacher!.id}]:actor.role==='OPERATOR'?[{requestId:{in:regionalRequests.map(r=>r.id)}}]:[]),...(data.requestId?[{requestId:data.requestId}]:[]),...(data.status?[{status:data.status}]:[])]};
     const anchor=data.cursor?await db.demo.findFirst({where:{...where,id:data.cursor},select:{id:true,createdAt:true}}):null;
     if(data.cursor&&!anchor)fail(404,'NOT_FOUND','Demo cursor is unavailable.');
     const page=pageResult(await db.demo.findMany({where:{...where,...pageBefore(anchor)},orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1}),data.limit);
     return {items:await Promise.all(page.items.map(demo=>this.result(db,demo))),nextCursor:page.nextCursor};
   }
   @Post("demos") async propose(@Req() req: HttpRequest, @Body() body: unknown) {
-    const actor = await this.service.actor(req, ["GUARDIAN"]);
+    const actor = await this.service.actor(req, ["GUARDIAN","STUDENT"]);
     const data = parse(
       slot.extend({ requestId: uuid, teacherId: uuid }).strict(),
       body,
     );
     return this.service.once(req, actor, "demo.propose", data, async (db) => {
-      await this.service.guardian(db, actor.id);
-      const request = await db.tuitionRequest.findUnique({
-        where: { id: data.requestId },
-      });
-      if (!request || request.guardianId !== actor.id)
-        fail(404, "NOT_FOUND", "Request not found.");
+      const request=await requestAuthority(db,this.service,actor,data.requestId,true);
       const candidate=await this.eligible(db, {
         requestId: data.requestId,
         teacherId: data.teacherId,
@@ -155,7 +161,7 @@ class DemosController {
       const reservation = await db.reservation.create({
         data: {
           teacherId: data.teacherId,
-          guardianId: actor.id,
+          guardianId: request.guardianId,
           childId: request.childId,
           kind: "DEMO",
           source:"ADVERTISED",sourceId:pattern.id,
@@ -168,7 +174,7 @@ class DemosController {
         data: {
           requestId: data.requestId,
           teacherId: data.teacherId,
-          guardianId: actor.id,
+          guardianId: request.guardianId,
           reservationId: reservation.id,
         },
       });
@@ -178,11 +184,11 @@ class DemosController {
         req,
         "DEMO_PROPOSED",
         demo.id,
-        "Guardian proposed demo",
+        "Authorized family member proposed demo",
       );
       await this.service.event(db, "demo.proposed", demo.id);
       return this.result(db, demo);
-    });
+    },db=>this.studentDecision(db,actor,req));
   }
   @Post("demos/:id/acceptances") async accept(
     @Req() req: HttpRequest,
@@ -190,7 +196,7 @@ class DemosController {
     @Body() body: unknown,
   ) {
     parse(uuid, id);
-    const actor = await this.service.actor(req, ["GUARDIAN", "TEACHER"]);
+    const actor = await this.service.actor(req, ["GUARDIAN","STUDENT", "TEACHER"]);
     const data = parse(z.object({ expectedVersion: version }).strict(), body);
     return this.service.once(req, actor, "demo.accept", data, async (db) => {
       const demo = await this.owned(db, actor, id);
@@ -210,7 +216,7 @@ class DemosController {
       const updated = await db.demo.update({
         where: { id },
         data: {
-          ...(actor.role === "GUARDIAN"
+          ...(familyActor(actor)
             ? { guardianAccepted: true }
             : { teacherAccepted: true }),
           version: { increment: 1 },
@@ -244,7 +250,7 @@ class DemosController {
       );
       await this.service.event(db, "demo.accepted", id);
       return this.result(db, updated);
-    });
+    },db=>this.studentDecision(db,actor,req));
   }
   @Post("demos/:id/reschedules") async reschedule(
     @Req() req: HttpRequest,
@@ -252,7 +258,7 @@ class DemosController {
     @Body() body: unknown,
   ) {
     parse(uuid, id);
-    const actor = await this.service.actor(req, ["GUARDIAN", "TEACHER"]);
+    const actor = await this.service.actor(req, ["GUARDIAN","STUDENT", "TEACHER"]);
     const data = parse(
       slot.extend({ expectedVersion: version, reason: text(300) }).strict(),
       body,
@@ -315,8 +321,7 @@ class DemosController {
         );
         await this.service.event(db, "demo.rescheduled", id);
         return this.result(db, updated);
-      },
-    );
+      },db=>this.studentDecision(db,actor,req));
   }
   @Post("demos/:id/outcomes") async outcome(
     @Req() req: HttpRequest,
@@ -324,7 +329,7 @@ class DemosController {
     @Body() body: unknown,
   ) {
     parse(uuid, id);
-    const actor = await this.service.actor(req, ["GUARDIAN", "TEACHER"]);
+    const actor = await this.service.actor(req, ["GUARDIAN","STUDENT", "TEACHER"]);
     const data = parse(
       z
         .object({
@@ -351,7 +356,7 @@ class DemosController {
           "Report an outcome after the confirmed demo ends.",
         );
       if (
-        actor.role === "GUARDIAN"
+        familyActor(actor)
           ? demo.guardianOutcome !== null
           : demo.teacherOutcome !== null
       )
@@ -363,7 +368,7 @@ class DemosController {
       const updated = await db.demo.update({
         where: { id },
         data: {
-          ...(actor.role === "GUARDIAN"
+          ...(familyActor(actor)
             ? { guardianOutcome: data.outcome }
             : { teacherOutcome: data.outcome }),
           version: { increment: 1 },
@@ -405,7 +410,7 @@ class DemosController {
       );
       await this.service.event(db, "demo.outcome_recorded", id);
       return this.result(db, updated);
-    });
+    },db=>this.studentDecision(db,actor,req));
   }
   @Post("admin/demos/:id/reviews") async review(
     @Req() req: HttpRequest,
@@ -457,7 +462,7 @@ class DemosController {
       );
       await this.service.event(db, "demo.reviewed", id);
       return this.result(db, updated);
-    });
+    },db=>this.studentDecision(db,actor,req));
   }
   @Post("demos/:id/cancellations") async cancel(
     @Req() req: HttpRequest,
@@ -465,7 +470,7 @@ class DemosController {
     @Body() body: unknown,
   ) {
     parse(uuid, id);
-    const actor = await this.service.actor(req, ["GUARDIAN", "TEACHER"]);
+    const actor = await this.service.actor(req, ["GUARDIAN","STUDENT", "TEACHER"]);
     const data = parse(
       z.object({ expectedVersion: version, reason: text(300) }).strict(),
       body,
@@ -500,7 +505,7 @@ class DemosController {
       );
       await this.service.event(db, "demo.cancelled", id);
       return this.result(db, updated);
-    });
+    },db=>this.studentDecision(db,actor,req));
   }
 }
 @Module({ imports: [PersistenceModule], controllers: [DemosController] })
