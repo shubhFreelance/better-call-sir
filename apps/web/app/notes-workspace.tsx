@@ -1,4 +1,5 @@
 "use client";
+import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import { useEffect, useRef, useState } from "react";
@@ -39,13 +40,10 @@ export function NotesWorkspace({
 
   const allowed = ["GUARDIAN", "TEACHER"].includes(session.account.role),
     guardian = session.account.role === "GUARDIAN";
-  const query = useQuery({
+  const query = useHistory<components["schemas"]["NoteRecords"]>({
     queryKey: ["notes", session.account.id],
-    queryFn: ({ signal }) =>
-      api<components["schemas"]["NoteRecords"]>("/notes", { signal }),
+    path: "/notes",
     enabled: allowed,
-    retry: false,
-    refetchOnWindowFocus: false,
   });
   const decision = useDecision(session, async () => {
     const result = await query.refetch();
@@ -247,7 +245,7 @@ export function NotesWorkspace({
           </h3>
           <p>
             {appText(
-              "Up to 50 most recent notes, with current sharing status.",
+              "Browse your notes, newest first, with current sharing status.",
             )}
           </p>
         </div>
@@ -538,6 +536,11 @@ export function NotesWorkspace({
           </p>
         </div>
       )}
+      <HistoryPages
+        history={query}
+        label="Private learning notes"
+        disabled={decision.locked || mode !== null}
+      />
       <div className="notes-list">
         {query.data?.items.map((n) => (
           <article className="notes-card" key={n.id}>

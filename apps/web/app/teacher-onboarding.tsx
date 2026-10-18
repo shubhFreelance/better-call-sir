@@ -1,4 +1,5 @@
 "use client";
+import { useHistory, HistoryPages } from "./history";
 import {
   OnboardingReadBoundary,
   onboardingAccessDenied,
@@ -1384,12 +1385,12 @@ function TeacherWorkspace({
 
   const [edit, setEdit] = useState(false);
   const [scheduleLocked, setScheduleLocked] = useState(false);
-  const evidence = useQuery({
-    queryKey: ["teacher-evidence", profile.id],
-    queryFn: () =>
-      api<{ items: Evidence[] }>(`/teachers/${profile.id}/evidence`),
-    retry: false,
-    refetchOnWindowFocus: false,
+  const evidence = useHistory<{
+    items: Evidence[];
+    nextCursor?: string | null;
+  }>({
+    queryKey: ["teacher-evidence", session.account.id, profile.id],
+    path: `/teachers/${profile.id}/evidence`,
   });
   if (edit)
     return (
@@ -1505,6 +1506,11 @@ function TeacherWorkspace({
               onUploaded={async () => {
                 await evidence.refetch();
               }}
+            />
+            <HistoryPages
+              history={evidence}
+              label="Private evidence"
+              disabled={scheduleLocked}
             />
             {evidence.isPending ? (
               <p role="status">{appText("Loading evidence…")}</p>

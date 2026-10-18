@@ -1,5 +1,41 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Learning note history": "पढ़ाई के नोट का इतिहास",
+  "Arrangement enquiry history": "ट्यूशन व्यवस्था के अनुरोधों का इतिहास",
+  "Choose an application from this queue. Load more records for earlier applications; regional access still applies.":
+    "इस सूची से आवेदन चुनें। पुराने आवेदन देखने के लिए और रिकॉर्ड लोड करें। क्षेत्र के अनुसार अनुमति लागू है।",
+  "Browse the queue, evidence and screening history using Load more records. Scanner clearance is file safety, not identity or teaching approval. Live reviewer staffing and production qualification remain open.":
+    "और रिकॉर्ड लोड करके सूची, दस्तावेज़ और जाँच का इतिहास देखें। फ़ाइल की सुरक्षा जाँच से पहचान या पढ़ाने की मंज़ूरी नहीं मिलती। लाइव समीक्षकों और उत्पादन सेवा का सत्यापन बाकी है।",
+  "This view uses your current arrangements and enquiry history. Load more records to find earlier enquiries and replacement progress. For financial questions, use Help & safety. Development support has no live operator or notification delivery.":
+    "इस पेज पर आपकी मौजूदा व्यवस्थाएँ और अनुरोधों का इतिहास है। पुराने अनुरोध और शिक्षक बदलने की प्रगति देखने के लिए और रिकॉर्ड लोड करें। भुगतान के सवालों के लिए मदद और सुरक्षा खोलें। विकास संस्करण में लाइव कर्मचारी या सूचनाएँ नहीं हैं।",
+
+  "Browse your notes, newest first, with current sharing status.":
+    "अपने नोट देखें, सबसे नए पहले और साझा करने की मौजूदा स्थिति के साथ।",
+  "Choose a request from this authorized queue. Load more records to see more.":
+    "इस अधिकृत सूची से अनुरोध चुनें। और अनुरोध देखने के लिए पुराने रिकॉर्ड लोड करें।",
+  "Browse request and matching-run history; up to 10 shortlist candidates come from a rules pool bounded at 200 teachers. A match is not an assignment or guaranteed supply. Notification delivery and live operator staffing remain unqualified.":
+    "अनुरोध और मिलान का इतिहास देखें। अधिकतम 200 शिक्षकों के नियम-आधारित समूह से सूची में अधिकतम 10 शिक्षक आते हैं। मिलान से नियुक्ति या उपलब्धता की गारंटी नहीं मिलती। लाइव सूचनाओं और कर्मचारियों की सेवा का सत्यापन बाकी है।",
+  "Sanitized unprocessed jobs, oldest first. Load more records to continue. Only exhausted private scan/deletion jobs have this reviewed retry; payment, meeting and delivery jobs require their dedicated recovery workflow. A queued retry does not prove processing.":
+    "बिना निजी डेटा के अधूरे काम, सबसे पुराने पहले। बाकी काम देखने के लिए और रिकॉर्ड लोड करें। केवल बार-बार असफल निजी जाँच या मिटाने के काम यहाँ समीक्षा के बाद दोबारा भेजे जा सकते हैं। भुगतान, बैठक और सूचनाओं की अलग प्रक्रिया है। कतार में भेजने से काम पूरा होने की पुष्टि नहीं होती।",
+  "Form entries are saved only when you confirm an action. Keep this page open until the result is confirmed. Calls are currently unavailable. Load more records to browse all saved weekly windows and active leave periods.":
+    "कार्रवाई की पुष्टि करने पर ही फ़ॉर्म सहेजा जाता है। नतीजा आने तक पेज खुला रखें। कॉल अभी उपलब्ध नहीं हैं। सभी सहेजे गए साप्ताहिक समय और सक्रिय छुट्टियाँ देखने के लिए और रिकॉर्ड लोड करें।",
+
+  "Loading history…": "पुराने रिकॉर्ड लोड हो रहे हैं…",
+  "History is unavailable. Retry or reload from the beginning.":
+    "पुराने रिकॉर्ड उपलब्ध नहीं हैं। फिर कोशिश करें या शुरुआत से लोड करें।",
+  "History changed. Reload from the beginning.":
+    "रिकॉर्ड बदल गए हैं। शुरुआत से फिर लोड करें।",
+  "Showing {0} records.": "{0} रिकॉर्ड दिखाए जा रहे हैं।",
+  "Retry history": "रिकॉर्ड फिर लोड करें",
+  "Load more records": "और रिकॉर्ड देखें",
+  "Reload history": "रिकॉर्ड शुरुआत से लोड करें",
+  "Teacher review queue": "शिक्षक समीक्षा की सूची",
+  "Matching request queue": "शिक्षक मिलान के अनुरोधों की सूची",
+  "Private learning notes": "पढ़ाई के निजी नोट",
+  "Owned learning notes": "आपके पढ़ाई के नोट",
+  "Teaching availability and leave": "पढ़ाने का समय और छुट्टियाँ",
+  "Account learner linkage": "खाते से जुड़े विद्यार्थी",
+  "Recovery jobs": "दोबारा प्रक्रिया की सूची",
   "Your recorded requests, newest first. Status does not confirm teacher supply or a place in a queue.":
     "आपके दर्ज अनुरोध, सबसे नए पहले। स्थिति से शिक्षक उपलब्ध होने या कतार में जगह मिलने की पुष्टि नहीं होती।",
   "Coverage request history pages": "सेवा-क्षेत्र अनुरोधों के पुराने पृष्ठ",

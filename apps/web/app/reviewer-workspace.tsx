@@ -1,4 +1,5 @@
 "use client";
+import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { TeachingCoverageSummary, coverageText } from "./teaching-coverage";
 import { TeacherDetailsSummary } from "./teacher-details-form";
@@ -32,19 +33,28 @@ export function ReviewerWorkspace({ session }: { session: Session }) {
     [selected, setSelected] = useState(params.get("teacher") || ""),
     [filter, setFilter] = useState(""),
     [locked, setLocked] = useState(false);
-  const queue = useQuery({
-    queryKey: ["review-teachers", session.account.id],
-    queryFn: ({ signal }) =>
-      api<components["schemas"]["PrivateTeacherList"]>("/admin/teachers", {
-        signal,
-      }),
+  const queue = useHistory<components["schemas"]["PrivateTeacherList"]>({
+    queryKey: ["review-teachers", session.account.id, filter],
+    path:
+      "/admin/teachers" +
+      (filter ? "?status=" + encodeURIComponent(filter) : ""),
     enabled: allowed,
-    retry: false,
-    refetchOnWindowFocus: false,
   });
+  const retained = useRef<{ actorId: string; teacher: Teacher } | null>(null);
   const teachers =
-      queue.data?.items.filter((t) => !filter || t.status === filter) || [],
-    teacher = queue.data?.items.find((t) => t.id === selected);
+    queue.data?.items.filter((t) => !filter || t.status === filter) || [];
+  const currentTeacher = queue.data?.items.find((t) => t.id === selected);
+  if (currentTeacher)
+    retained.current = { actorId: session.account.id, teacher: currentTeacher };
+  // Keep the decision controller during failed post-save reads; its private content is hidden below.
+  const teacher =
+    currentTeacher ||
+    (locked &&
+    queue.error &&
+    retained.current?.actorId === session.account.id &&
+    retained.current.teacher.id === selected
+      ? retained.current.teacher
+      : undefined);
   useEffect(() => {
     if (!selected && teachers[0]) setSelected(teachers[0].id);
   }, [selected, teachers]);
@@ -109,6 +119,11 @@ export function ReviewerWorkspace({ session }: { session: Session }) {
           </select>
         </div>
       </div>
+      <HistoryPages
+        history={queue}
+        label="Teacher review queue"
+        disabled={locked}
+      />
       {queue.isPending && (
         <p role="status">{appText("Loading review queue…")}</p>
       )}
@@ -130,7 +145,7 @@ export function ReviewerWorkspace({ session }: { session: Session }) {
       {!queue.isPending && !teacher && teachers.length > 0 && (
         <Notice>
           {appText(
-            "Choose an application from this queue. A requested application may be outside your scope or the latest 50 entries.",
+            "Choose an application from this queue. Load more records for earlier applications; regional access still applies.",
           )}{" "}
         </Notice>
       )}
@@ -139,6 +154,7 @@ export function ReviewerWorkspace({ session }: { session: Session }) {
           key={teacher.id}
           session={session}
           teacher={teacher}
+          queueUnavailable={!!queue.error}
           onLock={setLocked}
           refreshQueue={async () => {
             const q = await queue.refetch();
@@ -148,7 +164,7 @@ export function ReviewerWorkspace({ session }: { session: Session }) {
       )}
       <small className="care-help">
         {appText(
-          "Latest 50 queue entries, evidence items and screening records. Older records require the administrative history workflow. Scanner clearance is file safety, not identity or teaching approval. Live reviewer staffing and production qualification remain open.",
+          "Browse the queue, evidence and screening history using Load more records. Scanner clearance is file safety, not identity or teaching approval. Live reviewer staffing and production qualification remain open.",
         )}{" "}
       </small>
     </div>
@@ -159,34 +175,25 @@ function TeacherReview({
   teacher: t,
   onLock,
   refreshQueue,
+  queueUnavailable,
 }: {
   session: Session;
   teacher: Teacher;
+  queueUnavailable: boolean;
   onLock: (v: boolean) => void;
   refreshQueue: () => Promise<void>;
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
   const own = t.accountId === session.account.id;
-  const evidence = useQuery({
+  const evidence = useHistory<components["schemas"]["EvidenceList"]>({
     queryKey: ["review-evidence", session.account.id, t.id],
-    queryFn: ({ signal }) =>
-      api<components["schemas"]["EvidenceList"]>(`/teachers/${t.id}/evidence`, {
-        signal,
-      }),
-    retry: false,
-    refetchOnWindowFocus: false,
+    path: `/teachers/${t.id}/evidence`,
     enabled: !own,
   });
-  const checks = useQuery({
+  const checks = useHistory<components["schemas"]["VerificationList"]>({
     queryKey: ["review-checks", session.account.id, t.id],
-    queryFn: ({ signal }) =>
-      api<components["schemas"]["VerificationList"]>(
-        `/admin/teachers/${t.id}/checks`,
-        { signal },
-      ),
-    retry: false,
-    refetchOnWindowFocus: false,
+    path: `/admin/teachers/${t.id}/checks`,
     enabled: !own,
   });
   const [action, setAction] = useState<"check" | "decision" | "scan" | "">(""),
@@ -237,6 +244,7 @@ function TeacherReview({
         ),
       ),
     unavailable =
+      queueUnavailable ||
       own ||
       !!evidence.error ||
       !!checks.error ||
@@ -367,6 +375,24 @@ function TeacherReview({
       sending.current = false;
     }
   }
+  if (queueUnavailable)
+    return (
+      <>
+        <Feedback decision={decision} />
+        <Button disabled>{appText("Review teacher decision")}</Button>
+        <Button
+          variant="outline"
+          disabled={decision.busy || decision.uncertain}
+          onClick={() => {
+            setReview(false);
+            setAgreed(false);
+            void decision.reload();
+          }}
+        >
+          {appText("Refresh screening")}
+        </Button>
+      </>
+    );
   return (
     <>
       <section className="care-card">
@@ -451,6 +477,11 @@ function TeacherReview({
           )}
           <section className="care-card">
             <h3>{appText("Private evidence")}</h3>
+            <HistoryPages
+              history={evidence}
+              label="Private evidence"
+              disabled={decision.locked || !!action}
+            />
             {evidence.isPending && (
               <p role="status">{appText("Loading private evidence…")}</p>
             )}
@@ -521,6 +552,11 @@ function TeacherReview({
                 )}{" "}
               </Notice>
             )}
+            <HistoryPages
+              history={checks}
+              label="Screening history"
+              disabled={decision.locked || !!action}
+            />
             {checks.isPending && (
               <p role="status">{appText("Loading screening history…")}</p>
             )}

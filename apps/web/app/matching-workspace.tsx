@@ -1,4 +1,5 @@
 "use client";
+import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { WeeklySummary } from "./weekly-availability";
 import { useEffect, useRef, useState } from "react";
@@ -24,13 +25,10 @@ export function MatchingWorkspace({ session }: { session: Session }) {
     params = useSearchParams(),
     [selected, setSelected] = useState(params.get("request") || ""),
     [locked, setLocked] = useState(false);
-  const queue = useQuery({
+  const queue = useHistory<components["schemas"]["RequestList"]>({
       queryKey: ["matching-queue", session.account.id],
-      queryFn: ({ signal }) =>
-        api<components["schemas"]["RequestList"]>("/requests", { signal }),
+      path: "/requests?status=OPEN",
       enabled: allowed,
-      retry: false,
-      refetchOnWindowFocus: false,
     }),
     open = queue.data?.items.filter((r) => r.status === "OPEN") || [];
   useEffect(() => {
@@ -77,6 +75,11 @@ export function MatchingWorkspace({ session }: { session: Session }) {
           ))}
         </select>
       </div>
+      <HistoryPages
+        history={queue}
+        label="Matching request queue"
+        disabled={locked}
+      />
       {queue.isPending && (
         <p role="status">{appText("Loading matching queue…")}</p>
       )}
@@ -107,14 +110,14 @@ export function MatchingWorkspace({ session }: { session: Session }) {
         open.length > 0 && (
           <Notice>
             {appText(
-              "Choose a request from this authorized queue. It contains the latest 50 records.",
+              "Choose a request from this authorized queue. Load more records to see more.",
             )}{" "}
           </Notice>
         )
       )}
       <small className="care-help">
         {appText(
-          "Latest 50 requests and matching runs; up to 10 shortlist candidates from a rules pool bounded at 200 teachers. A match is not an assignment or guaranteed supply. Notification delivery and live operator staffing remain unqualified.",
+          "Browse request and matching-run history; up to 10 shortlist candidates come from a rules pool bounded at 200 teachers. A match is not an assignment or guaranteed supply. Notification delivery and live operator staffing remain unqualified.",
         )}{" "}
       </small>
     </div>
@@ -150,15 +153,9 @@ function MatchRequest({
     retry: false,
     refetchOnWindowFocus: false,
   });
-  const history = useQuery({
+  const history = useHistory<components["schemas"]["Runs"]>({
     queryKey: ["operator-runs", session.account.id, id],
-    queryFn: ({ signal }) =>
-      api<components["schemas"]["Runs"]>(
-        `/admin/requests/${id}/recommendation-runs`,
-        { signal },
-      ),
-    retry: false,
-    refetchOnWindowFocus: false,
+    path: `/admin/requests/${id}/recommendation-runs`,
   });
   const [action, setAction] = useState<"run" | "publish" | "">(""),
     [order, setOrder] = useState<string[]>([]),
@@ -626,6 +623,11 @@ function MatchRequest({
       )}
       <section className="care-card">
         <h3>{appText("Matching run history")}</h3>
+        <HistoryPages
+          history={history}
+          label="Matching run history"
+          disabled={decision.locked || !!action}
+        />
         {!history.isPending &&
           !history.error &&
           !history.data?.items.length && (

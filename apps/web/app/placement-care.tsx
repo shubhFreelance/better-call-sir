@@ -1,4 +1,5 @@
 "use client";
+import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { CurriculumChoice, subjectSuggestions } from "./curriculum-choice";
 import { useEffect, useRef, useState } from "react";
@@ -55,12 +56,10 @@ export function PlacementCare({
     lastLink = useRef(linkedPlacement);
   const client = useQueryClient(),
     canUse = session.account.role === "GUARDIAN";
-  const requests = useQuery({
+  const requests = useHistory<components["schemas"]["RequestList"]>({
     queryKey: ["care-requests", session.account.id],
-    queryFn: ({ signal }) => api<{ items: Request[] }>("/requests", { signal }),
+    path: "/requests",
     enabled: canUse,
-    retry: false,
-    refetchOnWindowFocus: false,
   });
   const [selected, setSelected] = useState(
       linkedPlacement || d.placements?.[0]?.id || "",
@@ -271,6 +270,11 @@ export function PlacementCare({
           .
         </Notice>
       )}
+      <HistoryPages
+        history={requests}
+        label="Arrangement enquiry history"
+        disabled={locked}
+      />
       {requests.error && (
         <Notice error>
           {appText("Request criteria could not be loaded.")}{" "}
@@ -785,7 +789,7 @@ export function PlacementCare({
           )}
           <small className="care-help">
             {appText(
-              "This view uses your current dashboard and latest 50 requests. For earlier cases or financial questions, use Help & safety. Development support has no live operator or notification delivery.",
+              "This view uses your current arrangements and enquiry history. Load more records to find earlier enquiries and replacement progress. For financial questions, use Help & safety. Development support has no live operator or notification delivery.",
             )}{" "}
           </small>
         </>

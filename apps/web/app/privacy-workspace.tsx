@@ -1,4 +1,5 @@
 "use client";
+import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { privacyText, privacyError } from "./privacy-copy";
 import { useEffect, useRef, useState } from "react";
@@ -78,13 +79,10 @@ export function PrivacyWorkspace({
     [correction, setCorrection] = useState(""),
     [review, setReview] = useState(false),
     [agreed, setAgreed] = useState(false);
-  const notes = useQuery({
+  const notes = useHistory<components["schemas"]["NoteRecords"]>({
       queryKey: ["privacy-owned-notes", session.account.id],
-      queryFn: ({ signal }) =>
-        api<components["schemas"]["NoteRecords"]>("/notes", { signal }),
+      path: "/notes",
       enabled: guardian && composing && scope === "NOTE",
-      retry: false,
-      refetchOnWindowFocus: false,
     }),
     sending = useRef(false);
   async function refresh() {
@@ -405,6 +403,13 @@ export function PrivacyWorkspace({
                               </option>
                             ))}
                       </select>
+                      {scope === "NOTE" && (
+                        <HistoryPages
+                          history={notes}
+                          label="Learning note history"
+                          disabled={decision.locked || review}
+                        />
+                      )}
                       {notes.isFetching && scope === "NOTE" && (
                         <p role="status">
                           {appText(t("Loading owned notes…"))}

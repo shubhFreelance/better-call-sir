@@ -1,4 +1,5 @@
 "use client";
+import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
@@ -91,14 +92,10 @@ export function TeacherSchedule({
   const { appText, appError, appLocale } = useAppTranslation();
 
   const client = useQueryClient();
-  const calendar = useQuery({
-    queryKey: ["teacher-calendar", profile.id],
-    queryFn: () =>
-      api<components["schemas"]["PrivateCalendar"]>(
-        `/teachers/${profile.id}/calendar`,
-      ),
-    retry: false,
-    refetchOnWindowFocus: false,
+  const calendar = useHistory<components["schemas"]["PrivateCalendar"]>({
+    queryKey: ["teacher-calendar", session.account.id, profile.id],
+    path: `/teachers/${profile.id}/calendar`,
+    arrayKeys: ["patterns", "exceptions"],
   });
   const [tab, setTab] = useState("hours"),
     [kind, setKind] = useState("DEMO"),
@@ -802,6 +799,11 @@ export function TeacherSchedule({
           </fieldset>
         </form>
       )}
+      <HistoryPages
+        history={calendar}
+        label="Teaching availability and leave"
+        disabled={locked || !!change}
+      />
       {calendar.isPending && (
         <p role="status">{appText("Loading your saved schedule…")}</p>
       )}
@@ -840,7 +842,7 @@ export function TeacherSchedule({
       {success && <Notice>{appText(success)}</Notice>}
       <p className="wizard-save-note">
         {appText(
-          "Form entries are saved only when you confirm an action. Keep this page open until the result is confirmed. Calls are currently unavailable. The saved schedule shows up to 50 weekly windows and 50 active leave periods.",
+          "Form entries are saved only when you confirm an action. Keep this page open until the result is confirmed. Calls are currently unavailable. Load more records to browse all saved weekly windows and active leave periods.",
         )}{" "}
       </p>
     </section>

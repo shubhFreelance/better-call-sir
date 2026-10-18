@@ -1,4 +1,5 @@
 "use client";
+import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import { useState, useRef } from "react";
@@ -352,16 +353,11 @@ function People({ session }: { session: Session }) {
     retry: false,
     refetchOnWindowFocus: false,
   });
-  const detail = useQuery({
+  const detail = useHistory<components["schemas"]["AdminLinkage"]>({
     queryKey: ["admin-linkage", session.account.id, selected],
-    queryFn: ({ signal }) =>
-      api<components["schemas"]["AdminLinkage"]>(
-        `/admin/accounts/${selected}/linkage`,
-        { signal },
-      ),
+    path: `/admin/accounts/${selected}/linkage`,
     enabled: !!selected,
-    retry: false,
-    refetchOnWindowFocus: false,
+    arrayKeys: ["children"],
   });
   return (
     <>
@@ -481,6 +477,7 @@ function People({ session }: { session: Session }) {
           {detail.isPending && (
             <p role="status">{appText("Loading supervised linkage…")}</p>
           )}
+          <HistoryPages history={detail} label="Account learner linkage" />
           {detail.error && (
             <Notice error>
               {appText("Linkage unavailable.")}{" "}
@@ -696,14 +693,9 @@ function Recovery({
   const { appText, appError, appLocale } = useAppTranslation();
 
   const [status, setStatus] = useState("FAILED");
-  const jobs = useQuery({
+  const jobs = useHistory<components["schemas"]["JobQueue"]>({
     queryKey: ["admin-jobs", session.account.id, status],
-    queryFn: ({ signal }) =>
-      api<components["schemas"]["JobQueue"]>(`/admin/jobs?status=${status}`, {
-        signal,
-      }),
-    retry: false,
-    refetchOnWindowFocus: false,
+    path: `/admin/jobs?status=${status}`,
   });
   const ledger = useInfiniteQuery({
     queryKey: ["admin-ledger", session.account.id],
@@ -746,7 +738,7 @@ function Recovery({
         <h3>{appText("Recovery queue")}</h3>
         <p>
           {appText(
-            "Sanitized oldest-50 unprocessed jobs. Only exhausted private scan/deletion jobs have this reviewed retry; payment, meeting and delivery jobs require their dedicated recovery workflow. A queued retry does not prove processing.",
+            "Sanitized unprocessed jobs, oldest first. Load more records to continue. Only exhausted private scan/deletion jobs have this reviewed retry; payment, meeting and delivery jobs require their dedicated recovery workflow. A queued retry does not prove processing.",
           )}{" "}
         </p>
         <label htmlFor="admin-job-status">
@@ -766,6 +758,11 @@ function Recovery({
         {jobs.isPending && (
           <p role="status">{appText("Loading recovery jobs…")}</p>
         )}
+        <HistoryPages
+          history={jobs}
+          label="Recovery jobs"
+          disabled={!!selected}
+        />
         {jobs.error && (
           <Notice error>
             {appText("Recovery jobs unavailable.")}{" "}
