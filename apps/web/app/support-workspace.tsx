@@ -1,4 +1,5 @@
 "use client";
+import { Button as SharedButton } from "../components/ui/button";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -168,18 +169,19 @@ export function SupportWorkspace({
       refresh,
     ),
     loaded = detail.data?.pages[0],
-    item =
-      hasContext &&
-      (!context.data ||
-        context.error ||
-        (loaded &&
-          !(
-            (studentLink
-              ? loaded.studentEnquiryId === studentLink
-              : loaded.requestId === context.data.requestId) ||
-            (!!context.data.placementId &&
-              loaded.placementId === context.data.placementId)
-          )))
+    item = list.error
+      ? undefined
+      : hasContext &&
+          (!context.data ||
+            context.error ||
+            (loaded &&
+              !(
+                (studentLink
+                  ? loaded.studentEnquiryId === studentLink
+                  : loaded.requestId === context.data.requestId) ||
+                (!!context.data.placementId &&
+                  loaded.placementId === context.data.placementId)
+              )))
         ? undefined
         : loaded,
     draft = composing || !!reply.trim(),
@@ -669,32 +671,35 @@ export function SupportWorkspace({
                     </p>
                   </div>
                 )}
-              {list.data?.pages
-                .flatMap((p) => p.items)
-                .map((c) => (
-                  <button
-                    type="button"
-                    className={`support-case-option ${selected === c.id ? "selected" : ""}`}
-                    key={c.id}
-                    disabled={locked}
-                    aria-pressed={selected === c.id}
-                    onClick={() => pick(c.id)}
-                  >
-                    <span>
-                      {appText(t(categories[c.category] || c.category))}
-                    </span>
-                    <strong>
-                      {appText(t("Case"))} {c.id.slice(0, 8)}
-                    </strong>
-                    <span className="support-status">
-                      {appText(t(statuses[c.status]))}
-                    </span>
-                    <small>
-                      {date(c.createdAt, hindi)} {appText("IST")}
-                    </small>
-                  </button>
-                ))}
-              {list.hasNextPage && (
+              {!list.error &&
+                list.data?.pages
+                  .flatMap((p) => p.items)
+                  .map((c) => (
+                    <SharedButton
+                      data-legacy-action=""
+                      variant="ghost"
+                      type="button"
+                      className={`support-case-option ${selected === c.id ? "selected" : ""}`}
+                      key={c.id}
+                      disabled={locked}
+                      aria-pressed={selected === c.id}
+                      onClick={() => pick(c.id)}
+                    >
+                      <span>
+                        {appText(t(categories[c.category] || c.category))}
+                      </span>
+                      <strong>
+                        {appText(t("Case"))} {c.id.slice(0, 8)}
+                      </strong>
+                      <span className="support-status">
+                        {appText(t(statuses[c.status]))}
+                      </span>
+                      <small>
+                        {date(c.createdAt, hindi)} {appText("IST")}
+                      </small>
+                    </SharedButton>
+                  ))}
+              {!list.error && list.hasNextPage && (
                 <Button
                   variant="outline"
                   disabled={locked || list.isFetching}

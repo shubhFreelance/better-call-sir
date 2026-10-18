@@ -1516,7 +1516,11 @@ function TeacherWorkspace({
               <p role="status">{appText("Loading evidence…")}</p>
             ) : evidence.error ? (
               <>
-                <Message error>{appError(evidence.error.message)}</Message>
+                <Message error>
+                  {appText(
+                    "Private evidence could not be loaded. Check your access and retry.",
+                  )}
+                </Message>
                 <Button variant="outline" onClick={() => evidence.refetch()}>
                   {appText("Retry evidence list")}{" "}
                 </Button>

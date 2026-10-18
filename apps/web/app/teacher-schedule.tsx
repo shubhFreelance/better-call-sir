@@ -809,7 +809,6 @@ export function TeacherSchedule({
       )}
       {calendar.error && (
         <Notice error>
-          {appError(calendar.error.message)}{" "}
           {appText(
             "Your schedule is unavailable; refresh before making changes.",
           )}{" "}

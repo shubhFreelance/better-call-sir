@@ -6,7 +6,7 @@ import { api, type Session, type components } from "@bcs/api-client";
 import { Landmark } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Notice, useDecision } from "./tuition-workflow";
+import { Notice, Feedback, useDecision } from "./tuition-workflow";
 type Record = components["schemas"]["FinanceRecord"];
 type Kind = Record["kind"];
 type Report = components["schemas"]["FinanceReport"];
@@ -95,7 +95,7 @@ function Finance({ session }: { session: Session }) {
     const q = await list.refetch();
     if (q.error) throw q.error;
   }
-  const rows = list.data?.pages.flatMap((p) => p.items) || [];
+  const rows = list.error ? [] : list.data?.pages.flatMap((p) => p.items) || [];
   return (
     <div className="care-workspace finance-workspace">
       <section className="care-intro">
@@ -251,7 +251,7 @@ function Finance({ session }: { session: Session }) {
           ))}
         </div>
         <div className="care-actions">
-          {list.hasNextPage && (
+          {!list.error && list.hasNextPage && (
             <Button
               variant="outline"
               disabled={locked || list.isFetching}
@@ -273,6 +273,7 @@ function Finance({ session }: { session: Session }) {
         <FinanceRecord
           key={selected.id}
           record={rows.find((r) => r.id === selected.id) || selected}
+          readError={!!list.error}
           session={session}
           refreshList={refresh}
           onLock={setLocked}
@@ -446,8 +447,10 @@ function FinanceRecord({
   refreshList,
   onLock,
   onClose,
+  readError,
 }: {
   record: Record;
+  readError: boolean;
   session: Session;
   refreshList: () => Promise<void>;
   onLock: (v: boolean) => void;
@@ -469,8 +472,10 @@ function FinanceRecord({
     refetchOnWindowFocus: false,
   });
   async function refresh() {
-    const q = await order.refetch();
-    if (q.error) throw q.error;
+    if (record.checkoutOrderId) {
+      const q = await order.refetch();
+      if (q.error) throw q.error;
+    }
     await refreshList();
   }
   const decision = useDecision(
@@ -519,6 +524,35 @@ function FinanceRecord({
       sending.current = false;
     }
   }
+  if (readError || order.error)
+    return (
+      <section className="care-card care-editor">
+        <Feedback decision={decision} />
+        <Notice error>
+          {appText(
+            readError
+              ? "Records are unavailable. Refresh before continuing."
+              : "Current checkout is unavailable.",
+          )}
+        </Notice>
+        <Button
+          variant="outline"
+          disabled={decision.busy || decision.uncertain}
+          onClick={() => decision.reload()}
+        >
+          {appText(
+            decision.conflict
+              ? "Refresh for renewed review"
+              : readError
+                ? "Refresh record inspection"
+                : "Retry current checkout",
+          )}
+        </Button>
+        <Button variant="ghost" disabled={locked} onClick={onClose}>
+          {appText("Close record inspection")}
+        </Button>
+      </section>
+    );
   return (
     <section className="care-card care-editor">
       <h3>{appText("Inspect financial record")}</h3>
@@ -554,18 +588,6 @@ function FinanceRecord({
           <p>{record.checkoutOrderId}</p>
           {order.isPending && (
             <p role="status">{appText("Loading current checkout…")}</p>
-          )}
-          {order.error && (
-            <Notice error>
-              {appText("Current checkout is unavailable.")}{" "}
-              <Button
-                variant="outline"
-                disabled={decision.locked}
-                onClick={() => order.refetch()}
-              >
-                {appText("Retry current checkout")}{" "}
-              </Button>
-            </Notice>
           )}
           {order.data && !order.error && (
             <>

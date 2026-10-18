@@ -15,7 +15,7 @@ import {
   TabsTrigger,
   TabsContent,
 } from "../components/ui/tabs";
-import { Notice, useDecision } from "./tuition-workflow";
+import { Notice, Feedback, useDecision } from "./tuition-workflow";
 type Console = components["schemas"]["AdminConsole"];
 type Privacy = components["schemas"]["PrivacyRequest"];
 type Flag = components["schemas"]["ConsoleFlag"];
@@ -295,6 +295,7 @@ function ConsoleWorkspace({ session }: { session: Session }) {
                   ) || selected.item,
               }}
               session={session}
+              readError={!!current.error}
               refresh={refresh}
               onClose={() => setSelected(null)}
             />
@@ -437,31 +438,32 @@ function People({ session }: { session: Session }) {
             <p>{appText("No accounts match these filters.")}</p>
           )}
         <div className="admin-controls">
-          {list.data?.pages
-            .flatMap((p) => p.items)
-            .map((a) => (
-              <article key={a.id}>
-                <div>
-                  <strong>{a.name}</strong>
-                  <p>
-                    {appText(label(a.role))} · {a.region} ·{" "}
-                    {a.disabled ? appText("Disabled") : appText("Enabled")} ·{" "}
-                    {a.verified ? appText("Verified") : appText("Unverified")}
-                  </p>
-                  <small>{a.id}</small>
-                </div>
-                <Button
-                  variant="outline"
-                  disabled={!!list.error}
-                  aria-pressed={selected === a.id}
-                  onClick={() => setSelected(a.id)}
-                >
-                  {appText("Inspect linkage")} {a.id.slice(0, 8)}
-                </Button>
-              </article>
-            ))}
+          {!list.error &&
+            list.data?.pages
+              .flatMap((p) => p.items)
+              .map((a) => (
+                <article key={a.id}>
+                  <div>
+                    <strong>{a.name}</strong>
+                    <p>
+                      {appText(label(a.role))} · {a.region} ·{" "}
+                      {a.disabled ? appText("Disabled") : appText("Enabled")} ·{" "}
+                      {a.verified ? appText("Verified") : appText("Unverified")}
+                    </p>
+                    <small>{a.id}</small>
+                  </div>
+                  <Button
+                    variant="outline"
+                    disabled={!!list.error}
+                    aria-pressed={selected === a.id}
+                    onClick={() => setSelected(a.id)}
+                  >
+                    {appText("Inspect linkage")} {a.id.slice(0, 8)}
+                  </Button>
+                </article>
+              ))}
         </div>
-        {list.hasNextPage && (
+        {!list.error && list.hasNextPage && (
           <Button
             variant="outline"
             disabled={list.isFetching}
@@ -566,7 +568,7 @@ function PrivacyReview({
     retry: false,
     refetchOnWindowFocus: false,
   });
-  const rows = list.data?.pages.flatMap((p) => p.items) || [];
+  const rows = list.error ? [] : list.data?.pages.flatMap((p) => p.items) || [];
   async function refresh() {
     const q = await list.refetch();
     if (q.error) throw q.error;
@@ -653,7 +655,7 @@ function PrivacyReview({
             </article>
           ))}
         </div>
-        {list.hasNextPage && (
+        {!list.error && list.hasNextPage && (
           <Button
             variant="outline"
             disabled={!!selected || list.isFetching}
@@ -674,6 +676,7 @@ function PrivacyReview({
             (p) => p.id === selected.item.id && p.status === "PENDING",
           )}
           session={session}
+          readError={!!list.error}
           refresh={refresh}
           onClose={() => select(null)}
         />
@@ -715,7 +718,9 @@ function Recovery({
     const b = await ledger.refetch();
     if (b.error) throw b.error;
   }
-  const ledgerRows = ledger.data?.pages.flatMap((p) => p.items) || [];
+  const ledgerRows = ledger.error
+    ? []
+    : ledger.data?.pages.flatMap((p) => p.items) || [];
   const current =
     selected?.kind === "job"
       ? {
@@ -861,7 +866,7 @@ function Recovery({
             </article>
           ))}
         </div>
-        {ledger.hasNextPage && (
+        {!ledger.error && ledger.hasNextPage && (
           <Button
             variant="outline"
             disabled={!!selected || ledger.isFetching}
@@ -883,6 +888,7 @@ function Recovery({
             )
           }
           session={session}
+          readError={current.kind === "job" ? !!jobs.error : !!ledger.error}
           refresh={refresh}
           onClose={() => select(null)}
         />
@@ -952,20 +958,21 @@ function AuditHistory({ session }: { session: Session }) {
           <p>{appText("No audit records match this action.")}</p>
         )}
       <ol className="admin-audit">
-        {list.data?.pages
-          .flatMap((p) => p.items)
-          .map((a) => (
-            <li key={a.id}>
-              <strong>{appText(label(a.action))}</strong>
-              <p>{a.reason}</p>
-              <small>
-                {appText("Resource")} {a.aggregateId} ·{" "}
-                {when(a.createdAt, appLocale)} {appText("IST")}{" "}
-              </small>
-            </li>
-          ))}
+        {!list.error &&
+          list.data?.pages
+            .flatMap((p) => p.items)
+            .map((a) => (
+              <li key={a.id}>
+                <strong>{appText(label(a.action))}</strong>
+                <p>{a.reason}</p>
+                <small>
+                  {appText("Resource")} {a.aggregateId} ·{" "}
+                  {when(a.createdAt, appLocale)} {appText("IST")}{" "}
+                </small>
+              </li>
+            ))}
       </ol>
-      {list.hasNextPage && (
+      {!list.error && list.hasNextPage && (
         <Button
           variant="outline"
           disabled={list.isFetching}
@@ -983,12 +990,14 @@ function AdminDecision({
   refresh,
   onClose,
   available = true,
+  readError = false,
 }: {
   action: Action;
   session: Session;
   refresh: () => Promise<void>;
   onClose: () => void;
   available?: boolean;
+  readError?: boolean;
 }) {
   const { appText, appError, appLocale } = useAppTranslation();
 
@@ -1136,6 +1145,31 @@ function AdminDecision({
       sending.current = false;
     }
   }
+  if (readError)
+    return (
+      <section className="care-card care-editor">
+        <Feedback decision={decision} />
+        <Notice error>
+          {appText("Records are unavailable. Refresh before continuing.")}
+        </Notice>
+        <Button
+          variant="outline"
+          disabled={decision.busy || decision.uncertain}
+          onClick={() => decision.reload()}
+        >
+          {appText(
+            decision.conflict
+              ? "Refresh administrator review"
+              : "Reload current decision record",
+          )}
+        </Button>
+        <Button variant="ghost" disabled={decision.locked} onClick={onClose}>
+          {saved
+            ? appText("Close recorded decision")
+            : appText("Discard decision draft")}
+        </Button>
+      </section>
+    );
   return (
     <section className="care-card care-editor">
       <h3>{appText(title)}</h3>

@@ -1,4 +1,5 @@
 "use client";
+import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -87,7 +88,7 @@ export function SupportOperations({ session }: { session: Session }) {
       </Tabs>
       <small className="care-help">
         {appText(
-          "Case/update and attendance queues are paginated. Demo history is the latest 100 records. Self-assignment and release support team handoff; staff provisioning remains separate. These actions do not settle refunds or payouts. Live support hours, notification delivery and safeguarding procedures remain unqualified.",
+          "Case, conversation, demo and attendance queues are paginated. Self-assignment and release support team handoff; staff provisioning remains separate. These actions do not settle refunds or payouts. Live support hours, notification delivery and safeguarding procedures remain unqualified.",
         )}{" "}
       </small>
     </div>
@@ -212,22 +213,23 @@ function CaseQueue({
             <p>{appText("No cases for these filters.")}</p>
           )}
         <div className="ops-case-list">
-          {list.data?.pages
-            .flatMap((p) => p.items)
-            .map((c) => (
-              <Button
-                variant={selected === c.id ? "default" : "outline"}
-                key={c.id}
-                disabled={locked}
-                aria-pressed={selected === c.id}
-                onClick={() => setSelected(c.id)}
-              >
-                {appText(label(c.category))} · {appText(labels[c.status])} ·{" "}
-                {c.id.slice(0, 8)}
-              </Button>
-            ))}
+          {!list.error &&
+            list.data?.pages
+              .flatMap((p) => p.items)
+              .map((c) => (
+                <Button
+                  variant={selected === c.id ? "default" : "outline"}
+                  key={c.id}
+                  disabled={locked}
+                  aria-pressed={selected === c.id}
+                  onClick={() => setSelected(c.id)}
+                >
+                  {appText(label(c.category))} · {appText(labels[c.status])} ·{" "}
+                  {c.id.slice(0, 8)}
+                </Button>
+              ))}
         </div>
-        {list.hasNextPage && (
+        {!list.error && list.hasNextPage && (
           <Button
             variant="outline"
             disabled={locked || list.isFetching}
@@ -242,6 +244,7 @@ function CaseQueue({
           key={selected}
           session={session}
           id={selected}
+          readError={!!list.error}
           onLock={setLocked}
           refreshList={async () => {
             const q = await list.refetch();
@@ -257,11 +260,13 @@ function StaffCase({
   id,
   onLock,
   refreshList,
+  readError,
 }: {
   session: Session;
   id: string;
   onLock: (v: boolean) => void;
   refreshList: () => Promise<void>;
+  readError: boolean;
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
@@ -405,7 +410,7 @@ function StaffCase({
           {appText("Refresh current staff case")}{" "}
         </Button>
       )}
-      {details.error && (
+      {(details.error || readError) && (
         <Notice error>
           {appText(
             "This case is unavailable or outside your authorized scope.",
@@ -413,7 +418,7 @@ function StaffCase({
           <Button
             variant="outline"
             disabled={decision.uncertain}
-            onClick={() => details.refetch()}
+            onClick={() => decision.reload()}
           >
             {appText("Retry staff case")}{" "}
           </Button>
@@ -422,7 +427,7 @@ function StaffCase({
       {details.isPending && (
         <p role="status">{appText("Loading case conversation…")}</p>
       )}
-      {c && !details.error && (
+      {c && !details.error && !readError && (
         <section className="care-card care-editor">
           <span className="care-status">
             {appText(labels[c.status])} · {c.region}
@@ -716,13 +721,13 @@ function DisputeQueue({
   const [selected, setSelected] = useState<Dispute | null>(null),
     [locked, setLocked] = useState(false),
     [notice, setNotice] = useState("");
-  const demos = useQuery({
+  const demos = useHistory<{
+    items: components["schemas"]["Demo"][];
+    nextCursor?: string | null;
+  }>({
     queryKey: ["staff-demo-disputes", session.account.id],
-    queryFn: ({ signal }) =>
-      api<{ items: components["schemas"]["Demo"][] }>("/demos", { signal }),
+    path: "/demos?status=DISPUTED",
     enabled: kind === "demo",
-    retry: false,
-    refetchOnWindowFocus: false,
   });
   const lessons = useInfiniteQuery({
     queryKey: ["staff-lesson-disputes", session.account.id],
@@ -740,7 +745,9 @@ function DisputeQueue({
   const rows: Dispute[] =
       kind === "demo"
         ? demos.data?.items.filter((d) => d.status === "DISPUTED") || []
-        : lessons.data?.pages.flatMap((p) => p.items) || [],
+        : lessons.error
+          ? []
+          : lessons.data?.pages.flatMap((p) => p.items) || [],
     query = kind === "demo" ? demos : lessons,
     item = rows.find((r) => r.id === selected?.id) || selected,
     available =
@@ -765,6 +772,13 @@ function DisputeQueue({
             ? appText("Demo outcome disputes")
             : appText("Attendance disputes")}
         </h3>
+        {kind === "demo" && (
+          <HistoryPages
+            history={demos}
+            label="Optional demo history"
+            disabled={locked}
+          />
+        )}
         {query.isPending && <p role="status">{appText("Loading disputes…")}</p>}
         {query.error && (
           <Notice error>
@@ -826,6 +840,7 @@ function DisputeQueue({
           key={item.id}
           item={item}
           available={available}
+          readError={!!query.error}
           session={session}
           onLock={setLocked}
           refresh={refresh}
@@ -849,8 +864,10 @@ function DisputeReview({
   refresh,
   onSaved,
   onCancel,
+  readError,
 }: {
   item: Dispute;
+  readError: boolean;
   available: boolean;
   session: Session;
   onLock: (v: boolean) => void;
@@ -929,6 +946,25 @@ function DisputeReview({
       sending.current = false;
     }
   }
+  if (readError)
+    return (
+      <section className="care-card care-editor">
+        <Feedback decision={decision} />
+        <Notice error>
+          {appText("Records are unavailable. Refresh before continuing.")}
+        </Notice>
+        <Button
+          variant="outline"
+          disabled={decision.busy || decision.uncertain}
+          onClick={() => decision.reload()}
+        >
+          {appText("Refresh current dispute")}
+        </Button>
+        <Button variant="ghost" disabled={decision.locked} onClick={onCancel}>
+          {appText("Cancel dispute review")}
+        </Button>
+      </section>
+    );
   return (
     <section className="care-card care-editor">
       <h3>
@@ -952,9 +988,22 @@ function DisputeReview({
             {when(demo.reservation.startsAt, appLocale)}–
             {when(demo.reservation.endsAt, appLocale)} {appText("IST")}{" "}
           </p>
-          {context.data && (
+          {context.data && !context.error && (
             <>
               <h4>{appText("Linked case evidence")}</h4>
+              {demo.supportCaseId && (
+                <Link
+                  className="inline-link"
+                  href={
+                    "/dashboard/support?case=" +
+                    encodeURIComponent(demo.supportCaseId)
+                  }
+                  target="_blank"
+                  rel="noopener"
+                >
+                  {appText("Open full case history (new tab)")}
+                </Link>
+              )}
               <p>{context.data.description}</p>
               {context.data.updates.map((u) => (
                 <p key={u.id}>

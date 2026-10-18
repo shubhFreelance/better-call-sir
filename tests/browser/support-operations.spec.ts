@@ -708,11 +708,50 @@ test("real MFA staff writes a private note, replies to the owner and resolves an
   }
 });
 
- test("Hindi complete interface — कर्मचारी सहायता और विवाद", async ({ page }) => {
- await chooseHindi(page);
- await mock(page);
- await page.goto("/dashboard/support");
- await checkHindi(page);
- await page.setViewportSize({ width: 360, height: 800 });
- await checkHindi(page);
- });
+test("Hindi complete interface — कर्मचारी सहायता और विवाद", async ({
+  page,
+}) => {
+  await chooseHindi(page);
+  await mock(page);
+  await page.goto("/dashboard/support");
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
+});
+
+test("failed staff queue pages hide private case evidence without losing the selected case", async ({
+  page,
+}) => {
+  const s = await mock(page, "paging");
+  await page.route("**/api/v1/cases?**", (route) =>
+    route.fulfill({ json: { items: [s.c()], nextCursor: caseId } }),
+  );
+  await page.goto("/dashboard/support");
+  await pick(page);
+  await expect(
+    page.getByText(s.c().description, { exact: true }),
+  ).toBeVisible();
+  await page.route("**/api/v1/cases?**", (route) =>
+    route.fulfill({
+      status: 403,
+      json: { code: "FORBIDDEN", message: "Synthetic private backend detail" },
+    }),
+  );
+  await page
+    .getByRole("button", { name: "Load more cases", exact: true })
+    .click();
+  await expect(page.getByText(s.c().description, { exact: true })).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByText("Synthetic private backend detail", { exact: true }),
+  ).toHaveCount(0);
+  await page.unroute("**/api/v1/cases?**");
+  await page
+    .getByRole("button", { name: "Retry case queue", exact: true })
+    .click();
+  await expect(
+    page.getByText(s.c().description, { exact: true }),
+  ).toBeVisible();
+  expect(s.writes).toHaveLength(0);
+});

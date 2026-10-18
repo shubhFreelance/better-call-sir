@@ -1,4 +1,5 @@
 "use client";
+import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import {
   WeeklyAvailability,
@@ -333,11 +334,9 @@ function RequestReview({
     retry: false,
     refetchOnWindowFocus: false,
   });
-  const demos = useQuery({
-    queryKey: ["demos", session.account.id],
-    queryFn: () => api<{ items: Demo[] }>("/demos"),
-    retry: false,
-    refetchOnWindowFocus: false,
+  const demos = useHistory<{ items: Demo[]; nextCursor?: string | null }>({
+    queryKey: ["demos", session.account.id, requestId],
+    path: "/demos?requestId=" + encodeURIComponent(requestId),
   });
   const [form, setForm] = useState<{
       kind: "choice" | "demo" | "terms";
@@ -371,8 +370,8 @@ function RequestReview({
   }
   const decision = useDecision(session, refresh);
   useEffect(() => {
-    onLockChange(decision.busy || decision.uncertain);
-  }, [decision.busy, decision.uncertain, onLockChange]);
+    onLockChange(decision.locked || !!form || scheduleOpen);
+  }, [decision.locked, form, scheduleOpen, onLockChange]);
   const request = detail.data,
     child = dashboard.children?.find((c) => c.id === request?.childId);
   const filters = new URLSearchParams({
@@ -1198,6 +1197,11 @@ function RequestReview({
           )}
         </div>
       )}
+      <HistoryPages
+        history={demos}
+        label="Optional demo history"
+        disabled={decision.locked || !!form || scheduleOpen}
+      />
       <Feedback decision={decision} />
       <Link href={`/support?request=${request.id}`} className="inline-link">
         {appText("Get help with this request")}{" "}

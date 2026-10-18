@@ -1,4 +1,6 @@
 "use client";
+import { Button as SharedButton } from "../components/ui/button";
+import { Input as SharedInput } from "../components/ui/input";
 import {
   useAppTranslation,
   LanguageContext,
@@ -235,9 +237,14 @@ function State({
       <Notice error>
         {appError(error.message)}{" "}
         {retry && (
-          <button className="text-button" onClick={retry}>
+          <SharedButton
+            data-legacy-action=""
+            variant="ghost"
+            className="text-button"
+            onClick={retry}
+          >
             {appText("Try again")}{" "}
-          </button>
+          </SharedButton>
         )}
       </Notice>
     );
@@ -393,7 +400,9 @@ function Header() {
             </div>
           </nav>
           <div className="header-actions">
-            <button
+            <SharedButton
+              data-legacy-action=""
+              variant="ghost"
               className="language"
               onClick={() => setHindi(!hindi)}
               aria-label={
@@ -404,7 +413,7 @@ function Header() {
             >
               <Languages size={16} />
               {hindi ? appText("English") : "हिन्दी"}
-            </button>
+            </SharedButton>
             {session ? (
               <>
                 <Link className="button small secondary" href="/dashboard">
@@ -416,13 +425,15 @@ function Header() {
                   </span>{" "}
                   <ArrowUpRight size={16} />
                 </Link>
-                <button
+                <SharedButton
+                  data-legacy-action=""
+                  variant="ghost"
                   className="icon-button"
                   onClick={logout}
                   aria-label={hindi ? "साइन आउट" : appText("Sign out")}
                 >
                   <LogOut size={18} />
-                </button>
+                </SharedButton>
               </>
             ) : (
               <Link className="button small" href="/login">
@@ -435,7 +446,9 @@ function Header() {
                 <ArrowUpRight size={16} />
               </Link>
             )}
-            <button
+            <SharedButton
+              data-legacy-action=""
+              variant="ghost"
               ref={menuButton}
               className="icon-button mobile-menu"
               aria-controls="site-navigation"
@@ -448,7 +461,7 @@ function Header() {
               }
             >
               {open ? <X /> : <Menu />}
-            </button>
+            </SharedButton>
           </div>
         </div>
       </header>
@@ -862,6 +875,8 @@ function Teachers() {
   const independent = session?.account.role === "INDEPENDENT_STUDENT";
   const discoveryParams = useSearchParams();
   const [filterReset, setFilterReset] = useState(0);
+  const [interactive, setInteractive] = useState(false);
+  useEffect(() => setInteractive(true), []);
   const [searchState, setSearchState] = useTeacherSearchState();
   const { filters, results } = searchState;
   const {
@@ -1046,7 +1061,12 @@ function Teachers() {
           )}
         </TabsContent>
         <TabsContent value="manual">
-          <div className="filter-bar catalog-filters">
+          <fieldset
+            className="filter-bar catalog-filters"
+            disabled={!interactive}
+            aria-busy={!interactive}
+            aria-label={appText("Teacher search criteria")}
+          >
             <label className="search-input">
               <Search size={19} />
               <Input
@@ -1250,7 +1270,10 @@ function Teachers() {
             >
               {appText("Reset filters")}{" "}
             </UiButton>
-          </div>
+          </fieldset>
+          {!interactive && (
+            <p role="status">{appText("Preparing teacher search…")}</p>
+          )}
           <div className="results-heading">
             <span role="status" ref={resultSummary} tabIndex={-1}>
               {query.isPending
@@ -1686,7 +1709,9 @@ function Login() {
           {error && <Notice error>{appError(error)}</Notice>}
           <div className="account-list">
             {query.data?.map((a) => (
-              <button
+              <SharedButton
+                data-legacy-action=""
+                variant="ghost"
                 className="account-choice"
                 key={a.id}
                 onClick={() => login(a.id)}
@@ -1717,7 +1742,7 @@ function Login() {
                 ) : (
                   <ArrowRight size={20} />
                 )}
-              </button>
+              </SharedButton>
             ))}
           </div>
         </details>
@@ -2721,7 +2746,10 @@ function DashboardPage({ tab }: { tab: string }) {
             ))}
           {tab.endsWith("bookings") && (
             <>
-              <DemoJourney session={session} act={act} />
+              <DemoJourney
+                key={`${session.account.id}:${session.account.role}`}
+                session={session}
+              />
               <ReservationBookings session={session} dashboard={d} />
               {d.role === "GUARDIAN" && (
                 <TuitionTerms session={session} dashboard={d} />
@@ -2927,7 +2955,7 @@ function Pro({
             </select>
           </Field>
           <Field label={appText("Preferred callback (IST)")}>
-            <input type="datetime-local" name="time" required />
+            <SharedInput type="datetime-local" name="time" required />
           </Field>
           <Button type="submit" disabled={busy}>
             {appText("Request consultation")} <Phone size={17} />

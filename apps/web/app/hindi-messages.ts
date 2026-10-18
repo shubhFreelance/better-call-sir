@@ -1,5 +1,22 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Teacher search criteria": "शिक्षक खोजने की शर्तें",
+  "Preparing teacher search…": "शिक्षक खोजने का पेज तैयार हो रहा है…",
+  "Open full case history (new tab)": "मामले का पूरा इतिहास नए टैब में खोलें",
+  "Refresh record inspection": "रिकॉर्ड की जाँच फिर लोड करें",
+  "Case, conversation, demo and attendance queues are paginated. Self-assignment and release support team handoff; staff provisioning remains separate. These actions do not settle refunds or payouts. Live support hours, notification delivery and safeguarding procedures remain unqualified.":
+    "सहायता, बातचीत, डेमो और उपस्थिति की सूचियाँ पृष्ठों में हैं। ज़िम्मेदारी लेना या हटाना टीम में काम सौंपने के लिए है; कर्मचारी जोड़ना अलग है। इनसे धन-वापसी या भुगतान पूरा नहीं होता। लाइव सहायता के समय, सूचनाओं और सुरक्षा प्रक्रियाओं का सत्यापन बाकी है।",
+
+  "Private evidence could not be loaded. Check your access and retry.":
+    "निजी दस्तावेज़ लोड नहीं हुए। अपनी अनुमति जाँचकर फिर कोशिश करें।",
+  "Records are unavailable. Refresh before continuing.":
+    "रिकॉर्ड उपलब्ध नहीं हैं। आगे बढ़ने से पहले फिर लोड करें।",
+  "Optional demo history": "वैकल्पिक डेमो का इतिहास",
+  "Demo decision recorded.": "डेमो का निर्णय दर्ज किया गया।",
+  "Refresh current demo": "डेमो की मौजूदा जानकारी लोड करें",
+  "Discard demo edits": "डेमो के अधूरे बदलाव हटाएँ",
+  "Demo details and actions": "डेमो का विवरण और कार्रवाइयाँ",
+
   "Learning note history": "पढ़ाई के नोट का इतिहास",
   "Arrangement enquiry history": "ट्यूशन व्यवस्था के अनुरोधों का इतिहास",
   "Choose an application from this queue. Load more records for earlier applications; regional access still applies.":

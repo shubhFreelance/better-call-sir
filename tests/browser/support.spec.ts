@@ -783,3 +783,37 @@ test("Hindi denied context and closed conversations preserve access boundaries",
   ).toBeVisible();
   await expect(page.getByLabel("जवाब लिखें", { exact: true })).toHaveCount(0);
 });
+
+test("failed case-history pages hide cached case details and recover the same conversation", async ({
+  page,
+}) => {
+  const s = await mock(page, "paging");
+  await page.goto("/support?case=" + caseId);
+  await expect(
+    page.getByText(s.item().description, { exact: true }),
+  ).toBeVisible();
+  await page.route("**/api/v1/cases?**", (route) =>
+    route.fulfill({
+      status: 403,
+      json: { code: "FORBIDDEN", message: "Synthetic private backend detail" },
+    }),
+  );
+  await page
+    .getByRole("button", { name: "Load more cases", exact: true })
+    .click();
+  await expect(page.locator(".support-case-option")).toHaveCount(0);
+  await expect(
+    page.getByText(s.item().description, { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Synthetic private backend detail", { exact: true }),
+  ).toHaveCount(0);
+  await page.unroute("**/api/v1/cases?**");
+  await page
+    .getByRole("button", { name: "Retry case history", exact: true })
+    .click();
+  await expect(
+    page.getByText(s.item().description, { exact: true }),
+  ).toBeVisible();
+  expect(s.writes).toHaveLength(0);
+});

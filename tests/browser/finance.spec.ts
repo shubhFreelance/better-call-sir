@@ -570,11 +570,41 @@ test("finance report and record read failures recover independently", async ({
   ).toBeVisible();
 });
 
- test("Hindi complete interface — वित्त और मिलान", async ({ page }) => {
- await chooseHindi(page);
- await mock(page);
- await page.goto("/dashboard/finance");
- await checkHindi(page);
- await page.setViewportSize({ width: 360, height: 800 });
- await checkHindi(page);
- });
+test("Hindi complete interface — वित्त और मिलान", async ({ page }) => {
+  await chooseHindi(page);
+  await mock(page);
+  await page.goto("/dashboard/finance");
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
+});
+
+test("failed finance queue reads hide cached record inspection and recover without a provider write", async ({
+  page,
+}) => {
+  const s = await mock(page);
+  await inspect(page);
+  await expect(page.locator(".finance-detail")).toBeVisible();
+  await page.route("**/api/v1/admin/finance/records?**", (route) =>
+    route.fulfill({
+      status: 403,
+      json: { code: "FORBIDDEN", message: "Synthetic private backend detail" },
+    }),
+  );
+  await page
+    .getByRole("button", { name: "Refresh financial records", exact: true })
+    .click();
+  await expect(page.locator(".finance-detail")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Inspect record 20000000" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Synthetic private backend detail", { exact: true }),
+  ).toHaveCount(0);
+  await page.unroute("**/api/v1/admin/finance/records?**");
+  await page
+    .getByRole("button", { name: "Refresh record inspection", exact: true })
+    .click();
+  await expect(page.locator(".finance-detail")).toBeVisible();
+  expect(s.writes).toHaveLength(0);
+});
