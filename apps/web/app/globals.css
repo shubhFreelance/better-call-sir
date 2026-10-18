@@ -5197,3 +5197,33 @@ html[lang="hi"] :is(input,select,textarea) { font-family: var(--font-family); }
 .demo-fields > .field, .demo-fields > .button-row { margin-block:16px; }
 
 fieldset.catalog-filters { min-inline-size:0; margin-inline:0; }
+
+.staff-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin:24px 0; }
+.staff-heading h3 { color:var(--primary); font-size:26px; line-height:1.25; margin:0 0 12px; }
+.staff-heading p { max-width:65ch; margin:0; color:var(--muted); }
+.staff-columns { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; margin-top:24px; }
+.staff-columns h4 { font-size:20px; margin:0 0 20px; color:var(--primary); }
+.staff-person { padding-block:20px; border-bottom:1px solid var(--line); min-width:0; overflow-wrap:anywhere; }
+.staff-person:last-child { border-bottom:0; padding-bottom:0; }
+.staff-person h5 { font-size:17px; margin:0 0 10px; }
+.staff-person p { margin:8px 0; }
+.staff-person small { color:var(--muted); }
+.staff-person .care-actions { margin-top:16px; }
+.staff-editor { margin-top:24px; border-left:4px solid var(--primary); }
+.staff-editor h3 { margin-top:0; color:var(--primary); }
+.staff-fields { border:0; margin:24px 0 0; padding:0; min-inline-size:0; }
+.staff-fields legend { font-size:19px; font-weight:650; margin-bottom:20px; }
+.staff-fields select { min-height:44px; width:100%; background:var(--white); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+.staff-fields .check-label { display:flex; align-items:flex-start; gap:12px; margin:24px 0; min-height:44px; }
+.staff-fields .check-label input { width:18px; height:18px; margin-top:4px; flex:none; accent-color:var(--primary); }
+.staff-summary { padding:20px; background:var(--paper); border-radius:12px; margin:20px 0; overflow-wrap:anywhere; }
+.staff-summary dt { font-size:13px; color:var(--muted); margin-top:16px; }
+.staff-summary dt:first-child { margin-top:0; }
+.staff-summary dd { margin:6px 0 0; }
+.staff-workspace :is(input,textarea,select,button) { max-width:100%; }
+.staff-workspace button { white-space:normal; height:auto; min-height:44px; }
+.staff-workspace :is(h3,.staff-editor):focus-visible { outline:2px solid var(--primary); outline-offset:4px; }
+@media(max-width:800px) { .staff-columns { grid-template-columns:minmax(0,1fr); gap:20px; } }
+@media(max-width:600px) { .staff-heading { flex-direction:column; gap:20px; } .staff-heading>button,.staff-workspace .care-actions>button { width:100%; } .staff-summary { padding:16px; } }
+
+.staff-columns>section:nth-child(2)>h4 { background:#F0D7FF; color:#034F46; width:fit-content; padding:8px 12px; border-radius:8px; }

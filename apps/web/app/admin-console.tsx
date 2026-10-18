@@ -1,4 +1,5 @@
 "use client";
+import { StaffAdministration } from "./staff-administration";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
@@ -54,6 +55,7 @@ export function AdminConsole({ session }: { session: Session }) {
 function ConsoleWorkspace({ session }: { session: Session }) {
   const { appText, appError, appLocale } = useAppTranslation();
 
+  const [staffLocked, setStaffLocked] = useState(false);
   const [tab, setTab] = useState("overview"),
     [selected, setSelected] = useState<Action | null>(null);
   const current = useQuery({
@@ -79,13 +81,13 @@ function ConsoleWorkspace({ session }: { session: Session }) {
       </section>
       <Notice>
         {appText(
-          "Private administrator workspace. Live release is blocked. Staff provisioning and commercial policy editing await their independent approval and version-history workflows.",
+          "Private administrator workspace. Staff access requires independent review. Live release and commercial policy editing retain their separate qualification requirements.",
         )}{" "}
       </Notice>
       <Tabs
         value={tab}
         onValueChange={(v) => {
-          if (!selected) setTab(v);
+          if (!selected && !staffLocked) setTab(v);
         }}
       >
         <TabsList
@@ -95,15 +97,22 @@ function ConsoleWorkspace({ session }: { session: Session }) {
           {[
             ["overview", "Overview & controls"],
             ["people", "People & linkage"],
+            ["staff", "Staff access"],
             ["privacy", "Privacy review"],
             ["recovery", "Recovery & backups"],
             ["audit", "Audit history"],
           ].map(([v, n]) => (
-            <TabsTrigger key={v} value={v} disabled={!!selected}>
+            <TabsTrigger key={v} value={v} disabled={!!selected || staffLocked}>
               {appText(n)}
             </TabsTrigger>
           ))}
         </TabsList>
+        <TabsContent value="staff">
+          <StaffAdministration
+            session={session}
+            onLockChange={setStaffLocked}
+          />
+        </TabsContent>
         <TabsContent value="overview">
           {current.isPending && (
             <p role="status">{appText("Loading console state…")}</p>
@@ -328,7 +337,7 @@ function ConsoleWorkspace({ session }: { session: Session }) {
       </Tabs>
       <small className="care-help">
         {appText(
-          "Sensitive account grants, impersonation and arbitrary database edits are unavailable. B2/B3 retain staff approval/provisioning and commercial configuration work. Live provider delivery, backup restore and operational release acceptance remain separate.",
+          "Use Staff access for independently reviewed staff changes. Commercial configuration, live provider delivery, backup restore and operational release acceptance remain separate.",
         )}{" "}
       </small>
     </div>

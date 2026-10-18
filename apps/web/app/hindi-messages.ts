@@ -1,5 +1,106 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Approval applies the proposed role and region and reactivates suspended staff access.":
+    "स्वीकृति से प्रस्तावित भूमिका और क्षेत्र लागू होंगे और निलंबित कर्मचारी की अनुमति फिर सक्रिय हो जाएगी।",
+  Administrator: "प्रशासक",
+  Operator: "संचालन कर्मचारी",
+  Reviewer: "समीक्षक",
+  Finance: "वित्त",
+  "New staff access": "नए कर्मचारी की अनुमति",
+  "Change staff access": "कर्मचारी की अनुमति बदलें",
+  "Suspend staff access": "कर्मचारी की अनुमति निलंबित करें",
+  "Recover staff authenticator": "कर्मचारी का प्रमाणक बहाल करें",
+  "Staff access": "कर्मचारी अनुमतियाँ",
+  "Access with a second pair of eyes.":
+    "दूसरे प्रशासक की समीक्षा के साथ अनुमति दें।",
+  "One administrator proposes. Another independently reviews. Nobody can change or approve their own access.":
+    "एक प्रशासक प्रस्ताव देता है और दूसरा स्वतंत्र समीक्षा करता है। कोई अपनी अनुमति बदल या स्वीकृत नहीं कर सकता।",
+  "Add staff member": "कर्मचारी जोड़ें",
+  "Staff administration requires authenticator verification within five minutes. Live sign-in, key custody and operator recovery still require launch qualification.":
+    "कर्मचारी प्रबंधन के लिए पिछले पाँच मिनट में प्रमाणक सत्यापन ज़रूरी है। लाइव साइन-इन, कुंजी सुरक्षा और संचालन बहाली की लॉन्च जाँच अभी बाकी है।",
+  "Current staff access": "वर्तमान कर्मचारी अनुमतियाँ",
+  "Staff directory history": "कर्मचारी सूची का इतिहास",
+  "No staff accounts to display.": "दिखाने के लिए कोई कर्मचारी खाता नहीं है।",
+  "Dedicated staff email required": "अलग कर्मचारी ईमेल ज़रूरी है",
+  "Access version {0}": "अनुमति संस्करण {0}",
+  "Another administrator must manage your access.":
+    "आपकी अनुमति का प्रबंधन दूसरे प्रशासक को करना होगा।",
+  "Synthetic accounts cannot use this workflow. Provision a dedicated staff identity.":
+    "परीक्षण खाते इस प्रक्रिया का उपयोग नहीं कर सकते। अलग कर्मचारी पहचान बनाएँ।",
+  "Staff change history": "कर्मचारी बदलावों का इतिहास",
+  "Independent review": "स्वतंत्र समीक्षा",
+  "Staff change status": "कर्मचारी बदलाव की स्थिति",
+  "Pending review": "समीक्षा बाकी है",
+  "All decisions": "सभी निर्णय",
+  "Staff approval history": "कर्मचारी स्वीकृति का इतिहास",
+  "No staff changes in this view. New proposals appear here for independent review.":
+    "इस सूची में कोई कर्मचारी बदलाव नहीं है। स्वतंत्र समीक्षा के नए प्रस्ताव यहाँ दिखेंगे।",
+  "Review expired": "समीक्षा की अवधि समाप्त",
+  Cancelled: "रद्द",
+  "Review staff change": "कर्मचारी बदलाव की समीक्षा करें",
+  "Reload staff records": "कर्मचारी रिकॉर्ड फिर लोड करें",
+  "Close staff review": "कर्मचारी समीक्षा बंद करें",
+  "Discard staff review": "कर्मचारी समीक्षा छोड़ें",
+  "Staff access review": "कर्मचारी अनुमति की समीक्षा",
+  "Staff records are unavailable. Private details stay hidden until access is checked again.":
+    "कर्मचारी रिकॉर्ड उपलब्ध नहीं हैं। अनुमति की दोबारा जाँच तक निजी जानकारी छिपी रहेगी।",
+  "This person's access changed. Discard this review and open their current record before proposing again.":
+    "इस व्यक्ति की अनुमति बदल गई है। यह समीक्षा छोड़ें और नया प्रस्ताव देने से पहले उनका वर्तमान रिकॉर्ड खोलें।",
+  "The review is recorded. Approved changes take effect immediately; affected staff must sign in and enroll their authenticator again.":
+    "समीक्षा दर्ज हो गई है। स्वीकृत बदलाव तुरंत लागू होते हैं; संबंधित कर्मचारी को फिर साइन-इन करके प्रमाणक जोड़ना होगा।",
+  "Your proposal is saved. A different administrator must review it before access changes.":
+    "प्रस्ताव सहेज दिया गया है। अनुमति बदलने से पहले दूसरे प्रशासक को इसकी समीक्षा करनी होगी।",
+  "This proposal is already decided. Use the history to inspect its recorded outcome.":
+    "इस प्रस्ताव पर निर्णय हो चुका है। दर्ज परिणाम देखने के लिए इतिहास खोलें।",
+  "Review before confirming": "पुष्टि से पहले समीक्षा करें",
+  "Proposed staff access": "प्रस्तावित कर्मचारी अनुमति",
+  "Approval signs this person out on every device and removes their previous authenticator, recovery codes and pending sign-in codes. Records remain intact.":
+    "स्वीकृति से यह व्यक्ति सभी उपकरणों से साइन-आउट होगा। उसका पुराना प्रमाणक, बहाली कोड और लंबित साइन-इन कोड हट जाएँगे। रिकॉर्ड सुरक्षित रहेंगे।",
+  "Staff member": "कर्मचारी",
+  "Proposed role and region": "प्रस्तावित भूमिका और क्षेत्र",
+  "Proposal reason": "प्रस्ताव का कारण",
+  "Restricted review reference": "सुरक्षित समीक्षा रिकॉर्ड का संदर्भ",
+  "Proposed by": "प्रस्ताव देने वाला",
+  "Review expires": "समीक्षा की अंतिम अवधि",
+  "Another administrator must review changes to your access.":
+    "आपकी अनुमति के बदलावों की समीक्षा दूसरे प्रशासक को करनी होगी।",
+  "You proposed this change. You can cancel it, but another administrator must approve or reject it.":
+    "यह प्रस्ताव आपने दिया है। आप इसे रद्द कर सकते हैं; स्वीकृति या अस्वीकृति दूसरे प्रशासक को देनी होगी।",
+  "Review outcome": "समीक्षा का निर्णय",
+  "Approve staff change": "कर्मचारी बदलाव स्वीकृत करें",
+  "Reject staff change": "कर्मचारी बदलाव अस्वीकृत करें",
+  "This review expired. Reject or cancel it and request a fresh proposal.":
+    "समीक्षा की अवधि समाप्त हो गई है। इसे अस्वीकृत या रद्द करके नया प्रस्ताव मँगाएँ।",
+  "Staff name": "कर्मचारी का नाम",
+  "Dedicated staff email": "अलग कर्मचारी ईमेल",
+  "Staff role": "कर्मचारी की भूमिका",
+  "Configured region": "निर्धारित क्षेत्र",
+  "Use an existing region ID. This does not enable service coverage.":
+    "पहले से निर्धारित क्षेत्र की पहचान दर्ज करें। इससे सेवा क्षेत्र सक्रिय नहीं होगा।",
+  "Enter only the protected review record reference. Never enter identity documents, passwords, authenticator secrets or recovery codes.":
+    "केवल सुरक्षित समीक्षा रिकॉर्ड का संदर्भ दर्ज करें। पहचान दस्तावेज़, पासवर्ड, प्रमाणक की गुप्त कुंजी या बहाली कोड न लिखें।",
+  "Decision reason": "निर्णय का कारण",
+  "I confirm that I want to cancel this proposal.":
+    "मैं इस प्रस्ताव को रद्द करने की पुष्टि करता/करती हूँ।",
+  "I independently checked the restricted identity record, role, region and effects of this decision.":
+    "मैंने सुरक्षित पहचान रिकॉर्ड, भूमिका, क्षेत्र और निर्णय के प्रभावों की स्वतंत्र जाँच की है।",
+  "I checked the dedicated identity, requested access and recovery effects. A different administrator must approve.":
+    "मैंने अलग पहचान, माँगी गई अनुमति और बहाली के प्रभाव जाँचे हैं। दूसरे प्रशासक की स्वीकृति ज़रूरी है।",
+  "Edit staff proposal": "कर्मचारी प्रस्ताव संपादित करें",
+  "Review staff proposal": "कर्मचारी प्रस्ताव की समीक्षा करें",
+  "Cancel staff proposal": "कर्मचारी प्रस्ताव रद्द करें",
+  "Record independent review": "स्वतंत्र समीक्षा दर्ज करें",
+  "Send for independent review": "स्वतंत्र समीक्षा के लिए भेजें",
+  "Recorded outcome": "दर्ज परिणाम",
+  "Review recorded": "समीक्षा दर्ज हुई",
+  "Reviewed by": "समीक्षा करने वाला",
+  "Staff review recorded.": "कर्मचारी समीक्षा दर्ज हुई।",
+  "Staff proposal saved for independent review.":
+    "स्वतंत्र समीक्षा के लिए कर्मचारी प्रस्ताव सहेजा गया।",
+  "Private administrator workspace. Staff access requires independent review. Live release and commercial policy editing retain their separate qualification requirements.":
+    "निजी प्रशासक कार्यक्षेत्र। कर्मचारी अनुमति के लिए स्वतंत्र समीक्षा ज़रूरी है। लाइव रिलीज़ और व्यावसायिक नीतियों के संपादन की अलग स्वीकृति आवश्यकताएँ बनी रहेंगी।",
+  "Use Staff access for independently reviewed staff changes. Commercial configuration, live provider delivery, backup restore and operational release acceptance remain separate.":
+    "स्वतंत्र समीक्षा वाले कर्मचारी बदलावों के लिए कर्मचारी अनुमतियाँ खोलें। व्यावसायिक विन्यास, लाइव सेवा, बैकअप बहाली और संचालन रिलीज़ की स्वीकृति अलग हैं।",
   "Teacher search criteria": "शिक्षक खोजने की शर्तें",
   "Preparing teacher search…": "शिक्षक खोजने का पेज तैयार हो रहा है…",
   "Open full case history (new tab)": "मामले का पूरा इतिहास नए टैब में खोलें",
