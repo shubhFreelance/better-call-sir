@@ -911,6 +911,16 @@ test('recovery jobs, immutable matching runs and teacher availability reach olde
  }finally{await db.outbox.deleteMany({where:{id:{in:jobs}}});await db.availabilityPattern.deleteMany({where:{id:{in:patterns}}});await db.availabilityException.deleteMany({where:{id:{in:leaves}}});}
 });
 
+test('optional demo history paginates past fifty with current consent, request and actor filters before the limit',async()=>{
+ const original=await db.demo.findFirstOrThrow({where:{guardianId:ids.guardian}}),reservation=await db.reservation.findUniqueOrThrow({where:{id:original.reservationId}}),demos=Array.from({length:53},()=>randomUUID()),reservations=Array.from({length:53},()=>randomUUID()),old=await db.consent.findUniqueOrThrow({where:{guardianId:ids.guardian}});
+ try{
+  await db.reservation.createMany({data:reservations.map(id=>({...reservation,id,status:'CANCELLED'}))});await db.demo.createMany({data:demos.map((id,i)=>({...original,id,reservationId:reservations[i],status:'CANCELLED',createdAt:new Date('2090-01-01T00:00:00Z')}))});
+  const seen=await historyPages(parent,'/demos?requestId='+original.requestId,'/demos');assert.equal(new Set(seen).size,seen.length);assert.deepEqual(seen.filter(id=>demos.includes(id)).sort(),[...demos].sort());
+  assert.equal((await other.call('/demos?cursor='+demos[0])).status,404);assert.equal((await parent.call('/demos?status=DISPUTED&cursor='+demos[0])).status,404);assert.equal((await parent.call('/demos?requestId='+randomUUID()+'&cursor='+demos[0])).status,404);assert.equal((await student.call('/demos')).status,403);assert.equal((await parent.call('/demos?limit=51')).status,400);assert.equal((await parent.call('/demos?cursor=bad')).status,400);
+  await db.consent.update({where:{guardianId:ids.guardian},data:{withdrawnAt:new Date()}});assert.equal((await teacher.call('/demos?cursor='+demos[0])).status,404);assert(!(await teacher.call('/demos')).data.items.some((d:any)=>demos.includes(d.id)));
+ }finally{await db.consent.update({where:{guardianId:ids.guardian},data:{withdrawnAt:old.withdrawnAt}});await db.demo.deleteMany({where:{id:{in:demos}}});await db.reservation.deleteMany({where:{id:{in:reservations}}});}
+});
+
 test('privacy correction and deletion require owner scope, reviewed retention and replay evidence',async()=>{
  const note=await db.note.create({data:{guardianId:ids.otherGuardian,childId:ids.otherChild,text:'Private synthetic note',sharedTeacherId:ids.teacher,acknowledgedAt:new Date()}});
  assert.equal((await parent.call('/privacy-requests',{kind:'DELETION',scope:'NOTE',resourceId:note.id,reason:'Wrong family'})).status,404);
