@@ -76,7 +76,7 @@ class PlacementsController {
       if (updated.guardianStarted && updated.teacherReceiptConfirmed) {
         updated=await db.placement.update({where:{id},data:{status:'ACTIVE',startedAt:p.startedAt||new Date()}});
         const t=await db.teacher.findUniqueOrThrow({where:{id:p.teacherId}});
-        await db.invoice.upsert({where:{placementId:id},create:{placementId:id,payerId:t.accountId,amountPaise:recordedFee(p),policyVersion:p.policyVersion},update:{}});
+        if(recordedFee(p)>0)await db.invoice.upsert({where:{placementId:id},create:{placementId:id,payerId:t.accountId,amountPaise:recordedFee(p),policyVersion:p.policyVersion},update:{}});
         await this.service.event(db,'placement.started',id);
       }
       return updated;

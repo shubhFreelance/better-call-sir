@@ -169,3 +169,5 @@ B2 concurrency follow-up: per-account MFA locking plus in-transaction epoch/sess
 
 
 18 October 2026 — B3 backend complete in development: independently approved fee/region/rollback settings, fresh MFA, immutable history and cursor pages; fresh supply checks and paused-region discovery/intake/matching gates; guardian/independent fee snapshots and preserved legacy fees. Current pilot ceilings remain25%/INR1500. No subscriptions, charges or provider activation added. Validation:154 full API regression cases plus one separately selected concurrency case,14 contract,8 backend security/CI/client checks; build/lint/source scan pass (two existing contract warnings). Next:B3 bilingual configuration/review/rollback screens, then B8 live email. Actual policy/supply/release qualification stays open.
+
+B3 zero-fee completion: a zero snapshot produces no invoice in the retained start workflow. Final clean validation:156 API,14 contract and8 backend security checks; no payment constraints weakened. Next remains B3 frontend acceptance, then B8. Coordinated image compatibility/live policy qualification stays open.
