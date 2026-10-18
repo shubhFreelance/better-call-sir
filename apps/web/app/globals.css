@@ -5227,3 +5227,12 @@ fieldset.catalog-filters { min-inline-size:0; margin-inline:0; }
 @media(max-width:600px) { .staff-heading { flex-direction:column; gap:20px; } .staff-heading>button,.staff-workspace .care-actions>button { width:100%; } .staff-summary { padding:16px; } }
 
 .staff-columns>section:nth-child(2)>h4 { background:#F0D7FF; color:#034F46; width:fit-content; padding:8px 12px; border-radius:8px; }
+
+.commercial-current { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; background:var(--paper); margin-top:24px; }
+.commercial-current h4,.commercial-workspace h4 { font-size:20px; margin:0 0 16px; color:var(--primary); }
+.commercial-rate { font-size:42px; line-height:1.15; font-weight:650; color:var(--primary); margin:12px 0; }
+.commercial-regions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.commercial-workspace>.care-card { margin-top:24px; }
+.commercial-workspace select { min-height:44px; width:100%; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:var(--white); color:var(--ink); }
+.commercial-comparison { margin-block:24px; }
+@media(max-width:700px) { .commercial-current,.commercial-regions { grid-template-columns:minmax(0,1fr); } }

@@ -1,5 +1,122 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Recorded platform fee": "दर्ज प्लेटफ़ॉर्म शुल्क",
+  "Fees and coverage": "शुल्क और सेवा क्षेत्र",
+  "Fees & coverage": "शुल्क और सेवा क्षेत्र",
+  "Change the next agreement. Preserve the last.":
+    "नई सहमति की शर्तें बदलें। पिछली शर्तें सुरक्षित रखें।",
+  "Review hiring fees and service coverage with another administrator. Accepted arrangements keep their recorded terms.":
+    "दूसरे प्रशासक के साथ नियुक्ति शुल्क और सेवा क्षेत्र की समीक्षा करें। स्वीकृत व्यवस्थाओं की दर्ज शर्तें सुरक्षित रहेंगी।",
+  "These settings do not enable payments, subscriptions or live release. Every change and rollback needs independent approval and recent authenticator verification.":
+    "इन सेटिंग से भुगतान, सदस्यता या लाइव रिलीज़ सक्रिय नहीं होती। हर बदलाव और पुराने संस्करण की बहाली के लिए स्वतंत्र स्वीकृति और हाल का प्रमाणक सत्यापन ज़रूरी है।",
+  "Loading current configuration…": "वर्तमान सेटिंग लोड हो रही हैं…",
+  "Current configuration is unavailable. Reload before proposing a change.":
+    "वर्तमान सेटिंग उपलब्ध नहीं हैं। बदलाव का प्रस्ताव देने से पहले फिर लोड करें।",
+  "Retry current configuration": "वर्तमान सेटिंग फिर लोड करें",
+  "Current hiring fee": "वर्तमान नियुक्ति शुल्क",
+  "Maximum platform fee: {0}": "अधिकतम प्लेटफ़ॉर्म शुल्क: {0}",
+  "Configuration version {0}": "सेटिंग संस्करण {0}",
+  "The teacher's monthly tuition is separate. A new arrangement shows its exact platform fee before either party accepts.":
+    "शिक्षक की मासिक ट्यूशन अलग है। किसी पक्ष की स्वीकृति से पहले नई व्यवस्था का सटीक प्लेटफ़ॉर्म शुल्क दिखता है।",
+  "Propose fee change": "शुल्क बदलाव का प्रस्ताव दें",
+  "Service regions": "सेवा क्षेत्र",
+  "Activation requires currently screened teachers with recorded teaching availability. This does not guarantee a match or free capacity.":
+    "सक्रिय करने के लिए वर्तमान जाँच पूरी कर चुके शिक्षक और दर्ज शिक्षण उपलब्धता ज़रूरी है। इससे उपयुक्त शिक्षक या खाली क्षमता की गारंटी नहीं मिलती।",
+  "Register a region": "क्षेत्र दर्ज करें",
+  "No service regions are registered.": "कोई सेवा क्षेत्र दर्ज नहीं है।",
+  "Screened teachers: {0}; with recorded availability: {1}.":
+    "जाँच पूरी कर चुके शिक्षक: {0}; दर्ज उपलब्धता वाले: {1}।",
+  "Review region {0}": "क्षेत्र {0} की समीक्षा करें",
+  "Configuration proposals": "सेटिंग के प्रस्ताव",
+  "Configuration proposal status": "सेटिंग प्रस्ताव की स्थिति",
+  "Configuration proposal history": "सेटिंग प्रस्ताव का इतिहास",
+  "No configuration proposals in this view.":
+    "इस सूची में कोई सेटिंग प्रस्ताव नहीं है।",
+  "Hiring fee change": "नियुक्ति शुल्क का बदलाव",
+  "Service region change": "सेवा क्षेत्र का बदलाव",
+  "Configuration rollback": "पुरानी सेटिंग की बहाली",
+  "Based on version {0}": "संस्करण {0} पर आधारित",
+  "Review configuration change": "सेटिंग बदलाव की समीक्षा करें",
+  "Applied configuration history": "लागू सेटिंग का इतिहास",
+  "No configuration revisions to display.":
+    "दिखाने के लिए कोई सेटिंग संस्करण नहीं है।",
+  "Policy reference: {0}": "नीति का संदर्भ: {0}",
+  "Restore version {0}": "संस्करण {0} बहाल करें",
+  "Configuration effects": "सेटिंग के प्रभाव",
+  "Before and after": "पहले और बाद में",
+  "Platform fee rate": "प्लेटफ़ॉर्म शुल्क की दर",
+  "Maximum platform fee": "अधिकतम प्लेटफ़ॉर्म शुल्क",
+  "Coverage changes": "सेवा क्षेत्र के बदलाव",
+  "Coverage stays unchanged.": "सेवा क्षेत्र में कोई बदलाव नहीं है।",
+  "Not registered": "दर्ज नहीं है",
+  "Only future hiring terms use an approved fee change. Existing arrangements and recorded fees are preserved. Paused regions keep their accounts, enquiries and support records.":
+    "स्वीकृत शुल्क बदलाव केवल भविष्य की नियुक्ति शर्तों पर लागू होता है। मौजूदा व्यवस्थाएँ और दर्ज शुल्क सुरक्षित रहते हैं। रुके हुए क्षेत्रों के खाते, पूछताछ और सहायता रिकॉर्ड बने रहते हैं।",
+  "Configuration review": "सेटिंग की समीक्षा",
+  "Review configuration effects": "सेटिंग के प्रभावों की समीक्षा करें",
+  "Reload configuration records": "सेटिंग रिकॉर्ड फिर लोड करें",
+  "Close configuration review": "सेटिंग समीक्षा बंद करें",
+  "Discard configuration review": "सेटिंग समीक्षा छोड़ें",
+  "Configuration records are unavailable. Private review details stay hidden until access is checked again.":
+    "सेटिंग रिकॉर्ड उपलब्ध नहीं हैं। अनुमति की दोबारा जाँच तक निजी समीक्षा विवरण छिपे रहेंगे।",
+  "The independent decision is recorded. Approved settings affect future hiring only.":
+    "स्वतंत्र निर्णय दर्ज हो गया है। स्वीकृत सेटिंग केवल भविष्य की नियुक्ति पर लागू होती हैं।",
+  "The proposal is saved. Current settings stay in effect until a different administrator approves.":
+    "प्रस्ताव सहेज दिया गया है। दूसरे प्रशासक की स्वीकृति तक वर्तमान सेटिंग लागू रहेंगी।",
+  "Proposed configuration": "प्रस्तावित सेटिंग",
+  "Configuration changed since this review opened. Discard a draft and reopen current settings; an outdated proposal can still be rejected or cancelled.":
+    "समीक्षा खुलने के बाद सेटिंग बदल गई हैं। मसौदा छोड़कर वर्तमान सेटिंग खोलें। पुराने प्रस्ताव को अस्वीकृत या रद्द किया जा सकता है।",
+  "Platform fee rate (%)": "प्लेटफ़ॉर्म शुल्क दर (%)",
+  "Maximum platform fee (₹)": "अधिकतम प्लेटफ़ॉर्म शुल्क (₹)",
+  "Current pilot limits are 25% and ₹1,500. Zero permits a zero platform fee; it does not change teacher tuition.":
+    "वर्तमान पायलट सीमा 25% और ₹1,500 है। शून्य चुनने पर प्लेटफ़ॉर्म शुल्क शून्य होगा; शिक्षक की ट्यूशन नहीं बदलेगी।",
+  "Region code": "क्षेत्र का कोड",
+  "City name": "शहर का नाम",
+  "State code": "राज्य का कोड",
+  "Enable this service region after approval":
+    "स्वीकृति के बाद यह सेवा क्षेत्र सक्रिय करें",
+  "Register a new region paused first. Activation needs current screened teachers and recorded availability. Region codes remain permanent and accounts are not moved.":
+    "नया क्षेत्र पहले रुकी हुई स्थिति में दर्ज करें। सक्रिय करने के लिए वर्तमान जाँच वाले शिक्षक और दर्ज उपलब्धता ज़रूरी है। क्षेत्र कोड स्थायी रहते हैं और खाते दूसरे क्षेत्र में नहीं जाते।",
+  "Restore version {0} as a new revision. Newer region codes remain registered and are paused when absent from the restored version.":
+    "संस्करण {0} को नए संस्करण के रूप में बहाल करें। नए क्षेत्र कोड दर्ज रहेंगे; बहाल संस्करण में न होने पर वे रुक जाएँगे।",
+  "You proposed this change. Another administrator must approve or reject it; you may cancel it.":
+    "यह प्रस्ताव आपने दिया है। दूसरा प्रशासक इसे स्वीकृत या अस्वीकृत करेगा; आप इसे रद्द कर सकते हैं।",
+  "Approve configuration": "सेटिंग स्वीकृत करें",
+  "Reject configuration": "सेटिंग अस्वीकृत करें",
+  "This proposal expired. Reject or cancel it and create a fresh review.":
+    "प्रस्ताव की अवधि समाप्त हो गई है। इसे अस्वीकृत या रद्द करके नई समीक्षा बनाएँ।",
+  "I confirm cancellation of this configuration proposal.":
+    "मैं इस सेटिंग प्रस्ताव को रद्द करने की पुष्टि करता/करती हूँ।",
+  "I independently checked the policy reference, fee and coverage effects, and current supply requirements.":
+    "मैंने नीति संदर्भ, शुल्क और सेवा क्षेत्र के प्रभाव तथा वर्तमान शिक्षक उपलब्धता की आवश्यकताओं की स्वतंत्र जाँच की है।",
+  "I reviewed the before and after settings. A different administrator must approve before they apply.":
+    "मैंने पहले और बाद की सेटिंग की समीक्षा की है। लागू होने से पहले दूसरे प्रशासक की स्वीकृति ज़रूरी है।",
+  "Edit configuration proposal": "सेटिंग प्रस्ताव संपादित करें",
+  "Review configuration proposal": "सेटिंग प्रस्ताव की समीक्षा करें",
+  "Cancel configuration proposal": "सेटिंग प्रस्ताव रद्द करें",
+  "Record configuration review": "सेटिंग समीक्षा दर्ज करें",
+  "Configuration review recorded.": "सेटिंग समीक्षा दर्ज हुई।",
+  "Configuration proposal saved for independent review.":
+    "स्वतंत्र समीक्षा के लिए सेटिंग प्रस्ताव सहेजा गया।",
+  "Private administrator workspace. Staff access, hiring fee and coverage changes require independent review. Live release retains its separate qualification requirements.":
+    "निजी प्रशासक कार्यक्षेत्र। कर्मचारी अनुमति, नियुक्ति शुल्क और सेवा क्षेत्र बदलावों के लिए स्वतंत्र समीक्षा ज़रूरी है। लाइव रिलीज़ की अलग स्वीकृति आवश्यकताएँ बनी रहेंगी।",
+  "Use Staff access and Fees & coverage for independently reviewed changes. Live provider delivery, backup restore and operational release acceptance remain separate.":
+    "स्वतंत्र समीक्षा वाले बदलावों के लिए कर्मचारी अनुमतियाँ और शुल्क व सेवा क्षेत्र खोलें। लाइव सेवा, बैकअप बहाली और संचालन रिलीज़ की स्वीकृति अलग हैं।",
+  "I acknowledge these account changes. Each hiring arrangement shows its proposed platform fee for separate review and acceptance. This application does not create a charge.":
+    "मैं खाते के इन बदलावों को स्वीकार करता/करती हूँ। हर नियुक्ति व्यवस्था में अलग समीक्षा और स्वीकृति के लिए प्रस्तावित प्लेटफ़ॉर्म शुल्क दिखेगा। इस आवेदन से कोई शुल्क नहीं लगता।",
+  "Each arrangement shows the proposed platform fee recorded when its terms were opened. Accepted arrangements keep that fee when future policy changes. Live charges require separate qualification.":
+    "हर व्यवस्था में शर्तें खोलते समय दर्ज प्रस्तावित प्लेटफ़ॉर्म शुल्क दिखता है। भविष्य में नीति बदलने पर स्वीकृत व्यवस्था का शुल्क सुरक्षित रहता है। लाइव शुल्क के लिए अलग स्वीकृति ज़रूरी है।",
+  "Region activation needs currently screened teachers with recorded teaching availability.":
+    "क्षेत्र सक्रिय करने के लिए वर्तमान जाँच पूरी कर चुके शिक्षक और दर्ज शिक्षण उपलब्धता ज़रूरी है।",
+  "Configuration changed. Refresh and review again.":
+    "सेटिंग बदल गई हैं। फिर लोड करके समीक्षा करें।",
+  "Choose a change that differs from current configuration.":
+    "वर्तमान सेटिंग से अलग बदलाव चुनें।",
+  "Current settings no longer match the reviewed proposal.":
+    "वर्तमान सेटिंग अब समीक्षा किए गए प्रस्ताव से मेल नहीं खातीं।",
+  "A region with this ID or city already exists.":
+    "इस कोड या शहर वाला क्षेत्र पहले से मौजूद है।",
+  "The restored city names conflict with current region records.":
+    "बहाल किए जाने वाले शहरों के नाम वर्तमान क्षेत्र रिकॉर्ड से टकराते हैं।",
   "Approval applies the proposed role and region and reactivates suspended staff access.":
     "स्वीकृति से प्रस्तावित भूमिका और क्षेत्र लागू होंगे और निलंबित कर्मचारी की अनुमति फिर सक्रिय हो जाएगी।",
   Administrator: "प्रशासक",

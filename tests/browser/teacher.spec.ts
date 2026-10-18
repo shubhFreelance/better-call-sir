@@ -1310,7 +1310,14 @@ test("Hindi full teacher application validates, reviews authored evidence and re
     path: "test-results/hindi-teacher-review-mobile.png",
     fullPage: true,
   });
-  await page.getByRole("checkbox", { name: /मैं खाते के बदलाव/ }).check();
+  await page
+    .getByRole("checkbox", {
+      name: t(
+        "I acknowledge these account changes. Each hiring arrangement shows its proposed platform fee for separate review and acceptance. This application does not create a charge.",
+      ),
+      exact: true,
+    })
+    .check();
   await page
     .getByRole("button", { name: t("Submit teacher application"), exact: true })
     .click();

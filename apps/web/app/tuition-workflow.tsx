@@ -1621,10 +1621,18 @@ function TermsReview({
       </p>
       <p className="wizard-help">
         {appText(
-          "Proposed pilot placement fee for the teacher: 25% of first monthly tuition, capped at ₹1,500, only after independent start and receipt confirmations. Final live terms require review.",
+          "Each arrangement shows the proposed platform fee recorded when its terms were opened. Accepted arrangements keep that fee when future policy changes. Live charges require separate qualification.",
         )}{" "}
       </p>
       <dl className="tuition-summary">
+        <div>
+          <dt>{appText("Recorded platform fee")}</dt>
+          <dd>
+            {typeof p.placementFeePaise === "number"
+              ? money(p.placementFeePaise, appLocale)
+              : appText("details unavailable")}
+          </dd>
+        </div>
         <div>
           <dt>{appText("Guardian terms")}</dt>
           <dd>

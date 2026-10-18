@@ -1,4 +1,5 @@
 "use client";
+import { CommercialConfiguration } from "./commercial-configuration";
 import { StaffAdministration } from "./staff-administration";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
@@ -56,6 +57,7 @@ function ConsoleWorkspace({ session }: { session: Session }) {
   const { appText, appError, appLocale } = useAppTranslation();
 
   const [staffLocked, setStaffLocked] = useState(false);
+  const [commercialLocked, setCommercialLocked] = useState(false);
   const [tab, setTab] = useState("overview"),
     [selected, setSelected] = useState<Action | null>(null);
   const current = useQuery({
@@ -81,13 +83,13 @@ function ConsoleWorkspace({ session }: { session: Session }) {
       </section>
       <Notice>
         {appText(
-          "Private administrator workspace. Staff access requires independent review. Live release and commercial policy editing retain their separate qualification requirements.",
+          "Private administrator workspace. Staff access, hiring fee and coverage changes require independent review. Live release retains its separate qualification requirements.",
         )}{" "}
       </Notice>
       <Tabs
         value={tab}
         onValueChange={(v) => {
-          if (!selected && !staffLocked) setTab(v);
+          if (!selected && !staffLocked && !commercialLocked) setTab(v);
         }}
       >
         <TabsList
@@ -98,15 +100,26 @@ function ConsoleWorkspace({ session }: { session: Session }) {
             ["overview", "Overview & controls"],
             ["people", "People & linkage"],
             ["staff", "Staff access"],
+            ["commercial", "Fees & coverage"],
             ["privacy", "Privacy review"],
             ["recovery", "Recovery & backups"],
             ["audit", "Audit history"],
           ].map(([v, n]) => (
-            <TabsTrigger key={v} value={v} disabled={!!selected || staffLocked}>
+            <TabsTrigger
+              key={v}
+              value={v}
+              disabled={!!selected || staffLocked || commercialLocked}
+            >
               {appText(n)}
             </TabsTrigger>
           ))}
         </TabsList>
+        <TabsContent value="commercial">
+          <CommercialConfiguration
+            session={session}
+            onLockChange={setCommercialLocked}
+          />
+        </TabsContent>
         <TabsContent value="staff">
           <StaffAdministration
             session={session}
@@ -337,7 +350,7 @@ function ConsoleWorkspace({ session }: { session: Session }) {
       </Tabs>
       <small className="care-help">
         {appText(
-          "Use Staff access for independently reviewed staff changes. Commercial configuration, live provider delivery, backup restore and operational release acceptance remain separate.",
+          "Use Staff access and Fees & coverage for independently reviewed changes. Live provider delivery, backup restore and operational release acceptance remain separate.",
         )}{" "}
       </small>
     </div>

@@ -1101,7 +1101,7 @@ Not shown publicly`,
                   />
                   <span>
                     {appText(
-                      "I acknowledge these account changes and the proposed pilot placement fee: 25% of first monthly tuition, capped at ₹1,500, after independently confirmed start and receipt. Final terms require review.",
+                      "I acknowledge these account changes. Each hiring arrangement shows its proposed platform fee for separate review and acceptance. This application does not create a charge.",
                     )}{" "}
                   </span>
                 </label>
