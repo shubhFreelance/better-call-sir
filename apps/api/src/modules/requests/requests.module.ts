@@ -1,3 +1,4 @@
+import {guardianProof,linkVerifiedLearner} from '../verification/guardian-verification';
 import {enabledRegion} from '../administration/commercial-policy';
 import {pageQuery,pageBefore,pageResult} from '../../pagination';
 import {subjectSchema,boardSchema,learnerScope} from '../../coverage';
@@ -33,7 +34,9 @@ export async function createIntake(db:DB,service:AppService,account:Account,req:
       const preferences=data.preferences?normalizedPreferences(data.preferences):null;if(data.preferences&&!preferences)fail(400,'INVALID_SCHEDULE','Choose nonoverlapping weekly time ranges of at least 20 minutes, or dated 20–120 minute windows between one hour and 60 days ahead.');
       if(data.preferredTeacherId&&!((await service.publicTeachers({id:data.preferredTeacherId},1))[0]))fail(404,'NOT_FOUND','Selected teacher is unavailable.');
       if(!data.childId&&(!data.grade||!data.board||!data.schoolName||!data.schoolSubjects))fail(400,'LEARNER_DETAILS_REQUIRED','Enter the school and subjects studied in the class.');
+      const proof=data.childId?null:await guardianProof(db,account.id,data.alias);
       const child=data.childId?await service.child(db,account,data.childId):await db.child.create({data:{guardianId:account.id,alias:data.alias,grade:data.grade,board:data.board,schoolName:data.schoolName,schoolSubjects:data.schoolSubjects}});
+      if(!data.childId)await linkVerifiedLearner(db,proof,child.id);
       if((data.grade!==undefined&&child.grade!==data.grade)||(data.board!==undefined&&child.board!==data.board))fail(409,"CHILD_CHANGED","The linked learner grade or board differs from this request.");
       if(data.childId&&(data.schoolName||data.schoolSubjects)){
        if(!data.schoolName||!data.schoolSubjects)fail(400,'LEARNER_DETAILS_REQUIRED','Supply both school and class subjects.');

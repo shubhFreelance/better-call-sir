@@ -3249,6 +3249,250 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/guardian-verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getGuardianVerifications
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        get: operations["getGuardianVerifications"];
+        put?: never;
+        /**
+         * createGuardianVerification
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        post: operations["createGuardianVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/guardian-verifications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getGuardianVerification
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        get: operations["getGuardianVerification"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/guardian-verifications/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * reviseGuardianVerification
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        post: operations["reviseGuardianVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/guardian-verifications/{id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * uploadGuardianEvidence
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        post: operations["uploadGuardianEvidence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/guardian-verification-invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getGuardianVerificationInvitations
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        get: operations["getGuardianVerificationInvitations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/guardian-verifications/{id}/student-acknowledgments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * acknowledgeGuardianRelationship
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        post: operations["acknowledgeGuardianRelationship"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/guardian-verifications/{id}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * submitGuardianVerification
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        post: operations["submitGuardianVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/guardian-verifications/{id}/cancellations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * cancelGuardianVerification
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        post: operations["cancelGuardianVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/guardian-verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getGuardianVerificationQueue
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        get: operations["getGuardianVerificationQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/guardian-verifications/{id}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * decideGuardianVerification
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        post: operations["decideGuardianVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/guardian-evidence/{id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * downloadGuardianEvidence
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        get: operations["downloadGuardianEvidence"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/children/{id}/guardian-verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore an existing learner with a new approved guardian review
+         * @description Owner-approved school-report relationship review. A school image is not proof of adulthood: staff separately attests adult status and authority. Student acknowledgment, separate verification permission and learning consent remain distinct. Missing/mismatching guardian names require video/phone review. Private images remain quarantined until scanned; approved proof binds one learner. No automatic OCR approval or live identity-provider claim. Staff routes require MFA and current regional authority. Mutations require exact Origin, CSRF, an idempotency key and expectedVersion where present.
+         */
+        post: operations["restoreLearnerGuardianVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3603,6 +3847,11 @@ export interface components {
             courseName?: string | null;
             university?: string | null;
             studyYear?: number | null;
+            /**
+             * Format: uuid
+             * @description Approved learner-specific guardian relationship; legacy synthetic fixtures may have no proof.
+             */
+            guardianVerificationId?: string | null;
         };
         Children: {
             items: components["schemas"]["Child"][];
@@ -6346,6 +6595,121 @@ export interface components {
             reason: string;
             /** @constant */
             independentlyVerified: true;
+        };
+        GuardianVerificationInput: {
+            guardianName: string;
+            learnerName: string;
+            /** @enum {string} */
+            relationship: "PARENT" | "SIBLING" | "OTHER";
+            /** @enum {string} */
+            ageBand: "UNDER_15" | "15_TO_17" | "18_PLUS";
+            /** @enum {string} */
+            managementMode: "GUARDIAN_ONLY" | "SHARED" | "STUDENT_LED";
+            /** Format: email */
+            studentEmail: string | null;
+            /** @enum {string} */
+            acknowledgmentMethod: "STUDENT_ACCOUNT" | "STAFF_CALL";
+            documentNamesGuardian: boolean;
+            /** @constant */
+            adultDeclaration: true;
+            /** @constant */
+            authorityDeclaration: true;
+            /** @constant */
+            verificationPermission: true;
+            /** @enum {string} */
+            policyVersion: "guardian-verification-v1";
+        };
+        GuardianVerification: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            guardianId: string;
+            region: string;
+            guardianName: string;
+            learnerName: string;
+            /** @enum {string} */
+            relationship: "PARENT" | "SIBLING" | "OTHER";
+            /** @enum {string} */
+            ageBand: "UNDER_15" | "15_TO_17" | "18_PLUS";
+            /** @enum {string} */
+            managementMode: "GUARDIAN_ONLY" | "SHARED" | "STUDENT_LED";
+            /** Format: email */
+            studentEmail: string | null;
+            /** Format: uuid */
+            studentAccountId: string | null;
+            /** Format: date-time */
+            studentAcknowledgedAt: string | null;
+            /** @enum {string} */
+            acknowledgmentMethod: "STUDENT_ACCOUNT" | "STAFF_CALL";
+            /** Format: date-time */
+            guardianAcknowledgedAt: string;
+            documentNamesGuardian: boolean;
+            /** Format: uuid */
+            currentEvidenceId: string | null;
+            /** @enum {string} */
+            status: "DRAFT" | "PENDING" | "CHANGES_REQUESTED" | "APPROVED" | "REJECTED" | "CANCELLED" | "REVOKED" | "DELETED";
+            reason: string | null;
+            /** Format: uuid */
+            reviewerId?: string | null;
+            reviewReference?: string | null;
+            /** Format: date-time */
+            reviewedAt: string | null;
+            /** @enum {string|null} */
+            callMethod: "VIDEO" | "PHONE" | null;
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            evidence: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                status: "QUARANTINED" | "CLEAN" | "INFECTED" | "DELETED";
+                /** @enum {string} */
+                mediaType: "image/png" | "image/jpeg";
+                version: number;
+                /** Format: date-time */
+                uploadedAt: string;
+            } | null;
+            /** @enum {string} */
+            policyVersion: "guardian-verification-v1";
+            /**
+             * Format: uuid
+             * @description Permanent consumption marker; replacing proof never permits reuse for another learner.
+             */
+            learnerId: string | null;
+        };
+        GuardianVerificationInvitation: {
+            /** Format: uuid */
+            id: string;
+            guardianName: string;
+            learnerName: string;
+            /** @enum {string} */
+            relationship: "PARENT" | "SIBLING" | "OTHER";
+            /** @enum {string} */
+            ageBand: "UNDER_15" | "15_TO_17" | "18_PLUS";
+            /** @enum {string} */
+            managementMode: "GUARDIAN_ONLY" | "SHARED" | "STUDENT_LED";
+            /** Format: date-time */
+            studentAcknowledgedAt: string | null;
+            version: number;
+            /** @enum {string} */
+            status: "DRAFT" | "PENDING" | "CHANGES_REQUESTED" | "APPROVED" | "REJECTED" | "CANCELLED" | "REVOKED" | "DELETED";
+        };
+        GuardianVerificationDecision: {
+            expectedVersion: number;
+            /** @enum {string} */
+            decision: "APPROVE" | "REQUEST_CHANGES" | "REJECT" | "REVOKE";
+            reason: string;
+            reviewReference: string;
+            adultAndAuthorityChecked?: boolean;
+            documentNameMatched?: boolean;
+            studentAcknowledgmentObserved?: boolean;
+            /** @enum {string} */
+            callMethod?: "VIDEO" | "PHONE";
+            /** @constant */
+            confirmed: true;
         };
     };
     responses: never;
@@ -22942,6 +23306,1216 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CommercialChange"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getGuardianVerifications: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["GuardianVerification"][];
+                        /** Format: uuid */
+                        nextCursor: string | null;
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createGuardianVerification: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuardianVerificationInput"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianVerification"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getGuardianVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianVerification"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    reviseGuardianVerification: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expectedVersion: number;
+                    application: components["schemas"]["GuardianVerificationInput"];
+                };
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianVerification"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    uploadGuardianEvidence: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expectedVersion: number;
+                    /** @enum {string} */
+                    mediaType: "image/png" | "image/jpeg";
+                    contentBase64: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianVerification"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getGuardianVerificationInvitations: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["GuardianVerificationInvitation"][];
+                        /** Format: uuid */
+                        nextCursor: string | null;
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    acknowledgeGuardianRelationship: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expectedVersion: number;
+                    /** @constant */
+                    confirmed: true;
+                    /**
+                     * @default ACKNOWLEDGE
+                     * @enum {string}
+                     */
+                    decision?: "ACKNOWLEDGE" | "DECLINE";
+                };
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        status: "ACKNOWLEDGED" | "REJECTED";
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    submitGuardianVerification: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expectedVersion: number;
+                    /** @constant */
+                    confirmed: true;
+                };
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianVerification"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    cancelGuardianVerification: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expectedVersion: number;
+                    /** @constant */
+                    confirmed: true;
+                };
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianVerification"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getGuardianVerificationQueue: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                status?: "DRAFT" | "PENDING" | "CHANGES_REQUESTED" | "APPROVED" | "REJECTED" | "CANCELLED" | "REVOKED" | "DELETED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["GuardianVerification"][];
+                        /** Format: uuid */
+                        nextCursor: string | null;
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    decideGuardianVerification: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuardianVerificationDecision"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianVerification"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    downloadGuardianEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                    "image/jpeg": string;
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    restoreLearnerGuardianVerification: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expectedVersion: number;
+                    /** @constant */
+                    confirmed: true;
+                    /** Format: uuid */
+                    verificationId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        version: number;
+                        /** Format: uuid */
+                        guardianVerificationId: string;
+                    };
                 };
             };
             /** @description Validation */

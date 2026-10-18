@@ -66,6 +66,7 @@ model Consent {
   withdrawnAt DateTime?
 }
 model Child {
+  guardianVerificationId String? @unique @db.Uuid
   educationStage String @default("SCHOOL")
   earlyYearsLevel String?
   courseName String?
@@ -790,4 +791,48 @@ model CommercialChange {
  createdAt DateTime @default(now())
  decidedAt DateTime?
  @@index([status,id])
+}
+
+model GuardianVerification {
+ learnerId String? @db.Uuid
+ id String @id @default(uuid()) @db.Uuid
+ guardianId String @db.Uuid
+ region String
+ guardianName String
+ learnerName String
+ relationship String
+ ageBand String
+ managementMode String @default("GUARDIAN_ONLY")
+ studentEmail String?
+ studentAccountId String? @db.Uuid
+ studentAcknowledgedAt DateTime?
+ acknowledgmentMethod String
+ guardianAcknowledgedAt DateTime @default(now())
+ documentNamesGuardian Boolean
+ currentEvidenceId String? @db.Uuid
+ status String @default("DRAFT")
+ reason String?
+ reviewerId String? @db.Uuid
+ reviewReference String?
+ reviewedAt DateTime?
+ callMethod String?
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([guardianId,id])
+ @@index([region,status,id])
+ @@index([studentEmail,id])
+}
+model GuardianEvidence {
+ id String @id @default(uuid()) @db.Uuid
+ verificationId String @db.Uuid
+ mediaType String
+ size Int
+ sha256 String
+ status String @default("QUARANTINED")
+ scannerVersion String?
+ scannedAt DateTime?
+ uploadedAt DateTime @default(now())
+ version Int @default(1)
+ @@index([verificationId,id])
 }

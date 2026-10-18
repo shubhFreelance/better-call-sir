@@ -7,10 +7,10 @@ const policyVersion='independent-student-development-v1';
 export const independentEducation=learnerEducation.refine(e=>e.stage!=='EARLY_YEARS','Use guardian setup for nursery and kindergarten learners.');
 const signup=z.object({education:independentEducation,managementPreference:z.literal('SELF_DIRECTED'),adultDeclaration:z.literal(true),consentAccepted:z.literal(true),policyVersion:z.literal(policyVersion)}).strict();
 const update=z.object({education:independentEducation,expectedVersion:version,confirmed:z.literal(true)}).strict();
-async function unusedAccount(db:DB,accountId:string){
+export async function unusedAccount(db:DB,accountId:string){
  const account=await db.account.findUniqueOrThrow({where:{id:accountId}});
  if(account.role!=='GUARDIAN'||account.verified||!account.email||account.disabled)return false;
- return !await db.studentGuardianGrant.count({where:{acceptedById:accountId,status:'ACTIVE'}})&&!await db.consent.count({where:{guardianId:accountId}})&&!await db.child.count({where:{OR:[{guardianId:accountId},{studentAccountId:accountId}]}})&&!await db.teacher.count({where:{accountId}})&&!await db.onboardingProgress.count({where:{accountId}})&&!await db.privacyRequest.count({where:{accountId}})&&!await db.supportCase.count({where:{accountId}});
+ return !await db.guardianVerification.count({where:{guardianId:accountId}})&&!await db.studentGuardianGrant.count({where:{acceptedById:accountId,status:'ACTIVE'}})&&!await db.consent.count({where:{guardianId:accountId}})&&!await db.child.count({where:{OR:[{guardianId:accountId},{studentAccountId:accountId}]}})&&!await db.teacher.count({where:{accountId}})&&!await db.onboardingProgress.count({where:{accountId}})&&!await db.privacyRequest.count({where:{accountId}})&&!await db.supportCase.count({where:{accountId}});
 }
 export async function independentProfile(db:DB,accountId:string){
  const item=await db.independentStudentProfile.findUnique({where:{accountId}});

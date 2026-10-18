@@ -1,3 +1,4 @@
+import {guardianProof,linkVerifiedLearner} from '../verification/guardian-verification';
 import {Module,Controller,Get,Post,Param,Query,Req,Body,Inject} from '@nestjs/common';
 import type {Child} from '@prisma/client';
 import {z} from 'zod';
@@ -30,8 +31,9 @@ class LearnersController {
   const actor=await this.service.actor(req,['GUARDIAN']),data=parse(profileInput,body);
   return this.service.once(req,actor,'learner.create',data,async db=>{
    await this.service.guardian(db,actor.id);
-   const e=data.education;
+   const e=data.education,proof=await guardianProof(db,actor.id,data.alias);
    const child=await db.child.create({data:{guardianId:actor.id,alias:data.alias,...educationData(e)}});
+   await linkVerifiedLearner(db,proof,child.id);
    await this.service.audit(db,actor,req,'LEARNER_PROFILE_CREATED',child.id,'Guardian saved learner education profile');
    return learnerProjection(child);
   });
