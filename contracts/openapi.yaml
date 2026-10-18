@@ -14878,7 +14878,26 @@
             }
           }
         },
-        "parameters": []
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/admin/privacy-requests/{id}/reviews": {
@@ -33573,6 +33592,47 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PrivacyRequest"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "pendingTargets": {
+            "type": "array",
+            "description": "Distinct pending targets across the authorized history, independent of page. No request reason or correction is included.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "CORRECTION",
+                    "DELETION"
+                  ]
+                },
+                "scope": {
+                  "type": "string",
+                  "enum": [
+                    "NOTE",
+                    "CHILD",
+                    "ACCOUNT"
+                  ]
+                },
+                "resourceId": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "required": [
+                "kind",
+                "scope",
+                "resourceId"
+              ],
+              "additionalProperties": false
             }
           }
         },

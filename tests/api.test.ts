@@ -857,6 +857,25 @@ test('media recovery queue hides payloads and retries exhausted work with audit 
  const refund=await db.outbox.findFirstOrThrow({where:{type:'refund.requested',processedAt:null}});assert.equal((await operator.call(`/admin/jobs/${refund.id}/retries`,body)).status,409);
 });
 
+test('private privacy history has stable owned pages and page-independent pending targets',async()=>{
+ const ownerId=ids.guardian,stamp=new Date(Date.now()+86400000),old=await db.privacyRequest.findMany({where:{accountId:ownerId},orderBy:[{createdAt:'desc'},{id:'desc'}],select:{id:true}}),entryIds=Array.from({length:53},()=>randomUUID()).sort().reverse();
+ const foreign=await db.privacyRequest.create({data:{accountId:ids.otherGuardian,kind:'DELETION',scope:'ACCOUNT',resourceId:ids.otherGuardian,reason:'Synthetic foreign reason'}});let newer:string|undefined;
+ try{
+  await db.privacyRequest.createMany({data:entryIds.map((id,i)=>({id,accountId:ownerId,kind:i===52?'DELETION':'CORRECTION',scope:'ACCOUNT',resourceId:ownerId,reason:'Synthetic history '+i,correction:i===52?null:'Synthetic name',status:i===52?'PENDING':'COMPLETED',createdAt:stamp}))});
+  let cursor='',seen:string[]=[];
+  for(let page=0;page<10;page++){
+   const result=await parent.call('/privacy-requests?limit=13'+(cursor?'&cursor='+cursor:''));assert.equal(result.status,200);const validate=operationValidator('/privacy-requests','get','200');assert(validate(result.data),JSON.stringify(validate.errors));seen.push(...result.data.items.map((x:any)=>x.id));assert(result.data.pendingTargets.some((x:any)=>x.kind==='DELETION'&&x.resourceId===ownerId));assert(result.data.pendingTargets.every((x:any)=>x.resourceId!==ids.otherGuardian&&!('reason' in x)&&!('correction' in x)));
+   if(page===0)newer=(await db.privacyRequest.create({data:{accountId:ownerId,kind:'CORRECTION',scope:'ACCOUNT',resourceId:ownerId,reason:'Synthetic newer request',correction:'Synthetic name',createdAt:new Date(stamp.getTime()+1000)}})).id;
+   cursor=result.data.nextCursor||'';if(!cursor)break;
+  }
+  assert.deepEqual(seen,[...entryIds,...old.map(x=>x.id)]);assert.equal(new Set(seen).size,seen.length);assert.equal(cursor,'');
+  for(const invalid of ['limit=0','limit=51','limit=1.5','cursor=invalid','extra=true'])assert.equal((await parent.call('/privacy-requests?'+invalid)).status,400);
+  assert.equal((await other.call('/privacy-requests?cursor='+entryIds[0])).status,404);assert.equal((await parent.call('/privacy-requests?cursor='+foreign.id)).status,404);assert.equal((await parent.call('/privacy-requests?cursor='+randomUUID())).status,404);assert.equal((await student.call('/privacy-requests')).status,403);
+  assert.equal((await teacher.call('/privacy-requests')).status,200);assert.equal((await operator.call('/privacy-requests?limit=1')).status,200);
+  await db.privacyRequest.delete({where:{id:entryIds[0]}});assert.equal((await parent.call('/privacy-requests?cursor='+entryIds[0])).status,404);
+ }finally{await db.privacyRequest.deleteMany({where:{id:{in:[...entryIds,foreign.id,...(newer?[newer]:[])]}}});}
+});
+
 test('privacy correction and deletion require owner scope, reviewed retention and replay evidence',async()=>{
  const note=await db.note.create({data:{guardianId:ids.otherGuardian,childId:ids.otherChild,text:'Private synthetic note',sharedTeacherId:ids.teacher,acknowledgedAt:new Date()}});
  assert.equal((await parent.call('/privacy-requests',{kind:'DELETION',scope:'NOTE',resourceId:note.id,reason:'Wrong family'})).status,404);

@@ -47,7 +47,17 @@ class PrivacyController{
    await this.service.audit(db,actor,req,'PRIVACY_REQUEST_CREATED',item.id,'Owner submitted privacy request',undefined,{kind:data.kind,scope:data.scope});await this.service.event(db,'privacy.review_requested',item.id);return item;
   });
  }
- @Get('privacy-requests') async list(@Req() req:HttpRequest){const actor=await this.service.actor(req,['GUARDIAN','TEACHER','INDEPENDENT_STUDENT','ADMIN']);return {items:await this.service.db.privacyRequest.findMany({where:actor.role==='ADMIN'?{}:{accountId:actor.id},orderBy:{createdAt:'desc'},take:50})};}
+ @Get('privacy-requests') async list(@Req() req:HttpRequest,@Query() query:unknown){
+  const actor=await this.service.actor(req,['GUARDIAN','TEACHER','INDEPENDENT_STUDENT','ADMIN']),data=parse(z.object({limit:z.coerce.number().int().min(1).max(50).default(50),cursor:uuid.optional()}).strict(),query),db=this.service.db,where=actor.role==='ADMIN'?{}:{accountId:actor.id};
+  const anchor=data.cursor?await db.privacyRequest.findFirst({where:{...where,id:data.cursor},select:{createdAt:true,id:true}}):null;
+  if(data.cursor&&!anchor)fail(404,'NOT_FOUND','Privacy cursor is unavailable.');
+  const [rows,pendingTargets]=await Promise.all([
+   db.privacyRequest.findMany({where:{...where,...(anchor?{OR:[{createdAt:{lt:anchor.createdAt}},{createdAt:anchor.createdAt,id:{lt:anchor.id}}]}:{})},orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1}),
+   // Paging must not hide a pending deletion or matching request on another page.
+   db.privacyRequest.findMany({where:{...where,status:'PENDING'},select:{kind:true,scope:true,resourceId:true},distinct:['kind','scope','resourceId']})
+  ]),items=rows.slice(0,data.limit);
+  return {items,nextCursor:rows.length>data.limit?items.at(-1)!.id:null,pendingTargets};
+ }
  @Get('admin/privacy-requests') async queue(@Req() req:HttpRequest,@Query() query:unknown){const actor=await this.service.actor(req,['ADMIN']),data=parse(z.object({status:z.enum(['PENDING','COMPLETED','REJECTED']).optional(),limit:z.coerce.number().int().min(1).max(50).default(20),cursor:uuid.optional()}).strict(),query),where={...(data.status?{status:data.status}:{})};if(data.cursor&&!await this.service.db.privacyRequest.count({where:{...where,id:data.cursor}}))fail(404,'NOT_FOUND','Privacy cursor is outside this queue.');const rows=await this.service.db.privacyRequest.findMany({where,orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1,...(data.cursor?{cursor:{id:data.cursor},skip:1}:{})}),items=rows.slice(0,data.limit);await this.service.audit(this.service.db,actor,req,'ADMIN_PRIVACY_QUEUE_READ','privacy','Administrator accessed private request evidence');return {items,nextCursor:rows.length>data.limit?items.at(-1)!.id:null};}
  @Post('admin/privacy-requests/:id/reviews') async review(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
   parse(uuid,id);const actor=await this.service.actor(req,['ADMIN']),data=parse(z.object({expectedVersion:version,action:z.enum(['FULFIL','REJECT']),reason:text(1000),policyVersion:text(100),retentionReason:text(1000).optional(),confirmed:z.literal(true)}).strict(),body);

@@ -4490,6 +4490,17 @@ export interface components {
         };
         PrivacyRequestList: {
             items: components["schemas"]["PrivacyRequest"][];
+            /** Format: uuid */
+            nextCursor?: string | null;
+            /** @description Distinct pending targets across the authorized history, independent of page. No request reason or correction is included. */
+            pendingTargets?: {
+                /** @enum {string} */
+                kind: "CORRECTION" | "DELETION";
+                /** @enum {string} */
+                scope: "NOTE" | "CHILD" | "ACCOUNT";
+                /** Format: uuid */
+                resourceId: string;
+            }[];
         };
         DeletionRecord: {
             /** Format: uuid */
@@ -14821,7 +14832,10 @@ export interface operations {
     };
     get__privacy_requests: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;

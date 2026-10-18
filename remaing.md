@@ -1,10 +1,12 @@
 # Remaining MVP work
 
-Updated 17 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
+Updated 18 October 2026. Checkboxes track the stated item only; completed development screens do not close live-service or release requirements.
 
 Next sprint: **remaining bounded-history pagination, H5 cross-flow review and launch qualification**. Expanded learner onboarding, independent adult accounts and optional supporter access are implemented in development. Guardian drafts, weekly availability, teacher-revision drafts and dashboard hiring-term confirmation are implemented. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
 
-Next feature: **paginate private privacy-request history (B12/H5)** so owners can reach requests beyond the current bounded list, with matching API, ownership and recovery checks.
+Next feature: **finish private privacy-request history pagination (B12/H5)** so owners can reach requests beyond the current bounded list, with matching API, ownership and recovery checks.
+
+API increment complete: validated private privacy-history pages and page-independent pending targets (`af308d3`, backend branch). Frontend pagination/recovery is in progress.
 
 Reporting routine: after every completed feature/API, update this tracker, push the changes, then show the completed work, test/push evidence, one next feature and the full grouped remaining backlog directly in chat. Implementation, pending decisions/launch qualification and deferred scope must remain distinct.
 
