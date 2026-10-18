@@ -7326,7 +7326,7 @@ export interface operations {
             query?: {
                 limit?: number;
                 cursor?: string;
-                status?: "OPEN" | "CLOSED" | "MATCHED";
+                status?: "OPEN" | "PLACED" | "CLOSED" | "MATCHED";
             };
             header?: never;
             path?: never;

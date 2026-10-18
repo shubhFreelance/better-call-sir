@@ -3407,6 +3407,7 @@
               "type": "string",
               "enum": [
                 "OPEN",
+                "PLACED",
                 "CLOSED",
                 "MATCHED"
               ]

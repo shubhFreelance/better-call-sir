@@ -8,3 +8,5 @@
 - Prior API increment: remaining scoped enquiry/reviewer/note/evidence/check/run/job/linkage/availability histories. Next: connect frontend history controls and complete the shared legacy/mobile/keyboard/recovery review.
 - Multiple concurrent drafts are not currently required; class-specific histories remain explicitly deferred. See `docs/HISTORY_UX_AUDIT.md`.
 - Full MVP implementation, decision/launch and deferred backlog remains maintained in `remaing.md` on `feat/frontend-implementation`. No launch blocker is closed by this API increment; no deployment.
+
+- Final enquiry-filter review: PLACED is accepted and filter-bound cursors remain enforced. All 139 API cases and 12 contract cases pass; frontend final acceptance remains in progress.
