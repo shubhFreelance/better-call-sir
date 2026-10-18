@@ -1,7 +1,7 @@
 "use client";
 import { useAppTranslation } from "./locale";
 import { privacyText, privacyError } from "./privacy-copy";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
@@ -39,16 +39,37 @@ export function PrivacyWorkspace({
     ),
     guardian = session.account.role === "GUARDIAN",
     client = useQueryClient();
+  const [cursor, setCursor] = useState("");
+  const [previous, setPrevious] = useState<string[]>([]);
+  const rootKey = ["owner-privacy", session.account.id];
+  const historyTitle = useRef<HTMLHeadingElement>(null);
+  const focusPage = useRef(false);
   const history = useQuery({
-    queryKey: ["owner-privacy", session.account.id],
+    queryKey: [...rootKey, cursor],
     queryFn: ({ signal }) =>
-      api<components["schemas"]["PrivacyRequestList"]>("/privacy-requests", {
-        signal,
-      }),
+      api<components["schemas"]["PrivacyRequestList"]>(
+        "/privacy-requests?limit=20" +
+          (cursor ? "&cursor=" + encodeURIComponent(cursor) : ""),
+        { signal },
+      ),
     enabled: allowed,
     retry: false,
+    staleTime: 0,
     refetchOnWindowFocus: false,
   });
+  useEffect(() => {
+    if (
+      focusPage.current &&
+      !history.isFetching &&
+      (history.data || history.error)
+    ) {
+      focusPage.current = false;
+      historyTitle.current?.focus();
+    }
+  }, [history.isFetching, history.data, history.error]);
+  const pendingTargets =
+    history.data?.pendingTargets ??
+    history.data?.items.filter((r) => r.status === "PENDING");
   const [composing, setComposing] = useState(false),
     [kind, setKind] = useState("CORRECTION"),
     [scope, setScope] = useState("ACCOUNT"),
@@ -68,23 +89,23 @@ export function PrivacyWorkspace({
     sending = useRef(false);
   async function refresh() {
     const [records, next] = await Promise.all([
-      history.refetch(),
+      api<components["schemas"]["PrivacyRequestList"]>(
+        "/privacy-requests?limit=20",
+      ),
       session.account.role === "INDEPENDENT_STUDENT"
         ? Promise.resolve(null)
         : api<Dashboard>("/dashboard"),
     ]);
-    if (records.error) throw records.error;
+    client.setQueryData([...rootKey, ""], records);
+    setCursor("");
+    setPrevious([]);
     if (next) client.setQueryData(["dashboard", session.account.id], next);
     await client.invalidateQueries({ queryKey: ["independent-profile"] });
     await client.invalidateQueries({ queryKey: ["independent-signup"] });
   }
   const decision = useDecision(session, refresh),
-    duplicate = history.data?.items.some(
-      (r) =>
-        r.status === "PENDING" &&
-        r.kind === kind &&
-        r.scope === scope &&
-        r.resourceId === resource,
+    duplicate = pendingTargets?.some(
+      (r) => r.kind === kind && r.scope === scope && r.resourceId === resource,
     ),
     limit = scope === "NOTE" ? 5000 : 80;
   const target =
@@ -101,6 +122,7 @@ export function PrivacyWorkspace({
       reason.trim().length > 1000 ||
       (kind === "CORRECTION" &&
         (!correction.trim() || correction.trim().length > limit)) ||
+      history.isFetching ||
       history.error ||
       duplicate ||
       (scope === "NOTE" && notes.error)
@@ -160,9 +182,8 @@ export function PrivacyWorkspace({
         </Notice>
       </div>
     );
-  const pause = history.data?.items.some(
-    (r) =>
-      r.kind === "DELETION" && r.status === "PENDING" && r.scope !== "NOTE",
+  const pause = pendingTargets?.some(
+    (r) => r.kind === "DELETION" && r.scope !== "NOTE",
   );
   return (
     <div
@@ -235,7 +256,10 @@ export function PrivacyWorkspace({
       <div className="care-actions">
         <Button
           disabled={
-            decision.locked || composing || history.isPending || !!history.error
+            decision.locked ||
+            composing ||
+            history.isFetching ||
+            !!history.error
           }
           onClick={() => {
             setComposing(true);
@@ -248,13 +272,13 @@ export function PrivacyWorkspace({
         </Button>
         <Button
           variant="outline"
-          disabled={decision.locked || composing}
+          disabled={decision.locked || composing || history.isFetching}
           onClick={() => decision.reload()}
         >
           {appText(t("Refresh request history"))}
         </Button>
       </div>
-      {history.isPending && (
+      {history.isFetching && (
         <p role="status">{appText(t("Loading privacy requests…"))}</p>
       )}
       {history.error && (
@@ -516,61 +540,129 @@ export function PrivacyWorkspace({
           </form>
         </section>
       )}
-      <section className="care-card">
-        <h3>{appText(t("Your request history"))}</h3>
+      <section
+        className="care-card privacy-history"
+        aria-busy={history.isFetching}
+      >
+        <h3 ref={historyTitle} tabIndex={-1}>
+          {appText(t("Your request history"))}
+        </h3>
         <p>
           {appText(
             t(
-              "Latest 50 requests. A pending request is not a completed correction or deletion.",
+              "Browse your requests, newest first. A pending request is not a completed correction or deletion.",
             ),
           )}
         </p>
-        {!history.isPending &&
+        {!history.isFetching &&
           !history.error &&
           !history.data?.items.length && (
-            <p>{appText(t("No privacy requests yet."))}</p>
-          )}
-        {history.data?.items.map((r) => (
-          <article className="privacy-record" key={r.id}>
-            <span className="care-status">{appText(t(status[r.status]))}</span>
-            <h4>
-              {r.kind === "DELETION" ? t("Deletion") : t("Correction")} ·{" "}
-              {r.scope === "ACCOUNT"
-                ? t("Account")
-                : r.scope === "CHILD"
-                  ? t("Learner")
-                  : t("Learning note")}
-            </h4>
-            <p>{r.reason}</p>
-            {r.correction && (
-              <p>
-                {appText(t("Proposed correction:"))} {r.correction}
-              </p>
-            )}
-            {r.resolution && (
-              <p>
-                {appText(t("Review outcome:"))} {r.resolution}
-              </p>
-            )}
-            {r.policyVersion && (
-              <small>
-                {appText(t("Policy:"))} {r.policyVersion}
-              </small>
-            )}
             <p>
-              <small>
-                {appText(t("Request"))} {r.id.slice(0, 8)} ·{" "}
-                {new Date(r.createdAt).toLocaleString(
-                  hindi ? "hi-IN" : appLocale,
-                  {
-                    timeZone: "Asia/Kolkata",
-                  },
-                )}{" "}
-                {appText("IST")}{" "}
-              </small>
+              {t(
+                cursor
+                  ? "No requests on this page. Return to the first page for recent requests."
+                  : "No privacy requests yet.",
+              )}
             </p>
-          </article>
-        ))}
+          )}
+        {!history.isFetching &&
+          !history.error &&
+          history.data?.items.map((r) => (
+            <article className="privacy-record" key={r.id}>
+              <span className="care-status">
+                {appText(t(status[r.status]))}
+              </span>
+              <h4>
+                {r.kind === "DELETION" ? t("Deletion") : t("Correction")} ·{" "}
+                {r.scope === "ACCOUNT"
+                  ? t("Account")
+                  : r.scope === "CHILD"
+                    ? t("Learner")
+                    : t("Learning note")}
+              </h4>
+              <p>{r.reason}</p>
+              {r.correction && (
+                <p>
+                  {appText(t("Proposed correction:"))} {r.correction}
+                </p>
+              )}
+              {r.resolution && (
+                <p>
+                  {appText(t("Review outcome:"))} {r.resolution}
+                </p>
+              )}
+              {r.policyVersion && (
+                <small>
+                  {appText(t("Policy:"))} {r.policyVersion}
+                </small>
+              )}
+              <p>
+                <small>
+                  {appText(t("Request"))} {r.id.slice(0, 8)} ·{" "}
+                  {new Date(r.createdAt).toLocaleString(
+                    hindi ? "hi-IN" : appLocale,
+                    {
+                      timeZone: "Asia/Kolkata",
+                    },
+                  )}{" "}
+                  {appText("IST")}{" "}
+                </small>
+              </p>
+            </article>
+          ))}
+        {(cursor || history.data?.nextCursor) && (
+          <nav
+            className="coverage-pagination"
+            aria-label={t("Privacy request history pages")}
+          >
+            <Button
+              variant="outline"
+              disabled={
+                decision.locked ||
+                composing ||
+                history.isFetching ||
+                !previous.length
+              }
+              onClick={() => {
+                focusPage.current = true;
+                setCursor(previous.at(-1)!);
+                setPrevious((p) => p.slice(0, -1));
+              }}
+            >
+              {appText("Previous page")}
+            </Button>
+            <span>{appText("History page {0}", [previous.length + 1])}</span>
+            {!history.error && history.data?.nextCursor && (
+              <Button
+                variant="outline"
+                disabled={decision.locked || composing || history.isFetching}
+                onClick={() => {
+                  if (!history.data?.nextCursor) return;
+                  focusPage.current = true;
+                  setPrevious((p) => [...p, cursor]);
+                  setCursor(history.data.nextCursor);
+                }}
+              >
+                {appText("Next page")}
+              </Button>
+            )}
+            {!!cursor &&
+              (history.error ||
+                (!history.isFetching && !history.data?.items.length)) && (
+                <Button
+                  variant="outline"
+                  disabled={decision.locked || composing || history.isFetching}
+                  onClick={() => {
+                    focusPage.current = true;
+                    setCursor("");
+                    setPrevious([]);
+                  }}
+                >
+                  {appText("Return to first page")}
+                </Button>
+              )}
+          </nav>
+        )}
       </section>
       <Notice>
         {appText(t("For urgent concerns use"))}{" "}

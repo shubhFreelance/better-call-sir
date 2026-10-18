@@ -74,8 +74,11 @@ const hindiCopy: Record<string, string> = {
   "Send privacy request": "गोपनीयता अनुरोध भेजें",
   "Review privacy request": "गोपनीयता अनुरोध की समीक्षा करें",
   "Your request history": "आपके अनुरोधों का इतिहास",
-  "Latest 50 requests. A pending request is not a completed correction or deletion.":
-    "नवीनतम 50 अनुरोध। समीक्षा में होने का मतलब सुधार या जानकारी मिटाने का काम पूरा होना नहीं है।",
+  "Privacy request history pages": "गोपनीयता अनुरोधों के इतिहास के पृष्ठ",
+  "Browse your requests, newest first. A pending request is not a completed correction or deletion.":
+    "अपने अनुरोध देखें, सबसे नए पहले। समीक्षा में होने का मतलब सुधार या जानकारी मिटाने का काम पूरा होना नहीं है।",
+  "No requests on this page. Return to the first page for recent requests.":
+    "इस पृष्ठ पर कोई अनुरोध नहीं है। हाल के अनुरोधों के लिए पहले पृष्ठ पर लौटें।",
   "No privacy requests yet.": "अभी कोई गोपनीयता अनुरोध नहीं है।",
   Account: "खाता",
   "Proposed correction:": "प्रस्तावित सुधार:",
