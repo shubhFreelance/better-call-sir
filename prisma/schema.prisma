@@ -207,6 +207,8 @@ model Meeting {
   @@index([status, retryAt])
 }
 model Placement {
+  placementFeePaise Int?
+  commercialVersion Int @default(0)
   startedAt DateTime?
   closedAt DateTime?
   id String @id @default(uuid()) @db.Uuid
@@ -738,6 +740,44 @@ model StaffChange {
  role String
  region String
  expectedAuthVersion Int
+ proposerId String @db.Uuid
+ proposerAuthVersion Int
+ approverId String? @db.Uuid
+ reason String
+ evidenceRef String
+ decisionReason String?
+ status String @default("PENDING")
+ version Int @default(1)
+ expiresAt DateTime
+ createdAt DateTime @default(now())
+ decidedAt DateTime?
+ @@index([status,id])
+}
+
+model CommercialState {
+ id String @id @default("hiring")
+ version Int @default(0)
+ placementBasisPoints Int @default(2500)
+ placementCapPaise Int @default(150000)
+}
+model CommercialRevision {
+ version Int @id
+ changeId String? @unique @db.Uuid
+ before Json
+ after Json
+ proposerId String? @db.Uuid
+ approverId String? @db.Uuid
+ reason String
+ evidenceRef String
+ createdAt DateTime @default(now())
+}
+model CommercialChange {
+ id String @id @default(uuid()) @db.Uuid
+ kind String
+ restoreVersion Int?
+ expectedVersion Int
+ before Json
+ after Json
  proposerId String @db.Uuid
  proposerAuthVersion Int
  approverId String? @db.Uuid

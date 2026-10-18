@@ -1,3 +1,4 @@
+import {recentAdmin} from './authority';
 import {Body,Controller,Get,Inject,Module,Param,Post,Query,Req} from '@nestjs/common';
 import {z} from 'zod';
 import {Account} from '@prisma/client';
@@ -11,13 +12,7 @@ const staffSelect={id:true,name:true,email:true,role:true,region:true,disabled:t
 @Controller('api/v1')
 class StaffController {
  constructor(@Inject(AppService) private readonly service:AppService){}
- async admin(req:HttpRequest,db:DB=this.service.db){
-  const actor=await this.service.actor(req,['ADMIN']);
-  const session=await db.session.findUnique({where:{accessHash:hash(req.cookies.bcs_access)}}),current=await db.account.findUnique({where:{id:actor.id}});
-  if(!session||session.revoked||!current||current.disabled||current.role!=='ADMIN'||current.authVersion!==session.authVersion)fail(401,'SESSION_REVOKED','Sign in again.');
-  if(!session.mfaVerifiedAt||session.mfaVerifiedAt.getTime()<Date.now()-300000)fail(403,'MFA_REQUIRED','Verify your authenticator again before administering staff.');
-  return current;
- }
+ async admin(req:HttpRequest,db:DB=this.service.db){return recentAdmin(this.service,req,db);}
  @Get('admin/staff') async directory(@Req() req:HttpRequest,@Query() query:unknown){
   const actor=await this.admin(req),data=parse(pageQuery,query),where={role:{in:roles.options}};
   if(data.cursor&&!await this.service.db.account.count({where:{...where,id:data.cursor}}))fail(404,'NOT_FOUND','Staff cursor is unavailable.');

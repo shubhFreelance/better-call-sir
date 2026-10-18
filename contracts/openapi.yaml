@@ -28847,6 +28847,794 @@
           }
         ]
       }
+    },
+    "/admin/commercial": {
+      "get": {
+        "operationId": "getCommercialConfiguration",
+        "tags": [
+          "commercial"
+        ],
+        "summary": "getCommercialConfiguration \u2014 fresh administrator MFA, independent approval",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialConfiguration"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/commercial/history": {
+      "get": {
+        "operationId": "getCommercialHistory",
+        "tags": [
+          "commercial"
+        ],
+        "summary": "getCommercialHistory \u2014 fresh administrator MFA, independent approval",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CommercialRevision"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^[0-9]+$"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ]
+      }
+    },
+    "/admin/commercial/changes": {
+      "get": {
+        "operationId": "getCommercialChanges",
+        "tags": [
+          "commercial"
+        ],
+        "summary": "getCommercialChanges \u2014 fresh administrator MFA, independent approval",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CommercialChange"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED",
+                "CANCELLED"
+              ]
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "proposeCommercialChange",
+        "tags": [
+          "commercial"
+        ],
+        "summary": "proposeCommercialChange \u2014 fresh administrator MFA, independent approval",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialChange"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommercialProposal"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ]
+      }
+    },
+    "/admin/commercial/changes/{id}/decision": {
+      "post": {
+        "operationId": "decideCommercialChange",
+        "tags": [
+          "commercial"
+        ],
+        "summary": "decideCommercialChange \u2014 fresh administrator MFA, independent approval",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialChange"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommercialDecision"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -34310,6 +35098,17 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "placementFeePaise": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "commercialVersion": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "required": [
@@ -37462,6 +38261,10 @@
             "type": "integer",
             "minimum": 0,
             "description": "Proposed teacher placement fee under the recorded development policy, payable only after separate start and receipt evidence; not collected by accepting terms."
+          },
+          "commercialVersion": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "required": [
@@ -40123,6 +40926,10 @@
             "enum": [
               "EMAIL_AFTER_MUTUAL_CONFIRMATION"
             ]
+          },
+          "commercialVersion": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "required": [
@@ -41249,6 +42056,488 @@
         ]
       },
       "StaffDecision": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT",
+              "CANCEL"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "independentlyVerified": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "decision",
+          "reason",
+          "independentlyVerified"
+        ],
+        "additionalProperties": false
+      },
+      "HiringFeeSettings": {
+        "type": "object",
+        "properties": {
+          "placementBasisPoints": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2500
+          },
+          "placementCapPaise": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 150000
+          }
+        },
+        "required": [
+          "placementBasisPoints",
+          "placementCapPaise"
+        ],
+        "additionalProperties": false
+      },
+      "ServiceRegionSettings": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _-]{0,79}$"
+          },
+          "countryCode": {
+            "type": "string",
+            "const": "IN"
+          },
+          "stateCode": {
+            "type": "string",
+            "pattern": "^[A-Z]{2,16}$"
+          },
+          "cityName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "countryCode",
+          "stateCode",
+          "cityName",
+          "enabled"
+        ],
+        "additionalProperties": false
+      },
+      "CommercialSnapshot": {
+        "type": "object",
+        "properties": {
+          "placementBasisPoints": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2500
+          },
+          "placementCapPaise": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 150000
+          },
+          "regions": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/ServiceRegionSettings"
+            }
+          }
+        },
+        "required": [
+          "placementBasisPoints",
+          "placementCapPaise",
+          "regions"
+        ],
+        "additionalProperties": false
+      },
+      "CommercialConfiguration": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/CommercialSnapshot"
+          },
+          "supply": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "regionId": {
+                  "type": "string"
+                },
+                "screened": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "withAvailability": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "regionId",
+                "screened",
+                "withAvailability"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "limits": {
+            "type": "object",
+            "properties": {
+              "maxBasisPoints": {
+                "type": "integer",
+                "const": 2500
+              },
+              "maxCapPaise": {
+                "type": "integer",
+                "const": 150000
+              },
+              "maxRegions": {
+                "type": "integer",
+                "const": 200
+              }
+            },
+            "required": [
+              "maxBasisPoints",
+              "maxCapPaise",
+              "maxRegions"
+            ],
+            "additionalProperties": false
+          },
+          "currency": {
+            "type": "string",
+            "const": "INR"
+          },
+          "chargesEnabled": {
+            "type": "boolean",
+            "const": false
+          }
+        },
+        "required": [
+          "version",
+          "snapshot",
+          "supply",
+          "limits",
+          "currency",
+          "chargesEnabled"
+        ],
+        "additionalProperties": false
+      },
+      "CommercialProposal": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "expectedVersion": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "evidenceRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{2,119}$"
+              },
+              "confirmed": {
+                "type": "boolean",
+                "const": true
+              },
+              "kind": {
+                "type": "string",
+                "const": "FEE"
+              },
+              "fee": {
+                "$ref": "#/components/schemas/HiringFeeSettings"
+              }
+            },
+            "required": [
+              "expectedVersion",
+              "reason",
+              "evidenceRef",
+              "confirmed",
+              "kind",
+              "fee"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "expectedVersion": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "evidenceRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{2,119}$"
+              },
+              "confirmed": {
+                "type": "boolean",
+                "const": true
+              },
+              "kind": {
+                "type": "string",
+                "const": "REGION"
+              },
+              "region": {
+                "$ref": "#/components/schemas/ServiceRegionSettings"
+              }
+            },
+            "required": [
+              "expectedVersion",
+              "reason",
+              "evidenceRef",
+              "confirmed",
+              "kind",
+              "region"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "expectedVersion": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "evidenceRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{2,119}$"
+              },
+              "confirmed": {
+                "type": "boolean",
+                "const": true
+              },
+              "kind": {
+                "type": "string",
+                "const": "ROLLBACK"
+              },
+              "restoreVersion": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "expectedVersion",
+              "reason",
+              "evidenceRef",
+              "confirmed",
+              "kind",
+              "restoreVersion"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "CommercialChange": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "FEE",
+              "REGION",
+              "ROLLBACK"
+            ]
+          },
+          "restoreVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "before": {
+            "$ref": "#/components/schemas/CommercialSnapshot"
+          },
+          "after": {
+            "$ref": "#/components/schemas/CommercialSnapshot"
+          },
+          "proposerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proposerAuthVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "approverId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "evidenceRef": {
+            "type": "string"
+          },
+          "decisionReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "decidedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "restoreVersion",
+          "expectedVersion",
+          "before",
+          "after",
+          "proposerId",
+          "proposerAuthVersion",
+          "approverId",
+          "reason",
+          "evidenceRef",
+          "decisionReason",
+          "status",
+          "version",
+          "expiresAt",
+          "createdAt",
+          "decidedAt"
+        ],
+        "additionalProperties": false
+      },
+      "CommercialRevision": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "changeId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "before": {
+            "$ref": "#/components/schemas/CommercialSnapshot"
+          },
+          "after": {
+            "$ref": "#/components/schemas/CommercialSnapshot"
+          },
+          "proposerId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "approverId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "evidenceRef": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          }
+        },
+        "required": [
+          "version",
+          "changeId",
+          "before",
+          "after",
+          "proposerId",
+          "approverId",
+          "reason",
+          "evidenceRef",
+          "createdAt",
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "CommercialDecision": {
         "type": "object",
         "properties": {
           "expectedVersion": {

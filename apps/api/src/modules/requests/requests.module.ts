@@ -1,3 +1,4 @@
+import {enabledRegion} from '../administration/commercial-policy';
 import {pageQuery,pageBefore,pageResult} from '../../pagination';
 import {subjectSchema,boardSchema,learnerScope} from '../../coverage';
 import 'reflect-metadata';
@@ -28,7 +29,7 @@ export async function createIntake(db:DB,service:AppService,account:Account,req:
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${account.id},0))`;
       await service.guardian(db,account.id);
       if(data.discoveryMethod==='MANUAL'?!data.preferredTeacherId:!!data.preferredTeacherId)fail(400,'INVALID_DISCOVERY_PATH','Direct search requires a chosen teacher; assisted search uses the eligible pool.');
-      const region=await db.region.findUnique({where:{id:account.region}});if(!region?.enabled)fail(409,'UNSUPPORTED_REGION','This city is not enabled; use the unsupported-scope waitlist.');
+      if(!await enabledRegion(db,account.region))fail(409,'UNSUPPORTED_REGION','This city is not enabled; use the unsupported-scope waitlist.');
       const preferences=data.preferences?normalizedPreferences(data.preferences):null;if(data.preferences&&!preferences)fail(400,'INVALID_SCHEDULE','Choose nonoverlapping weekly time ranges of at least 20 minutes, or dated 20–120 minute windows between one hour and 60 days ahead.');
       if(data.preferredTeacherId&&!((await service.publicTeachers({id:data.preferredTeacherId},1))[0]))fail(404,'NOT_FOUND','Selected teacher is unavailable.');
       if(!data.childId&&(!data.grade||!data.board||!data.schoolName||!data.schoolSubjects))fail(400,'LEARNER_DETAILS_REQUIRED','Enter the school and subjects studied in the class.');

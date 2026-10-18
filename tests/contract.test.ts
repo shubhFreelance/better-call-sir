@@ -201,3 +201,8 @@ test("staff access contracts require explicit dedicated identities and independe
   assert(decision({expectedVersion:1,decision:"APPROVE",reason:"Independent check",independentlyVerified:true}));
   assert(!decision({expectedVersion:1,decision:"APPROVE",reason:"Independent check",independentlyVerified:false}));
 });
+
+test("commercial configuration contracts keep hiring policy bounds, independent review and explicit rollback versions",()=>{
+ const validate=validator('CommercialProposal'),common={expectedVersion:0,reason:'Policy review',evidenceRef:'policy:approved',confirmed:true};
+ assert(validate({...common,kind:'FEE',fee:{placementBasisPoints:2500,placementCapPaise:150000}}));assert(!validate({...common,kind:'FEE',fee:{placementBasisPoints:2501,placementCapPaise:150000}}));assert(!validate({...common,kind:'FEE',fee:{placementBasisPoints:1000,placementCapPaise:-1}}));assert(validate({...common,kind:'ROLLBACK',restoreVersion:0}));assert(!validate({...common,kind:'ROLLBACK'}));assert(!validate({...common,kind:'ROLLBACK',restoreVersion:0,enabled:true}));
+});
