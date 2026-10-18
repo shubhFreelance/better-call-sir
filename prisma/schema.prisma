@@ -66,6 +66,8 @@ model Consent {
   withdrawnAt DateTime?
 }
 model Child {
+  learningManagementMode String @default("GUARDIAN_ONLY")
+  learningManagementVersion Int @default(1)
   guardianVerificationId String? @unique @db.Uuid
   educationStage String @default("SCHOOL")
   earlyYearsLevel String?
@@ -128,6 +130,7 @@ model Teacher {
   @@index([status])
 }
 model TuitionRequest {
+  guardianDecisionRequested Boolean @default(false)
   rematchFromPlacementId String? @unique @db.Uuid
   discoveryMethod String @default("ASSISTED")
   preferredTeacherId String? @db.Uuid
@@ -208,6 +211,7 @@ model Meeting {
   @@index([status, retryAt])
 }
 model Placement {
+  familyAcceptanceActorId String? @db.Uuid
   placementFeePaise Int?
   commercialVersion Int @default(0)
   startedAt DateTime?

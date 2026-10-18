@@ -1,3 +1,4 @@
+import {familyActor,requestAuthority} from '../learners/learning-management';
 import {hiringQuote,recordedFee} from '../administration/commercial-policy';
 import {subjectSchema} from '../../coverage';
 import 'reflect-metadata';
@@ -22,56 +23,64 @@ import {preferenceSchema,normalizedPreferences} from '../requests/request-schedu
 class PlacementsController {
   constructor(@Inject(AppService) private readonly service: AppService) {}
   get db() {return this.service.db;}
+  async studentDecision(db:DB,actor:Account,req:HttpRequest){
+    if(actor.role!=='STUDENT')return;
+    const requestId=req.params.id?(await db.placement.findUnique({where:{id:String(req.params.id)}}))?.requestId:req.body.requestId;
+    if(!requestId)fail(404,'NOT_FOUND','Arrangement access is unavailable.');
+    await requestAuthority(db,this.service,actor,requestId,true);
+  }
   async closing(db:DB,actor:Account,id:string,expectedVersion:number){
-    await this.service.guardian(db,actor.id);
-    const initial=await db.placement.findUnique({where:{id}});if(!initial||initial.guardianId!==actor.id)fail(404,'NOT_FOUND','Placement not found.');
+    const initial=await db.placement.findUnique({where:{id}});if(!initial)fail(404,'NOT_FOUND','Placement not found.');
+    await requestAuthority(db,this.service,actor,initial.requestId,true);
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${initial.teacherId},0))`;
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
     const p=await db.placement.findUniqueOrThrow({where:{id}});if(p.version!==expectedVersion||p.status==='CLOSED')fail(409,'CONFLICT','Placement changed or is closed.');return p;
   }
   @Post('placements/:id/closures') async close(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
-    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']),data=parse(z.object({expectedVersion:version,reason:text(1000)}).strict(),body);
-    return this.service.once(req,actor,'placement.close',data,async db=>{const p=await this.closing(db,actor,id,data.expectedVersion),updated=await closePlacement(db,p);const support=await db.supportCase.create({data:{accountId:actor.id,region:actor.region,placementId:id,category:'GENERAL',description:`Placement closed: ${data.reason}`}});await this.service.audit(db,actor,req,'PLACEMENT_CLOSED',id,data.reason);await this.service.event(db,'placement.closed',id,updated.version);return {placement:updated,caseId:support.id};});
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','STUDENT']),data=parse(z.object({expectedVersion:version,reason:text(1000)}).strict(),body);
+    return this.service.once(req,actor,'placement.close',data,async db=>{const p=await this.closing(db,actor,id,data.expectedVersion),updated=await closePlacement(db,p);const support=await db.supportCase.create({data:{accountId:actor.id,region:actor.region,placementId:id,category:'GENERAL',description:`Placement closed: ${data.reason}`}});await this.service.audit(db,actor,req,'PLACEMENT_CLOSED',id,data.reason);await this.service.event(db,'placement.closed',id,updated.version);return {placement:updated,caseId:support.id};},db=>this.studentDecision(db,actor,req));
   }
   @Post('placements/:id/rematches') async rematch(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
-    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']),data=parse(z.object({expectedVersion:version,reason:text(1000),preferences:preferenceSchema,criteria:z.object({subject:subjectSchema,mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000)}).strict().optional()}).strict(),body),preferences=normalizedPreferences(data.preferences);if(!preferences)fail(400,'INVALID_SCHEDULE','Supply current future schedule criteria for replacement.');
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','STUDENT']),data=parse(z.object({expectedVersion:version,reason:text(1000),preferences:preferenceSchema,criteria:z.object({subject:subjectSchema,mode:z.enum(['ONLINE','HOME']),language:z.enum(['English','Hindi']),locality:text(80),budgetPaise:z.number().int().min(50_000).max(2_000_000)}).strict().optional()}).strict(),body),preferences=normalizedPreferences(data.preferences);if(!preferences)fail(400,'INVALID_SCHEDULE','Supply current future schedule criteria for replacement.');
     return this.service.once(req,actor,'placement.rematch',data,async db=>{const p=await this.closing(db,actor,id,data.expectedVersion),old=await db.tuitionRequest.findUniqueOrThrow({where:{id:p.requestId}});await closePlacement(db,p);
       const request=await db.tuitionRequest.create({data:{guardianId:p.guardianId,childId:p.childId,rematchFromPlacementId:id,discoveryMethod:'ASSISTED',subject:old.subject,mode:old.mode,language:old.language,locality:old.locality,budgetPaise:old.budgetPaise,schedule:old.schedule,region:old.region,schedulePreferences:preferences,scheduleStatus:'CONFIRMED',...data.criteria}});
       const support=await db.supportCase.create({data:{accountId:actor.id,region:old.region,placementId:id,category:'REPLACEMENT',description:`Replacement request ${request.id}: ${data.reason}`}});await this.service.audit(db,actor,req,'PLACEMENT_REMATCH_REQUESTED',id,data.reason,undefined,{requestId:request.id});await this.service.event(db,'request.created',request.id);return {request,caseId:support.id};
-    });
+    },db=>this.studentDecision(db,actor,req));
   }
   @Post('placements') async placement(@Req() req: HttpRequest,@Body() body: unknown) {
-    const actor=await this.service.actor(req,['GUARDIAN']);const data=parse(z.object({requestId:uuid,teacherId:uuid}).strict(),body);
+    const actor=await this.service.actor(req,['GUARDIAN','STUDENT']);const data=parse(z.object({requestId:uuid,teacherId:uuid}).strict(),body);
     return this.service.once(req,actor,'placement.create',data,async db=>{
-      await this.service.guardian(db,actor.id);const request=await db.tuitionRequest.findUnique({where:{id:data.requestId}});
-      if (!request || request.guardianId!==actor.id || request.status!=='OPEN') fail(404,'NOT_FOUND','Active request not found.');
+      const request=await requestAuthority(db,this.service,actor,data.requestId,true);
+      if (!request || request.status!=='OPEN') fail(404,'NOT_FOUND','Active request not found.');
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${data.teacherId},0))`;
       const child=await db.child.findUniqueOrThrow({where:{id:request.childId}}),teacher=await db.teacher.findUnique({where:{id:data.teacherId}});
       const candidate=await db.recommendation.findUnique({where:{requestId_teacherId:{requestId:request.id,teacherId:data.teacherId}}});
       if (!teacher || !candidate || candidate.response!=='ACCEPTED' || !await matched(db,request,child,teacher)) fail(409,'INELIGIBLE','An eligible, accepted recommendation is required.');
       const existingDemo=await db.demo.findFirst({where:{requestId:request.id,teacherId:teacher.id},orderBy:{createdAt:'desc'}});
       if(existingDemo&&!['COMPLETED','CANCELLED'].includes(existingDemo.status))fail(409,'DEMO_PENDING_REVIEW','An already requested demo must be completed, cancelled or resolved before opening terms.');
-      const placement=await db.placement.create({data:{guardianId:actor.id,teacherId:teacher.id,childId:child.id,requestId:request.id,monthlyPaise:teacher.monthlyPaise,...await hiringQuote(db,teacher.monthlyPaise)}});
-      await this.service.event(db,'placement.terms_requested',placement.id);return placement;
-    });
+      const placement=await db.placement.create({data:{guardianId:request.guardianId,teacherId:teacher.id,childId:child.id,requestId:request.id,monthlyPaise:teacher.monthlyPaise,...await hiringQuote(db,teacher.monthlyPaise)}});
+      await this.service.audit(db,actor,req,'PLACEMENT_TERMS_REQUESTED',placement.id,'Authorized family member opened learning terms',undefined,{requestId:request.id});await this.service.event(db,'placement.terms_requested',placement.id);return placement;
+    },db=>this.studentDecision(db,actor,req));
   }
 
   @Post('placements/:id/acceptances') async acceptPlacement(@Req() req: HttpRequest,@Param('id') id: string,@Body() body: unknown) {
-    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER']);const data=parse(z.object({expectedVersion:version,action:z.enum(['ACCEPT_TERMS','CONFIRM_START'])}).strict(),body);
+    parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','STUDENT','TEACHER']);const data=parse(z.object({expectedVersion:version,action:z.enum(['ACCEPT_TERMS','CONFIRM_START'])}).strict(),body);
+    if(actor.role==='STUDENT'&&data.action!=='ACCEPT_TERMS')fail(403,'GUARDIAN_REQUIRED','Your guardian confirms financial commencement.');
     return this.service.once(req,actor,'placement.accept',data,async db=>{
       const initial=await db.placement.findUnique({where:{id}});
       const own=actor.role==='TEACHER'?await db.teacher.findUnique({where:{accountId:actor.id}}):null;
-      if (!initial || (actor.role==='GUARDIAN'?initial.guardianId!==actor.id:initial.teacherId!==own?.id)) fail(404,'NOT_FOUND','Placement not found.');
+      if(initial&&actor.role==='STUDENT')await requestAuthority(db,this.service,actor,initial.requestId,true);
+      if (!initial || (actor.role==='GUARDIAN'?initial.guardianId!==actor.id:actor.role==='STUDENT'?false:initial.teacherId!==own?.id)) fail(404,'NOT_FOUND','Placement not found.');
       await this.service.guardian(db,initial.guardianId);
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${initial.teacherId},0))`;
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
       const p=await db.placement.findUnique({where:{id}});const teacher=await db.teacher.findUnique({where:{accountId:actor.id}});
-      if (!p || (actor.role==='GUARDIAN'?p.guardianId!==actor.id:p.teacherId!==teacher?.id)) fail(404,'NOT_FOUND','Placement not found.');
+      if (!p || (actor.role==='GUARDIAN'?p.guardianId!==actor.id:actor.role==='STUDENT'?false:p.teacherId!==teacher?.id)) fail(404,'NOT_FOUND','Placement not found.');
       await this.service.guardian(db,p.guardianId);
       if (p.version!==data.expectedVersion || p.status==='CLOSED') fail(409,'CONFLICT','Placement has changed.');
       if (data.action==='CONFIRM_START' && !(p.guardianAccepted && p.teacherAccepted)) fail(409,'TERMS_PENDING','Both parties must first accept tuition terms.');
       if (data.action==='CONFIRM_START' && !await db.recurringSchedule.findFirst({where:{placementId:id,status:'ACCEPTED'}})) fail(409,'SCHEDULE_PENDING','Both parties must accept the recurring timetable before starting tuition.');
-      const changes=data.action==='ACCEPT_TERMS'?(actor.role==='GUARDIAN'?{guardianAccepted:true}:{teacherAccepted:true}):(actor.role==='GUARDIAN'?{guardianStarted:true}:{teacherReceiptConfirmed:true});
+      const changes=data.action==='ACCEPT_TERMS'?(familyActor(actor)?{guardianAccepted:true,familyAcceptanceActorId:actor.id}:{teacherAccepted:true}):(actor.role==='GUARDIAN'?{guardianStarted:true}:{teacherReceiptConfirmed:true});
       let updated=await db.placement.update({where:{id},data:{...changes,version:{increment:1}}});
       if (updated.guardianStarted && updated.teacherReceiptConfirmed) {
         updated=await db.placement.update({where:{id},data:{status:'ACTIVE',startedAt:p.startedAt||new Date()}});
@@ -79,8 +88,9 @@ class PlacementsController {
         if(recordedFee(p)>0)await db.invoice.upsert({where:{placementId:id},create:{placementId:id,payerId:t.accountId,amountPaise:recordedFee(p),policyVersion:p.policyVersion},update:{}});
         await this.service.event(db,'placement.started',id);
       }
+      if(data.action==='ACCEPT_TERMS')await this.service.audit(db,actor,req,'PLACEMENT_LEARNING_TERMS_ACCEPTED',id,'Participant accepted learning terms without financial commencement',undefined,{familySide:familyActor(actor),version:updated.version});
       return updated;
-    });
+    },db=>this.studentDecision(db,actor,req));
   }
 
 }

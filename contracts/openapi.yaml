@@ -31719,7 +31719,380 @@
         ]
       }
     }
+  ,"/children/{id}/learning-management":{
+  "get": {
+    "summary": "Read current guardian-selected learning decision permissions; consent remains separate",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Current permissions",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LearningManagement"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Session required/expired",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Role, ownership, consent, CSRF or Origin denied",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Missing or inaccessible resource",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Version, eligibility, reservation or retry conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Rate limit",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "operationId": "getChildLearningManagement",
+    "tags": [
+      "learning-management"
+    ],
+    "security": [
+      {
+        "cookieSession": []
+      }
+    ],
+    "description": "Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes."
   },
+  "post": {
+    "summary": "Guardian reviews and changes the learner management mode",
+    "parameters": [
+      {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mode",
+              "expectedVersion",
+              "confirmed"
+            ],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "GUARDIAN_ONLY",
+                  "SHARED",
+                  "STUDENT_LED"
+                ]
+              },
+              "expectedVersion": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "confirmed": {
+                "const": true,
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Recorded permission choice",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LearningManagement"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Session required/expired",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Role, ownership, consent, CSRF or Origin denied",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Missing or inaccessible resource",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Version, eligibility, reservation or retry conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Rate limit",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "operationId": "postChildLearningManagement",
+    "tags": [
+      "learning-management"
+    ],
+    "security": [
+      {
+        "cookieSession": []
+      }
+    ],
+    "description": "Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes."
+  }
+},"/requests/{id}/decision-authority":{
+  "post": {
+    "summary": "Optionally ask the guardian to decide for one enquiry, or resume permitted student decisions",
+    "parameters": [
+      {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "guardianDecisionRequested",
+              "expectedVersion",
+              "confirmed"
+            ],
+            "properties": {
+              "guardianDecisionRequested": {
+                "type": "boolean"
+              },
+              "expectedVersion": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "confirmed": {
+                "const": true,
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Updated enquiry",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionRequest"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Session required/expired",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Role, ownership, consent, CSRF or Origin denied",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Missing or inaccessible resource",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Version, eligibility, reservation or retry conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Rate limit",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "operationId": "postEnquiryDecisionAuthority",
+    "tags": [
+      "learning-management"
+    ],
+    "security": [
+      {
+        "cookieSession": []
+      }
+    ],
+    "description": "Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes."
+  }
+}},
   "components": {
     "schemas": {
       "Teacher": {
@@ -32007,7 +32380,7 @@
             ],
             "format": "uuid"
           }
-        },
+        ,"guardianDecisionRequested":{"type":"boolean","description":"This enquiry is currently delegated to the guardian; standing student permission remains separate."}},
         "required": [
           "id",
           "guardianId",
@@ -32968,7 +33341,7 @@
             ],
             "format": "uuid"
           }
-        },
+        ,"guardianDecisionRequested":{"type":"boolean"}},
         "required": [
           "id",
           "guardianId",
@@ -33130,7 +33503,7 @@
             "format": "uuid",
             "description": "Approved learner-specific guardian relationship; legacy synthetic fixtures may have no proof."
           }
-        },
+        ,"learningManagementMode":{"type":"string","enum":["GUARDIAN_ONLY","SHARED","STUDENT_LED"]},"learningManagementVersion":{"type":"integer","minimum":1}},
         "required": [
           "id",
           "guardianId",
@@ -35043,6 +35416,7 @@
               "ACCEPTED",
               "DECLINED",
               "GUARDIAN_SELECTED",
+              "STUDENT_SELECTED",
               "DEMO_SELECTED"
             ]
           },
@@ -35091,6 +35465,7 @@
               "ACCEPTED",
               "DECLINED",
               "GUARDIAN_SELECTED",
+              "STUDENT_SELECTED",
               "DEMO_SELECTED"
             ]
           },
@@ -37201,7 +37576,7 @@
             "type": "integer",
             "minimum": 0
           }
-        },
+        ,"familyAcceptanceActorId":{"type":["string","null"],"format":"uuid","description":"Actual family account that accepted learning terms; financial commencement remains guardian-only."}},
         "required": [
           "id",
           "guardianId",
@@ -45126,7 +45501,49 @@
         ],
         "additionalProperties": false
       }
+    ,"LearningManagement":{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "childId",
+    "mode",
+    "version",
+    "canManageLearning",
+    "canChangeManagement",
+    "canManageConsent",
+    "canConfirmFinancialCommencement"
+  ],
+  "properties": {
+    "childId": {
+      "type": "string",
+      "format": "uuid"
     },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "GUARDIAN_ONLY",
+        "SHARED",
+        "STUDENT_LED"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "canManageLearning": {
+      "type": "boolean"
+    },
+    "canChangeManagement": {
+      "type": "boolean"
+    },
+    "canManageConsent": {
+      "type": "boolean"
+    },
+    "canConfirmFinancialCommencement": {
+      "type": "boolean"
+    }
+  }
+}},
     "securitySchemes": {
       "cookieSession": {
         "type": "apiKey",

@@ -3493,6 +3493,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/children/{id}/learning-management": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read current guardian-selected learning decision permissions; consent remains separate
+         * @description Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes.
+         */
+        get: operations["getChildLearningManagement"];
+        put?: never;
+        /**
+         * Guardian reviews and changes the learner management mode
+         * @description Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes.
+         */
+        post: operations["postChildLearningManagement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/requests/{id}/decision-authority": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Optionally ask the guardian to decide for one enquiry, or resume permitted student decisions
+         * @description Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes.
+         */
+        post: operations["postEnquiryDecisionAuthority"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3570,6 +3614,8 @@ export interface components {
             preferredTeacherId?: string | null;
             /** Format: uuid */
             rematchFromPlacementId?: string | null;
+            /** @description This enquiry is currently delegated to the guardian; standing student permission remains separate. */
+            guardianDecisionRequested?: boolean;
         };
         Intake: {
             /** Format: uuid */
@@ -3819,6 +3865,7 @@ export interface components {
             preferredTeacherId?: string | null;
             /** Format: uuid */
             rematchFromPlacementId?: string | null;
+            guardianDecisionRequested?: boolean;
         };
         RequestList: {
             items: components["schemas"]["TuitionRequest"][];
@@ -3852,6 +3899,9 @@ export interface components {
              * @description Approved learner-specific guardian relationship; legacy synthetic fixtures may have no proof.
              */
             guardianVerificationId?: string | null;
+            /** @enum {string} */
+            learningManagementMode?: "GUARDIAN_ONLY" | "SHARED" | "STUDENT_LED";
+            learningManagementVersion?: number;
         };
         Children: {
             items: components["schemas"]["Child"][];
@@ -4289,7 +4339,7 @@ export interface components {
             /** Format: uuid */
             actorId: string;
             /** @enum {string} */
-            action: "ACCEPTED" | "DECLINED" | "GUARDIAN_SELECTED" | "DEMO_SELECTED";
+            action: "ACCEPTED" | "DECLINED" | "GUARDIAN_SELECTED" | "STUDENT_SELECTED" | "DEMO_SELECTED";
             candidateVersion: number;
             /** Format: date-time */
             createdAt: string;
@@ -4304,7 +4354,7 @@ export interface components {
             /** Format: uuid */
             actorId: string;
             /** @enum {string} */
-            action: "ACCEPTED" | "DECLINED" | "GUARDIAN_SELECTED" | "DEMO_SELECTED";
+            action: "ACCEPTED" | "DECLINED" | "GUARDIAN_SELECTED" | "STUDENT_SELECTED" | "DEMO_SELECTED";
             candidateVersion: number;
             /** Format: date-time */
             createdAt: string;
@@ -4839,6 +4889,11 @@ export interface components {
             closedAt?: string | null;
             placementFeePaise?: number | null;
             commercialVersion?: number;
+            /**
+             * Format: uuid
+             * @description Actual family account that accepted learning terms; financial commencement remains guardian-only.
+             */
+            familyAcceptanceActorId?: string | null;
         };
         PrivacyRequest: {
             /** Format: uuid */
@@ -6710,6 +6765,17 @@ export interface components {
             callMethod?: "VIDEO" | "PHONE";
             /** @constant */
             confirmed: true;
+        };
+        LearningManagement: {
+            /** Format: uuid */
+            childId: string;
+            /** @enum {string} */
+            mode: "GUARDIAN_ONLY" | "SHARED" | "STUDENT_LED";
+            version: number;
+            canManageLearning: boolean;
+            canChangeManagement: boolean;
+            canManageConsent: boolean;
+            canConfirmFinancialCommencement: boolean;
         };
     };
     responses: never;
@@ -24574,6 +24640,257 @@ export interface operations {
             };
             /** @description Provider unavailable or feature paused */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getChildLearningManagement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current permissions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningManagement"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    postChildLearningManagement: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    mode: "GUARDIAN_ONLY" | "SHARED" | "STUDENT_LED";
+                    expectedVersion: number;
+                    /** @constant */
+                    confirmed: true;
+                };
+            };
+        };
+        responses: {
+            /** @description Recorded permission choice */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningManagement"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    postEnquiryDecisionAuthority: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    guardianDecisionRequested: boolean;
+                    expectedVersion: number;
+                    /** @constant */
+                    confirmed: true;
+                };
+            };
+        };
+        responses: {
+            /** @description Updated enquiry */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TuitionRequest"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
