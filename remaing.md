@@ -154,3 +154,5 @@ Delivery order: T1, L1a, L1, L2a, L2b, L3a, L3b, L3c, L3d and adult L4 are imple
 Full context: [MVP remaining inventory](docs/MVP_REMAINING.md) and [sprint evidence](docs/SPRINTS.md).
 
 - 18 October 2026 — F25/B12 private privacy-request history complete in development. Backend `af308d3`; frontend dependency `513759f`. Validation: 135 API, 12 contract, 14 development privacy browser, 39 production browser and 18 security/client/localization checks; type checks/build and source/bundle scans passed. Hindi mobile screenshot inspected. Other bounded histories and the full launch gates remain open; no deployment.
+
+- B12 final API dependency: placed enquiry history filtering is implemented in backend `d761135` with all 139 API cases and 12 contract cases passing. Final frontend acceptance remains in progress.
