@@ -4,7 +4,7 @@ Updated 18 October 2026. Checkboxes track the stated item only; completed develo
 
 Next sprint: **remaining bounded-history pagination, H5 cross-flow review and launch qualification**. Expanded learner onboarding, independent adult accounts and optional supporter access are implemented in development. Guardian drafts, weekly availability, teacher-revision drafts and dashboard hiring-term confirmation are implemented. The owner has deferred individual class booking/management until later scale. F14–F21 remain implemented development history. Features are tested and pushed separately.
 
-Next feature: **H5 mobile/keyboard recovery review of enquiry → support → replacement**: check current hiring routes, shared controls and accessible loading/error/empty states one flow at a time.
+Next feature: **complete B12 history controls and H5/F25 legacy/mobile/keyboard/recovery review**. Backend pagination is implemented in `b435a9a`; frontend acceptance is in progress.
 
 Reporting routine: after every completed feature/API, update this tracker, push the changes, then show the completed work, test/push evidence, one next feature and the full grouped remaining backlog directly in chat. Implementation, pending decisions/launch qualification and deferred scope must remain distinct.
 

@@ -3445,6 +3445,8 @@ export interface components {
         };
         RequestList: {
             items: components["schemas"]["TuitionRequest"][];
+            /** Format: uuid */
+            nextCursor?: string | null;
         };
         Child: {
             /** Format: uuid */
@@ -3553,6 +3555,8 @@ export interface components {
         };
         PrivateTeacherList: {
             items: components["schemas"]["PrivateTeacher"][];
+            /** Format: uuid */
+            nextCursor?: string | null;
         };
         Evidence: {
             /** Format: uuid */
@@ -3576,6 +3580,8 @@ export interface components {
         };
         EvidenceList: {
             items: components["schemas"]["Evidence"][];
+            /** Format: uuid */
+            nextCursor?: string | null;
         };
         EvidenceUpload: {
             expectedVersion: number;
@@ -3632,6 +3638,8 @@ export interface components {
         };
         VerificationList: {
             items: components["schemas"]["VerificationCheck"][];
+            /** Format: uuid */
+            nextCursor?: string | null;
         };
         AvailabilityPattern: {
             /** Format: uuid */
@@ -3704,6 +3712,7 @@ export interface components {
         PrivateCalendar: {
             patterns: components["schemas"]["AvailabilityPattern"][];
             exceptions: components["schemas"]["Leave"][];
+            nextCursor?: string | null;
         };
         PublicSlot: {
             /** Format: uuid */
@@ -3850,6 +3859,8 @@ export interface components {
         };
         Runs: {
             items: components["schemas"]["Run"][];
+            /** Format: uuid */
+            nextCursor?: string | null;
         };
         PublishInput: {
             expectedVersion: number;
@@ -4696,6 +4707,8 @@ export interface components {
                 /** Format: date-time */
                 createdAt: string;
             }[];
+            /** Format: uuid */
+            nextCursor?: string | null;
         };
         JobRetryInput: {
             expectedAttempts: number;
@@ -4772,6 +4785,8 @@ export interface components {
         };
         NoteRecords: {
             items: components["schemas"]["NoteRecord"][];
+            /** Format: uuid */
+            nextCursor?: string | null;
         };
         OperatorCandidate: {
             /** Format: uuid */
@@ -4937,10 +4952,11 @@ export interface components {
                 region: string;
                 profileRevision: number;
             } | null;
-            /** @constant */
-            limit: 50;
+            limit: number;
             /** @constant */
             editable: false;
+            /** Format: uuid */
+            nextCursor?: string | null;
         };
         AdminConsole: {
             /** Format: date-time */
@@ -7307,7 +7323,11 @@ export interface operations {
     };
     getRequests: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string;
+                status?: "OPEN" | "CLOSED" | "MATCHED";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -7863,7 +7883,11 @@ export interface operations {
     };
     getAdminTeachers: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string;
+                status?: "SUBMITTED" | "APPROVED" | "CHANGES_REQUESTED" | "SUSPENDED";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -8919,7 +8943,10 @@ export interface operations {
     };
     getNotes: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -10665,7 +10692,10 @@ export interface operations {
     };
     listPrivateTeacherEvidence: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
             header?: never;
             path: {
                 id: string;
@@ -11032,7 +11062,10 @@ export interface operations {
     };
     listTeacherVerificationChecks: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
             header?: never;
             path: {
                 id: string;
@@ -11491,7 +11524,10 @@ export interface operations {
     };
     getPrivateTeacherCalendar: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
             header?: never;
             path: {
                 id: string;
@@ -12225,7 +12261,10 @@ export interface operations {
     };
     listRecommendationRuns: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
             header?: never;
             path: {
                 id: string;
@@ -15816,6 +15855,8 @@ export interface operations {
         parameters: {
             query?: {
                 status?: "PENDING" | "FAILED";
+                limit?: number;
+                cursor?: string;
             };
             header?: never;
             path?: never;
@@ -16843,7 +16884,10 @@ export interface operations {
     };
     get_AdminLinkage: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
             header?: never;
             path: {
                 id: string;

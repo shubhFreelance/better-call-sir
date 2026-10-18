@@ -95,23 +95,17 @@ class SchedulingController {
       },
     );
   }
-  @Get("teachers/:id/calendar") async calendar(
-    @Req() req: HttpRequest,
-    @Param("id") id: string,
-  ) {
-    parse(uuid, id);
-    const actor = await this.service.actor(req, ["TEACHER"]);
-    await this.owner(this.service.db, actor.id, id);
-    return {
-      patterns: await this.service.db.availabilityPattern.findMany({
-        where: { teacherId: id },
-        take: 50,
-      }),
-      exceptions: await this.service.db.availabilityException.findMany({
-        where: { teacherId: id, active: true },
-        take: 50,
-      }),
-    };
+  @Get("teachers/:id/calendar") async calendar(@Req() req:HttpRequest,@Param("id") id:string,@Query() query:unknown) {
+    parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']),data=parse(z.object({limit:z.coerce.number().int().min(1).max(50).default(50),cursor:z.string().min(1).max(400).optional()}).strict(),query),db=this.service.db;
+    await this.owner(db,actor.id,id);
+    let cursor:{patterns?:string;exceptions?:string}={};
+    if(data.cursor){try{cursor=z.object({patterns:uuid.optional(),exceptions:uuid.optional()}).strict().refine(v=>!!v.patterns||!!v.exceptions).parse(JSON.parse(Buffer.from(data.cursor,'base64url').toString()));}catch{fail(400,'VALIDATION','Calendar cursor is invalid.');}}
+    if(cursor.patterns&&!await db.availabilityPattern.count({where:{teacherId:id,id:cursor.patterns}})||cursor.exceptions&&!await db.availabilityException.count({where:{teacherId:id,id:cursor.exceptions}}))fail(404,'NOT_FOUND','Calendar cursor is unavailable.');
+    const [p,e]=await Promise.all([
+      db.availabilityPattern.findMany({where:{teacherId:id,...(cursor.patterns?{id:{gt:cursor.patterns}}:{})},orderBy:{id:'asc'},take:data.limit+1}),
+      db.availabilityException.findMany({where:{teacherId:id,active:true,...(cursor.exceptions?{id:{gt:cursor.exceptions}}:{})},orderBy:{id:'asc'},take:data.limit+1})
+    ]),patterns=p.slice(0,data.limit),exceptions=e.slice(0,data.limit),next={patterns:patterns.at(-1)?.id||cursor.patterns,exceptions:exceptions.at(-1)?.id||cursor.exceptions};
+    return {patterns,exceptions,nextCursor:p.length>data.limit||e.length>data.limit?Buffer.from(JSON.stringify(next)).toString('base64url'):null};
   }
   @Post("availability/:id/changes") async change(
     @Req() req: HttpRequest,

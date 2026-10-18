@@ -1,3 +1,4 @@
+import {pageQuery,pageResult} from '../../pagination';
 import {coverageWhere,learnerScope,educationCaption} from '../../coverage';
 import {
   Module,
@@ -5,6 +6,7 @@ import {
   Get,
   Post,
   Param,
+  Query,
   Body,
   Req,
   Inject,
@@ -227,18 +229,16 @@ class MatchingController {
   @Get("admin/requests/:id/recommendation-runs") async history(
     @Req() req: HttpRequest,
     @Param("id") id: string,
+    @Query() query:unknown,
   ) {
+    const data=parse(pageQuery,query);
     parse(uuid, id);
     const actor = await this.service.actor(req, ["ADMIN", "OPERATOR"]);
     return this.service.db.$transaction(async (db) => {
       await this.request(db, actor, id);
-      return {
-        items: await db.recommendationRun.findMany({
-          where: { requestId: id },
-          orderBy: [{requestVersion:"desc"},{createdAt:"desc"},{id:"desc"}],
-          take: 50,
-        }),
-      };
+      const anchor=data.cursor?await db.recommendationRun.findFirst({where:{requestId:id,id:data.cursor}}):null;
+      if(data.cursor&&!anchor)fail(404,'NOT_FOUND','Run cursor is unavailable.');
+      return pageResult(await db.recommendationRun.findMany({where:{requestId:id,...(anchor?{OR:[{requestVersion:{lt:anchor.requestVersion}},{requestVersion:anchor.requestVersion,createdAt:{lt:anchor.createdAt}},{requestVersion:anchor.requestVersion,createdAt:anchor.createdAt,id:{lt:anchor.id}}]}:{})},orderBy:[{requestVersion:'desc'},{createdAt:'desc'},{id:'desc'}],take:data.limit+1}),data.limit);
     });
   }
   @Post("admin/requests/:id/presentations") async publish(

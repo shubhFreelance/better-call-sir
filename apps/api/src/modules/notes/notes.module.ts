@@ -1,3 +1,4 @@
+import {pageQuery,pageBefore,pageResult} from '../../pagination';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
 import {Module, Controller, Get, Post, Param, Query, Body, Req, Res, Injectable, Inject, HttpException, Catch, ExceptionFilter, ArgumentsHost, Global} from '@nestjs/common';
@@ -47,19 +48,21 @@ class NotesController {
     return this.service.once(req,actor,'note.acknowledge',data,async db=>{const teacher=await db.teacher.findUniqueOrThrow({where:{accountId:actor.id}}),note=await db.note.findUnique({where:{id}});if(!note||note.sharedTeacherId!==teacher.id||teacher.status!=='APPROVED')fail(404,'NOT_FOUND','Shared note not found.');await this.service.guardian(db,note.guardianId);if(!await db.placement.findFirst({where:{guardianId:note.guardianId,childId:note.childId,teacherId:teacher.id,status:'ACTIVE'}}))fail(404,'NOT_FOUND','Shared note not found.');const changed=await db.note.updateMany({where:{id,version:data.expectedVersion,acknowledgedAt:null},data:{acknowledgedAt:new Date(),version:{increment:1}}});if(!changed.count)fail(409,'CONFLICT','Sharing changed or was acknowledged.');await this.service.audit(db,actor,req,'NOTE_SHARING_ACKNOWLEDGED',id,'Named teacher acknowledged the current shared note');return db.note.findUniqueOrThrow({where:{id},select:{id:true,acknowledgedAt:true,version:true}});});
   }
 
-  @Get('notes') async notes(@Req() req: Request) {
+  @Get('notes') async notes(@Req() req: Request,@Query() query:unknown) {
     const actor=await this.service.actor(req,['GUARDIAN','TEACHER']);
-    let notes;
-    if(actor.role==='GUARDIAN') notes=await this.db.note.findMany({where:{guardianId:actor.id},orderBy:[{createdAt:'desc'},{id:'desc'}],take:50});
-    else {
-      const teacher=await this.db.teacher.findUnique({where:{accountId:actor.id}});if(!teacher||teacher.status!=='APPROVED')return {items:[]};
+    const data=parse(pageQuery,query);
+    let where:Prisma.NoteWhereInput={guardianId:actor.id};
+    if(actor.role!=='GUARDIAN') {
+      const teacher=await this.db.teacher.findUnique({where:{accountId:actor.id}});if(!teacher||teacher.status!=='APPROVED')return {items:[],nextCursor:null};
       const placements=await this.db.placement.findMany({where:{teacherId:teacher.id,status:'ACTIVE'}});
       const guardians=await this.db.account.findMany({where:{id:{in:placements.map(p=>p.guardianId)},verified:true,disabled:false,role:'GUARDIAN'},select:{id:true}});
       const consents=await this.db.consent.findMany({where:{guardianId:{in:guardians.map(g=>g.id)},withdrawnAt:null}});
       const paused=await this.db.privacyRequest.findMany({where:{accountId:{in:guardians.map(g=>g.id)},kind:'DELETION',scope:{in:['ACCOUNT','CHILD']},status:'PENDING'},select:{accountId:true}});
-      notes=await this.db.note.findMany({where:{sharedTeacherId:teacher.id,childId:{in:placements.filter(p=>consents.some(c=>c.guardianId===p.guardianId)&&!paused.some(g=>g.accountId===p.guardianId)).map(p=>p.childId)}},orderBy:[{createdAt:'desc'},{id:'desc'}],take:50});
+      where={sharedTeacherId:teacher.id,childId:{in:placements.filter(p=>consents.some(c=>c.guardianId===p.guardianId)&&!paused.some(g=>g.accountId===p.guardianId)).map(p=>p.childId)}};
     }
-    const records=[];
+    const anchor=data.cursor?await this.db.note.findFirst({where:{...where,id:data.cursor},select:{id:true,createdAt:true}}):null;
+    if(data.cursor&&!anchor)fail(404,'NOT_FOUND','Note cursor is unavailable.');
+    const page=pageResult(await this.db.note.findMany({where:{...where,...pageBefore(anchor)},orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1}),data.limit),notes=page.items,records=[];
     for(const note of notes){
       const {guardianId,...record}=note,learner=await this.db.child.findUniqueOrThrow({where:{id:note.childId},select:{alias:true,grade:true,board:true}}),profile=note.sharedTeacherId?await this.db.teacher.findUnique({where:{id:note.sharedTeacherId},select:{id:true,name:true,status:true,accountId:true}}):null;
       let sharingActive=actor.role==='TEACHER';
@@ -69,7 +72,7 @@ class NotesController {
       }
       records.push({...record,learner,sharedTeacher:profile?{id:profile.id,name:profile.name}:null,sharingActive});
     }
-    return {items:records};
+    return {items:records,nextCursor:page.nextCursor};
   }
 
 }

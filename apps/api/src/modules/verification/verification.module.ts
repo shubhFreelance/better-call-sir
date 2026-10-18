@@ -1,3 +1,4 @@
+import {pageQuery,pageResult} from '../../pagination';
 import {subjectSchema,boardSchema,teachingScopes,sameCoverage} from '../../coverage';
 import {
   Module,
@@ -5,6 +6,7 @@ import {
   Get,
   Post,
   Param,
+  Query,
   Body,
   Req,
   Res,
@@ -161,7 +163,9 @@ class VerificationController {
   @Get("teachers/:id/evidence") async evidence(
     @Req() req: HttpRequest,
     @Param("id") id: string,
+    @Query() query:unknown,
   ) {
+    const data=parse(pageQuery,query);
     parse(uuid, id);
     const actor = await this.service.actor(req, [
       "TEACHER",
@@ -178,13 +182,9 @@ class VerificationController {
         id,
         "Authorized private evidence review",
       );
-      return {
-        items: await db.evidence.findMany({
-          where: { teacherId: id },
-          orderBy: { uploadedAt: "desc" },
-          take: 50,
-        }),
-      };
+      const anchor=data.cursor?await db.evidence.findFirst({where:{teacherId:id,id:data.cursor},select:{id:true,uploadedAt:true}}):null;
+      if(data.cursor&&!anchor)fail(404,'NOT_FOUND','History cursor is unavailable.');
+      return pageResult(await db.evidence.findMany({where:{teacherId:id,...(anchor?{OR:[{uploadedAt:{lt:anchor.uploadedAt}},{uploadedAt:anchor.uploadedAt,id:{lt:anchor.id}}]}:{})},orderBy:[{uploadedAt:'desc'},{id:'desc'}],take:data.limit+1}),data.limit);
     });
   }
   @Get("evidence/:id/content") async content(
@@ -279,19 +279,17 @@ class VerificationController {
   @Get("admin/teachers/:id/checks") async checks(
     @Req() req: HttpRequest,
     @Param("id") id: string,
+    @Query() query:unknown,
   ) {
+    const data=parse(pageQuery,query);
     parse(uuid, id);
     const actor = await this.service.actor(req, ["ADMIN", "REVIEWER"]);
     return this.service.db.$transaction(async (db) => {
       await this.teacher(db, actor, id, true);
       await this.service.audit(db,actor,req,"VERIFICATION_CHECKS_READ",id,"Authorized reviewer read screening history");
-      return {
-        items: await db.verificationCheck.findMany({
-          where: { teacherId: id },
-          orderBy: { createdAt: "desc" },
-          take: 50,
-        }),
-      };
+      const anchor=data.cursor?await db.verificationCheck.findFirst({where:{teacherId:id,id:data.cursor},select:{id:true,createdAt:true}}):null;
+      if(data.cursor&&!anchor)fail(404,'NOT_FOUND','History cursor is unavailable.');
+      return pageResult(await db.verificationCheck.findMany({where:{teacherId:id,...(anchor?{OR:[{createdAt:{lt:anchor.createdAt}},{createdAt:anchor.createdAt,id:{lt:anchor.id}}]}:{})},orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1}),data.limit);
     });
   }
   @Post("admin/teachers/:id/checks") async check(

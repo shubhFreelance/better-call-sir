@@ -1,3 +1,4 @@
+import {pageQuery,pageBefore,pageResult} from '../../pagination';
 import {subjectSchema,boardSchema,learnerScope} from '../../coverage';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
@@ -71,9 +72,11 @@ class RequestsController {
     return {items,nextCursor:rows.length>data.limit?items.at(-1)!.id:null};
   }
 
-  @Get('requests') async requests(@Req() req: Request) {
-    const account=await this.service.actor(req,['GUARDIAN','ADMIN','OPERATOR']);
-    return {items:await this.db.tuitionRequest.findMany({where:account.role==='GUARDIAN'?{guardianId:account.id}:account.role==='OPERATOR'?{region:account.region}:{},orderBy:{createdAt:'desc'},take:50})};
+  @Get('requests') async requests(@Req() req: Request,@Query() query:unknown) {
+    const account=await this.service.actor(req,['GUARDIAN','ADMIN','OPERATOR']),data=parse(pageQuery.extend({status:z.enum(['OPEN','CLOSED','MATCHED']).optional()}),query),where={...(account.role==='GUARDIAN'?{guardianId:account.id}:account.role==='OPERATOR'?{region:account.region}:{}),...(data.status?{status:data.status}:{})};
+    const anchor=data.cursor?await this.db.tuitionRequest.findFirst({where:{...where,id:data.cursor},select:{id:true,createdAt:true}}):null;
+    if(data.cursor&&!anchor)fail(404,'NOT_FOUND','Request cursor is unavailable.');
+    return pageResult(await this.db.tuitionRequest.findMany({where:{...where,...pageBefore(anchor)},orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1}),data.limit);
   }
 
   @Get('requests/:id') async request(@Req() req: Request,@Param('id') id: string) {
