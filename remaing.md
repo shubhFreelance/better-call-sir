@@ -10,3 +10,6 @@
 - Full MVP implementation, decision/launch and deferred backlog remains maintained in `remaing.md` on `feat/frontend-implementation`. No launch blocker is closed by this API increment; no deployment.
 
 - Final enquiry-filter review: PLACED is accepted and filter-bound cursors remain enforced. All 139 API cases and 12 contract cases pass; frontend final acceptance remains in progress.
+
+
+18 October 2026 — B2 backend implementation complete: paginated staff/approval APIs, dedicated-email provisioning, role/region changes, suspension and authenticator recovery; different proposer/approver/target, five-minute MFA, expiry/version/epoch checks and audit. Managed private MFA keyring, backwards-compatible rewrap, initial three-admin bootstrap and isolated recovery/rotation/bootstrap drills implemented. Validation:147 API,13 contract,4 MFA unit and8 backend security/CI/client checks; API/tool types and secret scan pass; contract lint retains two existing warnings. Frontend integration follows separately. Actual secret-manager custody, independent operator identity review and production recovery qualification remain launch requirements. Next: B2 bilingual staff workspace, then B3 versioned commercial/coverage configuration. No merge/deployment.

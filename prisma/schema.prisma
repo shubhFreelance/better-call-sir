@@ -6,6 +6,7 @@ datasource db {
   provider = "postgresql"
 }
 model Account {
+  authVersion Int @default(0)
   id String @id @default(uuid()) @db.Uuid
   phone String? @unique
   email String? @unique
@@ -30,6 +31,7 @@ model RateBucket {
   @@index([resetsAt])
 }
 model Session {
+  authVersion Int @default(0)
   id String @id @default(uuid()) @db.Uuid
   accountId String @db.Uuid
   familyId String @db.Uuid
@@ -725,4 +727,27 @@ model StudentGuardianGrant {
  createdAt DateTime @default(now())
  @@index([studentAccountId,id])
  @@index([recipientEmail,id])
+}
+
+model StaffChange {
+ id String @id @default(uuid()) @db.Uuid
+ kind String
+ targetAccountId String? @db.Uuid
+ email String
+ name String
+ role String
+ region String
+ expectedAuthVersion Int
+ proposerId String @db.Uuid
+ proposerAuthVersion Int
+ approverId String? @db.Uuid
+ reason String
+ evidenceRef String
+ decisionReason String?
+ status String @default("PENDING")
+ version Int @default(1)
+ expiresAt DateTime
+ createdAt DateTime @default(now())
+ decidedAt DateTime?
+ @@index([status,id])
 }

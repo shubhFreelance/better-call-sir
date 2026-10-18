@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
-import {mkdtempSync,writeFileSync,readFileSync,statSync,rmSync} from 'node:fs';
+import {mkdtempSync,writeFileSync,readFileSync,statSync,rmSync,chmodSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -17,4 +17,15 @@ test('MFA secrets use authenticated encryption tied to the account and fail clos
 });
 test('local MFA setup generates private keys once, never prints them and refuses production files',()=>{
  const dir=mkdtempSync(path.join(tmpdir(),'bcs-mfa-key-')),file=path.join(dir,'.env');try{writeFileSync(file,'APP_MODE=development\n');const first=spawnSync(process.execPath,['scripts/development-key.mjs',file],{encoding:'utf8'});assert.equal(first.status,0);const saved=readFileSync(file,'utf8'),keys=parseEnv(saved);for(const name of ['MFA_ENCRYPTION_KEY','OTP_HASH_KEY']){assert.equal(Buffer.from(keys[name],'base64').length,32);assert.equal(first.stdout.includes(keys[name]),false);}assert.notEqual(keys.MFA_ENCRYPTION_KEY,keys.OTP_HASH_KEY);assert.equal(statSync(file).mode&0o777,0o600);assert.equal(spawnSync(process.execPath,['scripts/development-key.mjs',file]).status,0);assert.equal(readFileSync(file,'utf8'),saved);writeFileSync(file,'APP_MODE=production\n');assert.notEqual(spawnSync(process.execPath,['scripts/development-key.mjs',file],{stdio:'pipe'}).status,0);assert.equal(readFileSync(file,'utf8'),'APP_MODE=production\n');}finally{rmSync(dir,{recursive:true});}
+});
+test('managed MFA keyrings rotate without losing legacy credentials and reject unsafe or missing keys',()=>{
+ const dir=mkdtempSync(path.join(tmpdir(),'bcs-ring-')),file=path.join(dir,'keyring.json'),oldFile=process.env.MFA_KEYRING_FILE,oldKey=process.env.MFA_ENCRYPTION_KEY;
+ try{delete process.env.MFA_KEYRING_FILE;const first=randomBytes(32).toString('base64'),second=randomBytes(32).toString('base64');process.env.MFA_ENCRYPTION_KEY=first;const secret=newMfaSecret(),legacy=encryptMfa(secret,'owner');
+ writeFileSync(file,JSON.stringify({activeId:'next',legacyKeyId:'previous',keys:{previous:first,next:second}}),{mode:0o600});process.env.MFA_KEYRING_FILE=file;
+ assert.equal(decryptMfa(legacy,'owner'),secret);const current=encryptMfa(secret,'owner');assert(current.startsWith('v1:next:'));assert.equal(decryptMfa(current,'owner'),secret);assert.throws(()=>decryptMfa(current,'another'));
+ writeFileSync(file,JSON.stringify({activeId:'next',keys:{next:second}}));assert.throws(()=>decryptMfa(legacy,'owner'));assert.equal(decryptMfa(current,'owner'),secret);
+ chmodSync(file,0o644);assert.throws(()=>encryptMfa(secret,'owner'));chmodSync(file,0o600);writeFileSync(file,'{}');assert.throws(()=>encryptMfa(secret,'owner'));writeFileSync(file,JSON.stringify({activeId:'next',keys:{next:second}}));
+ // A configured keyring never silently falls back to the development environment key.
+ process.env.MFA_KEYRING_FILE=file+'.missing';assert.throws(()=>decryptMfa(legacy,'owner'));delete process.env.MFA_KEYRING_FILE;assert.throws(()=>decryptMfa(current,'owner'));
+ }finally{if(oldFile)process.env.MFA_KEYRING_FILE=oldFile;else delete process.env.MFA_KEYRING_FILE;if(oldKey)process.env.MFA_ENCRYPTION_KEY=oldKey;else delete process.env.MFA_ENCRYPTION_KEY;rmSync(dir,{recursive:true});}
 });
