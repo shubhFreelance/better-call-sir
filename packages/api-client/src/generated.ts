@@ -10051,7 +10051,12 @@ export interface operations {
     };
     getDemos: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string;
+                requestId?: string;
+                status?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -10066,6 +10071,8 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["Demo"][];
+                        /** Format: uuid */
+                        nextCursor?: string | null;
                     };
                 };
             };

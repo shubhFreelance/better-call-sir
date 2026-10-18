@@ -25,7 +25,7 @@ Owner request: complete remaining bounded histories and legacy/mobile/keyboard/l
 
 Multiple simultaneous unfinished enquiry drafts are not required by a current acceptance criterion. One separate additional-enquiry draft already supports save/resume, explicit discard and post-submission restart; existing enquiries are independent and remain reachable. Do not add parallel-draft complexity without a demonstrated requirement.
 
-Class-specific demo/lesson/timetable/recurring/payable histories and new class workflows remain in the owner's explicitly deferred class-management scope. Existing screens/data remain available; shared control/accessibility fixes may improve them without adding class functionality or accepting live payments/Meet. No deferred item is marked accepted for launch.
+Optional already-requested hiring-demo history is included in B12 and has a separate paginated API increment. Class-specific lesson/timetable/recurring/payable histories and new class workflows remain in the owner's explicitly deferred class-management scope. Existing screens/data remain available; shared control/accessibility fixes may improve them without adding class functionality or accepting live payments/Meet. No deferred item is marked accepted for launch.
 
 ## Frontend acceptance for this increment
 

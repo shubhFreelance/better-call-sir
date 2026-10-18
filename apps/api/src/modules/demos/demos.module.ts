@@ -1,9 +1,11 @@
+import {pageQuery,pageBefore,pageResult} from '../../pagination';
 import {
   Module,
   Controller,
   Get,
   Post,
   Param,
+  Query,
   Body,
   Req,
   Inject,
@@ -111,41 +113,18 @@ class DemosController {
       }),
     };
   }
-  @Get("demos") async list(@Req() req: HttpRequest) {
-    const actor = await this.service.actor(req, [
-      "GUARDIAN",
-      "TEACHER",
-      "ADMIN",
-      "OPERATOR",
-    ]);
-    const teacher =
-      actor.role === "TEACHER"
-        ? await this.service.db.teacher.findUnique({
-            where: { accountId: actor.id },
-          })
-        : null;
-    if (actor.role === "TEACHER" && !teacher) return { items: [] };
-    const regionalRequests=actor.role==="OPERATOR"?await this.service.db.tuitionRequest.findMany({where:{region:actor.region},select:{id:true}}):null;
-    const demos = await this.service.db.demo.findMany({
-      where:
-        actor.role === "GUARDIAN"
-          ? { guardianId: actor.id }
-          : actor.role === "TEACHER"
-            ? { teacherId: teacher!.id }
-            : actor.role === "OPERATOR" ? {requestId:{in:regionalRequests!.map(r=>r.id)}} : {},
-      orderBy: { createdAt: "desc" },
-      take: 100,
-    });
-    const items = [];
-    for (const demo of demos) {
-      if(actor.role==="OPERATOR") {const request=await this.service.db.tuitionRequest.findUniqueOrThrow({where:{id:demo.requestId}});if(request.region!==actor.region)continue;}
-      const consent = await this.service.db.consent.findUnique({
-        where: { guardianId: demo.guardianId },
-      });
-      if (consent && !consent.withdrawnAt)
-        items.push(await this.result(this.service.db, demo));
-    }
-    return { items };
+  @Get("demos") async list(@Req() req:HttpRequest,@Query() query:unknown) {
+    const actor=await this.service.actor(req,['GUARDIAN','TEACHER','ADMIN','OPERATOR']),data=parse(pageQuery.extend({requestId:uuid.optional(),status:z.string().trim().min(1).max(40).optional()}),query),db=this.service.db;
+    const teacher=actor.role==='TEACHER'?await db.teacher.findUnique({where:{accountId:actor.id}}):null;
+    if(actor.role==='TEACHER'&&!teacher)return {items:[],nextCursor:null};
+    const regionalRequests=actor.role==='OPERATOR'?await db.tuitionRequest.findMany({where:{region:actor.region},select:{id:true}}):[];
+    const consent=await db.consent.findMany({where:{withdrawnAt:null,...(actor.role==='GUARDIAN'?{guardianId:actor.id}:{})},select:{guardianId:true}});
+    // Eligibility filters precede the page limit so inaccessible demos cannot starve visible history.
+    const where={AND:[{guardianId:{in:consent.map(c=>c.guardianId)}},...(actor.role==='GUARDIAN'?[{guardianId:actor.id}]:actor.role==='TEACHER'?[{teacherId:teacher!.id}]:actor.role==='OPERATOR'?[{requestId:{in:regionalRequests.map(r=>r.id)}}]:[]),...(data.requestId?[{requestId:data.requestId}]:[]),...(data.status?[{status:data.status}]:[])]};
+    const anchor=data.cursor?await db.demo.findFirst({where:{...where,id:data.cursor},select:{id:true,createdAt:true}}):null;
+    if(data.cursor&&!anchor)fail(404,'NOT_FOUND','Demo cursor is unavailable.');
+    const page=pageResult(await db.demo.findMany({where:{...where,...pageBefore(anchor)},orderBy:[{createdAt:'desc'},{id:'desc'}],take:data.limit+1}),data.limit);
+    return {items:await Promise.all(page.items.map(demo=>this.result(db,demo))),nextCursor:page.nextCursor};
   }
   @Post("demos") async propose(@Req() req: HttpRequest, @Body() body: unknown) {
     const actor = await this.service.actor(req, ["GUARDIAN"]);
