@@ -14,6 +14,7 @@ export async function matched(
   child: Child,
   teacher: Teacher,
 ) {
+  if(child.guardianVerificationId&&!await db.guardianVerification.count({where:{id:child.guardianVerificationId,status:'APPROVED'}}))return null;
   if (!await enabledRegion(db,request.region) || !await enabledRegion(db,teacher.region)) return null;
   if (request.rematchFromPlacementId) {
     const old = await db.placement.findUnique({

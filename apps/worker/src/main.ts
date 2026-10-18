@@ -68,8 +68,18 @@ async function tick() {
   await extendRecurring();
   await db.reservation.updateMany({where:{status:'HOLD',expiresAt:{lt:new Date()}},data:{status:'EXPIRED',version:{increment:1}}});
   return db.$transaction(async tx=>{
-    const jobs=await tx.$queryRaw<{id:string;type:string;aggregateId:string;payload:{version:number}}[]>`SELECT id,type,"aggregateId",payload FROM "Outbox" WHERE "processedAt" IS NULL AND attempts < 5 AND type<>'refund.requested' ORDER BY CASE WHEN type='privacy.evidence_delete_requested' THEN 0 WHEN type='evidence.scan_requested' THEN 1 ELSE 2 END,"createdAt" LIMIT 1 FOR UPDATE SKIP LOCKED`;
+    const jobs=await tx.$queryRaw<{id:string;type:string;aggregateId:string;payload:{version:number}}[]>`SELECT id,type,"aggregateId",payload FROM "Outbox" WHERE "processedAt" IS NULL AND attempts < 5 AND type<>'refund.requested' ORDER BY CASE WHEN type IN ('privacy.evidence_delete_requested','privacy.guardian_evidence_delete_requested') THEN 0 WHEN type IN ('evidence.scan_requested','guardian-evidence.scan_requested') THEN 1 ELSE 2 END,"createdAt" LIMIT 1 FOR UPDATE SKIP LOCKED`;
     for (const job of jobs) {
+      if(job.type==='privacy.guardian_evidence_delete_requested'){
+        try{files.remove(job.aggregateId);await tx.guardianEvidence.updateMany({where:{id:job.aggregateId},data:{status:'DELETED',version:{increment:1}}});await tx.outbox.update({where:{id:job.id},data:{processedAt:new Date(),attempts:{increment:1}}});}catch{await tx.outbox.update({where:{id:job.id},data:{attempts:{increment:1}}});}continue;
+      }
+      if(job.type==='guardian-evidence.scan_requested'){
+        const e=await tx.guardianEvidence.findUnique({where:{id:job.aggregateId}});
+        if(e?.status==='QUARANTINED'&&e.version===job.payload.version){
+          try{const bytes=files.read(e.id);if(files.digest(bytes)!==e.sha256)throw new Error('EVIDENCE_INTEGRITY');const result=await files.scan(bytes);await tx.guardianEvidence.update({where:{id:e.id},data:{...result,scannedAt:new Date(),version:{increment:1}}});const owner=await tx.guardianVerification.findUniqueOrThrow({where:{id:e.verificationId}});await tx.audit.create({data:{actorId:owner.guardianId,action:'GUARDIAN_EVIDENCE_SCANNED_SYSTEM',aggregateId:e.id,reason:'Automated private school-report scan',requestId:randomUUID(),after:{status:result.status,scannerVersion:result.scannerVersion}}});}catch{await tx.outbox.update({where:{id:job.id},data:{attempts:{increment:1}}});continue;}
+        }
+        await tx.outbox.update({where:{id:job.id},data:{processedAt:new Date(),attempts:{increment:1}}});continue;
+      }
       if(job.type==='privacy.evidence_delete_requested'){
         try{files.remove(job.aggregateId);await tx.evidence.updateMany({where:{id:job.aggregateId},data:{status:'DELETED',version:{increment:1}}});await tx.outbox.update({where:{id:job.id},data:{processedAt:new Date(),attempts:{increment:1}}});}catch{await tx.outbox.update({where:{id:job.id},data:{attempts:{increment:1}}});}continue;
       }

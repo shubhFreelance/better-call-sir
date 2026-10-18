@@ -47,7 +47,9 @@ export class AppService {
     if (account.role === 'STUDENT') {
       const child=await this.db.child.findUnique({where:{studentAccountId:account.id}});
       const consent=child?await this.db.consent.findUnique({where:{guardianId:child.guardianId}}):null;
-      if (!child || child.studentAccessRevokedAt || !consent || consent.withdrawnAt) fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
+      const guardian=child?await this.db.account.findUnique({where:{id:child.guardianId}}):null;
+      const proof=child?.guardianVerificationId?await this.db.guardianVerification.findUnique({where:{id:child.guardianVerificationId}}):null;
+      if (!child || (child.guardianVerificationId&&(!guardian?.verified||guardian.disabled||proof?.status!=='APPROVED')) || child.studentAccessRevokedAt || !consent || consent.withdrawnAt) fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
     }
     if (roles && !roles.includes(account.role)) fail(403,'FORBIDDEN','Your role cannot perform this action.');
     if(privileged(account.role)){
@@ -70,6 +72,7 @@ export class AppService {
   async child(db: DB, account: Account, id: string) {
     const child = await db.child.findUnique({where:{id}});
     if (!child || (account.role === 'GUARDIAN' && child.guardianId !== account.id) || (account.role === 'STUDENT' && child.studentAccountId !== account.id)) fail(404,'NOT_FOUND','Student not found.');
+    if(child.guardianVerificationId&&!await db.guardianVerification.count({where:{id:child.guardianVerificationId,status:'APPROVED'}}))fail(403,'LEARNER_VERIFICATION_REQUIRED','This learner relationship requires a new guardian review.');
     return child;
   }
   async audit(db: DB, actor: Account, req: HttpRequest, action: string, id: string, reason: string, before?: Prisma.InputJsonValue, after?: Prisma.InputJsonValue) {
