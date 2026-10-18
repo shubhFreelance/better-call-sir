@@ -5236,3 +5236,30 @@ fieldset.catalog-filters { min-inline-size:0; margin-inline:0; }
 .commercial-workspace select { min-height:44px; width:100%; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:var(--white); color:var(--ink); }
 .commercial-comparison { margin-block:24px; }
 @media(max-width:700px) { .commercial-current,.commercial-regions { grid-template-columns:minmax(0,1fr); } }
+
+/* Relationship review uses a worksheet; the lavender panel identifies decision ownership. */
+.guardian-verification-workspace { display: grid; gap: 2rem; }
+.guardian-verification-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.25rem; }
+.guardian-verification-fields, .guardian-verification-editor fieldset { min-width: 0; border: 0; padding: 0; margin: 0 0 1.5rem; display: grid; gap: 1rem; }
+.guardian-verification-editor legend { font-weight: 700; margin-bottom: 1rem; }
+.guardian-verification-editor label, .guardian-verification-workspace select { min-width: 0; }
+.guardian-verification-editor label:not(.care-check):not(.guardian-management-option) { display: grid; gap: .5rem; }
+.guardian-verification-workspace select { width: 100%; min-height: 44px; padding: .65rem .8rem; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); }
+.guardian-management-option { display: flex; align-items: flex-start; gap: .8rem; padding: 1rem; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+.guardian-management-option:has(input:checked), .guardian-management-summary { background: #F0D7FF; border-radius: 12px; }
+.guardian-management-option input { margin-top: .3rem; flex: none; }
+.guardian-management-option span, .guardian-management-option small { display: block; }
+.guardian-management-option small { margin-top: .35rem; line-height: 1.7; }
+.guardian-management-summary { padding: 1.25rem; margin: 1.25rem 0; color: #17201F; }
+.guardian-evidence-step { padding: 1.25rem; margin: 1.5rem 0; background: #FFFFEB; border-radius: 12px; display: grid; gap: 1rem; }
+.guardian-verification-editor { max-width: 840px; margin-top: 1.5rem; overflow-wrap: anywhere; }
+.guardian-verification-close { display: grid; gap: .75rem; margin-top: 1.5rem; }
+.guardian-verification-editor .care-actions { margin-block: 1rem; }
+.guardian-verification-editor .staff-summary dd { overflow-wrap: anywhere; }
+@media(max-width:640px){.guardian-verification-grid{grid-template-columns:minmax(0,1fr)}.guardian-verification-editor{padding:1rem}.guardian-verification-editor button{min-height:44px;white-space:normal}.guardian-verification-editor .care-actions{display:grid;grid-template-columns:minmax(0,1fr)}.guardian-verification-editor input[type=file]{max-width:100%;font-size:.85rem}.guardian-verification-workspace .staff-person{align-items:stretch;gap:1rem}.guardian-management-option{padding:.9rem}.guardian-verification-workspace .staff-heading{align-items:stretch;flex-direction:column}}
+.guardian-verification-editor { background: var(--white); }
+.guardian-management-option small { font-weight: 400; color: var(--muted); }
+.guardian-verification-editor .care-check, .guardian-acknowledgment .care-check { font-weight: 500; line-height: 1.7; }
+.guardian-acknowledgment fieldset { display: grid; gap: 1rem; border: 0; padding: 0; margin: 1rem 0; }
+.guardian-acknowledgment label:not(.care-check) { display: grid; gap: .5rem; }
+@media(max-width:640px){.guardian-verification-editor form>button,.guardian-evidence-step>button,.guardian-acknowledgment form button{width:100%}}

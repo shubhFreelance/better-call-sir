@@ -179,13 +179,13 @@ for (const mode of ["verification", "privacy"])
         page.getByRole("link", {
           name:
             mode === "verification"
-              ? "Get help with guardian verification"
+              ? "Start guardian verification"
               : "Review privacy request",
           exact: true,
         }),
       ).toHaveAttribute(
         "href",
-        mode === "verification" ? "/support" : "/dashboard/privacy",
+        mode === "verification" ? "/guardian-verification" : "/dashboard/privacy",
       );
       await expect(page.getByRole("checkbox")).toHaveCount(0);
       await expect(

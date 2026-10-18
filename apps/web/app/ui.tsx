@@ -1,4 +1,5 @@
 "use client";
+import { GuardianVerificationWorkspace } from "./guardian-verification";
 import { Button as SharedButton } from "../components/ui/button";
 import { Input as SharedInput } from "../components/ui/input";
 import {
@@ -1836,6 +1837,28 @@ function TeacherOnboarding() {
     );
   return <TeacherSetup session={session} onSessionChange={setSession} />;
 }
+function GuardianVerificationPage() {
+  const { session, setSession, loading } = useAuth();
+  const { appText } = useAppTranslation();
+  if (loading) return <State loading />;
+  if (!session) return <LoginPrompt />;
+  return (
+    <main className="container section">
+      <PageTitle
+        eyebrow={appText("Family access")}
+        title={appText("Guardian verification")}
+        subtitle={appText(
+          "Confirm the relationship. Keep learning consent separate.",
+        )}
+      />
+      <GuardianVerificationWorkspace
+        key={session.account.id}
+        session={session}
+        onSessionChange={setSession}
+      />
+    </main>
+  );
+}
 function GuardianSetupPage() {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
@@ -2014,6 +2037,15 @@ function DashboardShell({
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
     ["/teachers", "Find a teacher", Search],
+    ...(["GUARDIAN", "STUDENT", "ADMIN", "REVIEWER"].includes(role || "")
+      ? [
+          ["/guardian-verification", "Guardian verification", ShieldCheck] as [
+            string,
+            string,
+            LucideIcon,
+          ],
+        ]
+      : []),
     ...(["GUARDIAN", "STUDENT"].includes(role || "")
       ? [
           ["/dashboard/learners", "Education profiles", GraduationCap] as [
@@ -3028,6 +3060,8 @@ function Routes() {
     <Login />
   ) : path === "/dashboard/learners" ? (
     <LearnerProfilesPage />
+  ) : path === "/guardian-verification" ? (
+    <GuardianVerificationPage />
   ) : path === "/onboarding/guardian" ? (
     <GuardianSetupPage />
   ) : path === "/onboarding/parent" ? (

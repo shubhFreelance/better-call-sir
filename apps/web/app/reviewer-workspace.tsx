@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { TeachingCoverageSummary, coverageText } from "./teaching-coverage";
@@ -68,6 +69,9 @@ export function ReviewerWorkspace({ session }: { session: Session }) {
     );
   return (
     <div className="care-workspace">
+      <Link href="/guardian-verification" className="inline-link">
+        {appText("Review guardian relationships")}
+      </Link>
       <section className="care-intro">
         <ShieldCheck size={28} aria-hidden="true" />
         <h2>{appText("Evidence before approval.")}</h2>

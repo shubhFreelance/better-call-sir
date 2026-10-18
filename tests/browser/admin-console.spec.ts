@@ -55,7 +55,9 @@ async function mock(page: Page, mode = "normal", role = "ADMIN") {
     },
     job = {
       id: jobId,
-      type: "evidence.scan_requested",
+      type: mode.startsWith("guardian-job:")
+        ? mode.slice("guardian-job:".length)
+        : "evidence.scan_requested",
       aggregateId: child,
       attempts: 5,
       createdAt: now,
@@ -535,6 +537,33 @@ test("private media retry excludes money jobs and records a queued outcome", asy
   ).toBeVisible();
   expect(s.writes[0].body.expectedAttempts).toBe(5);
 });
+for (const type of [
+  "guardian-evidence.scan_requested",
+  "privacy.guardian_evidence_delete_requested",
+]) {
+  test(`guardian private media recovery reviews and queues ${type}`, async ({
+    page,
+  }) => {
+    const s = await mock(page, `guardian-job:${type}`);
+    await choose(page, "Recovery & backups");
+    await expect(
+      page.getByRole("button", { name: "Review retry 30000000" }).last(),
+    ).toBeDisabled();
+    await page
+      .getByRole("button", { name: "Review retry 30000000" })
+      .first()
+      .click();
+    await effects(page);
+    await page
+      .getByRole("button", { name: "Confirm reviewed decision" })
+      .click();
+    await expect(
+      page.getByText("Retry queued; worker processing is not confirmed."),
+    ).toBeVisible();
+    expect(s.writes).toHaveLength(1);
+    expect(s.writes[0].body.expectedAttempts).toBe(5);
+  });
+}
 test("deletion replay requires a verified restore reference and records only application handling", async ({
   page,
 }) => {
@@ -738,11 +767,13 @@ test("privacy rejection records a reason without promising restored consent", as
   ).toHaveCount(0);
 });
 
- test("Hindi complete interface — प्रशासक नियंत्रण और ऑडिट", async ({ page }) => {
- await chooseHindi(page);
- await mock(page);
- await page.goto("/dashboard/admin");
- await checkHindi(page);
- await page.setViewportSize({ width: 360, height: 800 });
- await checkHindi(page);
- });
+test("Hindi complete interface — प्रशासक नियंत्रण और ऑडिट", async ({
+  page,
+}) => {
+  await chooseHindi(page);
+  await mock(page);
+  await page.goto("/dashboard/admin");
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
+});

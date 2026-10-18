@@ -28,7 +28,12 @@ type Action =
   | { kind: "privacy"; item: Privacy }
   | { kind: "job"; item: Job }
   | { kind: "replay"; item: Deletion };
-const label = (v: string) => v.toLowerCase().replaceAll("_", " ");
+const label = (v: string) =>
+  v === "guardian-evidence.scan_requested"
+    ? "Guardian report scan"
+    : v === "privacy.guardian_evidence_delete_requested"
+      ? "Guardian report deletion"
+      : v.toLowerCase().replaceAll("_", " ");
 const when = (v: string, locale = "en-IN") =>
   new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
@@ -81,6 +86,9 @@ function ConsoleWorkspace({ session }: { session: Session }) {
           )}{" "}
         </p>
       </section>
+      <Link href="/guardian-verification" className="inline-link">
+        {appText("Review guardian relationships")}
+      </Link>
       <Notice>
         {appText(
           "Private administrator workspace. Staff access, hiring fee and coverage changes require independent review. Live release retains its separate qualification requirements.",
@@ -829,6 +837,8 @@ function Recovery({
                   ![
                     "evidence.scan_requested",
                     "privacy.evidence_delete_requested",
+                    "guardian-evidence.scan_requested",
+                    "privacy.guardian_evidence_delete_requested",
                   ].includes(j.type)
                 }
                 onClick={() => select({ kind: "job", item: j })}
@@ -1241,7 +1251,7 @@ function AdminDecision({
       )}
       {action.kind === "job" && (
         <Notice>
-          {appText("Retry")} {appText(action.item.type)}{" "}
+          {appText("Retry")} {appText(label(action.item.type))}{" "}
           {appText("for resource")} {action.item.aggregateId}
           {appText(
             ". The server rechecks its current private-media state. Payment, meeting and notification recovery are not performed by this action.",

@@ -46,7 +46,7 @@ export function StaffAccess({
   const path = usePathname();
   return session &&
     staffRole(session.account.role) &&
-    path.startsWith("/dashboard") ? (
+    (path.startsWith("/dashboard") || path === "/guardian-verification") ? (
     <VerifiedStaff
       key={session.account.id}
       session={session}

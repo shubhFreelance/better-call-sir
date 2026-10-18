@@ -214,8 +214,8 @@ export function GuardianSetup({
                       "You can explore teachers while verification is pending. No learner details are needed here.",
                     )}{" "}
                   </p>
-                  <Link className="inline-link" href="/support">
-                    {appText("Get help with guardian verification")}{" "}
+                  <Link className="inline-link" href="/guardian-verification">
+                    {appText("Start guardian verification")}{" "}
                   </Link>
                 </>
               ) : data.gate === "PRIVACY_PAUSED" ? (

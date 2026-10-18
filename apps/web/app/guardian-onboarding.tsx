@@ -269,6 +269,9 @@ export function GuardianOnboarding({
         </Alert>
         {verificationError && <p role="alert">{appError(verificationError)}</p>}
         <div className="wizard-actions">
+          <Link className="button" href="/guardian-verification">
+            {appText("Start guardian verification")}
+          </Link>
           <Link className="button secondary" href="/teachers">
             {appText("Explore teachers")}{" "}
           </Link>

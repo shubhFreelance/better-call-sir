@@ -367,9 +367,14 @@ export function LearnerProfiles({ session }: { session: Session }) {
           {appText("Back to dashboard")}{" "}
         </Link>
         {session.account.role === "GUARDIAN" && (
-          <Link href="/onboarding/guardian" className="inline-link">
-            {appText("Guardian setup")}{" "}
-          </Link>
+          <>
+            <Link href="/guardian-verification" className="inline-link">
+              {appText("Verify another learner relationship")}
+            </Link>
+            <Link href="/onboarding/guardian" className="inline-link">
+              {appText("Guardian setup")}{" "}
+            </Link>
+          </>
         )}
       </header>
       <div className="learner-profile-layout">
@@ -641,7 +646,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     {field(
                       "alias",
                       undefined,
-                      "Use a familiar name or alias, up to 40 characters.",
+                      "For a newly verified relationship, use the learner name from the approved guardian review, up to 40 characters.",
                     )}
                     <div className="field">
                       <label htmlFor="education-stage">
