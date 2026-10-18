@@ -1,3 +1,4 @@
+import {hiringQuote,recordedFee} from '../administration/commercial-policy';
 import {subjectSchema} from '../../coverage';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
@@ -50,7 +51,7 @@ class PlacementsController {
       if (!teacher || !candidate || candidate.response!=='ACCEPTED' || !await matched(db,request,child,teacher)) fail(409,'INELIGIBLE','An eligible, accepted recommendation is required.');
       const existingDemo=await db.demo.findFirst({where:{requestId:request.id,teacherId:teacher.id},orderBy:{createdAt:'desc'}});
       if(existingDemo&&!['COMPLETED','CANCELLED'].includes(existingDemo.status))fail(409,'DEMO_PENDING_REVIEW','An already requested demo must be completed, cancelled or resolved before opening terms.');
-      const placement=await db.placement.create({data:{guardianId:actor.id,teacherId:teacher.id,childId:child.id,requestId:request.id,monthlyPaise:teacher.monthlyPaise}});
+      const placement=await db.placement.create({data:{guardianId:actor.id,teacherId:teacher.id,childId:child.id,requestId:request.id,monthlyPaise:teacher.monthlyPaise,...await hiringQuote(db,teacher.monthlyPaise)}});
       await this.service.event(db,'placement.terms_requested',placement.id);return placement;
     });
   }
@@ -75,7 +76,7 @@ class PlacementsController {
       if (updated.guardianStarted && updated.teacherReceiptConfirmed) {
         updated=await db.placement.update({where:{id},data:{status:'ACTIVE',startedAt:p.startedAt||new Date()}});
         const t=await db.teacher.findUniqueOrThrow({where:{id:p.teacherId}});
-        await db.invoice.upsert({where:{placementId:id},create:{placementId:id,payerId:t.accountId,amountPaise:placementFee(p.monthlyPaise),policyVersion:p.policyVersion},update:{}});
+        await db.invoice.upsert({where:{placementId:id},create:{placementId:id,payerId:t.accountId,amountPaise:recordedFee(p),policyVersion:p.policyVersion},update:{}});
         await this.service.event(db,'placement.started',id);
       }
       return updated;

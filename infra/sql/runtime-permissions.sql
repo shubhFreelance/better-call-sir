@@ -22,7 +22,7 @@ BEGIN
  EXECUTE format('GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO %I',runtime);
  EXECUTE format('GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO %I',runtime);
  EXECUTE format('REVOKE ALL ON TABLE "_prisma_migrations" FROM %I',runtime);
- FOREACH immutable IN ARRAY ARRAY['Audit','VerificationCheck','CaseUpdate','LessonConfirmation','LessonFeedback','RecommendationRun','RecommendationPresentation','CandidateDecision','ContinuationObservation','DeletionRecord'] LOOP
+ FOREACH immutable IN ARRAY ARRAY['Audit','VerificationCheck','CaseUpdate','LessonConfirmation','LessonFeedback','RecommendationRun','RecommendationPresentation','CandidateDecision','ContinuationObservation','DeletionRecord','CommercialRevision'] LOOP
   EXECUTE format('REVOKE UPDATE,DELETE,TRUNCATE ON TABLE %I FROM %I',immutable,runtime);
  END LOOP;
  EXECUTE format('ALTER ROLE %I SET statement_timeout TO %L',runtime,'15s');

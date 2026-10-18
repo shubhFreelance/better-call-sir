@@ -1,3 +1,4 @@
+import {hiringQuote,enabledRegion} from '../administration/commercial-policy';
 import {studentAuthority} from '../learners/student-authority';
 import {Module,Controller,Get,Post,Param,Query,Req,Body,Inject} from '@nestjs/common';
 import {z} from 'zod';
@@ -31,8 +32,8 @@ export function studentLearner(e:StudentEnquiry):LearnerScope{
  const s=e.educationScope as Record<string,any>;return {educationStage:s.stage,grade:s.grade??null,board:s.board??null,courseName:s.courseName??null,studyYear:s.studyYear??null};
 }
 export async function studentFit(db:DB,e:StudentEnquiry,t:Teacher,agreedPrice?:number){
- const owner=await db.account.findUnique({where:{id:t.accountId}}),region=await db.region.findUnique({where:{id:e.region}});
- if(!owner||owner.disabled||owner.role!=='TEACHER'||!region?.enabled||t.id===e.excludedTeacherId||e.preferredTeacherId&&e.preferredTeacherId!==t.id||!eligible(e,studentLearner(e),{...t,...(agreedPrice!==undefined?{monthlyPaise:agreedPrice}:{})})||e.mode==='HOME'&&(t.region!==e.region||!t.travelAccepted)||!await capacity(db,t,undefined,e.studentAccountId))return null;
+ const owner=await db.account.findUnique({where:{id:t.accountId}}),regionEnabled=await enabledRegion(db,e.region);
+ if(!owner||owner.disabled||owner.role!=='TEACHER'||!regionEnabled||!await enabledRegion(db,t.region)||t.id===e.excludedTeacherId||e.preferredTeacherId&&e.preferredTeacherId!==t.id||!eligible(e,studentLearner(e),{...t,...(agreedPrice!==undefined?{monthlyPaise:agreedPrice}:{})})||e.mode==='HOME'&&(t.region!==e.region||!t.travelAccepted)||!await capacity(db,t,undefined,e.studentAccountId))return null;
  const prefs=weeklyPreferenceSchema.safeParse(e.preferences);if(!prefs.success||!normalizedPreferences(prefs.data))return null;
  const now=new Date(),windows=weeklyFit(await calendarSnapshot(db,t.id,'RECURRING',new Date(now.getTime()+3600000),new Date(now.getTime()+60*86400000)),prefs.data.weekly,now);
  return windows.length?{teacherId:t.id,teacherVersion:t.version,monthlyPaise:agreedPrice??t.monthlyPaise,windows}:null;
@@ -90,7 +91,7 @@ class StudentHiringController{
   if(actor.role==='GUARDIAN')await this.service.db.$transaction(db=>ownedStudentEnquiry(db,actor,id,true));
   return this.service.once(req,actor,'student.select',data,async db=>{const initial=await ownedStudentEnquiry(db,actor,id,true);await studentReady(db,initial.studentAccountId);const e=await db.studentEnquiry.findUniqueOrThrow({where:{id}}),c=await db.studentCandidate.findUnique({where:{id:data.candidateId}});
    if(e.version!==data.expectedVersion||e.status!=='SUBMITTED'||!c||c.enquiryId!==id||c.version!==data.candidateVersion||!c.position||c.response!=='ACCEPTED'||c.expiresAt<=new Date()||c.runId!==e.matchRunId||await db.studentArrangement.count({where:{enquiryId:id}}))fail(409,'CONFLICT','Choose a current accepted teacher before opening terms.');await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${c.teacherId},0))`;const t=await db.teacher.findUniqueOrThrow({where:{id:c.teacherId}});if(!await studentFit(db,e,t))fail(409,'INELIGIBLE','Teacher availability or eligibility changed.');
-   const terms={policyVersion:'independent-hiring-development-v1',subject:e.subject,mode:e.mode,language:e.language,monthlyPaise:t.monthlyPaise,platformFeePaise:placementFee(t.monthlyPaise),currency:'INR',lockInDays:t.lockInDays,lockInEnforced:false,demoAvailable:!!t.demoOptIn,classesBooked:false,contactSharing:'EMAIL_AFTER_MUTUAL_CONFIRMATION'};
+   const quote=await hiringQuote(db,t.monthlyPaise);const terms={commercialVersion:quote.commercialVersion,policyVersion:'independent-hiring-development-v1',subject:e.subject,mode:e.mode,language:e.language,monthlyPaise:t.monthlyPaise,platformFeePaise:quote.placementFeePaise,currency:'INR',lockInDays:t.lockInDays,lockInEnforced:false,demoAvailable:!!t.demoOptIn,classesBooked:false,contactSharing:'EMAIL_AFTER_MUTUAL_CONFIRMATION'};
    const a=await db.studentArrangement.create({data:{enquiryId:id,studentAccountId:e.studentAccountId,teacherId:t.id,region:e.region,terms}});await db.studentEnquiry.update({where:{id},data:{selectedCandidateId:c.id,version:{increment:1}}});await this.service.audit(db,actor,req,'STUDENT_TEACHER_SELECTED',id,'Student chose a teacher and opened immutable terms; neither party accepted automatically',undefined,{candidateId:c.id,arrangementId:a.id});return arrangementProjection(a);});
  }
  @Get('student-arrangements') async arrangements(@Req() req:HttpRequest,@Query() query:unknown){

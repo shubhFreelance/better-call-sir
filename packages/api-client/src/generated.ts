@@ -3174,6 +3174,81 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/commercial": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** getCommercialConfiguration — fresh administrator MFA, independent approval */
+        get: operations["getCommercialConfiguration"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/commercial/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** getCommercialHistory — fresh administrator MFA, independent approval */
+        get: operations["getCommercialHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/commercial/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** getCommercialChanges — fresh administrator MFA, independent approval */
+        get: operations["getCommercialChanges"];
+        put?: never;
+        /**
+         * proposeCommercialChange — fresh administrator MFA, independent approval
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["proposeCommercialChange"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/commercial/changes/{id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * decideCommercialChange — fresh administrator MFA, independent approval
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["decideCommercialChange"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4513,6 +4588,8 @@ export interface components {
             startedAt?: string | null;
             /** Format: date-time */
             closedAt?: string | null;
+            placementFeePaise?: number | null;
+            commercialVersion?: number;
         };
         PrivacyRequest: {
             /** Format: uuid */
@@ -5269,6 +5346,7 @@ export interface components {
             policyVersion?: string;
             /** @description Proposed teacher placement fee under the recorded development policy, payable only after separate start and receipt evidence; not collected by accepting terms. */
             placementFeePaise?: number;
+            commercialVersion?: number;
         };
         HiringDashboard: {
             /** @enum {unknown} */
@@ -5863,6 +5941,7 @@ export interface components {
             classesBooked: false;
             /** @enum {string} */
             contactSharing: "EMAIL_AFTER_MUTUAL_CONFIRMATION";
+            commercialVersion?: number;
         };
         StudentArrangement: {
             /** Format: uuid */
@@ -6144,6 +6223,123 @@ export interface components {
             expectedAuthVersion: number;
         };
         StaffDecision: {
+            expectedVersion: number;
+            /** @enum {string} */
+            decision: "APPROVE" | "REJECT" | "CANCEL";
+            reason: string;
+            /** @constant */
+            independentlyVerified: true;
+        };
+        HiringFeeSettings: {
+            placementBasisPoints: number;
+            placementCapPaise: number;
+        };
+        ServiceRegionSettings: {
+            id: string;
+            /** @constant */
+            countryCode: "IN";
+            stateCode: string;
+            cityName: string;
+            enabled: boolean;
+        };
+        CommercialSnapshot: {
+            placementBasisPoints: number;
+            placementCapPaise: number;
+            regions: components["schemas"]["ServiceRegionSettings"][];
+        };
+        CommercialConfiguration: {
+            version: number;
+            snapshot: components["schemas"]["CommercialSnapshot"];
+            supply: {
+                regionId: string;
+                screened: number;
+                withAvailability: number;
+            }[];
+            limits: {
+                /** @constant */
+                maxBasisPoints: 2500;
+                /** @constant */
+                maxCapPaise: 150000;
+                /** @constant */
+                maxRegions: 200;
+            };
+            /** @constant */
+            currency: "INR";
+            /** @constant */
+            chargesEnabled: false;
+        };
+        CommercialProposal: {
+            expectedVersion: number;
+            reason: string;
+            evidenceRef: string;
+            /** @constant */
+            confirmed: true;
+            /** @constant */
+            kind: "FEE";
+            fee: components["schemas"]["HiringFeeSettings"];
+        } | {
+            expectedVersion: number;
+            reason: string;
+            evidenceRef: string;
+            /** @constant */
+            confirmed: true;
+            /** @constant */
+            kind: "REGION";
+            region: components["schemas"]["ServiceRegionSettings"];
+        } | {
+            expectedVersion: number;
+            reason: string;
+            evidenceRef: string;
+            /** @constant */
+            confirmed: true;
+            /** @constant */
+            kind: "ROLLBACK";
+            restoreVersion: number;
+        };
+        CommercialChange: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "FEE" | "REGION" | "ROLLBACK";
+            restoreVersion: number | null;
+            expectedVersion: number;
+            before: components["schemas"]["CommercialSnapshot"];
+            after: components["schemas"]["CommercialSnapshot"];
+            /** Format: uuid */
+            proposerId: string;
+            proposerAuthVersion: number;
+            /** Format: uuid */
+            approverId: string | null;
+            reason: string;
+            evidenceRef: string;
+            decisionReason: string | null;
+            /** @enum {string} */
+            status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+            version: number;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt: string | null;
+        };
+        CommercialRevision: {
+            version: number;
+            /** Format: uuid */
+            changeId: string | null;
+            before: components["schemas"]["CommercialSnapshot"];
+            after: components["schemas"]["CommercialSnapshot"];
+            /** Format: uuid */
+            proposerId: string | null;
+            /** Format: uuid */
+            approverId: string | null;
+            reason: string;
+            evidenceRef: string;
+            /** Format: date-time */
+            createdAt: string;
+            id: string;
+        };
+        CommercialDecision: {
             expectedVersion: number;
             /** @enum {string} */
             decision: "APPROVE" | "REJECT" | "CANCEL";
@@ -22303,6 +22499,449 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StaffChange"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getCommercialConfiguration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialConfiguration"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getCommercialHistory: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CommercialRevision"][];
+                        nextCursor: string | null;
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getCommercialChanges: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+                status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CommercialChange"][];
+                        /** Format: uuid */
+                        nextCursor: string | null;
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    proposeCommercialChange: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommercialProposal"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialChange"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    decideCommercialChange: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommercialDecision"];
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialChange"];
                 };
             };
             /** @description Validation */

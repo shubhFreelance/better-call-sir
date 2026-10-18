@@ -1,3 +1,4 @@
+import {enabledRegion} from '../administration/commercial-policy';
 import {studentAuthority} from '../learners/student-authority';
 import {Module,Controller,Get,Post,Param,Query,Req,Body,Inject} from '@nestjs/common';
 import {z} from 'zod';
@@ -15,8 +16,8 @@ export async function studentContext(db:DB,id:string){
  const education=parse(learnerEducation,profile.education);
  if(education.stage==='EARLY_YEARS')fail(403,'FORBIDDEN','Early-years learners require guardian setup.');
  const educationScope=education.stage==='SCHOOL'?{stage:education.stage,grade:education.grade,board:education.board}:{stage:education.stage,courseName:education.courseName,studyYear:education.studyYear};
- const paused=!!await db.privacyRequest.count({where:{accountId:id,kind:'DELETION',scope:'ACCOUNT',status:'PENDING'}}),region=await db.region.findUnique({where:{id:account.region}});
- return {profileVersion:profile.version,educationScope,subjects:education.subjects,region:account.region,gate:paused?'PRIVACY_PAUSED':!region?.enabled?'UNSUPPORTED_REGION':'READY'};
+ const paused=!!await db.privacyRequest.count({where:{accountId:id,kind:'DELETION',scope:'ACCOUNT',status:'PENDING'}}),regionEnabled=await enabledRegion(db,account.region);
+ return {profileVersion:profile.version,educationScope,subjects:education.subjects,region:account.region,gate:paused?'PRIVACY_PAUSED':!regionEnabled?'UNSUPPORTED_REGION':'READY'};
 }
 export function studentEnquiryProjection(row:StudentEnquiry){
  return {matchStatus:row.matchStatus,matchRunId:row.matchRunId,selectedCandidateId:row.selectedCandidateId,rematchFromArrangementId:row.rematchFromArrangementId,id:row.id,discoveryMethod:row.discoveryMethod,preferredTeacherId:row.preferredTeacherId,educationScope:row.educationScope,profileVersion:row.profileVersion,subject:row.subject,mode:row.mode,language:row.language,locality:row.locality,budgetPaise:row.budgetPaise,preferences:row.preferences,region:row.region,status:row.status,version:row.version,createdAt:row.createdAt};
