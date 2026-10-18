@@ -71,7 +71,7 @@ class IdentityController {
       const original=await db.session.findUnique({where:{refreshHash:hash(value)}});
       if(!original) return {error:true} as const;
       const account=await db.account.findUniqueOrThrow({where:{id:original.accountId}});
-      if(account.disabled) return {error:true} as const;
+      if(account.disabled||original.authVersion!==account.authVersion) return {error:true} as const;
       if(account.role==='STUDENT') {
         const child=await db.child.findUnique({where:{studentAccountId:account.id}});
         if(!child) return {error:true} as const;

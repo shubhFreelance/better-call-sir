@@ -42,7 +42,7 @@ export class AppService {
     const session = await this.db.session.findUnique({where:{accessHash:hash(secret)}});
     if (!session || session.revoked || session.rotated || session.accessExpiresAt < new Date() || session.expiresAt < new Date()) fail(401,'SESSION_EXPIRED','Your session has expired. Sign in again.');
     const account = await this.db.account.findUnique({where:{id:session.accountId}});
-    if (!account || account.disabled) fail(401,'SESSION_REVOKED','This account is unavailable.');
+    if (!account || account.disabled || session.authVersion!==account.authVersion) fail(401,'SESSION_REVOKED','This account is unavailable.');
     if (!['GET','HEAD','OPTIONS'].includes(req.method) && !same(req.get('X-CSRF-Token') || '',session.csrf)) fail(403,'CSRF','Refresh this page before continuing.');
     if (account.role === 'STUDENT') {
       const child=await this.db.child.findUnique({where:{studentAccountId:account.id}});
@@ -93,7 +93,7 @@ export class AppService {
   async issueSession(account: Account, familyId: string, db: Pick<DB,'session'> = this.db, expiresAt = new Date(Date.now()+30*86_400_000),security?:{createdAt:Date;mfaVerifiedAt:Date|null;deviceLabel?:string|null}) {
     if(privileged(account.role))expiresAt=new Date(Math.min(expiresAt.getTime(),Date.now()+8*3600000));
     const access=token(),refresh=token(),csrf=token();
-    await db.session.create({data:{accountId:account.id,familyId,accessHash:hash(access),refreshHash:hash(refresh),csrf,accessExpiresAt:new Date(Math.min(Date.now()+600_000,expiresAt.getTime())),expiresAt,...security}});
+    await db.session.create({data:{accountId:account.id,authVersion:account.authVersion,familyId,accessHash:hash(access),refreshHash:hash(refresh),csrf,accessExpiresAt:new Date(Math.min(Date.now()+600_000,expiresAt.getTime())),expiresAt,...security}});
     return {access,refresh,csrf,expiresAt,familyId};
   }
   sessionResponse(account: Account, state: {access:string;refresh:string;csrf:string;expiresAt:Date}, res: Response) {

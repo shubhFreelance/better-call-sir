@@ -189,3 +189,15 @@ test('student enquiry contracts preserve weekly limits, explicit review and serv
  const validate=validator('StudentEnquiryInput'),body={expectedProfileVersion:1,discoveryMethod:'ASSISTED',subject:'Maths',mode:'ONLINE',language:'English',locality:'Synthetic locality',budgetPaise:100000,preferences:{timezone:'Asia/Kolkata',weekly:[{weekday:1,startMinute:960,endMinute:1080}]},confirmed:true};
  assert(validate(body));for(const patch of [{studentAccountId:ids.student},{educationScope:{stage:'SCHOOL',grade:8,board:'CBSE'}},{confirmed:false},{budgetPaise:100.5},{preferences:{timezone:'UTC',weekly:body.preferences.weekly}}])assert.equal(validate({...body,...patch}),false);
 });
+
+test("staff access contracts require explicit dedicated identities and independent decisions without mass assignment", () => {
+  const proposal=validator("StaffProposal"), decision=validator("StaffDecision");
+  const common={reason:"Reviewed staffing need",evidenceRef:"review:staff-identity",confirmed:true};
+  assert(proposal({...common,kind:"CREATE",email:"reviewer@example.test",name:"Reviewer",role:"REVIEWER",region:"Raipur"}));
+  assert(proposal({...common,kind:"RECOVER",targetAccountId:ids.admin,expectedAuthVersion:0}));
+  assert(!proposal({...common,kind:"CREATE",email:"reviewer@example.test"}));
+  assert(!proposal({...common,kind:"RECOVER",targetAccountId:ids.admin,expectedAuthVersion:0,role:"ADMIN"}));
+  assert(!proposal({...common,kind:"CHANGE",targetAccountId:ids.admin,expectedAuthVersion:0,role:"GUARDIAN",region:"Raipur"}));
+  assert(decision({expectedVersion:1,decision:"APPROVE",reason:"Independent check",independentlyVerified:true}));
+  assert(!decision({expectedVersion:1,decision:"APPROVE",reason:"Independent check",independentlyVerified:false}));
+});
