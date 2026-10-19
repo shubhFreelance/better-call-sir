@@ -71,14 +71,7 @@ class IdentityController {
       if(!original) return {error:true} as const;
       const account=await db.account.findUniqueOrThrow({where:{id:original.accountId}});
       if(account.disabled||original.authVersion!==account.authVersion) return {error:true} as const;
-      if(account.role==='STUDENT') {
-        const child=await db.child.findUnique({where:{studentAccountId:account.id}});
-        if(!child) return {error:true} as const;
-        await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${child.guardianId},0))`;
-        const consent=await db.consent.findUnique({where:{guardianId:child.guardianId}});
-        const freshChild=await db.child.findUniqueOrThrow({where:{id:child.id}});
-        if(freshChild.studentAccessRevokedAt || !consent || consent.withdrawnAt) return {error:true} as const;
-      }
+      if(account.role==='STUDENT'&&!await this.service.activeStudent(db,account.id,true))return {error:true} as const;
       // Family lock serializes every generation, replay and logout with replacement insertion.
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${original.familyId},0))`;
       const session=await db.session.findUniqueOrThrow({where:{id:original.id}});

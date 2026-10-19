@@ -7,11 +7,18 @@ import {mode} from '@bcs/meetings';
 class MeetingsController{
   constructor(@Inject(AppService) private readonly service:AppService){}
   async visible(actor:Account,reservation:Reservation,meeting:Meeting|null){
-    const teacher=actor.role==='TEACHER'?await this.service.db.teacher.findUnique({where:{accountId:actor.id}}):null,child=actor.role==='STUDENT'?await this.service.db.child.findUnique({where:{studentAccountId:actor.id}}):null;
-    if(actor.role==='GUARDIAN'?reservation.guardianId!==actor.id:actor.role==='TEACHER'?reservation.teacherId!==teacher?.id:reservation.childId!==child?.id)fail(404,'NOT_FOUND','Meeting not found.');
-    if(!meeting)return null;
-    const now=Date.now(),canJoin=meeting.status==='READY'&&reservation.status==='CONFIRMED'&&now>=reservation.startsAt.getTime()-10*60000&&now<=reservation.endsAt.getTime()+15*60000;
-    return {id:meeting.id,reservationId:reservation.id,status:meeting.status,startsAt:reservation.startsAt,endsAt:reservation.endsAt,provider:'GOOGLE_MEET',providerMode:meeting.providerMode,canJoin,joinUrl:canJoin?meeting.joinUrl:null,version:meeting.version};
+    return this.service.db.$transaction(async db=>{
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${reservation.guardianId},0))`;
+      const teacher=await db.teacher.findUnique({where:{id:reservation.teacherId}}),child=reservation.childId?await db.child.findUnique({where:{id:reservation.childId}}):null;
+      if(actor.role==='GUARDIAN'?reservation.guardianId!==actor.id:actor.role==='TEACHER'?teacher?.accountId!==actor.id:child?.studentAccountId!==actor.id)fail(404,'NOT_FOUND','Meeting not found.');
+      if(!meeting)return null;
+      const guardian=await db.account.findUnique({where:{id:reservation.guardianId}}),consent=await db.consent.findUnique({where:{guardianId:reservation.guardianId}}),teacherAccount=teacher?await db.account.findUnique({where:{id:teacher.accountId}}):null;
+      const proof=!!child&&(!child.guardianVerificationId||!!await db.guardianVerification.count({where:{id:child.guardianVerificationId,status:'APPROVED'}}));
+      const paused=await db.privacyRequest.count({where:{accountId:reservation.guardianId,kind:'DELETION',status:'PENDING',OR:[{scope:'ACCOUNT'},...(reservation.childId?[{scope:'CHILD' as const,resourceId:reservation.childId}]:[])]}});
+      const current=guardian?.role==='GUARDIAN'&&guardian.verified&&!guardian.disabled&&consent&&!consent.withdrawnAt&&proof&&!paused&&teacherAccount?.role==='TEACHER'&&!teacherAccount.disabled&&teacher?.status==='APPROVED'&&teacher.screeningComplete&&teacher.screeningValidUntil&&teacher.screeningValidUntil>new Date();
+      const now=Date.now(),canJoin=!!current&&meeting.status==='READY'&&reservation.status==='CONFIRMED'&&now>=reservation.startsAt.getTime()-10*60000&&now<=reservation.endsAt.getTime()+15*60000;
+      return {id:meeting.id,reservationId:reservation.id,status:meeting.status,startsAt:reservation.startsAt,endsAt:reservation.endsAt,provider:'GOOGLE_MEET',providerMode:meeting.providerMode,canJoin,joinUrl:canJoin?meeting.joinUrl:null,version:meeting.version};
+    });
   }
   @Get('meetings/:id') async get(@Req() req:HttpRequest,@Param('id') id:string){
     parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN','TEACHER','STUDENT']);const meeting=await this.service.db.meeting.findUnique({where:{id}});if(!meeting)fail(404,'NOT_FOUND','Meeting not found.');
