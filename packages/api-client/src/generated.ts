@@ -6978,6 +6978,11 @@ export interface components {
             pendingReview: components["schemas"]["TuitionMinimumReview"] | null;
             /** @enum {string} */
             startGate: "READY" | "TERMS_PENDING" | "CLOSED";
+            context: {
+                teacherName: string;
+                learnerName: string;
+                subject: string;
+            };
         };
         TuitionMinimumReviewQueueItem: {
             /** Format: uuid */

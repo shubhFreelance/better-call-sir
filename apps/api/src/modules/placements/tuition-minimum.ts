@@ -178,6 +178,15 @@ async function financial(
     );
   if (c.p) {
     await service.guardian(db, c.familyId);
+    if (
+      (await db.account.findUniqueOrThrow({ where: { id: c.familyId } }))
+        .role !== "GUARDIAN"
+    )
+      fail(
+        403,
+        "ACCESS_PAUSED",
+        "Financial decisions are paused. Use support.",
+      );
     await service.child(
       db,
       await db.account.findUniqueOrThrow({ where: { id: c.familyId } }),
@@ -189,6 +198,7 @@ async function financial(
     });
     if (
       owner.disabled ||
+      owner.role !== "INDEPENDENT_STUDENT" ||
       (await db.privacyRequest.count({
         where: {
           accountId: c.familyId,
@@ -273,13 +283,39 @@ class TuitionMinimumController {
     return this.service.db.$transaction(async (db) => {
       const c = await context(db, this.service, req, actor, kind, id, true),
         m = await db.tuitionMinimum.findUnique({ where: { resourceId: id } });
-      const learningAccepted = 'guardianAccepted' in c.current ? c.current.guardianAccepted && c.current.teacherAccepted : !!c.current.studentAcceptedAt && !!c.current.teacherAcceptedAt;
-      const startGate = c.current.status === 'CLOSED' ? 'CLOSED' : learningAccepted ? 'READY' : 'TERMS_PENDING';
+      const financialContext = {
+        teacherName: c.teacher.name,
+        learnerName: c.p
+          ? (await db.child.findUniqueOrThrow({ where: { id: c.p.childId } }))
+              .alias
+          : (await db.account.findUniqueOrThrow({ where: { id: c.familyId } }))
+              .name,
+        subject: c.p
+          ? (
+              await db.tuitionRequest.findUniqueOrThrow({
+                where: { id: c.p.requestId },
+              })
+            ).subject
+          : String(
+              (c.a!.terms as Record<string, unknown>).subject || "Tuition",
+            ),
+      };
+      const learningAccepted =
+        "guardianAccepted" in c.current
+          ? c.current.guardianAccepted && c.current.teacherAccepted
+          : !!c.current.studentAcceptedAt && !!c.current.teacherAcceptedAt;
+      const startGate =
+        c.current.status === "CLOSED"
+          ? "CLOSED"
+          : learningAccepted
+            ? "READY"
+            : "TERMS_PENDING";
       if (!m)
         return {
           id,
           available: false,
           startGate,
+          context: financialContext,
           agreement: null,
           summary: null,
           pendingReview: null,
@@ -330,6 +366,7 @@ class TuitionMinimumController {
         id,
         available: true,
         startGate,
+        context: financialContext,
         agreement: m,
         summary: await totals(db, m),
         pendingReview: await db.tuitionMinimumReview.findFirst({
@@ -444,6 +481,7 @@ class TuitionMinimumController {
         });
         if (
           owner.disabled ||
+          owner.role !== "TEACHER" ||
           c.teacher.status !== "APPROVED" ||
           !c.teacher.screeningComplete ||
           !c.teacher.screeningValidUntil ||
@@ -539,7 +577,7 @@ class TuitionMinimumController {
           fail(
             409,
             "INVALID_CREDIT",
-            "Record only a payment toward this commenced minimum, on or after its start date.",
+            "Record only the paid portion toward this commenced minimum, including any advance payment.",
           );
         if (
           await db.tuitionCredit.count({

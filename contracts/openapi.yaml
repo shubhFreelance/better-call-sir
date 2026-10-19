@@ -46816,6 +46816,26 @@
         "TERMS_PENDING",
         "CLOSED"
       ]
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "teacherName",
+        "learnerName",
+        "subject"
+      ],
+      "properties": {
+        "teacherName": {
+          "type": "string"
+        },
+        "learnerName": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        }
+      }
     }
   },
   "required": [
@@ -46830,7 +46850,8 @@
     "reviews",
     "reviewsNextCursor",
     "pendingReview",
-    "startGate"
+    "startGate",
+    "context"
   ]
 },
 "TuitionMinimumReviewQueueItem": {
