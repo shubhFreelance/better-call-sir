@@ -11,6 +11,569 @@
     }
   ],
   "paths": {
+    "/admin/service-followups": {
+      "get": {
+        "operationId": "listServiceFollowups",
+        "summary": "listServiceFollowups",
+        "tags": [
+          "Service operations"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "pattern": "^(PLACEMENT|INDEPENDENT):[0-9a-fA-F-]{36}$"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "SCHEDULED",
+                "COMPLETED"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "assignment",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ME",
+                "UNASSIGNED"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "due",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Scoped manual service follow-up; contact outcomes never rewrite continuation observations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceFollowupPage"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ]
+      }
+    },
+    "/admin/service-followups/{kind}/{id}": {
+      "get": {
+        "operationId": "getServiceFollowup",
+        "summary": "getServiceFollowup",
+        "tags": [
+          "Service operations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLACEMENT",
+                "INDEPENDENT"
+              ]
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Scoped manual service follow-up; contact outcomes never rewrite continuation observations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceFollowupDetail"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ]
+      }
+    },
+    "/admin/service-followups/{kind}/{id}/assignments": {
+      "post": {
+        "operationId": "assignServiceFollowup",
+        "summary": "assignServiceFollowup",
+        "tags": [
+          "Service operations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLACEMENT",
+                "INDEPENDENT"
+              ]
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Scoped manual service follow-up; contact outcomes never rewrite continuation observations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceFollowupResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceAssignmentInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/service-followups/{kind}/{id}/contacts": {
+      "post": {
+        "operationId": "recordServiceContact",
+        "summary": "recordServiceContact",
+        "tags": [
+          "Service operations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLACEMENT",
+                "INDEPENDENT"
+              ]
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Scoped manual service follow-up; contact outcomes never rewrite continuation observations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceFollowupResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceContactInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/health/live": {
       "get": {
         "operationId": "getHealthLive",
@@ -33617,6 +34180,425 @@
 },
   "components": {
     "schemas": {
+      "ServiceFollowup": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "PLACEMENT",
+              "INDEPENDENT"
+            ]
+          },
+          "region": {
+            "type": "string"
+          },
+          "learnerName": {
+            "type": "string"
+          },
+          "teacherName": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "arrangementStatus": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dueAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "SCHEDULED",
+              "COMPLETED"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "assignedToId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "nextContactAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "supportCaseId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "recordedObservation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "continued": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "observedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "continued",
+                  "observedAt"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "region",
+          "learnerName",
+          "teacherName",
+          "subject",
+          "arrangementStatus",
+          "startedAt",
+          "dueAt",
+          "status",
+          "version",
+          "assignedToId",
+          "nextContactAt",
+          "supportCaseId",
+          "recordedObservation"
+        ]
+      },
+      "ServiceContact": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "followupId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "CONTINUING",
+              "ENDED",
+              "NO_RESPONSE",
+              "HELP_REQUESTED"
+            ]
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "EMAIL",
+              "PHONE",
+              "VIDEO",
+              "IN_PERSON"
+            ]
+          },
+          "nextContactAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "supportCaseId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "followupId",
+          "actorId",
+          "outcome",
+          "method",
+          "nextContactAt",
+          "supportCaseId",
+          "createdAt"
+        ]
+      },
+      "ServiceFollowupPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceFollowup"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "asOf"
+        ]
+      },
+      "ServiceFollowupDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "followup": {
+            "$ref": "#/components/schemas/ServiceFollowup"
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceContact"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "followup",
+          "contacts",
+          "nextCursor"
+        ]
+      },
+      "ServiceAssignmentInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "confirmed": {
+            "const": true
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "CLAIM",
+              "RELEASE"
+            ]
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "confirmed",
+          "action"
+        ]
+      },
+      "ServiceContactInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "confirmed": {
+            "const": true
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "CONTINUING",
+              "ENDED",
+              "NO_RESPONSE",
+              "HELP_REQUESTED"
+            ]
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "EMAIL",
+              "PHONE",
+              "VIDEO",
+              "IN_PERSON"
+            ]
+          },
+          "nextContactAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "supportCategory": {
+            "type": "string",
+            "enum": [
+              "GENERAL",
+              "SAFETY",
+              "REPLACEMENT"
+            ]
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "confirmed",
+          "outcome",
+          "method"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "outcome": {
+                  "const": "NO_RESPONSE"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "nextContactAt"
+              ],
+              "properties": {
+                "nextContactAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "nextContactAt"
+                ],
+                "properties": {
+                  "nextContactAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "outcome": {
+                  "const": "HELP_REQUESTED"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "supportCategory"
+              ],
+              "properties": {
+                "supportCategory": {
+                  "type": "string",
+                  "enum": [
+                    "GENERAL",
+                    "SAFETY",
+                    "REPLACEMENT"
+                  ]
+                }
+              }
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "supportCategory"
+                ],
+                "properties": {
+                  "supportCategory": {
+                    "type": "string",
+                    "enum": [
+                      "GENERAL",
+                      "SAFETY",
+                      "REPLACEMENT"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ServiceFollowupResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "SCHEDULED",
+              "COMPLETED"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "supportCaseId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "version"
+        ]
+      },
       "Teacher": {
         "type": "object",
         "properties": {
