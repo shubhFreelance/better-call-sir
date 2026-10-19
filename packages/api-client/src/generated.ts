@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/admin/service-followups/{kind}/{id}/contact-details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reveal assigned follow-up owner contact details */
+        get: operations["getServiceContactDetails"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/service-followups": {
         parameters: {
             query?: never;
@@ -7385,6 +7402,95 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getServiceContactDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Scoped manual service follow-up; contact outcomes never rewrite continuation observations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        email: string | null;
+                        phone: string | null;
+                    };
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     listServiceFollowups: {
         parameters: {
             query?: {
