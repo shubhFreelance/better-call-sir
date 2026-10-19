@@ -1,5 +1,7 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Reason for replacement": "शिक्षक बदलने का कारण",
+  "Reason for closure": "व्यवस्था बंद करने का कारण",
   "You can still withdraw existing note sharing.": "पहले से साझा किए गए नोट की पहुँच आप अब भी वापस ले सकते हैं।",
   "Access changed since this decision was recorded. Reload the current record before retrying.": "यह निर्णय दर्ज होने के बाद आपकी अनुमति बदल गई है। दोबारा कोशिश करने से पहले मौजूदा रिकॉर्ड लोड करें।",
   "Shared note not found.": "साझा किया गया नोट उपलब्ध नहीं है।",

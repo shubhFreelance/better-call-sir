@@ -489,10 +489,11 @@ export function PlacementCare({
                   {!review ? (
                     <>
                       <label htmlFor="care-reason">
-                        {appText("Reason for")}{" "}
-                        {action === "replace"
-                          ? appText("replacement")
-                          : appText("closure")}
+                        {appText(
+                          action === "replace"
+                            ? "Reason for replacement"
+                            : "Reason for closure",
+                        )}
                       </label>
                       <Textarea
                         id="care-reason"

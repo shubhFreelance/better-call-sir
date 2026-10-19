@@ -333,7 +333,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
         <label htmlFor={props.id}>
           {name === "institutionName" && values.stage === "COLLEGE"
             ? appText("College / institution name")
-            : fieldLabels[name]}
+            : appText(fieldLabels[name])}
         </label>
         {control || (
           <Input

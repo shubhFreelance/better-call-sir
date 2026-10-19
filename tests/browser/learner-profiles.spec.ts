@@ -408,11 +408,20 @@ test("school education records Class 12 and explains that teacher fit is still c
   });
 });
 
- test("Hindi complete interface — विद्यार्थी शिक्षा और प्रोफ़ाइल", async ({ page }) => {
- await chooseHindi(page);
- await mock(page);
- await page.goto("/dashboard/learners");
- await checkHindi(page);
- await page.setViewportSize({ width: 360, height: 800 });
- await checkHindi(page);
- });
+test("Hindi complete interface — विद्यार्थी शिक्षा और प्रोफ़ाइल", async ({
+  page,
+}) => {
+  await chooseHindi(page);
+  await mock(page);
+  await page.goto("/dashboard/learners");
+  await checkHindi(page);
+  await page
+    .getByRole("button", { name: "विद्यार्थी प्रोफ़ाइल जोड़ें", exact: true })
+    .click();
+  await page
+    .getByLabel("विद्यार्थी का नाम या उपनाम", { exact: true })
+    .waitFor();
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
+});

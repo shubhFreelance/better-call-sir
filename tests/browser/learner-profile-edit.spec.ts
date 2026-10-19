@@ -528,11 +528,20 @@ test("confirmed update followed by a failed list refresh never reopens save or s
   expect(state.writes).toHaveLength(1);
 });
 
- test("Hindi complete interface — विद्यार्थी की शिक्षा का संपादन", async ({ page }) => {
- await chooseHindi(page);
- await mock(page);
- await page.goto("/dashboard/learners");
- await checkHindi(page);
- await page.setViewportSize({ width: 360, height: 800 });
- await checkHindi(page);
- });
+test("Hindi complete interface — विद्यार्थी की शिक्षा का संपादन", async ({
+  page,
+}) => {
+  await chooseHindi(page);
+  await mock(page);
+  await page.goto("/dashboard/learners");
+  await checkHindi(page);
+  await page
+    .getByRole("button", { name: /इनकी प्रोफ़ाइल बदलें.*Synthetic learner/ })
+    .click();
+  await page
+    .getByLabel("विद्यार्थी का नाम या उपनाम", { exact: true })
+    .waitFor();
+  await checkHindi(page);
+  await page.setViewportSize({ width: 360, height: 800 });
+  await checkHindi(page);
+});
