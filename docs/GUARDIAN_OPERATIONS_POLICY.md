@@ -1,6 +1,10 @@
 # Guardian operations and policy approval pack
 
-Version: GOP-2026-10-19-DRAFT. Scope: teacher discovery, enquiry, mutual hiring, manually confirmed commencement and support/replacement. Owner-approved product rules below are recorded decisions. New notice wording, retention periods, staffing and service targets below are proposals awaiting explicit approval. This document is not legal approval, staff appointment, evidence of training or permission to launch. No production policy version or accepted consent record is changed by this document.
+Version: GOP-2026-10-19-INTERIM1. Scope: teacher discovery, enquiry, mutual hiring, manually confirmed commencement and support/replacement.
+
+**Owner approval recorded,19 October2026:** “Policy pack is okay for now.” This provisionally approves the wording, procedures and proposed retention schedule reviewed in commit `fb95b67` as the current product-policy baseline. The source wording and periods below are retained. Revisit them if the owner changes direction or legal/operational review requires changes.
+
+This is interim product approval, not legal sign-off, a staff appointment, training evidence, production publication, activation of deletion jobs or permission to launch. Named people/contacts/hours, statutory/operational qualification and B14 enforcement remain open. Existing production policy identifiers and previously accepted consent records are unchanged.
 
 ## Decision and appointment register
 
@@ -15,8 +19,8 @@ Version: GOP-2026-10-19-DRAFT. Scope: teacher discovery, enquiry, mutual hiring,
 | Learning management | Guardian-only, shared or student-led; child sees current choice; guardian retains mode control; consent, ownership/devices and financial authority remain separate | IMPLEMENTED; REAL NOTICE ACCEPTANCE OPEN |
 | Independent accounts |18+ self-declaration, own-data consent; self-declaration does not verify age; readiness/under15 guidance does not waive minor-data safeguards | IMPLEMENTED; LEGAL/AGE QUALIFICATION OPEN |
 | Tuition/replacement | Frozen0/15/30-day minimum,15=half monthly tuition,30=one month; both financial parties confirm actual commencement; ordinary exit preserves unpaid minimum, safety/non-delivery gets independent assessment | OWNER-AGREED PRODUCT RULE; COMMERCIAL/LEGAL SIGN-OFF OPEN |
-| Notice wording and purposes | English/Hindi text below, accessible before each separate permission; approved version frozen and recorded | PROPOSED; APPROVAL/PUBLICATION REQUIRED |
-| Evidence and other retention | Specific schedule below with limited holds, external-backup handling and deletion receipts | PROPOSED; APPROVAL AND B14 IMPLEMENTATION/DRILL REQUIRED |
+| Notice wording and purposes | English/Hindi text below, accessible before each separate permission; approved version frozen and recorded | OWNER-APPROVED INTERIM; PUBLICATION/REAL NOTICE ACCEPTANCE OPEN |
+| Evidence and other retention | Specific schedule below with limited holds, external-backup handling and deletion receipts | OWNER-APPROVED INTERIM; LEGAL/B14 IMPLEMENTATION/DRILL OPEN |
 
 Owner clarification,19 October2026: staff workers are the reviewers, with superadmin oversight/escalation. Assign reviewing staff the existing region-scoped `REVIEWER` role; `OPERATOR` remains matching/support and does not automatically gain private evidence authority. `ADMIN` can review/escalate, but must still respect no-self-review and the independent two-person staff/financial processes. No new broad staff role or privilege bypass is needed.
 
@@ -34,11 +38,11 @@ Use named staff accounts; never publish private reviewer email/identity document
 8. Refusal/changes/appeal: give a clear, non-accusatory reason and next action without exposing private review references. Revision resets acknowledgment. Escalate conflicts to the independent lead; no arbitrary support override or emailed password/code request. Recovery uses a new approved proof and the owned restoration endpoint; the old proof remains consumed.
 9. Revocation: use the reviewed API, inspect the learner and current access, and confirm student authentication/refresh, new sharing and learning decisions stop. Preserve owner privacy correction/unsharing and lawful financial/safety history. Review every affected learner; another child's valid proof does not restore the revoked proof.
 
-## Proposed evidence and record retention
+## Interim owner-approved evidence and record retention
 
-No automatic time-based retention worker or production backup lifecycle is claimed implemented by this schedule. A scheduled purge with auditable receipts and exception handling must be qualified under B14 before real sensitive uploads. Do not silently turn these proposals into actual deletion rules or overwrite existing financial/safety retention exceptions.
+No automatic time-based retention worker or production backup lifecycle is claimed implemented by this schedule. A scheduled purge with auditable receipts and exception handling must be qualified under B14 before real sensitive uploads. Use the approved schedule as the basis for B14 implementation after legal/operational qualification; do not start purges or overwrite existing financial/safety retention exceptions through this documentation change.
 
-| Data | Proposed normal limit | Exception / disposal |
+| Data | Interim approved normal limit | Exception / disposal |
 |---|---|---|
 | Unsubmitted verification draft and image |90 days after last activity | Close stale intake, then delete image/content; no renewed retention merely because an operator read it |
 | Superseded report images |30 days after replacement of the image | Short appeal/review window; accessible only through the original authorized private route |
@@ -64,9 +68,9 @@ For every purge, record case/object reference, reason, approval/hold reference, 
 - Same-mailbox OTP recovery restores the existing account after normal limits/expiry checks. Staff never asks for an OTP, password, recovery code or private key. Loss-of-mailbox identity claims need the separately approved independent human recovery procedure; no informal account reassignment. Staff MFA recovery uses the implemented two-person current-version process.
 - Suspend/pause use through authorized workflows where appropriate. Safety/non-delivery minimum-tuition adjustments need independent regional MFA staff assessment and participant-visible reasons; generic support triage cannot silently resolve the linked financial dispute.
 
-## Proposed English/Hindi participant notices
+## Interim owner-approved English/Hindi participant notices
 
-These are reviewable wording proposals, not a published production notice. Preserve versioned, separate affirmative controls. Interface translations do not translate names, addresses, uploaded documents or participant-authored allegations. Supply the actual service/privacy contact and approved retention periods before publication; placeholder contacts must not appear in a live consent flow.
+The owner provisionally approved the wording below; it has not been published as a production notice. Preserve versioned, separate affirmative controls. Interface translations do not translate names, addresses, uploaded documents or participant-authored allegations. Supply the actual service/privacy contact and confirm legal/operational retention qualification before publication; placeholder contacts must not appear in a live consent flow.
 
 ### A. Verification evidence permission / सत्यापन प्रमाण की अनुमति
 
@@ -94,9 +98,10 @@ These are reviewable wording proposals, not a published production notice. Prese
 
 ## Approval and live qualification checklist
 
+- [x] Owner provisionally approves this pack’s wording, procedures and retention schedule as the current product baseline (19 October2026, reviewed source `fb95b67`).
 - [ ] Owner appoints actual reviewers, independent escalation lead, safeguarding/privacy owners and deputies, regions, rota and controlled contacts; independent staff provisioning references recorded.
 - [ ] Each appointed person reads the SOP, acknowledges confidentiality/conflicts and completes the drills below with actual assessor/date/result.
-- [ ] Privacy/legal owner approves collection categories, lawful authority/age procedure, English/Hindi notices, response deadlines, retention/holds and backup lifecycle; service owner approves the commercial/replacement text and pilot supply.
+- [ ] Privacy/legal owner qualifies collection purposes, lawful authority/age procedure, notices, response deadlines, retention/holds and backup lifecycle against actual obligations; service owner qualifies commercial terms and real pilot supply. Interim product approval above does not satisfy this live qualification.
 - [ ] Freeze actual production notice versions; make them accessible before permission, preserve earlier accepted versions and record new consent without retroactive rewriting. Development-v1 remains development-only until this is done.
 - [ ] B14 proves private durable storage/current scanner, least-privilege downloads, scheduled purges and holds, deletion receipts, external-backup expiry and restore deletion replay before real uploads.
 - [ ] Named staff rehearse matching/missing report name, no student email, refusal, too-young/unclear authority, sibling authority, self-review/foreign region, infected/unavailable scan, changed revision/uncertain decision, revocation/restoration, privacy request, safety/non-delivery dispute and loss-of-mailbox escalation.
