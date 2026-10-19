@@ -2,12 +2,18 @@ import {eraseGuardianVerification} from '../verification/guardian-verification';
 import {Module,Controller,Get,Post,Param,Query,Body,Req,Inject} from '@nestjs/common';
 import {z} from 'zod';
 import {Prisma} from '@prisma/client';
-import {AppService,PersistenceModule,HttpRequest,DB,uuid,version,text,fail,parse} from '../../shared';
+import {AppService,PersistenceModule,HttpRequest,DB,uuid,version,text,fail,parse,hash} from '../../shared';
 
 async function erase(db:DB,scope:string,resourceId:string,accountId:string){
  if(scope==='NOTE'){await db.note.updateMany({where:{id:resourceId,guardianId:accountId},data:{text:'[deleted]',sharedTeacherId:null,version:{increment:1}}});return;}
  const children=await db.child.findMany({where:scope==='CHILD'?{id:resourceId,guardianId:accountId}:{guardianId:accountId}}),childIds=children.map(c=>c.id),students=children.flatMap(c=>c.studentAccountId?[c.studentAccountId]:[]);
  await eraseGuardianVerification(db,accountId,childIds,scope==='ACCOUNT');
+ const mailAccounts=await db.account.findMany({where:{id:{in:scope==='ACCOUNT'?[accountId,...students]:students}},select:{id:true,email:true}});
+ const mailWhere={OR:[{accountId:{in:mailAccounts.map(a=>a.id)}},{accountId:null,recipientHash:{in:mailAccounts.flatMap(a=>a.email?[hash(a.email.toLowerCase())]:[])}}]};
+ const mailIds=(await db.emailDelivery.findMany({where:mailWhere,select:{id:true}})).map(m=>m.id);
+ await db.emailDelivery.updateMany({where:{id:{in:mailIds}},data:{encryptedContent:null,recipientHash:null}});
+ await db.emailDelivery.updateMany({where:{id:{in:mailIds},status:{in:['QUEUED','SENDING','FAILED','UNKNOWN']}},data:{status:'SUPPRESSED',failureCode:'PRIVACY_ERASED',leaseUntil:null,version:{increment:1}}});
+
  await db.note.updateMany({where:{childId:{in:childIds}},data:{text:'[deleted]',sharedTeacherId:null,version:{increment:1}}});
  await db.child.updateMany({where:{id:{in:childIds}},data:{schoolName:null,schoolSubjects:[],courseName:null,university:null,studyYear:null,alias:'Deleted learner',studentAccessRevokedAt:new Date(),version:{increment:1}}});
  await db.invitation.deleteMany({where:{childId:{in:childIds}}});

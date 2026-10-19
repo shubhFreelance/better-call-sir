@@ -32956,6 +32956,664 @@
     }
   }
 }
+,
+"/notifications": {
+  "get": {
+    "operationId": "listMyNotifications",
+    "summary": "list My Notifications",
+    "tags": [
+      "Email delivery"
+    ],
+    "parameters": [
+      {
+        "in": "query",
+        "name": "cursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "limit",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      {
+        "in": "query",
+        "name": "status",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "QUEUED",
+            "SENDING",
+            "ACCEPTED",
+            "DELIVERED",
+            "DELAYED",
+            "BOUNCED",
+            "COMPLAINED",
+            "FAILED",
+            "UNKNOWN",
+            "SUPPRESSED",
+            "SANDBOX"
+          ]
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EmailDeliveryPage"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/admin/email-deliveries": {
+  "get": {
+    "operationId": "listEmailRecoveryQueue",
+    "summary": "list Email Recovery Queue",
+    "tags": [
+      "Email delivery"
+    ],
+    "parameters": [
+      {
+        "in": "query",
+        "name": "cursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "limit",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      {
+        "in": "query",
+        "name": "status",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "QUEUED",
+            "SENDING",
+            "ACCEPTED",
+            "DELIVERED",
+            "DELAYED",
+            "BOUNCED",
+            "COMPLAINED",
+            "FAILED",
+            "UNKNOWN",
+            "SUPPRESSED",
+            "SANDBOX"
+          ]
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EmailDeliveryPage"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/notifications/{id}/history": {
+  "get": {
+    "operationId": "readEmailDeliveryHistory",
+    "summary": "read Email Delivery History",
+    "tags": [
+      "Email delivery"
+    ],
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "staff",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "true"
+          ]
+        }
+      },
+      {
+        "in": "query",
+        "name": "attemptsCursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "receiptsCursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "maxLength": 128
+        }
+      },
+      {
+        "in": "query",
+        "name": "limit",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EmailDeliveryHistory"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/admin/email-deliveries/{id}/retries": {
+  "post": {
+    "operationId": "retryEmailDelivery",
+    "summary": "retry Email Delivery",
+    "tags": [
+      "Email delivery"
+    ],
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/EmailRetry"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EmailDelivery"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/notifications/webhooks/resend": {
+  "post": {
+    "operationId": "recordResendReceipt",
+    "summary": "record Resend Receipt",
+    "tags": [
+      "Email delivery"
+    ],
+    "parameters": [
+      {
+        "in": "header",
+        "name": "svix-id",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "in": "header",
+        "name": "svix-timestamp",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "in": "header",
+        "name": "svix-signature",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "security": [],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/EmailReceiptInput"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EmailReceiptResult"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}
 },
   "components": {
     "schemas": {
@@ -33946,31 +34604,37 @@
         "additionalProperties": false
       },
       "OtpSandbox": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "SANDBOX",
-              "SENT"
-            ]
-          },
-          "developmentCode": {
-            "type": "string",
-            "pattern": "^\\d{6}$"
-          },
-          "expiresIn": {
-            "type": "integer",
-            "const": 300
-          }
-        },
-        "required": [
-          "status",
-          "expiresIn"
-        ],
-        "additionalProperties": false,
-        "description": "SENT never contains developmentCode. Sandbox is development-only. Email possession is not adult/guardian verification."
-      },
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "SANDBOX",
+        "SENT",
+        "PENDING"
+      ]
+    },
+    "developmentCode": {
+      "type": "string",
+      "pattern": "^\\d{6}$"
+    },
+    "expiresIn": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 300
+    },
+    "deliveryId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  },
+  "required": [
+    "status",
+    "expiresIn"
+  ],
+  "additionalProperties": false,
+  "description": "SENT indicates provider acceptance, not confirmed inbox delivery. PENDING is queued or sending. SANDBOX is development-only and may include a development code. Email possession is separate from guardian verification."
+},
       "Consent": {
         "type": "object",
         "properties": {
@@ -47156,6 +47820,400 @@
     "confirmed",
     "adjustedPaise",
     "reason"
+  ]
+}
+,
+"EmailDelivery": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "topic": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "OTP",
+        "NOTIFICATION"
+      ]
+    },
+    "locale": {
+      "type": "string",
+      "enum": [
+        "en",
+        "hi"
+      ]
+    },
+    "actionPath": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "SANDBOX",
+        "RESEND"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "QUEUED",
+        "SENDING",
+        "ACCEPTED",
+        "DELIVERED",
+        "DELAYED",
+        "BOUNCED",
+        "COMPLAINED",
+        "FAILED",
+        "UNKNOWN",
+        "SUPPRESSED",
+        "SANDBOX"
+      ]
+    },
+    "failureCode": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "attempts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "maxAttempts": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 50
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "id",
+    "topic",
+    "kind",
+    "locale",
+    "actionPath",
+    "provider",
+    "status",
+    "failureCode",
+    "attempts",
+    "maxAttempts",
+    "version",
+    "expiresAt",
+    "createdAt",
+    "updatedAt"
+  ]
+},
+"EmailAttempt": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "deliveryId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "STARTED",
+        "ACCEPTED",
+        "SANDBOX",
+        "REJECTED",
+        "UNCERTAIN",
+        "SUPPRESSED"
+      ]
+    },
+    "failureCode": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "deliveryId",
+    "number",
+    "outcome",
+    "failureCode",
+    "startedAt",
+    "completedAt"
+  ]
+},
+"EmailReceipt": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "deliveryId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "providerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "ACCEPTED",
+        "DELIVERED",
+        "DELAYED",
+        "BOUNCED",
+        "COMPLAINED"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "receivedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "id",
+    "deliveryId",
+    "providerId",
+    "kind",
+    "occurredAt",
+    "receivedAt"
+  ]
+},
+"EmailRetry": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "reason"
+  ]
+},
+"EmailDeliveryPage": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/EmailDelivery"
+      }
+    },
+    "nextCursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "items",
+    "nextCursor"
+  ]
+},
+"EmailDeliveryHistory": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "delivery": {
+      "$ref": "#/components/schemas/EmailDelivery"
+    },
+    "providerReference": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "attempts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/EmailAttempt"
+      }
+    },
+    "attemptsNextCursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "receipts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/EmailReceipt"
+      }
+    },
+    "receiptsNextCursor": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "delivery",
+    "providerReference",
+    "attempts",
+    "attemptsNextCursor",
+    "receipts",
+    "receiptsNextCursor"
+  ]
+},
+"EmailReceiptInput": {
+  "type": "object",
+  "required": [
+    "type",
+    "created_at",
+    "data"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "email.sent",
+        "email.delivered",
+        "email.delivery_delayed",
+        "email.bounced",
+        "email.complained"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "email_id"
+      ],
+      "properties": {
+        "email_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    }
+  }
+},
+"EmailReceiptResult": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "RECORDED"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "status"
   ]
 }
 },

@@ -40,11 +40,11 @@ async function bootstrap() {
   app.use(async(req: HttpRequest,res: Response,next: (error?:unknown)=>void)=>{
     req.requestId=randomUUID();res.setHeader('X-Request-ID',req.requestId);
     res.setHeader('Cache-Control','no-store');
-    if (!['GET','HEAD','OPTIONS'].includes(req.method) && req.path!=='/api/v1/billing/webhooks/razorpay' && req.get('Origin')!== (process.env.WEB_ORIGIN || 'http://localhost:3000')) {res.status(403).json({code:'ORIGIN',message:'Request origin is not allowed.',requestId:req.requestId});return;}
+    if (!['GET','HEAD','OPTIONS'].includes(req.method) && !['/api/v1/billing/webhooks/razorpay','/api/v1/notifications/webhooks/resend'].includes(req.path) && req.get('Origin')!== (process.env.WEB_ORIGIN || 'http://localhost:3000')) {res.status(403).json({code:'ORIGIN',message:'Request origin is not allowed.',requestId:req.requestId});return;}
     try{if(!req.path.startsWith('/api/v1/health/'))await service.limit('request:'+req.ip,3000);next();}catch(error){next(error);}
   });
   const normal=json({limit:'64kb'}),upload=json({limit:'8mb'}),webhook=json({limit:'128kb',verify:(req,_,buffer)=>{(req as HttpRequest).rawBody=Buffer.from(buffer);}});
-  app.use((req:HttpRequest,res:Response,next:(error?:unknown)=>void)=>{const parser=req.path==='/api/v1/billing/webhooks/razorpay'?webhook:req.method==='POST'&&/^\/api\/v1\/teachers\/[^/]+\/evidence$/.test(req.path)?upload:normal;parser(req,res,error=>{if(!error)return next();const large=error.type==='entity.too.large';res.status(large?413:400).json({code:large?'UPLOAD_TOO_LARGE':'INVALID_JSON',message:large?'The request body exceeds the upload limit.':'Request JSON is invalid.',requestId:req.requestId});});});
+  app.use((req:HttpRequest,res:Response,next:(error?:unknown)=>void)=>{const parser=['/api/v1/billing/webhooks/razorpay','/api/v1/notifications/webhooks/resend'].includes(req.path)?webhook:req.method==='POST'&&/^\/api\/v1\/teachers\/[^/]+\/evidence$/.test(req.path)?upload:normal;parser(req,res,error=>{if(!error)return next();const large=error.type==='entity.too.large';res.status(large?413:400).json({code:large?'UPLOAD_TOO_LARGE':'INVALID_JSON',message:large?'The request body exceeds the upload limit.':'Request JSON is invalid.',requestId:req.requestId});});});
   app.useGlobalFilters(new ErrorFilter());app.enableShutdownHooks();
   await app.listen(Number(process.env.PORT || 4000),'0.0.0.0');
   const server=app.getHttpServer();server.requestTimeout=15000;server.headersTimeout=10000;server.timeout=30000;server.keepAliveTimeout=5000;

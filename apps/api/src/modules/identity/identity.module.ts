@@ -1,3 +1,4 @@
+import {requestOtp} from '../notifications/otp-delivery';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
 import {Module, Controller, Get, Post, Param, Query, Body, Req, Res, Injectable, Inject, HttpException, Catch, ExceptionFilter, ArgumentsHost, Global} from '@nestjs/common';
@@ -12,7 +13,7 @@ import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} fr
 
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,privileged,HttpRequest,DB} from '../../shared';
 
-import {emailAddress,sendEmailOtp,otpDigest} from './email-otp';
+import {emailAddress,otpDigest} from './email-otp';
 
 @Controller('api/v1')
 class IdentityController {
@@ -33,12 +34,10 @@ class IdentityController {
 
   @Post('auth/otp/request') async otpRequest(@Body() body: unknown,@Req() req: Request) {
     const {email,locale}=parse(z.object({email:emailAddress,locale:z.enum(['en','hi']).default('en')}).strict(),body);
-    await this.service.limit(`otp:${email}`,3);await this.service.limit(`otp-ip:${req.ip}`,10);
+    await this.service.limit(`otp-ip:${req.ip}`,10);
     if(!development())fail(503,'PROVIDER_UNAVAILABLE','Authentication is not qualified for live mode.');
-    const code=String(randomInt(1000000)).padStart(6,'0');let digest:string;try{digest=otpDigest(email,code);}catch{fail(503,'AUTH_UNAVAILABLE','Authentication is temporarily unavailable. Please retry later.');}
-    await this.db.otp.upsert({where:{address:email},create:{address:email,hash:digest,expiresAt:new Date(Date.now()+300000)},update:{hash:digest,expiresAt:new Date(Date.now()+300000),attempts:0}});
-    try{return await sendEmailOtp(email,code,randomUUID(),locale);}
-    catch{await this.db.otp.deleteMany({where:{address:email,hash:digest}});fail(503,'EMAIL_UNAVAILABLE','Email delivery is unavailable. Please retry later.');}
+    const key=req.get('Idempotency-Key')||randomUUID();if(!key||key.length>128)fail(400,'IDEMPOTENCY_REQUIRED','A valid Idempotency-Key is required.');
+    return requestOtp(this.service,email,locale,key);
   }
 
   @Post('auth/otp/verify') async otpVerify(@Body() body: unknown,@Req() req: Request,@Res({passthrough:true}) res: Response) {
@@ -52,7 +51,7 @@ class IdentityController {
       await db.otp.update({where:{address:email},data:{attempts:{increment:1}}});
       if (!same(otp.hash,digest)) return null;
       await db.otp.delete({where:{address:email}});
-      return db.account.upsert({where:{email},create:{email,name},update:{}});
+      return db.account.upsert({where:{email},create:{email,name,emailLocale:otp.locale},update:{emailLocale:otp.locale}});
     });
     if (!account || account.disabled) fail(401,'INVALID_OTP','The code is invalid or expired.');
     return this.service.session(account,res);

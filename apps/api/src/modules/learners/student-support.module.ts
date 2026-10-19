@@ -26,7 +26,7 @@ class StudentSupportController{
    if(await db.studentGuardianGrant.count({where:{studentAccountId:a.id,status:'ACTIVE'}}))fail(409,'CONFLICT','Revoke the active access before inviting another supporter.');
    const pending=await db.studentGuardianGrant.findFirst({where:{studentAccountId:a.id,status:'PENDING'}});if((pending?.version??0)!==data.expectedPendingVersion)fail(409,'CONFLICT','Invitation changed. Reload before replacing it.');
    if(pending)await db.studentGuardianGrant.update({where:{id:pending.id},data:{status:'REVOKED',version:{increment:1}}});
-   const grant=await db.studentGuardianGrant.create({data:{studentAccountId:a.id,recipientEmail:data.email,supportMode:data.supportMode,expiresAt:new Date(Date.now()+7*86400000)}});await this.service.audit(db,a,req,'STUDENT_GUARDIAN_INVITED',grant.id,'Student explicitly authorized an email-bound optional supporter',undefined,{supportMode:data.supportMode});return {id:grant.id};
+   const grant=await db.studentGuardianGrant.create({data:{studentAccountId:a.id,recipientEmail:data.email,supportMode:data.supportMode,expiresAt:new Date(Date.now()+7*86400000)}});await this.service.event(db,'supporter.invited',grant.id);await this.service.audit(db,a,req,'STUDENT_GUARDIAN_INVITED',grant.id,'Student explicitly authorized an email-bound optional supporter',undefined,{supportMode:data.supportMode});return {id:grant.id};
   });return this.service.db.studentGuardianGrant.findFirstOrThrow({where:{id:result.id,studentAccountId:a.id}});
  }
  @Post('student-guardian-grants/:id/decisions') async decide(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){

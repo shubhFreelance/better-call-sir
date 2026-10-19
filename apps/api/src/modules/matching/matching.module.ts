@@ -356,6 +356,7 @@ class MatchingController {
           undefined,
           { presentationId: presentation.id, candidateIds: data.candidateIds },
         );
+        await this.service.event(db,'shortlist.published',id,request.version);
         return { items, presentationId: presentation.id, runId: run.id };
       },db=>actor.role==="STUDENT"?requestAuthority(db,this.service,actor,id,req.path.endsWith("/selections")):Promise.resolve());
   }
@@ -488,6 +489,7 @@ class MatchingController {
             candidateVersion: updated.version,
           },
         });
+        await this.service.event(db,'candidate.responded',current.requestId,updated.version);
         await this.service.audit(
           db,
           actor,

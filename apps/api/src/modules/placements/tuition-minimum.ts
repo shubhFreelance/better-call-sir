@@ -457,7 +457,8 @@ class TuitionMinimumController {
               version: { increment: 1 },
             },
           });
-          await this.service.audit(
+          await this.service.event(db,'tuition.updated',id);
+      await this.service.audit(
             db,
             actor,
             req,
@@ -598,7 +599,8 @@ class TuitionMinimumController {
           where: { id: m.id },
           data: { version: { increment: 1 } },
         });
-        await this.service.audit(
+        await this.service.event(db,'tuition.updated',id);
+      await this.service.audit(
           db,
           actor,
           req,
@@ -669,7 +671,8 @@ class TuitionMinimumController {
           where: { id: m.id },
           data: { version: { increment: 1 } },
         });
-        await this.service.audit(
+        await this.service.event(db,'tuition.updated',id);
+      await this.service.audit(
           db,
           actor,
           req,
@@ -748,7 +751,8 @@ class TuitionMinimumController {
           where: { id: m.id },
           data: { version: { increment: 1 } },
         });
-        await this.service.audit(
+        await this.service.event(db,'tuition.updated',id);
+      await this.service.audit(
           db,
           actor,
           req,
@@ -896,7 +900,8 @@ class TuitionMinimumController {
             internal: false,
           },
         });
-        await this.service.audit(
+        await this.service.event(db,'tuition.updated',m.resourceId);
+      await this.service.audit(
           db,
           actor,
           req,
