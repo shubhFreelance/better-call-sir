@@ -7160,6 +7160,7 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            retryAvailable: boolean;
         };
         EmailAttempt: {
             /** Format: uuid */

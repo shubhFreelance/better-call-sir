@@ -47915,6 +47915,9 @@
     "updatedAt": {
       "type": "string",
       "format": "date-time"
+    },
+    "retryAvailable": {
+      "type": "boolean"
     }
   },
   "required": [
@@ -47931,7 +47934,8 @@
     "version",
     "expiresAt",
     "createdAt",
-    "updatedAt"
+    "updatedAt",
+    "retryAvailable"
   ]
 },
 "EmailAttempt": {

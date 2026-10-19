@@ -46,6 +46,7 @@ const paging = z
   .strict();
 export function projection(r: EmailDelivery) {
   return {
+    retryAvailable: r.kind === 'NOTIFICATION' && ['FAILED','UNKNOWN'].includes(r.status) && r.expiresAt > new Date() && r.attempts < 50 && (!r.firstAttemptAt || Date.now()-r.firstAttemptAt.getTime()<23*3600000),
     id: r.id,
     topic: r.topic,
     kind: r.kind,
