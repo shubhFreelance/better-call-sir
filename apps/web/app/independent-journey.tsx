@@ -1,4 +1,5 @@
 "use client";
+import { minimumHref } from "./tuition-minimum-workspace";
 import { useAppTranslation } from "./locale";
 import { useState } from "react";
 import Link from "next/link";
@@ -915,6 +916,17 @@ function StudentArrangementDetail({
       />
       {a && !q.error && (
         <>
+          <p>
+            <Link
+              className="inline-link"
+              href={
+                minimumHref("INDEPENDENT", a.id) +
+                (studentId ? "&student=" + enc(studentId) : "")
+              }
+            >
+              {appText("Minimum tuition, commencement and payment credits")}
+            </Link>
+          </p>
           <div className="student-terms-layout">
             <div>
               <h3>{appCurriculum(a.terms.subject)}</h3>
@@ -974,8 +986,8 @@ function StudentArrangementDetail({
               <p>
                 {appText(
                   t(
-                    "The lock-in preference is recorded only. Cancellation or refund restrictions are not enforced here. These terms do not book classes, create invoices or charge a payment.",
-                    "अवधि की पसंद केवल दर्ज है। यहाँ रद्द करने या वापसी की रोक लागू नहीं है। इन शर्तों से कक्षा, चालान या भुगतान नहीं बनता।",
+                    "Learning acceptance is separate from financial commencement. Review the frozen minimum, start confirmations and payment credits before making a financial decision.",
+                    "पढ़ाई की स्वीकृति और पैसों की जिम्मेदारी शुरू होने की पुष्टि अलग हैं। पैसों का निर्णय लेने से पहले तय न्यूनतम फ़ीस, शुरुआत की पुष्टि और भुगतान का रिकॉर्ड देखें।",
                   ),
                 )}
               </p>

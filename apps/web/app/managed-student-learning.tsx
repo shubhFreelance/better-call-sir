@@ -1,4 +1,5 @@
 "use client";
+import { minimumHref } from "./tuition-minimum-workspace";
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -855,6 +856,12 @@ function StudentLearningTerms({
   return (
     <article className="care-card" id={`learning-arrangement-${placement.id}`}>
       <h2>{appText("Your learning arrangement")}</h2>
+      <Link
+        className="inline-link"
+        href={minimumHref("PLACEMENT", placement.id)}
+      >
+        {appText("View minimum tuition and start confirmations")}
+      </Link>
       <h3>{teacherName}</h3>
       <p>
         {appText("Monthly tuition")} · {amount}

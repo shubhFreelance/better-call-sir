@@ -1,4 +1,5 @@
 "use client";
+import { minimumHref } from "./tuition-minimum-workspace";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { CurriculumChoice, subjectSuggestions } from "./curriculum-choice";
@@ -361,6 +362,17 @@ export function PlacementCare({
                   </p>
                 </div>
               </header>
+              <Notice>
+                {appText(
+                  "Ordinary closure or replacement preserves any unpaid agreed minimum. Safety or non-delivery concerns receive staff assessment; help remains available.",
+                )}{" "}
+                <Link
+                  className="inline-link"
+                  href={minimumHref("PLACEMENT", p.id)}
+                >
+                  {appText("Review minimum tuition and payment credits")}
+                </Link>
+              </Notice>
               <Link className="inline-link" href={`/support?placement=${p.id}`}>
                 {appText("Help and case progress for this arrangement")}{" "}
               </Link>

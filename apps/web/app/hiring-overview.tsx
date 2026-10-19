@@ -1,4 +1,5 @@
 "use client";
+import { minimumHref } from "./tuition-minimum-workspace";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import { useState, useEffect, useRef } from "react";
@@ -663,6 +664,14 @@ export function HiringOverview({ session }: { session: Session }) {
                                 {appText("Review hiring terms")}{" "}
                               </Button>
                             )}
+                            <Link
+                              className="inline-link"
+                              href={minimumHref("PLACEMENT", p.id)}
+                            >
+                              {appText(
+                                "Minimum tuition and start confirmations",
+                              )}
+                            </Link>
                             <Link
                               className="inline-link"
                               href={`/support?placement=${p.id}`}

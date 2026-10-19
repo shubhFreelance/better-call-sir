@@ -1,4 +1,5 @@
 "use client";
+import { TuitionMinimumWorkspace } from "./tuition-minimum-workspace";
 import { LearningManagementWorkspace } from "./learning-management";
 import { ManagedStudentLearning } from "./managed-student-learning";
 import { GuardianVerificationWorkspace } from "./guardian-verification";
@@ -2046,6 +2047,15 @@ function DashboardShell({
   const role = session?.account.role;
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
+    ...(["ADMIN", "OPERATOR"].includes(role || "")
+      ? [
+          [
+            "/dashboard/minimum-tuition",
+            "Minimum-tuition assessments",
+            ShieldCheck,
+          ] as [string, string, LucideIcon],
+        ]
+      : []),
     ["/teachers", "Find a teacher", Search],
     ...(["GUARDIAN", "STUDENT", "ADMIN", "REVIEWER"].includes(role || "")
       ? [
@@ -2283,6 +2293,7 @@ function DashboardPage({ tab }: { tab: string }) {
         "/dashboard/student-devices",
         "/dashboard/learning-management",
         "/dashboard/learning-choices",
+        "/dashboard/minimum-tuition",
       ].includes(tab) &&
       !(
         ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
@@ -2317,6 +2328,12 @@ function DashboardPage({ tab }: { tab: string }) {
   }
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (tab === "/dashboard/minimum-tuition")
+    return (
+      <DashboardShell tab={tab}>
+        <TuitionMinimumWorkspace session={session} />
+      </DashboardShell>
+    );
   if (
     tab === "/dashboard/learning-management" ||
     tab === "/dashboard/learning-choices"
