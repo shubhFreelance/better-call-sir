@@ -38,7 +38,7 @@ class PrivacyController{
   return this.service.once(req,actor,'privacy.create',data,async db=>{
    if(data.scope==='ACCOUNT'){if(data.resourceId!==actor.id)fail(404,'NOT_FOUND','Account not found.');}
    else if(actor.role!=='GUARDIAN')fail(403,'FORBIDDEN','Only the guardian controls learner and note privacy.');
-   else if(data.scope==='CHILD')await this.service.child(db,actor,data.resourceId);
+   else if(data.scope==='CHILD'){if(!await db.child.count({where:{id:data.resourceId,guardianId:actor.id}}))fail(404,'NOT_FOUND','Student not found.');}
    else {const note=await db.note.findUnique({where:{id:data.resourceId}});if(!note||note.guardianId!==actor.id)fail(404,'NOT_FOUND','Note not found.');}
    const item=await db.privacyRequest.create({data:{...data,accountId:actor.id}});
    if(data.kind==='DELETION'){

@@ -44,13 +44,7 @@ export class AppService {
     const account = await this.db.account.findUnique({where:{id:session.accountId}});
     if (!account || account.disabled || session.authVersion!==account.authVersion) fail(401,'SESSION_REVOKED','This account is unavailable.');
     if (!['GET','HEAD','OPTIONS'].includes(req.method) && !same(req.get('X-CSRF-Token') || '',session.csrf)) fail(403,'CSRF','Refresh this page before continuing.');
-    if (account.role === 'STUDENT') {
-      const child=await this.db.child.findUnique({where:{studentAccountId:account.id}});
-      const consent=child?await this.db.consent.findUnique({where:{guardianId:child.guardianId}}):null;
-      const guardian=child?await this.db.account.findUnique({where:{id:child.guardianId}}):null;
-      const proof=child?.guardianVerificationId?await this.db.guardianVerification.findUnique({where:{id:child.guardianVerificationId}}):null;
-      if (!child || (child.guardianVerificationId&&(!guardian?.verified||guardian.disabled||proof?.status!=='APPROVED')) || child.studentAccessRevokedAt || !consent || consent.withdrawnAt) fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
-    }
+    if(account.role==='STUDENT'&&!await this.activeStudent(this.db,account.id))fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
     if (roles && !roles.includes(account.role)) fail(403,'FORBIDDEN','Your role cannot perform this action.');
     if(privileged(account.role)){
       if(session.createdAt.getTime()<Date.now()-8*3600000||session.lastSeenAt.getTime()<Date.now()-900000)fail(401,'SESSION_EXPIRED','Staff session expired. Sign in again.');
@@ -61,6 +55,13 @@ export class AppService {
     if(!['GET','HEAD','OPTIONS'].includes(req.method))await this.limit('write:'+account.id,300);
     if(req.method==='POST'&&/^\/api\/v1\/teachers\/[^/]+\/evidence$/.test(req.path))await this.limit('upload:'+account.id,30,86400);
     return account;
+  }
+  async activeStudent(db:DB,accountId:string,lock=false) {
+    let child=await db.child.findUnique({where:{studentAccountId:accountId}});
+    if(!child)return null;
+    if(lock){await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${child.guardianId},0))`;child=await db.child.findUnique({where:{studentAccountId:accountId}});if(!child)return null;}
+    const guardian=await db.account.findUnique({where:{id:child.guardianId}}),consent=await db.consent.findUnique({where:{guardianId:child.guardianId}}),proof=child.guardianVerificationId?await db.guardianVerification.findUnique({where:{id:child.guardianVerificationId}}):null;
+    return !guardian||guardian.disabled||!guardian.verified||guardian.role!=='GUARDIAN'||!consent||consent.withdrawnAt||child.studentAccessRevokedAt||child.guardianVerificationId&&proof?.status!=='APPROVED'?null:child;
   }
   async guardian(db: DB, id: string) {
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
@@ -86,11 +87,17 @@ export class AppService {
     const digest = hash(JSON.stringify(body));
     return this.db.$transaction(async db => {
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id + operation + key},0))`;
+      if(privileged(actor.role))await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended('staff-administration',0))`;
+      if(actor.role==='STUDENT'&&!await this.activeStudent(db,actor.id,true))fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
+      // Staff role changes advance authVersion; onboarding may change role within the same epoch.
+      const current=await db.account.findUnique({where:{id:actor.id}}),session=await db.session.findUnique({where:{accessHash:hash(req.cookies?.bcs_access||'')}});
+      if(!current||current.disabled||current.authVersion!==actor.authVersion||current.region!==actor.region||!session||session.accountId!==actor.id||session.revoked||session.rotated||session.authVersion!==current.authVersion||session.accessExpiresAt<=new Date()||session.expiresAt<=new Date())fail(401,'SESSION_REVOKED','Your access changed. Sign in again.');
+      if(privileged(actor.role)&&(!session.mfaVerifiedAt||session.mfaVerifiedAt.getTime()<Date.now()-600000))fail(403,'MFA_REQUIRED','Verify your authenticator before accessing staff records.');
       if(authorize)await authorize(db);
       const prior = await db.idempotency.findUnique({where:{accountId_operation_key:{accountId:actor.id,operation,key}}});
-      if (prior) {if (prior.hash !== digest) fail(409,'IDEMPOTENCY_CONFLICT','This retry key was used for a different request.'); return prior.result as T;}
+      if (prior) {if (prior.hash !== digest) fail(409,'IDEMPOTENCY_CONFLICT','This retry key was used for a different request.'); if(prior.authVersion!==current.authVersion)fail(409,'CONFLICT','Access changed since this decision was recorded. Reload the current record before retrying.'); return prior.result as T;}
       const result = await fn(db);
-      await db.idempotency.create({data:{accountId:actor.id,operation,key,hash:digest,result:JSON.parse(JSON.stringify(result))}});
+      await db.idempotency.create({data:{accountId:actor.id,authVersion:current.authVersion,operation,key,hash:digest,result:JSON.parse(JSON.stringify(result))}});
       return result;
     });
   }
