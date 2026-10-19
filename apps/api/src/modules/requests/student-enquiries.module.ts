@@ -51,7 +51,7 @@ class StudentEnquiriesController {
    }
    const row=await db.studentEnquiry.create({data:{studentAccountId:ownerId,profileVersion:current.profileVersion,educationScope:current.educationScope,region:current.region,discoveryMethod:data.discoveryMethod,preferredTeacherId:data.preferredTeacherId,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,preferences}});
    await this.service.audit(db,actor,req,'STUDENT_ENQUIRY_SUBMITTED',row.id,'Student submitted criteria for staff review; no match, hire or booking created',undefined,{discoveryMethod:data.discoveryMethod,profileVersion:current.profileVersion});
-   return {id:row.id};
+   await this.service.event(db,'student-enquiry.created',row.id);return {id:row.id};
   });
   const row=await this.service.db.studentEnquiry.findFirst({where:{id:result.id,studentAccountId:ownerId}});if(!row)fail(404,'NOT_FOUND','Enquiry is no longer available.');
   return studentEnquiryProjection(row);

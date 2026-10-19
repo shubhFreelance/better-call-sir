@@ -1,22 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {emailAddress,sendEmailOtp,otpDigest} from '../apps/api/src/modules/identity/email-otp';
+import {emailAddress,otpDigest} from '../apps/api/src/modules/identity/email-otp';
 import {randomBytes,createHash} from 'node:crypto';
-test('email OTP normalizes addresses, requires delivery configuration and never discloses real codes',async()=>{
- const oldMode=process.env.EMAIL_DELIVERY_MODE,oldKey=process.env.RESEND_API_KEY,oldFrom=process.env.EMAIL_FROM,original=globalThis.fetch;
- try{
-  assert.equal(emailAddress.parse('  Guardian@Example.test '),'guardian@example.test');
-  process.env.EMAIL_DELIVERY_MODE='sandbox';assert.equal((await sendEmailOtp('guardian@example.test','123456','fixture')).developmentCode,'123456');
-  process.env.EMAIL_DELIVERY_MODE='resend';delete process.env.RESEND_API_KEY;await assert.rejects(sendEmailOtp('guardian@example.test','123456','fixture'));
-  process.env.RESEND_API_KEY='synthetic-provider-key';process.env.EMAIL_FROM='signin@example.test';
-  globalThis.fetch=async(input,init)=>{assert.equal(input,'https://api.resend.com/emails');assert.equal(init?.redirect,'error');assert(init?.signal);const payload=JSON.parse(init!.body as string);assert.deepEqual(payload.to,['guardian@example.test']);assert.match(payload.text,/123456/);return new Response(JSON.stringify({id:'synthetic-delivery'}),{status:200});};
-  assert.deepEqual(await sendEmailOtp('guardian@example.test','123456','fixture'),{status:'SENT',expiresIn:300});
-  globalThis.fetch=async(_input,init)=>{const payload=JSON.parse(init!.body as string);assert.equal(payload.subject,'आपका Better Call Sir साइन-इन कोड');assert.match(payload.text,/123456/);assert.match(payload.text,/5 मिनट/);assert.match(payload.text,/साझा न करें/);return new Response(JSON.stringify({id:'synthetic-hindi-delivery'}),{status:200});};
-  assert.deepEqual(await sendEmailOtp('guardian@example.test','123456','fixture-hi','hi'),{status:'SENT',expiresIn:300});
-  globalThis.fetch=async()=>new Response('{}',{status:500});await assert.rejects(sendEmailOtp('guardian@example.test','123456','fixture'));
-  globalThis.fetch=async()=>new Response('{}',{status:200});await assert.rejects(sendEmailOtp('guardian@example.test','123456','fixture'));
- }finally{globalThis.fetch=original;for(const [key,value] of Object.entries({EMAIL_DELIVERY_MODE:oldMode,RESEND_API_KEY:oldKey,EMAIL_FROM:oldFrom})){if(value===undefined)delete process.env[key];else process.env[key]=value;}}
-});
+test('email OTP normalizes addresses and rejects invalid recipients',()=>{assert.equal(emailAddress.parse(' Guardian@Example.test '),'guardian@example.test');assert.equal(emailAddress.safeParse('not an email').success,false);});
 test('low-entropy OTP storage is keyed and bound to the normalized address',()=>{
  const old=process.env.OTP_HASH_KEY;try{process.env.OTP_HASH_KEY=randomBytes(32).toString('base64');const digest=otpDigest('guardian@example.test','123456');assert.match(digest,/^[a-f0-9]{64}$/);assert.notEqual(digest,createHash('sha256').update('123456').digest('hex'));assert.notEqual(digest,otpDigest('other@example.test','123456'));process.env.OTP_HASH_KEY=randomBytes(32).toString('base64');assert.notEqual(digest,otpDigest('guardian@example.test','123456'));delete process.env.OTP_HASH_KEY;assert.throws(()=>otpDigest('guardian@example.test','123456'),/OTP_KEY_UNAVAILABLE/);}finally{if(old===undefined)delete process.env.OTP_HASH_KEY;else process.env.OTP_HASH_KEY=old;}
 });

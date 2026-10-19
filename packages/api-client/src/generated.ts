@@ -3656,6 +3656,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list My Notifications */
+        get: operations["listMyNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/email-deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list Email Recovery Queue */
+        get: operations["listEmailRecoveryQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** read Email Delivery History */
+        get: operations["readEmailDeliveryHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/email-deliveries/{id}/retries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** retry Email Delivery */
+        post: operations["retryEmailDelivery"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/webhooks/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** record Resend Receipt */
+        post: operations["recordResendReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3905,13 +3990,14 @@ export interface components {
             /** Format: email */
             email: string;
         };
-        /** @description SENT never contains developmentCode. Sandbox is development-only. Email possession is not adult/guardian verification. */
+        /** @description SENT indicates provider acceptance, not confirmed inbox delivery. PENDING is queued or sending. SANDBOX is development-only and may include a development code. Email possession is separate from guardian verification. */
         OtpSandbox: {
             /** @enum {string} */
-            status: "SANDBOX" | "SENT";
+            status: "SANDBOX" | "SENT" | "PENDING";
             developmentCode?: string;
-            /** @constant */
-            expiresIn: 300;
+            expiresIn: number;
+            /** Format: uuid */
+            deliveryId?: string;
         };
         Consent: {
             /** Format: uuid */
@@ -7050,6 +7136,88 @@ export interface components {
             confirmed: true;
             adjustedPaise: number;
             reason: string;
+        };
+        EmailDelivery: {
+            /** Format: uuid */
+            id: string;
+            topic: string;
+            /** @enum {string} */
+            kind: "OTP" | "NOTIFICATION";
+            /** @enum {string} */
+            locale: "en" | "hi";
+            actionPath: string | null;
+            /** @enum {string} */
+            provider: "SANDBOX" | "RESEND";
+            /** @enum {string} */
+            status: "QUEUED" | "SENDING" | "ACCEPTED" | "DELIVERED" | "DELAYED" | "BOUNCED" | "COMPLAINED" | "FAILED" | "UNKNOWN" | "SUPPRESSED" | "SANDBOX";
+            failureCode: string | null;
+            attempts: number;
+            maxAttempts: number;
+            version: number;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        EmailAttempt: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            deliveryId: string;
+            number: number;
+            /** @enum {string} */
+            outcome: "STARTED" | "ACCEPTED" | "SANDBOX" | "REJECTED" | "UNCERTAIN" | "SUPPRESSED";
+            failureCode: string | null;
+            /** Format: date-time */
+            startedAt: string;
+            completedAt: string | null;
+        };
+        EmailReceipt: {
+            id: string;
+            deliveryId: string | null;
+            /** Format: uuid */
+            providerId: string;
+            /** @enum {string} */
+            kind: "ACCEPTED" | "DELIVERED" | "DELAYED" | "BOUNCED" | "COMPLAINED";
+            /** Format: date-time */
+            occurredAt: string;
+            /** Format: date-time */
+            receivedAt: string;
+        };
+        EmailRetry: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            reason: string;
+        };
+        EmailDeliveryPage: {
+            items: components["schemas"]["EmailDelivery"][];
+            nextCursor: string | null;
+        };
+        EmailDeliveryHistory: {
+            delivery: components["schemas"]["EmailDelivery"];
+            providerReference: string | null;
+            attempts: components["schemas"]["EmailAttempt"][];
+            attemptsNextCursor: string | null;
+            receipts: components["schemas"]["EmailReceipt"][];
+            receiptsNextCursor: string | null;
+        };
+        EmailReceiptInput: {
+            /** @enum {string} */
+            type: "email.sent" | "email.delivered" | "email.delivery_delayed" | "email.bounced" | "email.complained";
+            /** Format: date-time */
+            created_at: string;
+            data: {
+                /** Format: uuid */
+                email_id: string;
+            };
+        };
+        EmailReceiptResult: {
+            id: string;
+            /** @enum {string} */
+            status: "RECORDED";
         };
     };
     responses: never;
@@ -25739,6 +25907,452 @@ export interface operations {
             };
             /** @description Validated request, authentication, current scope, version or rate-limit error */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listMyNotifications: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                status?: "QUEUED" | "SENDING" | "ACCEPTED" | "DELIVERED" | "DELAYED" | "BOUNCED" | "COMPLAINED" | "FAILED" | "UNKNOWN" | "SUPPRESSED" | "SANDBOX";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailDeliveryPage"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listEmailRecoveryQueue: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                status?: "QUEUED" | "SENDING" | "ACCEPTED" | "DELIVERED" | "DELAYED" | "BOUNCED" | "COMPLAINED" | "FAILED" | "UNKNOWN" | "SUPPRESSED" | "SANDBOX";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailDeliveryPage"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    readEmailDeliveryHistory: {
+        parameters: {
+            query?: {
+                staff?: "true";
+                attemptsCursor?: string;
+                receiptsCursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailDeliveryHistory"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    retryEmailDelivery: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailRetry"];
+            };
+        };
+        responses: {
+            /** @description Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailDelivery"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    recordResendReceipt: {
+        parameters: {
+            query?: never;
+            header: {
+                "svix-id": string;
+                "svix-timestamp": string;
+                "svix-signature": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailReceiptInput"];
+            };
+        };
+        responses: {
+            /** @description Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailReceiptResult"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

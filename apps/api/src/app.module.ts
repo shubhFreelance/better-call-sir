@@ -1,3 +1,4 @@
+import {NotificationsModule} from './modules/notifications/notifications.module';
 import {TuitionMinimumModule} from './modules/placements/tuition-minimum';
 import {LearningManagementModule} from './modules/learners/learning-management';
 import {GuardianVerificationModule} from './modules/verification/guardian-verification';
@@ -32,5 +33,5 @@ import {NotesModule} from './modules/notes/notes.module';
 import {SupportModule} from './modules/support/support.module';
 import {MembershipsModule} from './modules/memberships/memberships.module';
 import {AdministrationModule} from './modules/administration/administration.module';
-@Module({imports:[TuitionMinimumModule,LearningManagementModule,GuardianVerificationModule,CommercialModule,StaffModule,StudentSupportModule,StudentHiringModule,StudentEnquiriesModule,IndependentStudentsModule,LearnersModule,MfaModule,AnalyticsModule,PrivacyModule,MeetingsModule,PaymentsModule,RecurringModule,StudentAccessModule,OnboardingModule,SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,PlacementsModule,TeachersModule,RevisionModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
+@Module({imports:[NotificationsModule,TuitionMinimumModule,LearningManagementModule,GuardianVerificationModule,CommercialModule,StaffModule,StudentSupportModule,StudentHiringModule,StudentEnquiriesModule,IndependentStudentsModule,LearnersModule,MfaModule,AnalyticsModule,PrivacyModule,MeetingsModule,PaymentsModule,RecurringModule,StudentAccessModule,OnboardingModule,SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,PlacementsModule,TeachersModule,RevisionModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
 export class AppModule {}

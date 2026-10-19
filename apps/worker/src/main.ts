@@ -1,3 +1,4 @@
+import * as email from '@bcs/email';
 import {PrismaClient} from '@prisma/client';
 import {PrismaPg} from '@prisma/adapter-pg';
 import {materialize} from '@bcs/scheduling';
@@ -52,8 +53,10 @@ async function extendRecurring(){
 }
 async function tick() {
   await db.rateBucket.deleteMany({where:{resetsAt:{lt:new Date(Date.now()-86400000)}}});
+  await db.otp.deleteMany({where:{expiresAt:{lte:new Date()}}});
+  await email.tick(db);
   const now=new Date(),mature=await db.$queryRaw<{id:string;startedAt:Date;closedAt:Date|null;status:string}[]>`SELECT p.id,p."startedAt",p."closedAt",p.status FROM "Placement" p LEFT JOIN "ContinuationObservation" o ON o."placementId"=p.id WHERE p."startedAt"<=CURRENT_TIMESTAMP-interval '30 days' AND o.id IS NULL ORDER BY p."startedAt" LIMIT 1`;
-  if(mature[0]){const p=mature[0],dueAt=new Date(p.startedAt.getTime()+30*86400000),continued=p.closedAt&&p.closedAt<=dueAt?false:now.getTime()<=dueAt.getTime()+86400000?(p.status==='ACTIVE'||!!p.closedAt&&p.closedAt>dueAt):null;await db.continuationObservation.upsert({where:{placementId:p.id},create:{placementId:p.id,dueAt,observedAt:now,continued},update:{}});}
+  if(mature[0]){const p=mature[0],dueAt=new Date(p.startedAt.getTime()+30*86400000),continued=p.closedAt&&p.closedAt<=dueAt?false:now.getTime()<=dueAt.getTime()+86400000?(p.status==='ACTIVE'||!!p.closedAt&&p.closedAt>dueAt):null;await db.$transaction(async tx=>{await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${p.id},0))`;if(await tx.continuationObservation.count({where:{placementId:p.id}}))return;await tx.continuationObservation.create({data:{placementId:p.id,dueAt,observedAt:now,continued}});await tx.outbox.create({data:{type:'service.follow_up',aggregateId:p.id,payload:{version:1}}});});}
   const expiredMemberships=await db.membership.findMany({where:{periodEnd:{lte:new Date()}},select:{guardianId:true}});
   const overdue=await db.consultation.findFirst({where:{OR:[{status:'REQUESTED',startsAt:{lt:new Date()}},{status:'ACCEPTED',startsAt:{lt:new Date(Date.now()-15*60000)}},{status:{in:['REQUESTED','ACCEPTED']},guardianId:{in:expiredMemberships.map(m=>m.guardianId)}}]},orderBy:{startsAt:'asc'}});
   if(overdue)await db.$transaction(async tx=>{
@@ -68,7 +71,7 @@ async function tick() {
   await extendRecurring();
   await db.reservation.updateMany({where:{status:'HOLD',expiresAt:{lt:new Date()}},data:{status:'EXPIRED',version:{increment:1}}});
   return db.$transaction(async tx=>{
-    const jobs=await tx.$queryRaw<{id:string;type:string;aggregateId:string;payload:{version:number}}[]>`SELECT id,type,"aggregateId",payload FROM "Outbox" WHERE "processedAt" IS NULL AND attempts < 5 AND type<>'refund.requested' ORDER BY CASE WHEN type IN ('privacy.evidence_delete_requested','privacy.guardian_evidence_delete_requested') THEN 0 WHEN type IN ('evidence.scan_requested','guardian-evidence.scan_requested') THEN 1 ELSE 2 END,"createdAt" LIMIT 1 FOR UPDATE SKIP LOCKED`;
+    const jobs=await tx.$queryRaw<{id:string;type:string;aggregateId:string;createdAt:Date;payload:{version:number}}[]>`SELECT id,type,"aggregateId","createdAt",payload FROM "Outbox" WHERE "processedAt" IS NULL AND attempts < 5 AND type<>'refund.requested' ORDER BY CASE WHEN type IN ('privacy.evidence_delete_requested','privacy.guardian_evidence_delete_requested') THEN 0 WHEN type IN ('evidence.scan_requested','guardian-evidence.scan_requested') THEN 1 ELSE 2 END,"createdAt" LIMIT 1 FOR UPDATE SKIP LOCKED`;
     for (const job of jobs) {
       if(job.type==='privacy.guardian_evidence_delete_requested'){
         try{files.remove(job.aggregateId);await tx.guardianEvidence.updateMany({where:{id:job.aggregateId},data:{status:'DELETED',version:{increment:1}}});await tx.outbox.update({where:{id:job.id},data:{processedAt:new Date(),attempts:{increment:1}}});}catch{await tx.outbox.update({where:{id:job.id},data:{attempts:{increment:1}}});}continue;
@@ -99,15 +102,15 @@ async function tick() {
       // Keeping provider I/O away from a locked outbox transaction avoids a
       // second connection waiting on state held by this one.
       if(job.type==='meeting.create_requested') {await tx.outbox.update({where:{id:job.id},data:{processedAt:new Date(),attempts:{increment:1}}});continue;}
-      // shortcut: only synthetic notification delivery; configure real adapters and reconciliation before pilot.
+      await email.enqueueEvent(tx,job);
       if (job.type==='refund.requested') continue;
       await tx.outbox.update({where:{id:job.id},data:{processedAt:new Date(),attempts:{increment:1}}});
-      console.log(JSON.stringify({event:'synthetic-delivery',jobId:job.id,type:job.type}));
+      console.log(JSON.stringify({event:'event-dispatched',jobId:job.id,type:job.type}));
     }
   },{timeout:20000});
 }
 async function main() {
-  console.log('Development worker: synthetic notifications; refunds remain pending for provider integration.');
+  console.log('Development worker: durable email queue; delivery mode remains explicitly configured and refunds stay pending.');
   while (!stopping) {try {await tick();} catch {console.error('Worker cycle failed; will retry without acknowledging jobs.');} if(process.env.WORKER_ONCE==='1')break;await new Promise(resolve=>setTimeout(resolve,2000));}
   await db.$disconnect();
 }
