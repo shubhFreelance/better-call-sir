@@ -32092,7 +32092,871 @@
     ],
     "description": "Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes."
   }
-}},
+},
+"/tuition-minimums/{kind}/{id}": {
+  "get": {
+    "operationId": "readTuitionMinimum",
+    "summary": "read Tuition Minimum",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "kind",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PLACEMENT",
+            "INDEPENDENT"
+          ]
+        }
+      },
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "creditsCursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "reviewsCursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "limit",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionMinimumView"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/tuition-minimums/{kind}/{id}/commencements": {
+  "post": {
+    "operationId": "confirmTuitionCommencement",
+    "summary": "confirm Tuition Commencement",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "kind",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PLACEMENT",
+            "INDEPENDENT"
+          ]
+        }
+      },
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/TuitionCommencementInput"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionMinimum"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/tuition-minimums/{kind}/{id}/credits": {
+  "post": {
+    "operationId": "proposeTuitionCredit",
+    "summary": "propose Tuition Credit",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "kind",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PLACEMENT",
+            "INDEPENDENT"
+          ]
+        }
+      },
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/TuitionCreditInput"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionCredit"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/tuition-minimums/{kind}/{id}/credits/{creditId}/decisions": {
+  "post": {
+    "operationId": "decideTuitionCredit",
+    "summary": "decide Tuition Credit",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "kind",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PLACEMENT",
+            "INDEPENDENT"
+          ]
+        }
+      },
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "path",
+        "name": "creditId",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/TuitionCreditDecision"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionCredit"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/tuition-minimums/{kind}/{id}/reviews": {
+  "post": {
+    "operationId": "requestTuitionMinimumReview",
+    "summary": "request Tuition Minimum Review",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "kind",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PLACEMENT",
+            "INDEPENDENT"
+          ]
+        }
+      },
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/TuitionMinimumReviewInput"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionMinimumReview"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/admin/tuition-minimum-reviews": {
+  "get": {
+    "operationId": "listTuitionMinimumReviews",
+    "summary": "list Tuition Minimum Reviews",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "query",
+        "name": "cursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "limit",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      {
+        "in": "query",
+        "name": "status",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "RESOLVED"
+          ]
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionMinimumReviewPage"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/admin/tuition-minimum-reviews/{reviewId}/decisions": {
+  "post": {
+    "operationId": "decideTuitionMinimumReview",
+    "summary": "decide Tuition Minimum Review",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "reviewId",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/TuitionMinimumReviewDecision"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionMinimumReview"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+},
   "components": {
     "schemas": {
       "Teacher": {
@@ -45543,7 +46407,737 @@
       "type": "boolean"
     }
   }
-}},
+},
+"TuitionMinimum": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "PLACEMENT",
+        "INDEPENDENT"
+      ]
+    },
+    "resourceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "monthlyPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "days": {
+      "type": "integer",
+      "enum": [
+        0,
+        15,
+        30
+      ]
+    },
+    "minimumPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "adjustedPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "policyVersion": {
+      "type": "string"
+    },
+    "commencementDate": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "familyConfirmedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "teacherConfirmedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "resourceId",
+    "monthlyPaise",
+    "days",
+    "minimumPaise",
+    "adjustedPaise",
+    "policyVersion",
+    "commencementDate",
+    "familyConfirmedAt",
+    "teacherConfirmedAt",
+    "version",
+    "createdAt"
+  ]
+},
+"TuitionCredit": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "minimumId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "proposerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "confirmerId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "amountPaise": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "paidOn": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "CONFIRMED",
+        "REJECTED"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decidedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "minimumId",
+    "proposerId",
+    "confirmerId",
+    "amountPaise",
+    "paidOn",
+    "reference",
+    "status",
+    "createdAt",
+    "decidedAt"
+  ]
+},
+"TuitionMinimumReview": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "minimumId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "caseId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "requesterId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "region": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "SAFETY",
+        "NON_DELIVERY"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "RESOLVED"
+      ]
+    },
+    "reviewerId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decisionReason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "adjustedPaise": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decidedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "id",
+    "minimumId",
+    "caseId",
+    "requesterId",
+    "region",
+    "reason",
+    "status",
+    "reviewerId",
+    "decisionReason",
+    "adjustedPaise",
+    "decidedAt",
+    "createdAt"
+  ]
+},
+"TuitionMinimumSummary": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "commenced": {
+      "type": "boolean"
+    },
+    "creditedPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "obligationPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "outstandingPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "refundAssessmentPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pendingReview": {
+      "type": "boolean"
+    },
+    "endsOn": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "commenced",
+    "creditedPaise",
+    "obligationPaise",
+    "outstandingPaise",
+    "refundAssessmentPaise",
+    "pendingReview",
+    "endsOn"
+  ]
+},
+"TuitionMinimumView": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "available": {
+      "type": "boolean"
+    },
+    "agreement": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/TuitionMinimum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "summary": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/TuitionMinimumSummary"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "canDecide": {
+      "type": "boolean"
+    },
+    "canReview": {
+      "type": "boolean"
+    },
+    "credits": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/TuitionCredit"
+      }
+    },
+    "creditsNextCursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/TuitionMinimumReview"
+      }
+    },
+    "reviewsNextCursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "pendingReview": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/TuitionMinimumReview"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "startGate": {
+      "type": "string",
+      "enum": [
+        "READY",
+        "TERMS_PENDING",
+        "CLOSED"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "available",
+    "agreement",
+    "summary",
+    "canDecide",
+    "canReview",
+    "credits",
+    "creditsNextCursor",
+    "reviews",
+    "reviewsNextCursor",
+    "pendingReview",
+    "startGate"
+  ]
+},
+"TuitionMinimumReviewQueueItem": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "minimumId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "caseId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "requesterId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "region": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "SAFETY",
+        "NON_DELIVERY"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "RESOLVED"
+      ]
+    },
+    "reviewerId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decisionReason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "adjustedPaise": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decidedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "PLACEMENT",
+        "INDEPENDENT"
+      ]
+    },
+    "resourceId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  },
+  "required": [
+    "id",
+    "minimumId",
+    "caseId",
+    "requesterId",
+    "region",
+    "reason",
+    "status",
+    "reviewerId",
+    "decisionReason",
+    "adjustedPaise",
+    "decidedAt",
+    "createdAt",
+    "kind",
+    "resourceId"
+  ]
+},
+"TuitionMinimumReviewPage": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/TuitionMinimumReviewQueueItem"
+      }
+    },
+    "nextCursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "items",
+    "nextCursor"
+  ]
+},
+"TuitionCommencementInput": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "CONFIRM",
+        "WITHDRAW"
+      ]
+    },
+    "commencementDate": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "action",
+    "commencementDate"
+  ]
+},
+"TuitionCreditInput": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "amountPaise": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2000000
+    },
+    "paidOn": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "amountPaise",
+    "paidOn",
+    "reference"
+  ]
+},
+"TuitionCreditDecision": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "CONFIRM",
+        "REJECT"
+      ]
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "decision"
+  ]
+},
+"TuitionMinimumReviewInput": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "SAFETY",
+        "NON_DELIVERY"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 3000
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "reason",
+    "description"
+  ]
+},
+"TuitionMinimumReviewDecision": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "adjustedPaise": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2000000
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "adjustedPaise",
+    "reason"
+  ]
+}
+},
     "securitySchemes": {
       "cookieSession": {
         "type": "apiKey",

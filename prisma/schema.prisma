@@ -840,3 +840,49 @@ model GuardianEvidence {
  version Int @default(1)
  @@index([verificationId,id])
 }
+
+model TuitionMinimum {
+ id String @id @default(uuid()) @db.Uuid
+ kind String
+ resourceId String @unique @db.Uuid
+ monthlyPaise Int
+ days Int
+ minimumPaise Int
+ adjustedPaise Int
+ policyVersion String @default("minimum-tuition-v1")
+ commencementDate String?
+ familyConfirmedAt DateTime?
+ teacherConfirmedAt DateTime?
+ version Int @default(1)
+ createdAt DateTime @default(now())
+}
+model TuitionCredit {
+ id String @id @default(uuid()) @db.Uuid
+ minimumId String @db.Uuid
+ proposerId String @db.Uuid
+ confirmerId String? @db.Uuid
+ amountPaise Int
+ paidOn String
+ reference String
+ status String @default("PENDING")
+ createdAt DateTime @default(now())
+ decidedAt DateTime?
+ @@unique([minimumId,reference])
+ @@index([minimumId,id])
+}
+model TuitionMinimumReview {
+ id String @id @default(uuid()) @db.Uuid
+ minimumId String @db.Uuid
+ caseId String @unique @db.Uuid
+ requesterId String @db.Uuid
+ region String
+ reason String
+ status String @default("PENDING")
+ reviewerId String? @db.Uuid
+ decisionReason String?
+ adjustedPaise Int?
+ decidedAt DateTime?
+ createdAt DateTime @default(now())
+ @@index([region,status,id])
+ @@index([minimumId,id])
+}
