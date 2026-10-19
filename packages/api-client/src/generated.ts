@@ -3537,6 +3537,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tuition-minimums/{kind}/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** read Tuition Minimum */
+        get: operations["readTuitionMinimum"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tuition-minimums/{kind}/{id}/commencements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** confirm Tuition Commencement */
+        post: operations["confirmTuitionCommencement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tuition-minimums/{kind}/{id}/credits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** propose Tuition Credit */
+        post: operations["proposeTuitionCredit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tuition-minimums/{kind}/{id}/credits/{creditId}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** decide Tuition Credit */
+        post: operations["decideTuitionCredit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tuition-minimums/{kind}/{id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** request Tuition Minimum Review */
+        post: operations["requestTuitionMinimumReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tuition-minimum-reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list Tuition Minimum Reviews */
+        get: operations["listTuitionMinimumReviews"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tuition-minimum-reviews/{reviewId}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** decide Tuition Minimum Review */
+        post: operations["decideTuitionMinimumReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -6776,6 +6895,156 @@ export interface components {
             canChangeManagement: boolean;
             canManageConsent: boolean;
             canConfirmFinancialCommencement: boolean;
+        };
+        TuitionMinimum: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "PLACEMENT" | "INDEPENDENT";
+            /** Format: uuid */
+            resourceId: string;
+            monthlyPaise: number;
+            /** @enum {integer} */
+            days: 0 | 15 | 30;
+            minimumPaise: number;
+            adjustedPaise: number;
+            policyVersion: string;
+            commencementDate: string | null;
+            familyConfirmedAt: string | null;
+            teacherConfirmedAt: string | null;
+            version: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        TuitionCredit: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            minimumId: string;
+            /** Format: uuid */
+            proposerId: string;
+            confirmerId: string | null;
+            amountPaise: number;
+            paidOn: string;
+            reference: string;
+            /** @enum {string} */
+            status: "PENDING" | "CONFIRMED" | "REJECTED";
+            /** Format: date-time */
+            createdAt: string;
+            decidedAt: string | null;
+        };
+        TuitionMinimumReview: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            minimumId: string;
+            /** Format: uuid */
+            caseId: string;
+            /** Format: uuid */
+            requesterId: string;
+            region: string;
+            /** @enum {string} */
+            reason: "SAFETY" | "NON_DELIVERY";
+            /** @enum {string} */
+            status: "PENDING" | "RESOLVED";
+            reviewerId: string | null;
+            decisionReason: string | null;
+            adjustedPaise: number | null;
+            decidedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        TuitionMinimumSummary: {
+            commenced: boolean;
+            creditedPaise: number;
+            obligationPaise: number;
+            outstandingPaise: number;
+            refundAssessmentPaise: number;
+            pendingReview: boolean;
+            endsOn: string | null;
+        };
+        TuitionMinimumView: {
+            /** Format: uuid */
+            id: string;
+            available: boolean;
+            agreement: components["schemas"]["TuitionMinimum"] | null;
+            summary: components["schemas"]["TuitionMinimumSummary"] | null;
+            canDecide: boolean;
+            canReview: boolean;
+            credits: components["schemas"]["TuitionCredit"][];
+            creditsNextCursor: string | null;
+            reviews: components["schemas"]["TuitionMinimumReview"][];
+            reviewsNextCursor: string | null;
+            pendingReview: components["schemas"]["TuitionMinimumReview"] | null;
+            /** @enum {string} */
+            startGate: "READY" | "TERMS_PENDING" | "CLOSED";
+        };
+        TuitionMinimumReviewQueueItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            minimumId: string;
+            /** Format: uuid */
+            caseId: string;
+            /** Format: uuid */
+            requesterId: string;
+            region: string;
+            /** @enum {string} */
+            reason: "SAFETY" | "NON_DELIVERY";
+            /** @enum {string} */
+            status: "PENDING" | "RESOLVED";
+            reviewerId: string | null;
+            decisionReason: string | null;
+            adjustedPaise: number | null;
+            decidedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            kind: "PLACEMENT" | "INDEPENDENT";
+            /** Format: uuid */
+            resourceId: string;
+        };
+        TuitionMinimumReviewPage: {
+            items: components["schemas"]["TuitionMinimumReviewQueueItem"][];
+            nextCursor: string | null;
+        };
+        TuitionCommencementInput: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            /** @enum {string} */
+            action: "CONFIRM" | "WITHDRAW";
+            commencementDate: string;
+        };
+        TuitionCreditInput: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            amountPaise: number;
+            paidOn: string;
+            reference: string;
+        };
+        TuitionCreditDecision: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            /** @enum {string} */
+            decision: "CONFIRM" | "REJECT";
+        };
+        TuitionMinimumReviewInput: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            /** @enum {string} */
+            reason: "SAFETY" | "NON_DELIVERY";
+            description: string;
+        };
+        TuitionMinimumReviewDecision: {
+            expectedVersion: number;
+            /** @enum {boolean} */
+            confirmed: true;
+            adjustedPaise: number;
+            reason: string;
         };
     };
     responses: never;
@@ -24890,6 +25159,580 @@ export interface operations {
                 };
             };
             /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    readTuitionMinimum: {
+        parameters: {
+            query?: {
+                creditsCursor?: string;
+                reviewsCursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recorded minimum tuition result; no automatic provider charge or refund */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TuitionMinimumView"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    confirmTuitionCommencement: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TuitionCommencementInput"];
+            };
+        };
+        responses: {
+            /** @description Recorded minimum tuition result; no automatic provider charge or refund */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TuitionMinimum"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    proposeTuitionCredit: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TuitionCreditInput"];
+            };
+        };
+        responses: {
+            /** @description Recorded minimum tuition result; no automatic provider charge or refund */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TuitionCredit"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    decideTuitionCredit: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+                creditId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TuitionCreditDecision"];
+            };
+        };
+        responses: {
+            /** @description Recorded minimum tuition result; no automatic provider charge or refund */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TuitionCredit"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    requestTuitionMinimumReview: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TuitionMinimumReviewInput"];
+            };
+        };
+        responses: {
+            /** @description Recorded minimum tuition result; no automatic provider charge or refund */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TuitionMinimumReview"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listTuitionMinimumReviews: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                status?: "PENDING" | "RESOLVED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recorded minimum tuition result; no automatic provider charge or refund */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TuitionMinimumReviewPage"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    decideTuitionMinimumReview: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                reviewId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TuitionMinimumReviewDecision"];
+            };
+        };
+        responses: {
+            /** @description Recorded minimum tuition result; no automatic provider charge or refund */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TuitionMinimumReview"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, current scope, version or rate-limit error */
             429: {
                 headers: {
                     [name: string]: unknown;

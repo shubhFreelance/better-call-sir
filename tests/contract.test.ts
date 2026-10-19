@@ -206,3 +206,9 @@ test("commercial configuration contracts keep hiring policy bounds, independent 
  const validate=validator('CommercialProposal'),common={expectedVersion:0,reason:'Policy review',evidenceRef:'policy:approved',confirmed:true};
  assert(validate({...common,kind:'FEE',fee:{placementBasisPoints:2500,placementCapPaise:150000}}));assert(!validate({...common,kind:'FEE',fee:{placementBasisPoints:2501,placementCapPaise:150000}}));assert(!validate({...common,kind:'FEE',fee:{placementBasisPoints:1000,placementCapPaise:-1}}));assert(validate({...common,kind:'ROLLBACK',restoreVersion:0}));assert(!validate({...common,kind:'ROLLBACK'}));assert(!validate({...common,kind:'ROLLBACK',restoreVersion:0,enabled:true}));
 });
+
+test('minimum tuition contracts require explicit versioned confirmation and reject financial mass assignment',()=>{
+ const input=validator('TuitionCreditInput'),body={expectedVersion:1,confirmed:true,amountPaise:100001,paidOn:'2026-10-19',reference:'Synthetic credit'};
+ assert(input(body));for(const patch of [{amountPaise:0},{amountPaise:1.5},{amountPaise:2000001},{expectedVersion:0},{confirmed:false},{proposerId:ids.guardian}])assert.equal(input({...body,...patch}),false);
+ const start=validator('TuitionCommencementInput');assert(start({expectedVersion:1,confirmed:true,action:'CONFIRM',commencementDate:'2026-10-19'}));assert.equal(start({expectedVersion:1,confirmed:true,action:'CONFIRM',commencementDate:'today'}),false);
+});

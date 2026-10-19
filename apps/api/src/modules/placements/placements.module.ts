@@ -1,3 +1,4 @@
+import {snapshotMinimum} from './minimum-terms';
 import {familyActor,requestAuthority} from '../learners/learning-management';
 import {hiringQuote,recordedFee} from '../administration/commercial-policy';
 import {subjectSchema} from '../../coverage';
@@ -59,6 +60,7 @@ class PlacementsController {
       const existingDemo=await db.demo.findFirst({where:{requestId:request.id,teacherId:teacher.id},orderBy:{createdAt:'desc'}});
       if(existingDemo&&!['COMPLETED','CANCELLED'].includes(existingDemo.status))fail(409,'DEMO_PENDING_REVIEW','An already requested demo must be completed, cancelled or resolved before opening terms.');
       const placement=await db.placement.create({data:{guardianId:request.guardianId,teacherId:teacher.id,childId:child.id,requestId:request.id,monthlyPaise:teacher.monthlyPaise,...await hiringQuote(db,teacher.monthlyPaise)}});
+      await snapshotMinimum(db,'PLACEMENT',placement.id,placement.monthlyPaise,teacher.lockInDays);
       await this.service.audit(db,actor,req,'PLACEMENT_TERMS_REQUESTED',placement.id,'Authorized family member opened learning terms',undefined,{requestId:request.id});await this.service.event(db,'placement.terms_requested',placement.id);return placement;
     },db=>this.studentDecision(db,actor,req));
   }
@@ -78,6 +80,7 @@ class PlacementsController {
       if (!p || (actor.role==='GUARDIAN'?p.guardianId!==actor.id:actor.role==='STUDENT'?false:p.teacherId!==teacher?.id)) fail(404,'NOT_FOUND','Placement not found.');
       await this.service.guardian(db,p.guardianId);
       if (p.version!==data.expectedVersion || p.status==='CLOSED') fail(409,'CONFLICT','Placement has changed.');
+      if(data.action==='CONFIRM_START'&&await db.tuitionMinimum.count({where:{resourceId:id}}))fail(409,'MINIMUM_CONFIRMATION_REQUIRED','Review frozen minimum tuition and confirm the actual commencement date through the financial commencement endpoint.');
       if (data.action==='CONFIRM_START' && !(p.guardianAccepted && p.teacherAccepted)) fail(409,'TERMS_PENDING','Both parties must first accept tuition terms.');
       if (data.action==='CONFIRM_START' && !await db.recurringSchedule.findFirst({where:{placementId:id,status:'ACCEPTED'}})) fail(409,'SCHEDULE_PENDING','Both parties must accept the recurring timetable before starting tuition.');
       const changes=data.action==='ACCEPT_TERMS'?(familyActor(actor)?{guardianAccepted:true,familyAcceptanceActorId:actor.id}:{teacherAccepted:true}):(actor.role==='GUARDIAN'?{guardianStarted:true}:{teacherReceiptConfirmed:true});
