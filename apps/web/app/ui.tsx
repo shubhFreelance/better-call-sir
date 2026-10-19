@@ -873,7 +873,7 @@ function Home() {
   );
 }
 function Teachers() {
-  const { session: searchSession } = useAuth();
+  const { session: searchSession, loading: authLoading } = useAuth();
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
   const client = useQueryClient();
   const resultSummary = useRef<HTMLSpanElement>(null);
@@ -1033,7 +1033,9 @@ function Teachers() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="assisted">
-          {independent ? (
+          {authLoading ? (
+            <State loading />
+          ) : independent ? (
             <section className="assisted-search panel">
               <div>
                 <h2>{appText("Tell us what would work for your learning.")}</h2>
@@ -1399,16 +1401,20 @@ function Teachers() {
                 )}{" "}
               </p>
             </div>
-            <Link
-              href={
-                independent
-                  ? "/dashboard/enquiries?new=1"
-                  : "/onboarding/parent"
-              }
-              className="button secondary"
-            >
-              {appText("Help me choose")} <ArrowRight size={17} />
-            </Link>
+            {authLoading ? (
+              <State loading />
+            ) : (
+              <Link
+                href={
+                  independent
+                    ? "/dashboard/enquiries?new=1"
+                    : "/onboarding/parent"
+                }
+                className="button secondary"
+              >
+                {appText("Help me choose")} <ArrowRight size={17} />
+              </Link>
+            )}
           </div>
         </TabsContent>
       </Tabs>
@@ -1424,7 +1430,7 @@ function Teachers() {
 function Profile({ slug }: { slug: string }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
-  const { session } = useAuth();
+  const { session, loading: authLoading } = useAuth();
   const independent = session?.account.role === "INDEPENDENT_STUDENT";
   const query = useQuery({
     queryKey: ["teacher", slug],
@@ -1604,7 +1610,9 @@ function Profile({ slug }: { slug: string }) {
                 "Recurring tuition is paid directly to your teacher. Ordinary matching and safety support are free for families.",
               )}{" "}
             </p>
-            {independent ? (
+            {authLoading ? (
+              <State loading />
+            ) : independent ? (
               <>
                 <Link
                   className="button"

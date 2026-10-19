@@ -10,10 +10,17 @@ const ajv = new Ajv({ strict: false, allErrors: true });
 addFormats(ajv);
 const local = (schema) =>
   JSON.parse(
-    JSON.stringify(schema).replaceAll("#/components/schemas/", "#/$defs/"),
+    JSON.stringify(schema).replaceAll(
+      "#/components/schemas/",
+      "urn:bcs:mock:schemas#/$defs/",
+    ),
   );
-const defs = local(contract.components.schemas);
-const validate = (schema) => ajv.compile({ $defs: defs, ...local(schema) });
+// Register shared definitions once as the contract grows; each operation reuses them.
+ajv.addSchema({
+  $id: "urn:bcs:mock:schemas",
+  $defs: local(contract.components.schemas),
+});
+const validate = (schema) => ajv.compile(local(schema));
 const routes = Object.entries(contract.paths).map(([path, methods]) => ({
   pattern: new RegExp(
     "^" +

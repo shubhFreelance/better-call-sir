@@ -13,6 +13,69 @@ const profile = {
   demoAvailable: true,
   lockInDays: 15,
 };
+for (const assisted of [false, true]) {
+  test(`slow session lookup cannot route an independent student into guardian ${assisted ? "assisted search" : "profile enquiry"}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const sessionRead = page.waitForRequest("**/api/v1/auth/session");
+    await page.route("**/api/v1/**", async (route) => {
+      const path = new URL(route.request().url()).pathname;
+      if (path.endsWith("/auth/session")) {
+        await gate;
+        return route.fulfill({
+          json: {
+            account: {
+              id: "10000000-0000-4000-8000-000000000751",
+              role: "INDEPENDENT_STUDENT",
+              name: "Synthetic learner",
+              verified: true,
+            },
+            csrfToken: "synthetic-csrf",
+          },
+        });
+      }
+      if (path === "/api/v1/teachers/recovery-teacher")
+        return route.fulfill({ json: profile });
+      if (path === "/api/v1/teachers")
+        return route.fulfill({ json: { items: [profile], nextCursor: null } });
+      return route.fallback();
+    });
+    try {
+      await page.goto(
+        assisted ? "/teachers?tab=assisted" : "/teachers/recovery-teacher",
+      );
+      await sessionRead;
+      if (assisted) await expect(page.locator(".discovery-tabs")).toBeVisible();
+      else
+        await expect(
+          page.getByRole("heading", { name: profile.name, exact: true }),
+        ).toBeVisible();
+      const action = page.getByRole("link", {
+        name: assisted ? "Share my criteria" : "Enquire about this teacher",
+      });
+      await expect(action).toHaveCount(0);
+      await expect(
+        page
+          .locator(assisted ? ".assisted-search" : ".booking-panel")
+          .getByRole("link"),
+      ).toHaveCount(0);
+      release();
+      await expect(action).toHaveAttribute(
+        "href",
+        assisted
+          ? "/dashboard/enquiries?new=1"
+          : `/dashboard/enquiries?new=1&teacher=${profile.id}&profile=${profile.slug}`,
+      );
+    } finally {
+      release();
+    }
+  });
+}
 async function setup(
   page: Page,
   initial: "missing" | "failed" | "ready",
