@@ -2,6 +2,12 @@
 
 Owner decision, 18 October 2026: record guardian and student acknowledgment, review an uploaded school marksheet/performance-card image naming the parent/guardian, and use a staff video/phone review when the named relationship is missing or does not match. This is a human evidence-review workflow, not OCR or a qualified identity-provider integration. Staff separately checks adult status and authority: a school report, email possession or an elder-sibling declaration does not establish adulthood or legal authority by itself. An elder sibling must be an authorized adult before acting as a guardian.
 
+## Staff responsibility and policy approval
+
+Owner clarification,19 October2026: staff workers conduct guardian reviews; superadmin owns oversight/escalation. Use the existing region-scoped `REVIEWER` role for reviewing staff and `ADMIN` for superadmin. An `OPERATOR` account does not automatically receive school-image/review access. Provision named dedicated accounts through the independently approved staff workflow; retain MFA, region and no-self-review rules. Superadmin oversight does not bypass independent staff-recovery or financial-assessment approval.
+
+The owner has no pre-approved privacy/consent wording or retention periods. The [guardian operations/policy pack](../../docs/GUARDIAN_OPERATIONS_POLICY.md) contains concrete English/Hindi notices, proposed category-specific retention, safeguards and an appointment/training register. It records the confirmed role model and marks owner/legal/retention approvals and actual names/contacts/hours/training as pending. Do not publish those proposals as accepted notices or activate automatic purges before approval and the B14 storage/deletion drill. No real reviewer appointment or human identity check is proven by a developer fixture.
+
 ## Restricted intake and review
 
 A signed-in guardian declares their name, the learner name, relationship and learner age band; chooses a proposed management mode; and permits evidence processing under `guardian-verification-v1`. Only the restricted verification request is created at this stage. This permission is separate from `tuition-and-learning-records` consent, which is still required after approval before creating the learner profile or starting enquiries.
@@ -20,4 +26,4 @@ Guardian and staff lists are cursor-paginated; ownership/region/status filtering
 
 Account/learner erasure scrubs request names/email/references, deletes cached mutation results containing that request and schedules physical image deletion. Deletion-ledger replay repeats that workflow. Review audit is retained under the explicitly recorded privacy-review retention exception; external storage/backups, approved retention periods and production deletion replay remain B14/release qualification.
 
-B1 records the guardian's three proposed management modes (`GUARDIAN_ONLY`, `SHARED`, `STUDENT_LED`). L3 implements the corresponding runtime permissions next. Do not promise broader student permissions before that increment. Live email delivery, trained/named human reviewers, protected review-record custody, final notice/evidence policy and real-person acceptance are release requirements. No live charge, merge or deployment is enabled here.
+B1 records the guardian's three management modes (`GUARDIAN_ONLY`, `SHARED`, `STUDENT_LED`); L3 now enforces them and shows the current choice to the student. Learning decisions remain separate from data consent, account/device ownership and financial authority. Live email delivery, trained/named human reviewers, protected review-record custody, final notice/evidence policy and real-person acceptance are release requirements. No live charge, merge or deployment is enabled here.

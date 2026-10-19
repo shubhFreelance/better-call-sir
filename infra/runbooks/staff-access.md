@@ -35,3 +35,8 @@ Automated isolated tests cover independent proposal/approval, self/target denial
 Before live release, the named operators must perform the approved real-world identity checks, secret-manager mount/rotation/backup-restore and lost-device exercise, measure restoration time, test denial from every old session/code, and attach exact-source evidence for reviewer sign-off. This application cannot establish external identity verification, key custody, mailbox ownership or operator independence merely from an attestation. Those qualifications remain launch blockers; no deployment is authorized.
 
 High-value refund/payout execution and provider activation remain deferred or release-gated. This increment does not enable them. Any future financial execution must add its own independent approval and amount/scope checks before activation.
+
+
+## Guardian review staff assignment —19 October2026
+
+The owner assigns guardian review to staff workers with superadmin oversight. Select `REVIEWER` for those workers, scoped to their approved region; superadmin uses `ADMIN`. Matching/support `OPERATOR` and finance staff retain their own existing scopes and cannot read guardian evidence merely because they are employees. Use the dedicated-account/independent provisioning process above; do not grant ADMIN for convenience, share mailboxes or modify the database to turn a developer fixture into a real appointment. See the [operating and policy approval pack](../../docs/GUARDIAN_OPERATIONS_POLICY.md). Actual names, independently reviewed identity/employment references, training, rota, deputies and controlled privacy/safeguarding/recovery contacts must be recorded before live work. Role selection alone does not establish those facts.
