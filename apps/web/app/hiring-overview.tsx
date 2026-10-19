@@ -112,7 +112,7 @@ export function HiringOverview({ session }: { session: Session }) {
                   )
                 : student
                   ? appText(
-                      "Explore teachers and see your own search progress. Your guardian sends enquiries and confirms arrangements.",
+                      "Explore teachers and follow your search. Your guardian-selected management choice determines who makes learning decisions.",
                     )
                   : appText(
                       "Find a teacher who fits, follow your enquiries and keep every choice in view.",
@@ -120,6 +120,11 @@ export function HiringOverview({ session }: { session: Session }) {
           </p>
         </div>
         <div className="hiring-intro-actions">
+          {student && (
+            <Link className="button" href="/dashboard/learning-choices">
+              {appText("Open my teacher choices")}
+            </Link>
+          )}
           {teacher ? (
             <Link className="button" href="/onboarding/teacher">
               {appText("Review your application")}{" "}
@@ -487,7 +492,7 @@ export function HiringOverview({ session }: { session: Session }) {
                                 <p className="hiring-next">
                                   {e.candidate.response !== "PENDING"
                                     ? appText(
-                                        "Your response is recorded. The guardian reviews their choice and opens hiring terms. Check Teaching arrangements to review and confirm any shared terms.",
+                                        "Your response is recorded. The family reviews their choice and opens hiring terms. Check Teaching arrangements to review and confirm any shared terms.",
                                       )
                                     : !e.candidate.eligible
                                       ? appText(
@@ -524,7 +529,7 @@ export function HiringOverview({ session }: { session: Session }) {
                             ) : (
                               <p className="hiring-next">
                                 {appText(
-                                  "Your guardian reviews the teacher options and confirms the arrangement.",
+                                  "Review your current learning permissions and open your teacher choices.",
                                 )}{" "}
                               </p>
                             )}
@@ -591,7 +596,7 @@ export function HiringOverview({ session }: { session: Session }) {
                                 <dd>{appText(label(p.teacher.status))}</dd>
                               </div>
                               <div>
-                                <dt>{appText("Guardian terms")}</dt>
+                                <dt>{appText("Family learning terms")}</dt>
                                 <dd>
                                   {p.guardianAccepted
                                     ? appText("Acceptance recorded")
@@ -633,7 +638,7 @@ export function HiringOverview({ session }: { session: Session }) {
                                     )
                                   : student
                                     ? appText(
-                                        "Your guardian and teacher review and confirm the hiring terms.",
+                                        "The permitted family decision maker and teacher review and confirm the learning terms.",
                                       )
                                     : (guardian && p.guardianAccepted) ||
                                         (teacher && p.teacherAccepted)
@@ -741,7 +746,7 @@ export function HiringOverview({ session }: { session: Session }) {
                       <dd>{terms.policyVersion || appText("Unavailable")}</dd>
                     </div>
                     <div>
-                      <dt>{appText("Guardian acceptance")}</dt>
+                      <dt>{appText("Family acceptance")}</dt>
                       <dd>
                         {terms.guardianAccepted
                           ? appText("Recorded")

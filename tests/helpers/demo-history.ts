@@ -185,7 +185,7 @@ export function demoHistoryChecks() {
     await page
       .getByRole("button", { name: "Retry same decision", exact: true })
       .click();
-    await expect(page.locator(".demo-card")).toContainText(/Guardian accepted/);
+    await expect(page.locator(".demo-card")).toContainText(/Family accepted/);
     expect(s.writes).toHaveLength(2);
     expect(s.writes[1]).toEqual(s.writes[0]);
   });
@@ -209,7 +209,7 @@ export function demoHistoryChecks() {
     await page
       .getByRole("button", { name: "Refresh current demo", exact: true })
       .click();
-    await expect(page.locator(".demo-card")).toContainText(/Guardian accepted/);
+    await expect(page.locator(".demo-card")).toContainText(/Family accepted/);
     expect(s.writes).toHaveLength(1);
   });
   test("Hindi legacy demo controls retain mobile tap targets and keyboard access at 320–430px", async ({
@@ -249,3 +249,5 @@ export function demoHistoryChecks() {
       .screenshot({ path: "test-results/demo-hindi-mobile.png" });
   });
 }
+
+export { row as demoFixtureRow };

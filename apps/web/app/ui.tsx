@@ -1,4 +1,6 @@
 "use client";
+import { LearningManagementWorkspace } from "./learning-management";
+import { ManagedStudentLearning } from "./managed-student-learning";
 import { GuardianVerificationWorkspace } from "./guardian-verification";
 import { Button as SharedButton } from "../components/ui/button";
 import { Input as SharedInput } from "../components/ui/input";
@@ -868,6 +870,7 @@ function Home() {
   );
 }
 function Teachers() {
+  const { session: searchSession } = useAuth();
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
   const client = useQueryClient();
   const resultSummary = useRef<HTMLSpanElement>(null);
@@ -1048,13 +1051,19 @@ function Teachers() {
                 <h2>{appText("Tell us what would work for your family.")}</h2>
                 <p>
                   {appText(
-                    "Share your learner’s education, subject, availability and budget. We’ll review suitable teachers and prepare options for your guardian account.",
+                    "Share your learner’s education, subject, availability and budget. We’ll review suitable teachers and prepare learning options for you.",
                   )}{" "}
                 </p>
               </div>
               <Link
                 className="button"
-                href="/onboarding/parent?discovery=ASSISTED"
+                href={
+                  searchSession?.account.role === "STUDENT"
+                    ? "/dashboard/learning-choices?new=1"
+                    : searchSession?.account.role === "INDEPENDENT_STUDENT"
+                      ? "/dashboard/enquiries?new=1"
+                      : "/onboarding/parent?discovery=ASSISTED"
+                }
               >
                 {appText("Share your criteria")} <ArrowRight size={18} />
               </Link>
@@ -1611,7 +1620,7 @@ function Profile({ slug }: { slug: string }) {
               <>
                 <Link
                   className="button"
-                  href={`/onboarding/parent?teacher=${t.id}&profile=${encodeURIComponent(t.slug)}`}
+                  href={`${session?.account.role === "STUDENT" ? "/dashboard/learning-choices?new=1&" : "/onboarding/parent?"}teacher=${t.id}&profile=${encodeURIComponent(t.slug)}`}
                 >
                   {appText("Enquire about this teacher")}{" "}
                   <ArrowUpRight size={18} />
@@ -1781,6 +1790,7 @@ function IntakeForm() {
       </main>
     );
   if (!session) return <LoginPrompt />;
+
   if (session.account.role !== "GUARDIAN")
     return (
       <main className="container narrow section">
@@ -2048,6 +2058,11 @@ function DashboardShell({
       : []),
     ...(["GUARDIAN", "STUDENT"].includes(role || "")
       ? [
+          [
+            "/dashboard/learning-management",
+            "Who manages learning?",
+            Users,
+          ] as [string, string, LucideIcon],
           ["/dashboard/learners", "Education profiles", GraduationCap] as [
             string,
             string,
@@ -2057,6 +2072,11 @@ function DashboardShell({
       : []),
     ...(role === "STUDENT"
       ? [
+          ["/dashboard/learning-choices", "My teacher choices", Users] as [
+            string,
+            string,
+            LucideIcon,
+          ],
           ["/onboarding/student", "Learning preferences", Settings] as [
             string,
             string,
@@ -2261,6 +2281,8 @@ function DashboardPage({ tab }: { tab: string }) {
         "/dashboard/supported-students",
         "/dashboard/student-supporters",
         "/dashboard/student-devices",
+        "/dashboard/learning-management",
+        "/dashboard/learning-choices",
       ].includes(tab) &&
       !(
         ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
@@ -2295,6 +2317,25 @@ function DashboardPage({ tab }: { tab: string }) {
   }
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (
+    tab === "/dashboard/learning-management" ||
+    tab === "/dashboard/learning-choices"
+  )
+    return (
+      <DashboardShell tab={tab}>
+        {tab === "/dashboard/learning-management" &&
+        ["GUARDIAN", "STUDENT"].includes(session.account.role) ? (
+          <LearningManagementWorkspace session={session} />
+        ) : tab === "/dashboard/learning-choices" &&
+          session.account.role === "STUDENT" ? (
+          <ManagedStudentLearning session={session} />
+        ) : (
+          <Notice error>
+            {appText("This page requires the appropriate family account.")}
+          </Notice>
+        )}
+      </DashboardShell>
+    );
   if (
     session.account.role !== "INDEPENDENT_STUDENT" &&
     [

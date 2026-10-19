@@ -5263,3 +5263,23 @@ fieldset.catalog-filters { min-inline-size:0; margin-inline:0; }
 .guardian-acknowledgment fieldset { display: grid; gap: 1rem; border: 0; padding: 0; margin: 1rem 0; }
 .guardian-acknowledgment label:not(.care-check) { display: grid; gap: .5rem; }
 @media(max-width:640px){.guardian-verification-editor form>button,.guardian-evidence-step>button,.guardian-acknowledgment form button{width:100%}}
+
+.learning-management-workspace,.managed-learning-workspace { max-width: 960px; }
+.learning-management-workspace > header,.managed-learning-workspace > header { max-width: 44rem; margin-bottom: 2rem; }
+.management-current { padding: 1.25rem; border-radius: 1rem; background: var(--lavender, #F0D7FF); color: var(--ink, #17201F); }
+.management-option { display:flex; align-items:flex-start; gap:.75rem; padding:1rem; margin:.75rem 0; background:#fff; border:1px solid var(--line, #d8dfdc); border-radius:.75rem; cursor:pointer; }
+.management-option input { flex:0 0 auto; margin-top:.25rem; }
+.management-option strong,.management-option small { display:block; }
+.management-option small { margin-top:.375rem; font-weight:400; line-height:1.6; color:var(--muted, #586562); }
+.management-option:has(input:checked) { border-color:var(--teal, #034F46); box-shadow:0 0 0 1px var(--teal, #034F46); }
+.managed-learning-workspace fieldset,.learning-management-workspace fieldset { min-width:0; }
+.managed-learning-workspace .field select,.learning-management-workspace .field select { min-height:44px; width:100%; }
+@media(max-width:640px){.managed-learning-workspace .care-actions,.learning-management-workspace .care-actions { display:grid; grid-template-columns:1fr; gap:.75rem; }.managed-learning-workspace .care-actions button,.learning-management-workspace .care-actions button { width:100%; min-height:44px; }.management-current {padding:1rem;}}
+.learning-management-workspace h1,.managed-learning-workspace h1 { font-size:clamp(2rem,3.5vw,2.75rem); line-height:1.18; letter-spacing:-.025em; max-width:20ch; }
+.learning-management-workspace .care-card h2,.managed-learning-workspace .care-card h2 { font-size:1.5rem; line-height:1.35; letter-spacing:-.02em; overflow-wrap:anywhere; }
+.learning-management-workspace h3,.managed-learning-workspace h3 { font-size:1.125rem; line-height:1.45; letter-spacing:0; }
+.learning-management-workspace fieldset,.managed-learning-workspace fieldset { border:0; padding:0; margin:0; }
+.learning-management-workspace legend,.managed-learning-workspace legend { margin:1rem 0 .75rem; font-size:.875rem; font-weight:600; line-height:1.5; }
+.learning-management-workspace input[type=radio],.learning-management-workspace input[type=checkbox],.managed-learning-workspace input[type=checkbox] { accent-color:#034F46; }
+.managed-learning-workspace .weekly-range { padding:0; border:0; }
+@media(max-width:640px){.learning-management-workspace > header,.managed-learning-workspace > header { margin-bottom:1.5rem; }.learning-management-workspace .care-card,.managed-learning-workspace .care-card { padding:1.125rem; }.managed-learning-workspace .weekly-range { grid-template-columns:1fr; }.managed-learning-workspace .weekly-range > .field {grid-column:1;}.managed-learning-workspace .weekly-range input[type=time] {min-height:44px;min-width:0;width:100%;}}

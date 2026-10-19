@@ -9,7 +9,7 @@ import { Feedback, useDecision } from "./tuition-workflow";
 import { Button } from "../components/ui/button";
 import { MeetingAccess } from "./booking-payments";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, Demo, Session, Teacher } from "@bcs/api-client";
+import { api, Demo, Session, Teacher, type components } from "@bcs/api-client";
 const date = (value: string, locale = "en-IN") =>
   new Intl.DateTimeFormat(locale, {
     timeZone: "Asia/Kolkata",
@@ -25,7 +25,7 @@ function useDemos(session: Session | null) {
     path: "/demos" + (staff ? "?status=DISPUTED" : ""),
     enabled:
       !!session &&
-      ["GUARDIAN", "TEACHER", "ADMIN", "OPERATOR"].includes(
+      ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN", "OPERATOR"].includes(
         session.account.role,
       ),
   });
@@ -97,21 +97,35 @@ function DemoSlot({
     </form>
   );
 }
-export function DemoJourney({ session }: { session: Session | null }) {
+export function DemoJourney({
+  session,
+  canManageLearning = true,
+  unavailable = false,
+  onInteractionLock,
+  hideEmpty = false,
+}: {
+  session: Session | null;
+  canManageLearning?: boolean;
+  unavailable?: boolean;
+  hideEmpty?: boolean;
+  onInteractionLock?: (id: string, active: boolean) => void;
+}) {
   const { appText } = useAppTranslation(),
     client = useQueryClient(),
     query = useDemos(session);
   const [locks, setLocks] = useState<Set<string>>(() => new Set());
   const onLock = useCallback(
-    (id: string, locked: boolean) =>
+    (id: string, locked: boolean) => {
       setLocks((previous) => {
         if (previous.has(id) === locked) return previous;
         const next = new Set(previous);
         if (locked) next.add(id);
         else next.delete(id);
         return next;
-      }),
-    [],
+      });
+      onInteractionLock?.("demo:" + id, locked);
+    },
+    [onInteractionLock],
   );
   const retained = useRef<{ actor: string; items: Demo[] } | null>(null);
   if (query.data && session)
@@ -122,7 +136,9 @@ export function DemoJourney({ session }: { session: Session | null }) {
   });
   if (
     !session ||
-    !["GUARDIAN", "TEACHER", "ADMIN", "OPERATOR"].includes(session.account.role)
+    !["GUARDIAN", "STUDENT", "TEACHER", "ADMIN", "OPERATOR"].includes(
+      session.account.role,
+    )
   )
     return null;
   const reviewing = ["ADMIN", "OPERATOR"].includes(session.account.role),
@@ -137,6 +153,14 @@ export function DemoJourney({ session }: { session: Session | null }) {
     if (r.error) throw r.error;
     await client.invalidateQueries({ queryKey: ["dashboard"] });
   }
+  if (
+    hideEmpty &&
+    !query.isPending &&
+    !query.error &&
+    !items.length &&
+    !locks.size
+  )
+    return null;
   return (
     <section
       aria-label={
@@ -172,7 +196,8 @@ export function DemoJourney({ session }: { session: Session | null }) {
           }
           refresh={refresh}
           onLock={onLock}
-          unavailable={!!query.error}
+          unavailable={!!query.error || unavailable}
+          permitted={session.account.role !== "STUDENT" || canManageLearning}
         />
       ))}
     </section>
@@ -186,6 +211,7 @@ function DemoCard({
   refresh,
   onLock,
   unavailable,
+  permitted,
 }: {
   demo: Demo;
   session: Session;
@@ -194,9 +220,25 @@ function DemoCard({
   refresh: () => Promise<void>;
   onLock: (id: string, locked: boolean) => void;
   unavailable: boolean;
+  permitted: boolean;
 }) {
   const { appText, appError, appLocale } = useAppTranslation();
 
+  const request = useQuery({
+    queryKey: ["demo-decision-authority", session.account.id, d.requestId],
+    queryFn: ({ signal }) =>
+      api<components["schemas"]["TuitionRequestDetails"]>(
+        `/requests/${d.requestId}`,
+        { signal },
+      ),
+    enabled: role === "STUDENT",
+    retry: false,
+  });
+  if (role === "STUDENT") {
+    unavailable = unavailable || !!request.error;
+    permitted =
+      permitted && !!request.data && !request.data.guardianDecisionRequested;
+  }
   const [reason, setReason] = useState(""),
     [reschedule, setReschedule] = useState(false),
     [dirty, setDirty] = useState(false),
@@ -276,8 +318,12 @@ function DemoCard({
     r.status === "HOLD" &&
     !!r.expiresAt &&
     new Date(r.expiresAt) > new Date();
-  const accepted = role === "GUARDIAN" ? d.guardianAccepted : d.teacherAccepted;
-  const outcome = role === "GUARDIAN" ? d.guardianOutcome : d.teacherOutcome;
+  const accepted = ["GUARDIAN", "STUDENT"].includes(role)
+    ? d.guardianAccepted
+    : d.teacherAccepted;
+  const outcome = ["GUARDIAN", "STUDENT"].includes(role)
+    ? d.guardianOutcome
+    : d.teacherOutcome;
   const canReport =
     d.status === "CONFIRMED" && new Date(r.endsAt) <= new Date() && !outcome;
   return (
@@ -293,7 +339,7 @@ function DemoCard({
       {discardButton}
       <fieldset
         className="demo-fields"
-        disabled={decision.locked}
+        disabled={decision.locked || !permitted}
         aria-label={appText("Demo details and actions")}
       >
         <div className="panel-title">
@@ -311,7 +357,7 @@ function DemoCard({
           {appText("· IST")}{" "}
         </p>
         <p className="muted">
-          {appText("Version")} {d.version} {appText("· Guardian")}{" "}
+          {appText("Version")} {d.version} {appText("· Family")}{" "}
           {d.guardianAccepted ? appText("accepted") : appText("pending")}{" "}
           {appText("· Teacher")}{" "}
           {d.teacherAccepted ? appText("accepted") : appText("pending")}
@@ -326,9 +372,7 @@ function DemoCard({
             "This is a scheduling record. Private meeting access is provided separately when a meeting is ready.",
           )}{" "}
         </p>
-        {d.status === "CONFIRMED" && (
-          <MeetingAccess session={session} reservationId={r.id} confirmed />
-        )}
+
         {outcome && (
           <p>
             {appText("Your recorded outcome:")} {appText(pretty(outcome))}.
@@ -484,6 +528,9 @@ function DemoCard({
           </form>
         )}
       </fieldset>
+      {d.status === "CONFIRMED" && (
+        <MeetingAccess session={session} reservationId={r.id} confirmed />
+      )}
     </article>
   );
 }

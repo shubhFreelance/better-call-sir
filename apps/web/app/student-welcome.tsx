@@ -106,7 +106,7 @@ export function StudentWelcome({ session }: { session: Session }) {
           <h2>{appText("Your learning, with support.")}</h2>
           <p>
             {appText(
-              "You can explore teachers and tell us what works for you. Your guardian currently sends enquiries, chooses teachers and agrees to tuition terms.",
+              "Your guardian chooses who manages learning. Check your current permissions to see whether you, your guardian or both of you can choose teachers.",
             )}{" "}
           </p>
           <p>
@@ -114,6 +114,9 @@ export function StudentWelcome({ session }: { session: Session }) {
               "Your support choice records the help you want. It does not change these permissions.",
             )}{" "}
           </p>
+          <Link className="inline-link" href="/dashboard/learning-management">
+            {appText("Review who manages learning")}
+          </Link>
           <h3>{appText("Keep personal details private.")}</h3>
           <p>
             {appText(

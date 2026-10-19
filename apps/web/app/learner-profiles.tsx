@@ -82,8 +82,24 @@ export function LearnerProfiles({ session }: { session: Session }) {
     retry: false,
     refetchOnWindowFocus: false,
   });
+  const ownProfile = query.data?.items[0];
+  const studentManagement = useQuery({
+    queryKey: ["learning-management", session.account.id, ownProfile?.id],
+    queryFn: ({ signal }) =>
+      api<components["schemas"]["LearningManagement"]>(
+        `/children/${ownProfile!.id}/learning-management`,
+        { signal },
+      ),
+    enabled: session.account.role === "STUDENT" && !!ownProfile,
+    retry: false,
+  });
   const ready =
-    query.data?.creationStatus === "READY" && !query.error && !query.isFetching;
+    (query.data?.creationStatus === "READY" ||
+      (session.account.role === "STUDENT" &&
+        !!studentManagement.data?.canManageLearning &&
+        !studentManagement.error)) &&
+    !query.error &&
+    !query.isFetching;
   const locked = busy || uncertain || !!openingId;
   const denied = onboardingAccessDenied(query.error);
   useEffect(() => {
@@ -322,6 +338,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
         {control || (
           <Input
             {...props}
+            readOnly={session.account.role === "STUDENT" && name === "alias"}
             maxLength={
               name === "alias"
                 ? 40
@@ -483,7 +500,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
           )}
           {query.data && !denied && (
             <>
-              {query.data.creationStatus !== "READY" && (
+              {query.data.creationStatus !== "READY" && !ready && (
                 <Alert>
                   <AlertDescription>
                     {appText(gateMessages[query.data.creationStatus])}
@@ -532,7 +549,8 @@ export function LearnerProfiles({ session }: { session: Session }) {
                         <li key={p.id}>
                           <h3>{p.alias}</h3>
                           <EducationSummary education={p.education} />
-                          {session.account.role === "GUARDIAN" && (
+                          {(session.account.role === "GUARDIAN" ||
+                            !!studentManagement.data?.canManageLearning) && (
                             <Button
                               variant="outline"
                               disabled={!ready || locked || adding}

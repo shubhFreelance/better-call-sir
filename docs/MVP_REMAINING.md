@@ -99,3 +99,6 @@ H3 connected enquiry-to-hiring navigation and F23/H5 no-match/future-coverage re
 
 
 17 October 2026 — waitlist history now has guardian-owned stable cursor pagination, Previous/Next navigation, retained criteria and retry/first-page recovery. Teacher supply and notification promises remain unchanged. Student-device and waitlist histories are paginated; other B12 histories remain open.
+
+
+19 October 2026 — L3 guardian-authorized managed-student learning is complete in development. Guardian-only/shared/student-led choices now govern owned enquiries, teacher selection, optional demos, learning-term acceptance, replacement and unlinked education edits. Consent/account/device/financial authority stays separate. Bilingual management and student teacher-choice screens pass15 new shared cases within the94-case strict-CSP production run; API166/contract14/backend-security8 and frontend-security18, builds/types and source/bundle scans pass. Under15 is assistance guidance; direct independent accounts remain18+. Earlier under-18 implementation-open wording is superseded for this approved guardian-led policy; actual legal/notice/real-person qualification remains open. Next:T2 minimum tuition, thenB8 live email.

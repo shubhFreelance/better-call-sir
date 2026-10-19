@@ -312,7 +312,8 @@ export function TuitionRequests({
     </div>
   );
 }
-function RequestReview({
+export function RequestReview({
+  visible = true,
   session,
   requestId,
   dashboard,
@@ -321,6 +322,7 @@ function RequestReview({
 }: {
   session: Session;
   requestId: string;
+  visible?: boolean;
   dashboard: Dashboard;
   permitted: boolean;
   onLockChange: (locked: boolean) => void;
@@ -429,6 +431,22 @@ function RequestReview({
     profiles.data?.pages.length,
     profiles.error,
   ]);
+  if (!visible)
+    return (
+      <>
+        <Feedback decision={decision} />
+        {decision.uncertain && (
+          <Button disabled={decision.busy} onClick={() => decision.run()}>
+            {appText("Retry the same decision")}
+          </Button>
+        )}
+        {decision.conflict && (
+          <Button disabled={decision.busy} onClick={() => decision.reload()}>
+            {appText("Reload current details")}
+          </Button>
+        )}
+      </>
+    );
   if (detail.isPending)
     return (
       <section className="panel">
@@ -836,7 +854,11 @@ function RequestReview({
           </p>
           <Link
             className="button"
-            href={`/dashboard?arrangement=${placement.id}`}
+            href={
+              session.account.role === "STUDENT"
+                ? `/dashboard/learning-choices?request=${request.id}#learning-arrangement-${placement.id}`
+                : `/dashboard?arrangement=${placement.id}`
+            }
           >
             {appText("Continue to hiring confirmation")}{" "}
           </Link>
@@ -1000,7 +1022,11 @@ function RequestReview({
                           demo.status,
                         ) ? (
                         <Link
-                          href="/dashboard/bookings"
+                          href={
+                            session.account.role === "STUDENT"
+                              ? "#optional-demos"
+                              : "/dashboard/bookings"
+                          }
                           className="button secondary"
                         >
                           {appText("Review demo ·")}{" "}
@@ -1634,7 +1660,7 @@ function TermsReview({
           </dd>
         </div>
         <div>
-          <dt>{appText("Guardian terms")}</dt>
+          <dt>{appText("Family learning terms")}</dt>
           <dd>
             {p.guardianAccepted ? appText("Accepted") : appText("Pending")}
           </dd>
