@@ -5342,3 +5342,50 @@ fieldset.catalog-filters { min-inline-size:0; margin-inline:0; }
 .minimum-parties dt { color: #586562; font-size: .875rem; margin-bottom: 6px; }
 .minimum-parties dd { font-weight: 600; margin: 0; overflow-wrap: anywhere; }
 @media (max-width: 700px) { .minimum-parties { grid-template-columns: 1fr; gap: 12px; } }
+
+/* B8 uses a record and timelines, with delivery claims kept explicit. */
+.delivery-workspace { max-width: 1060px; margin-inline: auto; display: grid; gap: 24px; color: #17201f; min-width: 0; }
+.delivery-header { max-width: 72ch; }
+.delivery-header h1 { font-size: clamp(2rem,4vw,2.75rem); line-height: 1.2; letter-spacing: -.035em; margin: 12px 0; }
+.delivery-workspace h2 { font-size: 1.4rem; line-height: 1.4; margin: 0 0 12px; }
+.delivery-workspace h3 { font-size: 1.05rem; line-height: 1.5; margin: 0 0 8px; }
+.delivery-workspace p { line-height: 1.75; max-width: 72ch; margin: 8px 0 16px; }
+.delivery-context { color: #034f46; display: flex; gap: 10px; align-items: center; font-size: .875rem; font-weight: 600; }
+.delivery-guidance { padding: 24px; background: #f0d7ff; border-radius: 16px; }
+.delivery-guidance strong { color: #034f46; }
+.delivery-guidance p { margin-bottom: 0; }
+.delivery-records, .delivery-detail { background: #fff; border: 1px solid #dce4df; border-radius: 14px; padding: 24px; min-width: 0; }
+.delivery-list-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+.delivery-filter { display: grid; gap: 8px; min-width: 200px; }
+.delivery-workspace label { display: grid; gap: 8px; font-size: .9rem; font-weight: 600; }
+.delivery-workspace select { min-height: 44px; padding: 10px 12px; border-radius: 8px; border: 1px solid #c2ceca; background: #fff; font: inherit; width: 100%; min-width: 0; }
+.delivery-list { list-style: none; padding: 0; margin: 24px 0; display: grid; gap: 20px; }
+.delivery-list li { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 16px; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #dce4df; }
+.delivery-list li:last-child { border: 0; padding: 0; }
+.delivery-list p { margin: 0; color: #586562; font-size: .875rem; }
+.delivery-status { display: inline-flex; width: fit-content; padding: 6px 12px; background: #ffffeb; border: 1px solid #e2e2bf; border-radius: 6px; font-size: .875rem; color: #034f46; font-weight: 600; }
+.delivery-detail > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.delivery-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 24px 0; }
+.delivery-facts dt { font-size: .875rem; color: #586562; margin-bottom: 6px; }
+.delivery-facts dd { margin: 0; overflow-wrap: anywhere; }
+.delivery-reference { overflow-wrap: anywhere; font-size: .875rem; color: #586562; }
+.delivery-recovery { margin-block: 24px; padding: 20px; background: #ffffeb; border: 1px solid #e2e2bf; border-radius: 10px; display: grid; gap: 16px; }
+.delivery-check { display: flex !important; gap: 12px !important; align-items: flex-start; line-height: 1.7; }
+.delivery-check input { width: 20px; height: 20px; flex-shrink: 0; margin-top: 3px; accent-color: #034f46; }
+.delivery-timeline { margin-top: 28px; }
+.delivery-timeline ol { list-style: none; padding: 0 0 0 18px; border-left: 2px solid #dce4df; display: grid; gap: 20px; }
+.delivery-timeline p { color: #586562; font-size: .875rem; margin-bottom: 0; }
+.delivery-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.delivery-workspace button { min-height: 44px; height: auto; white-space: normal; line-height: 1.6; padding-block: 10px; }
+.delivery-workspace a { overflow-wrap: anywhere; }
+.delivery-workspace :focus-visible { outline: 3px solid #034f46; outline-offset: 4px; }
+@media(max-width:700px) {
+ .delivery-workspace { gap: 20px; }
+ .delivery-guidance, .delivery-records, .delivery-detail { padding: 20px; }
+ .delivery-list-heading, .delivery-detail > header { flex-direction: column; gap: 16px; }
+ .delivery-filter { width: 100%; min-width: 0; }
+ .delivery-list li, .delivery-facts { grid-template-columns: 1fr; gap: 12px; }
+ .delivery-workspace button { width: 100%; }
+ .delivery-actions { flex-direction: column; }
+ .delivery-workspace h2 { font-size: 1.25rem; }
+}

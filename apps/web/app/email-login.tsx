@@ -30,7 +30,7 @@ const detailsSchema = z.object({
     .transform((value) => value.toLowerCase()),
 });
 type Challenge = {
-  status: "SANDBOX" | "SENT";
+  status: "SANDBOX" | "SENT" | "PENDING";
   developmentCode?: string;
   expiresIn: number;
 };
@@ -60,6 +60,13 @@ export function EmailLogin({
     code?: SignInError;
     server?: SignInError;
   }>({});
+  const requestIdentity = useRef<{
+    key: string;
+    email: string;
+    locale: string;
+  } | null>(null);
+  const requestSending = useRef(false);
+  const [uncertain, setUncertain] = useState(false);
   const codeInput = useRef<HTMLInputElement>(null);
   const nameInput = useRef<HTMLInputElement>(null);
   const emailInput = useRef<HTMLInputElement>(null);
@@ -80,6 +87,7 @@ export function EmailLogin({
       (
         {
           EMAIL_UNAVAILABLE: "emailUnavailable",
+          OTP_EXPIRED: "codeExpired",
           AUTH_UNAVAILABLE: "authUnavailable",
           RATE_LIMIT: "rateLimited",
           VALIDATION: "detailsInvalid",
@@ -90,6 +98,7 @@ export function EmailLogin({
   }
   async function requestCode(event?: FormEvent) {
     event?.preventDefault();
+    if (requestSending.current) return;
     const parsed = detailsSchema.safeParse({ name, email });
     if (!parsed.success) {
       const fields = parsed.error.flatten().fieldErrors;
@@ -106,14 +115,32 @@ export function EmailLogin({
       );
       return;
     }
+    requestSending.current = true;
+    if (!requestIdentity.current)
+      requestIdentity.current = {
+        key: crypto.randomUUID(),
+        email: parsed.data.email,
+        locale: hindi ? "hi" : "en",
+      };
+    const operation = requestIdentity.current;
     setBusy(true);
     setErrors({});
     try {
       const result = await api<Challenge>("/auth/otp/request", {
         method: "POST",
-        body: { email: parsed.data.email, locale: hindi ? "hi" : "en" },
+        body: { email: operation.email, locale: operation.locale },
+        key: operation.key,
         signal: AbortSignal.timeout(12000),
       });
+      if (
+        !["SANDBOX", "SENT", "PENDING"].includes(result.status) ||
+        !Number.isInteger(result.expiresIn) ||
+        result.expiresIn < 1 ||
+        result.expiresIn > 300
+      )
+        throw new Error("Invalid challenge");
+      requestIdentity.current = null;
+      setUncertain(false);
       setName(parsed.data.name);
       setEmail(parsed.data.email);
       setCode("");
@@ -123,8 +150,21 @@ export function EmailLogin({
       setResendAt(time + 60000);
       setChallenge(result);
     } catch (error) {
+      const unknown =
+        !(error instanceof ApiError) ||
+        error.code === "INVALID_RESPONSE" ||
+        (error.status >= 500 &&
+          ![
+            "EMAIL_UNAVAILABLE",
+            "AUTH_UNAVAILABLE",
+            "PROVIDER_UNAVAILABLE",
+          ].includes(error.code)) ||
+        (uncertain && ["RATE_LIMIT", "RATE_LIMITED"].includes(error.code));
+      setUncertain(unknown);
+      if (!unknown) requestIdentity.current = null;
       setErrors({ server: serverError(error) });
     } finally {
+      requestSending.current = false;
       setBusy(false);
     }
   }
@@ -170,7 +210,7 @@ export function EmailLogin({
             id="signin-language"
             value={hindi ? "hi" : "en"}
             onChange={(event) => onLanguageChange(event.target.value === "hi")}
-            disabled={busy}
+            disabled={busy || uncertain}
           >
             <option value="en">{appText("English")}</option>
             <option value="hi">हिन्दी</option>
@@ -212,6 +252,15 @@ export function EmailLogin({
             </AlertDescription>
           </Alert>
         )}
+        {uncertain && (
+          <Alert role="status">
+            <AlertDescription>
+              {appText(
+                "This code request could not be confirmed. Retry the same request before changing your email or language.",
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
         {!challenge ? (
           <form noValidate onSubmit={requestCode} className="auth-form">
             <label htmlFor="signin-name">{t.name}</label>
@@ -229,7 +278,7 @@ export function EmailLogin({
               aria-describedby={
                 errors.name ? "signin-name-error" : "signin-name-help"
               }
-              disabled={busy}
+              disabled={busy || uncertain}
             />
             {errors.name ? (
               <p id="signin-name-error" className="auth-field-error">
@@ -258,7 +307,7 @@ export function EmailLogin({
               }}
               aria-invalid={!!errors.email}
               aria-describedby={errors.email ? "signin-email-error" : undefined}
-              disabled={busy}
+              disabled={busy || uncertain}
             />
             {errors.email && (
               <p id="signin-email-error" className="auth-field-error">
@@ -276,7 +325,8 @@ export function EmailLogin({
                 </>
               ) : (
                 <>
-                  {t.send} <ArrowRight size={18} />
+                  {uncertain ? appText("Retry the same code request") : t.send}{" "}
+                  <ArrowRight size={18} />
                 </>
               )}
             </Button>
@@ -284,6 +334,15 @@ export function EmailLogin({
           </form>
         ) : (
           <form noValidate onSubmit={verify} className="auth-form">
+            {challenge.status === "PENDING" && (
+              <Alert role="status">
+                <AlertDescription>
+                  {appText(
+                    "Your email is queued for processing. Inbox delivery has not yet been confirmed.",
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
             {challenge.status === "SANDBOX" && (
               <Alert className="auth-sandbox" role="status">
                 <AlertDescription>

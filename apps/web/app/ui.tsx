@@ -1,4 +1,5 @@
 "use client";
+import { NotificationWorkspace } from "./notification-workspace";
 import { TuitionMinimumWorkspace } from "./tuition-minimum-workspace";
 import { LearningManagementWorkspace } from "./learning-management";
 import { ManagedStudentLearning } from "./managed-student-learning";
@@ -2047,6 +2048,16 @@ function DashboardShell({
   const role = session?.account.role;
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
+    ["/dashboard/notifications", "Notifications", ShieldCheck],
+    ...(["ADMIN", "OPERATOR"].includes(role || "")
+      ? [
+          [
+            "/dashboard/email-delivery",
+            "Email delivery & recovery",
+            ShieldCheck,
+          ] as [string, string, LucideIcon],
+        ]
+      : []),
     ...(["ADMIN", "OPERATOR"].includes(role || "")
       ? [
           [
@@ -2294,6 +2305,8 @@ function DashboardPage({ tab }: { tab: string }) {
         "/dashboard/learning-management",
         "/dashboard/learning-choices",
         "/dashboard/minimum-tuition",
+        "/dashboard/notifications",
+        "/dashboard/email-delivery",
       ].includes(tab) &&
       !(
         ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
@@ -2328,6 +2341,15 @@ function DashboardPage({ tab }: { tab: string }) {
   }
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (["/dashboard/notifications", "/dashboard/email-delivery"].includes(tab))
+    return (
+      <DashboardShell tab={tab}>
+        <NotificationWorkspace
+          session={session}
+          staff={tab === "/dashboard/email-delivery"}
+        />
+      </DashboardShell>
+    );
   if (tab === "/dashboard/minimum-tuition")
     return (
       <DashboardShell tab={tab}>
