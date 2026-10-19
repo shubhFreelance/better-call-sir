@@ -1,4 +1,5 @@
 "use client";
+import {ServiceFollowups} from "./service-followups";
 import { NotificationWorkspace } from "./notification-workspace";
 import { TuitionMinimumWorkspace } from "./tuition-minimum-workspace";
 import { LearningManagementWorkspace } from "./learning-management";
@@ -2049,6 +2050,7 @@ function DashboardShell({
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
     ["/dashboard/notifications", "Notifications", ShieldCheck],
+    ...(["ADMIN", "OPERATOR"].includes(role || "") ? [["/dashboard/service-followups", "Service follow-ups", LifeBuoy] as [string,string,LucideIcon]] : []),
     ...(["ADMIN", "OPERATOR"].includes(role || "")
       ? [
           [
@@ -2305,6 +2307,7 @@ function DashboardPage({ tab }: { tab: string }) {
         "/dashboard/learning-management",
         "/dashboard/learning-choices",
         "/dashboard/minimum-tuition",
+        "/dashboard/service-followups",
         "/dashboard/notifications",
         "/dashboard/email-delivery",
       ].includes(tab) &&
@@ -2341,6 +2344,7 @@ function DashboardPage({ tab }: { tab: string }) {
   }
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (tab === "/dashboard/service-followups") return <DashboardShell tab={tab}><ServiceFollowups session={session}/></DashboardShell>;
   if (["/dashboard/notifications", "/dashboard/email-delivery"].includes(tab))
     return (
       <DashboardShell tab={tab}>

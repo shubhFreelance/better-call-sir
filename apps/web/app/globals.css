@@ -5389,3 +5389,16 @@ fieldset.catalog-filters { min-inline-size:0; margin-inline:0; }
  .delivery-actions { flex-direction: column; }
  .delivery-workspace h2 { font-size: 1.25rem; }
 }
+
+/* Staff follow-up is a contact worksheet, separate from cohort evidence. */
+.service-filters { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 20px; margin-block: 20px; }
+.service-contact { display: grid; gap: 16px; margin-block: 24px; padding-block: 24px; border-block: 1px solid #dce4df; }
+.service-contact .service-filters { margin-block: 0; }
+.service-observation { background: #f0d7ff; padding: 20px; border-radius: 10px; margin-bottom: 24px; }
+.service-observation p:last-child { margin-bottom: 0; }
+.service-muted { color: #586562; font-size: .875rem; }
+.service-workspace input:not([type="checkbox"]) { min-width: 0; width: 100%; }
+@media(max-width:700px) { .service-filters { grid-template-columns: 1fr; gap: 16px; } }
+
+.service-contact-access { margin-bottom: 24px; }
+.service-owner-contact { padding: 20px; margin-top: 16px; background: #ffffeb; border-radius: 10px; }
