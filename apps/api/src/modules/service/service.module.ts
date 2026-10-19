@@ -148,7 +148,10 @@ class ServiceController {
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${"service:" + k + ":" + id},0))`;
     return this.row(db, a, k, id);
   }
-  @Get("admin/service-followups") async list(@Req() req: HttpRequest, @Query() query: unknown) {
+  @Get("admin/service-followups") async list(
+    @Req() req: HttpRequest,
+    @Query() query: unknown,
+  ) {
     const a = await this.service.actor(req, ["ADMIN", "OPERATOR"]),
       q = parse(paging, query);
     return this.service.db.$transaction(async (db) => {
@@ -236,6 +239,40 @@ class ServiceController {
         contacts: rows.slice(0, q.limit),
         nextCursor: rows.length > q.limit ? rows[q.limit - 1].id : null,
       };
+    });
+  }
+  @Get("admin/service-followups/:kind/:id/contact-details")
+  async contactDetails(
+    @Req() req: HttpRequest,
+    @Param("kind") k: string,
+    @Param("id") id: string,
+    @Query() query: unknown,
+  ) {
+    const a = await this.service.actor(req, ["ADMIN", "OPERATOR"]);
+    parse(kind, k);
+    parse(uuid, id);
+    parse(z.object({}).strict(), query);
+    return this.service.db.$transaction(async (db) => {
+      const row = await this.access(db, req, a, k, id);
+      if (row.assignedToId !== a.id)
+        fail(
+          403,
+          "CLAIM_REQUIRED",
+          "Only the assigned staff member can reveal contact details.",
+        );
+      const owner = await db.account.findUniqueOrThrow({
+        where: { id: row.familyId },
+        select: { email: true, phone: true },
+      });
+      await this.service.audit(
+        db,
+        a,
+        req,
+        "SERVICE_CONTACT_DETAILS_READ",
+        id,
+        "Assigned staff revealed owner contact details for service follow-up",
+      );
+      return { email: owner.email, phone: owner.phone };
     });
   }
   @Post("admin/service-followups/:kind/:id/assignments") async assign(
