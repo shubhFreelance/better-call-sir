@@ -221,6 +221,7 @@ export function NotesWorkspace({
           {appText(
             "Verified guardian access and active consent are required to create, edit or share notes.",
           )}{" "}
+          {appText("You can still withdraw existing note sharing.")}{" "}
           <Link href="/dashboard/family">
             {appText("Review learner access")}
           </Link>
@@ -593,7 +594,9 @@ export function NotesWorkspace({
                     </Button>
                     <Button
                       variant={n.sharedTeacherId ? "outline" : "default"}
-                      disabled={launchBlocked || !permitted}
+                      disabled={
+                        launchBlocked || (!permitted && !n.sharedTeacherId)
+                      }
                       onClick={() =>
                         open(n.sharedTeacherId ? "withdraw" : "share", n)
                       }

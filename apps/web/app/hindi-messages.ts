@@ -1,5 +1,9 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "You can still withdraw existing note sharing.": "पहले से साझा किए गए नोट की पहुँच आप अब भी वापस ले सकते हैं।",
+  "Access changed since this decision was recorded. Reload the current record before retrying.": "यह निर्णय दर्ज होने के बाद आपकी अनुमति बदल गई है। दोबारा कोशिश करने से पहले मौजूदा रिकॉर्ड लोड करें।",
+  "Shared note not found.": "साझा किया गया नोट उपलब्ध नहीं है।",
+  "Sharing requires an active placement with this teacher.": "नोट साझा करने के लिए इस शिक्षक के साथ सक्रिय ट्यूशन व्यवस्था ज़रूरी है।",
   "Last updated": "आखिरी बदलाव",
   "Record only the paid portion toward this commenced minimum, including any advance payment.": "शुरू हो चुकी सहमत न्यूनतम फ़ीस के लिए दिए गए भुगतान का हिस्सा दर्ज करें, जिसमें पहले दिया गया भुगतान भी शामिल है।",
   "Date": "तारीख",

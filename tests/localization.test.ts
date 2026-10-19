@@ -73,6 +73,16 @@ test("localized presentation preserves English, authored values, nodes and proto
   assert.equal(translateError(true, ""), "");
   assert.equal(translateError(true, "कृपया नाम भरें।"), "कृपया नाम भरें।");
   assert.equal(translateError(true, "Enter your city."), "अपना शहर दर्ज करें।");
+  for (const message of [
+    "Access changed since this decision was recorded. Reload the current record before retrying.",
+    "Your access changed. Sign in again.",
+    "Shared note not found.",
+    "Sharing requires an active placement with this teacher.",
+  ]) {
+    assert.equal(translateError(false, message), message);
+    assert.equal(translateError(true, message), hindiMessages[message]);
+    assert.match(translateError(true, message), /[\u0900-\u097F]/);
+  }
   assert.equal(
     translateError(true, "Unknown private backend detail"),
     "यह कार्रवाई पूरी नहीं हुई। मौजूदा जानकारी और अपनी अनुमति जाँचें, फिर कोशिश करें।",

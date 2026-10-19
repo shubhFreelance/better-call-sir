@@ -31,6 +31,8 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
       "ack",
       "withdraw",
       "uncertain-withdraw",
+      "revoked-sharing",
+      "withdrawn-consent-sharing",
     ].includes(mode) ||
     role === "TEACHER"
   )
@@ -38,7 +40,9 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
       ...note,
       sharedTeacherId: teacher,
       sharedTeacher: { id: teacher, name: "Ananya Sharma" },
-      sharingActive: true,
+      sharingActive: !["revoked-sharing", "withdrawn-consent-sharing"].includes(
+        mode,
+      ),
       version: 2,
     };
   if (mode === "edit") note = { ...note, acknowledgedAt: now(), version: 3 };
@@ -70,7 +74,7 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
                 ? "Ananya · synthetic teacher"
                 : "Kavita · synthetic guardian",
             role,
-            verified: mode !== "unverified",
+            verified: !["unverified", "revoked-sharing"].includes(mode),
           },
           csrfToken: "synthetic-csrf",
         },
@@ -99,7 +103,13 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
               status: mode === "no-teacher" ? "CLOSED" : "ACTIVE",
             },
           ],
-          consent: { withdrawnAt: mode === "no-consent" ? now() : null },
+          consent: {
+            withdrawnAt: ["no-consent", "withdrawn-consent-sharing"].includes(
+              mode,
+            )
+              ? now()
+              : null,
+          },
         },
       });
     if (req.method() === "GET" && path.endsWith("/notes")) {
@@ -568,3 +578,38 @@ test("Hindi complete interface — पढ़ाई के निजी नोट
   await page.setViewportSize({ width: 360, height: 800 });
   await checkHindi(page);
 });
+
+for (const mode of ["revoked-sharing", "withdrawn-consent-sharing"]) {
+  test(`owner can withdraw paused note sharing after ${mode} without editing or newly sharing`, async ({
+    page,
+  }) => {
+    const state = await mock(page, mode);
+    await page.goto("/dashboard/notes");
+    await expect(
+      page.getByRole("button", { name: "Edit note" }),
+    ).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Write a private note", exact: true }),
+    ).toBeDisabled();
+    await expect(page.locator(".notes-card")).toContainText("Sharing paused");
+    await expect(
+      page.getByText("You can still withdraw existing note sharing."),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Review withdrawal" }).click();
+    await page.getByRole("checkbox", { name: /I want to withdraw/ }).check();
+    await page
+      .getByRole("button", { name: "Withdraw access", exact: true })
+      .click();
+    await expect(page.locator(".notes-card")).toContainText(
+      "Private · only you",
+    );
+    expect(state.writes).toHaveLength(1);
+    expect(state.writes[0].body).toEqual({
+      expectedVersion: 2,
+      teacherId: null,
+    });
+    await expect(
+      page.getByRole("button", { name: "Review sharing" }),
+    ).toBeDisabled();
+  });
+}
