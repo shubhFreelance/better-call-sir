@@ -940,3 +940,27 @@ model EmailReceipt {
  receivedAt DateTime @default(now())
  @@index([providerId])
 }
+
+model ServiceFollowup {
+ id String @id @default(uuid()) @db.Uuid
+ kind String
+ resourceId String @db.Uuid
+ status String @default("OPEN")
+ assignedToId String? @db.Uuid
+ nextContactAt DateTime?
+ supportCaseId String? @db.Uuid
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ @@unique([kind,resourceId])
+}
+model ServiceContact {
+ id String @id @default(uuid()) @db.Uuid
+ followupId String @db.Uuid
+ actorId String @db.Uuid
+ outcome String
+ method String
+ nextContactAt DateTime?
+ supportCaseId String? @db.Uuid
+ createdAt DateTime @default(now())
+ @@index([followupId,createdAt,id])
+}

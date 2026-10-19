@@ -212,3 +212,7 @@ test('minimum tuition contracts require explicit versioned confirmation and reje
  assert(input(body));for(const patch of [{amountPaise:0},{amountPaise:1.5},{amountPaise:2000001},{expectedVersion:0},{confirmed:false},{proposerId:ids.guardian}])assert.equal(input({...body,...patch}),false);
  const start=validator('TuitionCommencementInput');assert(start({expectedVersion:1,confirmed:true,action:'CONFIRM',commencementDate:'2026-10-19'}));assert.equal(start({expectedVersion:1,confirmed:true,action:'CONFIRM',commencementDate:'today'}),false);
 });
+
+test('service contact contracts require actual contact, scoped outcomes and explicit version confirmation',()=>{
+ const check=validator('ServiceContactInput'),body={expectedVersion:0,confirmed:true,outcome:'NO_RESPONSE',method:'PHONE',nextContactAt:new Date(Date.now()+86400000).toISOString()};assert(check(body));assert(!check({...body,nextContactAt:undefined}));assert(!check({...body,confirmed:false}));assert(!check({...body,outcome:'CONTINUING'}));assert(check({expectedVersion:1,confirmed:true,outcome:'HELP_REQUESTED',method:'VIDEO',supportCategory:'SAFETY'}));assert(!check({expectedVersion:1,confirmed:true,outcome:'HELP_REQUESTED',method:'VIDEO'}));assert(!check({...body,assignedToId:ids.admin}));
+});

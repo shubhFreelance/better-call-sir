@@ -4,6 +4,74 @@
  */
 
 export interface paths {
+    "/admin/service-followups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** listServiceFollowups */
+        get: operations["listServiceFollowups"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/service-followups/{kind}/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** getServiceFollowup */
+        get: operations["getServiceFollowup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/service-followups/{kind}/{id}/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** assignServiceFollowup */
+        post: operations["assignServiceFollowup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/service-followups/{kind}/{id}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** recordServiceContact */
+        post: operations["recordServiceContact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health/live": {
         parameters: {
             query?: never;
@@ -3745,6 +3813,94 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ServiceFollowup: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "PLACEMENT" | "INDEPENDENT";
+            region: string;
+            learnerName: string;
+            teacherName: string;
+            subject: string;
+            arrangementStatus: string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            dueAt: string;
+            /** @enum {string} */
+            status: "OPEN" | "SCHEDULED" | "COMPLETED";
+            version: number;
+            /** Format: uuid */
+            assignedToId: string | null;
+            /** Format: date-time */
+            nextContactAt: string | null;
+            /** Format: uuid */
+            supportCaseId: string | null;
+            recordedObservation: null | {
+                continued: boolean | null;
+                /** Format: date-time */
+                observedAt: string;
+            };
+        };
+        ServiceContact: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            followupId: string;
+            /** Format: uuid */
+            actorId: string;
+            /** @enum {string} */
+            outcome: "CONTINUING" | "ENDED" | "NO_RESPONSE" | "HELP_REQUESTED";
+            /** @enum {string} */
+            method: "EMAIL" | "PHONE" | "VIDEO" | "IN_PERSON";
+            /** Format: date-time */
+            nextContactAt: string | null;
+            /** Format: uuid */
+            supportCaseId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ServiceFollowupPage: {
+            items: components["schemas"]["ServiceFollowup"][];
+            nextCursor: string | null;
+            /** Format: date-time */
+            asOf: string;
+        };
+        ServiceFollowupDetail: {
+            followup: components["schemas"]["ServiceFollowup"];
+            contacts: components["schemas"]["ServiceContact"][];
+            /** Format: uuid */
+            nextCursor: string | null;
+        };
+        ServiceAssignmentInput: {
+            expectedVersion: number;
+            /** @constant */
+            confirmed: true;
+            /** @enum {string} */
+            action: "CLAIM" | "RELEASE";
+        };
+        ServiceContactInput: {
+            expectedVersion: number;
+            /** @constant */
+            confirmed: true;
+            /** @enum {string} */
+            outcome: "CONTINUING" | "ENDED" | "NO_RESPONSE" | "HELP_REQUESTED";
+            /** @enum {string} */
+            method: "EMAIL" | "PHONE" | "VIDEO" | "IN_PERSON";
+            /** Format: date-time */
+            nextContactAt?: string;
+            /** @enum {string} */
+            supportCategory?: "GENERAL" | "SAFETY" | "REPLACEMENT";
+        } & (unknown & unknown);
+        ServiceFollowupResult: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "OPEN" | "SCHEDULED" | "COMPLETED";
+            version: number;
+            /** Format: uuid */
+            supportCaseId?: string | null;
+        };
         Teacher: {
             /** Format: uuid */
             id: string;
@@ -7229,6 +7385,368 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    listServiceFollowups: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+                status?: "OPEN" | "SCHEDULED" | "COMPLETED";
+                assignment?: "ME" | "UNASSIGNED";
+                due?: "true" | "false";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Scoped manual service follow-up; contact outcomes never rewrite continuation observations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceFollowupPage"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getServiceFollowup: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Scoped manual service follow-up; contact outcomes never rewrite continuation observations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceFollowupDetail"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    assignServiceFollowup: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceAssignmentInput"];
+            };
+        };
+        responses: {
+            /** @description Scoped manual service follow-up; contact outcomes never rewrite continuation observations */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceFollowupResult"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    recordServiceContact: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceContactInput"];
+            };
+        };
+        responses: {
+            /** @description Scoped manual service follow-up; contact outcomes never rewrite continuation observations */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceFollowupResult"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getHealthLive: {
         parameters: {
             query?: never;
