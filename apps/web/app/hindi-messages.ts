@@ -1,5 +1,17 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "That email belongs to another account. Use the same email you started this application with. Your entries are still here.": "यह ईमेल दूसरे खाते का है। जिस ईमेल से यह आवेदन शुरू किया था, उसी का इस्तेमाल करें। आपकी भरी हुई जानकारी यहीं है।",
+
+  "Restore teacher sign-in": "शिक्षक खाते में फिर साइन इन करें",
+  "Sign in again without losing your application": "आवेदन की जानकारी खोए बिना फिर साइन इन करें",
+  "Your current entries are kept on this page. Use the same email address, then continue the step. Do not reload or close this page.": "आपकी भरी हुई जानकारी इसी पेज पर सुरक्षित है। उसी ईमेल से साइन इन करके यह चरण जारी रखें। इस पेज को रीफ़्रेश या बंद न करें।",
+  "You are signed in again. Continue to save your current step.": "आप फिर साइन इन हो गए हैं। मौजूदा चरण सहेजने के लिए आगे बढ़ें।",
+  "Your teacher application starts here": "आपका शिक्षक आवेदन यहाँ शुरू होता है",
+  "You are signed in. Continue with your teaching details. Your application stays private until reviewed and approved.": "आप साइन इन हैं। अब अपनी शिक्षण जानकारी भरें। समीक्षा और स्वीकृति तक आपका आवेदन निजी रहेगा।",
+  "Continue teacher application": "शिक्षक आवेदन जारी रखें",
+  "Already have a teacher account?": "क्या आपका शिक्षक खाता पहले से है?",
+  "Sign in to continue your application": "अपना आवेदन जारी रखने के लिए साइन इन करें",
+
   "Reason for replacement": "शिक्षक बदलने का कारण",
   "Reason for closure": "व्यवस्था बंद करने का कारण",
   "You can still withdraw existing note sharing.": "पहले से साझा किए गए नोट की पहुँच आप अब भी वापस ले सकते हैं।",

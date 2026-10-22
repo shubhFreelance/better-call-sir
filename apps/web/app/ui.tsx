@@ -71,6 +71,7 @@ import {
 import { GuardianSetup } from "./guardian-setup";
 import { GuardianOnboarding } from "./guardian-onboarding";
 import { TeacherSetup } from "./teacher-onboarding";
+import { TeacherRegistration } from "./teacher-registration";
 import { RoleOverview } from "./role-overview";
 import { TuitionRequests, TuitionTerms } from "./tuition-workflow";
 import { LearningWorkspace } from "./learning-workspace";
@@ -381,7 +382,7 @@ function Header() {
                 ? "हमें आपके लिए खोजने दें"
                 : appText("Let us search for you")}
             </Link>
-            <Link href="/onboarding/teacher" onClick={() => setOpen(false)}>
+            <Link href="/signup/teacher" onClick={() => setOpen(false)}>
               {hindi ? "शिक्षक बनें" : appText("Become a teacher")}
             </Link>
             <div className="mobile-nav-actions">
@@ -1702,6 +1703,7 @@ function Login() {
   return (
     <main className="container auth-section" lang={hindi ? "hi" : "en"}>
       <EmailLogin
+        purpose={searchParams.get("intent") === "teacher" || searchParams.get("next") === "/onboarding/teacher" ? "teacher-signin" : "general"}
         onSignedIn={signedIn}
         hindi={hindi}
         onLanguageChange={setHindi}
@@ -1839,9 +1841,9 @@ function LoginPrompt() {
 function TeacherOnboarding() {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
-  const { session, setSession, loading } = useAuth();
+  const { session, setSession, loading, hindi, setHindi } = useAuth();
   if (loading) return <State loading />;
-  if (!session) return <LoginPrompt />;
+  if (!session) return <TeacherRegistration session={null} onSignedIn={setSession} hindi={hindi} onLanguageChange={setHindi} />;
   if (!["GUARDIAN", "TEACHER"].includes(session.account.role))
     return (
       <main className="container narrow section">
@@ -1856,7 +1858,12 @@ function TeacherOnboarding() {
         </Link>
       </main>
     );
-  return <TeacherSetup session={session} onSessionChange={setSession} />;
+  return <TeacherSetup session={session} onSessionChange={setSession} hindi={hindi} onLanguageChange={setHindi} />;
+}
+function TeacherSignupPage() {
+  const { session, setSession, loading, hindi, setHindi } = useAuth();
+  if (loading) return <State loading />;
+  return <TeacherRegistration session={session} onSignedIn={setSession} hindi={hindi} onLanguageChange={setHindi} />;
 }
 function GuardianVerificationPage() {
   const { session, setSession, loading } = useAuth();
@@ -3150,6 +3157,8 @@ function Routes() {
     <Profile slug={path.split("/")[2]} />
   ) : path === "/login" ? (
     <Login />
+  ) : path === "/signup/teacher" ? (
+    <TeacherSignupPage />
   ) : path === "/dashboard/learners" ? (
     <LearnerProfilesPage />
   ) : path === "/guardian-verification" ? (

@@ -38,14 +38,69 @@ export function EmailLogin({
   onSignedIn,
   hindi,
   onLanguageChange,
+  purpose = "general",
 }: {
   hindi: boolean;
   onLanguageChange: (hindi: boolean) => void;
   onSignedIn: (session: Session) => void;
+  purpose?:
+    | "general"
+    | "teacher-signup"
+    | "teacher-signin"
+    | "teacher-recovery";
 }) {
-  const { appText, appError, appLocale } = useAppTranslation();
+  const { appText, appError, appLocale } = useAppTranslation(hindi);
 
-  const t = signInCopy[hindi ? "hi" : "en"];
+  const t = {
+    ...signInCopy[hindi ? "hi" : "en"],
+    ...(purpose === "general"
+      ? {}
+      : {
+          welcome: hindi
+            ? purpose === "teacher-signup"
+              ? "अपना शिक्षक खाता बनाएँ"
+              : "अपने शिक्षक खाते में साइन इन करें"
+            : purpose === "teacher-signup"
+              ? "Create your teacher account"
+              : "Sign in to your teacher account",
+          introduction:
+            purpose === "teacher-recovery"
+              ? hindi
+                ? "इस पेज पर भरी हुई जानकारी जारी रखने के लिए उसी ईमेल से साइन इन करें।"
+                : "Use the same email to resume the application details kept on this page."
+              : hindi
+                ? "पहले अपने ईमेल की पुष्टि करें। फिर अपनी निजी शिक्षण प्रोफ़ाइल पूरी करें और समीक्षा के लिए भेजें।"
+                : "Verify your email first. Then complete your private teaching profile and submit it for review.",
+          send: hindi ? "पुष्टि कोड भेजें" : "Send verification code",
+          verify: hindi
+            ? "पुष्टि करके आवेदन पर जाएँ"
+            : "Verify and continue to application",
+          nameHelp: hindi
+            ? "अपने शिक्षक खाते के लिए अपना पूरा नाम डालें।"
+            : "Enter your full name for your teacher account.",
+          permission: hindi
+            ? "ईमेल की पुष्टि से आप शिक्षक के रूप में स्वीकृत नहीं होते। प्रोफ़ाइल सार्वजनिक होने से पहले अलग समीक्षा और स्क्रीनिंग ज़रूरी है।"
+            : "Email verification does not approve you as a teacher. Your profile needs separate review and screening before becoming public.",
+          guideTitle: hindi
+            ? "अपना अनुभव सही विद्यार्थियों तक पहुँचाएँ।"
+            : "Bring your expertise to the right learners.",
+          guideIntro: hindi
+            ? "ईमेल की पुष्टि → शिक्षण प्रोफ़ाइल → समीक्षा। आपका आवेदन जमा होने तक निजी रहता है।"
+            : "Verify your email → build your teaching profile → submit for review. Your application stays private while you complete it.",
+          reviewed: hindi
+            ? "अपनी शिक्षा और अनुभव बताएँ"
+            : "Share your education and experience",
+          enquiries: hindi
+            ? "विषय, पढ़ाने का तरीका और शुल्क चुनें"
+            : "Choose subjects, teaching format and tuition",
+          privacy: hindi
+            ? "समीक्षा के बाद परिवार आपकी प्रोफ़ाइल खोज सकते हैं"
+            : "Become discoverable after approval and screening",
+          guardian: hindi
+            ? "पहले से शिक्षक खाता है? उसी ईमेल से साइन इन करके आवेदन जारी रखें।"
+            : "Already have a teacher account? Use the same email to resume your application.",
+        }),
+  };
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");

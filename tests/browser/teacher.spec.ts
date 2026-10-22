@@ -389,7 +389,10 @@ async function mock(
 test("real teacher application resumes, switches role and uploads private quarantined evidence", async ({
   page,
 }) => {
-  await page.goto("/login?next=%2Fonboarding%2Fteacher");
+  await page.goto("/teachers");
+  await page.getByRole("link", {name:"Become a teacher",exact:true}).click();
+  await expect(page).toHaveURL(/signup\/teacher/);
+  await expect(page.getByRole("heading", {name:"Create your teacher account",exact:true})).toBeVisible();
   await page.getByLabel("Your name").fill("Synthetic UI Teacher");
   await page
     .getByLabel("Email address")
@@ -397,10 +400,10 @@ test("real teacher application resumes, switches role and uploads private quaran
   const response = page.waitForResponse((r) =>
     r.url().endsWith("/auth/otp/request"),
   );
-  await page.getByRole("button", { name: "Send sign-in code" }).click();
+  await page.getByRole("button", { name: "Send verification code" }).click();
   const otp = await (await response).json();
   await page.getByLabel("Six-digit code").fill(otp.developmentCode);
-  await page.getByRole("button", { name: "Verify and continue" }).click();
+  await page.getByRole("button", { name: "Verify and continue to application" }).click();
   await expect(page).toHaveURL(/onboarding\/teacher/);
   await teaching(page);
   await page.reload();
@@ -420,7 +423,17 @@ test("real teacher application resumes, switches role and uploads private quaran
   await expect(
     page.getByText(/Teaching area 1: enter 1–40 distinct subjects/),
   ).toBeVisible();
+  const saves: {body: string | null; key: string | undefined}[] = [];
+  const capture = (request: import("@playwright/test").Request) => { if (request.method() === "POST" && request.url().endsWith("/onboarding/teacher/drafts")) saves.push({body:request.postData(),key:request.headers()["idempotency-key"]}); };
+  page.on("request", capture);
+  await page.context().clearCookies({name:"bcs_access"});
+  const renewed = page.waitForResponse(r => r.url().endsWith("/auth/refresh") && r.request().method() === "POST");
   await coverage(page);
+  expect((await renewed).status()).toBe(201);
+  await expect(page.getByRole("button",{name:"Submit teacher application",exact:true})).toBeVisible();
+  page.off("request", capture);
+  expect(saves).toHaveLength(2);
+  expect(saves[1]).toEqual(saves[0]);
   await expect(
     page.getByText("₹2,500.50 per month", { exact: false }),
   ).toBeVisible();
@@ -1374,4 +1387,28 @@ test("Hindi full teacher application validates, reviews authored evidence and re
     kind: "QUALIFICATIONS",
     mediaType: "application/pdf",
   });
+});
+
+test("expired teacher sign-in can be restored on the same page without losing unsaved fields or accepting another account", async ({page}) => {
+  const state=await mock(page);await page.goto('/onboarding/teacher');
+  await page.getByLabel('Teaching headline').fill('Keep this unsaved headline');
+  await page.getByLabel('About your teaching').fill('Keep my description while I restore access.');
+  await page.getByLabel('Years of teaching experience').fill('7');
+  let restored=false,verified=0;
+  await page.route('**/api/v1/onboarding/teacher/drafts',async route=>restored?route.fallback():route.fulfill({status:401,json:{code:'SESSION_REQUIRED',message:'Sign in to continue.'}}));
+  await page.route('**/api/v1/auth/session',async route=>restored?route.fallback():route.fulfill({status:401,json:{code:'SESSION_REQUIRED',message:'Sign in to continue.'}}));
+  await page.route('**/api/v1/auth/refresh',async route=>route.fulfill({status:401,json:{code:'SESSION_REVOKED',message:'Session expired or refresh replay detected. Sign in again.'}}));
+  await page.route('**/api/v1/auth/otp/request',async route=>route.fulfill({status:201,json:{status:'SANDBOX',developmentCode:'123456',expiresIn:300}}));
+  await page.route('**/api/v1/auth/otp/verify',async route=>{verified++;restored=verified>1;return route.fulfill({status:201,json:{account:{id:restored?'10000000-0000-4000-8000-000000000091':'10000000-0000-4000-8000-000000000099',role:'GUARDIAN',name:'Synthetic Teacher',verified:false},csrfToken:'restored-csrf'}});});
+  await page.getByRole('button',{name:'Continue to private address',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Sign in again without losing your application',exact:true})).toBeFocused();
+  expect(state.bodies).toHaveLength(0);
+  const recovery=page.getByRole('main',{name:'Restore teacher sign-in',exact:true});
+  await recovery.getByLabel('Your name',{exact:true}).fill('Synthetic Teacher');await recovery.getByLabel('Email address',{exact:true}).fill('wrong@example.test');
+  await recovery.getByRole('button',{name:'Send verification code',exact:true}).click();await recovery.getByLabel('Six-digit code',{exact:true}).fill('123456');await recovery.getByRole('button',{name:'Verify and continue to application',exact:true}).click();
+  await expect(page.getByText('That email belongs to another account. Use the same email you started this application with. Your entries are still here.',{exact:true})).toBeVisible();expect(state.bodies).toHaveLength(0);
+  await recovery.getByLabel('Email address',{exact:true}).fill('same-owner@example.test');await recovery.getByRole('button',{name:'Send verification code',exact:true}).click();await recovery.getByLabel('Six-digit code',{exact:true}).fill('123456');await recovery.getByRole('button',{name:'Verify and continue to application',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Sign in again without losing your application',exact:true})).toHaveCount(0);
+  await expect(page.getByLabel('Teaching headline')).toHaveValue('Keep this unsaved headline');await expect(page.getByLabel('About your teaching')).toHaveValue('Keep my description while I restore access.');await expect(page.getByLabel('Years of teaching experience')).toHaveValue('7');
+  await page.getByRole('button',{name:'Continue to private address',exact:true}).click();await expect(page.getByRole('heading',{name:'Private address',exact:true})).toBeVisible();
 });

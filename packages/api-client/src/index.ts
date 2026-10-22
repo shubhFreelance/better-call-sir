@@ -25,4 +25,42 @@ export async function api<T>(path:string,options:{method?:string;body?:unknown;c
 }
 export const rupees=(paise:number,locale='en-IN')=>new Intl.NumberFormat(locale,{style:'currency',currency:'INR',maximumFractionDigits:0}).format(paise/100);
 
+const refreshes = new Map<string, Promise<Session>>();
+const expiredSession = (error: unknown) => error instanceof ApiError && error.status === 401 && ['SESSION_REQUIRED','SESSION_EXPIRED'].includes(error.code);
+async function recoverSession(session: Session): Promise<Session> {
+  let pending = refreshes.get(session.account.id);
+  if (!pending) {
+    const recover = async () => {
+      let next: Session;
+      try { next = await api<Session>('/auth/session'); }
+      catch (error) {
+        if (!expiredSession(error)) throw error;
+        // Cross-tab locking avoids refresh-token replay revoking the entire session family.
+        if (typeof navigator === 'undefined' || !navigator.locks) throw error;
+        next = await api<Session>('/auth/refresh', {method:'POST',csrf:session.csrfToken});
+      }
+      if (next.account.id !== session.account.id) throw new ApiError(401,'SESSION_REVOKED','A different account is active. Return to sign-in before continuing.');
+      return next;
+    };
+    pending = typeof navigator !== 'undefined' && navigator.locks
+      ? (async () => await navigator.locks.request('bcs-session-refresh', recover))()
+      : recover();
+    refreshes.set(session.account.id, pending);
+    void pending.finally(() => { if (refreshes.get(session.account.id) === pending) refreshes.delete(session.account.id); }).catch(() => {});
+  }
+  const next = await pending;
+  if (next.account.id !== session.account.id) throw new ApiError(401,'SESSION_REVOKED','A different account is active. Return to sign-in before continuing.');
+  return next;
+}
+export async function sessionApi<T>(session: Session, path: string, options: Parameters<typeof api>[1] = {}, onRecovered?: (session: Session) => void): Promise<T> {
+  try { return await api<T>(path, options); }
+  catch (error) {
+    if (!(expiredSession(error) || (error instanceof ApiError && error.status === 403 && error.code === 'CSRF')) || options.signal?.aborted) throw error;
+    const next = await recoverSession(session);
+    if (options.signal?.aborted) throw options.signal.reason;
+    onRecovered?.(next);
+    return api<T>(path, {...options, ...(options.csrf ? {csrf:next.csrfToken} : {})});
+  }
+}
+
 export interface Demo {id:string;requestId:string;teacherId:string;guardianId:string;reservationId:string;status:string;guardianAccepted:boolean;teacherAccepted:boolean;guardianOutcome:string|null;teacherOutcome:string|null;supportCaseId:string|null;version:number;createdAt:string;reservation:Reservation}

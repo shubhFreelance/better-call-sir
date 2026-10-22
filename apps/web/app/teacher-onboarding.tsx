@@ -13,12 +13,26 @@ import {
   coverageText,
   type TeachingScope,
 } from "./teaching-coverage";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { Check, FileCheck2, GraduationCap } from "lucide-react";
-import { api, ApiError, type Session, type components } from "@bcs/api-client";
+import {
+  api,
+  sessionApi,
+  ApiError,
+  type Session,
+  type components,
+} from "@bcs/api-client";
+import { EmailLogin } from "./email-login";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
@@ -136,13 +150,114 @@ function unknownResult(error: unknown) {
     error.status >= 500
   );
 }
-export function TeacherSetup({
+type TeacherRequest = <T>(
+  path: string,
+  options?: Parameters<typeof api>[1],
+) => Promise<T>;
+const TeacherRequestContext = createContext<TeacherRequest>(api);
+export function TeacherSetup(props: {
+  session: Session;
+  onSessionChange: (session: Session) => void;
+  hindi: boolean;
+  onLanguageChange: (value: boolean) => void;
+}) {
+  const { appText } = useAppTranslation();
+  const current = useRef(props.session);
+  current.current = props.session;
+  const [needsSignIn, setNeedsSignIn] = useState(false);
+  const [recoveryError, setRecoveryError] = useState("");
+  const [restored, setRestored] = useState(false);
+  const recoveryTitle = useRef<HTMLHeadingElement>(null);
+  const client = useQueryClient();
+  useEffect(() => {
+    if (needsSignIn) {
+      recoveryTitle.current?.focus();
+      recoveryTitle.current?.scrollIntoView({ block: "start" });
+    }
+  }, [needsSignIn]);
+  const request: TeacherRequest = async (path, options) => {
+    if (options?.method && options.method !== "GET") setRestored(false);
+    try {
+      return await sessionApi(current.current, path, options, (next) => {
+        current.current = next;
+        props.onSessionChange(next);
+      });
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        (error.status === 401 ||
+          (error.status === 403 && error.code === "CSRF"))
+      )
+        setNeedsSignIn(true);
+      throw error;
+    }
+  };
+  return (
+    <TeacherRequestContext.Provider value={request}>
+      {needsSignIn && (
+        <main
+          className="container auth-section"
+          lang={props.hindi ? "hi" : "en"}
+          aria-label={appText("Restore teacher sign-in")}
+        >
+          <h2 ref={recoveryTitle} tabIndex={-1}>
+            {appText("Sign in again without losing your application")}
+          </h2>
+          <Message>
+            {appText(
+              "Your current entries are kept on this page. Use the same email address, then continue the step. Do not reload or close this page.",
+            )}
+          </Message>
+          {recoveryError && <Message error>{recoveryError}</Message>}
+          <EmailLogin
+            purpose="teacher-recovery"
+            hindi={props.hindi}
+            onLanguageChange={props.onLanguageChange}
+            onSignedIn={(next) => {
+              if (next.account.id !== props.session.account.id) {
+                setRecoveryError(
+                  "That email belongs to another account. Use the same email you started this application with. Your entries are still here.",
+                );
+                return;
+              }
+              current.current = next;
+              props.onSessionChange(next);
+              setNeedsSignIn(false);
+              setRecoveryError("");
+              setRestored(true);
+              void client.invalidateQueries({
+                queryKey: ["teacher-onboarding", next.account.id],
+              });
+              void client.invalidateQueries({
+                queryKey: ["teacher-setup-profile", next.account.id],
+              });
+            }}
+          />
+        </main>
+      )}
+      {restored && (
+        <div className="container">
+          <Message>
+            {appText(
+              "You are signed in again. Continue to save your current step.",
+            )}
+          </Message>
+        </div>
+      )}
+      <div hidden={needsSignIn} inert={needsSignIn || undefined}>
+        <TeacherSetupBody {...props} />
+      </div>
+    </TeacherRequestContext.Provider>
+  );
+}
+function TeacherSetupBody({
   session,
   onSessionChange,
 }: {
   session: Session;
   onSessionChange: (s: Session) => void;
 }) {
+  const api = useContext(TeacherRequestContext);
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
   const [reload, setReload] = useState(0);
@@ -308,6 +423,7 @@ function ApplicationWizard({
   onReload: () => Promise<void>;
   onCancel?: () => void;
 }) {
+  const api = useContext(TeacherRequestContext);
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
   const draft = { ...profile, ...initial?.draft } as Partial<Application>;
@@ -1204,6 +1320,7 @@ function RevisionEditor({
   onDone: () => Promise<void>;
   onReload: () => Promise<void>;
 }) {
+  const api = useContext(TeacherRequestContext);
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
   const draft = useQuery({
@@ -1589,6 +1706,7 @@ function EvidenceUpload({
   profile: Profile;
   onUploaded: () => Promise<void>;
 }) {
+  const api = useContext(TeacherRequestContext);
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
   const [kind, setKind] = useState("IDENTITY"),

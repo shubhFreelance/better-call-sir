@@ -1,5 +1,7 @@
 # Frontend design direction
 
+Teacher registration/session recovery —22 October2026: reuse the existing white form and cream guidance panel, teal primary actions, Manrope/Noto Sans Devanagari and shared labelled controls. Signup leads with “Create your teacher account”, email verification and the private application sequence; returning teachers have a separate sign-in link. Stack into one column on phones. If sign-in expires, focus an inline recovery heading and keep the original application hidden/inert rather than discarding its fields. Explain the same-email requirement and that a reload/closed page loses unsaved entries. Restore only the original account. Desktop English/mobile Hindi signup screenshots and production recovery checks were reviewed; no cosmetic redesign or new credential storage is needed.
+
 Owner direction, 12 October 2026: use shadcn/ui, the installed [frontend-design skill](../.agents/skills/frontend-design/SKILL.md), and the Wispr Flow palette supplied by the owner. The environment proxy denies both `wisprflow.ai` and its `www` address; no full-site inspection is claimed. The owner's supplied colors are authoritative for this implementation.
 
 ## Current product emphasis
