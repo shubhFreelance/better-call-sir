@@ -46,6 +46,8 @@ async function mock(page: Page, role = "GUARDIAN", mode = "normal") {
           csrfToken: "synthetic-csrf",
         },
       });
+    if (path === "/api/v1/dashboard" && role === "TEACHER")
+      return route.fulfill({json:{profile:{experience:5,modes:["HOME"],languages:["English"],monthlyPaise:300000,education:null,employment:null,demoOptIn:true,lockInDays:0}}});
     if (path.endsWith("/auth/mfa"))
       return route.fulfill({
         json: {
@@ -747,8 +749,7 @@ test("teacher confirms hiring terms from the primary dashboard without classes o
       (p) =>
         p.includes("/schedules") ||
         p.includes("/demos") ||
-        p.includes("/invoices") ||
-        p === "/api/v1/dashboard",
+        p.includes("/invoices"),
     ),
   ).toBe(false);
 });

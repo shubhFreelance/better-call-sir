@@ -1,5 +1,7 @@
 # Current MVP scope — teacher discovery and hiring
 
+22 October 2026 entry/navigation update: promote individual student, parent/guardian and teacher registration as three explicit public choices. Creating a family is not a registration prerequisite or the public product identity. A guardian adds a student's details and permissions during the relevant later setup; adult students may invite a supporter voluntarily. Existing under-18 managed-student activation, separate consent, verification and learning authority remain enforced. Present the main dashboards as role-specific cards for enquiries, teacher responses, arrangements, private profile facts and help, with descriptive sidebar destinations; class-management tooling remains secondary/deferred.
+
 Owner direction, 14 October 2026: prioritize finding a teacher and booking/hiring that teacher. Managing or booking individual classes can follow when the platform scales. This direction takes precedence over the Version 3 PRD's broader class-management launch scope. Existing implementation history remains accurate; deferred work is not completed acceptance.
 
 ## Primary journey

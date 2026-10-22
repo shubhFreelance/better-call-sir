@@ -127,7 +127,7 @@ export function GuardianSetup({
         data && (
           <div className="guardian-setup-layout">
             <aside className="guardian-setup-path">
-              <h2>{appText("Your family, your pace.")}</h2>
+              <h2>{appText("Your account, your next step.")}</h2>
               <p>
                 {appText(
                   "Save a learner profile first. Finding a teacher is a separate step you can return to.",

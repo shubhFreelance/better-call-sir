@@ -45,6 +45,7 @@ export function EmailLogin({
   onSignedIn: (session: Session) => void;
   purpose?:
     | "general"
+    | "guardian-signup"
     | "teacher-signup"
     | "teacher-signin"
     | "teacher-recovery";
@@ -53,7 +54,7 @@ export function EmailLogin({
 
   const t = {
     ...signInCopy[hindi ? "hi" : "en"],
-    ...(purpose === "general"
+    ...(["general", "guardian-signup"].includes(purpose)
       ? {}
       : {
           welcome: hindi
@@ -100,6 +101,32 @@ export function EmailLogin({
             ? "पहले से शिक्षक खाता है? उसी ईमेल से साइन इन करके आवेदन जारी रखें।"
             : "Already have a teacher account? Use the same email to resume your application.",
         }),
+    ...(purpose === "guardian-signup"
+      ? {
+          welcome: hindi
+            ? "अपना अभिभावक खाता बनाएँ"
+            : "Create your parent or guardian account",
+          introduction: hindi
+            ? "पहले अपने ईमेल की पुष्टि करें। फिर अपना सेटअप पूरा करें और ज़रूरत होने पर विद्यार्थी जोड़ें।"
+            : "Verify your email, complete your own setup and add a student when you need to.",
+          send: hindi ? "पुष्टि कोड भेजें" : "Send verification code",
+          verify: hindi
+            ? "पुष्टि करके सेटअप पर जाएँ"
+            : "Verify and continue to setup",
+          guideTitle: hindi
+            ? "सही शिक्षक चुनने में साथ दें।"
+            : "Help someone find the right teacher.",
+          guideIntro: hindi
+            ? "अपने खाते से शुरुआत करें। विद्यार्थी की जानकारी, सत्यापन और अनुमतियाँ अगले चरणों में ली जाएँगी।"
+            : "Start with your own account. Student details, verification and permissions follow during setup.",
+          privacy: hindi
+            ? "अपनी और विद्यार्थी की जानकारी पर नियंत्रण रखें"
+            : "Stay in control of your information and student access",
+          guardian: hindi
+            ? "खाता बनाने से विद्यार्थी नहीं जुड़ते। उपयुक्त सत्यापन और सहमति के बाद ही पहुँच दी जाती है।"
+            : "Registration does not link any student. Access follows the appropriate verification and consent steps.",
+        }
+      : {}),
   };
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

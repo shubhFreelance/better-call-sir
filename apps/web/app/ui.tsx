@@ -72,6 +72,7 @@ import { GuardianSetup } from "./guardian-setup";
 import { GuardianOnboarding } from "./guardian-onboarding";
 import { TeacherSetup } from "./teacher-onboarding";
 import { TeacherRegistration } from "./teacher-registration";
+import { RegistrationChoices, GuardianRegistration, StudentRegistration } from "./registration";
 import { RoleOverview } from "./role-overview";
 import { TuitionRequests, TuitionTerms } from "./tuition-workflow";
 import { LearningWorkspace } from "./learning-workspace";
@@ -385,6 +386,8 @@ function Header() {
             <Link href="/signup/teacher" onClick={() => setOpen(false)}>
               {hindi ? "शिक्षक बनें" : appText("Become a teacher")}
             </Link>
+            <Link href="/signup" onClick={() => setOpen(false)}>{appText("Student & parent registration")}</Link>
+            {!session && <Link href="/login" onClick={() => setOpen(false)}>{appText("Sign in")}</Link>}
             <div className="mobile-nav-actions">
               <UiButton
                 variant="outline"
@@ -443,12 +446,12 @@ function Header() {
                 </SharedButton>
               </>
             ) : (
-              <Link className="button small" href="/login">
+              <Link className="button small" href="/signup">
                 <span className="header-action-desktop">
-                  {hindi ? "शुरू करें" : appText("Get started")}
+                  {appText("Create account")}
                 </span>
                 <span className="header-action-mobile">
-                  {hindi ? "साइन इन" : appText("Sign in")}
+                  {appText("Register")}
                 </span>{" "}
                 <ArrowUpRight size={16} />
               </Link>
@@ -497,7 +500,7 @@ function Footer() {
         </div>
         <div>
           <span className="eyebrow">
-            {hindi ? "आपके परिवार के लिए" : appText("MADE FOR YOUR FAMILY")}
+            {appText("For every learning journey")}
           </span>
           <Link href="/teachers">
             {hindi ? "शिक्षक खोजें" : appText("Find a teacher")}
@@ -708,7 +711,7 @@ function Home() {
       <section className="hero container">
         <div className="hero-copy">
           <div className="location-pill">
-            <span /> {appText("Rooted in Raipur. Ready for your child.")}{" "}
+            <span /> {appText("Rooted in Raipur. Open to every learner.")}{" "}
           </div>
           <h1>
             {hindi ? (
@@ -739,8 +742,8 @@ function Home() {
                 : appText("Find your kind of teacher")}
               <ArrowUpRight size={19} />
             </Link>
-            <Link className="hero-secondary" href="/onboarding/parent">
-              {appText("Help me choose")} <ArrowRight size={17} />
+            <Link className="hero-secondary" href="/signup">
+              {appText("Create your profile")} <ArrowRight size={17} />
             </Link>
           </div>
           <div className="hero-proof">
@@ -759,6 +762,7 @@ function Home() {
         </div>
         <Illustration />
       </section>
+      <div className="container home-registration"><RegistrationChoices /></div>
       <section className="promise-bar">
         <div className="container promise-inner">
           <span>
@@ -771,11 +775,11 @@ function Home() {
           </span>
           <span>
             <Heart />
-            {appText("Matching is free for families")}{" "}
+            {appText("Free teacher matching")}{" "}
           </span>
           <span>
             <Users />
-            {appText("Guardian-led, student-centred")}{" "}
+            {appText("Students, parents and teachers")}{" "}
           </span>
         </div>
       </section>
@@ -826,7 +830,7 @@ function Home() {
             [
               "01",
               "Tell us about your learner",
-              "A few details about their class, subject and what works for your family.",
+              "Share your education, subjects and what you want from a teacher.",
             ],
             [
               "02",
@@ -854,7 +858,7 @@ function Home() {
           <h2>{appText("Let us help you find the right fit.")}</h2>
           <p>
             {appText(
-              "Share the subject, class, location and budget that work for your family. Our team reviews suitable teacher options for you.",
+              "Share your subject, education level, location and budget. Our team reviews suitable teacher options for you.",
             )}{" "}
           </p>
           <Link className="button" href="/teachers?tab=assisted">
@@ -1860,6 +1864,13 @@ function TeacherOnboarding() {
     );
   return <TeacherSetup session={session} onSessionChange={setSession} hindi={hindi} onLanguageChange={setHindi} />;
 }
+function RegistrationPage({ kind }: { kind: "all" | "guardian" | "student" }) {
+  const { session, setSession, loading, hindi, setHindi } = useAuth();
+  if (loading) return <State loading />;
+  if (kind === "guardian") return <GuardianRegistration session={session} onSignedIn={setSession} hindi={hindi} onLanguageChange={setHindi} />;
+  if (kind === "student") return <StudentRegistration />;
+  return <main className="container section"><RegistrationChoices /></main>;
+}
 function TeacherSignupPage() {
   const { session, setSession, loading, hindi, setHindi } = useAuth();
   if (loading) return <State loading />;
@@ -2061,10 +2072,19 @@ function DashboardShell({
 
   const { session } = useAuth();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const mobileNavButton = useRef<HTMLButtonElement>(null);
   const role = session?.account.role;
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
     ["/dashboard/notifications", "Notifications", ShieldCheck],
+    ...(role === "INDEPENDENT_STUDENT" ? ([
+      ["/dashboard/enquiries", "My enquiries", ClipboardList],
+      ["/dashboard/student-arrangements", "Hiring & arrangements", Users],
+      ["/onboarding/independent-student?edit=1", "My education", GraduationCap],
+      ["/dashboard/student-supporters", "Learning support", Users],
+      ["/dashboard/student-devices", "Devices & recovery", ShieldCheck],
+      ["/dashboard/privacy", "Account privacy", ShieldCheck],
+    ] as [string,string,LucideIcon][]) : []),
     ...(["ADMIN", "OPERATOR"].includes(role || "") ? [["/dashboard/service-followups", "Service follow-ups", LifeBuoy] as [string,string,LucideIcon]] : []),
     ...(["ADMIN", "OPERATOR"].includes(role || "")
       ? [
@@ -2140,7 +2160,7 @@ function DashboardShell({
               GraduationCap,
             ],
             ["/dashboard/student-arrangements", "Student arrangements", Users],
-            ["/onboarding/teacher", "Profile & evidence", Settings],
+            ["/onboarding/teacher", "Teaching profile", Settings],
             ["/dashboard/privacy", "Privacy & data", ShieldCheck],
           ] as [string, string, LucideIcon][])
         : role === "ADMIN"
@@ -2211,17 +2231,52 @@ function DashboardShell({
         ]
       : []),
   ];
+  const descriptions: Record<string,string> = {
+    "/dashboard":"Your priorities and latest progress",
+    "/dashboard/notifications":"Updates about your account and enquiries",
+    "/teachers":"Browse teachers and compare your options",
+    "/guardian-verification":"Relationship evidence and review status",
+    "/dashboard/learning-management":"Choose who makes learning decisions",
+    "/dashboard/learners":"Student education and learning needs",
+    "/dashboard/learning-choices":"Choose a teacher within your permissions",
+    "/onboarding/student":"Your subjects and learning preferences",
+    "/onboarding/guardian":"Your verification and consent checklist",
+    "/dashboard/requests":"Shortlists, teacher replies and your choice",
+    "/dashboard/arrangements":"Agreed tuition, help and replacement",
+    "/dashboard/family":"Student invitations, devices and permissions",
+    "/dashboard/supported-students":"Students who have invited your support",
+    "/dashboard/enquiries":role === "TEACHER" ? "Review learner needs and send your response" : "Your teacher search and replies",
+    "/dashboard/student-opportunities":"Respond to enquiries from adult students",
+    "/dashboard/student-arrangements":"Review agreements with adult students",
+    "/onboarding/teacher":"Education, experience, fees and documents",
+    "/dashboard/privacy":"Correction, deletion and request progress",
+    "/dashboard/admin":"People, access, coverage and platform settings",
+    "/dashboard/review":"Evidence, screening and approval decisions",
+    "/dashboard/matching":"Review and publish suitable teacher options",
+    "/dashboard/student-enquiries":"Review adult-student requests",
+    "/dashboard/support":"Safety, disputes and replacement cases",
+    "/dashboard/finance":"Payments, fees and settlement evidence",
+    "/dashboard/reports":"Recorded activity and operational reports",
+    "/support":"Ask for help or report a safety concern",
+    "/dashboard/security":"Staff authenticator and account recovery",
+    "/dashboard/service-followups":"Contact owners and record follow-up progress",
+    "/dashboard/email-delivery":"Delivery failures and safe message recovery",
+    "/dashboard/minimum-tuition":"Review tuition exceptions and disputes",
+    "/onboarding/independent-student?edit=1":"Review your school or college details",
+    "/dashboard/student-supporters":"Invite or remove an optional supporter",
+    "/dashboard/student-devices":"Your signed-in devices and recovery options",
+  };
   return (
     <main className="container dashboard-layout">
       <aside className="dashboard-sidebar">
-        <span className="eyebrow">{appText("YOUR TEACHER CONNECTIONS")}</span>
+        <p className="sidebar-title">{appText(role === "TEACHER" ? "Teacher workspace" : role === "ADMIN" ? "Superadmin workspace" : role === "GUARDIAN" ? "Parent / guardian workspace" : ["STUDENT", "INDEPENDENT_STUDENT"].includes(role || "") ? "Student workspace" : "Staff workspace")}</p>
         <div className="sidebar-person">
           <span className="avatar small-avatar">
             {initials(session?.account.name || "You")}
           </span>
           <div>
             <strong>{session?.account.name.split(" · ")[0]}</strong>
-            <small>{appText(pretty(role || "account"))}</small>
+            <small>{appText(role === "INDEPENDENT_STUDENT" ? "Student" : role === "GUARDIAN" ? "Parent or guardian" : pretty(role || "account"))}</small>
           </div>
         </div>
         <nav
@@ -2233,19 +2288,22 @@ function DashboardShell({
               key={href}
               href={href}
               className={tab === href ? "active" : ""}
+              aria-label={appText(label)}
+              aria-describedby={`nav-description-${href.replace(/[^a-z]/gi,"-")}`}
               aria-current={tab === href ? "page" : undefined}
             >
-              <Icon size={18} />
-              {appText(label)}
+              <Icon size={19} aria-hidden="true" />
+              <span><strong>{appText(label)}</strong><small id={`nav-description-${href.replace(/[^a-z]/gi,"-")}`}>{appText(descriptions[href] || "Open this workspace")}</small></span>
             </Link>
           ))}
         </nav>
-        <div className="dashboard-mobile-nav">
+        <div className="dashboard-mobile-nav" onKeyDown={event=>{if(event.key === "Escape" && mobileNavOpen){event.preventDefault();setMobileNavOpen(false);mobileNavButton.current?.focus();}}}>
           <UiButton
+            ref={mobileNavButton}
             variant="ghost"
             className="dashboard-mobile-trigger"
             aria-label={appText("Dashboard menu: {0}", [
-              links.find(([href]) => href === tab)?.[1] || appText("Overview"),
+              appText(links.find(([href]) => href === tab)?.[1] || "Overview"),
             ])}
             aria-expanded={mobileNavOpen}
             aria-controls="dashboard-mobile-sections"
@@ -2272,11 +2330,13 @@ function DashboardShell({
                 key={href}
                 href={href}
                 className={tab === href ? "active" : ""}
+                aria-label={appText(label)}
+                aria-describedby={`mobile-nav-description-${href.replace(/[^a-z]/gi,"-")}`}
                 aria-current={tab === href ? "page" : undefined}
                 onClick={() => setMobileNavOpen(false)}
               >
-                <Icon size={18} />
-                {appText(label)}
+                <Icon size={19} aria-hidden="true" />
+                <span><strong>{appText(label)}</strong><small id={`mobile-nav-description-${href.replace(/[^a-z]/gi,"-")}`}>{appText(descriptions[href] || "Open this workspace")}</small></span>
               </Link>
             ))}
           </nav>
@@ -2424,63 +2484,7 @@ function DashboardPage({ tab }: { tab: string }) {
     );
   if (session.account.role === "INDEPENDENT_STUDENT")
     return (
-      <main
-        className="container section independent-student"
-        lang={hindi ? "hi" : "en"}
-      >
-        <nav
-          className="independent-navigation"
-          aria-label={hindi ? "विद्यार्थी खाता" : appText("Student account")}
-        >
-          <Link
-            className="inline-link"
-            href="/dashboard"
-            aria-current={tab === "/dashboard" ? "page" : undefined}
-          >
-            {hindi ? "मेरी पढ़ाई" : appText("My learning")}
-          </Link>
-          <Link className="inline-link" href="/teachers">
-            {hindi ? "शिक्षक खोजें" : appText("Find a teacher")}
-          </Link>
-          <Link
-            className="inline-link"
-            href="/dashboard/enquiries"
-            aria-current={tab === "/dashboard/enquiries" ? "page" : undefined}
-          >
-            {hindi ? "मेरी पूछताछ" : appText("My enquiries")}
-          </Link>
-          {[
-            [
-              "/dashboard/student-arrangements",
-              hindi ? "नियुक्ति और व्यवस्थाएँ" : "Hiring & arrangements",
-            ],
-            [
-              "/dashboard/student-supporters",
-              hindi ? "पढ़ाई में मदद" : "Learning support",
-            ],
-            [
-              "/dashboard/student-devices",
-              hindi ? "उपकरण और वापसी" : "Devices & recovery",
-            ],
-            ["/support", hindi ? "सहायता" : "Help"],
-          ].map(([href, label]) => (
-            <Link
-              key={href}
-              className="inline-link"
-              href={href}
-              aria-current={tab === href ? "page" : undefined}
-            >
-              {appText(label)}
-            </Link>
-          ))}
-          <Link
-            className="inline-link"
-            href="/dashboard/privacy"
-            aria-current={tab === "/dashboard/privacy" ? "page" : undefined}
-          >
-            {hindi ? "खाते की गोपनीयता" : appText("Account privacy")}
-          </Link>
-        </nav>
+      <DashboardShell tab={tab}>
         {tab === "/dashboard/enquiries" ||
         tab === "/dashboard/student-enquiries" ? (
           <StudentEnquiries
@@ -2511,7 +2515,7 @@ function DashboardPage({ tab }: { tab: string }) {
         ) : (
           <IndependentStudentHome session={session} hindi={hindi} />
         )}
-      </main>
+      </DashboardShell>
     );
   if (
     ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
@@ -2523,9 +2527,9 @@ function DashboardPage({ tab }: { tab: string }) {
       <DashboardShell tab={tab}>
         <PageTitle
           eyebrow={appText("")}
-          title={appText("Hello, {0}.", [session.account.name.split(" · ")[0]])}
+          title={appText(session.account.role === "TEACHER" ? "Your teaching dashboard" : session.account.role === "ADMIN" ? "Marketplace overview" : session.account.role === "STUDENT" ? "Your student dashboard" : "Your parent or guardian dashboard")}
           subtitle={appText(
-            "Your teacher connections, with a clear next step.",
+            "Welcome, {0}. Here is what needs your attention.", [session.account.name.split(" · ")[0]]
           )}
         />
         <HiringOverview
@@ -3157,6 +3161,8 @@ function Routes() {
     <Profile slug={path.split("/")[2]} />
   ) : path === "/login" ? (
     <Login />
+  ) : ["/signup", "/signup/guardian", "/signup/student"].includes(path) ? (
+    <RegistrationPage kind={path === "/signup/guardian" ? "guardian" : path === "/signup/student" ? "student" : "all"}/>
   ) : path === "/signup/teacher" ? (
     <TeacherSignupPage />
   ) : path === "/dashboard/learners" ? (

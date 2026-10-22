@@ -1,5 +1,24 @@
 # Frontend design direction
 
+## Dashboard and individual registration redesign — 22 October 2026
+
+Owner brief: make teacher/student/guardian/admin dashboards understandable at a glance, use distinct cards, bold descriptive labels with regular-weight values, and explain every sidebar destination. Promote separate student, parent/guardian and teacher registration; account linking follows registration when relevant, not a mandatory family identity.
+
+Plan: retain deep teal #034F46 for the lead action/navigation, lavender #F0D7FF for learning guidance/status, cream #FFFFEB for the public welcome, white #FFFFFF for information cards, charcoal #17201F for labels and muted #586562 for helpers. Manrope and Noto Sans Devanagari retain the bilingual scale. Left-align all data. Use a restrained greeting followed by a distinct action summary, four compact real-count cards, then a wide enquiry/arrangement workspace beside a teacher profile or learner-information card; help and privacy get a separate card. Bold field labels pair with regular values in definition lists. Navigation has readable names, concise descriptions, current-page indication and a collapsible phone menu.
+
+```text
+Public:     [Student registration] [Parent / guardian registration] [Teacher registration]
+Dashboard:  [identity + menu] [greeting + primary action                 ]
+                            [enquiries] [responses] [pending] [active]
+                            [enquiries / arrangements] [profile       ]
+                            [review + existing actions] [help/privacy ]
+Phone: identity/menu, greeting, counts, records, help, profile; one reading column.
+```
+
+Review before build: cards are explicitly requested, but avoid a wall of identical decorative tiles. Counts stay compact; the enquiry workspace has the dominant width, while teaching credentials and help are quieter secondary surfaces. No invented qualification, income, activity or completion percentages. Reuse private APIs for teacher education/work details, never public projections. Registration communicates actual age/consent requirements without creating linked accounts automatically; preserve current managed-student, verification and supporter permissions. Loading/error/empty states must retain truthful states and privacy-safe read recovery. Test English/Hindi, desktop/phone, menu keyboard access and actual registration transitions, then inspect screenshots.
+
+Final critique: desktop and Hindi-phone screenshots were inspected for all five participant/admin account views and the public entry. The student registration card needed explicit white body text on teal; corrected and checked with axe. Help moved below the main enquiry workspace to balance the empty dashboard and shorten the path to assistance. Qualification labels carry bold weight while authored degrees and institutions remain regular. Expanded education/work history stays optional so the main profile remains scannable. Phone navigation has visible descriptions, translated accessible names and Escape/focus recovery. Final strict-CSP teacher/registration captures pass with no page errors or horizontal overflow; existing hiring/consent/retry and teacher evidence checks remain intact.
+
 Teacher registration/session recovery —22 October2026: reuse the existing white form and cream guidance panel, teal primary actions, Manrope/Noto Sans Devanagari and shared labelled controls. Signup leads with “Create your teacher account”, email verification and the private application sequence; returning teachers have a separate sign-in link. Stack into one column on phones. If sign-in expires, focus an inline recovery heading and keep the original application hidden/inert rather than discarding its fields. Explain the same-email requirement and that a reload/closed page loses unsaved entries. Restore only the original account. Desktop English/mobile Hindi signup screenshots and production recovery checks were reviewed; no cosmetic redesign or new credential storage is needed.
 
 Owner direction, 12 October 2026: use shadcn/ui, the installed [frontend-design skill](../.agents/skills/frontend-design/SKILL.md), and the Wispr Flow palette supplied by the owner. The environment proxy denies both `wisprflow.ai` and its `www` address; no full-site inspection is claimed. The owner's supplied colors are authoritative for this implementation.

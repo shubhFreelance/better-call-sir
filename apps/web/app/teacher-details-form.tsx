@@ -588,21 +588,42 @@ export function TeacherDetailsSummary({
         <ul>
           {profile.education.map((r) => (
             <li key={r.milestone}>
-              <strong>
-                {appText(milestones[r.milestone])}:{" "}
-                {appText(r.status.toLowerCase().replaceAll("_", " "))}
-              </strong>
-              {r.status !== "NOT_APPLICABLE" && (
-                <p>
-                  {r.institution} · {r.qualification} · {r.year}
-                  {r.score !== null
-                    ? ` · ${r.score}${r.grading === "PERCENTAGE" ? "%" : r.outOf ? ` / ${r.outOf}` : ""}`
-                    : ""}
-                  {r.percentage !== null && r.grading !== "PERCENTAGE"
-                    ? ` · ${r.percentage}%`
-                    : ""}
-                </p>
-              )}
+              <h5>{appText(milestones[r.milestone])}</h5>
+              <dl className="dashboard-facts">
+                <div>
+                  <dt>{appText("Status")}</dt>
+                  <dd>
+                    {appText(r.status.toLowerCase().replaceAll("_", " "))}
+                  </dd>
+                </div>
+                {r.status !== "NOT_APPLICABLE" && (
+                  <>
+                    <div>
+                      <dt>{appText("Qualification")}</dt>
+                      <dd>{r.qualification}</dd>
+                    </div>
+                    <div>
+                      <dt>{appText("Institution")}</dt>
+                      <dd>{r.institution}</dd>
+                    </div>
+                    <div>
+                      <dt>{appText("Year")}</dt>
+                      <dd>{r.year ?? appText("Not recorded")}</dd>
+                    </div>
+                    <div>
+                      <dt>{appText("Result")}</dt>
+                      <dd>
+                        {r.score !== null
+                          ? `${r.score}${r.grading === "PERCENTAGE" ? "%" : r.outOf ? ` / ${r.outOf}` : ""}`
+                          : appText("Not recorded")}
+                        {r.percentage !== null && r.grading !== "PERCENTAGE"
+                          ? ` (${r.percentage}%)`
+                          : ""}
+                      </dd>
+                    </div>
+                  </>
+                )}
+              </dl>
             </li>
           ))}
         </ul>
@@ -614,13 +635,26 @@ export function TeacherDetailsSummary({
         <ul>
           {profile.employment.map((r, i) => (
             <li key={i}>
-              <strong>
-                {r.organization} · {r.role}
-              </strong>
-              <p>
-                {r.fromYear}–{r.toYear || appText("current")} ·{" "}
-                {appText(r.proof.toLowerCase().replaceAll("_", " "))}
-              </p>
+              <dl className="dashboard-facts">
+                <div>
+                  <dt>{appText("Organization")}</dt>
+                  <dd>{r.organization}</dd>
+                </div>
+                <div>
+                  <dt>{appText("Role")}</dt>
+                  <dd>{r.role}</dd>
+                </div>
+                <div>
+                  <dt>{appText("Period")}</dt>
+                  <dd>
+                    {r.fromYear}–{r.toYear || appText("current")}
+                  </dd>
+                </div>
+                <div>
+                  <dt>{appText("Experience certificate or reference")}</dt>
+                  <dd>{appText(r.proof.toLowerCase().replaceAll("_", " "))}</dd>
+                </div>
+              </dl>
             </li>
           ))}
         </ul>

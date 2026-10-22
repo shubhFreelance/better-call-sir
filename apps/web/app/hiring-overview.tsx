@@ -1,4 +1,5 @@
 "use client";
+import { TeacherDashboardProfile } from "./teacher-dashboard-profile";
 import { minimumHref } from "./tuition-minimum-workspace";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
@@ -100,7 +101,7 @@ export function HiringOverview({ session }: { session: Session }) {
                 ? appText("Your next teaching opportunity.")
                 : student
                   ? appText("Your next step in learning.")
-                  : appText("Your family’s learning, together.")}
+                  : appText("Find a teacher. Follow every step.")}
           </h2>
           <p>
             {admin
@@ -257,63 +258,8 @@ export function HiringOverview({ session }: { session: Session }) {
             <AdminQueues operations={data.operations} />
           ) : (
             <>
-              {teacher && (
-                <section className="care-card hiring-profile">
-                  <div className="hiring-section-heading">
-                    <h3>{appText("Your teaching application")}</h3>
-                    <Link href="/onboarding/teacher" className="inline-link">
-                      {appText("Review profile & evidence")}{" "}
-                    </Link>
-                  </div>
-                  {data.profile ? (
-                    <>
-                      <strong>{data.profile.name}</strong>
-                      <p>
-                        {data.profile.subjects
-                          .map((value) => appCurriculum(value))
-                          .join(" & ")}
-                      </p>
-                      <dl className="hiring-details">
-                        <div>
-                          <dt>{appText("Application status")}</dt>
-                          <dd>{appText(label(data.profile.status))}</dd>
-                        </div>
-                        <div>
-                          <dt>{appText("Screening evidence")}</dt>
-                          <dd>
-                            {data.profile.screeningComplete &&
-                            data.profile.screeningValidUntil &&
-                            new Date(data.profile.screeningValidUntil) >
-                              new Date()
-                              ? appText("Recorded and current")
-                              : appText("Pending or needs renewal")}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>{appText("Fee terms")}</dt>
-                          <dd>
-                            {data.profile.feeTermsAccepted
-                              ? appText("Acceptance recorded")
-                              : appText("Acceptance pending")}
-                          </dd>
-                        </div>
-                      </dl>
-                      <p className="care-help">
-                        {appText(
-                          "Approval, current screening and fit are required for an actionable enquiry. A profile status is not a guarantee of teaching work.",
-                        )}{" "}
-                      </p>
-                    </>
-                  ) : (
-                    <p>
-                      {appText(
-                        "No teaching application yet. Create your profile and provide evidence to join the review process.",
-                      )}{" "}
-                    </p>
-                  )}
-                </section>
-              )}
-              <section className="hiring-records">
+              <div className="hiring-workspace-grid"><div className="hiring-main-column">
+              <section className="care-card hiring-records">
                 <Tabs
                   value={section}
                   onValueChange={(v) => {
@@ -361,14 +307,14 @@ export function HiringOverview({ session }: { session: Session }) {
                     <p className="care-help">
                       {teacher
                         ? appText(
-                            "Only currently presented enquiries with active family permission appear here. Expressing interest does not confirm hiring.",
+                            "Review each learner’s needs and send your response. Hiring is confirmed separately after both sides accept the terms.",
                           )
                         : appText(
-                            "A reviewed shortlist, a saved choice and an agreed arrangement are separate steps. Open an enquiry to review the details.",
+                            "Open an enquiry to see teacher replies, review your options and choose your next step.",
                           )}
                     </p>
                     {!data.enquiries.length ? (
-                      <section className="care-card">
+                      <section className="hiring-empty-state">
                         <h4>
                           {teacher
                             ? appText("No current assigned enquiries")
@@ -383,7 +329,7 @@ export function HiringOverview({ session }: { session: Session }) {
                               )
                             : student
                               ? appText(
-                                  "You can browse teacher profiles. Your guardian can tell us what you need and submit an enquiry.",
+                                  "Browse teacher profiles and open your teacher choices. Your current learning permissions determine which actions you can take.",
                                 )
                               : appText(
                                   "Browse profiles yourself or share your criteria for a reviewed shortlist.",
@@ -551,7 +497,7 @@ export function HiringOverview({ session }: { session: Session }) {
                       )}{" "}
                     </p>
                     {!data.arrangements.length ? (
-                      <section className="care-card">
+                      <section className="hiring-empty-state">
                         <h4>{appText("No arrangement recorded yet")}</h4>
                         <p>
                           {teacher
@@ -994,8 +940,82 @@ export function HiringOverview({ session }: { session: Session }) {
                     : appText("Reload current enquiries")}
                 </Button>
               )}
+              <section className="care-card hiring-help">
+                <h3>{appText("When you need a hand")}</h3>
+                <p>
+                  {appText(
+                    "Questions about teacher fit, a stalled enquiry or an existing arrangement? Contact support. Safety concerns can be reported at any time.",
+                  )}{" "}
+                </p>
+                <Link href="/support" className="inline-link">
+                  {appText("Get help & safety support")}{" "}
+                </Link>
+                {!student && (
+                  <Link href="/dashboard/privacy" className="inline-link">
+                    {appText("Review your privacy requests")}{" "}
+                  </Link>
+                )}
+              </section>
+              </div><aside className="hiring-side-column" aria-label={appText("Profile and help")}>
+              {teacher && (
+                <section className="care-card hiring-profile">
+                  <div className="hiring-section-heading">
+                    <h3>{appText("Your teaching application")}</h3>
+                    <Link href="/onboarding/teacher" className="inline-link">
+                      {appText("Review profile & evidence")}{" "}
+                    </Link>
+                  </div>
+                  {data.profile ? (
+                    <>
+                      <strong>{data.profile.name}</strong>
+                      <p>
+                        {data.profile.subjects
+                          .map((value) => appCurriculum(value))
+                          .join(" & ")}
+                      </p>
+                      <dl className="hiring-details">
+                        <div>
+                          <dt>{appText("Application status")}</dt>
+                          <dd>{appText(label(data.profile.status))}</dd>
+                        </div>
+                        <div>
+                          <dt>{appText("Screening evidence")}</dt>
+                          <dd>
+                            {data.profile.screeningComplete &&
+                            data.profile.screeningValidUntil &&
+                            new Date(data.profile.screeningValidUntil) >
+                              new Date()
+                              ? appText("Recorded and current")
+                              : appText("Pending or needs renewal")}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>{appText("Fee terms")}</dt>
+                          <dd>
+                            {data.profile.feeTermsAccepted
+                              ? appText("Acceptance recorded")
+                              : appText("Acceptance pending")}
+                          </dd>
+                        </div>
+                      </dl>
+                      <TeacherDashboardProfile session={session} />
+                      <p className="care-help">
+                        {appText(
+                          "Approval, current screening and fit are required for an actionable enquiry. A profile status is not a guarantee of teaching work.",
+                        )}{" "}
+                      </p>
+                    </>
+                  ) : (
+                    <p>
+                      {appText(
+                        "No teaching application yet. Create your profile and provide evidence to join the review process.",
+                      )}{" "}
+                    </p>
+                  )}
+                </section>
+              )}
               {(guardian || student) && (
-                <Link href="/dashboard/learners" className="inline-link">
+                <Link href="/dashboard/learners" className="button secondary profile-access-link">
                   {guardian
                     ? appText("Add or view education profiles")
                     : appText("View education profile")}
@@ -1053,22 +1073,8 @@ export function HiringOverview({ session }: { session: Session }) {
                   )}
                 </section>
               )}
-              <section className="hiring-help">
-                <h3>{appText("When you need a hand")}</h3>
-                <p>
-                  {appText(
-                    "Questions about teacher fit, a stalled enquiry or an existing arrangement? Contact support. Safety concerns can be reported at any time.",
-                  )}{" "}
-                </p>
-                <Link href="/support" className="inline-link">
-                  {appText("Get help & safety support")}{" "}
-                </Link>
-                {!student && (
-                  <Link href="/dashboard/privacy" className="inline-link">
-                    {appText("Review your privacy requests")}{" "}
-                  </Link>
-                )}
-              </section>
+
+              </aside></div>
             </>
           )}
         </>

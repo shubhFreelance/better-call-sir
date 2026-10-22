@@ -31,7 +31,7 @@ export const signInCopy = {
       "Find a teacher who fits. Keep enquiries, conversations and tuition choices together.",
     reviewed: "Explore reviewed teacher profiles",
     enquiries: "Manage enquiries and teacher choices",
-    privacy: "Stay in control of your family’s information",
+    privacy: "Stay in control of your information",
     guardian:
       "Students aged 18+ can choose independent signup. Younger learners join through their guardian.",
     errors: {
@@ -87,7 +87,7 @@ export const signInCopy = {
       "अपनी ज़रूरत के अनुसार शिक्षक खोजें। पूछताछ, बातचीत और ट्यूशन के विकल्प एक जगह रखें।",
     reviewed: "समीक्षित शिक्षक प्रोफ़ाइल देखें",
     enquiries: "पूछताछ और शिक्षक के विकल्प सँभालें",
-    privacy: "अपने परिवार की जानकारी पर नियंत्रण रखें",
+    privacy: "अपनी जानकारी पर नियंत्रण रखें",
     guardian:
       "18 वर्ष या अधिक के विद्यार्थी स्वतंत्र साइनअप चुन सकते हैं। कम उम्र के विद्यार्थी अभिभावक के ज़रिए जुड़ते हैं।",
     errors: {
