@@ -2,6 +2,8 @@ import {test,before,after,afterEach} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn,spawnSync,execFileSync,ChildProcess} from 'node:child_process';
 import {randomUUID,randomBytes,createHash,createHmac} from 'node:crypto';
+import {createRequire} from 'node:module';
+import {requestOtp} from '../apps/api/src/modules/notifications/otp-delivery';
 import {readFileSync,mkdtempSync,rmSync,mkdirSync,writeFileSync,statSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -1955,4 +1957,40 @@ test('AccessReview retained meeting metadata never reveals a join link after lea
 test('AccessReview owners can withdraw note sharing after learning authority is lost without permitting foreign changes',async()=>{
  const f=await minimumPlacement(),proof=await accessProof(f);await db.child.update({where:{id:f.linkedChild.id},data:{guardianVerificationId:proof.id}});await db.placement.update({where:{id:f.placement.id},data:{status:'ACTIVE'}});const n=await f.g.call('/notes',{childId:f.linkedChild.id,text:'Synthetic owner withdrawal'}),path='/notes/'+n.data.id+'/shares',shared=await f.g.call(path,{expectedVersion:1,teacherId:f.teacher.id});assert.equal(shared.status,201);
  await db.guardianVerification.update({where:{id:proof.id},data:{status:'REVOKED'}});await db.account.update({where:{id:f.owner.id},data:{verified:false}});const body={expectedVersion:shared.data.version,teacherId:null};assert.equal((await other.call(path,body)).status,404);assert.equal((await f.g.call(path,body)).status,201);assert.equal((await db.note.findUniqueOrThrow({where:{id:n.data.id}})).sharedTeacherId,null);
+});
+
+async function gmailEnvironment<T>(fn:(mail:typeof import('../packages/email/index.cjs'),smtp:any)=>Promise<T>){
+ const names=['SMTP_HOST','SMTP_PORT','SMTP_SECURE','SMTP_USER','SMTP_FROM','SMTP_PASSWORD'],old=Object.fromEntries(names.map(n=>[n,process.env[n]]));
+ try{return await mailEnvironment(async mail=>{Object.assign(process.env,{EMAIL_DELIVERY_MODE:'smtp',SMTP_HOST:'smtp.gmail.com',SMTP_PORT:'465',SMTP_SECURE:'true',SMTP_USER:'synthetic@gmail.com',SMTP_FROM:'synthetic@gmail.com',SMTP_PASSWORD:'synthetic-app-password'});return fn(mail,createRequire(path.resolve('packages/email/smtp.cjs'))('nodemailer'));});}
+ finally{for(const n of names)if(old[n]===undefined)delete process.env[n];else process.env[n]=old[n];}
+}
+test('Gmail SMTP OTP signup and existing guardian, teacher and independent student login preserve roles, single use and private codes',async()=>{
+ await gmailEnvironment(async(mail,smtp)=>{const original=smtp.createTransport,messages:any[]=[];smtp.createTransport=()=>({sendMail:async(message:any)=>{messages.push(message);return {accepted:[message.to.address]};},close(){}});
+ try{const service=Object.assign(Object.create(AppService.prototype),{db}) as AppService;
+  for(const role of [null,'GUARDIAN','TEACHER','INDEPENDENT_STUDENT']){
+   const address='synthetic+'+randomUUID()+'@gmail.com';if(role)await db.account.create({data:{email:address,name:'Synthetic SMTP '+role,role}});
+   const key=randomUUID(),sent=await requestOtp(service,address,'hi',key),delivery=await db.emailDelivery.findUniqueOrThrow({where:{id:sent.deliveryId}}),message=messages.at(-1),code=/\b\d{6}\b/.exec(message.text)![0];
+   assert.equal(sent.status,'SENT');assert.equal('developmentCode' in sent,false);assert(!JSON.stringify(sent).includes(code));assert.equal(delivery.provider,'SMTP');assert.equal(delivery.status,'ACCEPTED');assert.equal(delivery.encryptedContent,null);assert.match(message.subject,/साइन-इन/);assert.equal(message.to.address,address);
+   const count=messages.length;const retry=await requestOtp(service,address,'hi',key);assert.equal(retry.deliveryId,sent.deliveryId);assert.equal(retry.status,'SENT');assert.equal(messages.length,count);
+   const c=new Client(),verified=await c.call('/auth/otp/verify',{email:address,code,name:'Synthetic SMTP signup'});assert.equal(verified.status,201,JSON.stringify(verified.data));assert.equal(verified.data.account.role,role||'GUARDIAN');assert.equal(verified.data.account.verified,false);assert.equal((await c.call('/auth/session')).status,200);
+   if(!role)assert.equal((await c.call('/auth/otp/verify',{email:address,code,name:'Synthetic duplicate OTP'})).status,401);
+  }
+ }finally{smtp.createTransport=original;}});
+});
+test('Gmail SMTP uncertain sends and interrupted leases are not retried by a worker or staff and never acquire Resend receipts',async()=>{
+ await gmailEnvironment(async(mail,smtp)=>{const original=smtp.createTransport,{a,c}=await emailFixture();let calls=0;smtp.createTransport=()=>({sendMail:async()=>{calls++;throw Object.assign(Error('Synthetic socket lost after DATA'),{code:'ETIMEDOUT',command:'DATA'});},close(){}});
+ try{const row=await mail.enqueue(db,{accountId:a.id,dedupeKey:randomUUID(),topic:'synthetic.smtp',actionPath:'/dashboard'});await Promise.all([mail.deliver(db,row.id),mail.deliver(db,row.id)]);await mail.deliver(db,row.id);assert.equal(calls,1);
+  const current=await db.emailDelivery.findUniqueOrThrow({where:{id:row.id}});assert.equal(current.status,'UNKNOWN');assert.equal(current.encryptedContent,null);assert.equal(current.nextAttemptAt,null);assert.equal((await db.emailAttempt.findFirstOrThrow({where:{deliveryId:row.id}})).outcome,'UNCERTAIN');
+  const staff=await guardianReviewer();assert.equal((await staff.call('/admin/email-deliveries/'+row.id+'/retries',{expectedVersion:current.version,confirmed:true,reason:'Synthetic unsafe SMTP retry must be rejected'})).status,409);
+  const history=await c.call('/notifications/'+row.id+'/history');assert.equal(history.status,200);assert(operationValidator('/notifications/{id}/history','get','200')(history.data));assert.equal(history.data.delivery.provider,'SMTP');assert.equal(history.data.delivery.retryAvailable,false);assert.equal(history.data.providerReference,null);
+  const interrupted=await mail.enqueue(db,{accountId:a.id,dedupeKey:randomUUID(),topic:'synthetic.smtp.crash',actionPath:'/dashboard'});await db.emailAttempt.create({data:{deliveryId:interrupted.id,number:1}});await db.emailDelivery.update({where:{id:interrupted.id},data:{status:'SENDING',attempts:1,firstAttemptAt:new Date(),leaseUntil:new Date(0)}});await mail.deliver(db,interrupted.id);assert.equal(calls,1);assert.equal((await db.emailDelivery.findUniqueOrThrow({where:{id:interrupted.id}})).status,'UNKNOWN');assert.equal((await db.emailAttempt.findFirstOrThrow({where:{deliveryId:interrupted.id}})).outcome,'UNCERTAIN');
+  smtp.createTransport=()=>({sendMail:async(message:any)=>{calls++;return {accepted:[message.to.address]};},close(){}});const accepted=await mail.enqueue(db,{accountId:a.id,dedupeKey:randomUUID(),topic:'synthetic.smtp.accepted',actionPath:'/dashboard'});await mail.deliver(db,accepted.id);const receiptId='synthetic-smtp-receipt-'+randomUUID(),raw=JSON.stringify({type:'email.delivered',created_at:new Date().toISOString(),data:{email_id:accepted.id}});assert.equal((await fetch('http://127.0.0.1:4100/api/v1/notifications/webhooks/resend',{method:'POST',headers:{'Content-Type':'application/json',...emailReceiptSignature(receiptId,raw)},body:raw})).status,201);assert.equal((await db.emailDelivery.findUniqueOrThrow({where:{id:accepted.id}})).status,'ACCEPTED');assert.equal((await db.emailReceipt.findUniqueOrThrow({where:{id:receiptId}})).deliveryId,null);
+ }finally{smtp.createTransport=original;}});
+});
+test('Gmail SMTP bad configuration fails without sending and expired or superseded OTPs are suppressed before SMTP',async()=>{
+ await gmailEnvironment(async(mail,smtp)=>{const original=smtp.createTransport;let calls=0;smtp.createTransport=()=>({sendMail:async(message:any)=>{calls++;return {accepted:[message.to.address]};},close(){}});
+ try{const {a}=await emailFixture();process.env.SMTP_FROM='forbidden@gmail.com';const invalid=await mail.enqueue(db,{accountId:a.id,dedupeKey:randomUUID(),topic:'synthetic.smtp.invalid',actionPath:'/dashboard'});assert.equal(invalid.status,'FAILED');assert.equal(invalid.failureCode,'CONFIGURATION');await mail.deliver(db,invalid.id);assert.equal(calls,0);process.env.SMTP_FROM=process.env.SMTP_USER;
+  const expired=await mail.enqueue(db,{accountId:a.id,dedupeKey:randomUUID(),topic:'synthetic.smtp.expired',actionPath:'/dashboard',expiresAt:new Date(0)});await mail.deliver(db,expired.id);assert.equal((await db.emailDelivery.findUniqueOrThrow({where:{id:expired.id}})).status,'SUPPRESSED');assert.equal(calls,0);
+  const address='synthetic+'+randomUUID()+'@gmail.com',code='123456',digest=otpDigest(address,code);await db.otp.create({data:{address,hash:otpDigest(address,'654321'),expiresAt:new Date(Date.now()+300000)}});const stale=await mail.enqueue(db,{to:address,code,otpHash:digest,expiresAt:new Date(Date.now()+300000),dedupeKey:randomUUID(),topic:'SIGN_IN'});await mail.deliver(db,stale.id);assert.equal((await db.emailDelivery.findUniqueOrThrow({where:{id:stale.id}})).status,'SUPPRESSED');assert.equal(calls,0);
+ }finally{smtp.createTransport=original;}});
 });

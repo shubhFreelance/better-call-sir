@@ -7320,7 +7320,7 @@ export interface components {
             locale: "en" | "hi";
             actionPath: string | null;
             /** @enum {string} */
-            provider: "SANDBOX" | "RESEND";
+            provider: "SANDBOX" | "RESEND" | "SMTP";
             /** @enum {string} */
             status: "QUEUED" | "SENDING" | "ACCEPTED" | "DELIVERED" | "DELAYED" | "BOUNCED" | "COMPLAINED" | "FAILED" | "UNKNOWN" | "SUPPRESSED" | "SANDBOX";
             failureCode: string | null;

@@ -48982,7 +48982,8 @@
       "type": "string",
       "enum": [
         "SANDBOX",
-        "RESEND"
+        "RESEND",
+        "SMTP"
       ]
     },
     "status": {

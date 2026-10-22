@@ -16,7 +16,14 @@ function mode() {
     process.env.EMAIL_DELIVERY_MODE || (development() ? "sandbox" : "");
   if (value === "sandbox" && development()) return "SANDBOX";
   if (value === "resend") return "RESEND";
+  if (value === "smtp") return "SMTP";
   throw Error("EMAIL_CONFIGURATION");
+}
+function sender(provider = mode()) {
+  if (provider === "SMTP") return require("./smtp.cjs").sender();
+  if (provider === "RESEND" && !process.env.EMAIL_FROM)
+    throw Error("EMAIL_CONFIGURATION");
+  return process.env.EMAIL_FROM || null;
 }
 function contentKey() {
   const value =
@@ -117,12 +124,10 @@ async function enqueue(db, input) {
       status = "FAILED";
       failureCode = "NO_EMAIL";
     } else {
-      if (provider === "RESEND" && !process.env.EMAIL_FROM)
-        throw Error("EMAIL_CONFIGURATION");
       encryptedContent = seal(
         {
           ...message(to, input.locale || "en", input.actionPath, input.code),
-          from: process.env.EMAIL_FROM || null,
+          from: sender(provider),
         },
         id,
       );
@@ -163,7 +168,7 @@ const receiptRank = {
   COMPLAINED: 5,
 };
 async function applyReceipts(db, delivery) {
-  if (!delivery.providerId) return delivery;
+  if (!delivery.providerId || delivery.provider !== "RESEND") return delivery;
   const receipts = await db.emailReceipt.findMany({
     where: { providerId: delivery.providerId },
   });
@@ -292,6 +297,31 @@ async function deliver(db, id) {
       (row.nextAttemptAt && row.nextAttemptAt > now)
     )
       return null;
+    if (
+      row.provider === "SMTP" &&
+      row.status === "SENDING" &&
+      row.attempts > 0
+    ) {
+      await tx.emailAttempt.updateMany({
+        where: { deliveryId: id, outcome: "STARTED" },
+        data: {
+          outcome: "UNCERTAIN",
+          failureCode: "WORKER_INTERRUPTED",
+          completedAt: now,
+        },
+      });
+      await tx.emailDelivery.update({
+        where: { id },
+        data: {
+          status: "UNKNOWN",
+          failureCode: "PROVIDER_UNCERTAIN",
+          leaseUntil: null,
+          encryptedContent: null,
+          version: { increment: 1 },
+        },
+      });
+      return null;
+    }
     if (row.firstAttemptAt && now - row.firstAttemptAt > 23 * 3600000) {
       await tx.emailDelivery.update({
         where: { id },
@@ -386,7 +416,10 @@ async function deliver(db, id) {
         throw Object.assign(Error("EMAIL_CONFIGURATION"), { definite: true });
       status = "SANDBOX";
     } else {
-      providerId = await send(claim.payload, id);
+      providerId =
+        claim.row.provider === "SMTP"
+          ? await require("./smtp.cjs").send(claim.payload, id)
+          : await send(claim.payload, id);
       status = "ACCEPTED";
     }
   } catch (error) {
@@ -400,7 +433,9 @@ async function deliver(db, id) {
             : "PROVIDER_UNCERTAIN";
     uncertain = !error.definite;
     status =
-      uncertain && claim.attempt.number < claim.row.maxAttempts
+      uncertain &&
+      claim.row.provider !== "SMTP" &&
+      claim.attempt.number < claim.row.maxAttempts
         ? "QUEUED"
         : uncertain
           ? "UNKNOWN"
@@ -449,7 +484,8 @@ async function deliver(db, id) {
         encryptedContent:
           (["ACCEPTED", "SANDBOX"].includes(status) &&
             claim.row.kind !== "OTP") ||
-          status === "ACCEPTED"
+          status === "ACCEPTED" ||
+          (claim.row.provider === "SMTP" && status === "UNKNOWN")
             ? null
             : current.encryptedContent,
         version: { increment: 1 },
@@ -537,6 +573,7 @@ async function enqueueEvent(db, job) {
 module.exports = {
   enqueueEvent,
   mode,
+  sender,
   hash,
   seal,
   open,

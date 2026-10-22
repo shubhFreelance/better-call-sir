@@ -13,3 +13,5 @@ Use the existing checkout. Tasks are already isolated; no worktree is needed.
 9. Stop only processes started for this project. Preserve PostgreSQL volumes. Live processes do not survive publication; future tasks must restart them using this runbook.
 
 All live-release work remains gated by the original PRD. This runbook does not provision a VPS, configure real secrets or complete restoration/security qualification.
+
+For real email OTP delivery to a small local test group without a custom domain, follow [Gmail SMTP testing](gmail-smtp-testing.md). Keep sandbox as the default until private Gmail settings are supplied; real SMTP does not enable production mode or bypass guardian/role checks.

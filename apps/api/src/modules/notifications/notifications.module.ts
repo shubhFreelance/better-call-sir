@@ -46,7 +46,7 @@ const paging = z
   .strict();
 export function projection(r: EmailDelivery) {
   return {
-    retryAvailable: r.kind === 'NOTIFICATION' && ['FAILED','UNKNOWN'].includes(r.status) && r.expiresAt > new Date() && r.attempts < 50 && (!r.firstAttemptAt || Date.now()-r.firstAttemptAt.getTime()<23*3600000),
+    retryAvailable: r.kind === 'NOTIFICATION' && !(r.provider === 'SMTP' && r.status === 'UNKNOWN') && ['FAILED','UNKNOWN'].includes(r.status) && r.expiresAt > new Date() && r.attempts < 50 && (!r.firstAttemptAt || Date.now()-r.firstAttemptAt.getTime()<23*3600000),
     id: r.id,
     topic: r.topic,
     kind: r.kind,
@@ -295,6 +295,7 @@ class NotificationsController {
         if (
           row.version !== data.expectedVersion ||
           row.kind === "OTP" ||
+          (row.provider === "SMTP" && row.status === "UNKNOWN") ||
           !["FAILED", "UNKNOWN"].includes(row.status) ||
           row.expiresAt <= new Date() ||
           row.attempts >= 50 ||
@@ -326,7 +327,7 @@ class NotificationsController {
                   row.locale,
                   row.actionPath!,
                 ),
-                from: process.env.EMAIL_FROM || null,
+                from: email.sender(row.provider as ReturnType<typeof email.mode>),
               },
               id,
             );
@@ -428,8 +429,8 @@ class NotificationsController {
           );
         return { id, status: "RECORDED" };
       }
-      const delivery = await db.emailDelivery.findUnique({
-        where: { providerId: data.data.email_id },
+      const delivery = await db.emailDelivery.findFirst({
+        where: { providerId: data.data.email_id, provider: "RESEND" },
       });
       await db.emailReceipt.create({
         data: {

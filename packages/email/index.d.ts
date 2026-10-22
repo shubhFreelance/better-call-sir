@@ -1,4 +1,5 @@
-export function mode(): "SANDBOX" | "RESEND";
+export function mode(): "SANDBOX" | "RESEND" | "SMTP";
+export function sender(provider?: "SANDBOX" | "RESEND" | "SMTP"): string | null;
 export function hash(value: string): string;
 export function seal(value: unknown, id: string): string;
 export function open(
