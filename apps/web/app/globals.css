@@ -5747,3 +5747,10 @@ body:has(.teacher-discovery-page) { background: #F4F4EC; }
 .guardian-learner-group.invited [data-variant=secondary] { background:#F0D7FF; color:#17201F; }
 @media(max-width:1000px) { .guardian-learner-groups { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:640px) { .guardian-learners-heading { flex-direction:column; align-items:stretch; } .guardian-learner-group { padding:20px; } .guardian-learners [data-slot=button] { width:100%; } .guardian-learner-card-heading { flex-direction:column; } }
+
+.auth-staff-entry { display:flex; align-items:flex-start; gap:14px; max-width:1100px; margin:24px auto; padding:18px 22px; border:1px solid var(--line); border-radius:16px; background:var(--white); }
+.auth-staff-icon { display:grid; place-items:center; flex:0 0 40px; height:40px; margin-top:2px; border-radius:12px; background:#F0D7FF; color:#17201F; }
+.auth-staff-entry .inline-link { display:inline-flex; align-items:center; min-height:44px; color:#17201F; font-weight:650; margin:0; }
+.auth-staff-entry p { margin:0; color:var(--muted); font-size:14px; line-height:1.6; }
+.auth-demo-accounts > [role=alert] [data-slot=button] { margin:12px 0 0; min-height:44px; }
+@media(max-width:640px) { .auth-staff-entry { padding:16px; } .auth-staff-entry .inline-link { white-space:normal; } }

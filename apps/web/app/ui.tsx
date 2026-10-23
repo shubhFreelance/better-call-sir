@@ -1664,6 +1664,7 @@ function Login() {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
   const searchParams = useSearchParams();
+  const staff = searchParams.get("intent") === "staff";
   const { setSession, hindi, setHindi } = useAuth(),
     router = useRouter(),
     client = useQueryClient();
@@ -1674,6 +1675,7 @@ function Login() {
   });
   const [busy, setBusy] = useState(""),
     [error, setError] = useState("");
+  const accounts = (query.data || []).filter(a => !staff || ["ADMIN", "REVIEWER", "OPERATOR", "FINANCE"].includes(a.role));
   function signedIn(session: Session) {
     client.clear();
     setSession(session);
@@ -1709,12 +1711,22 @@ function Login() {
   return (
     <main className="container auth-section" lang={hindi ? "hi" : "en"}>
       <EmailLogin
-        purpose={searchParams.get("intent") === "teacher" || searchParams.get("next") === "/onboarding/teacher" ? "teacher-signin" : "general"}
+        key={staff ? "staff" : "public"}
+        purpose={staff ? "staff-signin" : searchParams.get("intent") === "teacher" || searchParams.get("next") === "/onboarding/teacher" ? "teacher-signin" : "general"}
         onSignedIn={signedIn}
         hindi={hindi}
         onLanguageChange={setHindi}
       />
-      <p className="independent-signup-link">
+      <div className="auth-staff-entry">
+        <span className="auth-staff-icon"><ShieldCheck aria-hidden="true" size={20} /></span>
+        <div>
+          <Link className="inline-link" href={staff ? "/login" : "/login?intent=staff"}>
+            {appText(staff ? "Back to student, parent or teacher sign-in" : "Admin & staff sign-in")}
+          </Link>
+          <p>{appText(staff ? "Your staff role must already be assigned. Development test accounts are listed below when available." : "For administrators and approved team members.")}</p>
+        </div>
+      </div>
+      {!staff && <p className="independent-signup-link">
         <Link href="/onboarding/independent-student" className="inline-link">
           {hindi
             ? "अपनी पढ़ाई सँभालते हैं? स्वतंत्र विद्यार्थी के रूप में खाता बनाएँ (18+)"
@@ -1722,9 +1734,9 @@ function Login() {
                 "Managing your own learning? Sign up as an independent student (18+)",
               )}
         </Link>
-      </p>
-      {!!query.data?.length && (
-        <details className="auth-demo-accounts">
+      </p>}
+      {(staff || query.isSuccess) && (
+        <details className="auth-demo-accounts" open={staff || undefined}>
           <summary>
             {hindi ? "डेवलपमेंट खाते" : appText("Development accounts")}
           </summary>
@@ -1735,9 +1747,15 @@ function Login() {
                   "Explore the preview with synthetic accounts. These shortcuts are unavailable in live mode.",
                 )}
           </p>
+          {query.isPending && <p role="status">{appText("Loading development accounts…")}</p>}
+          {query.error && <Notice error>
+            <p>{appText(query.error instanceof ApiError && query.error.status === 404 ? "Development accounts are unavailable on this server. Use your assigned staff email." : "Development accounts could not be loaded. Retry or use your assigned staff email.")}</p>
+            <UiButton variant="outline" disabled={query.isFetching} onClick={() => query.refetch()}>{appText("Try again")}</UiButton>
+          </Notice>}
+          {query.isSuccess && !accounts.length && <p role="status">{appText("No development accounts are available here. For local testing, the project owner must run npm run db:seed. Otherwise use a provisioned staff email.")}</p>}
           {error && <Notice error>{appError(error)}</Notice>}
           <div className="account-list">
-            {query.data?.map((a) => (
+            {!query.error && accounts.map((a) => (
               <SharedButton
                 data-legacy-action=""
                 variant="ghost"
