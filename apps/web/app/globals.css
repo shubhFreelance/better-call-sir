@@ -5717,3 +5717,12 @@ body:has(.teacher-discovery-page) { background: #F4F4EC; }
 .returning-account-notice .inline-link { display: inline-flex; align-items: center; min-height: 44px; margin: 0; }
 
 .auth-form button[data-variant=link] { min-height: 44px; height: auto; white-space: normal; text-align: start; }
+
+/* Keep learner navigation distinct from the profile's save actions. */
+.learner-profiles .wizard-title { max-width: none; }
+.learner-profile-navigation { display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:10px; margin-top:24px; }
+.learner-profile-navigation [data-slot=button] { min-height:44px; height:auto; padding:10px 16px; border-radius:10px; font-size:14px; line-height:1.5; white-space:normal; text-align:center; color:#17201F; text-decoration:none; }
+.learner-profile-navigation [data-slot=button]:focus-visible { outline:2px solid #034F46; outline-offset:3px; }
+.learner-profile-navigation .learner-verification-action { background:#F0D7FF; border:1px solid #E0B9F3; box-shadow:none; }
+.learner-profile-navigation .learner-verification-action:hover { background:#E8C6FA; }
+@media(max-width:640px) { .learner-profile-navigation { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; margin-top:20px; } .learner-profile-navigation [data-slot=button] { width:100%; } }

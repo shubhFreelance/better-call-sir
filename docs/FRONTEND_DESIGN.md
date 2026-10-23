@@ -1,5 +1,12 @@
 # Frontend design direction
 
+## Learner profile navigation — 23 October 2026
+
+Plan: keep ivory #F4F4EC, black #17201F, white #FFFFFF, lavender #F0D7FF and neutral #DADAD0. Preserve Manrope/Noto Sans Devanagari. Place the three existing links in a right-aligned action row below the learner heading; the verification action alone receives a lavender fill, while dashboard/setup stay quiet. Use shared shadcn buttons with real links,44px targets and visible focus. Phone links wrap into full-width rows with comfortable spacing; keep role visibility, translations and destinations intact. Review: avoid a large colored panel or competing primary buttons; the small lavender action supplies emphasis.
+
+
+Final review: inspected1440px English desktop and320px Hindi phone captures. The desktop row reaches the content’s right edge; verification alone has lavender emphasis. Phone actions stack without overflow and keep44px targets. All12 existing learner-profile browser cases,23 security/localization checks and workspace types pass; three additional screenshot checks confirm destinations/alignment/touch targets.
+
 ## Returning-account sign-in and saved progress — 23 October 2026
 
 Plan: keep the shared ivory/white auth cards and labelled controls. Sign-in asks for the registered email and OTP; account creation explicitly reveals the name field. A reversible, labelled mode switch keeps the entered email, respects request uncertainty and restores keyboard focus. Public request responses never disclose account existence. After a valid OTP, existing users receive a concise status notice and dashboard/saved-verification links. Existing guardians return to their dashboard, teacher recovery stays bound to the original identity, and staff still pass MFA. Existing saved drafts/records are read from their account APIs; no new credential/email browser storage, role conversion, approval or automatic document upload. English/Hindi copy and mobile accessibility remain required. Review against the brief: distinguish registration from returning access without suggesting users need a different email or should repeat their saved application.
