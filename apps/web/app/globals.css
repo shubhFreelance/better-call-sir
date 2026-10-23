@@ -5767,3 +5767,8 @@ body:has(.teacher-discovery-page) { background: #F4F4EC; }
 .guardian-scan-recovery .care-check { display:flex; align-items:flex-start; gap:12px; padding:0; margin:0; }
 .guardian-scan-recovery .care-check input { flex:0 0 18px; width:18px; height:18px; margin-top:4px; }
 .guardian-scan-recovery .care-check span { min-width:0; flex:1; }
+
+.guardian-decision-readiness { padding:20px; border-radius:12px; background:#F0D7FF; color:#191C1B; overflow-wrap:anywhere; }
+.guardian-decision-readiness h4 { margin:0; font-size:16px; line-height:1.5; }
+.guardian-decision-readiness ul { margin:12px 0 0; padding-inline-start:20px; }
+.guardian-decision-readiness li { margin:8px 0; line-height:1.6; }

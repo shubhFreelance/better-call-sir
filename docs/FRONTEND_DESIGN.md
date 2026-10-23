@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Guardian decision readiness — 23 October 2026
+
+Plan: keep the existing verification worksheet, Manrope/Noto Sans Devanagari, ivory #F4F4EC, white, black text and teal actions. Use a single restrained lavender #F0D7FF panel immediately above the decision button to list only unmet requirements. Derive the button and submit guard from those same requirements. Distinguish student-account acknowledgment from staff-call acknowledgment; show the observed-call checkbox only for the latter. Keep independent authority, clean evidence, matching names or completed call, student acknowledgment, feedback, private reference and final confirmation authoritative. Server permissions and approval rules remain unchanged. Review the English and Hindi phone cases with no overflow, accessible status updates and a refreshed external acknowledgment; never enable approval just because the staff completed unrelated controls.
+
 ## Guardian report scan recovery — 23 October 2026
 
 Plan: preserve the ivory/white worksheet, teal actions, restrained lavender highlights and Manrope/Noto Sans Devanagari. Separate uploaded evidence, explicit submission and scan clearance. Show waiting versus failed processing plainly; both owner and staff can refresh status without re-upload. Poll active quarantined records only while no edit/write or retry confirmation is in progress; errors hide private details. Only ADMIN receives a reviewed retry form bound to the current failed scan job. Require infrastructure confirmation and a reason, reuse exact idempotent job recovery, and keep download/approval blocked until CLEAN. Review: never hide a processing failure behind a permanent “pending” message, and never treat a retry as clearance. English/Hindi, mobile, accessibility and denied/uncertain recovery remain required.

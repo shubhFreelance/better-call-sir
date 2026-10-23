@@ -1,5 +1,16 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Wait for the school report to pass its safety scan.": "स्कूल रिपोर्ट की सुरक्षा जाँच पास होने का इंतज़ार करें।",
+  "Confirm that you independently checked adult status and authority.": "पुष्टि करें कि आपने वयस्क होने और अधिकार की स्वतंत्र जाँच की है।",
+  "Confirm the matching report names, or record a completed phone or video review.": "रिपोर्ट में नामों का मिलान होने की पुष्टि करें, या पूरी की गई फ़ोन या वीडियो समीक्षा दर्ज करें।",
+  "The student must confirm this relationship from their own account. A staff call does not replace this confirmation. After they confirm, refresh verification details.": "विद्यार्थी को अपने खाते से इस रिश्ते की पुष्टि करनी होगी। कर्मचारी की कॉल इस पुष्टि की जगह नहीं ले सकती। विद्यार्थी की पुष्टि के बाद सत्यापन विवरण रीफ़्रेश करें।",
+  "Complete a phone or video review and confirm that you observed the student acknowledging this guardian.": "फ़ोन या वीडियो समीक्षा पूरी करें और पुष्टि करें कि आपने विद्यार्थी को इस अभिभावक के साथ रिश्ते की पुष्टि करते देखा है।",
+  "Enter feedback for the guardian.": "अभिभावक के लिए प्रतिक्रिया लिखें।",
+  "Enter a protected review reference.": "सुरक्षित समीक्षा का संदर्भ दर्ज करें।",
+  "Confirm that you reviewed this learner, guardian, evidence and the exact decision.": "पुष्टि करें कि आपने इस विद्यार्थी, अभिभावक, प्रमाण और इसी निर्णय की समीक्षा की है।",
+  "Before you can record this decision": "निर्णय दर्ज करने से पहले",
+  "Ready to record this decision": "निर्णय दर्ज करने के लिए तैयार",
+
   "Retry safety scan": "सुरक्षा जाँच फिर चलाएँ",
   "I checked the scanner and worker and want to retry this file's safety scan.": "मैंने स्कैनर और वर्कर जाँच लिए हैं और इस फ़ाइल की सुरक्षा जाँच फिर चलाना चाहता/चाहती हूँ।",
   "Reason for scan retry": "दोबारा जाँच का कारण",
