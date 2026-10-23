@@ -1,7 +1,7 @@
 import type {components} from './generated';
 export type {paths,components} from './generated';
 export interface Account {id:string;name:string;role:string;verified:boolean}
-export interface Session {account:Account;csrfToken:string}
+export interface Session {account:Account;csrfToken:string;accountCreated?:boolean}
 export interface Teacher {teachingCoverage?:components["schemas"]["TeachingScope"][]|null;lockInDays?:0|15|30|null;demoAvailable?:boolean;id:string;slug:string;name:string;headline:string;bio:string;subjects:string[];boards:string[];grades:number[];languages:string[];modes:string[];localities:string[];monthlyPaise:number;experience:number;avatarColor:string;capabilityLabel:string;consultationOptIn:boolean;status?:string;version?:number;screeningComplete?:boolean}
 export interface Child {schoolName?:string|null;schoolSubjects?:string[];id:string;alias:string;grade:number|null;board:string|null;educationStage?:string;earlyYearsLevel?:string|null;courseName?:string|null;studyYear?:number|null}
 export interface Lesson {id:string;childId:string;subject:string;kind:string;startsAt:string;endsAt:string;status:string;attendance:string;disputed:boolean;version:number}

@@ -3955,6 +3955,8 @@ export interface components {
         Session: {
             account: components["schemas"]["Account"];
             csrfToken: string;
+            /** @description Returned only after successful email-code verification. False means the existing account and its saved records were reused. */
+            readonly accountCreated?: boolean;
         };
         TuitionRequest: {
             /** Format: uuid */
@@ -4159,7 +4161,8 @@ export interface components {
         };
         OtpVerify: {
             code: string;
-            name: string;
+            /** @description Required only when creating an account; omitted for existing-account sign-in. Never replaces an existing account name. */
+            name?: string;
             /** Format: email */
             email: string;
         };
