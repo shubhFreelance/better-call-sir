@@ -156,6 +156,8 @@ export async function dashboard(page: Page, role: string) {
         },
       });
     if (
+      path.endsWith("/guardian-verifications") ||
+      path.endsWith("/student-guardian-grants") ||
       path.endsWith("/student-enquiries") ||
       path.endsWith("/student-arrangements")
     )

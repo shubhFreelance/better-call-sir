@@ -466,10 +466,11 @@ export function StudentSupporters({
           </div>
         </div>
       )}
-      {!owner && student && !d.locked && (
+      {!owner && student && !d.locked && !q.error && (
         <SupportedStudent
           key={student}
           id={student}
+          name={items.find((item) => item.studentAccountId === student && item.status === "ACTIVE")?.studentName}
           session={session}
           hindi={hindi}
         />
@@ -479,10 +480,12 @@ export function StudentSupporters({
 }
 function SupportedStudent({
   id,
+  name,
   session,
   hindi,
 }: {
   id: string;
+  name?: string;
   session: Session;
   hindi: boolean;
 }) {
@@ -505,6 +508,7 @@ function SupportedStudent({
       <h2>
         {appText(t("Shared learning profile", "साझा पढ़ाई की प्रोफ़ाइल"))}
       </h2>
+      {name && !q.error && <p className="supported-student-context"><strong>{appText("Student")}: </strong>{name}</p>}
       {q.isPending && (
         <p role="status">
           {appText(t("Checking your access…", "आपकी अनुमति जाँच रहे हैं…"))}

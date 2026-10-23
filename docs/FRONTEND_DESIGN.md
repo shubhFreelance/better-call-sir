@@ -1,5 +1,19 @@
 # Frontend design direction
 
+## Guardian multi-learner overview — 23 October 2026
+
+Plan: bring learner relationships and student invitations onto the guardian overview above hiring activity. White cards on the existing ivory canvas; black headings, teal verified status and a small #F0D7FF invitation accent. Keep Manrope/Noto Sans Devanagari. Two clearly labelled groups show each learner name, independent relationship/invitation status, permission and next action. Existing private paginated APIs remain authoritative; no public email lookup, new grant, evidence approval or shared-account switch. Never label an adult invitation as a verified parental relationship. Current unverified/pending, revoked/expired, advice-only and management scopes must stay distinct. Stack cards on phones and preserve English/Hindi, keyboard and failed-read recovery. Review: avoid a combined “family” identity or account-wide verified badge, which would wrongly imply one learner’s proof covers another.
+
+
+Final review: English desktop and Hindi phone screenshots inspected. Two white groups separate named proof status from optional invitations, with a narrow lavender invitation accent; each card identifies the learner and its own permission. Current selected-student context appears in the shared-profile view. Independent pagination, failed-read hiding, revoked/pending no-access, keyboard/axe and scope-specific actions pass. Real API multi-invitation isolation and real web/API acceptance/edit/revocation are validated.
+
+## Learner profile navigation — 23 October 2026
+
+Plan: keep ivory #F4F4EC, black #17201F, white #FFFFFF, lavender #F0D7FF and neutral #DADAD0. Preserve Manrope/Noto Sans Devanagari. Place the three existing links in a right-aligned action row below the learner heading; the verification action alone receives a lavender fill, while dashboard/setup stay quiet. Use shared shadcn buttons with real links,44px targets and visible focus. Phone links wrap into full-width rows with comfortable spacing; keep role visibility, translations and destinations intact. Review: avoid a large colored panel or competing primary buttons; the small lavender action supplies emphasis.
+
+
+Final review: inspected1440px English desktop and320px Hindi phone captures. The desktop row reaches the content’s right edge; verification alone has lavender emphasis. Phone actions stack without overflow and keep44px targets. All12 existing learner-profile browser cases,23 security/localization checks and workspace types pass; three additional screenshot checks confirm destinations/alignment/touch targets.
+
 ## Returning-account sign-in and saved progress — 23 October 2026
 
 Plan: keep the shared ivory/white auth cards and labelled controls. Sign-in asks for the registered email and OTP; account creation explicitly reveals the name field. A reversible, labelled mode switch keeps the entered email, respects request uncertainty and restores keyboard focus. Public request responses never disclose account existence. After a valid OTP, existing users receive a concise status notice and dashboard/saved-verification links. Existing guardians return to their dashboard, teacher recovery stays bound to the original identity, and staff still pass MFA. Existing saved drafts/records are read from their account APIs; no new credential/email browser storage, role conversion, approval or automatic document upload. English/Hindi copy and mobile accessibility remain required. Review against the brief: distinguish registration from returning access without suggesting users need a different email or should repeat their saved application.

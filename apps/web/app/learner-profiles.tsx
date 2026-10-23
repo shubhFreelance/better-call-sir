@@ -380,19 +380,23 @@ export function LearnerProfiles({ session }: { session: Session }) {
             "School, early years or college: keep the details that help explain what they’re learning.",
           )}{" "}
         </p>
-        <Link href="/dashboard" className="inline-link">
-          {appText("Back to dashboard")}{" "}
-        </Link>
-        {session.account.role === "GUARDIAN" && (
-          <>
-            <Link href="/guardian-verification" className="inline-link">
-              {appText("Verify another learner relationship")}
-            </Link>
-            <Link href="/onboarding/guardian" className="inline-link">
-              {appText("Guardian setup")}{" "}
-            </Link>
-          </>
-        )}
+        <div className="learner-profile-navigation">
+          <Button asChild variant="ghost">
+            <Link href="/dashboard">{appText("Back to dashboard")}</Link>
+          </Button>
+          {session.account.role === "GUARDIAN" && (
+            <>
+              <Button asChild variant="secondary" className="learner-verification-action">
+                <Link href="/guardian-verification">
+                  {appText("Verify another learner relationship")}
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/onboarding/guardian">{appText("Guardian setup")}</Link>
+              </Button>
+            </>
+          )}
+        </div>
       </header>
       <div className="learner-profile-layout">
         <aside className="learner-profile-intro">

@@ -151,6 +151,7 @@ test("production independent hiring consent and optional support hydrate and sub
     path: "test-results/independent-hiring-production-mobile.png",
     fullPage: true,
   });
+  await page.getByRole("button", { name: "Dashboard menu: Hiring & arrangements", exact: true }).click();
   await page
     .getByRole("link", { name: "Learning support", exact: true })
     .click();
