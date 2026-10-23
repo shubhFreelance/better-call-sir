@@ -1652,6 +1652,16 @@ test('missing guardian name and staff-observed student acknowledgment require a 
  assert.equal((await g.client.call(`/guardian-verifications/${v.id}/revisions`,{expectedVersion:done.data.version,application:guardianApplication()})).status,409);
 });
 
+test('guardian report HTTP uploads accept images above the ordinary JSON limit and retain the 5 MiB bound',async()=>{
+ const g=await freshGuardian(),v=(await g.client.call('/guardian-verifications',guardianApplication())).data;
+ const content=Buffer.concat([Buffer.from('89504e470d0a1a0a','hex'),Buffer.alloc(100*1024)]);
+ const uploaded=await g.client.call(`/guardian-verifications/${v.id}/evidence`,{expectedVersion:v.version,mediaType:'image/png',contentBase64:content.toString('base64')});
+ assert.equal(uploaded.status,201,JSON.stringify(uploaded.data));assert.equal(uploaded.data.evidence.status,'QUARANTINED');
+ const tooLarge=Buffer.concat([content,Buffer.alloc(5*1024*1024)]);
+ assert.equal((await g.client.call(`/guardian-verifications/${v.id}/evidence`,{expectedVersion:uploaded.data.version,mediaType:'image/png',contentBase64:tooLarge.toString('base64')})).status,400);
+ assert.equal((await g.client.call('/guardian-verifications', {padding:'x'.repeat(70000)})).status,413);
+});
+
 test('guardian verification validates uploads and strict inputs, isolates regions/owners and binds history cursors to their filters',async()=>{
  const review=await guardianReviewer(),g=await freshGuardian(),foreign=await freshGuardian();assert.equal((await g.client.call('/guardian-verifications',guardianApplication({adultDeclaration:false}))).status,400);assert.equal((await g.client.call('/guardian-verifications',guardianApplication({studentEmail:g.account.email,acknowledgmentMethod:'STUDENT_ACCOUNT'}))).status,400);
  const first=await g.client.call('/guardian-verifications',guardianApplication());assert.equal(first.status,201);const v=first.data;
