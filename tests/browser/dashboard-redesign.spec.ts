@@ -170,6 +170,8 @@ for (const hi of [false, true]) {
           exact: true,
         });
         await expect(nav).toBeVisible();
+        await expect(nav.getByRole("link").first()).not.toHaveAttribute("aria-describedby");
+        await nav.getByRole("button", { name: t("Details for {0}").replace("{0}", t("Overview")), exact: true }).click();
         await expect(nav.getByRole("link").first()).toHaveAccessibleDescription(
           t("Your priorities and latest progress"),
         );
@@ -183,7 +185,7 @@ for (const hi of [false, true]) {
             .getByRole("navigation", { name: t("Dashboard"), exact: true })
             .getByRole("link")
             .first(),
-        ).toHaveAccessibleDescription(t("Your priorities and latest progress"));
+        ).not.toHaveAttribute("aria-describedby");
       await page.evaluate(() => document.fonts.ready);
       expect(
         await page.evaluate(
@@ -286,3 +288,34 @@ for (const hi of [false, true])
       }),
     ).toBeVisible();
   });
+
+for (const hi of [false, true]) test(`sidebar descriptions expand only on click with grey and lavender rows (${hi ? "Hindi phone" : "English desktop"})`, async ({ page }) => {
+  if (hi) await page.addInitScript(() => localStorage.setItem("bcs.interface-language", "hi"));
+  await page.setViewportSize(hi ? { width: 320, height: 900 } : { width: 1440, height: 1000 });
+  await dashboard(page, "INDEPENDENT_STUDENT");
+  await page.goto("/dashboard");
+  const t = (s: string) => translateText(hi, s);
+  if (hi) await page.getByRole("button", { name: t("Dashboard menu: {0}").replace("{0}", t("Overview")), exact: true }).click();
+  const nav = page.getByRole("navigation", { name: t(hi ? "Dashboard sections" : "Dashboard"), exact: true });
+  const rows = nav.locator(".dashboard-nav-item");
+  await expect(rows.first().locator(".dashboard-nav-description")).toBeHidden();
+  await expect(rows.nth(1).locator(".dashboard-nav-description")).toBeHidden();
+  await expect(rows.first()).toHaveCSS("background-color", "rgb(240, 215, 255)");
+  await expect(rows.nth(1)).toHaveCSS("background-color", "rgb(141, 141, 141)");
+  const toggle = rows.first().getByRole("button");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await toggle.focus();
+  await page.keyboard.press("Enter");
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(rows.first().locator(".dashboard-nav-description")).toHaveText(t("Your priorities and latest progress"));
+  await expect(rows.first().locator(".dashboard-nav-description")).toBeVisible();
+  await expect(page).toHaveURL(/dashboard$/);
+  await page.keyboard.press("Space");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(rows.first().locator(".dashboard-nav-description")).toBeHidden();
+  await expect(nav.getByRole("link", { name: t("Notifications"), exact: true })).toHaveAttribute("href", "/dashboard/notifications");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const a = await new AxeBuilder({ page }).include(".dashboard-sidebar").analyze();
+  expect(a.violations.filter(v => ["serious", "critical"].includes(v.impact || ""))).toEqual([]);
+  await page.locator(".dashboard-sidebar").screenshot({ path: `test-results/sidebar-compact-${hi ? "hi-phone" : "en-desktop"}.png` });
+});
