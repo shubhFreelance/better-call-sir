@@ -35,8 +35,12 @@ export const signInCopy = {
     guardian:
       "Students aged 18+ can choose independent signup. Younger learners join through their guardian.",
     errors: {
-      existingEmailRequired: "Use the email already linked to this account. Your application details are still here.",
-      registrationRequired: "No account exists for this verified email. Add your name to create an account with the same email.",
+      staffEmailRequired:
+        "Use an existing staff account email. Ask an administrator if staff access has not been assigned.",
+      existingEmailRequired:
+        "Use the email already linked to this account. Your application details are still here.",
+      registrationRequired:
+        "No account exists for this verified email. Add your name to create an account with the same email.",
       nameRequired: "Enter your name.",
       nameLong: "Use 80 characters or fewer.",
       emailInvalid: "Enter a valid email address.",
@@ -93,8 +97,12 @@ export const signInCopy = {
     guardian:
       "18 वर्ष या अधिक के विद्यार्थी स्वतंत्र साइनअप चुन सकते हैं। कम उम्र के विद्यार्थी अभिभावक के ज़रिए जुड़ते हैं।",
     errors: {
-      existingEmailRequired: "इस खाते से जुड़े ईमेल का इस्तेमाल करें। आपके आवेदन की जानकारी यहीं सुरक्षित है।",
-      registrationRequired: "इस पुष्ट ईमेल पर खाता नहीं है। इसी ईमेल से खाता बनाने के लिए अपना नाम दें।",
+      staffEmailRequired:
+        "मौजूदा कर्मचारी खाते के ईमेल का इस्तेमाल करें। कर्मचारी की अनुमति नहीं मिली है तो व्यवस्थापक से संपर्क करें।",
+      existingEmailRequired:
+        "इस खाते से जुड़े ईमेल का इस्तेमाल करें। आपके आवेदन की जानकारी यहीं सुरक्षित है।",
+      registrationRequired:
+        "इस पुष्ट ईमेल पर खाता नहीं है। इसी ईमेल से खाता बनाने के लिए अपना नाम दें।",
       nameRequired: "अपना नाम डालें।",
       nameLong: "नाम 80 अक्षरों तक रखें।",
       emailInvalid: "सही ईमेल पता डालें।",

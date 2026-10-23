@@ -1,5 +1,12 @@
 # Frontend design direction
 
+## Visible staff sign-in entry — 23 October 2026
+
+Plan: a quiet white/ivory access row with a lavender shield and a clearly labelled Admin & staff sign-in link below the normal form. Preserve Manrope/Noto Sans Devanagari and44px focusable links. /login?intent=staff uses the same email-only OTP with staff-specific guidance and no signup toggle; verified unknown inboxes cannot create accounts from this flow. Staff intent conveys no role and existing backend MFA/role checks remain authoritative. Show the development selector open in staff mode with explicit loading/empty/unavailable/retry states instead of silently hiding it when the account list is missing. Test shortcuts remain supplied solely by the existing development-only endpoint. Review: no public privileged signup or universal admin password; the missing entry is a navigation/state issue.
+
+
+Final review: inspected the public desktop entry and Hindi phone staff view. The lavender shield makes staff access discoverable while the learner login stays primary. Staff mode has no signup toggle or name field, and development accounts show meaningful states instead of disappearing. All14 combined development and12 production-CSP cases pass, including the admin MFA gate and verified-unknown-email denial.
+
 ## Guardian multi-learner overview — 23 October 2026
 
 Plan: bring learner relationships and student invitations onto the guardian overview above hiring activity. White cards on the existing ivory canvas; black headings, teal verified status and a small #F0D7FF invitation accent. Keep Manrope/Noto Sans Devanagari. Two clearly labelled groups show each learner name, independent relationship/invitation status, permission and next action. Existing private paginated APIs remain authoritative; no public email lookup, new grant, evidence approval or shared-account switch. Never label an adult invitation as a verified parental relationship. Current unverified/pending, revoked/expired, advice-only and management scopes must stay distinct. Stack cards on phones and preserve English/Hindi, keyboard and failed-read recovery. Review: avoid a combined “family” identity or account-wide verified badge, which would wrongly imply one learner’s proof covers another.

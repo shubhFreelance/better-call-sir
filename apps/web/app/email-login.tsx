@@ -46,6 +46,7 @@ export function EmailLogin({
   onSignedIn: (session: Session) => void;
   purpose?:
     | "general"
+    | "staff-signin"
     | "student-signup"
     | "guardian-signup"
     | "teacher-signup"
@@ -59,7 +60,12 @@ export function EmailLogin({
   );
   const t = {
     ...signInCopy[hindi ? "hi" : "en"],
-    ...(["general", "guardian-signup", "student-signup"].includes(purpose)
+    ...([
+      "general",
+      "guardian-signup",
+      "student-signup",
+      "staff-signin",
+    ].includes(purpose)
       ? {}
       : {
           welcome: hindi
@@ -153,6 +159,25 @@ export function EmailLogin({
       ? "नए खाते के लिए अपना नाम और ईमेल दें। खाता पहले से है तो उसी ईमेल से साइन इन करें।"
       : "Enter your name and email for a new account. Already registered? Sign in with the same email.";
   }
+  if (purpose === "staff-signin") {
+    t.welcome = appText("Admin & staff sign-in");
+    t.introduction = appText(
+      "Use the email assigned to your staff account. Complete authenticator verification after email sign-in.",
+    );
+    t.permission = appText(
+      "Signing in does not grant a staff role. Your assigned role and region determine access.",
+    );
+    t.guideTitle = appText("Restricted staff access.");
+    t.guideIntro = appText(
+      "For approved administrators, reviewers, operators and finance staff.",
+    );
+    t.reviewed = appText("Sign in with your assigned email");
+    t.enquiries = appText("Verify with your authenticator");
+    t.privacy = appText("Access only your authorized workspace");
+    t.guardian = appText(
+      "Staff accounts are provisioned separately. There is no public admin registration or shared password.",
+    );
+  }
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -194,9 +219,11 @@ export function EmailLogin({
       (
         {
           REGISTRATION_REQUIRED:
-            purpose === "teacher-recovery"
-              ? "existingEmailRequired"
-              : "registrationRequired",
+            purpose === "staff-signin"
+              ? "staffEmailRequired"
+              : purpose === "teacher-recovery"
+                ? "existingEmailRequired"
+                : "registrationRequired",
           EMAIL_UNAVAILABLE: "emailUnavailable",
           OTP_EXPIRED: "codeExpired",
           AUTH_UNAVAILABLE: "authUnavailable",
@@ -308,7 +335,8 @@ export function EmailLogin({
       if (
         error instanceof ApiError &&
         error.code === "REGISTRATION_REQUIRED" &&
-        purpose !== "teacher-recovery"
+        purpose !== "teacher-recovery" &&
+        purpose !== "staff-signin"
       ) {
         setCreating(true);
         setChallenge(null);
@@ -459,7 +487,7 @@ export function EmailLogin({
               )}
             </Button>
             <p className="auth-help">{t.passwordHelp}</p>
-            {purpose !== "teacher-recovery" && (
+            {purpose !== "teacher-recovery" && purpose !== "staff-signin" && (
               <Button
                 type="button"
                 variant="link"
