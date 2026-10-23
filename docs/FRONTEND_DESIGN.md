@@ -2,7 +2,7 @@
 
 ## Compact dashboard sidebar — 23 October 2026
 
-Plan: retain readable icon-and-label navigation in Manrope/Noto Sans Devanagari. Use owner-requested #8D8D8D rows with black labels/icons and #F0D7FF for the current section. Descriptions start collapsed, including the selected row; a separate44px chevron disclosure reveals them without accidentally navigating. Use keyboard-operable buttons, aria-expanded/controls, restrained chevron rotation and reduced-motion support. Reuse identical rows in desktop and the existing mobile menu; preserve destinations, role filtering and API access controls.
+Plan: retain readable icon-and-label navigation in Manrope/Noto Sans Devanagari. The owner replaced the grey treatment with soft ivory #F3F1EB, a quiet #E5E5D8 inset outline and #ECECDF hover. Keep black labels/icons and #F0D7FF lavender for the current section, with a restrained lavender outline. Descriptions start collapsed, including the selected row; a separate44px chevron disclosure reveals them without accidentally navigating. Use keyboard-operable buttons, aria-expanded/controls, restrained chevron rotation and reduced-motion support. Reuse identical rows in desktop and the existing mobile menu; preserve destinations, role filtering and API access controls.
 
 ## Guardian decision readiness — 23 October 2026
 
