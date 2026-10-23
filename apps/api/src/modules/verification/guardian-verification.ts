@@ -250,7 +250,7 @@ class GuardianVerificationController {
       );
     return row;
   }
-  async projection(db: DB, row: GuardianVerification, review = false) {
+  async projection(db: DB, row: GuardianVerification, review = false, allowScanRetry = false) {
     const evidence = row.currentEvidenceId
       ? await db.guardianEvidence.findUnique({
           where: { id: row.currentEvidenceId },
@@ -263,10 +263,24 @@ class GuardianVerificationController {
           },
         })
       : null;
+    const scanJob = evidence?.status === "QUARANTINED"
+      ? await db.outbox.findFirst({
+          where: { type: "guardian-evidence.scan_requested", aggregateId: evidence.id, processedAt: null },
+          orderBy: { createdAt: "desc" },
+          select: { id: true, attempts: true },
+        })
+      : null;
+    const scanStatus = !evidence ? "NOT_UPLOADED" : evidence.status === "CLEAN" ? "CLEARED"
+      : evidence.status === "INFECTED" ? "UNSAFE" : evidence.status === "DELETED" ? "DELETED"
+      : scanJob && scanJob.attempts >= 5 ? "RETRY_REQUIRED" : "WAITING";
     const { reviewReference, reviewerId, ...safe } = row;
     return {
       ...safe,
       evidence,
+      scanStatus,
+      ...(allowScanRetry && scanStatus === "RETRY_REQUIRED" && scanJob && scanJob.attempts <= 50
+        ? { scanRetry: { jobId: scanJob.id, expectedAttempts: scanJob.attempts } }
+        : {}),
       ...(review ? { reviewReference, reviewerId } : {}),
       policyVersion: "guardian-verification-v1",
     };
@@ -380,7 +394,7 @@ class GuardianVerificationController {
           id,
           "Restricted regional guardian verification review",
         );
-      return this.projection(db, r, staff(a));
+      return this.projection(db, r, staff(a), a.role === "ADMIN");
     });
   }
   @Post("guardian-verifications/:id/revisions") async revise(
@@ -825,7 +839,7 @@ class GuardianVerificationController {
         "Restricted regional guardian verification queue",
       );
       return pageResult(
-        await Promise.all(rows.map((r) => this.projection(db, r, true))),
+        await Promise.all(rows.map((r) => this.projection(db, r, true, a.role === "ADMIN"))),
         q.limit,
       );
     });
