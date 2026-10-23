@@ -21,7 +21,8 @@ const detailsSchema = z.object({
     .string()
     .trim()
     .min(1, "Enter your name.")
-    .max(80, "Use 80 characters or fewer."),
+    .max(80, "Use 80 characters or fewer.")
+    .optional(),
   email: z
     .string()
     .trim()
@@ -45,6 +46,7 @@ export function EmailLogin({
   onSignedIn: (session: Session) => void;
   purpose?:
     | "general"
+    | "student-signup"
     | "guardian-signup"
     | "teacher-signup"
     | "teacher-signin"
@@ -52,16 +54,19 @@ export function EmailLogin({
 }) {
   const { appText, appError, appLocale } = useAppTranslation(hindi);
 
+  const [creating, setCreating] = useState(
+    ["guardian-signup", "teacher-signup", "student-signup"].includes(purpose),
+  );
   const t = {
     ...signInCopy[hindi ? "hi" : "en"],
-    ...(["general", "guardian-signup"].includes(purpose)
+    ...(["general", "guardian-signup", "student-signup"].includes(purpose)
       ? {}
       : {
           welcome: hindi
-            ? purpose === "teacher-signup"
+            ? creating
               ? "अपना शिक्षक खाता बनाएँ"
               : "अपने शिक्षक खाते में साइन इन करें"
-            : purpose === "teacher-signup"
+            : creating
               ? "Create your teacher account"
               : "Sign in to your teacher account",
           introduction:
@@ -128,6 +133,26 @@ export function EmailLogin({
         }
       : {}),
   };
+  if (!creating) {
+    t.welcome = hindi
+      ? purpose.startsWith("teacher")
+        ? "अपने शिक्षक खाते में साइन इन करें"
+        : "अपने खाते में साइन इन करें"
+      : purpose.startsWith("teacher")
+        ? "Sign in to your teacher account"
+        : "Sign in to your account";
+    if (purpose !== "teacher-recovery")
+      t.introduction = hindi
+        ? "जिस ईमेल से खाता बनाया था उसी से साइन इन करें। आपकी सहेजी गई प्रोफ़ाइल और प्रगति इसी खाते से जुड़ी रहती हैं।"
+        : "Use the email you registered with. Your saved profile and progress stay linked to this account.";
+    if (purpose !== "teacher-recovery")
+      t.verify = hindi ? "पुष्टि करके आगे बढ़ें" : "Verify and continue";
+  } else if (["general", "student-signup"].includes(purpose)) {
+    t.welcome = hindi ? "अपना खाता बनाएँ" : "Create your account";
+    t.introduction = hindi
+      ? "नए खाते के लिए अपना नाम और ईमेल दें। खाता पहले से है तो उसी ईमेल से साइन इन करें।"
+      : "Enter your name and email for a new account. Already registered? Sign in with the same email.";
+  }
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -168,6 +193,10 @@ export function EmailLogin({
     return (
       (
         {
+          REGISTRATION_REQUIRED:
+            purpose === "teacher-recovery"
+              ? "existingEmailRequired"
+              : "registrationRequired",
           EMAIL_UNAVAILABLE: "emailUnavailable",
           OTP_EXPIRED: "codeExpired",
           AUTH_UNAVAILABLE: "authUnavailable",
@@ -181,7 +210,10 @@ export function EmailLogin({
   async function requestCode(event?: FormEvent) {
     event?.preventDefault();
     if (requestSending.current) return;
-    const parsed = detailsSchema.safeParse({ name, email });
+    const parsed = detailsSchema.safeParse({
+      name: creating ? name : undefined,
+      email,
+    });
     if (!parsed.success) {
       const fields = parsed.error.flatten().fieldErrors;
       setErrors({
@@ -223,7 +255,7 @@ export function EmailLogin({
         throw new Error("Invalid challenge");
       requestIdentity.current = null;
       setUncertain(false);
-      setName(parsed.data.name);
+      setName(parsed.data.name || "");
       setEmail(parsed.data.email);
       setCode("");
       const time = Date.now();
@@ -266,14 +298,24 @@ export function EmailLogin({
     try {
       const session = await api<Session>("/auth/otp/verify", {
         method: "POST",
-        body: { email, name, code },
+        body: { email, ...(creating ? { name } : {}), code },
         signal: AbortSignal.timeout(12000),
       });
       setCode("");
       setChallenge(null);
       onSignedIn(session);
     } catch (error) {
-      if (error instanceof ApiError && error.code === "INVALID_OTP") {
+      if (
+        error instanceof ApiError &&
+        error.code === "REGISTRATION_REQUIRED" &&
+        purpose !== "teacher-recovery"
+      ) {
+        setCreating(true);
+        setChallenge(null);
+        setCode("");
+        setErrors({ server: "registrationRequired" });
+        requestAnimationFrame(() => nameInput.current?.focus());
+      } else if (error instanceof ApiError && error.code === "INVALID_OTP") {
         setErrors({
           code: "codeWrong",
         });
@@ -345,31 +387,35 @@ export function EmailLogin({
         )}
         {!challenge ? (
           <form noValidate onSubmit={requestCode} className="auth-form">
-            <label htmlFor="signin-name">{t.name}</label>
-            <Input
-              ref={nameInput}
-              id="signin-name"
-              autoComplete="name"
-              maxLength={80}
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setErrors((old) => ({ ...old, name: undefined }));
-              }}
-              aria-invalid={!!errors.name}
-              aria-describedby={
-                errors.name ? "signin-name-error" : "signin-name-help"
-              }
-              disabled={busy || uncertain}
-            />
-            {errors.name ? (
-              <p id="signin-name-error" className="auth-field-error">
-                {appError(t.errors[errors.name])}
-              </p>
-            ) : (
-              <p id="signin-name-help" className="auth-help">
-                {t.nameHelp}
-              </p>
+            {creating && (
+              <>
+                <label htmlFor="signin-name">{t.name}</label>
+                <Input
+                  ref={nameInput}
+                  id="signin-name"
+                  autoComplete="name"
+                  maxLength={80}
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setErrors((old) => ({ ...old, name: undefined }));
+                  }}
+                  aria-invalid={!!errors.name}
+                  aria-describedby={
+                    errors.name ? "signin-name-error" : "signin-name-help"
+                  }
+                  disabled={busy || uncertain}
+                />
+                {errors.name ? (
+                  <p id="signin-name-error" className="auth-field-error">
+                    {appError(t.errors[errors.name])}
+                  </p>
+                ) : (
+                  <p id="signin-name-help" className="auth-help">
+                    {t.nameHelp}
+                  </p>
+                )}
+              </>
             )}
             <label htmlFor="signin-email">{t.email}</label>
             <Input
@@ -413,6 +459,27 @@ export function EmailLogin({
               )}
             </Button>
             <p className="auth-help">{t.passwordHelp}</p>
+            {purpose !== "teacher-recovery" && (
+              <Button
+                type="button"
+                variant="link"
+                disabled={busy || uncertain}
+                onClick={() => {
+                  setCreating(!creating);
+                  setErrors({});
+                  setName("");
+                  requestAnimationFrame(() =>
+                    (creating ? emailInput : nameInput).current?.focus(),
+                  );
+                }}
+              >
+                {appText(
+                  creating
+                    ? "Already registered? Sign in"
+                    : "Create an account instead",
+                )}
+              </Button>
+            )}
           </form>
         ) : (
           <form noValidate onSubmit={verify} className="auth-form">

@@ -1399,13 +1399,16 @@ test("expired teacher sign-in can be restored on the same page without losing un
   await page.route('**/api/v1/auth/session',async route=>restored?route.fallback():route.fulfill({status:401,json:{code:'SESSION_REQUIRED',message:'Sign in to continue.'}}));
   await page.route('**/api/v1/auth/refresh',async route=>route.fulfill({status:401,json:{code:'SESSION_REVOKED',message:'Session expired or refresh replay detected. Sign in again.'}}));
   await page.route('**/api/v1/auth/otp/request',async route=>route.fulfill({status:201,json:{status:'SANDBOX',developmentCode:'123456',expiresIn:300}}));
-  await page.route('**/api/v1/auth/otp/verify',async route=>{verified++;restored=verified>1;return route.fulfill({status:201,json:{account:{id:restored?'10000000-0000-4000-8000-000000000091':'10000000-0000-4000-8000-000000000099',role:'GUARDIAN',name:'Synthetic Teacher',verified:false},csrfToken:'restored-csrf'}});});
+  await page.route('**/api/v1/auth/otp/verify',async route=>{verified++;restored=verified>2;if(verified===1)return route.fulfill({status:409,json:{code:'REGISTRATION_REQUIRED',message:'Use an existing account'}});return route.fulfill({status:201,json:{account:{id:restored?'10000000-0000-4000-8000-000000000091':'10000000-0000-4000-8000-000000000099',role:'GUARDIAN',name:'Synthetic Teacher',verified:false},csrfToken:'restored-csrf'}});});
   await page.getByRole('button',{name:'Continue to private address',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Sign in again without losing your application',exact:true})).toBeFocused();
   expect(state.bodies).toHaveLength(0);
   const recovery=page.getByRole('main',{name:'Restore teacher sign-in',exact:true});
-  await recovery.getByLabel('Your name',{exact:true}).fill('Synthetic Teacher');await recovery.getByLabel('Email address',{exact:true}).fill('wrong@example.test');
+  await recovery.getByLabel('Email address',{exact:true}).fill('wrong@example.test');
   await recovery.getByRole('button',{name:'Send verification code',exact:true}).click();await recovery.getByLabel('Six-digit code',{exact:true}).fill('123456');await recovery.getByRole('button',{name:'Verify and continue to application',exact:true}).click();
+  await expect(page.getByText('Use the email already linked to this account. Your application details are still here.',{exact:true})).toBeVisible();
+  await expect(recovery.getByLabel('Your name',{exact:true})).toHaveCount(0);expect(state.bodies).toHaveLength(0);
+  await recovery.getByRole('button',{name:'Change email',exact:true}).click();await recovery.getByRole('button',{name:'Send verification code',exact:true}).click();await recovery.getByLabel('Six-digit code',{exact:true}).fill('123456');await recovery.getByRole('button',{name:'Verify and continue to application',exact:true}).click();
   await expect(page.getByText('That email belongs to another account. Use the same email you started this application with. Your entries are still here.',{exact:true})).toBeVisible();expect(state.bodies).toHaveLength(0);
   await recovery.getByLabel('Email address',{exact:true}).fill('same-owner@example.test');await recovery.getByRole('button',{name:'Send verification code',exact:true}).click();await recovery.getByLabel('Six-digit code',{exact:true}).fill('123456');await recovery.getByRole('button',{name:'Verify and continue to application',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Sign in again without losing your application',exact:true})).toHaveCount(0);

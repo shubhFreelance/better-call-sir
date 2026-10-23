@@ -58,7 +58,11 @@ export function TeacherRegistration({
         onSignedIn={(next) => {
           client.clear();
           onSignedIn(next);
-          router.push("/onboarding/teacher");
+          router.push(
+            next.accountCreated === false && next.account.role !== "GUARDIAN"
+              ? "/dashboard"
+              : "/onboarding/teacher",
+          );
         }}
       />
       <p className="independent-signup-link">

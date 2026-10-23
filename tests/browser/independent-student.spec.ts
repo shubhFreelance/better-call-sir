@@ -240,9 +240,7 @@ test("real email OTP creates and resumes a private independent student account, 
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await page.goto("/login");
-  await page
-    .getByLabel("Your name", { exact: true })
-    .fill("Ignored existing-account name");
+  await expect(page.getByLabel("Your name", {exact:true})).toHaveCount(0);
   await page.getByLabel("Email address", { exact: true }).fill(email);
   const secondCode = page.waitForResponse(
     (r) =>

@@ -5712,3 +5712,8 @@ body:has(.teacher-discovery-page) { background: #F4F4EC; }
 .teacher-discovery-page .discovery-tabs button[data-state=active] > svg { color: #F0D7FF; }
 .teacher-discovery-page .discovery-tabs button[data-state=inactive] > svg { background: #F0D7FF; color: #000000; border-radius: 4px; box-shadow: 0 0 0 5px #F0D7FF; }
 .teacher-discovery-page .catalog-filters .filter-select select:has(option:checked:not([value=""])) { background: #F0D7FF; border-color: #8B649B; color: #000000; }
+
+.returning-account-notice { padding-top: 20px; }
+.returning-account-notice .inline-link { display: inline-flex; align-items: center; min-height: 44px; margin: 0; }
+
+.auth-form button[data-variant=link] { min-height: 44px; height: auto; white-space: normal; text-align: start; }

@@ -127,7 +127,7 @@ export function GuardianRegistration({
           client.clear();
           onSignedIn(next);
           router.push(
-            next.account.role === "GUARDIAN"
+            next.accountCreated !== false && next.account.role === "GUARDIAN"
               ? "/onboarding/guardian"
               : "/dashboard",
           );

@@ -1,5 +1,8 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Create an account instead": "नया खाता बनाएँ",
+  "Review saved verification requests": "सहेजे गए सत्यापन अनुरोध देखें",
+  "This email is already registered. You are signed in to your existing account; your saved progress is available from your dashboard.": "यह ईमेल पहले से पंजीकृत है। आप अपने मौजूदा खाते में साइन इन हैं; सहेजी गई प्रगति डैशबोर्ड पर उपलब्ध है।",
   "Refine your search": "अपनी खोज को बेहतर बनाएँ",
   "Choose what matters to you. Results update as you change the filters.": "अपनी ज़रूरत के अनुसार विकल्प चुनें। फ़िल्टर बदलते ही नतीजे अपडेट होते हैं।",
   "Active filters: {0}": "चुने हुए फ़िल्टर: {0}",
