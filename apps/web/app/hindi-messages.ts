@@ -1,5 +1,6 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Details for {0}": "{0} की जानकारी",
   "Wait for the school report to pass its safety scan.": "स्कूल रिपोर्ट की सुरक्षा जाँच पास होने का इंतज़ार करें।",
   "Confirm that you independently checked adult status and authority.": "पुष्टि करें कि आपने वयस्क होने और अधिकार की स्वतंत्र जाँच की है।",
   "Confirm the matching report names, or record a completed phone or video review.": "रिपोर्ट में नामों का मिलान होने की पुष्टि करें, या पूरी की गई फ़ोन या वीडियो समीक्षा दर्ज करें।",

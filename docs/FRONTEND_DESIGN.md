@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Compact dashboard sidebar — 23 October 2026
+
+Plan: retain readable icon-and-label navigation in Manrope/Noto Sans Devanagari. Use owner-requested #8D8D8D rows with black labels/icons and #F0D7FF for the current section. Descriptions start collapsed, including the selected row; a separate44px chevron disclosure reveals them without accidentally navigating. Use keyboard-operable buttons, aria-expanded/controls, restrained chevron rotation and reduced-motion support. Reuse identical rows in desktop and the existing mobile menu; preserve destinations, role filtering and API access controls.
+
 ## Guardian decision readiness — 23 October 2026
 
 Plan: keep the existing verification worksheet, Manrope/Noto Sans Devanagari, ivory #F4F4EC, white, black text and teal actions. Use a single restrained lavender #F0D7FF panel immediately above the decision button to list only unmet requirements. Derive the button and submit guard from those same requirements. Distinguish student-account acknowledgment from staff-call acknowledgment; show the observed-call checkbox only for the latter. Keep independent authority, clean evidence, matching names or completed call, student acknowledgment, feedback, private reference and final confirmation authoritative. Server permissions and approval rules remain unchanged. Review the English and Hindi phone cases with no overflow, accessible status updates and a refreshed external acknowledgment; never enable approval just because the staff completed unrelated controls.

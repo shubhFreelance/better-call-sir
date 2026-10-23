@@ -2086,6 +2086,66 @@ function Revision() {
   );
 }
 
+function DashboardNavItem({
+  href,
+  label,
+  description,
+  Icon,
+  active,
+  mobile = false,
+  onNavigate,
+}: {
+  href: string;
+  label: string;
+  description: string;
+  Icon: LucideIcon;
+  active: boolean;
+  mobile?: boolean;
+  onNavigate?: () => void;
+}) {
+  const { appText } = useAppTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const descriptionId = `${mobile ? "mobile-" : ""}nav-description-${href.replace(/[^a-z]/gi, "-")}`;
+  return (
+    <div className={`dashboard-nav-item${active ? " is-active" : ""}`}>
+      <div className="dashboard-nav-row">
+        <Link
+          href={href}
+          className={active ? "active" : ""}
+          aria-label={appText(label)}
+          aria-current={active ? "page" : undefined}
+          aria-describedby={expanded ? descriptionId : undefined}
+          onClick={onNavigate}
+        >
+          <Icon size={19} aria-hidden="true" />
+          <span>
+            <strong>{appText(label)}</strong>
+          </span>
+        </Link>
+        <UiButton
+          variant="ghost"
+          size="icon"
+          type="button"
+          className="dashboard-nav-disclosure"
+          aria-label={appText("Details for {0}", [appText(label)])}
+          aria-expanded={expanded}
+          aria-controls={descriptionId}
+          onClick={() => setExpanded(!expanded)}
+        >
+          <ChevronDown size={16} aria-hidden="true" />
+        </UiButton>
+      </div>
+      <p
+        id={descriptionId}
+        className="dashboard-nav-description"
+        hidden={!expanded}
+      >
+        {appText(description)}
+      </p>
+    </div>
+  );
+}
+
 function DashboardShell({
   children,
   tab,
@@ -2309,17 +2369,7 @@ function DashboardShell({
           aria-label={appText("Dashboard")}
         >
           {links.map(([href, label, Icon]) => (
-            <Link
-              key={href}
-              href={href}
-              className={tab === href ? "active" : ""}
-              aria-label={appText(label)}
-              aria-describedby={`nav-description-${href.replace(/[^a-z]/gi,"-")}`}
-              aria-current={tab === href ? "page" : undefined}
-            >
-              <Icon size={19} aria-hidden="true" />
-              <span><strong>{appText(label)}</strong><small id={`nav-description-${href.replace(/[^a-z]/gi,"-")}`}>{appText(descriptions[href] || "Open this workspace")}</small></span>
-            </Link>
+            <DashboardNavItem key={href} href={href} label={label} description={descriptions[href] || "Open this workspace"} Icon={Icon} active={tab === href} />
           ))}
         </nav>
         <div className="dashboard-mobile-nav" onKeyDown={event=>{if(event.key === "Escape" && mobileNavOpen){event.preventDefault();setMobileNavOpen(false);mobileNavButton.current?.focus();}}}>
@@ -2351,18 +2401,7 @@ function DashboardShell({
             hidden={!mobileNavOpen}
           >
             {links.map(([href, label, Icon]) => (
-              <Link
-                key={href}
-                href={href}
-                className={tab === href ? "active" : ""}
-                aria-label={appText(label)}
-                aria-describedby={`mobile-nav-description-${href.replace(/[^a-z]/gi,"-")}`}
-                aria-current={tab === href ? "page" : undefined}
-                onClick={() => setMobileNavOpen(false)}
-              >
-                <Icon size={19} aria-hidden="true" />
-                <span><strong>{appText(label)}</strong><small id={`mobile-nav-description-${href.replace(/[^a-z]/gi,"-")}`}>{appText(descriptions[href] || "Open this workspace")}</small></span>
-              </Link>
+              <DashboardNavItem key={href} href={href} label={label} description={descriptions[href] || "Open this workspace"} Icon={Icon} active={tab === href} mobile onNavigate={() => setMobileNavOpen(false)} />
             ))}
           </nav>
         </div>
