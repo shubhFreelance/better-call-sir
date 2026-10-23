@@ -1,5 +1,11 @@
 # Delivery board
 
+## F30 / H1 — Restrained lavender search accents — 23 October 2026
+
+Owner likes the ivory/black search redesign and requests #F0D7FF accents. Scoped CSS now uses lavender for the active-filter badge, empty-search icon tile, tab icon details and explicitly selected non-empty native filters. Selected controls also have a darker violet border with black text. The ivory canvas, white worksheet, black active tab and teal primary actions remain the visual hierarchy. No large colored banners, new state, markup, translation, API or behavior change.
+
+Validation:all3 development and all3 production-CSP search-design cases pass, including English/Hindi,320–430px phone layouts, keyboard order, contrast, reset and assisted navigation.23 security/client/localization/CI checks, the production web build (including TypeScript) and413-source/17-asset secret scans pass. Desktop selected-filter and Hindi phone captures inspected. Delivery:feat/frontend-implementation. This CSS-only increment does not repeat the full backend suite passed for the preceding main integration. Inspected the real development catalog with selected Maths/budget controls; the small accents align with existing demo badges. Next:owner Windows/Gmail review of teacher search with lavender accents, guided guardian verification and role dashboards with seven to ten profiles. No main merge/deployment; implementation and live qualifications remain tracked in remaing.md.
+
 ## Owner-authorized integration of all completed branches — 23 October 2026
 
 Owner asks to merge everything into main. Joined the actual backend93765c2 history with frontend7f30ff1; its guardian transport patch was already present as76beee9. One tracker-only conflict said animated verification was still pending; retained the current F28 completion wording. No application-code conflict or content change was required. Both earlier milestone branches are already ancestors; their remote heads match and remain preserved.

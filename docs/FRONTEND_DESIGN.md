@@ -1,5 +1,11 @@
 # Frontend design direction
 
+## Search lavender accents — 23 October 2026
+
+Plan: preserve the approved ivory #F4F4EC canvas, black #000000 active tab/headings, white worksheet and teal #034F46 actions. Reintroduce lavender #F0D7FF only as a small active-filter badge, the empty-search icon tile, tab icon accents and the backgrounds of explicitly selected non-empty filter controls. Selected options gain a darker violet border as a second visual cue; existing labels and keyboard focus remain clear. Keep Manrope/Noto Sans Devanagari and the existing layout. No large lavender panels, new state, behavior, API or translation changes. Review contrast and desktop/Hindi phone screenshots against the restrained-color brief before delivery.
+
+Final review: inspected a real-catalog desktop capture with Maths and budget selected, plus the Hindi phone/no-match capture. Selected options and small badges carry the lavender; neutral unselected controls and the black active tab keep the page legible. Existing demo badges fit the same palette. All3 development and3 strict-CSP browser cases pass, including axe, mobile overflow, keyboard and reset behavior.
+
 ## Teacher search refinement — 23 October 2026
 
 Plan: use ivory #F4F4EC for the search page, white #FFFFFF for the filter worksheet, black #000000 for headings/active tabs, teal #034F46 for primary next actions and neutral #DADAD0 borders. Keep Manrope/Noto Sans Devanagari. Left-align a concise title, two clearly distinct search tabs, a full-width labelled text query, then evenly spaced filters in four desktop/two tablet/one phone columns. A small filter count and explanation make immediate search behavior explicit. Existing custom curriculum fields remain visible and labelled.
