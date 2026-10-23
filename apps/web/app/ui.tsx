@@ -1878,22 +1878,24 @@ function TeacherSignupPage() {
 }
 function GuardianVerificationPage() {
   const { session, setSession, loading } = useAuth();
+  const studentView = useSearchParams().get("view") === "student";
   const { appText } = useAppTranslation();
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
   return (
-    <main className="container section">
+    <main className="container section guardian-verification-page">
       <PageTitle
-        eyebrow={appText("Family access")}
-        title={appText("Guardian verification")}
+        eyebrow=""
+        title={appText(studentView ? "Confirm your guardian" : "Guardian verification")}
         subtitle={appText(
-          "Confirm the relationship. Keep learning consent separate.",
+          studentView ? "Confirm someone you recognize as your guardian. This step does not grant access to your learning records." : "Verify the relationship before managing a student’s profile. Learning permission is a separate step.",
         )}
       />
       <GuardianVerificationWorkspace
         key={session.account.id}
         session={session}
         onSessionChange={setSession}
+        studentView={studentView}
       />
     </main>
   );

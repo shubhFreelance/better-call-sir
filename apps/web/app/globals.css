@@ -5538,3 +5538,68 @@ fieldset.catalog-filters { min-inline-size:0; margin-inline:0; }
 .registration-card:first-child p { color: var(--white); }
 .hiring-counts > div:last-child { border: 1px solid var(--line); }
 .hiring-intro .button:focus-visible, .registration-card:first-child a:focus-visible { outline-color: var(--white); }
+
+/* Relationship verification keeps instructions, the worksheet and history separate. */
+.guardian-verification-page { max-width: 1100px; padding-top: 32px; }
+.guardian-verification-page .page-title { margin-bottom: 28px; }
+.guardian-verification-page .page-title h1 { font-size: clamp(30px, 3vw, 40px); line-height: 1.25; margin-bottom: 12px; }
+.guardian-verification-page .page-title p { font-size: 15px; max-width: 70ch; }
+.guardian-verification-workspace .guardian-requests { padding: 0; gap: 24px; }
+.guardian-requests > .staff-heading { margin: 0; align-items: center; }
+.guardian-requests > .staff-heading h2 { font-size: 23px; line-height: 1.3; margin: 0 0 12px; }
+.guardian-requests > .staff-heading p { font-size: 14px; max-width: 70ch; line-height: 1.7; }
+.guardian-requests > .staff-heading button { min-height: 48px; flex-shrink: 0; }
+.guardian-verification-steps { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 20px; list-style: none; padding: 24px; margin: 0; background: var(--green); border-radius: 16px; }
+.guardian-verification-steps li { display: flex; align-items: start; gap: 10px; min-width: 0; }
+.guardian-verification-steps li > span { display: grid; place-items: center; width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: var(--white); color: var(--primary); font-size: 13px; font-weight: 700; }
+.guardian-verification-steps strong { font-size: 14px; line-height: 1.5; }
+.guardian-verification-steps p { margin: 8px 0 0; font-size: 13px; line-height: 1.7; color: var(--ink); }
+.guardian-verification-workspace .guardian-verification-editor { width: 100%; max-width: 880px; margin: 0; padding: 32px; border: 1px solid var(--line); border-radius: 20px; background: var(--white); }
+.guardian-verification-editor > h3 { font-size: 23px; line-height: 1.3; margin: 0 0 28px; }
+.guardian-verification-editor form { margin-top: 24px; }
+.guardian-verification-editor fieldset { gap: 20px; margin-bottom: 28px; }
+.guardian-verification-editor legend { font-size: 16px; line-height: 1.5; padding: 0; margin-bottom: 20px; }
+.guardian-verification-editor label { font-size: 14px; line-height: 1.6; font-weight: 650; }
+.guardian-verification-editor .guardian-verification-grid { gap: 24px; }
+.guardian-verification-editor :is(input:not([type=checkbox]):not([type=radio]), select) { min-height: 48px; font-size: 15px; }
+.guardian-verification-editor .guardian-management-options { margin-top: 12px; }
+.guardian-verification-editor .guardian-management-option { padding: 18px; gap: 14px; }
+.guardian-verification-editor .guardian-management-option:has(input:checked) { border-color: var(--primary); }
+.guardian-verification-editor .guardian-management-option strong { font-size: 14px; }
+.guardian-verification-editor .guardian-management-option small { font-size: 13px; line-height: 1.65; }
+.guardian-verification-editor .care-check { display: flex; align-items: start; gap: 12px; font-weight: 400; padding: 14px 16px; margin: 0; border-radius: 10px; background: var(--paper); }
+.guardian-verification-editor .care-check input { flex: none; width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--primary); }
+.guardian-verification-editor .care-check span { min-width: 0; }
+.guardian-verification-editor .guardian-verification-close { margin-top: 28px; gap: 16px; }
+.guardian-verification-editor .guardian-verification-close button { justify-self: start; min-height: 44px; }
+.guardian-verification-list { display: grid; gap: 16px; }
+.guardian-verification-list:empty { display: none; }
+.guardian-verification-list > h3 { margin: 12px 0 0; font-size: 20px; }
+.guardian-verification-list .staff-person { margin: 0; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); }
+.guardian-handoff { border: 1px solid var(--line); border-radius: 16px; background: var(--white); padding: 24px; margin: 24px 0; }
+.guardian-handoff h3 { font-size: 22px; line-height: 1.35; margin: 0 0 12px; color: var(--primary); }
+.guardian-handoff p { font-size: 14px; line-height: 1.7; max-width: 68ch; color: var(--muted); }
+.guardian-handoff > ol { padding-left: 24px; display: grid; gap: 18px; margin: 24px 0; }
+.guardian-handoff li { padding-left: 6px; }
+.guardian-handoff li::marker { color: var(--primary); font-weight: 700; }
+.guardian-handoff li strong { font-size: 14px; }
+.guardian-handoff li p { margin: 6px 0 0; }
+.guardian-handoff-share { padding: 20px; background: var(--green); border-radius: 12px; display: grid; gap: 12px; margin: 24px 0; }
+.guardian-handoff-share label { font-weight: 700; font-size: 14px; }
+.guardian-handoff-share input { width: 100%; min-width: 0; font-size: 14px; }
+.guardian-handoff-share p { margin: 0; color: var(--ink); font-size: 13px; }
+.guardian-handoff-share button { justify-self: start; min-height: 44px; }
+.guardian-handoff-adult { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+@media(max-width:800px) { .guardian-verification-steps { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:640px) {
+  .guardian-verification-page { padding-top: 24px; }
+  .guardian-verification-workspace .guardian-verification-editor { padding: 20px; border-radius: 16px; }
+  .guardian-verification-steps { grid-template-columns: minmax(0,1fr); padding: 20px; gap: 18px; }
+  .guardian-verification-editor .guardian-verification-grid { gap: 20px; }
+  .guardian-verification-editor :is(input:not([type=checkbox]):not([type=radio]), select) { font-size: 16px; }
+  .guardian-verification-editor .care-check { padding: 14px; }
+  .guardian-verification-editor .guardian-management-option { padding: 16px; }
+  .guardian-handoff { padding: 20px; }
+  .guardian-handoff-share { padding: 16px; }
+  .guardian-handoff :is(button,.button) { width: 100%; }
+}

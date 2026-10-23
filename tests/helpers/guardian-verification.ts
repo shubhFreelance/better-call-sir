@@ -363,6 +363,56 @@ async function staffFields(page: Page) {
     .check();
 }
 export function guardianVerificationTests() {
+  test("guardian worksheet has padded sections and keeps empty history out of initial setup", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 1050 });
+    await setup(page, { empty: true });
+    await expect(
+      page.getByRole("group", {
+        name: "Guardian verification history",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await page
+      .getByRole("button", { name: "Start guardian verification", exact: true })
+      .click();
+    const editor = page.locator(".guardian-verification-editor");
+    const geometry = await editor.evaluate((el) => ({
+      padding: getComputedStyle(el).paddingLeft,
+      border: getComputedStyle(el).borderLeftWidth,
+    }));
+    expect(geometry).toEqual({ padding: "32px", border: "1px" });
+    await expect(
+      page
+        .getByRole("list", { name: "Guardian verification steps", exact: true })
+        .getByRole("listitem"),
+    ).toHaveCount(4);
+    await expect(editor.getByRole("radio")).toHaveCount(3);
+    await page.evaluate(() => document.fonts.ready);
+    await page
+      .locator("main")
+      .first()
+      .screenshot({
+        path: "test-results/guardian-verification-redesign-en-desktop.png",
+      });
+    await page.setViewportSize({ width: 360, height: 850 });
+    await expect(editor).toHaveCSS("padding-left", "20px");
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    const a = await new AxeBuilder({ page })
+      .include(".guardian-requests")
+      .analyze();
+    expect(
+      a.violations.filter((v) =>
+        ["serious", "critical"].includes(v.impact || ""),
+      ),
+    ).toEqual([]);
+  });
+
   test("erased relationship history has localized tombstones and no image or mutation controls", async ({
     page,
   }) => {
@@ -730,7 +780,7 @@ export function guardianVerificationTests() {
       .click();
     await expect(
       page.getByRole("heading", {
-        name: "A trusted adult, a clear relationship.",
+        name: "How guardian verification works",
         exact: true,
       }),
     ).toBeFocused();

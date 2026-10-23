@@ -1,5 +1,23 @@
 # Frontend design direction
 
+## Guardian verification and student handoff — 23 October 2026
+
+Plan: retain teal #034F46 for the next action, lavender #F0D7FF for the chosen management option, cream #FFFFEB for guidance, white #FFFFFF for the worksheet and charcoal #17201F/muted #586562 for text. Keep Manrope/Noto Sans Devanagari. One page title leads into a concise actual sequence: relationship details, school report/student confirmation, staff review, then consent/student profile. A left-aligned white worksheet has32px desktop/20px phone padding, labelled sections and separated checkbox/action areas; prior requests follow it rather than interrupting entry. Keep the three management options and canonical review/write/upload states.
+
+```text
+Guardian verification
+[How it works: details / report + confirmation / review / student setup]
+[Relationship worksheet: names, management, confirmation, permissions   ]
+[Previous requests, only when there are records                        ]
+Student chooses help:
+[What your guardian does] [What you do] [What happens after approval]
+[Copy guardian signup link] [Open my relationship requests]
+```
+
+Review against brief: avoid another oversized slogan and a blank history row above a crowded form. The handoff must identify the actor and destination, and must not open the child's existing session as if it were the guardian's account. Copying a public signup URL sends no email and grants no access. Explain separate devices/browser profiles, use of the student's existing email for acknowledgment, and that no access link is created just by selecting help. Adult optional support remains distinct from mandatory managed-student setup. Preserve consent, staff review, uncertain retry, same-account boundaries and bilingual keyboard/mobile behavior; inspect the resulting screenshots.
+
+Final review: English desktop/Hindi phone captures inspected after the worksheet/step-guide and actor-specific handoff were implemented. Radio-card choices and declaration checkboxes have separate spacing; old request rows follow the active task. Avoid presenting an unusable education button beneath guardian guidance. Returning to adult eligibility clears the age declaration and restores focus; clipboard denial leaves a selected manual-copy field with a translated status. The student relationship view never asks the pending student to introduce themselves as a guardian. All17 production verification/guidance/eligibility checks pass; real staff/inbox/physical-device qualification stays separate.
+
 ## Dashboard and individual registration redesign — 22 October 2026
 
 Owner brief: make teacher/student/guardian/admin dashboards understandable at a glance, use distinct cards, bold descriptive labels with regular-weight values, and explain every sidebar destination. Promote separate student, parent/guardian and teacher registration; account linking follows registration when relevant, not a mandatory family identity.

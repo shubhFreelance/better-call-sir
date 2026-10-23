@@ -295,9 +295,12 @@ test("guardian-guided and under-18 choices never expose independent education in
     .check();
   await expect(
     page.getByRole("button", { name: "Continue to education" }),
-  ).toBeDisabled();
+  ).toHaveCount(0);
   await expect(
-    page.getByText("Ask your guardian to sign up", { exact: false }),
+    page.getByRole("heading", {
+      name: "Let your guardian take the next step",
+      exact: true,
+    }),
   ).toBeVisible();
   await page
     .getByRole("radio", { name: "I can manage my learning", exact: false })
@@ -305,7 +308,7 @@ test("guardian-guided and under-18 choices never expose independent education in
   await page.getByRole("radio", { name: "I am under 18", exact: true }).check();
   await expect(
     page.getByRole("button", { name: "Continue to education" }),
-  ).toBeDisabled();
+  ).toHaveCount(0);
   await expect(
     page.getByLabel("School / college name", { exact: true }),
   ).toHaveCount(0);

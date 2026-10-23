@@ -47,9 +47,11 @@ const editable = (r: Verification) =>
 export function GuardianVerificationWorkspace({
   session,
   onSessionChange,
+  studentView = false,
 }: {
   session: Session;
   onSessionChange: (s: Session) => void;
+  studentView?: boolean;
 }) {
   const { appText } = useAppTranslation();
   if (["ADMIN", "REVIEWER"].includes(session.account.role))
@@ -67,8 +69,9 @@ export function GuardianVerificationWorkspace({
       <StudentAcknowledgments
         session={session}
         onSessionChange={onSessionChange}
+        studentView={studentView}
       />
-      {session.account.role === "GUARDIAN" && (
+      {session.account.role === "GUARDIAN" && !studentView && (
         <GuardianRequests session={session} onSessionChange={onSessionChange} />
       )}
     </div>
@@ -96,25 +99,58 @@ function GuardianRequests({
     if (r.error) throw new Error("Verification records could not be loaded.");
   }
   return (
-    <section className="care-workspace">
+    <section className="care-workspace guardian-requests">
       <header className="staff-heading">
         <div>
           <h2 ref={heading} tabIndex={-1}>
-            {appText("A trusted adult, a clear relationship.")}
+            {appText("How guardian verification works")}
           </h2>
           <p>
             {appText(
-              "Confirm the relationship, upload a school report and follow the staff review. Learning-data consent is a separate step after approval.",
+              "First we check your relationship with the student. After approval, you can give learning permission and create their profile.",
             )}
           </p>
         </div>
-        <Button
-          disabled={!!selected || !!history.error || history.isPending}
-          onClick={() => setSelected("new")}
-        >
-          {appText("Start guardian verification")}
-        </Button>
+        {!selected && (
+          <Button
+            disabled={!!history.error || history.isPending}
+            onClick={() => setSelected("new")}
+          >
+            {appText("Start guardian verification")}
+          </Button>
+        )}
       </header>
+      <ol
+        className="guardian-verification-steps"
+        aria-label={appText("Guardian verification steps")}
+      >
+        {[
+          [
+            "Your details",
+            "Tell us your relationship and who will manage learning.",
+          ],
+          [
+            "Report and confirmation",
+            "Upload a school report. The student confirms by email or with staff on a call.",
+          ],
+          [
+            "Staff review",
+            "Our team checks the relationship and asks for changes if needed.",
+          ],
+          [
+            "Student setup",
+            "After approval, give learning permission and create the student profile.",
+          ],
+        ].map(([title, description], i) => (
+          <li key={title}>
+            <span aria-hidden="true">{i + 1}</span>
+            <div>
+              <strong>{appText(title)}</strong>
+              <p>{appText(description)}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
       {history.isPending && (
         <p role="status">{appText("Loading verification requests…")}</p>
       )}
@@ -130,13 +166,30 @@ function GuardianRequests({
           </Button>
         </Notice>
       )}
+      {selected && (
+        <OwnerVerification
+          key={selected === "new" ? "new" : selected.id}
+          initial={selected === "new" ? null : selected}
+          session={session}
+          queueUnavailable={!!history.error}
+          refreshQueue={refresh}
+          onSessionChange={onSessionChange}
+          close={() => {
+            setSelected(null);
+            requestAnimationFrame(() => heading.current?.focus());
+          }}
+        />
+      )}
       {!history.error && !history.isPending && (
         <>
           <div className="guardian-verification-list">
-            {!history.data?.items.length && (
+            {!!history.loadedCount && (
+              <h3>{appText("Your verification requests")}</h3>
+            )}
+            {!history.data?.items.length && !selected && (
               <Notice>
                 {appText(
-                  "No guardian verification requests yet. Start with the learner's school-report name and your relationship.",
+                  "Ready to begin? Start guardian verification, then enter your name and the student’s name as shown on the school report.",
                 )}
               </Notice>
             )}
@@ -168,26 +221,14 @@ function GuardianRequests({
               </article>
             ))}
           </div>
-          <HistoryPages
-            label={appText("Guardian verification history")}
-            history={history}
-            disabled={!!selected}
-          />
+          {!!history.loadedCount && (
+            <HistoryPages
+              label={appText("Guardian verification history")}
+              history={history}
+              disabled={!!selected}
+            />
+          )}
         </>
-      )}
-      {selected && (
-        <OwnerVerification
-          key={selected === "new" ? "new" : selected.id}
-          initial={selected === "new" ? null : selected}
-          session={session}
-          queueUnavailable={!!history.error}
-          refreshQueue={refresh}
-          onSessionChange={onSessionChange}
-          close={() => {
-            setSelected(null);
-            requestAnimationFrame(() => heading.current?.focus());
-          }}
-        />
       )}
     </section>
   );
@@ -283,7 +324,7 @@ function ApplicationFields({
         ))}
       </fieldset>
       <label>
-        {appText("How will the student acknowledge you?")}
+        {appText("How will the student confirm this relationship?")}
         <select
           value={value.acknowledgmentMethod}
           onChange={(e) =>
@@ -317,14 +358,14 @@ function ApplicationFields({
           />
           <small>
             {appText(
-              "The student signs in with this email and opens Guardian verification to acknowledge or decline. Do not use your own email.",
+              "Use the same email the student already registered with. They sign in, open Guardian verification and confirm or decline this relationship. Do not enter your own email.",
             )}
           </small>
         </label>
       ) : (
         <Notice>
           {appText(
-            "Use a staff call for younger learners without email or when student sign-in is unavailable. Staff must establish the relationship acknowledgment and your adult authority.",
+            "Student already registered? Choose the email option and use their existing email. If they cannot use email, staff can confirm the relationship with them during a video or phone call.",
           )}
         </Notice>
       )}
@@ -575,7 +616,7 @@ function OwnerVerification({
         {appText(
           id
             ? "Your relationship verification"
-            : "Introduce the guardian and learner",
+            : "Student and guardian details",
         )}
       </h3>
       <Feedback decision={decision} />
@@ -922,9 +963,11 @@ function OwnerVerification({
 function StudentAcknowledgments({
   session,
   onSessionChange,
+  studentView = false,
 }: {
   session: Session;
   onSessionChange: (s: Session) => void;
+  studentView?: boolean;
 }) {
   const { appText, appError } = useAppTranslation(),
     [selected, setSelected] = useState<Invitation | null>(null),
@@ -955,9 +998,16 @@ function StudentAcknowledgments({
     !history.isPending &&
     !history.data?.items.length
   )
-    return session.account.role === "STUDENT" ? (
+    return session.account.role === "STUDENT" || studentView ? (
       <Notice>
         {appText("No guardian relationship requests are waiting for you.")}
+        {studentView && (
+          <p>
+            {appText(
+              "Ask your guardian to start verification using the same email you used here. Once saved, the relationship request will appear on this page.",
+            )}
+          </p>
+        )}
       </Notice>
     ) : null;
   return (

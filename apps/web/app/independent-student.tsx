@@ -5,6 +5,7 @@ import {
 } from "./onboarding-read-boundary";
 import { useAppTranslation } from "./locale";
 import { StudentLearningSummary } from "./independent-journey";
+import { GuardianHandoff } from "./guardian-handoff";
 import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -675,24 +676,9 @@ export function StudentForm({
           )}
           {(readiness === "GUARDIAN_GUIDED" ||
             (age === "UNDER_18" && readiness === "SELF_DIRECTED")) && (
-            <Message>
-              {appText(
-                t(
-                  "Ask your guardian to sign up with their own email, create your learner profile, then invite you. Your current email account has not been changed.",
-                  "अपने अभिभावक से उनके ईमेल से खाता बनाकर आपकी विद्यार्थी प्रोफ़ाइल बनाने और आपको आमंत्रित करने को कहें। आपका मौजूदा ईमेल खाता नहीं बदला है।",
-                ),
-              )}{" "}
-              <Link className="inline-link" href="/onboarding/student">
-                {appText(
-                  t(
-                    "I already have a guardian invitation",
-                    "मेरे पास अभिभावक का आमंत्रण है",
-                  ),
-                )}
-              </Link>
-            </Message>
+            <GuardianHandoff allowIndependent={readiness === "GUARDIAN_GUIDED"} onChooseIndependent={()=>{setReadiness("SELF_DIRECTED");setAge("");requestAnimationFrame(()=>heading.current?.focus());}} />
           )}
-          <div className="wizard-actions">
+          {readiness !== "GUARDIAN_GUIDED" && !(readiness === "SELF_DIRECTED" && age === "UNDER_18") && <div className="wizard-actions">
             <Button
               key="readiness-next"
               disabled={readiness !== "SELF_DIRECTED" || age !== "ADULT"}
@@ -700,7 +686,7 @@ export function StudentForm({
             >
               {appText(t("Continue to education", "पढ़ाई की जानकारी भरें"))}
             </Button>
-          </div>
+          </div>}
         </>
       )}
       {step === 2 && (

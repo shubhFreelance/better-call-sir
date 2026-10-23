@@ -36,7 +36,7 @@ test("production student signup hydrates and keeps readiness and age separate un
   await page.getByRole("radio", { name: "I am under 18", exact: true }).check();
   await expect(
     page.getByRole("button", { name: "Continue to education" }),
-  ).toBeDisabled();
+  ).toHaveCount(0);
   await page
     .getByRole("radio", {
       name: "I declare that I am 18 or older",
