@@ -7097,6 +7097,17 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /**
+             * @description Sanitized current report processing status. Exhausted scan attempts require authorized operational recovery; no file is cleared by this metadata.
+             * @enum {string}
+             */
+            scanStatus?: "NOT_UPLOADED" | "WAITING" | "RETRY_REQUIRED" | "CLEARED" | "UNSAFE" | "DELETED";
+            /** @description Present only on administrator reads for an exhausted, unprocessed scan of the current report. Use the existing reviewed admin job retry endpoint after repairing scanning infrastructure. */
+            scanRetry?: {
+                /** Format: uuid */
+                jobId: string;
+                expectedAttempts: number;
+            };
             evidence: {
                 /** Format: uuid */
                 id: string;

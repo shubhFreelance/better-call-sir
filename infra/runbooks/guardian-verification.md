@@ -46,3 +46,17 @@ An existing guardian-role account whose own child verification is pending can ac
 Superadmin ADMIN or a region-authorized REVIEWER uses Guardian verification after MFA, opens a pending request, reviews clean private evidence and records adult authority, document-name match or the required call fallback, and the student's acknowledgment before approving. Separate learning consent/profile setup follows approval. Approval is never inferred from accepting a student invitation.
 
 This increment reuses GET /guardian-verifications, GET /learner-profiles, GET /student-guardian-grants, POST /student-guardian-grants/{id}/decisions and the existing /delegated-students/{id}/profile, profile/updates, enquiry and hiring APIs. No new public lookup, role conversion, schema migration or access grant endpoint was needed. Existing regional MFA review uses POST /admin/guardian-verifications/{id}/decisions.
+
+## A submitted report remains Scan pending
+
+Upload, submission and scan clearance are separate facts. A PENDING relationship request already appears in the admin review queue even while its image is QUARANTINED. The image stays private and cannot be downloaded or approved until the worker obtains scanner clearance. A waiting scan now refreshes in an active owner/staff view; explicit Refresh verification details is available outside unsaved edits and uncertain writes. Exhausted attempts show Safety scan needs recovery instead of an indefinite waiting message. Guardians/reviewers see sanitized processing status; only ADMIN reads receive the current failed scan's retry handle.
+
+For local Windows testing, with Docker Desktop running:
+
+```powershell
+npm.cmd run scanner:test:setup
+```
+
+The ignored root `.env` must point the worker to the configured scanner (the supplied local fixture listens on CLAMAV_HOST=127.0.0.1 and CLAMAV_PORT=3310). Restart the root `npm.cmd run dev` process so API/web/worker load current settings; if processes are run separately, ensure the worker is also running. API and worker must use the same private evidence directory; leave EVIDENCE_DIRECTORY unset for the shared default, or use the same absolute path. Preserve existing configuration and uploaded bytes. The local fixture has EICAR test definitions only; current production malware signatures and private-storage qualification remain B14.
+
+For an exhausted scan, the MFA-verified superadmin opens Guardian verification → the specific learner → Review guardian evidence → Review scan retry. Check scanner/worker/storage availability first, enter the repair reason, confirm that check, then Retry safety scan. This reuses POST /admin/jobs/{id}/retries with expectedAttempts and the frozen idempotency key. It does not mark the image CLEAN or approve the relationship. Exact uncertain retries preserve the original body/key; failed reads hide cached private details. After scanning succeeds, Download private school report appears and normal evidence/authority/acknowledgment review can continue. Do not upload another copy merely because the existing scan needs operational recovery, reset all jobs, change a file to CLEAN in SQL or approve around the scanner.

@@ -1,5 +1,16 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Retry safety scan": "सुरक्षा जाँच फिर चलाएँ",
+  "I checked the scanner and worker and want to retry this file's safety scan.": "मैंने स्कैनर और वर्कर जाँच लिए हैं और इस फ़ाइल की सुरक्षा जाँच फिर चलाना चाहता/चाहती हूँ।",
+  "Reason for scan retry": "दोबारा जाँच का कारण",
+  "Retry this report scan only": "केवल इस रिपोर्ट की जाँच फिर चलाएँ",
+  "Safety scan queued again. The report stays blocked until the scanner clears it.": "सुरक्षा जाँच फिर कतार में है। स्कैनर से जाँच पास होने तक रिपोर्ट नहीं खुलेगी।",
+  "Restore report scanning": "रिपोर्ट की सुरक्षा जाँच फिर शुरू करें",
+  "Uploading saves the file. Select Send for staff review to submit this relationship request.": "अपलोड करने से फ़ाइल सुरक्षित होती है। रिश्ते का अनुरोध जमा करने के लिए कर्मचारी समीक्षा के लिए भेजें चुनें।",
+  "If scanning does not finish, check the scanner and worker before retrying. Approval and download remain blocked until clearance.": "जाँच पूरी नहीं हो रही हो तो फिर कोशिश करने से पहले स्कैनर और वर्कर जाँचें। जाँच पास होने तक स्वीकृति और डाउनलोड बंद रहेंगे।",
+  "Your report is stored privately and waiting for its safety scan. It becomes available to view after scan clearance.": "आपकी रिपोर्ट निजी रूप से सुरक्षित है और सुरक्षा जाँच का इंतज़ार है। जाँच पास होने के बाद इसे देखा जा सकेगा।",
+  "Your report is stored privately, but safety scanning needs recovery. An administrator can restore processing and retry this file.": "आपकी रिपोर्ट निजी रूप से सुरक्षित है, लेकिन सुरक्षा जाँच दोबारा शुरू करनी होगी। व्यवस्थापक प्रक्रिया ठीक करके इसी फ़ाइल की जाँच फिर चला सकते हैं।",
+  "Safety scan needs recovery": "सुरक्षा जाँच फिर से शुरू करनी होगी",
   "No development accounts are available here. For local testing, the project owner must run npm run db:seed. Otherwise use a provisioned staff email.": "यहाँ विकास खाते उपलब्ध नहीं हैं। स्थानीय परीक्षण के लिए परियोजना स्वामी को npm run db:seed चलाना होगा। अन्यथा पहले से तय कर्मचारी ईमेल का इस्तेमाल करें।",
   "Development accounts could not be loaded. Retry or use your assigned staff email.": "विकास खाते लोड नहीं हो सके। फिर कोशिश करें या अपने तय कर्मचारी ईमेल का इस्तेमाल करें।",
   "Development accounts are unavailable on this server. Use your assigned staff email.": "इस सर्वर पर विकास खाते उपलब्ध नहीं हैं। अपने तय कर्मचारी ईमेल का इस्तेमाल करें।",

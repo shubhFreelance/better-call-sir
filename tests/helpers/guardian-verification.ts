@@ -228,6 +228,16 @@ async function setup(
         version: row.version + 1,
       };
       schemaPath = "/guardian-verifications/{id}/evidence";
+    } else if (p.includes("/admin/jobs/") && p.endsWith("/retries")) {
+      expect(role).toBe("ADMIN");
+      expect(body).toMatchObject({expectedAttempts:5,confirmed:true});
+      expect(body.reason).toBeTruthy();
+      const value={id:row.scanRetry.jobId,status:"PENDING",attempts:0};
+      row={...row,scanStatus:"WAITING"};delete row.scanRetry;
+      expect(operationValidator("/admin/jobs/{id}/retries","post","201")(value)).toBe(true);
+      replays.set(key,value);
+      if(options.uncertain&&!aborted){aborted=true;return route.abort("failed");}
+      return route.fulfill({status:201,json:value});
     } else if (p.endsWith("/submissions")) {
       expect(body.expectedVersion).toBe(row.version);
       row = { ...row, status: "PENDING", version: row.version + 1 };
@@ -631,6 +641,61 @@ export function guardianVerificationTests() {
         exact: true,
       }),
     ).toBeVisible();
+  });
+  test("uploaded report refreshes from quarantine to downloadable without re-upload or submission",async({page})=>{
+    const f=await setup(page);await openOwner(page);
+    await page.getByLabel("School marksheet or performance-card image",{exact:true}).setInputFiles({name:"report.png",mimeType:"image/png",buffer:image});
+    await page.getByRole("button",{name:"Upload school report",exact:true}).click();
+    await expect(page.getByText("Scan pending",{exact:true})).toBeVisible();
+    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toHaveCount(0);
+    f.state().evidence.status="CLEAN";f.state().evidence.version++;f.state().scanStatus="CLEARED";
+    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toBeVisible({timeout:10000});
+    expect(f.writes).toHaveLength(1);expect(f.state().status).toBe("DRAFT");
+    await expect(page.getByRole("button",{name:"Refresh verification details",exact:true})).toBeVisible();
+  });
+  test("admin reviews an exhausted scan retry, preserves an exact uncertain retry and gets the report only after scanner clearance",async({page})=>{
+    const f=await setup(page,{role:"ADMIN",uncertain:true});
+    f.state().evidence.status="QUARANTINED";f.state().scanStatus="RETRY_REQUIRED";f.state().scanRetry={jobId:"40000000-0000-4000-8000-000000000911",expectedAttempts:5};
+    await openStaff(page);
+    await expect(page.getByText("Safety scan needs recovery",{exact:true})).toBeVisible();
+    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("button",{name:"Record verification decision",exact:true})).toBeDisabled();
+    await page.getByRole("button",{name:"Review scan retry",exact:true}).click();
+    await expect(page.getByRole("button",{name:"Retry safety scan",exact:true})).toBeDisabled();
+    await page.getByLabel("Reason for scan retry",{exact:true}).fill("Scanner connectivity repaired");
+    await page.getByRole("checkbox",{name:"I checked the scanner and worker and want to retry this file's safety scan.",exact:true}).check();
+    await page.getByRole("button",{name:"Retry safety scan",exact:true}).click();
+    await page.getByRole("button",{name:"Retry same decision",exact:true}).click();
+    await expect(page.getByText("Safety scan queued again. The report stays blocked until the scanner clears it.",{exact:true})).toBeVisible();
+    expect(f.writes).toHaveLength(2);expect(f.writes[0]).toEqual(f.writes[1]);
+    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toHaveCount(0);
+    f.state().evidence.status="CLEAN";f.state().evidence.version++;f.state().scanStatus="CLEARED";
+    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toBeVisible({timeout:10000});
+    await expect(page.getByRole("button",{name:"Record verification decision",exact:true})).toBeDisabled();
+  });
+  test("stale scan retry unlocks an explicit status refresh without repeating the mutation",async({page})=>{
+    const f=await setup(page,{role:"ADMIN"});f.state().evidence.status="QUARANTINED";f.state().scanStatus="RETRY_REQUIRED";f.state().scanRetry={jobId:"40000000-0000-4000-8000-000000000911",expectedAttempts:5};let writes=0;
+    await page.route("**/api/v1/admin/jobs/*/retries",route=>{writes++;f.state().scanStatus="WAITING";delete f.state().scanRetry;return route.fulfill({status:409,json:{code:"CONFLICT",message:"The scan job changed. Reload before retrying."}});});
+    await openStaff(page);await page.getByRole("button",{name:"Review scan retry",exact:true}).click();await page.getByLabel("Reason for scan retry",{exact:true}).fill("Scanner connection checked");await page.getByRole("checkbox",{name:"I checked the scanner and worker and want to retry this file's safety scan.",exact:true}).check();await page.getByRole("button",{name:"Retry safety scan",exact:true}).click();
+    await page.getByRole("button",{name:"Refresh verification details",exact:true}).click();await expect(page.getByText("Scan pending",{exact:true})).toBeVisible();await expect(page.getByRole("button",{name:"Review scan retry",exact:true})).toHaveCount(0);expect(writes).toBe(1);
+  });
+  test("Hindi scan retry form is accessible on a narrow phone and queues only the reviewed scan",async({page})=>{
+    const f=await setup(page,{role:"ADMIN"});f.state().evidence.status="QUARANTINED";f.state().scanStatus="RETRY_REQUIRED";f.state().scanRetry={jobId:"40000000-0000-4000-8000-000000000911",expectedAttempts:5};await openStaff(page);
+    await page.getByRole("button",{name:"Switch English and Hindi",exact:true}).click();await page.setViewportSize({width:320,height:900});
+    await page.getByRole("button",{name:hindiMessages["Review scan retry"],exact:true}).click();
+    await page.getByLabel(hindiMessages["Reason for scan retry"],{exact:true}).fill("स्कैनर की कनेक्टिविटी ठीक की गई");
+    await page.getByRole("checkbox",{name:hindiMessages["I checked the scanner and worker and want to retry this file's safety scan."],exact:true}).check();
+    await checkHindi(page);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await page.getByRole("textbox",{name:hindiMessages["Reason for scan retry"],exact:true}).boundingBox())!.width).toBeGreaterThanOrEqual(150);
+    const axe=await new AxeBuilder({page}).include(".guardian-verification-editor").analyze();expect(axe.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+    await page.locator(".guardian-verification-editor").screenshot({path:"test-results/guardian-scan-retry-hi-phone.png"});
+    await page.getByRole("button",{name:hindiMessages["Retry safety scan"],exact:true}).click();
+    await expect(page.getByText(hindiMessages["Safety scan queued again. The report stays blocked until the scanner clears it."],{exact:true})).toBeVisible();expect(f.writes).toHaveLength(1);expect(f.state().evidence.status).toBe("QUARANTINED");
+  });
+  test("reviewer sees failed scan guidance without an administrator retry action",async({page})=>{
+    const f=await setup(page,{role:"REVIEWER"});f.state().evidence.status="QUARANTINED";f.state().scanStatus="RETRY_REQUIRED";await openStaff(page);
+    await expect(page.getByText("Safety scan needs recovery",{exact:true})).toBeVisible();await expect(page.getByRole("button",{name:"Review scan retry",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("button",{name:"Record verification decision",exact:true})).toBeDisabled();
   });
   test("school reports validate type, stay private in quarantine and submit only the recorded current version", async ({
     page,
