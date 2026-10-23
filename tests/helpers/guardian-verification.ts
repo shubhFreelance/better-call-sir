@@ -54,6 +54,7 @@ async function setup(
     history?: boolean;
     mfaPending?: boolean;
     deleted?: boolean;
+    status?: string;
   } = {},
 ) {
   const role = options.role || "GUARDIAN",
@@ -82,6 +83,7 @@ async function setup(
         }
       : {}),
   });
+  if (options.status) row.status = options.status;
   if (options.deleted)
     row = {
       ...row,
@@ -378,6 +380,10 @@ export function guardianVerificationTests() {
       .getByRole("button", { name: "Start guardian verification", exact: true })
       .click();
     const editor = page.locator(".guardian-verification-editor");
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await expect(editor.locator('[aria-current="step"]')).toHaveText(
+      /Relationship details/,
+    );
     const geometry = await editor.evaluate((el) => ({
       padding: getComputedStyle(el).paddingLeft,
       border: getComputedStyle(el).borderLeftWidth,
@@ -387,15 +393,20 @@ export function guardianVerificationTests() {
       page
         .getByRole("list", { name: "Guardian verification steps", exact: true })
         .getByRole("listitem"),
-    ).toHaveCount(4);
-    await expect(editor.getByRole("radio")).toHaveCount(3);
+    ).toHaveCount(6);
+    await expect(editor.getByRole("radio")).toHaveCount(0);
+    await expect(editor.locator('[aria-current="step"]')).toHaveText(
+      /Relationship details/,
+    );
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(
+      editor.locator('[aria-current="step"] .verification-step-marker'),
+    ).toHaveCSS("animation-name", "none");
+    await editor.focus();
     await page.evaluate(() => document.fonts.ready);
-    await page
-      .locator("main")
-      .first()
-      .screenshot({
-        path: "test-results/guardian-verification-redesign-en-desktop.png",
-      });
+    await page.locator("main").first().screenshot({
+      path: "test-results/guardian-verification-redesign-en-desktop.png",
+    });
     await page.setViewportSize({ width: 360, height: 850 });
     await expect(editor).toHaveCSS("padding-left", "20px");
     expect(
@@ -412,6 +423,33 @@ export function guardianVerificationTests() {
       ),
     ).toEqual([]);
   });
+
+  for (const [status, label] of [
+    ["PENDING", "Staff review"],
+    ["APPROVED", "Student setup"],
+    ["REJECTED", null],
+    ["CHANGES_REQUESTED", "Report and confirmation"],
+  ] as const) {
+    test(`verification tracker follows server status ${status} without inventing completion`, async ({
+      page,
+    }) => {
+      await setup(page, { status });
+      await openOwner(page);
+      const current = page.locator(
+        '.verification-progress [aria-current="step"]',
+      );
+      if (label) await expect(current).toHaveText(new RegExp(label));
+      else {
+        await expect(current).toHaveCount(0);
+        await expect(
+          page.getByText("This request is closed. Check its status below."),
+        ).toBeVisible();
+        await expect(
+          page.locator('.verification-progress [data-state="complete"]'),
+        ).toHaveCount(0);
+      }
+    });
+  }
 
   test("erased relationship history has localized tombstones and no image or mutation controls", async ({
     page,
@@ -511,9 +549,25 @@ export function guardianVerificationTests() {
     await page
       .getByLabel("Learner's name on the school report", { exact: true })
       .fill("Synthetic Child");
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await expect(
+      page.locator('.verification-progress [aria-current="step"]'),
+    ).toHaveText(/Learning choices/);
     await page
       .getByRole("radio", { name: /Guardian and student manage together/ })
       .check();
+    await page.getByRole("button", { name: "Back", exact: true }).click();
+    await expect(
+      page.getByLabel("Guardian's full name", { exact: true }),
+    ).toHaveValue("Synthetic Parent");
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await expect(
+      page.getByRole("radio", { name: /Guardian and student manage together/ }),
+    ).toBeChecked();
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await expect(
+      page.locator('.verification-progress [aria-current="step"]'),
+    ).toHaveText(/Student confirmation/);
     await page
       .getByRole("checkbox", {
         name: "I am an adult authorized to act for this learner, and I acknowledge this guardian relationship.",
@@ -540,12 +594,34 @@ export function guardianVerificationTests() {
       })
       .check();
     await page
+      .getByRole("button", { name: "Back to details", exact: true })
+      .click();
+    expect(f.writes).toHaveLength(0);
+    await page
+      .getByRole("button", { name: "Review relationship details", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", {
+        name: "Save relationship details",
+        exact: true,
+      }),
+    ).toBeDisabled();
+    await page
+      .getByRole("checkbox", {
+        name: "I reviewed the names, management choice and verification permission.",
+        exact: true,
+      })
+      .check();
+    await page
       .getByRole("button", { name: "Save relationship details", exact: true })
       .click();
     await expect(
       page.getByText("Relationship details saved for verification."),
     ).toBeVisible();
     expect(f.writes).toHaveLength(1);
+    await expect(
+      page.locator('.verification-progress [aria-current="step"]'),
+    ).toHaveText(/Report and confirmation/);
     expect(f.writes[0].body.managementMode).toBe("SHARED");
     expect(f.writes[0].body.verificationPermission).toBe(true);
     expect(f.writes[0].body).not.toHaveProperty("learningConsent");
@@ -806,7 +882,7 @@ export function guardianVerificationTests() {
       expect(
         (await page
           .getByRole("button", {
-            name: hindiMessages["Review relationship details"],
+            name: hindiMessages["Continue"],
             exact: true,
           })
           .boundingBox())!.height,

@@ -1,5 +1,14 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Continue": "आगे बढ़ें",
+  "Guardian verification progress": "अभिभावक सत्यापन की प्रगति",
+  "Step {0} of {1}: {2}": "चरण {0}/{1}: {2}",
+  "This request is closed. Check its status below.": "यह अनुरोध बंद है। नीचे इसकी स्थिति देखें।",
+  "Enter both names as shown on the school report.": "दोनों नाम स्कूल की रिपोर्ट के अनुसार भरें।",
+  "Learning choices": "पढ़ाई के निर्णय",
+  "Choose who will manage learning and teacher decisions.": "चुनें कि पढ़ाई और शिक्षक से जुड़े निर्णय कौन लेगा।",
+  "Student confirmation": "विद्यार्थी की पुष्टि",
+  "Choose how the student confirms, then review your answers.": "विद्यार्थी कैसे पुष्टि करेगा यह चुनें, फिर अपनी जानकारी जाँचें।",
   "Student already registered? Choose the email option and use their existing email. If they cannot use email, staff can confirm the relationship with them during a video or phone call.": "विद्यार्थी का खाता पहले से है? ईमेल वाला विकल्प चुनकर उसका मौजूदा ईमेल दें। ईमेल इस्तेमाल न कर पाने पर स्टाफ़ वीडियो या फ़ोन कॉल पर उसके साथ संबंध की पुष्टि कर सकता है।",
   "How guardian verification works": "अभिभावक सत्यापन के चरण",
   "First we check your relationship with the student. After approval, you can give learning permission and create their profile.": "पहले विद्यार्थी के साथ आपके संबंध की जाँच होगी। स्वीकृति के बाद आप पढ़ाई की अनुमति देकर उसकी प्रोफ़ाइल बना सकते हैं।",

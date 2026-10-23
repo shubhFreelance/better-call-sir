@@ -1,5 +1,13 @@
 # Frontend design direction
 
+## Guided guardian verification — 23 October 2026
+
+Plan: the owner now chooses ivory #F4F4EC, black #000000, white #FFFFFF, teal #034F46 and neutral border #DADAD0 for this page. Keep Manrope/Noto Sans Devanagari. A six-stop sequence reflects actual work: relationship details, learning choices, confirmation, report upload, staff review and student setup. The first three steps reveal only their own required fields; answers stay in component memory when navigating back. Review-before-save and server-authoritative later steps stay intact. Left-align the white worksheet and render a restrained connecting line, completed checkmarks and a current-step marker. Animate only state changes; disable animation for reduced motion. Phone layouts use a compact two-column tracker and full-width actions without horizontal scrolling.
+
+Review: replace the static lavender process banner during editing with a live tracker and explicit current-step description. Do not mark staff review or setup completed based on a button click. Rejected/cancelled/revoked/deleted requests must not look successful. Preserve exact versioned writes, retries, private evidence, student acknowledgment and separate consent. The report transport fix belongs to a tested backend commit; do not increase ordinary request limits.
+
+Final critique: desktop and Hindi-phone screenshots inspected. The first screen now fits four relationship fields instead of a long management/consent form. Current-step black markers contrast with ivory upcoming steps and teal completed markers; hints explain the next action. Phone tracker is two columns with no horizontal overflow and a full-width primary action. Validation, Back preservation, explicit review confirmation, reduced motion and server-derived closed/review/approved states are tested. Staff approval and separate learning consent remain real later operations, not UI success assumptions.
+
 ## Guardian verification and student handoff — 23 October 2026
 
 Plan: retain teal #034F46 for the next action, lavender #F0D7FF for the chosen management option, cream #FFFFEB for guidance, white #FFFFFF for the worksheet and charcoal #17201F/muted #586562 for text. Keep Manrope/Noto Sans Devanagari. One page title leads into a concise actual sequence: relationship details, school report/student confirmation, staff review, then consent/student profile. A left-aligned white worksheet has32px desktop/20px phone padding, labelled sections and separated checkbox/action areas; prior requests follow it rather than interrupting entry. Keep the three management options and canonical review/write/upload states.

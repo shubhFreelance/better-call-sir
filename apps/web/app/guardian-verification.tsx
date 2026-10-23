@@ -120,37 +120,39 @@ function GuardianRequests({
           </Button>
         )}
       </header>
-      <ol
-        className="guardian-verification-steps"
-        aria-label={appText("Guardian verification steps")}
-      >
-        {[
-          [
-            "Your details",
-            "Tell us your relationship and who will manage learning.",
-          ],
-          [
-            "Report and confirmation",
-            "Upload a school report. The student confirms by email or with staff on a call.",
-          ],
-          [
-            "Staff review",
-            "Our team checks the relationship and asks for changes if needed.",
-          ],
-          [
-            "Student setup",
-            "After approval, give learning permission and create the student profile.",
-          ],
-        ].map(([title, description], i) => (
-          <li key={title}>
-            <span aria-hidden="true">{i + 1}</span>
-            <div>
-              <strong>{appText(title)}</strong>
-              <p>{appText(description)}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
+      {!selected && (
+        <ol
+          className="guardian-verification-steps"
+          aria-label={appText("Guardian verification steps")}
+        >
+          {[
+            [
+              "Your details",
+              "Tell us your relationship and who will manage learning.",
+            ],
+            [
+              "Report and confirmation",
+              "Upload a school report. The student confirms by email or with staff on a call.",
+            ],
+            [
+              "Staff review",
+              "Our team checks the relationship and asks for changes if needed.",
+            ],
+            [
+              "Student setup",
+              "After approval, give learning permission and create the student profile.",
+            ],
+          ].map(([title, description], i) => (
+            <li key={title}>
+              <span aria-hidden="true">{i + 1}</span>
+              <div>
+                <strong>{appText(title)}</strong>
+                <p>{appText(description)}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
       {history.isPending && (
         <p role="status">{appText("Loading verification requests…")}</p>
       )}
@@ -237,7 +239,9 @@ function ApplicationFields({
   value,
   setValue,
   disabled,
+  step,
 }: {
+  step: number;
   value: Application;
   setValue: (a: Application) => void;
   disabled: boolean;
@@ -247,144 +251,167 @@ function ApplicationFields({
     setValue({ ...value, [k]: v });
   return (
     <fieldset disabled={disabled} className="guardian-verification-fields">
-      <legend>{appText("Relationship details")}</legend>
-      <div className="guardian-verification-grid">
-        <label>
-          {appText("Guardian's full name")}
-          <Input
-            required
-            maxLength={100}
-            autoComplete="name"
-            value={value.guardianName}
-            onChange={(e) => set("guardianName", e.target.value)}
-          />
-        </label>
-        <label>
-          {appText("Learner's name on the school report")}
-          <Input
-            required
-            maxLength={40}
-            value={value.learnerName}
-            onChange={(e) => set("learnerName", e.target.value)}
-          />
-        </label>
-        <label>
-          {appText("Your relationship")}
-          <select
-            value={value.relationship}
-            onChange={(e) =>
-              set("relationship", e.target.value as Application["relationship"])
-            }
-          >
-            <option value="PARENT">{appText("Parent")}</option>
-            <option value="SIBLING">{appText("Adult sibling")}</option>
-            <option value="OTHER">{appText("Other authorized adult")}</option>
-          </select>
-        </label>
-        <label>
-          {appText("Learner's age group")}
-          <select
-            value={value.ageBand}
-            onChange={(e) =>
-              set("ageBand", e.target.value as Application["ageBand"])
-            }
-          >
-            <option value="UNDER_15">{appText("Under 15")}</option>
-            <option value="15_TO_17">{appText("15–17 years")}</option>
-            <option value="18_PLUS">{appText("18 years or older")}</option>
-          </select>
-        </label>
-      </div>
-      <fieldset className="guardian-management-options">
-        <legend>{appText("Who should manage learning?")}</legend>
-        {Object.entries(guardianManagementLabels).map(([mode, label]) => (
-          <label key={mode} className="guardian-management-option">
-            <input
-              type="radio"
-              name="guardian-management-mode"
-              value={mode}
-              checked={value.managementMode === mode}
-              onChange={() =>
-                set("managementMode", mode as Application["managementMode"])
+      <legend>
+        {appText(
+          step === 0
+            ? "Relationship details"
+            : step === 1
+              ? "Who should manage learning?"
+              : "Student confirmation",
+        )}
+      </legend>
+      {step === 0 && (
+        <>
+          <div className="guardian-verification-grid">
+            <label>
+              {appText("Guardian's full name")}
+              <Input
+                required
+                maxLength={100}
+                autoComplete="name"
+                value={value.guardianName}
+                onChange={(e) => set("guardianName", e.target.value)}
+              />
+            </label>
+            <label>
+              {appText("Learner's name on the school report")}
+              <Input
+                required
+                maxLength={40}
+                value={value.learnerName}
+                onChange={(e) => set("learnerName", e.target.value)}
+              />
+            </label>
+            <label>
+              {appText("Your relationship")}
+              <select
+                value={value.relationship}
+                onChange={(e) =>
+                  set(
+                    "relationship",
+                    e.target.value as Application["relationship"],
+                  )
+                }
+              >
+                <option value="PARENT">{appText("Parent")}</option>
+                <option value="SIBLING">{appText("Adult sibling")}</option>
+                <option value="OTHER">
+                  {appText("Other authorized adult")}
+                </option>
+              </select>
+            </label>
+            <label>
+              {appText("Learner's age group")}
+              <select
+                value={value.ageBand}
+                onChange={(e) =>
+                  set("ageBand", e.target.value as Application["ageBand"])
+                }
+              >
+                <option value="UNDER_15">{appText("Under 15")}</option>
+                <option value="15_TO_17">{appText("15–17 years")}</option>
+                <option value="18_PLUS">{appText("18 years or older")}</option>
+              </select>
+            </label>
+          </div>
+        </>
+      )}
+      {step === 1 && (
+        <fieldset className="guardian-management-options">
+          <legend>{appText("Who should manage learning?")}</legend>
+          {Object.entries(guardianManagementLabels).map(([mode, label]) => (
+            <label key={mode} className="guardian-management-option">
+              <input
+                type="radio"
+                name="guardian-management-mode"
+                value={mode}
+                checked={value.managementMode === mode}
+                onChange={() =>
+                  set("managementMode", mode as Application["managementMode"])
+                }
+              />
+              <span>
+                <strong>{appText(label)}</strong>
+                <small>
+                  {appText(
+                    mode === "GUARDIAN_ONLY"
+                      ? "The guardian makes learning and teacher choices."
+                      : mode === "SHARED"
+                        ? "Both can make learning and teacher choices."
+                        : "The student makes everyday learning choices; the guardian keeps oversight.",
+                  )}
+                </small>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {step === 2 && (
+        <>
+          <label>
+            {appText("How will the student confirm this relationship?")}
+            <select
+              value={value.acknowledgmentMethod}
+              onChange={(e) =>
+                setValue({
+                  ...value,
+                  acknowledgmentMethod: e.target
+                    .value as Application["acknowledgmentMethod"],
+                  studentEmail:
+                    e.target.value === "STAFF_CALL" ? null : value.studentEmail,
+                })
               }
-            />
-            <span>
-              <strong>{appText(label)}</strong>
+            >
+              <option value="STAFF_CALL">
+                {appText("During a staff video or phone review")}
+              </option>
+              <option value="STUDENT_ACCOUNT">
+                {appText("Using the student's separate email account")}
+              </option>
+            </select>
+          </label>
+          {value.acknowledgmentMethod === "STUDENT_ACCOUNT" ? (
+            <label>
+              {appText("Student's email address")}
+              <Input
+                type="email"
+                required
+                maxLength={254}
+                autoComplete="off"
+                value={value.studentEmail || ""}
+                onChange={(e) => set("studentEmail", e.target.value)}
+              />
               <small>
                 {appText(
-                  mode === "GUARDIAN_ONLY"
-                    ? "The guardian makes learning and teacher choices."
-                    : mode === "SHARED"
-                      ? "Both can make learning and teacher choices."
-                      : "The student makes everyday learning choices; the guardian keeps oversight.",
+                  "Use the same email the student already registered with. They sign in, open Guardian verification and confirm or decline this relationship. Do not enter your own email.",
                 )}
               </small>
+            </label>
+          ) : (
+            <Notice>
+              {appText(
+                "Student already registered? Choose the email option and use their existing email. If they cannot use email, staff can confirm the relationship with them during a video or phone call.",
+              )}
+            </Notice>
+          )}
+          <label className="care-check">
+            <input
+              type="checkbox"
+              checked={value.documentNamesGuardian}
+              onChange={(e) => set("documentNamesGuardian", e.target.checked)}
+            />
+            <span>
+              {appText("The school report names me as the parent or guardian.")}
             </span>
           </label>
-        ))}
-      </fieldset>
-      <label>
-        {appText("How will the student confirm this relationship?")}
-        <select
-          value={value.acknowledgmentMethod}
-          onChange={(e) =>
-            setValue({
-              ...value,
-              acknowledgmentMethod: e.target
-                .value as Application["acknowledgmentMethod"],
-              studentEmail:
-                e.target.value === "STAFF_CALL" ? null : value.studentEmail,
-            })
-          }
-        >
-          <option value="STAFF_CALL">
-            {appText("During a staff video or phone review")}
-          </option>
-          <option value="STUDENT_ACCOUNT">
-            {appText("Using the student's separate email account")}
-          </option>
-        </select>
-      </label>
-      {value.acknowledgmentMethod === "STUDENT_ACCOUNT" ? (
-        <label>
-          {appText("Student's email address")}
-          <Input
-            type="email"
-            required
-            maxLength={254}
-            autoComplete="off"
-            value={value.studentEmail || ""}
-            onChange={(e) => set("studentEmail", e.target.value)}
-          />
-          <small>
-            {appText(
-              "Use the same email the student already registered with. They sign in, open Guardian verification and confirm or decline this relationship. Do not enter your own email.",
-            )}
-          </small>
-        </label>
-      ) : (
-        <Notice>
-          {appText(
-            "Student already registered? Choose the email option and use their existing email. If they cannot use email, staff can confirm the relationship with them during a video or phone call.",
+          {!value.documentNamesGuardian && (
+            <Notice>
+              {appText(
+                "A staff video or phone review is required because the report does not name you. Upload the available school report for context.",
+              )}
+            </Notice>
           )}
-        </Notice>
-      )}
-      <label className="care-check">
-        <input
-          type="checkbox"
-          checked={value.documentNamesGuardian}
-          onChange={(e) => set("documentNamesGuardian", e.target.checked)}
-        />
-        <span>
-          {appText("The school report names me as the parent or guardian.")}
-        </span>
-      </label>
-      {!value.documentNamesGuardian && (
-        <Notice>
-          {appText(
-            "A staff video or phone review is required because the report does not name you. Upload the available school report for context.",
-          )}
-        </Notice>
+        </>
       )}
     </fieldset>
   );
@@ -460,6 +487,85 @@ function VerificationSummary({ record: r }: { record: Verification }) {
     </>
   );
 }
+const verificationSteps = [
+  ["Relationship details", "Enter both names as shown on the school report."],
+  [
+    "Learning choices",
+    "Choose who will manage learning and teacher decisions.",
+  ],
+  [
+    "Student confirmation",
+    "Choose how the student confirms, then review your answers.",
+  ],
+  [
+    "Report and confirmation",
+    "Upload a school report. The student confirms by email or with staff on a call.",
+  ],
+  [
+    "Staff review",
+    "Our team checks the relationship and asks for changes if needed.",
+  ],
+  [
+    "Student setup",
+    "After approval, give learning permission and create the student profile.",
+  ],
+];
+function VerificationProgress({
+  step,
+  stopped,
+}: {
+  step: number;
+  stopped: boolean;
+}) {
+  const { appText } = useAppTranslation();
+  return (
+    <nav
+      className="verification-progress"
+      aria-label={appText("Guardian verification progress")}
+    >
+      <p
+        className="verification-progress-status"
+        role="status"
+        aria-live="polite"
+      >
+        {stopped
+          ? appText("This request is closed. Check its status below.")
+          : appText("Step {0} of {1}: {2}", [
+              String(step + 1),
+              String(verificationSteps.length),
+              appText(verificationSteps[step][0]),
+            ])}
+      </p>
+      <ol aria-label={appText("Guardian verification steps")}>
+        {verificationSteps.map(([label], index) => (
+          <li
+            key={label}
+            data-state={
+              stopped
+                ? "paused"
+                : index < step
+                  ? "complete"
+                  : index === step
+                    ? "current"
+                    : "upcoming"
+            }
+            aria-current={!stopped && index === step ? "step" : undefined}
+          >
+            <span className="verification-step-marker" aria-hidden="true">
+              {!stopped && index < step ? "✓" : index + 1}
+            </span>
+            <strong>{appText(label)}</strong>
+          </li>
+        ))}
+      </ol>
+      {!stopped && (
+        <p className="verification-step-hint" key={step}>
+          {appText(verificationSteps[step][1])}
+        </p>
+      )}
+    </nav>
+  );
+}
 function OwnerVerification({
   initial,
   session,
@@ -490,6 +596,7 @@ function OwnerVerification({
           } as Application)
         : initialApplication(),
     ),
+    [formStep, setFormStep] = useState(0),
     [editing, setEditing] = useState(!initial),
     [reviewing, setReviewing] = useState(false),
     [adult, setAdult] = useState(false),
@@ -537,7 +644,7 @@ function OwnerVerification({
     ) || [];
   useEffect(() => {
     root.current?.focus();
-  }, []);
+  }, [formStep, reviewing]);
   const saved = (value: unknown) => {
     const v = value as Verification;
     setId(v.id);
@@ -582,6 +689,7 @@ function OwnerVerification({
       f.size > 5 * 1024 * 1024 ||
       !f.size
     ) {
+      setFile(null);
       decision.invalid("Choose a PNG or JPEG image of at most 5 MiB.");
       if (fileRef.current) fileRef.current.value = "";
       return;
@@ -612,6 +720,23 @@ function OwnerVerification({
       ref={root}
       aria-label={appText("Guardian verification details")}
     >
+      {!unavailable && (!id || r) && (
+        <VerificationProgress
+          step={
+            editing
+              ? formStep
+              : r?.status === "APPROVED"
+                ? 5
+                : r?.status === "PENDING"
+                  ? 4
+                  : 3
+          }
+          stopped={
+            !!r &&
+            ["REJECTED", "CANCELLED", "REVOKED", "DELETED"].includes(r.status)
+          }
+        />
+      )}
       <h3>
         {appText(
           id
@@ -649,6 +774,7 @@ function OwnerVerification({
               onSubmit={(e) => {
                 e.preventDefault();
                 if (reviewing) saveApplication();
+                else if (formStep < 2) setFormStep(formStep + 1);
                 else if (adult && permission) {
                   setReviewing(true);
                   setConfirmed(false);
@@ -662,41 +788,60 @@ function OwnerVerification({
                     value={application}
                     setValue={setApplication}
                     disabled={locked}
+                    step={formStep}
                   />
-                  <fieldset disabled={locked}>
-                    <legend>
-                      {appText("Permission for this verification")}
-                    </legend>
-                    <label className="care-check">
-                      <input
-                        type="checkbox"
-                        required
-                        checked={adult}
-                        onChange={(e) => setAdult(e.target.checked)}
-                      />
-                      <span>
-                        {appText(
-                          "I am an adult authorized to act for this learner, and I acknowledge this guardian relationship.",
-                        )}
-                      </span>
-                    </label>
-                    <label className="care-check">
-                      <input
-                        type="checkbox"
-                        required
-                        checked={permission}
-                        onChange={(e) => setPermission(e.target.checked)}
-                      />
-                      <span>
-                        {appText(
-                          "I permit private review of these relationship details and the school report for verification. This does not grant learning-data consent.",
-                        )}
-                      </span>
-                    </label>
-                  </fieldset>
-                  <Button type="submit" disabled={locked}>
-                    {appText("Review relationship details")}
-                  </Button>
+                  {formStep === 2 && (
+                    <fieldset disabled={locked}>
+                      <legend>
+                        {appText("Permission for this verification")}
+                      </legend>
+                      <label className="care-check">
+                        <input
+                          type="checkbox"
+                          required
+                          checked={adult}
+                          onChange={(e) => setAdult(e.target.checked)}
+                        />
+                        <span>
+                          {appText(
+                            "I am an adult authorized to act for this learner, and I acknowledge this guardian relationship.",
+                          )}
+                        </span>
+                      </label>
+                      <label className="care-check">
+                        <input
+                          type="checkbox"
+                          required
+                          checked={permission}
+                          onChange={(e) => setPermission(e.target.checked)}
+                        />
+                        <span>
+                          {appText(
+                            "I permit private review of these relationship details and the school report for verification. This does not grant learning-data consent.",
+                          )}
+                        </span>
+                      </label>
+                    </fieldset>
+                  )}
+                  <div className="care-actions verification-form-actions">
+                    {formStep > 0 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={locked}
+                        onClick={() => setFormStep(formStep - 1)}
+                      >
+                        {appText("Back")}
+                      </Button>
+                    )}
+                    <Button type="submit" disabled={locked}>
+                      {appText(
+                        formStep < 2
+                          ? "Continue"
+                          : "Review relationship details",
+                      )}
+                    </Button>
+                  </div>
                 </>
               ) : (
                 <>
@@ -739,7 +884,12 @@ function OwnerVerification({
                     <Button
                       variant="outline"
                       disabled={locked}
-                      onClick={() => setReviewing(false)}
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setConfirmed(false);
+                        setReviewing(false);
+                      }}
                     >
                       {appText("Back to details")}
                     </Button>
@@ -764,6 +914,7 @@ function OwnerVerification({
                           verificationPermission: true,
                           policyVersion: "guardian-verification-v1",
                         } as Application);
+                        setFormStep(0);
                         setEditing(true);
                         setReviewing(false);
                         setAdult(false);

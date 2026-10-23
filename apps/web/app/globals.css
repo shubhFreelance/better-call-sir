@@ -5603,3 +5603,47 @@ fieldset.catalog-filters { min-inline-size:0; margin-inline:0; }
   .guardian-handoff-share { padding: 16px; }
   .guardian-handoff :is(button,.button) { width: 100%; }
 }
+
+/* Guardian verification: a quiet worksheet with progress tied to the saved request. */
+body:has(.guardian-verification-page) { background: #F4F4EC; }
+.guardian-verification-page { --paper: #F4F4EC; --ink: #000000; --line: #DADAD0; color: #000000; }
+.guardian-verification-page .guardian-verification-steps { background: #FFFFFF; border: 1px solid #DADAD0; }
+.guardian-verification-editor .verification-progress { display: block; padding: 0 0 24px; margin: 0 0 28px; border-bottom: 1px solid #DADAD0; }
+.verification-progress-status { font-size: 14px; font-weight: 750; color: #000000; margin: 0 0 24px; }
+.verification-progress ol { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); list-style: none; margin: 0; padding: 0; gap: 0; }
+.verification-progress li { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-width: 0; padding-right: 12px; color: #62625B; }
+.verification-progress li:not(:last-child)::before { content: ""; position: absolute; top: 17px; left: 18px; width: 100%; height: 2px; background: #DADAD0; transition: background-color 350ms ease; }
+.verification-progress li[data-state=complete]::before { background: #034F46; }
+.verification-step-marker { position: relative; z-index: 1; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; border: 1px solid #C5C5BB; background: #F4F4EC; color: #55554D; font-size: 14px; font-weight: 750; transition: color 250ms ease, background-color 250ms ease, border-color 250ms ease; }
+.verification-progress li strong { font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; font-weight: 600; }
+.verification-progress li[data-state=complete] .verification-step-marker { color: #FFFFFF; background: #034F46; border-color: #034F46; }
+.verification-progress li[data-state=current] { color: #000000; }
+.verification-progress li[data-state=current] strong { font-weight: 800; }
+.verification-progress li[data-state=current] .verification-step-marker { color: #FFFFFF; background: #000000; border-color: #000000; box-shadow: 0 0 0 5px #F4F4EC; animation: verification-arrive 500ms ease-out; }
+.verification-step-hint { padding: 16px 18px; margin: 24px 0 0; border-radius: 10px; background: #F4F4EC; color: #393932; font-size: 14px; line-height: 1.7; animation: verification-hint 250ms ease-out; }
+.guardian-verification-editor .guardian-management-option:has(input:checked), .guardian-verification-editor .guardian-management-summary { background: #F4F4EC; border: 1px solid #034F46; }
+.guardian-verification-editor .staff-summary { display: grid; grid-template-columns: minmax(140px,1fr) minmax(0,2fr); gap: 14px 24px; padding: 24px; background: #F4F4EC; }
+.guardian-verification-editor .staff-summary dt { margin: 0; color: #000000; font-weight: 750; }
+.guardian-verification-editor .staff-summary dd { margin: 0; font-size: 14px; line-height: 1.65; }
+.guardian-verification-editor .guardian-evidence-step { background: #F4F4EC; padding: 24px; gap: 18px; }
+.guardian-verification-editor .guardian-evidence-step h4 { margin: 0; font-size: 18px; }
+.guardian-verification-editor .guardian-evidence-step input[type=file] { background: #FFFFFF; padding: 12px; height: auto; }
+.guardian-verification-editor .verification-form-actions { justify-content: space-between; gap: 16px; margin-top: 12px; }
+.guardian-verification-editor button { min-height: 44px; }
+.guardian-verification-editor form > fieldset { padding: 20px; background: #F4F4EC; border-radius: 12px; }
+.guardian-verification-editor form > .guardian-verification-fields { padding: 0; background: transparent; }
+@keyframes verification-arrive { from { box-shadow: 0 0 0 0 #DADAD0; transform: scale(.9); } to { box-shadow: 0 0 0 5px #F4F4EC; transform: scale(1); } }
+@keyframes verification-hint { from { opacity: .4; } to { opacity: 1; } }
+@media(max-width:640px) {
+  .verification-progress ol { grid-template-columns: repeat(2,minmax(0,1fr)); row-gap: 20px; }
+  .verification-progress li { flex-direction: row; gap: 10px; align-items: center; padding-right: 10px; }
+  .verification-progress li::before { display: none; }
+  .verification-step-marker { flex-shrink: 0; width: 30px; height: 30px; }
+  .verification-progress li strong { font-size: 12px; }
+  .guardian-verification-editor .staff-summary { grid-template-columns: minmax(0,1fr); gap: 6px; padding: 18px; }
+  .guardian-verification-editor .staff-summary dd:not(:last-child) { margin-bottom: 12px; }
+  .guardian-verification-editor .guardian-evidence-step { padding: 18px; }
+  .guardian-verification-editor .verification-form-actions { display: flex; flex-direction: column-reverse; }
+  .guardian-verification-editor .verification-form-actions button { width: 100%; }
+}
+@media(prefers-reduced-motion:reduce) { .verification-progress *, .verification-progress *::before { animation: none !important; transition: none !important; } }
