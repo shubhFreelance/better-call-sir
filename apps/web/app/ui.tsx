@@ -21,6 +21,7 @@ import {
   type TeacherSearchPage,
 } from "./teacher-search-state";
 import { StudentSupporters, StudentDevices } from "./independent-access";
+import { GuardianLearners } from "./guardian-learners";
 import {
   StudentArrangements,
   StudentOpportunities,
@@ -2538,6 +2539,9 @@ function DashboardPage({ tab }: { tab: string }) {
             "Welcome, {0}. Here is what needs your attention.", [session.account.name.split(" · ")[0]]
           )}
         />
+        {session.account.role === "GUARDIAN" && tab === "/dashboard" && (
+          <GuardianLearners key={session.account.id} session={session} />
+        )}
         <HiringOverview
           key={`${session.account.id}:${session.account.role}`}
           session={session}
