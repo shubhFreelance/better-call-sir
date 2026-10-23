@@ -1,5 +1,11 @@
 # Delivery board
 
+## Owner-authorized integration of all completed branches — 23 October 2026
+
+Owner asks to merge everything into main. Joined the actual backend93765c2 history with frontend7f30ff1; its guardian transport patch was already present as76beee9. One tracker-only conflict said animated verification was still pending; retained the current F28 completion wording. No application-code conflict or content change was required. Both earlier milestone branches are already ancestors; their remote heads match and remain preserved.
+
+Fresh pre-push acceptance on the combined tree:full npm test passes26 unit,204 real-HTTP API,16 contract and4 mock cases with no failures/skips. All31 selected production-CSP browser cases pass for guardian verification/guidance, independent-student eligibility and teacher-search design/return/pagination/no-script readiness.23 security/client/localization/CI and2 release-gate tests, types/full workspace build and413-source/17-asset secret scans pass. Frontend/main delivery follows these successful checks; verify remote heads and backend/milestone ancestry after push. No deployment, hosted CI result, actual Gmail inbox or human/provider/storage/live-launch qualification is claimed. Next:owner Windows/Gmail review of search, guardian verification and role dashboards with seven to ten profiles; all launch/deferred work stays tracked in remaing.md.
+
 ## F29 / H1 / H2 — Teacher search worksheet and no-match recovery — 23 October 2026
 
 Owner rejects the search design and repeated lavender recovery banners. Search now has an ivory #F4F4EC canvas, white worksheet, black selected tab and teal primary actions. A labelled large query field, concise live-filter explanation, active-filter count and evenly spaced labelled controls establish hierarchy. Desktop uses four filter columns, tablets two and phones one; custom curriculum and stage-specific education fields retain their existing behavior. Keyboard order and visible query focus are checked. The phone results caption stacks rather than competing for width.
