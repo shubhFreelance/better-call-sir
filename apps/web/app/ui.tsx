@@ -1,4 +1,5 @@
 "use client";
+import { useAccountEntry } from "./account-entry";
 import {ServiceFollowups} from "./service-followups";
 import { NotificationWorkspace } from "./notification-workspace";
 import { TuitionMinimumWorkspace } from "./tuition-minimum-workspace";
@@ -61,7 +62,7 @@ import {
 import Link from "next/link";
 import { Button as UiButton } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Alert } from "../components/ui/alert";
+import { Alert, AlertDescription } from "../components/ui/alert";
 import {
   Tabs,
   TabsList,
@@ -1684,7 +1685,7 @@ function Login() {
           (session.account.role === "GUARDIAN" &&
             /^\/revision(?:\?[^#]*)?$/.test(next)))
         ? next
-        : session.account.role === "GUARDIAN" && !session.account.verified
+        : session.accountCreated === true && session.account.role === "GUARDIAN"
           ? "/onboarding/guardian"
           : "/dashboard",
     );
@@ -1954,6 +1955,7 @@ function IndependentStudentPage() {
 
   const { session, setSession, loading, hindi, setHindi } = useAuth(),
     client = useQueryClient(),
+    router = useRouter(),
     params = useSearchParams();
   if (loading) return <State loading />;
   if (!session)
@@ -1974,11 +1976,13 @@ function IndependentStudentPage() {
           </p>
         </header>
         <EmailLogin
+          purpose="student-signup"
           hindi={hindi}
           onLanguageChange={setHindi}
           onSignedIn={(next) => {
             client.clear();
             setSession(next);
+            if (next.accountCreated === false && next.account.role !== "GUARDIAN") router.push("/dashboard");
           }}
         />
       </main>
@@ -3202,6 +3206,7 @@ function Routes() {
 }
 function AppContent() {
   const initialHindi = useContext(LanguageContext);
+  const {entry, recordEntry} = useAccountEntry();
   const [session, setSession] = useState<Session | null>(null),
     [loading, setLoading] = useState(true),
     [hindi, setHindiState] = useState(initialHindi);
@@ -3261,6 +3266,7 @@ function AppContent() {
     path = usePathname();
   const [, setPublicSearch] = useTeacherSearchState();
   function changeSession(next: Session | null) {
+    recordEntry(next);
     if (!next || (session && session.account.id !== next.account.id))
       setPublicSearch({ filters: { ...emptyTeacherFilters } });
     setSession(next);
@@ -3417,6 +3423,13 @@ function AppContent() {
             {hindi ? "मुख्य सामग्री पर जाएँ" : appText("Skip to content")}
           </a>
           <Header />
+          {session && entry?.accountId === session.account.id && entry.existing && (
+            <div className="container returning-account-notice"><Alert role="status"><AlertDescription>
+              <p>{appText("This email is already registered. You are signed in to your existing account; your saved progress is available from your dashboard.")}</p>
+              <div className="care-actions"><Link className="inline-link" href="/dashboard">{appText("Open dashboard")}</Link>
+              {session.account.role === "GUARDIAN" && <Link className="inline-link" href="/guardian-verification">{appText("Review saved verification requests")}</Link>}</div>
+            </AlertDescription></Alert></div>
+          )}
           {switchMessage && (
             <div className="container">
               <Alert role="status">{appError(switchMessage)}</Alert>

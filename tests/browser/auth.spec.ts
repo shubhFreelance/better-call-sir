@@ -5,6 +5,10 @@ async function enterDetails(
   page: import("@playwright/test").Page,
   email = "guardian@example.test",
 ) {
+  if (!(await page.getByLabel("Your name", { exact: true }).count()))
+    await page
+      .getByRole("button", { name: "Create an account instead", exact: true })
+      .click();
   await page.getByLabel("Your name").fill("Synthetic Email Parent");
   await page.getByLabel("Email address").fill(email);
   await page.getByRole("button", { name: "Send sign-in code" }).click();
@@ -75,6 +79,9 @@ test("validation and provider failure preserve details; sent responses never dis
     });
   });
   await page.goto("/login");
+  await page
+    .getByRole("button", { name: "Create an account instead", exact: true })
+    .click();
   await page.getByRole("button", { name: "Send sign-in code" }).click();
   await expect(
     page.getByText("Enter your name.", { exact: true }),

@@ -228,6 +228,32 @@ test('valid sandbox email OTP creates only an unverified guardian, is single-use
  const access=client.cookies.split('bcs_access=')[1].split(';')[0];const persisted=await db.session.findUniqueOrThrow({where:{accessHash:createHash('sha256').update(access).digest('hex')}});assert.notEqual(persisted.accessHash,access);
  assert.equal((await client.call('/auth/otp/verify',body)).status,401);assert.equal((await client.call('/consents',{purpose:'tuition-and-learning-records',policyVersion:'development-v1',accepted:true})).status,403);assert.equal((await client.call('/requests',intake())).status,403);
 });
+async function resetReturningOtpBudget(){await db.rateBucket.deleteMany({where:{key:{in:['otp-ip:127.0.0.1','verify:127.0.0.1'].map(k=>createHash('sha256').update(k).digest('hex'))}}});}
+test('returning email OTP restores the same guardian and saved verification after logout without a name',async(t)=>{
+ await resetReturningOtpBudget();t.after(resetReturningOtpBudget);
+ const c=new Client(),email='return-'+randomUUID()+'@example.test',first=await c.call('/auth/otp/request',{email});
+ const created=await c.call('/auth/otp/verify',{email,code:first.data.developmentCode,name:'Saved parent'});assert.equal(created.status,201);assert.equal(created.data.accountCreated,true);
+ const id=created.data.account.id,proof=await c.call('/guardian-verifications',guardianApplication({guardianName:'Saved parent',learnerName:'Saved learner'}));assert.equal(proof.status,201);
+ assert.equal((await c.call('/auth/logout',{})).status,201);
+ const challenge=await c.call('/auth/otp/request',{email:email.toUpperCase()}),returned=await c.call('/auth/otp/verify',{email:email.toUpperCase(),code:challenge.data.developmentCode});assert.equal(returned.status,201,JSON.stringify(returned.data));assert.equal(returned.data.accountCreated,false);assert.equal(returned.data.account.id,id);assert.equal(returned.data.account.name,'Saved parent');
+ const saved=await c.call('/guardian-verifications/'+proof.data.id);assert.equal(saved.status,200);assert.equal(saved.data.learnerName,'Saved learner');assert.equal(saved.data.status,'DRAFT');assert.equal(await db.account.count({where:{email}}),1);
+ const again=await c.call('/auth/otp/request',{email}),duplicate=await c.call('/auth/otp/verify',{email,code:again.data.developmentCode,name:'Must not replace saved name'});assert.equal(duplicate.data.accountCreated,false);assert.equal(duplicate.data.account.id,id);assert.equal(duplicate.data.account.name,'Saved parent');
+});
+test('email-only sign-in preserves existing teacher, independent student and admin roles and still requires staff MFA',async(t)=>{
+ await resetReturningOtpBudget();t.after(resetReturningOtpBudget);
+ for(const role of ['TEACHER','INDEPENDENT_STUDENT','ADMIN']){const email='return-'+randomUUID()+'@example.test',a=await db.account.create({data:{email,name:'Saved '+role,role}}),c=new Client(),sent=await c.call('/auth/otp/request',{email}),signed=await c.call('/auth/otp/verify',{email,code:sent.data.developmentCode});assert.equal(signed.status,201,JSON.stringify(signed.data));assert.equal(signed.data.accountCreated,false);assert.equal(signed.data.account.id,a.id);assert.equal(signed.data.account.role,role);if(role==='ADMIN')assert.equal((await c.call('/admin/console')).data.code,'MFA_REQUIRED');}
+});
+test('managed student email sign-in returns the linked learner without replacing the student account',async(t)=>{
+ await resetReturningOtpBudget();t.after(resetReturningOtpBudget);
+ const original=await db.account.findUniqueOrThrow({where:{id:ids.student}}),email='managed-'+randomUUID()+'@example.test';await db.account.update({where:{id:ids.student},data:{email}});t.after(()=>db.account.update({where:{id:ids.student},data:{email:original.email}}));
+ const c=new Client(),sent=await c.call('/auth/otp/request',{email}),signed=await c.call('/auth/otp/verify',{email,code:sent.data.developmentCode});assert.equal(signed.status,201,JSON.stringify(signed.data));assert.equal(signed.data.account.id,ids.student);assert.equal(signed.data.account.role,'STUDENT');assert.equal(signed.data.accountCreated,false);assert.equal((await c.call('/children')).data.items[0].id,ids.child);assert.equal((await c.call('/auth/logout',{})).status,201);
+});
+test('unknown email sign-in requires registration only after a valid OTP and never creates an unnamed account',async(t)=>{
+ await resetReturningOtpBudget();t.after(resetReturningOtpBudget);
+ const email='unknown-'+randomUUID()+'@example.test',c=new Client(),sent=await c.call('/auth/otp/request',{email});assert.equal('accountCreated' in sent.data,false);const wrong=sent.data.developmentCode==='000000'?'111111':'000000';assert.equal((await c.call('/auth/otp/verify',{email,code:wrong})).status,401);
+ const verified=await c.call('/auth/otp/verify',{email,code:sent.data.developmentCode});assert.equal(verified.status,409);assert.equal(verified.data.code,'REGISTRATION_REQUIRED');assert.equal(await db.account.count({where:{email}}),0);assert.equal((await c.call('/auth/session')).status,401);
+});
+
 test('OTP expiry and wrong-code attempt limits fail; OTP cannot assign a role',async()=>{const c=new Client(),email='otp1@example.test';const otp=await c.call('/auth/otp/request',{email});assert.equal(otp.status,201);await db.otp.update({where:{address:email},data:{expiresAt:new Date(0)}});assert.equal((await c.call('/auth/otp/verify',{email,code:otp.data.developmentCode,name:'Synthetic'})).status,401);const email2='otp2@example.test';const valid=await c.call('/auth/otp/request',{email:email2});for(let i=0;i<5;i++)assert.equal((await c.call('/auth/otp/verify',{email:email2,code:valid.data.developmentCode==='000000'?'111111':'000000',name:'Synthetic'})).status,401);assert.equal((await c.call('/auth/otp/verify',{email:email2,code:valid.data.developmentCode,name:'Synthetic'})).status,401);});
 test('private note edits are owned, versioned and retry-safe; new text revokes sharing and teacher reads respect privacy pauses',async()=>{
  const created=await parent.call('/notes',{childId:ids.child,text:'Synthetic learning preference'});assert.equal(created.status,201);const id=created.data.id;

@@ -211,6 +211,7 @@ test("real teacher schedule saves capacity, weekly IST hours and leave, with ver
   page,
 }) => {
   await page.goto("/login?next=%2Fonboarding%2Fteacher");
+  await page.getByRole("button", {name:"Create an account instead",exact:true}).click();
   await page.getByLabel("Your name").fill(application.name);
   await page
     .getByLabel("Email address")
@@ -218,10 +219,10 @@ test("real teacher schedule saves capacity, weekly IST hours and leave, with ver
   const pending = page.waitForResponse((r) =>
     r.url().endsWith("/auth/otp/request"),
   );
-  await page.getByRole("button", { name: "Send sign-in code" }).click();
+  await page.getByRole("button", { name: "Send verification code" }).click();
   const otp = await (await pending).json();
   await page.getByLabel("Six-digit code").fill(otp.developmentCode);
-  await page.getByRole("button", { name: "Verify and continue" }).click();
+  await page.getByRole("button", { name: "Verify and continue to application" }).click();
   await expect(page).toHaveURL(/onboarding\/teacher/);
   const session = await (await page.request.get("/api/v1/auth/session")).json();
   const response = await page.request.post("/api/v1/teacher-applications", {

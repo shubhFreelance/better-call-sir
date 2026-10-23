@@ -41,20 +41,26 @@ class IdentityController {
   }
 
   @Post('auth/otp/verify') async otpVerify(@Body() body: unknown,@Req() req: Request,@Res({passthrough:true}) res: Response) {
-    const {email,code,name}=parse(z.object({email:emailAddress,code:z.string().regex(/^\d{6}$/),name:text(80)}).strict(),body);
+    const {email,code,name}=parse(z.object({email:emailAddress,code:z.string().regex(/^\d{6}$/),name:text(80).optional()}).strict(),body);
     await this.service.limit(`verify:${req.ip}`,10);
     let digest:string;try{digest=otpDigest(email,code);}catch{fail(503,'AUTH_UNAVAILABLE','Authentication is temporarily unavailable. Please retry later.');}
-    const account = await this.db.$transaction(async db=>{
+    const result = await this.db.$transaction(async db=>{
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${email},0))`;
       const otp = await db.otp.findUnique({where:{address:email}});
       if (!otp || otp.expiresAt < new Date() || otp.attempts >= 5) return null;
       await db.otp.update({where:{address:email},data:{attempts:{increment:1}}});
       if (!same(otp.hash,digest)) return null;
       await db.otp.delete({where:{address:email}});
-      return db.account.upsert({where:{email},create:{email,name,emailLocale:otp.locale},update:{emailLocale:otp.locale}});
+      const existing=await db.account.findUnique({where:{email}});
+      if(!existing&&!name)return {registrationRequired:true} as const;
+      const account=existing
+        ? await db.account.update({where:{id:existing.id},data:{emailLocale:otp.locale}})
+        : await db.account.create({data:{email,name:name!,emailLocale:otp.locale}});
+      return {account,accountCreated:!existing};
     });
-    if (!account || account.disabled) fail(401,'INVALID_OTP','The code is invalid or expired.');
-    return this.service.session(account,res);
+    if(result&&'registrationRequired' in result)fail(409,'REGISTRATION_REQUIRED','No account exists for this verified email. Create an account to continue.');
+    if (!result || result.account.disabled) fail(401,'INVALID_OTP','The code is invalid or expired.');
+    return {...await this.service.session(result.account,res),accountCreated:result.accountCreated};
   }
 
   @Get('auth/session') async session(@Req() req: Request) {

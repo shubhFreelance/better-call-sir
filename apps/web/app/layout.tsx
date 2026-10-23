@@ -5,6 +5,7 @@ import "./globals.css";
 import { cookies, headers } from "next/headers";
 import { ScriptNonceProvider } from "./security-nonce";
 import { LocaleBoundary } from "./locale";
+import { AccountEntryProvider } from "./account-entry";
 import { TeacherSearchProvider } from "./teacher-search-state";
 export async function generateMetadata(): Promise<Metadata> {
   const hindi = (await cookies()).get("bcs.interface-language")?.value === "hi";
@@ -27,7 +28,7 @@ export default async function RootLayout({
       <body>
         <ScriptNonceProvider nonce={nonce}>
           <LocaleBoundary hindi={hindi}>
-            <TeacherSearchProvider>{children}</TeacherSearchProvider>
+            <AccountEntryProvider><TeacherSearchProvider>{children}</TeacherSearchProvider></AccountEntryProvider>
           </LocaleBoundary>
         </ScriptNonceProvider>
       </body>

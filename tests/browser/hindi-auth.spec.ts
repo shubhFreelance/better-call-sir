@@ -6,9 +6,12 @@ const language = (page: Page) =>
 async function hindi(page: Page) {
   await page.goto("/login");
   await language(page).selectOption("hi");
+  await page
+    .getByRole("button", { name: "नया खाता बनाएँ", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", {
-      name: "Better Call Sir में आपका स्वागत है",
+      name: "अपना खाता बनाएँ",
       exact: true,
     }),
   ).toBeVisible();
@@ -96,6 +99,9 @@ test("language changes preserve entered details and translate existing validatio
   ).toBeVisible();
   await page.reload();
   await expect(language(page)).toHaveValue("hi");
+  await page
+    .getByRole("button", { name: "नया खाता बनाएँ", exact: true })
+    .click();
   await expect(page.getByLabel("आपका नाम", { exact: true })).toHaveValue("");
   await expect(page.getByLabel("ईमेल पता", { exact: true })).toHaveValue("");
 });

@@ -1,5 +1,17 @@
 # Frontend design direction
 
+## Returning-account sign-in and saved progress — 23 October 2026
+
+Plan: keep the shared ivory/white auth cards and labelled controls. Sign-in asks for the registered email and OTP; account creation explicitly reveals the name field. A reversible, labelled mode switch keeps the entered email, respects request uncertainty and restores keyboard focus. Public request responses never disclose account existence. After a valid OTP, existing users receive a concise status notice and dashboard/saved-verification links. Existing guardians return to their dashboard, teacher recovery stays bound to the original identity, and staff still pass MFA. Existing saved drafts/records are read from their account APIs; no new credential/email browser storage, role conversion, approval or automatic document upload. English/Hindi copy and mobile accessibility remain required. Review against the brief: distinguish registration from returning access without suggesting users need a different email or should repeat their saved application.
+
+Final review: English desktop and Hindi phone notices are readable and actionable. Signup/sign-in switching preserves email and keyboard focus; the returned guardian draft opens from the notice without repeat registration. Final26 combined development browser cases plus3 teacher application/recovery/schedule checks and11 production-CSP cases pass. No new browser credential storage or changes to staff MFA/guardian permissions.
+
+## Search lavender accents — 23 October 2026
+
+Plan: preserve the approved ivory #F4F4EC canvas, black #000000 active tab/headings, white worksheet and teal #034F46 actions. Reintroduce lavender #F0D7FF only as a small active-filter badge, the empty-search icon tile, tab icon accents and the backgrounds of explicitly selected non-empty filter controls. Selected options gain a darker violet border as a second visual cue; existing labels and keyboard focus remain clear. Keep Manrope/Noto Sans Devanagari and the existing layout. No large lavender panels, new state, behavior, API or translation changes. Review contrast and desktop/Hindi phone screenshots against the restrained-color brief before delivery.
+
+Final review: inspected a real-catalog desktop capture with Maths and budget selected, plus the Hindi phone/no-match capture. Selected options and small badges carry the lavender; neutral unselected controls and the black active tab keep the page legible. Existing demo badges fit the same palette. All3 development and3 strict-CSP browser cases pass, including axe, mobile overflow, keyboard and reset behavior.
+
 ## Teacher search refinement — 23 October 2026
 
 Plan: use ivory #F4F4EC for the search page, white #FFFFFF for the filter worksheet, black #000000 for headings/active tabs, teal #034F46 for primary next actions and neutral #DADAD0 borders. Keep Manrope/Noto Sans Devanagari. Left-align a concise title, two clearly distinct search tabs, a full-width labelled text query, then evenly spaced filters in four desktop/two tablet/one phone columns. A small filter count and explanation make immediate search behavior explicit. Existing custom curriculum fields remain visible and labelled.
