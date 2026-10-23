@@ -31,9 +31,12 @@ export function searchDesignChecks() {
         exact: true,
       });
       await expect(form).toBeEnabled();
+      await expect(page.locator(".catalog-filters")).toHaveCSS("border-top-color", "rgb(25, 25, 25)");
+      await expect(page.locator(".search-query-control")).toHaveCSS("border-top-color", "rgb(185, 189, 180)");
       const search = page.getByLabel(t("Search teachers"), { exact: true });
       await search.fill("design criteria");
       await expect(page.locator(".coverage-recovery")).toHaveCount(1);
+      await expect(page.locator(".coverage-recovery")).toHaveCSS("border-top-color", "rgb(243, 243, 224)");
       await expect(page.locator(".help-card")).toHaveCount(0);
       await expect(page.locator(".coverage-recovery")).toHaveCount(1);
       const subject = page.getByRole("combobox", {
@@ -150,6 +153,10 @@ export function searchDesignChecks() {
       .getByLabel("Search teachers", { exact: true })
       .fill("teacher design");
     await expect(page.locator(".teacher-card")).toHaveCount(1);
+    await expect(page.locator(".teacher-card")).toHaveCSS("border-top-color", "rgb(243, 243, 224)");
+    await page.locator(".teacher-card").hover();
+    await expect(page.locator(".teacher-card")).toHaveCSS("border-top-color", "rgb(25, 25, 25)");
+    await page.mouse.move(0, 0);
     await expect(page.locator(".coverage-recovery")).toHaveCount(0);
     await expect(page.locator(".help-card")).toHaveCount(1);
     await page.evaluate(() => document.fonts.ready);

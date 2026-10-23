@@ -27,6 +27,8 @@
   --paper: #ffffeb;
   --white: #ffffff;
   --line: #d9e4df;
+  --card-border: #F3F3E0;
+  --card-border-strong: #191919;
   --primary: #034f46;
   --primary-hover: #023e37;
   --green: #f0d7ff;
@@ -5790,3 +5792,51 @@ body:has(.teacher-discovery-page) { background: #F4F4EC; }
 .dashboard-nav-description { margin:0; padding:0 16px 14px; font-size:12px; line-height:1.6; color:#000; }
 .dashboard-nav-description[hidden] { display:none; }
 @media(prefers-reduced-motion:reduce) { .dashboard-nav-disclosure svg { transition:none; } }
+
+/* Shared card frames; input, alert and navigation borders keep their own roles. */
+html body :is(
+  .panel, .teacher-card, .help-card, .pro-card, .registration-card, .demo-card,
+  .wizard-card, .wizard-discovery, .wizard-next, .auth-layout, .auth-demo-accounts, .auth-staff-entry,
+  .care-card, .care-review, .staff-summary, .staff-security-private,
+  .notes-card, .notes-editor, .notes-empty, .notes-review,
+  .booking-panel, .revision-guide, .revision-form, .revision-intro,
+  .reservation-card-new, .checkout-card, .checkout-review, .tuition-candidate,
+  .tuition-confirm, .tuition-term-card, .student-review-panel, .student-terms-panel,
+  .student-enquiry-snapshot, .student-withdraw-review, .student-support-explainer,
+  .student-candidate-list > li, .minimum-card, .minimum-summary, .minimum-help,
+  .support-history, .support-detail, .support-compose, .support-review,
+  .support-original, .lesson-recap, .lesson-personal-review, .lesson-feedback-editor,
+  .lesson-feedback-review, .learning-review, .learning-state, .learning-timezone,
+  .family-intro, .learning-intro, .support-intro, .care-intro, .notes-intro,
+  .family-confirm, .family-invitation, .guardian-setup-panel, .guardian-handoff-share,
+  .guardian-learner-group, .guardian-management-option, .guardian-management-summary,
+  .guardian-evidence-step, .guardian-scan-recovery, .guardian-decision-readiness,
+  .guardian-verification-workspace .guardian-verification-editor,
+  .hiring-intro, .hiring-counts > div, .hiring-next, .hiring-discovery-banner,
+  .role-next, .stat, .sidebar-person, .teaching-coverage-group,
+  .teacher-milestone, .teacher-employment, .learner-profile-intro, .profile-recovery,
+  .independent-profile, .independent-guide,
+  .dashboard-content .care-section > .student-fields > section,
+  .independent-age, .independent-consent, .independent-summary,
+  .delivery-records, .delivery-detail, .duration-cards > div,
+  .teacher-discovery-page .catalog-filters, .teacher-discovery-page .coverage-recovery,
+  .teacher-discovery-page .help-card, .teacher-discovery-page .assisted-search,
+  [data-slot="card"]
+) {
+  border:2px solid var(--card-border);
+
+  &:where(.auth-layout, .wizard-card, .catalog-filters, .student-terms-panel,
+    .tuition-term-card, .guardian-verification-editor, .checkout-card) {
+    border-color:var(--card-border-strong);
+  }
+  &:where(.teacher-card, .registration-card, .tuition-candidate):hover,
+  &:where(.guardian-management-option):has(input:checked),
+  &:where([aria-selected="true"]),
+  &:focus-within {
+    border-color:var(--card-border-strong);
+  }
+  &:where(.guardian-learner-group.invited),
+  &:where(.guardian-learner-group.invited):focus-within {
+    border-top:4px solid #F0D7FF;
+  }
+}

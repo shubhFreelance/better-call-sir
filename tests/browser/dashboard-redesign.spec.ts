@@ -29,6 +29,8 @@ for (const hi of [false, true]) {
     const choices = page.getByRole("region", {
       name: t("Your profile. Your next step."),
     });
+    await expect(choices.locator(".registration-card").first()).toHaveCSS("border-top-color", "rgb(243, 243, 224)");
+    await expect(choices.locator(".registration-card").first()).toHaveCSS("border-top-width", "2px");
     for (const [name, href] of [
       ["Register as a student", "/signup/student"],
       ["Register as a parent or guardian", "/signup/guardian"],
