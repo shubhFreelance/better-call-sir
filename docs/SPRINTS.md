@@ -1081,3 +1081,7 @@ Delivery targets: backend implementation commit, then fast-forward main and fron
 ## Guardian report transport correction — 23 October 2026
 
 Guardian evidence POST requests now use the existing bounded8MiB JSON transport parser, like teacher evidence. The ordinary64KiB JSON limit,5MiB decoded image validation, owner checks, quarantine and scan/review requirements remain intact. Four targeted real-HTTP integration cases pass, including a100KiB image, oversized rejection, normal-route limit and relationship/region/authority regressions. Backend increment supports the upcoming animated guardian verification flow; no deployment or live qualification.
+
+## Returning-account identity and progress — 23 October 2026
+
+Email OTP verification now permits an omitted name for existing-account sign-in. Only a valid inbox code can reveal whether registration is needed or return accountCreated; public OTP request envelopes stay unchanged. Existing account ID, name, role, verification and linked records are preserved; new unnamed accounts are never created. Updated optional Session/OtpVerify contract and generated client. Fresh full npm test passes26 unit,208 API,16 contract and4 mock cases, including guardian draft persistence across logout/login, managed-student linkage, teacher/independent/admin roles, MFA and unknown-email behavior. Test-only OTP budgets isolate the added scenarios without changing production limits. Frontend login/signup separation and resume routing are next; live email and existing release qualifications remain open.
