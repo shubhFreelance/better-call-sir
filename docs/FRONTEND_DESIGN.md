@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Pricing-inspired card frames — 23 October 2026
+
+Plan: apply a shared2px #F3F3E0 frame to card surfaces across public discovery, registration, onboarding and all role workspaces. Keep existing white/ivory/lavender fills, Manrope/Noto Sans Devanagari, content and rounding. Use near-black #191919 only for primary form/decision cards, hovered interactive cards, checked relationship choices and keyboard focus inside a card. Preserve the lavender invited-learner stripe and existing sidebar palette. Do not recolour input, alert, table-divider or status borders: these communicate validation and affordance. Prefer a single scoped surface rule and shared card-border tokens over changing the general --line token. Review guardian relationship cards from the owner screenshot plus search, onboarding and all role dashboards in English/Hindi and narrow layouts.
+
 ## Compact dashboard sidebar — 23 October 2026
 
 Plan: retain readable icon-and-label navigation in Manrope/Noto Sans Devanagari. The owner replaced the grey treatment with soft ivory #F3F1EB, a quiet #E5E5D8 inset outline and #ECECDF hover. Keep black labels/icons and #F0D7FF lavender for the current section, with a restrained lavender outline. Descriptions start collapsed, including the selected row; a separate44px chevron disclosure reveals them without accidentally navigating. Use keyboard-operable buttons, aria-expanded/controls, restrained chevron rotation and reduced-motion support. Reuse identical rows in desktop and the existing mobile menu; preserve destinations, role filtering and API access controls.

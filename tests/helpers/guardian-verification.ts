@@ -398,7 +398,7 @@ export function guardianVerificationTests() {
       padding: getComputedStyle(el).paddingLeft,
       border: getComputedStyle(el).borderLeftWidth,
     }));
-    expect(geometry).toEqual({ padding: "32px", border: "1px" });
+    expect(geometry).toEqual({ padding: "32px", border: "2px" });
     await expect(
       page
         .getByRole("list", { name: "Guardian verification steps", exact: true })

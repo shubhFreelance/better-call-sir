@@ -85,6 +85,9 @@ export function guardianLearnerChecks() {
       const hub = page.locator(".guardian-learners"),
         own = hub.locator(".guardian-learner-group").first(),
         invited = hub.locator(".guardian-learner-group").last();
+      await expect(own).toHaveCSS("border-top-color", "rgb(243, 243, 224)");
+      await expect(own).toHaveCSS("border-top-width", "2px");
+      await expect(invited).toHaveCSS("border-top-color", "rgb(240, 215, 255)");
       await expect(
         own.getByRole("heading", { name: "Anshuman", exact: true }),
       ).toBeVisible();
@@ -140,6 +143,8 @@ export function guardianLearnerChecks() {
           exact: true,
         }),
       ).toBeFocused();
+      await expect(invited).toHaveCSS("border-right-color", "rgb(25, 25, 25)");
+      await expect(invited).toHaveCSS("border-top-color", "rgb(240, 215, 255)");
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,
