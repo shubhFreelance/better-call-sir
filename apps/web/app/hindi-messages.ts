@@ -1,5 +1,10 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Refine your search": "अपनी खोज को बेहतर बनाएँ",
+  "Choose what matters to you. Results update as you change the filters.": "अपनी ज़रूरत के अनुसार विकल्प चुनें। फ़िल्टर बदलते ही नतीजे अपडेट होते हैं।",
+  "Active filters: {0}": "चुने हुए फ़िल्टर: {0}",
+  "Clear all filters": "सभी फ़िल्टर हटाएँ",
+  "Share your learning needs. We’ll help you find suitable options.": "अपनी पढ़ाई की ज़रूरत बताएँ। हम सही विकल्प खोजने में मदद करेंगे।",
   "Continue": "आगे बढ़ें",
   "Guardian verification progress": "अभिभावक सत्यापन की प्रगति",
   "Step {0} of {1}: {2}": "चरण {0}/{1}: {2}",

@@ -905,6 +905,11 @@ function Teachers() {
     locality,
     maxMonthly,
   } = filters;
+  const activeFilterCount = Object.values(filters).filter((value) => value.trim()).length;
+  function resetSearch() {
+    setFilterReset((value) => value + 1);
+    setSearchState({ filters: { ...emptyTeacherFilters } });
+  }
   function changeFilter(field: keyof typeof filters, value: string) {
     setSearchState((current) => ({
       ...current,
@@ -1012,9 +1017,9 @@ function Teachers() {
   const paginationBlocked =
     !!lastCursor && !!query.data?.pageParams.includes(lastCursor);
   return (
-    <main className="container section">
+    <main className="container section teacher-discovery-page">
       <PageTitle
-        eyebrow={appText("FIND YOUR KIND OF TEACHER")}
+        eyebrow=""
         title={appText("Good learning starts with a good fit.")}
         subtitle={appText("Early years, school & college · Raipur pilot")}
       />
@@ -1087,14 +1092,20 @@ function Teachers() {
             aria-busy={!interactive}
             aria-label={appText("Teacher search criteria")}
           >
+            <div className="search-form-heading">
+              <div><h2>{appText("Refine your search")}</h2><p>{appText("Choose what matters to you. Results update as you change the filters.")}</p></div>
+              <span className="search-filter-count">{appText("Active filters: {0}", [activeFilterCount])}</span>
+            </div>
             <label className="search-input">
-              <Search size={19} />
+              <span className="search-query-label">{appText("Search teachers")}</span>
+              <span className="search-query-control"><Search size={20} aria-hidden="true" />
               <Input
                 aria-label={appText("Search teachers")}
                 placeholder={appText("Search a teacher or subject")}
                 value={q}
                 onChange={(e) => changeFilter("q", e.target.value)}
               />
+              </span>
             </label>
             <div className="filter-select">
               <label className="filter-label" htmlFor="search-stage">
@@ -1283,10 +1294,7 @@ function Teachers() {
               type="button"
               variant="outline"
               className="reset-filters"
-              onClick={() => {
-                setFilterReset((v) => v + 1);
-                setSearchState({ filters: { ...emptyTeacherFilters } });
-              }}
+              onClick={resetSearch}
             >
               {appText("Reset filters")}{" "}
             </UiButton>
@@ -1381,54 +1389,46 @@ function Teachers() {
               className="coverage-recovery"
               aria-label={appText("Search recovery")}
             >
+              <span className="search-empty-icon" aria-hidden="true"><Search size={24} /></span>
               <h2>{appText("No teachers match these filters right now.")}</h2>
               <p>
                 {appText(
                   "Try broader filters or let us review your needs. An empty search does not mean your class or subject is outside pilot coverage.",
                 )}{" "}
               </p>
-              <div className="wizard-actions">
-                <UiButton variant="outline" onClick={() => setTab("assisted")}>
-                  {appText("Let us search for you")}{" "}
+              <div className="search-recovery-actions">
+                {activeFilterCount > 0 && <UiButton variant="outline" onClick={resetSearch}>{appText("Clear all filters")}</UiButton>}
+                <UiButton onClick={() => setTab("assisted")}>
+                  {appText("Let us search for you")} <ArrowRight size={17} aria-hidden="true" />
                 </UiButton>
-                <Link className="inline-link" href="/waitlist">
+              </div>
+              <div className="search-coverage-option"><Link className="inline-link" href="/waitlist">
                   {appText("Need another class, subject or city?")}{" "}
                 </Link>
               </div>
             </section>
           )}
-          <div className="help-card">
+          {!query.isPending && !unavailable && teachers.length > 0 && <div className="help-card">
             <div>
               <h3>{appText("Not sure who to choose?")}</h3>
               <p>
                 {appText(
-                  "Tell us what your child needs. We’ll help you find suitable options.",
+                  "Share your learning needs. We’ll help you find suitable options.",
                 )}{" "}
               </p>
             </div>
-            {authLoading ? (
-              <State loading />
-            ) : (
-              <Link
-                href={
-                  independent
-                    ? "/dashboard/enquiries?new=1"
-                    : "/onboarding/parent"
-                }
-                className="button secondary"
-              >
-                {appText("Help me choose")} <ArrowRight size={17} />
-              </Link>
-            )}
-          </div>
+            <UiButton variant="outline" onClick={() => setTab("assisted")}>
+              {appText("Help me choose")} <ArrowRight size={17} aria-hidden="true" />
+            </UiButton>
+          </div>}
         </TabsContent>
       </Tabs>
-      <p className="coverage-discovery-link">
+      {(tab === "assisted" || query.isPending || unavailable || teachers.length > 0) && <p className="coverage-discovery-link">
         {appText("Looking outside our current pilot coverage?")}{" "}
         <Link className="inline-link" href="/waitlist">
           {appText("Request future coverage")}{" "}
         </Link>
-      </p>
+      </p>}
     </main>
   );
 }

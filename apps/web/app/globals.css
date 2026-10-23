@@ -5647,3 +5647,61 @@ body:has(.guardian-verification-page) { background: #F4F4EC; }
   .guardian-verification-editor .verification-form-actions button { width: 100%; }
 }
 @media(prefers-reduced-motion:reduce) { .verification-progress *, .verification-progress *::before { animation: none !important; transition: none !important; } }
+
+/* Teacher discovery: one filter worksheet and one next action when there is no match. */
+body:has(.teacher-discovery-page) { background: #F4F4EC; }
+.teacher-discovery-page { --paper: #F4F4EC; --line: #DADAD0; --ink: #000000; }
+.teacher-discovery-page .page-title h1 { color: #000000; font-size: clamp(30px,3.5vw,46px); max-width: 22ch; line-height: 1.2; }
+.teacher-discovery-page .page-title p { margin-top: 14px; font-size: 15px; }
+.teacher-discovery-page .discovery-tabs { background: #E9E9E0; border: 1px solid #DADAD0; border-radius: 16px; padding: 6px; gap: 6px; margin-bottom: 24px; }
+.teacher-discovery-page .discovery-tabs button { border: 0; border-radius: 11px; padding: 18px 20px; min-height: 80px; box-shadow: none; }
+.teacher-discovery-page .discovery-tabs button[data-state=active] { background: #000000; color: #FFFFFF; }
+.teacher-discovery-page .discovery-tabs button[data-state=active] small { color: #E0E0D8; }
+.teacher-discovery-page .discovery-tabs button small { font-size: 12px; line-height: 1.6; }
+.teacher-discovery-page .catalog-filters { border-radius: 20px; padding: 32px; gap: 24px; margin-bottom: 32px; align-items: start; }
+.search-form-heading { grid-column: 1 / -1; display: flex; align-items: start; justify-content: space-between; gap: 20px; }
+.search-form-heading h2 { font-size: 22px; line-height: 1.4; color: #000000; margin: 0 0 6px; }
+.search-form-heading p { font-size: 14px; line-height: 1.7; margin: 0; color: #58605B; max-width: 65ch; }
+.search-filter-count { display: inline-flex; flex-shrink: 0; padding: 8px 12px; background: #F4F4EC; border-radius: 8px; font-size: 12px; color: #393D37; }
+.teacher-discovery-page .catalog-filters .search-input { display: grid; padding: 0 0 24px; gap: 10px; border: 0; border-bottom: 1px solid #DADAD0; border-radius: 0; }
+.search-query-label { font-size: 14px; font-weight: 750; }
+.search-query-control { display: flex; gap: 12px; align-items: center; border: 1px solid #B9BDB4; border-radius: 12px; padding: 0 16px; background: #F4F4EC; min-width: 0; }
+.search-query-control > svg { flex-shrink: 0; color: #034F46; }
+.teacher-discovery-page .catalog-filters .search-query-control input { min-height: 56px; font-size: 16px; padding: 12px 0; box-shadow: none; outline: none; }
+.search-query-control:focus-within { outline: 2px solid #034F46; outline-offset: 3px; }
+.teacher-discovery-page .catalog-filters .filter-label { font-size: 13px; font-weight: 750; color: #000000; }
+.teacher-discovery-page .catalog-filters .filter-select { gap: 10px; }
+.teacher-discovery-page .catalog-filters .filter-select select, .teacher-discovery-page .catalog-filters .filter-select input { border: 1px solid #C7CABF; border-radius: 10px; background: #FFFFFF; min-height: 48px; padding: 10px 12px; font-size: 14px; width: 100%; }
+.teacher-discovery-page .catalog-filters .curriculum-choice select { border: 1px solid #C7CABF; min-height: 48px; padding: 10px 12px; }
+.teacher-discovery-page .catalog-filters .reset-filters { align-self: end; min-height: 48px; color: #034F46; }
+.teacher-discovery-page .results-heading { font-size: 15px; align-items: center; gap: 16px; flex-wrap: wrap; }
+.teacher-discovery-page .results-heading > span { font-weight: 750; }
+.teacher-discovery-page .results-heading small { font-size: 12px; }
+.teacher-discovery-page .coverage-recovery { background: #FFFFFF; border: 1px solid #DADAD0; padding: 36px; border-radius: 20px; margin-top: 0; }
+.search-empty-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: #F4F4EC; color: #034F46; margin-bottom: 20px; }
+.teacher-discovery-page .coverage-recovery h2 { color: #000000; font-size: clamp(22px,2.4vw,28px); margin: 0 0 12px; max-width: 35ch; }
+.teacher-discovery-page .coverage-recovery p { max-width: 72ch; font-size: 15px; line-height: 1.8; margin-bottom: 24px; }
+.search-recovery-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.search-recovery-actions button { min-height: 48px; }
+.search-coverage-option { margin-top: 24px; padding-top: 20px; border-top: 1px solid #DADAD0; font-size: 14px; }
+.teacher-discovery-page .help-card { background: transparent; border: 1px solid #DADAD0; margin-top: 24px; padding: 24px; gap: 20px; border-radius: 14px; }
+.teacher-discovery-page .help-card h3 { margin: 0 0 8px; }
+.teacher-discovery-page .help-card p { margin: 0; font-size: 14px; }
+.teacher-discovery-page .assisted-search { background: #FFFFFF; border: 1px solid #DADAD0; border-radius: 20px; }
+@media(max-width:900px) { .teacher-discovery-page .catalog-filters { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) {
+  .teacher-discovery-page .catalog-filters { grid-template-columns: minmax(0,1fr); padding: 20px; gap: 20px; }
+  .search-form-heading { flex-direction: column; gap: 12px; }
+  .teacher-discovery-page .discovery-tabs button { padding: 12px; gap: 4px 8px; min-height: 90px; font-size: 13px; }
+  .teacher-discovery-page .discovery-tabs button small { font-size: 11px; }
+  .teacher-discovery-page .catalog-filters .filter-select select, .teacher-discovery-page .catalog-filters .filter-select input { font-size: 16px; }
+  .teacher-discovery-page .coverage-recovery { padding: 24px 20px; }
+  .search-recovery-actions { flex-direction: column; }
+  .search-recovery-actions button { width: 100%; white-space: normal; }
+  .teacher-discovery-page .help-card { flex-direction: column; align-items: start; }
+  .teacher-discovery-page .help-card button { width: 100%; }
+  .teacher-discovery-page .assisted-search { padding: 24px 20px; }
+}
+
+.teacher-discovery-page .search-pagination { background: transparent; border-top: 1px solid #DADAD0; border-radius: 0; padding: 20px 0; margin-top: 24px; }
+@media(max-width:600px) { .teacher-discovery-page .results-heading { flex-direction: column; align-items: flex-start; gap: 8px; } .teacher-discovery-page .results-heading small { max-width: 100%; text-align: left; } }

@@ -306,7 +306,7 @@ test("real verified guardian records unsupported coverage and reads it after rel
   await page.getByText("Development accounts", { exact: true }).click();
   await page.getByRole("button", { name: /Kavita/ }).click();
   await expect(
-    page.getByRole("heading", { name: /Hello, Kavita/ }),
+    page.getByRole("heading", { name: "Your parent or guardian dashboard", exact:true }),
   ).toBeVisible();
   await page.goto("/waitlist");
   await fill(page);

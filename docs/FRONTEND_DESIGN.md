@@ -1,5 +1,13 @@
 # Frontend design direction
 
+## Teacher search refinement — 23 October 2026
+
+Plan: use ivory #F4F4EC for the search page, white #FFFFFF for the filter worksheet, black #000000 for headings/active tabs, teal #034F46 for primary next actions and neutral #DADAD0 borders. Keep Manrope/Noto Sans Devanagari. Left-align a concise title, two clearly distinct search tabs, a full-width labelled text query, then evenly spaced filters in four desktop/two tablet/one phone columns. A small filter count and explanation make immediate search behavior explicit. Existing custom curriculum fields remain visible and labelled.
+
+Review against the screenshot: two lavender banners repeat the same help message and compete with results. Replace them with one quiet no-match card containing reset and assisted-search choices, plus one coverage link. Show the secondary help strip only when actual results exist. Preserve teacher-card terms, query state/pagination/return behavior, education-stage resets, pending/error states and all role-specific assisted routes. No backend/query-contract change. Check keyboard, contrast, Hindi, phone overflow and existing return/pagination/readiness/waitlist behavior before pushing.
+
+Final review: inspected English desktop empty/populated results and Hindi phone captures. Removed repeated no-match assistance and the lavender pagination block. A legacy global input selector required a more specific search-field selector to retain56px query height; the final touch-target assertion passes. The phone result caption now stacks without competing for width. Native selects, custom subject/board fields, visible focus and all existing filter semantics remain intact. The final strict-CSP suite passes all10 selected cases, including no-script readiness and return-state behavior.
+
 ## Guided guardian verification — 23 October 2026
 
 Plan: the owner now chooses ivory #F4F4EC, black #000000, white #FFFFFF, teal #034F46 and neutral border #DADAD0 for this page. Keep Manrope/Noto Sans Devanagari. A six-stop sequence reflects actual work: relationship details, learning choices, confirmation, report upload, staff review and student setup. The first three steps reveal only their own required fields; answers stay in component memory when navigating back. Review-before-save and server-authoritative later steps stay intact. Left-align the white worksheet and render a restrained connecting line, completed checkmarks and a current-step marker. Animate only state changes; disable animation for reduced motion. Phone layouts use a compact two-column tracker and full-width actions without horizontal scrolling.
