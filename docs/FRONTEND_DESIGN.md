@@ -1,5 +1,12 @@
 # Frontend design direction
 
+## Guardian report scan recovery — 23 October 2026
+
+Plan: preserve the ivory/white worksheet, teal actions, restrained lavender highlights and Manrope/Noto Sans Devanagari. Separate uploaded evidence, explicit submission and scan clearance. Show waiting versus failed processing plainly; both owner and staff can refresh status without re-upload. Poll active quarantined records only while no edit/write or retry confirmation is in progress; errors hide private details. Only ADMIN receives a reviewed retry form bound to the current failed scan job. Require infrastructure confirmation and a reason, reuse exact idempotent job recovery, and keep download/approval blocked until CLEAN. Review: never hide a processing failure behind a permanent “pending” message, and never treat a retry as clearance. English/Hindi, mobile, accessibility and denied/uncertain recovery remain required.
+
+
+Final review: real admin evidence and320px Hindi retry screenshots inspected. Removed inherited nested fieldset padding so the retry reason remains usable; a width assertion guards the phone regression. Current scan status refreshes without re-upload, exhausted scans have an administrator-only reviewed retry, and an explicit refresh recovers stale retry conflicts without trapping the form. Final23 production cases pass, alongside the real upload→worker→admin original-byte download acceptance.
+
 ## Visible staff sign-in entry — 23 October 2026
 
 Plan: a quiet white/ivory access row with a lavender shield and a clearly labelled Admin & staff sign-in link below the normal form. Preserve Manrope/Noto Sans Devanagari and44px focusable links. /login?intent=staff uses the same email-only OTP with staff-specific guidance and no signup toggle; verified unknown inboxes cannot create accounts from this flow. Staff intent conveys no role and existing backend MFA/role checks remain authoritative. Show the development selector open in staff mode with explicit loading/empty/unavailable/retry states instead of silently hiding it when the account list is missing. Test shortcuts remain supplied solely by the existing development-only endpoint. Review: no public privileged signup or universal admin password; the missing entry is a navigation/state issue.

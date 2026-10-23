@@ -5754,3 +5754,16 @@ body:has(.teacher-discovery-page) { background: #F4F4EC; }
 .auth-staff-entry p { margin:0; color:var(--muted); font-size:14px; line-height:1.6; }
 .auth-demo-accounts > [role=alert] [data-slot=button] { margin:12px 0 0; min-height:44px; }
 @media(max-width:640px) { .auth-staff-entry { padding:16px; } .auth-staff-entry .inline-link { white-space:normal; } }
+
+.guardian-scan-recovery { margin:24px 0; padding:24px; border:1px solid var(--line); border-radius:16px; background:#F4F4EC; }
+.guardian-scan-recovery h4 { margin:0 0 16px; font-size:18px; }
+.guardian-scan-recovery fieldset { min-width:0; }
+.guardian-scan-recovery .care-actions { margin-top:20px; }
+@media(max-width:640px) { .guardian-scan-recovery { padding:20px; } }
+.guardian-verification-editor .guardian-scan-recovery form > fieldset { padding:0; margin:0; border:0; display:grid; gap:16px; }
+.guardian-scan-recovery legend { padding:0; margin:0 0 16px; text-align:left; max-width:100%; }
+.guardian-scan-recovery label:not(.care-check) { display:grid; gap:8px; margin:0; }
+.guardian-scan-recovery textarea { width:100%; max-width:100%; }
+.guardian-scan-recovery .care-check { display:flex; align-items:flex-start; gap:12px; padding:0; margin:0; }
+.guardian-scan-recovery .care-check input { flex:0 0 18px; width:18px; height:18px; margin-top:4px; }
+.guardian-scan-recovery .care-check span { min-width:0; flex:1; }

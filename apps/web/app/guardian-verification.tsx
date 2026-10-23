@@ -416,7 +416,11 @@ function ApplicationFields({
     </fieldset>
   );
 }
-function VerificationSummary({ record: r }: { record: Verification }) {
+function VerificationSummary({ record: r,
+  staff = false,
+}: { record: Verification;
+  staff?: boolean;
+}) {
   const { appText } = useAppTranslation();
   return (
     <>
@@ -451,11 +455,36 @@ function VerificationSummary({ record: r }: { record: Verification }) {
                     ? "Unsafe file — replace the image"
                     : r.evidence.status === "DELETED"
                       ? "Deleted"
-                      : "Scan pending",
+                      : r.scanStatus === "RETRY_REQUIRED"
+                        ? "Safety scan needs recovery"
+                        : "Scan pending",
               )
             : appText("No image uploaded")}
         </dd>
       </dl>
+      {r.evidence?.status === "QUARANTINED" && (
+        <Notice>
+          {appText(
+            r.scanStatus === "RETRY_REQUIRED"
+              ? "Your report is stored privately, but safety scanning needs recovery. An administrator can restore processing and retry this file."
+              : "Your report is stored privately and waiting for its safety scan. It becomes available to view after scan clearance.",
+          )}
+          {staff && (
+            <p>
+              {appText(
+                "If scanning does not finish, check the scanner and worker before retrying. Approval and download remain blocked until clearance.",
+              )}
+            </p>
+          )}
+        </Notice>
+      )}
+      {!staff && editable(r) && r.evidence && (
+        <p className="care-help">
+          {appText(
+            "Uploading saves the file. Select Send for staff review to submit this relationship request.",
+          )}
+        </p>
+      )}
       <aside className="guardian-management-summary">
         <strong>{appText(guardianManagementLabels[r.managementMode])}</strong>
         <p>
@@ -630,7 +659,34 @@ function OwnerVerification({
   const decision = useDecision(session, refresh),
     unavailable = queueUnavailable || !!detail.error,
     locked =
-      decision.locked || reading || unavailable || (!!id && detail.isPending);
+      decision.locked || reading || unavailable || (!!id && detail.isFetching);
+  useEffect(() => {
+    if (
+      !r ||
+      r.evidence?.status !== "QUARANTINED" ||
+      editing ||
+      file ||
+      reading ||
+      unavailable ||
+      decision.locked
+    )
+      return;
+    const timer = window.setInterval(
+      () => {
+        if (document.visibilityState === "visible")
+          void detail.refetch().then((next) => {
+            if (
+              next.data &&
+              (next.data.version !== r.version ||
+                next.data.currentEvidenceId !== r.currentEvidenceId)
+            )
+              setConfirmed(false);
+          });
+      },
+      r.scanStatus === "RETRY_REQUIRED" ? 15000 : 5000,
+    );
+    return () => window.clearInterval(timer);
+  }, [r, editing, file, reading, unavailable, decision.locked, detail.refetch]);
   const learners = useQuery({
     queryKey: ["guardian-verification-learners", session.account.id],
     queryFn: ({ signal }) => api<{ items: Child[] }>("/children", { signal }),
@@ -745,18 +801,19 @@ function OwnerVerification({
         )}
       </h3>
       <Feedback decision={decision} />
-      {(decision.conflict || unavailable) && !decision.uncertain && (
-        <Button
-          variant="outline"
-          disabled={decision.busy}
-          onClick={() => {
-            setConfirmed(false);
-            decision.reload();
-          }}
-        >
-          {appText("Refresh verification details")}
-        </Button>
-      )}
+      {(decision.conflict || unavailable || (!!id && !editing)) &&
+        !decision.uncertain && (
+          <Button
+            variant="outline"
+            disabled={decision.busy || detail.isFetching}
+            onClick={() => {
+              setConfirmed(false);
+              decision.reload();
+            }}
+          >
+            {appText("Refresh verification details")}
+          </Button>
+        )}
       {unavailable && (
         <Notice error>
           {appText(
@@ -1478,7 +1535,10 @@ function StaffVerification({
     [observed, setObserved] = useState(false),
     [call, setCall] = useState(""),
     [confirmed, setConfirmed] = useState(false),
-    [saved, setSaved] = useState(false);
+    [saved, setSaved] = useState(false),
+    [retryScan, setRetryScan] = useState(false),
+    [retryReason, setRetryReason] = useState(""),
+    [retryConfirmed, setRetryConfirmed] = useState(false);
   const detail = useQuery({
     queryKey: ["guardian-review", session.account.id, initial.id],
     queryFn: ({ signal }) =>
@@ -1493,7 +1553,7 @@ function StaffVerification({
   const decision = useDecision(session, refresh),
     r = !detail.error ? detail.data : null,
     unavailable = queueUnavailable || !!detail.error,
-    locked = decision.locked || unavailable || detail.isPending || saved;
+    locked = decision.locked || unavailable || detail.isFetching || saved;
   const canApprove =
     r &&
     r.evidence?.status === "CLEAN" &&
@@ -1502,6 +1562,32 @@ function StaffVerification({
     ((r.acknowledgmentMethod === "STUDENT_ACCOUNT" &&
       r.studentAcknowledgedAt) ||
       (r.acknowledgmentMethod === "STAFF_CALL" && call && observed));
+  useEffect(() => {
+    if (
+      !r ||
+      r.evidence?.status !== "QUARANTINED" ||
+      retryScan ||
+      unavailable ||
+      decision.locked ||
+      saved
+    )
+      return;
+    const timer = window.setInterval(
+      () => {
+        if (document.visibilityState === "visible")
+          void detail.refetch().then((next) => {
+            if (
+              next.data &&
+              (next.data.version !== r.version ||
+                next.data.evidence?.version !== r.evidence?.version)
+            )
+              setConfirmed(false);
+          });
+      },
+      r.scanStatus === "RETRY_REQUIRED" ? 15000 : 5000,
+    );
+    return () => window.clearInterval(timer);
+  }, [r, retryScan, unavailable, decision.locked, saved, detail.refetch]);
   useEffect(() => {
     root.current?.focus();
   }, []);
@@ -1514,11 +1600,13 @@ function StaffVerification({
     >
       <h3>{appText("Review guardian evidence")}</h3>
       <Feedback decision={decision} />
-      {(decision.conflict || unavailable) && !decision.uncertain && (
+      {!decision.uncertain && (!retryScan || decision.conflict || unavailable) && (
         <Button
           variant="outline"
-          disabled={decision.busy}
+          disabled={decision.busy || detail.isFetching}
           onClick={() => {
+            setRetryScan(false);
+            setRetryConfirmed(false);
             setConfirmed(false);
             decision.reload();
           }}
@@ -1538,13 +1626,110 @@ function StaffVerification({
       ) : (
         r && (
           <>
-            <VerificationSummary record={r} />
+            <VerificationSummary record={r} staff />
+            {session.account.role === "ADMIN" &&
+              r.scanRetry &&
+              r.evidence?.status === "QUARANTINED" && (
+                <section className="guardian-scan-recovery">
+                  <h4>{appText("Restore report scanning")}</h4>
+                  {!retryScan ? (
+                    <Button
+                      variant="outline"
+                      disabled={locked}
+                      onClick={() => {
+                        setRetryScan(true);
+                        setRetryConfirmed(false);
+                      }}
+                    >
+                      {appText("Review scan retry")}
+                    </Button>
+                  ) : (
+                    <form
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        const retry = r.scanRetry;
+                        if (
+                          locked ||
+                          !retry ||
+                          !retryConfirmed ||
+                          !retryReason.trim()
+                        )
+                          return;
+                        decision.run({
+                          path: `/admin/jobs/${retry.jobId}/retries`,
+                          body: {
+                            expectedAttempts: retry.expectedAttempts,
+                            reason: retryReason.trim(),
+                            confirmed: true,
+                          },
+                          message:
+                            "Safety scan queued again. The report stays blocked until the scanner clears it.",
+                          onSaved: () => {
+                            setRetryScan(false);
+                            setRetryConfirmed(false);
+                            setRetryReason("");
+                          },
+                        });
+                      }}
+                    >
+                      <fieldset disabled={locked}>
+                        <legend>
+                          {appText("Retry this report scan only")}
+                        </legend>
+                        <label>
+                          {appText("Reason for scan retry")}
+                          <Textarea
+                            value={retryReason}
+                            onChange={(event) =>
+                              setRetryReason(event.target.value)
+                            }
+                            required
+                            maxLength={500}
+                          />
+                        </label>
+                        <label className="care-check">
+                          <input
+                            type="checkbox"
+                            checked={retryConfirmed}
+                            onChange={(event) =>
+                              setRetryConfirmed(event.target.checked)
+                            }
+                          />
+                          <span>
+                            {appText(
+                              "I checked the scanner and worker and want to retry this file's safety scan.",
+                            )}
+                          </span>
+                        </label>
+                      </fieldset>
+                      <div className="care-actions">
+                        <Button
+                          type="submit"
+                          disabled={
+                            locked || !retryConfirmed || !retryReason.trim()
+                          }
+                        >
+                          {appText("Retry safety scan")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={decision.locked}
+                          onClick={() => setRetryScan(false)}
+                        >
+                          {appText("Go back")}
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </section>
+              )}
             {r.reviewReference && (
               <p>
                 {appText("Protected review reference")}: {r.reviewReference}
               </p>
             )}
-            {["PENDING", "APPROVED"].includes(r.status) && !saved && (
+            {["PENDING", "APPROVED"].includes(r.status) && !saved && !retryScan && (
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
