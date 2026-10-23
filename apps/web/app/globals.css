@@ -5774,8 +5774,9 @@ body:has(.teacher-discovery-page) { background: #F4F4EC; }
 .guardian-decision-readiness li { margin:8px 0; line-height:1.6; }
 
 /* Compact dashboard rows retain labels; only their descriptions expand. */
-.dashboard-nav-item { background:#8D8D8D; color:#000; border-radius:10px; overflow:hidden; }
-.dashboard-nav-item.is-active { background:#F0D7FF; }
+.dashboard-nav-item { background:#F4F4EC; color:#000; border-radius:10px; overflow:hidden; box-shadow:inset 0 0 0 1px #E5E5D8; }
+.dashboard-nav-item:not(.is-active):hover { background:#ECECDF; }
+.dashboard-nav-item.is-active { background:#F0D7FF; box-shadow:inset 0 0 0 1px #E6C8F3; }
 .dashboard-nav-row { display:flex; align-items:center; min-width:0; }
 .dashboard-sidebar .dashboard-nav-row > a,
 .dashboard-sidebar .dashboard-mobile-nav .dashboard-nav-row > a { flex:1; min-width:0; min-height:48px; align-items:center; padding:12px; gap:10px; color:#000; background:transparent; border-radius:0; }
