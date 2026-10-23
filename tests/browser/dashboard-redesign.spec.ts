@@ -301,7 +301,7 @@ for (const hi of [false, true]) test(`sidebar descriptions expand only on click 
   await expect(rows.first().locator(".dashboard-nav-description")).toBeHidden();
   await expect(rows.nth(1).locator(".dashboard-nav-description")).toBeHidden();
   await expect(rows.first()).toHaveCSS("background-color", "rgb(240, 215, 255)");
-  await expect(rows.nth(1)).toHaveCSS("background-color", "rgb(244, 244, 236)");
+  await expect(rows.nth(1)).toHaveCSS("background-color", "rgb(243, 241, 235)");
   const toggle = rows.first().getByRole("button");
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await toggle.focus();
