@@ -1554,14 +1554,39 @@ function StaffVerification({
     r = !detail.error ? detail.data : null,
     unavailable = queueUnavailable || !!detail.error,
     locked = decision.locked || unavailable || detail.isFetching || saved;
-  const canApprove =
-    r &&
-    r.evidence?.status === "CLEAN" &&
-    adult &&
-    ((r.documentNamesGuardian && names) || call) &&
-    ((r.acknowledgmentMethod === "STUDENT_ACCOUNT" &&
-      r.studentAcknowledgedAt) ||
-      (r.acknowledgmentMethod === "STAFF_CALL" && call && observed));
+  const approvalBlockers =
+    r && outcome === "APPROVE"
+      ? [
+          r.evidence?.status !== "CLEAN" &&
+            appText("Wait for the school report to pass its safety scan."),
+          !adult &&
+            appText(
+              "Confirm that you independently checked adult status and authority.",
+            ),
+          !((r.documentNamesGuardian && names) || call) &&
+            appText(
+              "Confirm the matching report names, or record a completed phone or video review.",
+            ),
+          r.acknowledgmentMethod === "STUDENT_ACCOUNT"
+            ? !r.studentAcknowledgedAt &&
+              appText(
+                "The student must confirm this relationship from their own account. A staff call does not replace this confirmation. After they confirm, refresh verification details.",
+              )
+            : !(call && observed) &&
+              appText(
+                "Complete a phone or video review and confirm that you observed the student acknowledging this guardian.",
+              ),
+        ].filter((message): message is string => typeof message === "string")
+      : [];
+  const decisionBlockers = [
+    ...approvalBlockers,
+    !reason.trim() && appText("Enter feedback for the guardian."),
+    !reference.trim() && appText("Enter a protected review reference."),
+    !confirmed &&
+      appText(
+        "Confirm that you reviewed this learner, guardian, evidence and the exact decision.",
+      ),
+  ].filter((message): message is string => typeof message === "string");
   useEffect(() => {
     if (
       !r ||
@@ -1735,8 +1760,7 @@ function StaffVerification({
                   e.preventDefault();
                   if (
                     locked ||
-                    !confirmed ||
-                    (outcome === "APPROVE" && !canApprove)
+                    decisionBlockers.length > 0
                   )
                     return;
                   decision.run({
@@ -1830,7 +1854,7 @@ function StaffVerification({
                           </option>
                         </select>
                       </label>
-                      <label className="care-check">
+                      {r.acknowledgmentMethod === "STAFF_CALL" && <label className="care-check">
                         <input
                           type="checkbox"
                           checked={observed}
@@ -1841,7 +1865,7 @@ function StaffVerification({
                             "I observed the student acknowledgment during this call.",
                           )}
                         </span>
-                      </label>
+                      </label>}
                       {(!r.documentNamesGuardian ||
                         !names ||
                         r.acknowledgmentMethod === "STAFF_CALL") && (
@@ -1892,11 +1916,14 @@ function StaffVerification({
                       )}
                     </span>
                   </label>
+                  <section className="guardian-decision-readiness" id="guardian-decision-readiness" aria-live="polite" aria-atomic="true">
+                    <h4>{decisionBlockers.length ? appText("Before you can record this decision") : appText("Ready to record this decision")}</h4>
+                    {decisionBlockers.length > 0 && <ul>{decisionBlockers.map((message) => <li key={message}>{message}</li>)}</ul>}
+                  </section>
                   <Button
                     type="submit"
-                    disabled={
-                      !confirmed || (outcome === "APPROVE" && !canApprove)
-                    }
+                    aria-describedby="guardian-decision-readiness"
+                    disabled={decisionBlockers.length > 0}
                   >
                     {appText("Record verification decision")}
                   </Button>

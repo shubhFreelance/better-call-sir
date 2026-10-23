@@ -832,6 +832,163 @@ export function guardianVerificationTests() {
     expect(f.writes[0].body.adultAndAuthorityChecked).toBe(true);
     expect(f.state().status).toBe("APPROVED");
   });
+  for (const hindi of [false, true])
+    test(`student-account approval explains the remaining acknowledgment even after all staff fields are filled (${hindi ? "Hindi phone" : "English"})`, async ({
+      page,
+    }) => {
+      const f = await setup(page, { role: "ADMIN" });
+      Object.assign(f.state(), {
+        acknowledgmentMethod: "STUDENT_ACCOUNT",
+        studentEmail: "student@example.test",
+        documentNamesGuardian: true,
+      });
+      if (hindi) {
+        await page
+          .getByRole("button", {
+            name: "Switch English and Hindi",
+            exact: true,
+          })
+          .click();
+        await checkHindi(page);
+        await page.setViewportSize({ width: 320, height: 900 });
+      }
+      const text = (value: string) => (hindi ? hindiMessages[value] : value);
+      await page
+        .getByRole("button", {
+          name: text("Review guardian evidence"),
+          exact: true,
+        })
+        .first()
+        .click();
+      await page
+        .getByRole("checkbox", {
+          name: text(
+            "I independently checked adult status and authority. A matching report name alone is insufficient.",
+          ),
+          exact: true,
+        })
+        .check();
+      await page
+        .getByRole("checkbox", {
+          name: text(
+            "The clean report names this guardian and matches this learner.",
+          ),
+          exact: true,
+        })
+        .check();
+      await page
+        .getByRole("combobox", {
+          name: text("Completed call review"),
+          exact: true,
+        })
+        .selectOption("VIDEO");
+      await page
+        .getByRole("textbox", {
+          name: text("Feedback for the guardian"),
+          exact: true,
+        })
+        .fill("Synthetic review");
+      await page
+        .getByRole("textbox", {
+          name: text("Protected review reference"),
+          exact: true,
+        })
+        .fill("private:synthetic-review");
+      const confirm = page.getByRole("checkbox", {
+        name: text(
+          "I reviewed this learner, guardian, evidence and the exact decision.",
+        ),
+        exact: true,
+      });
+      await confirm.check();
+      const submit = page.getByRole("button", {
+        name: text("Record verification decision"),
+        exact: true,
+      });
+      await expect(submit).toBeDisabled();
+      const readiness = page.locator("#guardian-decision-readiness");
+      await expect(readiness.locator("li")).toHaveCount(1);
+      await expect(readiness).toContainText(
+        text(
+          "The student must confirm this relationship from their own account. A staff call does not replace this confirmation. After they confirm, refresh verification details.",
+        ),
+      );
+      await expect(
+        page.getByRole("checkbox", {
+          name: text("I observed the student acknowledgment during this call."),
+          exact: true,
+        }),
+      ).toHaveCount(0);
+      expect(f.writes).toHaveLength(0);
+      if (hindi) {
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+        ).toBe(true);
+        const accessibility = await new AxeBuilder({ page })
+          .include(".guardian-verification-editor")
+          .analyze();
+        expect(
+          accessibility.violations.filter((v) =>
+            ["serious", "critical"].includes(v.impact || ""),
+          ),
+        ).toEqual([]);
+        await submit.scrollIntoViewIfNeeded();
+        await page.screenshot({
+          path: "test-results/guardian-decision-blocked-hi-phone.png",
+          fullPage: true,
+        });
+      }
+      // Model a separate student acknowledgment persisted by the server.
+      f.state().studentAcknowledgedAt = new Date().toISOString();
+      f.state().version += 1;
+      await page
+        .getByRole("button", {
+          name: text("Refresh verification details"),
+          exact: true,
+        })
+        .click();
+      await expect(readiness).not.toContainText(
+        text(
+          "The student must confirm this relationship from their own account. A staff call does not replace this confirmation. After they confirm, refresh verification details.",
+        ),
+      );
+      await expect(submit).toBeDisabled();
+      await page
+        .getByRole("combobox", {
+          name: text("Completed call review"),
+          exact: true,
+        })
+        .selectOption("");
+      await confirm.check();
+      await expect(submit).toBeEnabled();
+      await page
+        .getByRole("textbox", {
+          name: text("Protected review reference"),
+          exact: true,
+        })
+        .fill("   ");
+      await expect(submit).toBeDisabled();
+      await expect(readiness).toContainText(
+        text("Enter a protected review reference."),
+      );
+      await page
+        .getByRole("textbox", {
+          name: text("Protected review reference"),
+          exact: true,
+        })
+        .fill("private:synthetic-review");
+      await submit.click();
+      await expect(
+        page.getByText(text("Guardian verification review recorded."), {
+          exact: true,
+        }),
+      ).toBeVisible();
+      expect(f.writes).toHaveLength(1);
+      expect(f.writes[0].body.expectedVersion).toBe(2);
+      expect(f.writes[0].body.studentAcknowledgmentObserved).toBe(false);
+    });
   test("unknown staff approval retries the already-committed body and key once without allowing another decision", async ({
     page,
   }) => {
