@@ -5880,4 +5880,5 @@ export const hindiMessages: Record<string, string> = {
   "Only the assigned staff member can reveal contact details.": "केवल ज़िम्मेदार कर्मचारी संपर्क विवरण देख सकता है।",
   "Email address": "ईमेल पता",
   "Not provided": "दिया नहीं गया",
+  "Selected teacher does not teach this subject for the learner's education level. Choose another teacher.": "चुने गए शिक्षक विद्यार्थी के शैक्षिक स्तर पर यह विषय नहीं पढ़ाते हैं। कोई दूसरा शिक्षक चुनें।",
 };

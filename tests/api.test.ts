@@ -2101,6 +2101,29 @@ test('direct teacher requests are visible as pending only to the chosen teacher 
  assert.equal((await rohanClient.call('/teacher/pending-enquiries')).data.items.some((r:any)=>r.id===request.id),false);
 });
 
+test('manual enquiry intake rejects incompatible education and subject before creating guardian or student conversations',async()=>{
+ const {owner,linkedChild,g,s}=await educationActors(),rohan=await db.teacher.findFirstOrThrow({where:{name:'Rohan Verma'}});
+ await db.child.update({where:{id:linkedChild.id},data:{learningManagementMode:'SHARED'}});
+ const body=intake({childId:linkedChild.id,alias:linkedChild.alias,schoolName:linkedChild.schoolName,schoolSubjects:linkedChild.schoolSubjects,discoveryMethod:'MANUAL',preferredTeacherId:rohan.id,mode:'ONLINE'});
+ for(const client of [g,s]){
+  const wrongSubject=await client.call('/requests',{...body,subject:'Physics'});assert.equal(wrongSubject.status,409,JSON.stringify(wrongSubject.data));assert.equal(wrongSubject.data.code,'TEACHER_UNAVAILABLE');
+  await db.child.update({where:{id:linkedChild.id},data:{grade:12}});
+  const wrongGrade=await client.call('/requests',{...body,grade:12});assert.equal(wrongGrade.status,409,JSON.stringify(wrongGrade.data));
+  await db.child.update({where:{id:linkedChild.id},data:{grade:8}});
+ }
+ const draft=await g.call('/onboarding/parent/drafts',{expectedVersion:0,draft:{...body,subject:'Physics'}});assert.equal(draft.status,201,JSON.stringify(draft.data));
+ assert.equal((await g.call('/onboarding/parent/completions',{expectedVersion:draft.data.version})).status,409);
+ assert.equal(await db.tuitionRequest.count({where:{guardianId:owner.id}}),0);assert.equal(await db.directEnquiry.count({where:{ownerId:owner.id}}),0);
+ assert.equal((await g.call('/onboarding/parent')).data.draft.subject,'Physics');
+ const accepted=await s.call('/requests',body);assert.equal(accepted.status,201,JSON.stringify(accepted.data));
+ assert.equal(await db.directEnquiry.count({where:{sourceId:accepted.data.id}}),1);
+ const adult=await enquiryStudent(),manual={...studentEnquiryInput,discoveryMethod:'MANUAL',preferredTeacherId:rohan.id,budgetPaise:400000};
+ assert.equal((await adult.c.call('/student-enquiries',{...manual,subject:'Physics'})).status,409);
+ await db.independentStudentProfile.update({where:{accountId:adult.account.id},data:{education:{stage:'SCHOOL',institutionName:'Synthetic school',subjects:['Maths'],grade:12,board:'CBSE'}}});
+ assert.equal((await adult.c.call('/student-enquiries',manual)).status,409);
+ assert.equal(await db.studentEnquiry.count({where:{studentAccountId:adult.account.id}}),0);
+});
+
 test('direct guardian enquiry is immediate, scoped, negotiable and accepted without staff approval',async()=>{
  const {owner,linkedChild,g,s}=await educationActors(),rohan=await db.teacher.findFirstOrThrow({where:{name:'Rohan Verma'}}),t=await dashboardLogin(rohan.accountId!);
  const body={...intake({childId:linkedChild.id}),alias:linkedChild.alias,schoolName:linkedChild.schoolName!,schoolSubjects:linkedChild.schoolSubjects,discoveryMethod:'MANUAL',preferredTeacherId:rohan.id,budgetPaise:400000,mode:'ONLINE',subject:'Maths'};

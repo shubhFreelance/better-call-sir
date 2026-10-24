@@ -3,7 +3,7 @@ import {learningAuthority,requestAuthority} from '../learners/learning-managemen
 import {guardianProof,linkVerifiedLearner} from '../verification/guardian-verification';
 import {enabledRegion} from '../administration/commercial-policy';
 import {pageQuery,pageBefore,pageResult} from '../../pagination';
-import {subjectSchema,boardSchema,learnerScope} from '../../coverage';
+import {subjectSchema,boardSchema,learnerScope,covers} from '../../coverage';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
 import {Module, Controller, Get, Post, Param, Query, Body, Req, Res, Injectable, Inject, HttpException, Catch, ExceptionFilter, ArgumentsHost, Global} from '@nestjs/common';
@@ -46,6 +46,11 @@ export async function createIntake(db:DB,service:AppService,account:Account,req:
        if(!child.schoolName)await db.child.update({where:{id:child.id},data:{schoolName:data.schoolName,schoolSubjects:data.schoolSubjects,version:{increment:1}}});
       }
       if(!learnerScope(child,data.subject))fail(409,'LEARNER_DETAILS_REQUIRED','Complete the learner education profile before requesting a teacher.');
+      if(data.preferredTeacherId){
+       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${data.preferredTeacherId},0))`;
+       const teacher=await db.teacher.findUniqueOrThrow({where:{id:data.preferredTeacherId}});
+       if(!covers(teacher,child,data.subject))fail(409,'TEACHER_UNAVAILABLE',"Selected teacher does not teach this subject for the learner's education level. Choose another teacher.");
+      }
       const request=await db.tuitionRequest.create({data:{discoveryMethod:data.discoveryMethod,preferredTeacherId:data.preferredTeacherId,region:account.region,...(preferences?{schedulePreferences:preferences,scheduleStatus:'CONFIRMED'}:{}),guardianId:account.id,childId:child.id,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,schedule:data.schedule}});
       if(data.discoveryMethod==='MANUAL'&&data.preferredTeacherId)await createDirectEnquiry(db,{kind:'GUARDIAN',sourceId:request.id,ownerId:account.id,childId:child.id,teacherId:data.preferredTeacherId,region:request.region});
       await service.audit(db,initiator,req,'REQUEST_CREATED',request.id,'Family member submitted supported tuition need',undefined,{region:request.region,scheduleStatus:request.scheduleStatus});await service.event(db,'request.created',request.id);return request;
