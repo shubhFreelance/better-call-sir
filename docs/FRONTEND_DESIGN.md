@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Code-first student invitation and teacher enquiry visibility — 24 October 2026
+
+Start invitation entry with a private code and a non-identifying validity check before asking for the student’s own email. Reuse email OTP, then require explicit account-link confirmation; keep the code only in component memory, never URLs/browser storage. Show errors and an already-activated sign-in route. Keep guardian-controlled device activation separate. Teacher overview shows the adult-student opportunities component alongside the guardian-led queue with distinct labels and staff-publication guidance; reuse existing authorization and response actions. Preserve Hindi, compact cards and mobile controls.
+
 ## Guardian overview priorities — 24 October 2026
 
 Surface unfinished guardian relationships and named step-six profiles in a lavender overview panel with white action cards. Reuse owner-scoped setup/verification APIs and exhaust cursor pages before presenting a count. Add a small teal-framed lavender/ivory circular count before the Overview link; hover title summarizes steps, keyboard/tap opens an actionable panel. Use explicit loading/error states, refresh on mount/focus and periodically, and hide completed work. Deep-link actions open the exact owned relationship instead of requiring a history search. Preserve sidebar state, account isolation and English/Hindi mobile layouts.

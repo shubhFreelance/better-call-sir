@@ -86,6 +86,7 @@ import {
   ReservationBookings,
   PlacementInvoices,
 } from "./revision-booking";
+import { StudentInvitationSignup } from "./student-invitation-signup";
 import { StudentConnection } from "./student-connection";
 import { StudentWelcome } from "./student-welcome";
 import { FamilyAccess, StudentActivation } from "./student-access";
@@ -2044,6 +2045,7 @@ function StudentOnboarding() {
   } = useAuth();
   const mode = useSearchParams().get("mode");
   if (loading) return <State loading />;
+  if(mode === "invitation") return <StudentInvitationSignup session={session} onSessionChange={setSession} hindi={hindi} onLanguageChange={setHindi}/>;
   if (!session) return <main className="container auth-section">
     <header className="wizard-title"><h1>{appText(mode === "together" ? "Manage learning together" : "Activate your student invitation")}</h1><p>{appText(mode === "together" ? "Sign in with your own email to check your guardian request and learning profile. Your guardian must authorize shared management." : "First confirm your own email. Then enter the private invitation code your guardian gave you. Never use your guardian’s email to sign in as the student.")}</p></header>
     <EmailLogin purpose={mode === "together" ? "student-signup" : "general"} hindi={hindi} onLanguageChange={setHindi} onSignedIn={next=>setSession(next)} />
@@ -2598,6 +2600,7 @@ function DashboardPage({ tab }: { tab: string }) {
         {session.account.role === "GUARDIAN" && tab === "/dashboard" && (
           <GuardianLearners key={session.account.id} session={session} />
         )}
+        {session.account.role === "TEACHER" && <section className="care-card teacher-opportunities-panel"><p>{appText("Enquiries from adult students have a separate response queue. Guardian-led enquiries appear below after staff publishes the match; choosing your profile alone does not publish a request.")}</p><StudentOpportunities session={session} hindi={hindi} embedded/></section>}
         <HiringOverview
           key={`${session.account.id}:${session.account.role}`}
           session={session}

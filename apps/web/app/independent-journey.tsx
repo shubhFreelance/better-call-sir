@@ -473,12 +473,15 @@ export function IndependentJourney({
 export function StudentOpportunities({
   session,
   hindi = false,
+  embedded = false,
 }: {
   session: Session;
   hindi?: boolean;
+  embedded?: boolean;
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
+  const Heading = embedded ? "h2" : "h1";
   const t = copy(hindi),
     client = useQueryClient(),
     [review, setReview] = useState<{
@@ -509,14 +512,14 @@ export function StudentOpportunities({
   const d = useDecision(session, refresh);
   return (
     <section className="student-workspace" lang={hindi ? "hi" : "en"}>
-      <h1>
+      <Heading>
         {appText(
           t(
             "Independent student enquiries",
             "स्वतंत्र विद्यार्थियों की पूछताछ",
           ),
         )}
-      </h1>
+      </Heading>
       <p>
         {appText(
           t(
