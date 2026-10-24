@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { GuardianSetup } from "./guardian-setup";
+import { LearnerProfiles } from "./learner-profiles";
+import { InvitationRecovery } from "./invitation-recovery";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api, type Session, type components } from "@bcs/api-client";
@@ -509,7 +512,7 @@ function VerificationSummary({ record: r,
       )}
       {r.evidence?.status === "CLEAN" && (
         <a
-          className="inline-link"
+          className="button evidence-download"
           href={`/api/v1/guardian-evidence/${r.evidence.id}/content`}
           target="_blank"
           rel="noopener noreferrer"
@@ -617,6 +620,7 @@ function OwnerVerification({
   const { appText, appError } = useAppTranslation(),
     root = useRef<HTMLElement>(null),
     fileRef = useRef<HTMLInputElement>(null);
+  const [invitationLocked, setInvitationLocked] = useState(false);
   const [id, setId] = useState(initial?.id || ""),
     [application, setApplication] = useState<Application>(
       initial
@@ -663,7 +667,7 @@ function OwnerVerification({
   const decision = useDecision(session, refresh),
     unavailable = queueUnavailable || !!detail.error,
     locked =
-      decision.locked || reading || unavailable || (!!id && detail.isFetching);
+      decision.locked || invitationLocked || reading || unavailable || (!!id && detail.isFetching);
   useEffect(() => {
     if (
       !r ||
@@ -1066,35 +1070,15 @@ function OwnerVerification({
                   <section className="guardian-evidence-step">
                     <h4>
                       {appText(
-                        "Relationship approved. Learning consent comes next.",
+                        "Student setup",
                       )}
                     </h4>
                     <p>
                       {appText(
-                        "Approval does not start tuition or share learning records. Continue guardian setup to review consent and create the named learner profile.",
+                        "Complete learning permission and education details here. Student sign-in remains subject to acknowledgment and access permissions.",
                       )}
                     </p>
-                    <div className="care-actions">
-                      <Button
-                        disabled={locked}
-                        onClick={async () => {
-                          try {
-                            onSessionChange(
-                              await api<Session>("/auth/session"),
-                            );
-                          } catch {
-                            decision.invalid(
-                              "Your account could not be refreshed. Try again.",
-                            );
-                          }
-                        }}
-                      >
-                        {appText("Refresh account status")}
-                      </Button>
-                      <Link className="inline-link" href="/onboarding/guardian">
-                        {appText("Continue guardian setup")}
-                      </Link>
-                    </div>
+                    <GuardianSetup session={session} onSessionChange={onSessionChange} embeddedChildren={<><LearnerProfiles key={r.id} session={session} targetName={r.learnerName} targetId={r.learnerId || undefined} />{r.learnerId && !r.studentAccountId && <InvitationRecovery session={session} childId={r.learnerId} alias={r.learnerName} blocked={decision.locked || unavailable} consentActive onLockChange={setInvitationLocked} />}</>} />
                     {existing
                       .filter((c) => c.guardianVerificationId !== r.id)
                       .map((c) => (

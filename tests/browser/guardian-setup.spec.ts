@@ -310,7 +310,7 @@ test("new email guardian enters guardian setup after sign-in", async ({
       signed = true;
       return route.fulfill({
         status: 201,
-        json: { account, csrfToken: "synthetic-csrf" },
+        json: { account, csrfToken: "synthetic-csrf", accountCreated:true },
       });
     }
     if (path.endsWith("/onboarding/guardian"))
@@ -324,15 +324,15 @@ test("new email guardian enters guardian setup after sign-in", async ({
       });
     return route.continue();
   });
-  await page.goto("/login");
+  await page.goto("/signup/guardian");
   await page.getByLabel("Your name").fill(account.name);
   await page.getByLabel("Email address").fill("synthetic-setup@example.test");
   await page
-    .getByRole("button", { name: "Send sign-in code", exact: true })
+    .getByRole("button", { name: "Send verification code", exact: true })
     .click();
   await page.getByLabel("Six-digit code").fill("123456");
   await page
-    .getByRole("button", { name: "Verify and continue", exact: true })
+    .getByRole("button", { name: "Verify and continue to setup", exact: true })
     .click();
   await expect(page).toHaveURL(/\/onboarding\/guardian$/);
   await expect(
@@ -362,6 +362,7 @@ test("real guardian gives permission, saves a KG profile and returns to teacher 
         "+91000000" + account.replaceAll("-", ""),
       ],
     );
+    await db.query('INSERT INTO "GuardianVerification" (id,"guardianId",region,"guardianName","learnerName",relationship,"ageBand","acknowledgmentMethod","documentNamesGuardian",status,"updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,true,$9,now())',[randomUUID(),account,"Raipur","Synthetic guardian","Synthetic KG learner","PARENT","UNDER_15","STAFF_CALL","APPROVED"]);
     const session = await page.request.post("/api/v1/dev/session", {
       headers: { Origin: "http://localhost:3000" },
       data: { accountId: account },
@@ -395,7 +396,8 @@ test("real guardian gives permission, saves a KG profile and returns to teacher 
     await page
       .getByRole("link", { name: "Add learner profile", exact: true })
       .click();
-    await expect(page).toHaveURL(/\/dashboard\/learners$/);
+    await expect(page).toHaveURL(/\/dashboard\/learners(?:\?new=1)?$/);
+    await page.getByRole("button",{name:"Complete learner profile",exact:true}).click();
     await page.getByLabel("Learner name or alias").fill("Synthetic KG learner");
     await page.getByLabel("Education stage").selectOption("EARLY_YEARS");
     await page.getByLabel("Early years level").selectOption("KG2");

@@ -375,6 +375,56 @@ async function staffFields(page: Page) {
     .check();
 }
 export function guardianVerificationTests() {
+  test("staff school report download is distinct and only scanner-cleared evidence is linked",async({page})=>{
+    const f=await setup(page,{role:"ADMIN"}); await openStaff(page);
+    const download=page.getByRole("link",{name:"Download private school report",exact:true});
+    await expect(download).toHaveCSS("background-color","rgb(3, 79, 70)");
+    await expect(download).toHaveAttribute("rel","noopener noreferrer");
+    await page.screenshot({path:"test-results/guardian-review-redesign-desktop.png",fullPage:true});
+    f.state().evidence.status="QUARANTINED";
+    await page.getByRole("button",{name:"Refresh verification details",exact:true}).click();
+    await expect(download).toHaveCount(0);
+  });
+
+  test("approved guardian completes consent and student education on the verification page", async ({page}) => {
+    const f=await setup(page); f.state().status="APPROVED";
+    let consent=false, saved=false;
+    const profile={id:"20000000-0000-4000-8000-000000000981",alias:f.state().learnerName,version:1,enquiryEligible:true,education:{stage:"SCHOOL",grade:8,board:"CBSE",institutionName:"Synthetic School",subjects:["Maths"]}};
+    await page.route("**/api/v1/onboarding/guardian",route=>route.fulfill({json:{gate:consent?"READY":"CONSENT_REQUIRED",learnerCount:saved?1:0,enquiryStatus:"NONE"}}));
+    await page.route("**/api/v1/consents",route=>{consent=true;return route.fulfill({status:201,json:{accepted:true}});});
+    await page.route("**/api/v1/learner-profiles**",route=>{
+      if(route.request().method()==="POST"){expect(route.request().postDataJSON().alias).toBe(profile.alias);saved=true;f.state().learnerId=profile.id;return route.fulfill({status:201,json:profile});}
+      return route.fulfill({json:new URL(route.request().url()).pathname.endsWith(profile.id)?profile:{creationStatus:"READY",items:saved?[profile]:[],nextCursor:null}});
+    });
+    let issued=false;
+    await page.route("**/api/v1/children/*/invitation",route=>route.fulfill({json:{state:issued?"ACTIVE":"NONE",expiresAt:issued?new Date(Date.now()+86400000).toISOString():null,childVersion:issued?2:1}}));
+    await page.route("**/api/v1/children/*/invitation-replacements",route=>{
+      expect(route.request().postDataJSON()).toEqual({expectedVersion:1,acknowledged:true});issued=true;
+      return route.fulfill({status:201,json:{status:"ISSUED",token:"synthetic-invitation-code",expiresAt:new Date(Date.now()+86400000).toISOString(),childVersion:2}});
+    });
+    await openOwner(page);
+    await page.getByRole("checkbox",{name:/I am the learner’s parent or lawful guardian/}).check();
+    await page.getByRole("button",{name:"Agree and continue",exact:true}).click();
+    await expect(page.getByLabel("Learner name or alias",{exact:true})).toHaveValue(profile.alias);
+    await page.getByLabel("School / institution name",{exact:true}).fill("Synthetic School");
+    await page.getByLabel("Class",{exact:true}).selectOption("8");
+    await page.getByLabel("School board",{exact:true}).fill("CBSE");
+    await page.getByLabel("Subjects studied",{exact:true}).fill("Maths");
+    await page.getByRole("button",{name:"Review learner profile",exact:true}).click();
+    await page.getByRole("button",{name:"Confirm and save profile",exact:true}).click();
+    await expect(page.getByText(profile.alias+"’s profile is saved.",{exact:true})).toBeVisible();
+    await expect(page).toHaveURL(/guardian-verification$/);
+    expect(consent&&saved).toBe(true);
+    await page.getByRole("button",{name:"Create first student invitation",exact:true}).click();
+    await page.getByRole("checkbox",{name:/I am the learner’s guardian and will authorize only the intended student device/}).check();
+    await page.getByRole("button",{name:"Create invitation",exact:true}).click();
+    await page.getByRole("button",{name:"Reveal invitation code",exact:true}).click();
+    await expect(page.getByLabel("Private invitation code",{exact:true})).toHaveValue("synthetic-invitation-code");
+    await expect(page).toHaveURL(/guardian-verification$/);
+    await page.getByRole("button",{name:"Hide invitation code",exact:true}).click();
+    await page.screenshot({path:"test-results/guardian-inline-student-setup.png",fullPage:true});
+  });
+
   test("guardian worksheet has padded sections and keeps empty history out of initial setup", async ({
     page,
   }) => {
