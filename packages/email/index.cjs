@@ -584,3 +584,4 @@ module.exports = {
   applyReceipts,
   verifySignature,
 };
+module.exports.notificationTargets = require('./events.cjs');

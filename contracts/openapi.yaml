@@ -11,6 +11,184 @@
     }
   ],
   "paths": {
+    "/inbox": {
+      "get": {
+        "operationId": "getLiveInbox",
+        "summary": "Read own live notification history",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Own durable notifications and unread count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "nextCursor",
+                    "unread",
+                    "tasks"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "topic",
+                          "actionPath",
+                          "important",
+                          "readAt",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "topic": {
+                            "type": "string"
+                          },
+                          "actionPath": {
+                            "type": "string"
+                          },
+                          "important": {
+                            "type": "boolean"
+                          },
+                          "readAt": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "unread": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "tasks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "title",
+                          "actionPath"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "actionPath": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "Cursor unavailable"
+          },
+          "400": {
+            "description": "Invalid input or current-state conflict"
+          },
+          "409": {
+            "description": "Invalid input or current-state conflict"
+          }
+        }
+      }
+    },
+    "/inbox/{id}/read": {
+      "post": {
+        "operationId": "readLiveNotification",
+        "summary": "Mark own notification read; repeated requests are safe",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Own notification read receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "read"
+                  ],
+                  "properties": {
+                    "read": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required"
+          },
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "Notification unavailable"
+          },
+          "400": {
+            "description": "Invalid input or current-state conflict"
+          },
+          "409": {
+            "description": "Invalid input or current-state conflict"
+          }
+        }
+      }
+    },
     "/direct-enquiries": {
       "get": {
         "tags": [
@@ -293,25 +471,34 @@
         "operationId": "getDirectEnquiries",
         "summary": "Immediate direct enquiries and regional staff oversight, newest first; no staff approval",
         "parameters": [
-          {
-            "name": "cursor",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50,
-              "default": 10
-            }
-          }
-        ]
+  {
+    "name": "cursor",
+    "in": "query",
+    "schema": {
+      "type": "string",
+      "format": "uuid"
+    }
+  },
+  {
+    "name": "limit",
+    "in": "query",
+    "schema": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50,
+      "default": 10
+    }
+  },
+  {
+    "in": "query",
+    "name": "id",
+    "schema": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "description": "Open one owned enquiry while retaining overall counts."
+  }
+]
       }
     },
     "/direct-enquiries/{id}/responses": {

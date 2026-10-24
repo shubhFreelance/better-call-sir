@@ -259,6 +259,7 @@ class DirectEnquiriesController {
       z
         .object({
           cursor: uuid.optional(),
+          id: uuid.optional(),
           limit: z.coerce.number().int().min(1).max(50).default(10),
         })
         .strict(),
@@ -314,8 +315,10 @@ class DirectEnquiriesController {
           Prisma.sql`SELECT d.status,count(*) AS count FROM "DirectEnquiry" d WHERE ${scope} GROUP BY d.status`,
         );
         const rows = await db.$queryRaw<{ id: string }[]>(
-          Prisma.sql`SELECT d.id FROM "DirectEnquiry" d WHERE ${scope} AND (${cursor?.id ?? null}::uuid IS NULL OR d."createdAt"<${cursor?.createdAt ?? new Date()} OR (d."createdAt"=${cursor?.createdAt ?? new Date()} AND d.id<${cursor?.id ?? null}::uuid)) ORDER BY d."createdAt" DESC,d.id DESC LIMIT ${q.limit + 1}`,
+          Prisma.sql`SELECT d.id FROM "DirectEnquiry" d WHERE ${scope} AND (${q.id ?? null}::uuid IS NULL OR d.id=${q.id ?? null}::uuid) AND (${cursor?.id ?? null}::uuid IS NULL OR d."createdAt"<${cursor?.createdAt ?? new Date()} OR (d."createdAt"=${cursor?.createdAt ?? new Date()} AND d.id<${cursor?.id ?? null}::uuid)) ORDER BY d."createdAt" DESC,d.id DESC LIMIT ${q.limit + 1}`,
         );
+        if (q.id && !rows.length)
+          fail(404, "NOT_FOUND", "Enquiry unavailable.");
         const items = [];
         for (const entry of rows.slice(0, q.limit)) {
           const row = await db.directEnquiry.findUniqueOrThrow({
@@ -537,8 +540,15 @@ class DirectEnquiriesController {
           {
             version: updated.version,
             status,
-            proposal: data.action === "PROPOSE" ? { format: data.format } : null,
+            proposal:
+              data.action === "PROPOSE" ? { format: data.format } : null,
           } as Prisma.InputJsonValue,
+        );
+        await this.service.event(
+          db,
+          "direct." + data.action.toLowerCase(),
+          id,
+          updated.version,
         );
         return updated;
       },

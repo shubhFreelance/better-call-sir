@@ -679,6 +679,7 @@ class GuardianVerificationController {
             ? "Student declined the guardian relationship"
             : "Student acknowledged guardian relationship and the visible management mode",
         );
+        await this.service.event(db,"guardian-verification.acknowledged",id);
         return { id, status: declined ? "REJECTED" : "ACKNOWLEDGED" };
       },
     );

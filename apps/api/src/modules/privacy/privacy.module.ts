@@ -8,6 +8,7 @@ async function erase(db:DB,scope:string,resourceId:string,accountId:string){
  if(scope==='NOTE'){await db.note.updateMany({where:{id:resourceId,guardianId:accountId},data:{text:'[deleted]',sharedTeacherId:null,version:{increment:1}}});return;}
  const children=await db.child.findMany({where:scope==='CHILD'?{id:resourceId,guardianId:accountId}:{guardianId:accountId}}),childIds=children.map(c=>c.id),students=children.flatMap(c=>c.studentAccountId?[c.studentAccountId]:[]);
  await eraseGuardianVerification(db,accountId,childIds,scope==='ACCOUNT');
+ if(scope==='ACCOUNT')await db.inboxNotification.deleteMany({where:{accountId:{in:[accountId,...students]}}});
  const erasedTeacher=scope==='ACCOUNT'?await db.teacher.findUnique({where:{accountId}}):null;
  const directWhere={OR:[{childId:{in:childIds}},...(scope==='ACCOUNT'?[{ownerId:accountId},...(erasedTeacher?[{teacherId:erasedTeacher.id}]:[])]:[])]};
  const directIds=(await db.directEnquiry.findMany({where:directWhere,select:{id:true}})).map(row=>row.id);

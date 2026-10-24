@@ -1,3 +1,4 @@
+import {recordInbox,inboxSignals} from './inbox';
 import {coverageWhere,declaredScopes} from './coverage';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
@@ -36,7 +37,7 @@ export class AppService {
     const rows=await this.db.$queryRaw<{count:number}[]>`INSERT INTO "RateBucket" (key,count,"resetsAt") VALUES (${digest},1,CURRENT_TIMESTAMP+${seconds}*interval '1 second') ON CONFLICT (key) DO UPDATE SET count=CASE WHEN "RateBucket"."resetsAt"<=CURRENT_TIMESTAMP THEN 1 ELSE "RateBucket".count+1 END,"resetsAt"=CASE WHEN "RateBucket"."resetsAt"<=CURRENT_TIMESTAMP THEN EXCLUDED."resetsAt" ELSE "RateBucket"."resetsAt" END RETURNING count`;
     if(rows[0].count>max)fail(429,'RATE_LIMIT','Too many attempts. Try again after the current limit window.');
   }
-  async actor(req: Request, roles?: string[]): Promise<Account> {
+  async actor(req: Request, roles?: string[], touch=true): Promise<Account> {
     const secret = req.cookies?.bcs_access;
     if (typeof secret !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(secret)) fail(401,'SESSION_REQUIRED','Sign in to continue.');
     const session = await this.db.session.findUnique({where:{accessHash:hash(secret)}});
@@ -50,7 +51,7 @@ export class AppService {
       if(session.createdAt.getTime()<Date.now()-8*3600000||session.lastSeenAt.getTime()<Date.now()-900000)fail(401,'SESSION_EXPIRED','Staff session expired. Sign in again.');
       const securityRoute=/^\/api\/v1\/auth\/(session|logout|mfa(?:\/(?:enrollment|verification|recovery-codes))?)$/.test(req.path);
       if(!securityRoute&&(!session.mfaVerifiedAt||session.mfaVerifiedAt.getTime()<Date.now()-600000))fail(403,'MFA_REQUIRED','Verify your authenticator before accessing staff records.');
-      if(session.lastSeenAt.getTime()<Date.now()-60000)await this.db.session.updateMany({where:{id:session.id,lastSeenAt:{lt:new Date(Date.now()-60000)}},data:{lastSeenAt:new Date()}});
+      if(touch&&session.lastSeenAt.getTime()<Date.now()-60000)await this.db.session.updateMany({where:{id:session.id,lastSeenAt:{lt:new Date(Date.now()-60000)}},data:{lastSeenAt:new Date()}});
     }
     if(!['GET','HEAD','OPTIONS'].includes(req.method))await this.limit('write:'+account.id,300);
     if(req.method==='POST'&&/^\/api\/v1\/teachers\/[^/]+\/evidence$/.test(req.path))await this.limit('upload:'+account.id,30,86400);
@@ -79,13 +80,13 @@ export class AppService {
   async audit(db: DB, actor: Account, req: HttpRequest, action: string, id: string, reason: string, before?: Prisma.InputJsonValue, after?: Prisma.InputJsonValue) {
     return db.audit.create({data:{actorId:actor.id,action,aggregateId:id,reason,requestId:req.requestId || randomUUID(),before,after}});
   }
-  async event(db: DB,type: string,id: string,version=1) {return db.outbox.create({data:{type,aggregateId:id,payload:{version}}});}
+  async event(db: DB,type: string,id: string,version=1) {const job=await db.outbox.create({data:{type,aggregateId:id,payload:{version}}});await recordInbox(db,job);return job;}
   async once<T>(req: Request, actor: Account, operation: string, body: unknown, fn: (db: DB) => Promise<T>, authorize?: (db: DB) => Promise<unknown>): Promise<T> {
     operation += ':' + req.path;
     const key = req.get('Idempotency-Key');
     if (!key || key.length > 128) fail(400,'IDEMPOTENCY_REQUIRED','A valid Idempotency-Key is required.');
     const digest = hash(JSON.stringify(body));
-    return this.db.$transaction(async db => {
+    const committed=await this.db.$transaction(async db => {
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id + operation + key},0))`;
       if(privileged(actor.role))await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended('staff-administration',0))`;
       if(actor.role==='STUDENT'&&!await this.activeStudent(db,actor.id,true))fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
@@ -100,6 +101,8 @@ export class AppService {
       await db.idempotency.create({data:{accountId:actor.id,authVersion:current.authVersion,operation,key,hash:digest,result:JSON.parse(JSON.stringify(result))}});
       return result;
     });
+    inboxSignals.emit("changed");
+    return committed;
   }
   async issueSession(account: Account, familyId: string, db: Pick<DB,'session'> = this.db, expiresAt = new Date(Date.now()+30*86_400_000),security?:{createdAt:Date;mfaVerifiedAt:Date|null;deviceLabel?:string|null}) {
     if(privileged(account.role))expiresAt=new Date(Math.min(expiresAt.getTime(),Date.now()+8*3600000));
