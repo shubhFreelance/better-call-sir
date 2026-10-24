@@ -2076,3 +2076,21 @@ test('student invitation links an unused OTP email to exactly the invited learne
  const target=await db.child.findUniqueOrThrow({where:{id:another.data.id}});assert.equal(target.studentAccountId,results[0].status===201?left.account.id:right.account.id);
 
 });
+
+test('direct teacher requests are visible as pending only to the chosen teacher before publication',async()=>{
+ const {owner,linkedChild,g}=await educationActors();
+ const rohan=await db.teacher.findFirstOrThrow({where:{name:'Rohan Verma'}});assert(rohan.accountId);
+ const account=await db.account.findUniqueOrThrow({where:{id:rohan.accountId}}),rohanClient=await dashboardLogin(account.id);
+ const request=await db.tuitionRequest.create({data:{guardianId:owner.id,childId:linkedChild.id,subject:'Maths',mode:'ONLINE',language:'English',locality:'Raipur',budgetPaise:400000,schedule:'Synthetic direct enquiry',discoveryMethod:'MANUAL',preferredTeacherId:rohan.id}});
+ const pending=await rohanClient.call('/teacher/pending-enquiries');assert.equal(pending.status,200,JSON.stringify(pending.data));const item=pending.data.items.find((r:any)=>r.id===request.id);assert(item);assert.deepEqual(Object.keys(item).sort(),['createdAt','id','mode','subject']);
+ assert.equal((await g.call('/teacher/pending-enquiries')).status,403);
+ assert.equal((await teacher.call('/teacher/pending-enquiries')).data.items.some((r:any)=>r.id===request.id),false);
+ assert.equal((await teacher.call('/teacher/pending-enquiries?cursor='+request.id)).status,404);
+ const run=await db.recommendationRun.create({data:{requestId:request.id,requestVersion:request.version,operatorId:ids.admin,rankerVersion:'synthetic',featureVersion:'synthetic',eligiblePool:[],rankedCandidates:[],result:'READY'}});
+ const candidate=await db.recommendation.create({data:{requestId:request.id,teacherId:rohan.id,score:1,reasons:['Synthetic published fixture'],presentedAt:new Date(),expiresAt:new Date(Date.now()+3600000),runId:run.id,position:1}});
+ assert.equal((await rohanClient.call('/teacher/pending-enquiries')).data.items.some((r:any)=>r.id===request.id),false);
+ assert.equal((await rohanClient.call('/dashboard/hiring')).data.enquiries.some((r:any)=>r.id===request.id),true);
+ await db.recommendation.delete({where:{id:candidate.id}});
+ const consent=await db.consent.findUniqueOrThrow({where:{guardianId:owner.id}});await db.consent.update({where:{id:consent.id},data:{withdrawnAt:new Date()}});
+ assert.equal((await rohanClient.call('/teacher/pending-enquiries')).data.items.some((r:any)=>r.id===request.id),false);
+});
