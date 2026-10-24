@@ -2054,3 +2054,25 @@ test('Gmail SMTP bad configuration fails without sending and expired or supersed
   const address='synthetic+'+randomUUID()+'@gmail.com',code='123456',digest=otpDigest(address,code);await db.otp.create({data:{address,hash:otpDigest(address,'654321'),expiresAt:new Date(Date.now()+300000)}});const stale=await mail.enqueue(db,{to:address,code,otpHash:digest,expiresAt:new Date(Date.now()+300000),dedupeKey:randomUUID(),topic:'SIGN_IN'});await mail.deliver(db,stale.id);assert.equal((await db.emailDelivery.findUniqueOrThrow({where:{id:stale.id}})).status,'SUPPRESSED');assert.equal(calls,0);
  }finally{smtp.createTransport=original;}});
 });
+
+test('student invitation links an unused OTP email to exactly the invited learner and supports same-account recovery',async()=>{
+ const {g}=await educationActors();
+ const created=await g.call('/learner-profiles',{alias:'Synthetic invited child',education:{stage:'SCHOOL',grade:8,board:'CBSE',institutionName:'Synthetic school',subjects:['Maths']}});
+ assert.equal(created.status,201);
+ const invite=await g.call('/children/'+created.data.id+'/invitation-replacements',{expectedVersion:1,acknowledged:true});assert.equal(invite.status,201);
+ const student=await freshGuardian(),other=await freshGuardian();
+ assert.equal((await student.client.call('/invitations/check',{token:invite.data.token})).status,201);
+ assert.equal((await g.call('/invitations/link-email',{token:invite.data.token,confirmed:true})).status,409);
+ const linked=await student.client.call('/invitations/link-email',{token:invite.data.token,confirmed:true});assert.equal(linked.status,201,JSON.stringify(linked.data));assert.equal(linked.data.account.role,'STUDENT');
+ const row=await db.child.findUniqueOrThrow({where:{id:created.data.id}});assert.equal(row.studentAccountId,student.account.id);assert.equal(row.guardianId,(await db.invitation.findFirstOrThrow({where:{childId:row.id}})).guardianId);
+ assert.equal((await student.client.call('/invitations/link-email',{token:invite.data.token,confirmed:true})).status,201);
+ assert.equal((await other.client.call('/invitations/link-email',{token:invite.data.token,confirmed:true})).status,409);
+ assert.equal((await other.client.call('/invitations/check',{token:invite.data.token})).status,409);
+ const another=await g.call('/learner-profiles',{alias:'Synthetic second invited child',education:{stage:'SCHOOL',grade:8,board:'CBSE',institutionName:'Synthetic school',subjects:['Maths']}});
+ const nextInvite=await g.call('/children/'+another.data.id+'/invitation-replacements',{expectedVersion:1,acknowledged:true});
+ const left=await freshGuardian(),right=await freshGuardian();
+ const results=await Promise.all([left.client.call('/invitations/link-email',{token:nextInvite.data.token,confirmed:true}),right.client.call('/invitations/link-email',{token:nextInvite.data.token,confirmed:true})]);
+ assert.deepEqual(results.map(r=>r.status).sort(),[201,409]);
+ const target=await db.child.findUniqueOrThrow({where:{id:another.data.id}});assert.equal(target.studentAccountId,results[0].status===201?left.account.id:right.account.id);
+
+});

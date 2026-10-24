@@ -13,6 +13,7 @@ import {eligible, placementFee, verifiedAttendance, revisionRefund, window30} fr
 
 import {AppService,PersistenceModule,hash,token,uuid,version,text,fail,parse,same,development,privileged,HttpRequest,DB} from '../../shared';
 
+import {unusedAccount} from '../learners/independent-students.module';
 import {emailAddress,otpDigest} from './email-otp';
 
 @Controller('api/v1')
@@ -164,6 +165,41 @@ class IdentityController {
     parse(uuid,id);const actor=await this.service.actor(req,['GUARDIAN']),secret=token();
     const result=await this.db.$transaction(db=>this.issueInvitation(db,actor,req,id,secret));
     return {token:secret,expiresAt:result.expiresAt};
+  }
+
+  @Post('invitations/check') async checkStudentInvitation(@Req() req:HttpRequest,@Body() body:unknown) {
+    await this.service.limit(`invite-check:${req.ip}`,10);
+    const data=parse(z.object({token:text(100)}).strict(),body);
+    const invite=await this.db.invitation.findUnique({where:{tokenHash:hash(data.token)}});
+    if(!invite||invite.usedAt||invite.expiresAt<=new Date())fail(409,'INVITATION_INVALID','Invitation is invalid, expired or already used.');
+    return {status:'READY'};
+  }
+  @Post('invitations/link-email') async linkStudentEmail(@Req() req:HttpRequest,@Body() body:unknown,@Res({passthrough:true}) res:Response) {
+    const actor=await this.service.actor(req,['GUARDIAN','STUDENT']);
+    const data=parse(z.object({token:text(100),confirmed:z.literal(true)}).strict(),body);
+    await this.service.limit(`invite-link:${actor.id}`,10);
+    const account=await this.db.$transaction(async db=>{
+      let invite=await db.invitation.findUnique({where:{tokenHash:hash(data.token)}});
+      if(!invite||invite.guardianId===actor.id)fail(409,'INVITATION_INVALID','Use the intended student’s own email and a current invitation.');
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${invite.guardianId},0))`;
+      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id},0))`;
+      invite=await db.invitation.findUniqueOrThrow({where:{id:invite.id}});
+      const child=await db.child.findUniqueOrThrow({where:{id:invite.childId}});
+      const guardian=await db.account.findUniqueOrThrow({where:{id:invite.guardianId}});
+      await this.service.guardian(db,guardian.id);await this.service.child(db,guardian,child.id);
+      const current=await db.account.findUniqueOrThrow({where:{id:actor.id}});
+      if(invite.usedAt&&child.studentAccountId===actor.id&&current.role==='STUDENT'&&current.email)return current;
+      if(invite.usedAt||invite.expiresAt<=new Date()||child.studentAccountId||!await unusedAccount(db,actor.id))fail(409,'INVITATION_INVALID','Invitation or student account is no longer available.');
+      if(child.guardianVerificationId){const proof=await db.guardianVerification.findUniqueOrThrow({where:{id:child.guardianVerificationId}});if(proof.studentEmail&&proof.studentEmail.toLowerCase()!==current.email?.toLowerCase())fail(409,'INVITATION_INVALID','Use the student email confirmed for this relationship.');}
+      const claimed=await db.invitation.updateMany({where:{id:invite.id,usedAt:null,expiresAt:{gt:new Date()}},data:{usedAt:new Date()}});
+      if(!claimed.count)fail(409,'INVITATION_USED','Invitation has already been used.');
+      const linked=await db.child.updateMany({where:{id:child.id,studentAccountId:null,guardianId:guardian.id},data:{studentAccountId:actor.id,version:{increment:1}}});
+      if(!linked.count)fail(409,'ALREADY_LINKED','Student access is already linked.');
+      const updated=await db.account.update({where:{id:actor.id},data:{role:'STUDENT',name:child.alias}});
+      await this.service.audit(db,actor,req,'STUDENT_EMAIL_LINKED',child.id,'Student accepted guardian invitation using their authenticated email');
+      return updated;
+    });
+    return this.service.session(account,res);
   }
 
   @Post('invitations/activate') async activate(@Req() req: HttpRequest,@Body() body: unknown,@Res({passthrough:true}) res: Response) {
