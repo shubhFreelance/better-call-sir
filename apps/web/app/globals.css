@@ -6014,7 +6014,7 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .learner-profile-main .learner-setup-card { padding:20px; }
 .learner-profiles .learner-setup-card h2 { font-size:20px; line-height:1.3; letter-spacing:-.3px; margin:0 0 12px; }
 .learner-setup-card > p,.learner-setup-card > label,.learner-setup-card > input { font-size:14px; line-height:1.6; }
-.learner-setup-card > p { margin:12px 0; }
+.learner-setup-card > p { margin:12px 0; font-size:12px; }
 .learner-setup-card > p:last-child { margin-bottom:0; }
 .card-search-header { display:grid; grid-template-columns:minmax(0,1fr) minmax(180px,260px); align-items:center; gap:12px 20px; margin-bottom:12px; }
 .card-search-header > h2 { min-width:0; margin:0; }
