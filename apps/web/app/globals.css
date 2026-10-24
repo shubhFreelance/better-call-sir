@@ -5971,3 +5971,11 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .student-connection > h2 { font-size:clamp(24px,3vw,30px); line-height:1.25; margin:0 0 14px; }
 .student-connection h3 { font-size:20px; line-height:1.4; }
 .student-connection { margin-bottom:24px; }
+
+@media(min-width:1000px) {
+  .student-registration-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; }
+  .student-registration-grid .registration-card { padding:26px; min-width:0; }
+  .student-registration-grid .registration-card > svg { margin-bottom:20px; }
+  .student-registration-grid .registration-card h2 { font-size:22px; }
+  .student-registration-grid .registration-card p { font-size:15px; line-height:1.65; }
+}

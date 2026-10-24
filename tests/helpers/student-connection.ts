@@ -79,3 +79,15 @@ test("dashboard shows the student's pending relationship handoff",async({page})=
  await expect(page.locator(".student-connection").getByText("Your guardian is completing setup",{exact:true})).toBeVisible();
  await expect(page.locator(".student-connection").getByRole("link",{name:"Review relationship request"})).toHaveAttribute("href","/guardian-verification?view=student");
 });
+
+test("three student choices share one compact desktop row",async({page})=>{
+ await fixture(page);await page.setViewportSize({width:1440,height:1000});await page.goto("/signup/student");
+ const cards=page.locator(".student-registration-grid .registration-card");
+ await expect(cards).toHaveCount(3);
+ const boxes=await cards.evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {top:r.top,left:r.left,width:r.width};}));
+ expect(new Set(boxes.map(box=>Math.round(box.top))).size).toBe(1);
+ expect(boxes[1].left).toBeGreaterThan(boxes[0].left+boxes[0].width);
+ expect(boxes[2].left).toBeGreaterThan(boxes[1].left+boxes[1].width);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:"test-results/student-choices-desktop-row.png",fullPage:true});
+});
