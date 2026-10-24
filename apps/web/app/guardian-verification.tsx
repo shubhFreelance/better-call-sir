@@ -93,6 +93,9 @@ function GuardianRequests({
     [selected, setSelected] = useState<Verification | "new" | null>(null);
   const params = useSearchParams();
   useEffect(() => { if (params.get("new") === "1") setSelected("new"); }, [params]);
+  const requestedId=params.get("request");
+  const requested=useQuery({queryKey:["guardian-verification",session.account.id,requestedId],queryFn:({signal})=>api<Verification>("/guardian-verifications/"+requestedId,{signal}),enabled:!!requestedId&&/^[0-9a-f-]{36}$/i.test(requestedId),retry:false});
+  useEffect(()=>{if(requested.data&&!requested.error)setSelected(requested.data);},[requested.data,requested.error]);
   const history = useHistory<{
     items: Verification[];
     nextCursor: string | null;
@@ -106,6 +109,7 @@ function GuardianRequests({
   }
   return (
     <section className="care-workspace guardian-requests">
+      {requested.error && <Notice error>{appText("Verification records could not be loaded.")}</Notice>}
       <Notice>{appText("Verify your relationship with each child separately. Approval for another child remains valid. Submit this request to send it to staff; saving education details does not submit verification.")}</Notice>
       <header className="staff-heading">
         <div>
