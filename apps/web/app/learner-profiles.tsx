@@ -4,7 +4,7 @@ import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -82,6 +82,17 @@ export function LearnerProfiles({ session }: { session: Session }) {
     retry: false,
     refetchOnWindowFocus: false,
   });
+  const [learnerSearch, setLearnerSearch] = useState("");
+  const relationships = useInfiniteQuery({
+    queryKey: ["learner-relationships", session.account.id],
+    initialPageParam: null as string | null,
+    queryFn: ({ pageParam, signal }) => api<{items: components["schemas"]["GuardianVerification"][]; nextCursor: string | null}>("/guardian-verifications?limit=20" + (pageParam ? "&cursor=" + pageParam : ""), {signal}),
+    getNextPageParam: page => page.nextCursor ?? undefined,
+    enabled: session.account.role === "GUARDIAN",
+    retry: false,
+  });
+  const verifiedLearners = relationships.data?.pages.flatMap(page => page.items).filter(row => row.status === "APPROVED" && !row.learnerId) ?? [];
+  const matchesName = (name: string) => name.toLocaleLowerCase().includes(learnerSearch.trim().toLocaleLowerCase());
   const ownProfile = query.data?.items[0];
   const studentManagement = useQuery({
     queryKey: ["learning-management", session.account.id, ownProfile?.id],
@@ -287,6 +298,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
       await client.invalidateQueries({ queryKey: ["dashboard"] });
       await client.invalidateQueries({ queryKey: ["learner-profiles"] });
       await client.invalidateQueries({ queryKey: ["guardian-setup"] });
+      await client.invalidateQueries({ queryKey: ["learner-relationships"] });
     } catch (error) {
       const unknown =
         !(error instanceof ApiError) ||
@@ -502,6 +514,27 @@ export function LearnerProfiles({ session }: { session: Session }) {
               </AlertDescription>
             </Alert>
           )}
+          {session.account.role === "GUARDIAN" && !denied && !adding && (
+            <section className="care-card" aria-label={appText("Verified learners awaiting setup")}>
+              <h2>{appText("Verified learners awaiting setup")}</h2>
+              <p>{appText("Relationship approval is complete. Review learning permission and finish education details to connect the student account. Do not create another student account.")}</p>
+              <label htmlFor="learner-search">{appText("Find your learner")}</label>
+              <Input id="learner-search" value={learnerSearch} onChange={event => setLearnerSearch(event.target.value)} placeholder={appText("Type a learner name")} />
+              <p className="care-help">{appText("Only your own verified relationships and saved profiles are shown. Load more to search older relationships.")}</p>
+              {relationships.isPending && <p role="status">{appText("Loading learner profiles…")}</p>}
+              {relationships.error && <Alert variant="destructive"><AlertDescription>{appText("We couldn’t load your verified relationships.")} <Button variant="outline" onClick={() => relationships.refetch()}>{appText("Try again")}</Button></AlertDescription></Alert>}
+              {!relationships.error && verifiedLearners.filter(row => matchesName(row.learnerName)).map(row => (
+                <article key={row.id} className="care-card">
+                  <h3>{row.learnerName}</h3>
+                  <p>{appText("Relationship verified · Education profile not created")}</p>
+                  {row.studentEmail && <p>{row.studentEmail}</p>}
+                  {ready ? <Button disabled={locked} onClick={() => {setValues({...initial, alias: row.learnerName}); setAdding(true); setSaved(null); setReview(null); setErrors({}); setMessage("");}}>{appText("Complete learner profile")}</Button> : <Button asChild variant="outline"><Link href="/onboarding/guardian">{appText("Review learning permission")}</Link></Button>}
+                </article>
+              ))}
+              {!relationships.isPending && !relationships.error && !verifiedLearners.filter(row => matchesName(row.learnerName)).length && <p role="status">{appText("No verified learners awaiting setup match this name. Check saved profiles below or verify another relationship.")}</p>}
+              {relationships.hasNextPage && <Button variant="outline" disabled={relationships.isFetchingNextPage} onClick={() => relationships.fetchNextPage()}>{appText("Load more relationships")}</Button>}
+            </section>
+          )}
           {query.data && !denied && (
             <>
               {query.data.creationStatus !== "READY" && !ready && (
@@ -549,7 +582,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     <p>{appText("No learner profiles saved yet.")}</p>
                   ) : (
                     <ul className="learner-education-list">
-                      {query.data.items.map((p) => (
+                      {query.data.items.filter(p => matchesName(p.alias)).map((p) => (
                         <li key={p.id}>
                           <h3>{p.alias}</h3>
                           <EducationSummary education={p.education} />

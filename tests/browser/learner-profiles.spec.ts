@@ -425,3 +425,29 @@ test("Hindi complete interface — विद्यार्थी शिक्�
   await page.setViewportSize({ width: 360, height: 800 });
   await checkHindi(page);
 });
+
+for (const permission of ["READY", "CONSENT_REQUIRED"]) test(`approved learner is visible before profile creation with ${permission}`, async ({page}) => {
+  await mock(page, permission === "READY" ? "normal" : permission);
+  const requests: string[] = [];
+  await page.route("**/api/v1/guardian-verifications?**", route => {
+    requests.push(route.request().url());
+    return route.fulfill({json:{items:[{id:secondId,learnerName:"Anshuman",status:"APPROVED",learnerId:null,studentEmail:"synthetic-student@example.test"},{id:learnerId,learnerName:"Pending learner",status:"PENDING_REVIEW",learnerId:null}],nextCursor:null}});
+  });
+  await page.goto("/dashboard/learners");
+  const section=page.getByRole("region",{name:"Verified learners awaiting setup"});
+  await expect(section.getByRole("heading",{name:"Anshuman",exact:true})).toBeVisible();
+  await expect(section.getByRole("heading",{name:"Pending learner"})).toHaveCount(0);
+  await page.getByLabel("Find your learner").fill("An");
+  await expect(section.getByRole("heading",{name:"Anshuman",exact:true})).toBeVisible();
+  await page.getByLabel("Find your learner").fill("Different child");
+  await expect(section.getByRole("heading",{name:"Anshuman",exact:true})).toHaveCount(0);
+  await page.getByLabel("Find your learner").fill("An");
+  if(permission === "READY") {
+    await section.getByRole("button",{name:"Complete learner profile"}).click();
+    await expect(page.getByLabel("Learner name or alias")).toHaveValue("Anshuman");
+  } else {
+    await expect(section.getByRole("link",{name:"Review learning permission"})).toHaveAttribute("href","/onboarding/guardian");
+    await expect(section.getByRole("button",{name:"Complete learner profile"})).toHaveCount(0);
+  }
+  expect(requests).toHaveLength(1);
+});

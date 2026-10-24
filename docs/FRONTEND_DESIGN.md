@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Verified learner setup bridge — 24 October 2026
+
+Show approved relationships awaiting education setup alongside completed learner profiles. Reuse care-card surfaces, visible name-search labels and shared action controls. Names come only from the signed-in guardian’s owned records, with explicit pagination/retry states. Prefill the approved name; retain consent and account-acknowledgment boundaries. Clearly distinguish relationship approval from finished education setup. Preserve both languages and avoid a public child directory.
+
 ## Guardian action-card refinement — 24 October 2026
 
 Keep all five shortcuts inside the existing #E4E4D0 saved-progress card, including direct entry and refresh. Use truthful session-restored wording when the registration notice is unavailable. The discovery button is black with a restrained teal/lavender animated outline and static reduced-motion fallback. Remove guardian sidebar discovery duplication and use Parent or Guardian Dashboard as the heading. Other roles and access rules remain unchanged.

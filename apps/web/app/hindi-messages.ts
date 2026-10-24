@@ -1,5 +1,16 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Verified learners awaiting setup": "सत्यापित विद्यार्थी जिनका सेटअप बाकी है",
+  "Relationship approval is complete. Review learning permission and finish education details to connect the student account. Do not create another student account.": "रिश्ते की पुष्टि हो गई है। विद्यार्थी खाता जोड़ने के लिए पढ़ाई की अनुमति की समीक्षा करें और शिक्षा की जानकारी पूरी करें। नया विद्यार्थी खाता न बनाएँ।",
+  "Find your learner": "अपना विद्यार्थी खोजें",
+  "Type a learner name": "विद्यार्थी का नाम लिखें",
+  "Only your own verified relationships and saved profiles are shown. Load more to search older relationships.": "केवल आपके सत्यापित रिश्ते और सहेजी प्रोफ़ाइल दिखाई जाती हैं। पुराने रिश्ते खोजने के लिए और लोड करें।",
+  "We couldn’t load your verified relationships.": "आपके सत्यापित रिश्ते लोड नहीं हो सके।",
+  "Relationship verified · Education profile not created": "रिश्ता सत्यापित · शिक्षा प्रोफ़ाइल नहीं बनी है",
+  "Complete learner profile": "विद्यार्थी प्रोफ़ाइल पूरी करें",
+  "Review learning permission": "पढ़ाई की अनुमति की समीक्षा करें",
+  "No verified learners awaiting setup match this name. Check saved profiles below or verify another relationship.": "इस नाम का कोई सत्यापित विद्यार्थी सेटअप के लिए बाकी नहीं है। नीचे सहेजी प्रोफ़ाइल देखें या अन्य रिश्ते की पुष्टि करें।",
+  "Load more relationships": "और रिश्ते लोड करें",
   "Guardian shortcuts": "अभिभावक के ज़रूरी काम",
   "Invited access": "आमंत्रण से मिली पहुँच",
   "Learning highlights": "पढ़ाई की मुख्य बातें",
