@@ -11,6 +11,250 @@
     }
   ],
   "paths": {
+    "/invitations/check": {
+      "post": {
+        "operationId": "checkStudentInvitation",
+        "summary": "Check a private invitation before own-email signup; returns no learner identity",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Valid invitation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "READY"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/invitations/link-email": {
+      "post": {
+        "operationId": "linkStudentInvitationEmail",
+        "tags": [
+          "invitations"
+        ],
+        "summary": "Accept a guardian invitation with authenticated unused own-email account",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "token",
+                  "confirmed"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "confirmed": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/service-followups/{kind}/{id}/contact-details": {
       "get": {
         "operationId": "getServiceContactDetails",
@@ -32419,2147 +32663,1903 @@
           }
         ]
       }
-    },
-    "/children/{id}/learning-management": {
-      "get": {
-        "summary": "Read current guardian-selected learning decision permissions; consent remains separate",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
+    }
+  ,"/children/{id}/learning-management":{
+  "get": {
+    "summary": "Read current guardian-selected learning decision permissions; consent remains separate",
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Current permissions",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "$ref": "#/components/schemas/LearningManagement"
             }
           }
-        ],
-        "responses": {
-          "200": {
-            "description": "Current permissions",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LearningManagement"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Session required/expired",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Role, ownership, consent, CSRF or Origin denied",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Missing or inaccessible resource",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Version, eligibility, reservation or retry conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "operationId": "getChildLearningManagement",
-        "tags": [
-          "learning-management"
-        ],
-        "security": [
-          {
-            "cookieSession": []
-          }
-        ],
-        "description": "Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes."
+        }
       },
-      "post": {
-        "summary": "Guardian reviews and changes the learner management mode",
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
+      "400": {
+        "description": "Validation",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
+              "$ref": "#/components/schemas/Error"
             }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
+          }
+        }
+      },
+      "401": {
+        "description": "Session required/expired",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "$ref": "#/components/schemas/Error"
             }
           }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "mode",
-                  "expectedVersion",
-                  "confirmed"
-                ],
-                "properties": {
-                  "mode": {
-                    "type": "string",
-                    "enum": [
-                      "GUARDIAN_ONLY",
-                      "SHARED",
-                      "STUDENT_LED"
-                    ]
-                  },
-                  "expectedVersion": {
-                    "type": "integer",
-                    "minimum": 1
-                  },
-                  "confirmed": {
-                    "const": true,
-                    "type": "boolean"
-                  }
-                }
-              }
+        }
+      },
+      "403": {
+        "description": "Role, ownership, consent, CSRF or Origin denied",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
           }
-        },
-        "responses": {
-          "201": {
-            "description": "Recorded permission choice",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LearningManagement"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Session required/expired",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Role, ownership, consent, CSRF or Origin denied",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Missing or inaccessible resource",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Version, eligibility, reservation or retry conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+        }
+      },
+      "404": {
+        "description": "Missing or inaccessible resource",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
           }
-        },
-        "operationId": "postChildLearningManagement",
-        "tags": [
-          "learning-management"
-        ],
-        "security": [
-          {
-            "cookieSession": []
+        }
+      },
+      "409": {
+        "description": "Version, eligibility, reservation or retry conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
           }
-        ],
-        "description": "Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes."
+        }
+      },
+      "429": {
+        "description": "Rate limit",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
       }
     },
-    "/requests/{id}/decision-authority": {
-      "post": {
-        "summary": "Optionally ask the guardian to decide for one enquiry, or resume permitted student decisions",
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "guardianDecisionRequested",
-                  "expectedVersion",
-                  "confirmed"
-                ],
-                "properties": {
-                  "guardianDecisionRequested": {
-                    "type": "boolean"
-                  },
-                  "expectedVersion": {
-                    "type": "integer",
-                    "minimum": 1
-                  },
-                  "confirmed": {
-                    "const": true,
-                    "type": "boolean"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Updated enquiry",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TuitionRequest"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Session required/expired",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Role, ownership, consent, CSRF or Origin denied",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Missing or inaccessible resource",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Version, eligibility, reservation or retry conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "operationId": "postEnquiryDecisionAuthority",
-        "tags": [
-          "learning-management"
-        ],
-        "security": [
-          {
-            "cookieSession": []
-          }
-        ],
-        "description": "Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes."
+    "operationId": "getChildLearningManagement",
+    "tags": [
+      "learning-management"
+    ],
+    "security": [
+      {
+        "cookieSession": []
       }
-    },
-    "/tuition-minimums/{kind}/{id}": {
-      "get": {
-        "operationId": "readTuitionMinimum",
-        "summary": "read Tuition Minimum",
-        "tags": [
-          "Tuition minimum"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "kind",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PLACEMENT",
-                "INDEPENDENT"
-              ]
-            }
-          },
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "query",
-            "name": "creditsCursor",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "query",
-            "name": "reviewsCursor",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Recorded minimum tuition result; no automatic provider charge or refund",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TuitionMinimumView"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
+    ],
+    "description": "Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes."
+  },
+  "post": {
+    "summary": "Guardian reviews and changes the learner management mode",
+    "parameters": [
+      {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mode",
+              "expectedVersion",
+              "confirmed"
+            ],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "GUARDIAN_ONLY",
+                  "SHARED",
+                  "STUDENT_LED"
+                ]
+              },
+              "expectedVersion": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "confirmed": {
+                "const": true,
+                "type": "boolean"
               }
             }
           }
         }
       }
     },
-    "/tuition-minimums/{kind}/{id}/commencements": {
-      "post": {
-        "operationId": "confirmTuitionCommencement",
-        "summary": "confirm Tuition Commencement",
-        "tags": [
-          "Tuition minimum"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "kind",
-            "required": true,
+    "responses": {
+      "201": {
+        "description": "Recorded permission choice",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "enum": [
-                "PLACEMENT",
-                "INDEPENDENT"
-              ]
-            }
-          },
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
+              "$ref": "#/components/schemas/LearningManagement"
             }
           }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TuitionCommencementInput"
-              }
+        }
+      },
+      "400": {
+        "description": "Validation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
           }
-        },
-        "responses": {
-          "201": {
-            "description": "Recorded minimum tuition result; no automatic provider charge or refund",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TuitionMinimum"
-                }
-              }
+        }
+      },
+      "401": {
+        "description": "Session required/expired",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
-          },
-          "400": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+          }
+        }
+      },
+      "403": {
+        "description": "Role, ownership, consent, CSRF or Origin denied",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
-          },
-          "401": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+          }
+        }
+      },
+      "404": {
+        "description": "Missing or inaccessible resource",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
-          },
-          "403": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+          }
+        }
+      },
+      "409": {
+        "description": "Version, eligibility, reservation or retry conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
-          },
-          "404": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+          }
+        }
+      },
+      "429": {
+        "description": "Rate limit",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
-          },
-          "409": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
+          }
+        }
+      }
+    },
+    "operationId": "postChildLearningManagement",
+    "tags": [
+      "learning-management"
+    ],
+    "security": [
+      {
+        "cookieSession": []
+      }
+    ],
+    "description": "Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes."
+  }
+},"/requests/{id}/decision-authority":{
+  "post": {
+    "summary": "Optionally ask the guardian to decide for one enquiry, or resume permitted student decisions",
+    "parameters": [
+      {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "guardianDecisionRequested",
+              "expectedVersion",
+              "confirmed"
+            ],
+            "properties": {
+              "guardianDecisionRequested": {
+                "type": "boolean"
+              },
+              "expectedVersion": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "confirmed": {
+                "const": true,
+                "type": "boolean"
               }
             }
           }
         }
       }
     },
-    "/tuition-minimums/{kind}/{id}/credits": {
-      "post": {
-        "operationId": "proposeTuitionCredit",
-        "summary": "propose Tuition Credit",
-        "tags": [
-          "Tuition minimum"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "kind",
-            "required": true,
+    "responses": {
+      "201": {
+        "description": "Updated enquiry",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "enum": [
-                "PLACEMENT",
-                "INDEPENDENT"
-              ]
-            }
-          },
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
+              "$ref": "#/components/schemas/TuitionRequest"
             }
           }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TuitionCreditInput"
-              }
+        }
+      },
+      "400": {
+        "description": "Validation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
           }
-        },
-        "responses": {
-          "201": {
-            "description": "Recorded minimum tuition result; no automatic provider charge or refund",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TuitionCredit"
-                }
-              }
+        }
+      },
+      "401": {
+        "description": "Session required/expired",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
-          },
-          "400": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+          }
+        }
+      },
+      "403": {
+        "description": "Role, ownership, consent, CSRF or Origin denied",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
-          },
-          "401": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+          }
+        }
+      },
+      "404": {
+        "description": "Missing or inaccessible resource",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
-          },
-          "403": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+          }
+        }
+      },
+      "409": {
+        "description": "Version, eligibility, reservation or retry conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
-          },
-          "404": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+          }
+        }
+      },
+      "429": {
+        "description": "Rate limit",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
             }
           }
         }
       }
     },
-    "/tuition-minimums/{kind}/{id}/credits/{creditId}/decisions": {
-      "post": {
-        "operationId": "decideTuitionCredit",
-        "summary": "decide Tuition Credit",
-        "tags": [
-          "Tuition minimum"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "kind",
-            "required": true,
+    "operationId": "postEnquiryDecisionAuthority",
+    "tags": [
+      "learning-management"
+    ],
+    "security": [
+      {
+        "cookieSession": []
+      }
+    ],
+    "description": "Guardian-selected learning delegation does not grant consent, device, privacy or payment authority. Guardian changes serialize with student writes; every student retry rechecks current permission before returning a receipt. Origin, CSRF and exact keyed retry protect writes."
+  }
+},
+"/tuition-minimums/{kind}/{id}": {
+  "get": {
+    "operationId": "readTuitionMinimum",
+    "summary": "read Tuition Minimum",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "kind",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PLACEMENT",
+            "INDEPENDENT"
+          ]
+        }
+      },
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "creditsCursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "reviewsCursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "limit",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "enum": [
-                "PLACEMENT",
-                "INDEPENDENT"
-              ]
-            }
-          },
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "path",
-            "name": "creditId",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TuitionCreditDecision"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Recorded minimum tuition result; no automatic provider charge or refund",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TuitionCredit"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+              "$ref": "#/components/schemas/TuitionMinimumView"
             }
           }
         }
-      }
-    },
-    "/tuition-minimums/{kind}/{id}/reviews": {
-      "post": {
-        "operationId": "requestTuitionMinimumReview",
-        "summary": "request Tuition Minimum Review",
-        "tags": [
-          "Tuition minimum"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "kind",
-            "required": true,
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "enum": [
-                "PLACEMENT",
-                "INDEPENDENT"
-              ]
-            }
-          },
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TuitionMinimumReviewInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Recorded minimum tuition result; no automatic provider charge or refund",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TuitionMinimumReview"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+              "$ref": "#/components/schemas/Error"
             }
           }
         }
-      }
-    },
-    "/admin/tuition-minimum-reviews": {
-      "get": {
-        "operationId": "listTuitionMinimumReviews",
-        "summary": "list Tuition Minimum Reviews",
-        "tags": [
-          "Tuition minimum"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "cursor",
-            "required": false,
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "PENDING",
-                "RESOLVED"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Recorded minimum tuition result; no automatic provider charge or refund",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TuitionMinimumReviewPage"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+              "$ref": "#/components/schemas/Error"
             }
           }
         }
-      }
-    },
-    "/admin/tuition-minimum-reviews/{reviewId}/decisions": {
-      "post": {
-        "operationId": "decideTuitionMinimumReview",
-        "summary": "decide Tuition Minimum Review",
-        "tags": [
-          "Tuition minimum"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "reviewId",
-            "required": true,
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TuitionMinimumReviewDecision"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Recorded minimum tuition result; no automatic provider charge or refund",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TuitionMinimumReview"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, current scope, version or rate-limit error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+              "$ref": "#/components/schemas/Error"
             }
           }
         }
-      }
-    },
-    "/notifications": {
-      "get": {
-        "operationId": "listMyNotifications",
-        "summary": "list My Notifications",
-        "tags": [
-          "Email delivery"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "cursor",
-            "required": false,
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "QUEUED",
-                "SENDING",
-                "ACCEPTED",
-                "DELIVERED",
-                "DELAYED",
-                "BOUNCED",
-                "COMPLAINED",
-                "FAILED",
-                "UNKNOWN",
-                "SUPPRESSED",
-                "SANDBOX"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmailDeliveryPage"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+              "$ref": "#/components/schemas/Error"
             }
           }
         }
-      }
-    },
-    "/admin/email-deliveries": {
-      "get": {
-        "operationId": "listEmailRecoveryQueue",
-        "summary": "list Email Recovery Queue",
-        "tags": [
-          "Email delivery"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "cursor",
-            "required": false,
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "QUEUED",
-                "SENDING",
-                "ACCEPTED",
-                "DELIVERED",
-                "DELAYED",
-                "BOUNCED",
-                "COMPLAINED",
-                "FAILED",
-                "UNKNOWN",
-                "SUPPRESSED",
-                "SANDBOX"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmailDeliveryPage"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
+              "$ref": "#/components/schemas/Error"
             }
           }
         }
-      }
-    },
-    "/notifications/{id}/history": {
-      "get": {
-        "operationId": "readEmailDeliveryHistory",
-        "summary": "read Email Delivery History",
-        "tags": [
-          "Email delivery"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
             "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "query",
-            "name": "staff",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "in": "query",
-            "name": "attemptsCursor",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "query",
-            "name": "receiptsCursor",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "maxLength": 128
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 50
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmailDeliveryHistory"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/email-deliveries/{id}/retries": {
-      "post": {
-        "operationId": "retryEmailDelivery",
-        "summary": "retry Email Delivery",
-        "tags": [
-          "Email delivery"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EmailRetry"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmailDelivery"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/notifications/webhooks/resend": {
-      "post": {
-        "operationId": "recordResendReceipt",
-        "summary": "record Resend Receipt",
-        "tags": [
-          "Email delivery"
-        ],
-        "parameters": [
-          {
-            "in": "header",
-            "name": "svix-id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "svix-timestamp",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "svix-signature",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "security": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EmailReceiptInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EmailReceiptResult"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/invitations/check": {
-      "post": {
-        "operationId": "checkStudentInvitation",
-        "summary": "Check a private invitation before own-email signup; returns no learner identity",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "token"
-                ],
-                "properties": {
-                  "token": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 100
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Valid invitation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "status"
-                  ],
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "READY"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Session required/expired",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Role, ownership, consent, CSRF or Origin denied",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Missing or inaccessible resource",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Version, eligibility, reservation or retry conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "security": []
-      }
-    },
-    "/invitations/link-email": {
-      "post": {
-        "operationId": "linkStudentInvitationEmail",
-        "tags": [
-          "invitations"
-        ],
-        "summary": "Accept a guardian invitation with authenticated unused own-email account",
-        "security": [
-          {
-            "cookieSession": []
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Resource"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Session required/expired",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Role, ownership, consent, CSRF or Origin denied",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Missing or inaccessible resource",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Version, eligibility, reservation or retry conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Provider unavailable or feature paused",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        },
-        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
-        "parameters": [
-          {
-            "name": "X-CSRF-Token",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "token",
-                  "confirmed"
-                ],
-                "properties": {
-                  "token": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 100
-                  },
-                  "confirmed": {
-                    "type": "boolean",
-                    "const": true
-                  }
-                }
-              }
+              "$ref": "#/components/schemas/Error"
             }
           }
         }
       }
     }
-  },
+  }
+},
+"/tuition-minimums/{kind}/{id}/commencements": {
+  "post": {
+    "operationId": "confirmTuitionCommencement",
+    "summary": "confirm Tuition Commencement",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "kind",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PLACEMENT",
+            "INDEPENDENT"
+          ]
+        }
+      },
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/TuitionCommencementInput"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionMinimum"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/tuition-minimums/{kind}/{id}/credits": {
+  "post": {
+    "operationId": "proposeTuitionCredit",
+    "summary": "propose Tuition Credit",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "kind",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PLACEMENT",
+            "INDEPENDENT"
+          ]
+        }
+      },
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/TuitionCreditInput"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionCredit"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/tuition-minimums/{kind}/{id}/credits/{creditId}/decisions": {
+  "post": {
+    "operationId": "decideTuitionCredit",
+    "summary": "decide Tuition Credit",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "kind",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PLACEMENT",
+            "INDEPENDENT"
+          ]
+        }
+      },
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "path",
+        "name": "creditId",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/TuitionCreditDecision"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionCredit"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/tuition-minimums/{kind}/{id}/reviews": {
+  "post": {
+    "operationId": "requestTuitionMinimumReview",
+    "summary": "request Tuition Minimum Review",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "kind",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PLACEMENT",
+            "INDEPENDENT"
+          ]
+        }
+      },
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/TuitionMinimumReviewInput"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionMinimumReview"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/admin/tuition-minimum-reviews": {
+  "get": {
+    "operationId": "listTuitionMinimumReviews",
+    "summary": "list Tuition Minimum Reviews",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "query",
+        "name": "cursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "limit",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      {
+        "in": "query",
+        "name": "status",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "PENDING",
+            "RESOLVED"
+          ]
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionMinimumReviewPage"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/admin/tuition-minimum-reviews/{reviewId}/decisions": {
+  "post": {
+    "operationId": "decideTuitionMinimumReview",
+    "summary": "decide Tuition Minimum Review",
+    "tags": [
+      "Tuition minimum"
+    ],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "reviewId",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/TuitionMinimumReviewDecision"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Recorded minimum tuition result; no automatic provider charge or refund",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TuitionMinimumReview"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, current scope, version or rate-limit error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+,
+"/notifications": {
+  "get": {
+    "operationId": "listMyNotifications",
+    "summary": "list My Notifications",
+    "tags": [
+      "Email delivery"
+    ],
+    "parameters": [
+      {
+        "in": "query",
+        "name": "cursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "limit",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      {
+        "in": "query",
+        "name": "status",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "QUEUED",
+            "SENDING",
+            "ACCEPTED",
+            "DELIVERED",
+            "DELAYED",
+            "BOUNCED",
+            "COMPLAINED",
+            "FAILED",
+            "UNKNOWN",
+            "SUPPRESSED",
+            "SANDBOX"
+          ]
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EmailDeliveryPage"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/admin/email-deliveries": {
+  "get": {
+    "operationId": "listEmailRecoveryQueue",
+    "summary": "list Email Recovery Queue",
+    "tags": [
+      "Email delivery"
+    ],
+    "parameters": [
+      {
+        "in": "query",
+        "name": "cursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "limit",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      {
+        "in": "query",
+        "name": "status",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "QUEUED",
+            "SENDING",
+            "ACCEPTED",
+            "DELIVERED",
+            "DELAYED",
+            "BOUNCED",
+            "COMPLAINED",
+            "FAILED",
+            "UNKNOWN",
+            "SUPPRESSED",
+            "SANDBOX"
+          ]
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EmailDeliveryPage"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/notifications/{id}/history": {
+  "get": {
+    "operationId": "readEmailDeliveryHistory",
+    "summary": "read Email Delivery History",
+    "tags": [
+      "Email delivery"
+    ],
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "staff",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "true"
+          ]
+        }
+      },
+      {
+        "in": "query",
+        "name": "attemptsCursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "query",
+        "name": "receiptsCursor",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "maxLength": 128
+        }
+      },
+      {
+        "in": "query",
+        "name": "limit",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EmailDeliveryHistory"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/admin/email-deliveries/{id}/retries": {
+  "post": {
+    "operationId": "retryEmailDelivery",
+    "summary": "retry Email Delivery",
+    "tags": [
+      "Email delivery"
+    ],
+    "parameters": [
+      {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      {
+        "in": "header",
+        "name": "Idempotency-Key",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/EmailRetry"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EmailDelivery"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/notifications/webhooks/resend": {
+  "post": {
+    "operationId": "recordResendReceipt",
+    "summary": "record Resend Receipt",
+    "tags": [
+      "Email delivery"
+    ],
+    "parameters": [
+      {
+        "in": "header",
+        "name": "svix-id",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "in": "header",
+        "name": "svix-timestamp",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "in": "header",
+        "name": "svix-signature",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "security": [],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/EmailReceiptInput"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Sanitized delivery metadata; accepted email is distinct from confirmed inbox delivery",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/EmailReceiptResult"
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "429": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "503": {
+        "description": "Validated request, authentication, permission, version, rate or provider-configuration error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+},
   "components": {
     "schemas": {
       "ServiceFollowup": {
@@ -35270,12 +35270,8 @@
               "null"
             ],
             "format": "uuid"
-          },
-          "guardianDecisionRequested": {
-            "type": "boolean",
-            "description": "This enquiry is currently delegated to the guardian; standing student permission remains separate."
           }
-        },
+        ,"guardianDecisionRequested":{"type":"boolean","description":"This enquiry is currently delegated to the guardian; standing student permission remains separate."}},
         "required": [
           "id",
           "guardianId",
@@ -35977,37 +35973,37 @@
         "additionalProperties": false
       },
       "OtpSandbox": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "SANDBOX",
-              "SENT",
-              "PENDING"
-            ]
-          },
-          "developmentCode": {
-            "type": "string",
-            "pattern": "^\\d{6}$"
-          },
-          "expiresIn": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 300
-          },
-          "deliveryId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        },
-        "required": [
-          "status",
-          "expiresIn"
-        ],
-        "additionalProperties": false,
-        "description": "SENT indicates provider acceptance, not confirmed inbox delivery. PENDING is queued or sending. SANDBOX is development-only and may include a development code. Email possession is separate from guardian verification."
-      },
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "SANDBOX",
+        "SENT",
+        "PENDING"
+      ]
+    },
+    "developmentCode": {
+      "type": "string",
+      "pattern": "^\\d{6}$"
+    },
+    "expiresIn": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 300
+    },
+    "deliveryId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  },
+  "required": [
+    "status",
+    "expiresIn"
+  ],
+  "additionalProperties": false,
+  "description": "SENT indicates provider acceptance, not confirmed inbox delivery. PENDING is queued or sending. SANDBOX is development-only and may include a development code. Email possession is separate from guardian verification."
+},
       "Consent": {
         "type": "object",
         "properties": {
@@ -36241,11 +36237,8 @@
               "null"
             ],
             "format": "uuid"
-          },
-          "guardianDecisionRequested": {
-            "type": "boolean"
           }
-        },
+        ,"guardianDecisionRequested":{"type":"boolean"}},
         "required": [
           "id",
           "guardianId",
@@ -36406,20 +36399,8 @@
             ],
             "format": "uuid",
             "description": "Approved learner-specific guardian relationship; legacy synthetic fixtures may have no proof."
-          },
-          "learningManagementMode": {
-            "type": "string",
-            "enum": [
-              "GUARDIAN_ONLY",
-              "SHARED",
-              "STUDENT_LED"
-            ]
-          },
-          "learningManagementVersion": {
-            "type": "integer",
-            "minimum": 1
           }
-        },
+        ,"learningManagementMode":{"type":"string","enum":["GUARDIAN_ONLY","SHARED","STUDENT_LED"]},"learningManagementVersion":{"type":"integer","minimum":1}},
         "required": [
           "id",
           "guardianId",
@@ -40491,16 +40472,8 @@
           "commercialVersion": {
             "type": "integer",
             "minimum": 0
-          },
-          "familyAcceptanceActorId": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uuid",
-            "description": "Actual family account that accepted learning terms; financial commencement remains guardian-only."
           }
-        },
+        ,"familyAcceptanceActorId":{"type":["string","null"],"format":"uuid","description":"Actual family account that accepted learning terms; financial commencement remains guardian-only."}},
         "required": [
           "id",
           "guardianId",
@@ -48204,34 +48177,17 @@
           },
           "scanStatus": {
             "type": "string",
-            "enum": [
-              "NOT_UPLOADED",
-              "WAITING",
-              "RETRY_REQUIRED",
-              "CLEARED",
-              "UNSAFE",
-              "DELETED"
-            ],
+            "enum": ["NOT_UPLOADED", "WAITING", "RETRY_REQUIRED", "CLEARED", "UNSAFE", "DELETED"],
             "description": "Sanitized current report processing status. Exhausted scan attempts require authorized operational recovery; no file is cleared by this metadata."
           },
           "scanRetry": {
             "type": "object",
             "description": "Present only on administrator reads for an exhausted, unprocessed scan of the current report. Use the existing reviewed admin job retry endpoint after repairing scanning infrastructure.",
             "properties": {
-              "jobId": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "expectedAttempts": {
-                "type": "integer",
-                "minimum": 5,
-                "maximum": 50
-              }
+              "jobId": {"type": "string", "format": "uuid"},
+              "expectedAttempts": {"type": "integer", "minimum": 5, "maximum": 50}
             },
-            "required": [
-              "jobId",
-              "expectedAttempts"
-            ],
+            "required": ["jobId", "expectedAttempts"],
             "additionalProperties": false
           },
           "evidence": {
@@ -48456,1199 +48412,1200 @@
           "confirmed"
         ],
         "additionalProperties": false
-      },
-      "LearningManagement": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "childId",
-          "mode",
-          "version",
-          "canManageLearning",
-          "canChangeManagement",
-          "canManageConsent",
-          "canConfirmFinancialCommencement"
-        ],
-        "properties": {
-          "childId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "GUARDIAN_ONLY",
-              "SHARED",
-              "STUDENT_LED"
-            ]
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "canManageLearning": {
-            "type": "boolean"
-          },
-          "canChangeManagement": {
-            "type": "boolean"
-          },
-          "canManageConsent": {
-            "type": "boolean"
-          },
-          "canConfirmFinancialCommencement": {
-            "type": "boolean"
-          }
+      }
+    ,"LearningManagement":{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "childId",
+    "mode",
+    "version",
+    "canManageLearning",
+    "canChangeManagement",
+    "canManageConsent",
+    "canConfirmFinancialCommencement"
+  ],
+  "properties": {
+    "childId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "GUARDIAN_ONLY",
+        "SHARED",
+        "STUDENT_LED"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "canManageLearning": {
+      "type": "boolean"
+    },
+    "canChangeManagement": {
+      "type": "boolean"
+    },
+    "canManageConsent": {
+      "type": "boolean"
+    },
+    "canConfirmFinancialCommencement": {
+      "type": "boolean"
+    }
+  }
+},
+"TuitionMinimum": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "PLACEMENT",
+        "INDEPENDENT"
+      ]
+    },
+    "resourceId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "monthlyPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "days": {
+      "type": "integer",
+      "enum": [
+        0,
+        15,
+        30
+      ]
+    },
+    "minimumPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "adjustedPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "policyVersion": {
+      "type": "string"
+    },
+    "commencementDate": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
         }
-      },
-      "TuitionMinimum": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "PLACEMENT",
-              "INDEPENDENT"
-            ]
-          },
-          "resourceId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "monthlyPaise": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "days": {
-            "type": "integer",
-            "enum": [
-              0,
-              15,
-              30
-            ]
-          },
-          "minimumPaise": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "adjustedPaise": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "policyVersion": {
-            "type": "string"
-          },
-          "commencementDate": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "familyConfirmedAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "teacherConfirmedAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
+      ]
+    },
+    "familyConfirmedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
         },
-        "required": [
-          "id",
-          "kind",
-          "resourceId",
-          "monthlyPaise",
-          "days",
-          "minimumPaise",
-          "adjustedPaise",
-          "policyVersion",
-          "commencementDate",
-          "familyConfirmedAt",
-          "teacherConfirmedAt",
-          "version",
-          "createdAt"
-        ]
-      },
-      "TuitionCredit": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "minimumId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "proposerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "confirmerId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "amountPaise": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "paidOn": {
-            "type": "string"
-          },
-          "reference": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "PENDING",
-              "CONFIRMED",
-              "REJECTED"
-            ]
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "decidedAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "minimumId",
-          "proposerId",
-          "confirmerId",
-          "amountPaise",
-          "paidOn",
-          "reference",
-          "status",
-          "createdAt",
-          "decidedAt"
-        ]
-      },
-      "TuitionMinimumReview": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "minimumId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "caseId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "requesterId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "region": {
-            "type": "string"
-          },
-          "reason": {
-            "type": "string",
-            "enum": [
-              "SAFETY",
-              "NON_DELIVERY"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "PENDING",
-              "RESOLVED"
-            ]
-          },
-          "reviewerId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "decisionReason": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "adjustedPaise": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "decidedAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "minimumId",
-          "caseId",
-          "requesterId",
-          "region",
-          "reason",
-          "status",
-          "reviewerId",
-          "decisionReason",
-          "adjustedPaise",
-          "decidedAt",
-          "createdAt"
-        ]
-      },
-      "TuitionMinimumSummary": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "commenced": {
-            "type": "boolean"
-          },
-          "creditedPaise": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "obligationPaise": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "outstandingPaise": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "refundAssessmentPaise": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "pendingReview": {
-            "type": "boolean"
-          },
-          "endsOn": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "commenced",
-          "creditedPaise",
-          "obligationPaise",
-          "outstandingPaise",
-          "refundAssessmentPaise",
-          "pendingReview",
-          "endsOn"
-        ]
-      },
-      "TuitionMinimumView": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "available": {
-            "type": "boolean"
-          },
-          "agreement": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/TuitionMinimum"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "summary": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/TuitionMinimumSummary"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "canDecide": {
-            "type": "boolean"
-          },
-          "canReview": {
-            "type": "boolean"
-          },
-          "credits": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TuitionCredit"
-            }
-          },
-          "creditsNextCursor": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "reviews": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TuitionMinimumReview"
-            }
-          },
-          "reviewsNextCursor": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "pendingReview": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/TuitionMinimumReview"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "startGate": {
-            "type": "string",
-            "enum": [
-              "READY",
-              "TERMS_PENDING",
-              "CLOSED"
-            ]
-          },
-          "context": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "teacherName",
-              "learnerName",
-              "subject"
-            ],
-            "properties": {
-              "teacherName": {
-                "type": "string"
-              },
-              "learnerName": {
-                "type": "string"
-              },
-              "subject": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "required": [
-          "id",
-          "available",
-          "agreement",
-          "summary",
-          "canDecide",
-          "canReview",
-          "credits",
-          "creditsNextCursor",
-          "reviews",
-          "reviewsNextCursor",
-          "pendingReview",
-          "startGate",
-          "context"
-        ]
-      },
-      "TuitionMinimumReviewQueueItem": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "minimumId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "caseId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "requesterId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "region": {
-            "type": "string"
-          },
-          "reason": {
-            "type": "string",
-            "enum": [
-              "SAFETY",
-              "NON_DELIVERY"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "PENDING",
-              "RESOLVED"
-            ]
-          },
-          "reviewerId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "decisionReason": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "adjustedPaise": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "minimum": 0
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "decidedAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "PLACEMENT",
-              "INDEPENDENT"
-            ]
-          },
-          "resourceId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        },
-        "required": [
-          "id",
-          "minimumId",
-          "caseId",
-          "requesterId",
-          "region",
-          "reason",
-          "status",
-          "reviewerId",
-          "decisionReason",
-          "adjustedPaise",
-          "decidedAt",
-          "createdAt",
-          "kind",
-          "resourceId"
-        ]
-      },
-      "TuitionMinimumReviewPage": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TuitionMinimumReviewQueueItem"
-            }
-          },
-          "nextCursor": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "items",
-          "nextCursor"
-        ]
-      },
-      "TuitionCommencementInput": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "expectedVersion": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "confirmed": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "action": {
-            "type": "string",
-            "enum": [
-              "CONFIRM",
-              "WITHDRAW"
-            ]
-          },
-          "commencementDate": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-          }
-        },
-        "required": [
-          "expectedVersion",
-          "confirmed",
-          "action",
-          "commencementDate"
-        ]
-      },
-      "TuitionCreditInput": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "expectedVersion": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "confirmed": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "amountPaise": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 2000000
-          },
-          "paidOn": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-          },
-          "reference": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 80
-          }
-        },
-        "required": [
-          "expectedVersion",
-          "confirmed",
-          "amountPaise",
-          "paidOn",
-          "reference"
-        ]
-      },
-      "TuitionCreditDecision": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "expectedVersion": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "confirmed": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "decision": {
-            "type": "string",
-            "enum": [
-              "CONFIRM",
-              "REJECT"
-            ]
-          }
-        },
-        "required": [
-          "expectedVersion",
-          "confirmed",
-          "decision"
-        ]
-      },
-      "TuitionMinimumReviewInput": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "expectedVersion": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "confirmed": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "reason": {
-            "type": "string",
-            "enum": [
-              "SAFETY",
-              "NON_DELIVERY"
-            ]
-          },
-          "description": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 3000
-          }
-        },
-        "required": [
-          "expectedVersion",
-          "confirmed",
-          "reason",
-          "description"
-        ]
-      },
-      "TuitionMinimumReviewDecision": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "expectedVersion": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "confirmed": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "adjustedPaise": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 2000000
-          },
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 1000
-          }
-        },
-        "required": [
-          "expectedVersion",
-          "confirmed",
-          "adjustedPaise",
-          "reason"
-        ]
-      },
-      "EmailDelivery": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "topic": {
-            "type": "string"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "OTP",
-              "NOTIFICATION"
-            ]
-          },
-          "locale": {
-            "type": "string",
-            "enum": [
-              "en",
-              "hi"
-            ]
-          },
-          "actionPath": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "provider": {
-            "type": "string",
-            "enum": [
-              "SANDBOX",
-              "RESEND",
-              "SMTP"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "QUEUED",
-              "SENDING",
-              "ACCEPTED",
-              "DELIVERED",
-              "DELAYED",
-              "BOUNCED",
-              "COMPLAINED",
-              "FAILED",
-              "UNKNOWN",
-              "SUPPRESSED",
-              "SANDBOX"
-            ]
-          },
-          "failureCode": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "attempts": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "maxAttempts": {
-            "type": "integer",
-            "minimum": 5,
-            "maximum": 50
-          },
-          "version": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "retryAvailable": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "id",
-          "topic",
-          "kind",
-          "locale",
-          "actionPath",
-          "provider",
-          "status",
-          "failureCode",
-          "attempts",
-          "maxAttempts",
-          "version",
-          "expiresAt",
-          "createdAt",
-          "updatedAt",
-          "retryAvailable"
-        ]
-      },
-      "EmailAttempt": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "deliveryId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "number": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "outcome": {
-            "type": "string",
-            "enum": [
-              "STARTED",
-              "ACCEPTED",
-              "SANDBOX",
-              "REJECTED",
-              "UNCERTAIN",
-              "SUPPRESSED"
-            ]
-          },
-          "failureCode": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "completedAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "id",
-          "deliveryId",
-          "number",
-          "outcome",
-          "failureCode",
-          "startedAt",
-          "completedAt"
-        ]
-      },
-      "EmailReceipt": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "deliveryId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "providerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "ACCEPTED",
-              "DELIVERED",
-              "DELAYED",
-              "BOUNCED",
-              "COMPLAINED"
-            ]
-          },
-          "occurredAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "receivedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "deliveryId",
-          "providerId",
-          "kind",
-          "occurredAt",
-          "receivedAt"
-        ]
-      },
-      "EmailRetry": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "expectedVersion": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "confirmed": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          },
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 500
-          }
-        },
-        "required": [
-          "expectedVersion",
-          "confirmed",
-          "reason"
-        ]
-      },
-      "EmailDeliveryPage": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EmailDelivery"
-            }
-          },
-          "nextCursor": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "items",
-          "nextCursor"
-        ]
-      },
-      "EmailDeliveryHistory": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "delivery": {
-            "$ref": "#/components/schemas/EmailDelivery"
-          },
-          "providerReference": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "attempts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EmailAttempt"
-            }
-          },
-          "attemptsNextCursor": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "receipts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EmailReceipt"
-            }
-          },
-          "receiptsNextCursor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "delivery",
-          "providerReference",
-          "attempts",
-          "attemptsNextCursor",
-          "receipts",
-          "receiptsNextCursor"
-        ]
-      },
-      "EmailReceiptInput": {
-        "type": "object",
-        "required": [
-          "type",
-          "created_at",
-          "data"
-        ],
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "email.sent",
-              "email.delivered",
-              "email.delivery_delayed",
-              "email.bounced",
-              "email.complained"
-            ]
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "data": {
-            "type": "object",
-            "required": [
-              "email_id"
-            ],
-            "properties": {
-              "email_id": {
-                "type": "string",
-                "format": "uuid"
-              }
-            }
-          }
+        {
+          "type": "null"
         }
-      },
-      "EmailReceiptResult": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "RECORDED"
-            ]
-          }
+      ]
+    },
+    "teacherConfirmedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
         },
-        "required": [
-          "id",
-          "status"
-        ]
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "resourceId",
+    "monthlyPaise",
+    "days",
+    "minimumPaise",
+    "adjustedPaise",
+    "policyVersion",
+    "commencementDate",
+    "familyConfirmedAt",
+    "teacherConfirmedAt",
+    "version",
+    "createdAt"
+  ]
+},
+"TuitionCredit": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "minimumId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "proposerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "confirmerId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "amountPaise": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "paidOn": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "CONFIRMED",
+        "REJECTED"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decidedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "minimumId",
+    "proposerId",
+    "confirmerId",
+    "amountPaise",
+    "paidOn",
+    "reference",
+    "status",
+    "createdAt",
+    "decidedAt"
+  ]
+},
+"TuitionMinimumReview": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "minimumId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "caseId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "requesterId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "region": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "SAFETY",
+        "NON_DELIVERY"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "RESOLVED"
+      ]
+    },
+    "reviewerId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decisionReason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "adjustedPaise": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decidedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "id",
+    "minimumId",
+    "caseId",
+    "requesterId",
+    "region",
+    "reason",
+    "status",
+    "reviewerId",
+    "decisionReason",
+    "adjustedPaise",
+    "decidedAt",
+    "createdAt"
+  ]
+},
+"TuitionMinimumSummary": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "commenced": {
+      "type": "boolean"
+    },
+    "creditedPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "obligationPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "outstandingPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "refundAssessmentPaise": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pendingReview": {
+      "type": "boolean"
+    },
+    "endsOn": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "commenced",
+    "creditedPaise",
+    "obligationPaise",
+    "outstandingPaise",
+    "refundAssessmentPaise",
+    "pendingReview",
+    "endsOn"
+  ]
+},
+"TuitionMinimumView": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "available": {
+      "type": "boolean"
+    },
+    "agreement": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/TuitionMinimum"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "summary": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/TuitionMinimumSummary"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "canDecide": {
+      "type": "boolean"
+    },
+    "canReview": {
+      "type": "boolean"
+    },
+    "credits": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/TuitionCredit"
       }
     },
+    "creditsNextCursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/TuitionMinimumReview"
+      }
+    },
+    "reviewsNextCursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "pendingReview": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/TuitionMinimumReview"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "startGate": {
+      "type": "string",
+      "enum": [
+        "READY",
+        "TERMS_PENDING",
+        "CLOSED"
+      ]
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "teacherName",
+        "learnerName",
+        "subject"
+      ],
+      "properties": {
+        "teacherName": {
+          "type": "string"
+        },
+        "learnerName": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "id",
+    "available",
+    "agreement",
+    "summary",
+    "canDecide",
+    "canReview",
+    "credits",
+    "creditsNextCursor",
+    "reviews",
+    "reviewsNextCursor",
+    "pendingReview",
+    "startGate",
+    "context"
+  ]
+},
+"TuitionMinimumReviewQueueItem": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "minimumId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "caseId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "requesterId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "region": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "SAFETY",
+        "NON_DELIVERY"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "RESOLVED"
+      ]
+    },
+    "reviewerId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decisionReason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "adjustedPaise": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decidedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "PLACEMENT",
+        "INDEPENDENT"
+      ]
+    },
+    "resourceId": {
+      "type": "string",
+      "format": "uuid"
+    }
+  },
+  "required": [
+    "id",
+    "minimumId",
+    "caseId",
+    "requesterId",
+    "region",
+    "reason",
+    "status",
+    "reviewerId",
+    "decisionReason",
+    "adjustedPaise",
+    "decidedAt",
+    "createdAt",
+    "kind",
+    "resourceId"
+  ]
+},
+"TuitionMinimumReviewPage": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/TuitionMinimumReviewQueueItem"
+      }
+    },
+    "nextCursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "items",
+    "nextCursor"
+  ]
+},
+"TuitionCommencementInput": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "CONFIRM",
+        "WITHDRAW"
+      ]
+    },
+    "commencementDate": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "action",
+    "commencementDate"
+  ]
+},
+"TuitionCreditInput": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "amountPaise": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2000000
+    },
+    "paidOn": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "amountPaise",
+    "paidOn",
+    "reference"
+  ]
+},
+"TuitionCreditDecision": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "CONFIRM",
+        "REJECT"
+      ]
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "decision"
+  ]
+},
+"TuitionMinimumReviewInput": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "SAFETY",
+        "NON_DELIVERY"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 3000
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "reason",
+    "description"
+  ]
+},
+"TuitionMinimumReviewDecision": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "adjustedPaise": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2000000
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "adjustedPaise",
+    "reason"
+  ]
+}
+,
+"EmailDelivery": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "topic": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "OTP",
+        "NOTIFICATION"
+      ]
+    },
+    "locale": {
+      "type": "string",
+      "enum": [
+        "en",
+        "hi"
+      ]
+    },
+    "actionPath": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "SANDBOX",
+        "RESEND",
+        "SMTP"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "QUEUED",
+        "SENDING",
+        "ACCEPTED",
+        "DELIVERED",
+        "DELAYED",
+        "BOUNCED",
+        "COMPLAINED",
+        "FAILED",
+        "UNKNOWN",
+        "SUPPRESSED",
+        "SANDBOX"
+      ]
+    },
+    "failureCode": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "attempts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "maxAttempts": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 50
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "retryAvailable": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "id",
+    "topic",
+    "kind",
+    "locale",
+    "actionPath",
+    "provider",
+    "status",
+    "failureCode",
+    "attempts",
+    "maxAttempts",
+    "version",
+    "expiresAt",
+    "createdAt",
+    "updatedAt",
+    "retryAvailable"
+  ]
+},
+"EmailAttempt": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "deliveryId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "STARTED",
+        "ACCEPTED",
+        "SANDBOX",
+        "REJECTED",
+        "UNCERTAIN",
+        "SUPPRESSED"
+      ]
+    },
+    "failureCode": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "deliveryId",
+    "number",
+    "outcome",
+    "failureCode",
+    "startedAt",
+    "completedAt"
+  ]
+},
+"EmailReceipt": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "deliveryId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "providerId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "ACCEPTED",
+        "DELIVERED",
+        "DELAYED",
+        "BOUNCED",
+        "COMPLAINED"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "receivedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "id",
+    "deliveryId",
+    "providerId",
+    "kind",
+    "occurredAt",
+    "receivedAt"
+  ]
+},
+"EmailRetry": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "expectedVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "confirmed": {
+      "type": "boolean",
+      "enum": [
+        true
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    }
+  },
+  "required": [
+    "expectedVersion",
+    "confirmed",
+    "reason"
+  ]
+},
+"EmailDeliveryPage": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/EmailDelivery"
+      }
+    },
+    "nextCursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "items",
+    "nextCursor"
+  ]
+},
+"EmailDeliveryHistory": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "delivery": {
+      "$ref": "#/components/schemas/EmailDelivery"
+    },
+    "providerReference": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "attempts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/EmailAttempt"
+      }
+    },
+    "attemptsNextCursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "receipts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/EmailReceipt"
+      }
+    },
+    "receiptsNextCursor": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "delivery",
+    "providerReference",
+    "attempts",
+    "attemptsNextCursor",
+    "receipts",
+    "receiptsNextCursor"
+  ]
+},
+"EmailReceiptInput": {
+  "type": "object",
+  "required": [
+    "type",
+    "created_at",
+    "data"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "email.sent",
+        "email.delivered",
+        "email.delivery_delayed",
+        "email.bounced",
+        "email.complained"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "email_id"
+      ],
+      "properties": {
+        "email_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    }
+  }
+},
+"EmailReceiptResult": {
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "RECORDED"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "status"
+  ]
+}
+},
     "securitySchemes": {
       "cookieSession": {
         "type": "apiKey",
