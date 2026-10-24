@@ -140,10 +140,10 @@ export function GuardianLearners({ session }: { session: Session }) {
           className="guardian-learner-group invited"
           aria-labelledby="guardian-invitations-heading"
         >
-          <span className="guardian-invitation-label"><Link2 size={16} aria-hidden="true" />{appText("Invited access")}</span>
-          <h3 id="guardian-invitations-heading">
-            {appText("Students who invited you")}
-          </h3>
+          <div className="guardian-invitation-header">
+            <h3 id="guardian-invitations-heading">{appText("Students who invited you")}</h3>
+            <span className="guardian-invitation-label"><Link2 size={16} aria-hidden="true" />{appText("Invited access")}</span>
+          </div>
           <p>
             {appText(
               "An invitation shares learning access; it does not verify a parent or guardian relationship.",

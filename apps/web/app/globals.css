@@ -5954,3 +5954,7 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .guardian-learner-group.invited .guardian-learner-cards > li { background:#FFFFFF; border-color:#E7D4F0; }
 .guardian-learner-group.invited .guardian-learner-status { background:#F0D7FF; color:#402E4A; }
 .guardian-learner-group.invited .history-controls { background:#FFFFFF; border:1px solid #E7D4F0; }
+
+.guardian-invitation-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+.guardian-invitation-header h3 { flex:1 1 180px; min-width:0; margin:0; font-size:19px; line-height:1.4; }
+.guardian-invitation-header .guardian-invitation-label { flex:0 0 auto; margin:0 0 0 auto; }
