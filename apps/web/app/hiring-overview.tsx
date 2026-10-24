@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Users, ShieldCheck, ArrowUpRight } from "lucide-react";
+import { Search, Users, ShieldCheck, ArrowUpRight, ClipboardList, MessageCircle, CalendarCheck, GraduationCap, LifeBuoy } from "lucide-react";
 import { api, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import {
@@ -235,21 +235,13 @@ export function HiringOverview({ session }: { session: Session }) {
             )}
           <dl className="hiring-counts">
             {[
-              [
-                teacher ? "Assigned enquiries" : "Enquiries",
-                data.counts.enquiries,
-              ],
-              [
-                teacher ? "Awaiting your response" : "Open enquiries",
-                teacher
-                  ? data.counts.pendingResponses
-                  : data.counts.openEnquiries,
-              ],
-              ["Awaiting tuition start", data.counts.termsPending],
-              ["Active arrangements", data.counts.activeArrangements],
-            ].map(([name, value]) => (
-              <div key={name}>
-                <dt>{appText(name)}</dt>
+              { name: teacher ? "Assigned enquiries" : "Enquiries", value: data.counts.enquiries, Icon: ClipboardList, tone: "lavender" },
+              { name: teacher ? "Awaiting your response" : "Open enquiries", value: teacher ? data.counts.pendingResponses : data.counts.openEnquiries, Icon: MessageCircle, tone: "teal" },
+              { name: "Awaiting tuition start", value: data.counts.termsPending, Icon: CalendarCheck, tone: "ivory" },
+              { name: "Active arrangements", value: data.counts.activeArrangements, Icon: GraduationCap, tone: "warm" },
+            ].map(({ name, value, Icon, tone }) => (
+              <div key={name} className={`overview-stat-card tone-${tone}`}>
+                <dt><span className="overview-stat-art" aria-hidden="true"><Icon size={27} /></span><span>{appText(name)}</span></dt>
                 <dd>{value}</dd>
               </div>
             ))}
@@ -941,6 +933,7 @@ export function HiringOverview({ session }: { session: Session }) {
                 </Button>
               )}
               <section className="care-card hiring-help">
+                <div className="overview-card-art is-lavender" aria-hidden="true"><LifeBuoy size={30} /></div>
                 <h3>{appText("When you need a hand")}</h3>
                 <p>
                   {appText(
@@ -959,6 +952,7 @@ export function HiringOverview({ session }: { session: Session }) {
               </div><aside className="hiring-side-column" aria-label={appText("Profile and help")}>
               {teacher && (
                 <section className="care-card hiring-profile">
+                  <div className="overview-card-art is-teal" aria-hidden="true"><GraduationCap size={34} /></div>
                   <div className="hiring-section-heading">
                     <h3>{appText("Your teaching application")}</h3>
                     <Link href="/onboarding/teacher" className="inline-link">

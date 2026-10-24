@@ -35,6 +35,9 @@ for (const hi of [false, true])
         .getByText("MSc Mathematics", { exact: true }),
     ).toBeVisible();
     await expect(page.locator(".hiring-counts > div")).toHaveCount(4);
+    await expect(page.locator(".overview-stat-card dd")).toHaveText(["0", "0", "0", "0"]);
+    await expect(page.locator(".overview-stat-card").first()).toHaveCSS("background-color", "rgb(230, 230, 210)");
+    await expect(page.locator(".tone-lavender .overview-stat-art")).toHaveCSS("background-color", "rgb(240, 215, 255)");
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,

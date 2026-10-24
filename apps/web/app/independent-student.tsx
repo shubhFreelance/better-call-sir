@@ -1,4 +1,5 @@
 "use client";
+import { GraduationCap, Search } from "lucide-react";
 import {
   OnboardingReadBoundary,
   onboardingAccessDenied,
@@ -949,6 +950,7 @@ export function IndependentStudentHome({
       {query.data && (
         <div className="independent-layout">
           <section className="wizard-card independent-profile">
+            <div className="overview-card-art is-lavender" aria-hidden="true"><GraduationCap size={34} /></div>
             <h2>{appText(t("My education", "मेरी पढ़ाई"))}</h2>
             <EducationSummary education={query.data.education} hindi={hindi} />
             <p>
@@ -978,6 +980,7 @@ export function IndependentStudentHome({
             )}
           </section>
           <aside className="independent-guide">
+            <div className="overview-card-art is-teal" aria-hidden="true"><Search size={34} /></div>
             <h2>
               {appText(
                 t("Find your kind of teacher.", "अपनी ज़रूरत का शिक्षक खोजें।"),

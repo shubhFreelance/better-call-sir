@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Warm overview card shells — 23 October 2026
+
+Plan: use the supplied image references as colour/composition guidance: olive-ivory #E6E6D2 shells, pale ivory #FFFFEB inset details, lavender #F0D7FF learning accents, teal #034F46 action panels and small #FFAE42 decorative accents. Preserve Manrope/Noto Sans Devanagari, dark readable labels and actual API-backed values. Give the overview totals compact icon panels, clear labels and larger numbers; show the welcome action in a separate teal panel. Add meaningful icon accents to teaching, support and independent-student cards. Carry warm fills/inset framing across other card families while keeping existing dark surfaces, status colours, field borders, permissions and sidebar palette distinct. Mobile totals stack their icon and label inside two columns; all role/language, denied-read, keyboard and empty/loading states remain required.
+
 ## Pricing-inspired card frames — 23 October 2026
 
 Plan: apply a shared2px #F3F3E0 frame to card surfaces across public discovery, registration, onboarding and all role workspaces. Keep existing white/ivory/lavender fills, Manrope/Noto Sans Devanagari, content and rounding. Use near-black #191919 only for primary form/decision cards, hovered interactive cards, checked relationship choices and keyboard focus inside a card. Preserve the lavender invited-learner stripe and existing sidebar palette. Do not recolour input, alert, table-divider or status borders: these communicate validation and affordance. Prefer a single scoped surface rule and shared card-border tokens over changing the general --line token. Review guardian relationship cards from the owner screenshot plus search, onboarding and all role dashboards in English/Hindi and narrow layouts.
