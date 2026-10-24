@@ -174,13 +174,19 @@ export function StudentRegistration() {
         </section>
         <section className="registration-card">
           <Users size={30} aria-hidden="true" />
+          <h2>{appText("My guardian and I manage together")}</h2>
+          <p>{appText("Use your own email to follow your guardian request and profile setup. Your guardian confirms whether you can both manage learning; choosing this option does not grant access.")}</p>
+          <Link className="button" href="/onboarding/student?mode=together">{appText("Continue with my guardian")}</Link>
+        </section>
+        <section className="registration-card">
+          <Users size={30} aria-hidden="true" />
           <h2>{appText("I have a guardian’s support")}</h2>
           <p>
             {appText(
               "For younger students, a guardian completes verification and consent before creating student access. Already invited? Activate your access with your guardian.",
             )}
           </p>
-          <Link className="button secondary" href="/onboarding/student">
+          <Link className="button secondary" href="/onboarding/student?mode=invitation">
             {appText("Use a student invitation")}
           </Link>
           <Link className="inline-link" href="/signup/guardian">

@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Student access handoff — 24 October 2026
+
+Add a third student entry card for shared guardian management, with authorization explained as separate from preference. Preserve independent and private-code routes. Use inline email verification at student entry instead of a generic sign-in detour. Provide owner-scoped relationship progress, authoritative linked profile and management summaries, explicit refresh/error states and paginated requests. Mirror meaningful status on the dashboard without confusing a provisional student email account with confirmed guardian ownership. Reuse cream/white cards, teal actions and lavender accents; translate English/Hindi labels and retain scoped routing, privacy and consent boundaries.
+
 ## Manage children and learners — 24 October 2026
 
 Use guardian-facing relationship language for the sidebar and management heading. Begin new-child setup with a relationship-verification draft, not education entry. The Add action opens the existing verification form without sending a request automatically. Existing approved relationships retain their explicit education-completion action. Explain that approvals are per child and education saves do not submit verification. Reuse existing surfaces and maintain English/Hindi wording; no new personal data in URLs or storage. Preserve server consent, acknowledgment and privacy boundaries.

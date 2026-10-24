@@ -85,6 +85,7 @@ import {
   ReservationBookings,
   PlacementInvoices,
 } from "./revision-booking";
+import { StudentConnection } from "./student-connection";
 import { StudentWelcome } from "./student-welcome";
 import { FamilyAccess, StudentActivation } from "./student-access";
 import { EmailLogin } from "./email-login";
@@ -1668,6 +1669,7 @@ function Login() {
         (/^\/onboarding\/(parent|guardian|teacher|student|independent-student)(?:\?|$)/.test(
           next,
         ) ||
+          /^\/guardian-verification\?view=student$/.test(next) ||
           (session.account.role === "GUARDIAN" &&
             /^\/revision(?:\?[^#]*)?$/.test(next)))
         ? next
@@ -2036,9 +2038,16 @@ function StudentOnboarding() {
     loading,
     beginStudentSwitch,
     failStudentSwitch,
+    hindi,
+    setHindi,
   } = useAuth();
+  const mode = useSearchParams().get("mode");
   if (loading) return <State loading />;
-  if (!session) return <LoginPrompt />;
+  if (!session) return <main className="container auth-section">
+    <header className="wizard-title"><h1>{appText(mode === "together" ? "Manage learning together" : "Activate your student invitation")}</h1><p>{appText(mode === "together" ? "Sign in with your own email to check your guardian request and learning profile. Your guardian must authorize shared management." : "First confirm your own email. Then enter the private invitation code your guardian gave you. Never use your guardian’s email to sign in as the student.")}</p></header>
+    <EmailLogin purpose={mode === "together" ? "student-signup" : "general"} hindi={hindi} onLanguageChange={setHindi} onSignedIn={next=>setSession(next)} />
+  </main>;
+  if (mode === "together" && ["GUARDIAN","STUDENT"].includes(session.account.role)) return <main className="container narrow section"><StudentConnection session={session} onSessionChange={setSession}/></main>;
   if (session.account.role === "STUDENT")
     return <StudentWelcome session={session} />;
   if (session.account.role !== "GUARDIAN")
@@ -2581,6 +2590,7 @@ function DashboardPage({ tab }: { tab: string }) {
             "Welcome, {0}. Here is what needs your attention.", [session.account.name.split(" · ")[0]]
           )}
         />
+        {["GUARDIAN","STUDENT"].includes(session.account.role) && tab === "/dashboard" && <StudentConnection session={session} onSessionChange={setSession} compact/>}
         {session.account.role === "GUARDIAN" && tab === "/dashboard" && (
           <GuardianLearners key={session.account.id} session={session} />
         )}
@@ -3480,7 +3490,7 @@ function AppContent() {
             {hindi ? "मुख्य सामग्री पर जाएँ" : appText("Skip to content")}
           </a>
           <Header />
-          {session && ((entry?.accountId === session.account.id && entry.existing) || (session.account.role === "GUARDIAN" && path.startsWith("/dashboard"))) && (
+          {session && path !== "/onboarding/student" && ((entry?.accountId === session.account.id && entry.existing) || (session.account.role === "GUARDIAN" && path.startsWith("/dashboard"))) && (
             <div className="container returning-account-notice">
               <Alert role="status" className="returning-account-card">
                 <CheckCircle2 aria-hidden="true" />
