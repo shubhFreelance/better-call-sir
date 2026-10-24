@@ -1000,8 +1000,8 @@ export function IndependentStudentHome({
             <p>
               {appText(
                 t(
-                  "Student enquiries record your criteria for staff review. Matching, teacher replies, hiring and optional guardian invitations are separate steps.",
-                  "विद्यार्थी की पूछताछ में आपकी ज़रूरतें स्टाफ़ की समीक्षा के लिए सहेजी जाती हैं। मिलान, शिक्षक के जवाब, नियुक्ति और वैकल्पिक अभिभावक आमंत्रण अलग चरण हैं।",
+                  "Enquire directly with a teacher or ask for an assisted shortlist. Teacher replies and tuition terms stay in your dashboard.",
+                  "सीधे शिक्षक को अनुरोध भेजें या सूची बनवाने के लिए मदद माँगें। शिक्षक के जवाब और ट्यूशन की शर्तें आपके डैशबोर्ड में रहेंगी।",
                 ),
               )}
             </p>

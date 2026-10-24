@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Direct teacher conversations — 24 October 2026
+
+Use the owner’s #E4E4D0 count card with a lavender clipboard tile, existing Manrope/Noto typography and quiet ivory/white enquiry disclosures. Keep every row collapsed initially and newest first; show learner, family, subject and received time in the summary, then highlight preferred time and relevant academic details inside. Reuse explicit, confirmed decision forms for accept/decline and one-to-one/group alternatives. Families decide proposals directly. Staff see regional read-only oversight. Retain pagination, stale-version/uncertain-response handling, English/Hindi, keyboard operation and mobile wrapping. New notification badges, in-app alerts, delivery queues and email are deferred by the owner.
+
 ## Code-first student invitation and teacher enquiry visibility — 24 October 2026
 
 Start invitation entry with a private code and a non-identifying validity check before asking for the student’s own email. Reuse email OTP, then require explicit account-link confirmation; keep the code only in component memory, never URLs/browser storage. Show errors and an already-activated sign-in route. Keep guardian-controlled device activation separate. Teacher overview shows the adult-student opportunities component alongside the guardian-led queue with distinct labels and staff-publication guidance; reuse existing authorization and response actions. Preserve Hindi, compact cards and mobile controls.

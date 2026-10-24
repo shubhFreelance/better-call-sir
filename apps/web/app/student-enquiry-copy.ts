@@ -1,4 +1,5 @@
 const hi: Record<string, string> = {
+ "Choose a teacher to enquire directly, or ask us for an assisted shortlist. You and the teacher decide together.": "सीधे अनुरोध के लिए शिक्षक चुनें या हमसे सूची बनवाएँ। आप और शिक्षक मिलकर निर्णय लेते हैं।",
   "Checking shared learning access…": "साझा पढ़ाई की अनुमति जाँच रहे हैं…",
   "Student enquiries belong to independent students and authorized review staff.":
     "पूछताछ स्वतंत्र विद्यार्थियों, अधिकृत मददगारों और समीक्षा स्टाफ़ के लिए है।",

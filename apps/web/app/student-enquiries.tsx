@@ -870,7 +870,7 @@ function StudentEnquiryForm({
           {appText(
             enquiryText(
               hindi,
-              "Staff review your criteria, publish a shortlist and ask teachers to respond. You choose an interested teacher and both sides review terms before hiring is confirmed.",
+              "Choose a teacher to enquire directly, or ask us for an assisted shortlist. You and the teacher decide together.",
             ),
           )}
         </p>
@@ -993,7 +993,7 @@ function StudentEnquiryDetail({
           </dl>
           <WeeklySummary preferences={query.data.preferences} hindi={hindi} />
           <p>
-            {query.data.status !== "WITHDRAWN"
+            {query.data.discoveryMethod === "MANUAL" && query.data.status !== "WITHDRAWN" ? appText("Your enquiry goes directly to the teacher. Follow replies and alternative proposals in your dashboard conversations.") : query.data.status !== "WITHDRAWN"
               ? enquiryText(
                   hindi,
                   "Follow the reviewed shortlist below. A teacher is hired only after both sides accept the arrangement terms. No payment is taken here.",
@@ -1003,7 +1003,7 @@ function StudentEnquiryDetail({
                   "This enquiry is closed. It will not proceed to matching or hiring.",
                 )}
           </p>
-          {query.data.status !== "WITHDRAWN" && (
+          {query.data.status !== "WITHDRAWN" && query.data.discoveryMethod !== "MANUAL" && (
             <IndependentJourney
               session={session}
               id={id}
