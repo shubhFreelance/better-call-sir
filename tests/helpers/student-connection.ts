@@ -108,3 +108,15 @@ test("teacher overview displays published adult-student enquiries as well as the
  await expect(page.locator(".teacher-opportunities-panel").getByRole("button",{name:"Review interest",exact:true})).toBeVisible();
  await expect(page.locator(".hiring-overview")).toBeVisible();
 });
+
+test("teacher sees directed requests before publication without child identity or response controls",async({page})=>{
+ await dashboard(page,"TEACHER");
+ await page.route("**/api/v1/student-opportunities**",route=>route.fulfill({json:{items:[],nextCursor:null}}));
+ await page.route("**/api/v1/teacher/pending-enquiries**",route=>route.fulfill({json:{items:[{id:child,subject:"Maths",mode:"ONLINE",createdAt:new Date().toISOString()}],nextCursor:null}}));
+ await page.goto("/dashboard");
+ const pending=page.locator(".teacher-pending-enquiries");
+ await expect(pending).toContainText("Awaiting staff review — response not open yet");
+ await expect(pending).toContainText(child);
+ await expect(pending.getByRole("button",{name:"Review interest",exact:true})).toHaveCount(0);
+ await expect(pending).not.toContainText("Synthetic Amit");
+});

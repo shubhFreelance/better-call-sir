@@ -1,5 +1,13 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Direct enquiries awaiting review": "समीक्षा की प्रतीक्षा में सीधे अनुरोध",
+  "These guardians chose your profile. Staff must review and publish the match before you can respond. No child identity or contact details are shared here.": "इन अभिभावकों ने आपकी प्रोफ़ाइल चुनी है। आपके जवाब देने से पहले स्टाफ को मिलान की समीक्षा करके प्रकाशित करना होगा। यहाँ बच्चे की पहचान या संपर्क जानकारी साझा नहीं होती।",
+  "Pending enquiries could not be loaded.": "लंबित अनुरोध लोड नहीं हो सके।",
+  "No direct enquiries are waiting for staff review.": "स्टाफ समीक्षा की प्रतीक्षा में कोई सीधा अनुरोध नहीं है।",
+  "Awaiting staff review — response not open yet": "स्टाफ समीक्षा की प्रतीक्षा — जवाब देना अभी उपलब्ध नहीं है",
+  "Enquiry reference": "अनुरोध संदर्भ",
+  "Pending direct enquiry history": "लंबित सीधे अनुरोधों का इतिहास",
+  "Staff reviews and publishes the match before the teacher can respond. Choosing a teacher does not send a published enquiry immediately.": "शिक्षक के जवाब देने से पहले स्टाफ मिलान की समीक्षा करके प्रकाशित करता है। शिक्षक चुनने से अनुरोध तुरंत प्रकाशित नहीं होता।",
   "Already activated? Sign in to your student profile": "पहले सक्रिय कर चुके हैं? अपनी विद्यार्थी प्रोफ़ाइल में साइन इन करें",
   "Invitation is invalid, expired or already used.": "आमंत्रण अमान्य है, उसकी अवधि समाप्त हो गई है या वह इस्तेमाल हो चुका है।",
   "Use the intended student’s own email and a current invitation.": "सही विद्यार्थी का अपना ईमेल और वर्तमान आमंत्रण इस्तेमाल करें।",

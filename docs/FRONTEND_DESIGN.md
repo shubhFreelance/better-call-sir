@@ -539,3 +539,8 @@ B13 acceptance: English desktop and Hindi phone screenshots inspected;320/390/43
 24 October 2026 — F49 compact student registration row complete. All three student choices share equal-width columns from1000px upward, with20px gaps,26px padding and reduced heading/body sizes. Existing narrow-screen stacking, colours, actions and permissions remain unchanged. Both desktop geometry/no-overflow and Hindi mobile/status browser checks pass; desktop screenshot reviewed. CSS-only application change; production build and backend suites not repeated. Frontend branch delivery; no main merge/deployment. Next remains reviewed dependency remediation; existing implementation, launch and deferred backlog unchanged.
 
 Inline completion also reuses the protected invitation issuance/recovery controls after education setup. Guardians can finish their setup actions on the same page; activating a student device remains a separate explicit authorization.
+
+
+## Directed enquiry review state — 24 October 2026
+
+Make directly selected teacher requests visible before publication in a separate ivory card with a clear staff-review status. Show only reference, subject and mode to the intended active teacher. Keep response controls in the published queue and add parent-facing flow guidance. Reuse current history controls, error/retry patterns and English/Hindi labels; never imply that selecting a profile completes staff matching.

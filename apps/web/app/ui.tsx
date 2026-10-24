@@ -24,6 +24,7 @@ import {
 } from "./teacher-search-state";
 import { StudentSupporters, StudentDevices } from "./independent-access";
 import { GuardianPriorities } from "./guardian-priorities";
+import { TeacherPendingEnquiries } from "./teacher-pending-enquiries";
 import { GuardianLearners } from "./guardian-learners";
 import {
   StudentArrangements,
@@ -2600,6 +2601,7 @@ function DashboardPage({ tab }: { tab: string }) {
         {session.account.role === "GUARDIAN" && tab === "/dashboard" && (
           <GuardianLearners key={session.account.id} session={session} />
         )}
+        {session.account.role === "TEACHER" && <TeacherPendingEnquiries session={session}/>}
         {session.account.role === "TEACHER" && <section className="care-card teacher-opportunities-panel"><p>{appText("Enquiries from adult students have a separate response queue. Guardian-led enquiries appear below after staff publishes the match; choosing your profile alone does not publish a request.")}</p><StudentOpportunities session={session} hindi={hindi} embedded/></section>}
         <HiringOverview
           key={`${session.account.id}:${session.account.role}`}

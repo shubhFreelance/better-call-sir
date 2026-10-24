@@ -360,6 +360,7 @@ export function HiringOverview({ session }: { session: Session }) {
                               )}
                               {appText(educationLabel(e.learner))}
                             </p>
+                            {!teacher && e.status === "OPEN" && !e.candidate && <p className="guardian-enquiry-review-notice">{appText("Staff reviews and publishes the match before the teacher can respond. Choosing a teacher does not send a published enquiry immediately.")}</p>}
                             <dl className="hiring-details">
                               <div>
                                 <dt>{appText("Search path")}</dt>
