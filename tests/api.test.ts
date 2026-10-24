@@ -2087,7 +2087,9 @@ test('direct teacher requests are visible as pending only to the chosen teacher 
  assert.equal((await teacher.call('/teacher/pending-enquiries')).data.items.some((r:any)=>r.id===request.id),false);
  assert.equal((await teacher.call('/teacher/pending-enquiries?cursor='+request.id)).status,404);
  const run=await db.recommendationRun.create({data:{requestId:request.id,requestVersion:request.version,operatorId:ids.admin,rankerVersion:'synthetic',featureVersion:'synthetic',eligiblePool:[],rankedCandidates:[],result:'READY'}});
- const candidate=await db.recommendation.create({data:{requestId:request.id,teacherId:rohan.id,score:1,reasons:['Synthetic published fixture'],presentedAt:new Date(),expiresAt:new Date(Date.now()+3600000),runId:run.id,position:1}});
+ const candidate=await db.recommendation.create({data:{requestId:request.id,teacherId:rohan.id,score:1,reasons:['Synthetic published fixture'],presentedAt:new Date(),expiresAt:new Date(Date.now()+3600000),runId:null,position:1}});
+ assert.equal((await rohanClient.call('/teacher/pending-enquiries')).data.items.some((r:any)=>r.id===request.id),true);
+ await db.recommendation.update({where:{id:candidate.id},data:{runId:run.id}});
  assert.equal((await rohanClient.call('/teacher/pending-enquiries')).data.items.some((r:any)=>r.id===request.id),false);
  assert.equal((await rohanClient.call('/dashboard/hiring')).data.enquiries.some((r:any)=>r.id===request.id),true);
  await db.recommendation.delete({where:{id:candidate.id}});

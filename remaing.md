@@ -511,3 +511,6 @@ Next remains reviewed dependency remediation. Remaining implementation: provider
 
 
 24 October 2026 — Direct guardian enquiry visibility API increment: GET /teacher/pending-enquiries returns only the authenticated currently public teacher’s explicitly directed OPEN guardian requests before active publication. Projection is limited to request ID, subject, mode and creation timestamp; no learner identity/contact or response authority is exposed. Owner consent, account/privacy and approved relationship checks remain active; pagination is bounded and cursor-scoped. Published requests leave this queue and remain in the existing actionable hiring queue. Real local API test passes with seeded Rohan: own-only visibility, guardian-role denial, other-teacher/cursor denial, publication handoff and consent withdrawal.16 contract checks, workspace types and23 security/client/localization/CI checks pass. Teacher/guardian UI clarification is in progress; no real owner-account request was reassigned or published.
+
+
+24 October 2026 — Pending teacher enquiry handoff now uses the same current-run publication boundary as the actionable dashboard: legacy presented records without a matching-run ID stay visibly pending rather than disappearing from both queues. The seeded-Rohan integration test also covers this legacy case and passes.
