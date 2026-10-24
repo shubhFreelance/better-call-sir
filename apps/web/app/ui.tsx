@@ -1934,14 +1934,14 @@ function LearnerProfilesPage() {
   if (!session) return <LoginPrompt />;
   if (!["GUARDIAN", "STUDENT"].includes(session.account.role))
     return (
-      <main className="container narrow section">
+      <section className="care-card">
         <h1>
           {appText("Learner profiles belong to guardian and student accounts.")}
         </h1>
         <Link href="/dashboard" className="inline-link">
           {appText("Return to dashboard")}{" "}
         </Link>
-      </main>
+      </section>
     );
   return <LearnerProfiles key={session.account.id} session={session} />;
 }
@@ -2094,6 +2094,7 @@ function DashboardNavItem({
       <div className="dashboard-nav-row">
         <Link
           href={href}
+          scroll={href.startsWith("/dashboard") ? false : undefined}
           className={active ? "active" : ""}
           aria-label={appText(label)}
           aria-current={active ? "page" : undefined}
@@ -2335,7 +2336,7 @@ function DashboardShell({
     "/dashboard/student-devices":"Your signed-in devices and recovery options",
   };
   return (
-    <main className="container dashboard-layout">
+    <main className="container dashboard-layout" key={`${session?.account.id}:${role}`}>
       <aside className="dashboard-sidebar">
         <p className="sidebar-title">{appText(role === "TEACHER" ? "Teacher workspace" : role === "ADMIN" ? "Superadmin workspace" : role === "GUARDIAN" ? "Parent / guardian workspace" : ["STUDENT", "INDEPENDENT_STUDENT"].includes(role || "") ? "Student workspace" : "Staff workspace")}</p>
         <div className="sidebar-person">
@@ -2396,7 +2397,7 @@ function DashboardShell({
           </p>
         </div>
       </aside>
-      <section className="dashboard-content">{children}</section>
+      <section className="dashboard-content" key={tab}>{children}</section>
     </main>
   );
 }
@@ -2420,6 +2421,7 @@ function DashboardPage({ tab }: { tab: string }) {
       !!session &&
       session.account.role !== "INDEPENDENT_STUDENT" &&
       ![
+        "/dashboard/learners",
         "/dashboard/student-enquiries",
         "/dashboard/student-arrangements",
         "/dashboard/student-opportunities",
@@ -2466,6 +2468,7 @@ function DashboardPage({ tab }: { tab: string }) {
   }
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (tab === "/dashboard/learners") return <DashboardShell tab={tab}><LearnerProfilesPage /></DashboardShell>;
   if (tab === "/dashboard/service-followups") return <DashboardShell tab={tab}><ServiceFollowups session={session}/></DashboardShell>;
   if (["/dashboard/notifications", "/dashboard/email-delivery"].includes(tab))
     return (
@@ -3215,8 +3218,6 @@ function Routes() {
     <RegistrationPage kind={path === "/signup/guardian" ? "guardian" : path === "/signup/student" ? "student" : "all"}/>
   ) : path === "/signup/teacher" ? (
     <TeacherSignupPage />
-  ) : path === "/dashboard/learners" ? (
-    <LearnerProfilesPage />
   ) : path === "/guardian-verification" ? (
     <GuardianVerificationPage />
   ) : path === "/onboarding/guardian" ? (

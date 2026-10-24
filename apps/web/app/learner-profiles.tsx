@@ -368,7 +368,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
     );
   }
   return (
-    <main className="container section learner-profiles">
+    <section className="learner-profiles">
       <header className="wizard-title">
         <h1>
           {session.account.role === "STUDENT"
@@ -842,7 +842,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
           )}
         </div>
       </div>
-    </main>
+    </section>
   );
 }
 export function EducationSummary({

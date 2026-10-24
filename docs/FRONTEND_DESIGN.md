@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Persistent dashboard navigation — 24 October 2026
+
+Plan: keep the existing visual design and move the dashboard App into a shared Next.js dashboard layout, with null index/catch-all leaf pages. Preserve the auth/query providers, header, sidebar DOM and disclosure state across internal dashboard navigation; key the right-hand content by section and the shell by account/role so workspace state resets at appropriate boundaries. Disable automatic whole-page scroll reset for internal sidebar links. Render learner education profiles inside the same dashboard shell with one main landmark and no nested viewport-sized container. Public teacher discovery/server-prefetch routes remain separate. Validate DOM identity, no document requests or repeated session bootstrap during section changes, browser history/deep links, all roles, sign-in recovery, private-read denial and learner verification/consent gates.
+
 ## Distinct invited-student access — 24 October 2026
 
 Plan: distinguish student-granted support from guardian-managed learner relationships through a pale lavender #F8ECFF shell, #DAB7EC border, retained lavender top stripe and white inset student/history cards. Add a small link icon and translated Invited access label so the distinction also uses text, not colour alone. Keep verified relationship cards white with their existing verification status, and preserve all permission descriptions, invitation statuses, actions and API behavior. Retain black keyboard-focus borders, accessible contrast and narrow Hindi layouts.
