@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Search } from "lucide-react";
 import { Button } from "./button";
 import { Input } from "./input";
 
 export function CardSearch({ title, label, placeholder, value, onChange }: {
-  title: string;
+  title: ReactNode;
   label: string;
   placeholder: string;
   value: string;

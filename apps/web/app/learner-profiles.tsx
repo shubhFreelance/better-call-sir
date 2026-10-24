@@ -10,6 +10,7 @@ import { Input } from "../components/ui/input";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { Info } from "lucide-react";
 import { CardSearch } from "../components/ui/card-search";
+import { InfoTooltip } from "../components/ui/info-tooltip";
 type Profile = components["schemas"]["LearnerProfile"];
 type Profiles = components["schemas"]["LearnerProfiles"];
 type ProfileInput = components["schemas"]["LearnerProfileInput"];
@@ -92,6 +93,7 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
   });
   const verifiedLearners = relationships.data?.pages.flatMap(page => page.items).filter(row => row.status === "APPROVED" && !row.learnerId) ?? [];
   const matchesName = (name: string) => name.toLocaleLowerCase().includes(learnerSearch.trim().toLocaleLowerCase());
+  const noPendingLearners = !relationships.isPending && !relationships.error && !verifiedLearners.some(row => matchesName(row.learnerName));
   const ownProfile = query.data?.items[0];
   const studentManagement = useQuery({
     queryKey: ["learning-management", session.account.id, ownProfile?.id],
@@ -506,10 +508,12 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
           )}
           {session.account.role === "GUARDIAN" && !targetName && !denied && !adding && (
             <section className="care-card learner-setup-card" aria-label={appText("Verified learners awaiting setup")}>
-              <CardSearch title={appText("Verified learners awaiting setup")}
+              <CardSearch title={<>{appText("Verified learners awaiting setup")}<InfoTooltip
+                label={appText("About learner setup")}
+                items={[appText("Complete education details to connect the existing student account."),
+                  ...(noPendingLearners ? [appText("No matching learners awaiting setup. Check saved profiles below.")] : [])]} /></>}
                 label={appText("Find your learner")} placeholder={appText("Type a learner name")}
                 value={learnerSearch} onChange={setLearnerSearch} />
-              <p>{appText("Complete education details to connect the existing student account.")}</p>
               {relationships.isPending && <p role="status">{appText("Loading learner profiles…")}</p>}
               {relationships.error && <Alert variant="destructive"><AlertDescription>{appText("We couldn’t load your verified relationships.")} <Button variant="outline" onClick={() => relationships.refetch()}>{appText("Try again")}</Button></AlertDescription></Alert>}
               {!relationships.error && verifiedLearners.filter(row => matchesName(row.learnerName)).map(row => (
@@ -520,7 +524,7 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
                   {ready ? <Button disabled={locked} onClick={() => {setValues({...initial, alias: row.learnerName}); setAdding(true); setSaved(null); setReview(null); setErrors({}); setMessage("");}}>{appText("Complete learner profile")}</Button> : <Button asChild variant="outline"><Link href="/onboarding/guardian">{appText("Review learning permission")}</Link></Button>}
                 </article>
               ))}
-              {!relationships.isPending && !relationships.error && !verifiedLearners.filter(row => matchesName(row.learnerName)).length && <p role="status">{appText("No matching learners awaiting setup. Check saved profiles below.")}</p>}
+              {noPendingLearners && <p role="status" className="sr-only">{appText("No matching learners awaiting setup. Check saved profiles below.")}</p>}
               {relationships.hasNextPage && <Button variant="outline" disabled={relationships.isFetchingNextPage} onClick={() => relationships.fetchNextPage()}>{appText("Load more relationships")}</Button>}
             </section>
           )}
