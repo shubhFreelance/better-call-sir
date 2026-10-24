@@ -28,7 +28,7 @@
   --white: #ffffff;
   --line: #d9e4df;
   --card-border: #F3F3E0;
-  --card-surface: #E6E6D2;
+  --card-surface: #E4E4D0;
   --card-inset: #FFFFEB;
   --card-warm: #FFAE42;
   --card-border-strong: #191919;
@@ -5827,7 +5827,7 @@ html body :is(
   [data-slot="card"]
 ) {
   border:2px solid var(--card-border);
-  box-shadow:inset 0 0 0 5px var(--card-surface);
+  box-shadow:none;
 
   &:where(.panel, .teacher-card, .help-card, .care-card, .notes-card, .notes-editor,
     .notes-empty, .notes-review, .minimum-card, .guardian-learner-group, .guardian-setup-panel,
@@ -5837,7 +5837,7 @@ html body :is(
     .reservation-card-new, .duration-cards > div, .support-history, .support-detail,
     .support-compose, .teacher-discovery-page .coverage-recovery, .catalog-filters,
     .assisted-search, [data-slot="card"]) {
-    background-color:var(--card-fill, var(--card-surface));
+    background-color:var(--card-fill, var(--white));
   }
 
   &:where(.auth-layout, .wizard-card, .catalog-filters, .student-terms-panel,
@@ -5864,7 +5864,7 @@ html body .hiring-overview .hiring-intro { background:var(--card-surface); color
 .hiring-overview .hiring-intro-actions { padding:20px; background:var(--primary); border-radius:16px; gap:12px; }
 .hiring-overview .hiring-intro .button { background:var(--card-inset); border-color:var(--card-inset); color:var(--primary); }
 .hiring-overview .hiring-intro .button.secondary { background:var(--green); border-color:var(--green); color:var(--ink); }
-html body .hiring-counts > .overview-stat-card { position:relative; background:var(--card-surface); padding:20px 16px 20px 88px; min-height:144px; }
+html body .hiring-counts > .overview-stat-card { position:relative; background:var(--white); padding:20px 16px 20px 88px; min-height:144px; }
 .hiring-counts .overview-stat-card dt { display:block; font-size:12px; line-height:1.5; font-weight:650; color:var(--ink); }
 .hiring-counts .overview-stat-card dd { margin:12px 0 0; font-size:34px; line-height:1; color:#191919; }
 .overview-stat-art { position:absolute; inset:16px auto 16px 16px; width:56px; display:grid; place-items:center; border-radius:12px; background:var(--green); color:#191919; }
@@ -5877,7 +5877,7 @@ html body .hiring-counts > .overview-stat-card { position:relative; background:v
 html body .hiring-card-grid .hiring-record,
 html body .dashboard-content .independent-summary { background:var(--card-inset); }
 .guardian-learner-cards > li { background:var(--card-inset); border:1px solid var(--card-border); border-radius:14px; padding:18px; margin-top:14px; }
-html body .dashboard-content .independent-guide { background:var(--card-surface); color:var(--ink); }
+html body .dashboard-content .independent-guide { background:var(--card-inset); color:var(--ink); }
 .dashboard-content .independent-guide p { color:#454D46; }
 .hiring-overview .hiring-details, .hiring-overview .dashboard-facts { background:var(--card-inset); border-radius:12px; padding:16px; }
 @media(max-width:1100px) { .hiring-overview .hiring-counts { grid-template-columns:repeat(2,minmax(0,1fr)); } }
@@ -5904,3 +5904,21 @@ html body .dashboard-content .independent-guide { background:var(--card-surface)
 .dashboard-content:has(.independent-profile) .student-journey > h2 { font-size:28px; line-height:1.3; margin:24px 0 16px; }
 .dashboard-content .independent-guide > .button { display:flex; width:fit-content; max-width:100%; margin:16px 0; }
 .dashboard-content .independent-guide > .inline-link { display:flex; align-items:center; min-height:44px; margin-top:12px; font-weight:650; }
+
+/* Accent the next step, not every surface. */
+html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory) { background:var(--card-surface); }
+.returning-account-notice { padding-top:20px; }
+.returning-account-notice .returning-account-card { grid-template-columns:28px minmax(0,1fr); background:#E4E4D0; color:#17201F; border:2px solid #F3F3E0; border-radius:20px; padding:24px; gap:12px 18px; }
+.returning-account-notice .returning-account-card > svg { width:28px; height:28px; color:#034F46; transform:none; }
+.returning-account-card [data-slot="alert-description"] { min-width:0; gap:10px; color:#394239; }
+.returning-account-card h2 { margin:0; font-size:20px; line-height:1.4; color:#17201F; letter-spacing:-.02em; }
+.returning-account-card p { margin:0; max-width:80ch; font-size:14px; line-height:1.7; }
+.returning-account-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:8px; }
+.returning-account-actions [data-slot="button"] { min-height:44px; height:auto; white-space:normal; text-align:center; padding:10px 16px; }
+.returning-account-actions [data-variant="outline"] { background:var(--card-inset); border-color:#7B8270; }
+@media(max-width:640px) {
+  .returning-account-notice .returning-account-card { padding:20px; grid-template-columns:minmax(0,1fr); }
+  .returning-account-card [data-slot="alert-description"] { grid-column:1; }
+  .returning-account-actions { flex-direction:column; align-items:stretch; width:100%; }
+}
+@media(max-width:640px) { .landing-page .illustration { overflow:clip; } }

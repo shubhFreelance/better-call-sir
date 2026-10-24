@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Landing motion and selective sage accents — 24 October 2026
+
+Plan: apply owner-selected #E4E4D0 to the returning-account notice, dashboard welcome panel and selected summary tiles; restore white/ivory to ordinary cards and remove the global sage inset rim. Retain lavender/teal icon accents, cream/black border hierarchy and #F3F1EB sidebar. Give the returning-account notice a clear bilingual heading and grouped44px actions without changing identity/resume behavior. Load pinned GSAP3.15.0 and ScrollTrigger dynamically on the landing page only: small entrance/scroll translations, no scroll hijacking or hidden initial content. Scope animations to the landing root, revert on unmount/preference changes and skip loading for reduced motion. Clip decorative mobile illustration overflow. Validate actual GSAP initialization, reduced motion, keyboard navigation, both languages, saved-account links and strict production CSP.
+
 ## Warm overview card shells — 23 October 2026
 
 Plan: use the supplied image references as colour/composition guidance: olive-ivory #E6E6D2 shells, pale ivory #FFFFEB inset details, lavender #F0D7FF learning accents, teal #034F46 action panels and small #FFAE42 decorative accents. Preserve Manrope/Noto Sans Devanagari, dark readable labels and actual API-backed values. Give the overview totals compact icon panels, clear labels and larger numbers; show the welcome action in a separate teal panel. Add meaningful icon accents to teaching, support and independent-student cards. Carry warm fills/inset framing across other card families while keeping existing dark surfaces, status colours, field borders, permissions and sidebar palette distinct. Mobile totals stack their icon and label inside two columns; all role/language, denied-read, keyboard and empty/loading states remain required.
