@@ -2174,7 +2174,7 @@ function DashboardShell({
         ]
       : []),
     ["/teachers", "Find a teacher", Search],
-    ...(["GUARDIAN", "STUDENT", "ADMIN", "REVIEWER"].includes(role || "")
+    ...(["STUDENT", "ADMIN", "REVIEWER"].includes(role || "")
       ? [
           ["/guardian-verification", "Guardian verification", ShieldCheck] as [
             string,
@@ -2213,7 +2213,6 @@ function DashboardShell({
       : []),
     ...(role === "GUARDIAN"
       ? ([
-          ["/onboarding/guardian", "Guardian setup", ShieldCheck],
           ["/dashboard/requests", "Enquiries & teacher choices", Users],
           ["/dashboard/arrangements", "Arrangements & replacement", RefreshCw],
           ["/dashboard/family", "Learners & access", ShieldCheck],
@@ -2289,7 +2288,7 @@ function DashboardShell({
           ],
         ]
       : []),
-    ["/support", "Help & safety", LifeBuoy],
+    ...(role !== "GUARDIAN" ? [["/support", "Help & safety", LifeBuoy] as [string,string,LucideIcon]] : []),
     ...(role && staffRole(role)
       ? [
           ["/dashboard/security", "Authenticator & recovery", ShieldCheck] as [
@@ -3249,6 +3248,19 @@ function Routes() {
     </main>
   );
 }
+function AccountQuickActions({ guardian = false }: { guardian?: boolean }) {
+  const { appText } = useAppTranslation();
+  return <div className="returning-account-actions">
+    <SharedButton asChild className="find-teacher-highlight"><Link href="/teachers">{appText("Find a teacher")}<ArrowUpRight size={16} aria-hidden="true" /></Link></SharedButton>
+    {guardian && <>
+      <SharedButton asChild><Link href="/onboarding/guardian">{appText("Guardian setup")}</Link></SharedButton>
+      <SharedButton asChild><Link href="/guardian-verification">{appText("Guardian verification")}</Link></SharedButton>
+      <SharedButton asChild><Link href="/support">{appText("Help & safety")}</Link></SharedButton>
+      <SharedButton asChild variant="outline"><Link href="/guardian-verification">{appText("Review saved verification requests")}</Link></SharedButton>
+    </>}
+  </div>;
+}
+
 function AppContent() {
   const initialHindi = useContext(LanguageContext);
   const {entry, recordEntry} = useAccountEntry();
@@ -3475,13 +3487,13 @@ function AppContent() {
                 <AlertDescription>
                   <h2>{appText("Your saved progress is ready")}</h2>
                   <p>{appText("This email is already registered. You are signed in to your existing account; your saved progress is available from your dashboard.")}</p>
-                  <div className="returning-account-actions">
-                    <SharedButton asChild><Link href="/dashboard">{appText("Open dashboard")}<ArrowUpRight size={16} aria-hidden="true" /></Link></SharedButton>
-                    {session.account.role === "GUARDIAN" && <SharedButton asChild variant="outline"><Link href="/guardian-verification">{appText("Review saved verification requests")}</Link></SharedButton>}
-                  </div>
+                  <AccountQuickActions guardian={session.account.role === "GUARDIAN"} />
                 </AlertDescription>
               </Alert>
             </div>
+          )}
+          {session?.account.role === "GUARDIAN" && path.startsWith("/dashboard") && !(entry?.accountId === session.account.id && entry.existing) && (
+            <nav className="container guardian-dashboard-actions" aria-label={appText("Guardian shortcuts")}><AccountQuickActions guardian /></nav>
           )}
           {switchMessage && (
             <div className="container">

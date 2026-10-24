@@ -5958,3 +5958,14 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .guardian-invitation-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
 .guardian-invitation-header h3 { flex:1 1 180px; min-width:0; margin:0; font-size:19px; line-height:1.4; }
 .guardian-invitation-header .guardian-invitation-label { flex:0 0 auto; margin:0 0 0 auto; }
+
+.guardian-dashboard-actions { padding-top:20px; }
+.guardian-dashboard-actions .returning-account-actions { margin-top:0; }
+.returning-account-actions .find-teacher-highlight { border:2px solid #F0D7FF; animation:teacher-action-outline 3s ease-in-out infinite; }
+.returning-account-actions .find-teacher-highlight:hover,
+.returning-account-actions .find-teacher-highlight:focus-visible { animation-play-state:paused; }
+@keyframes teacher-action-outline {
+  0%,100% { border-color:#8BB8AA; box-shadow:0 0 0 2px #F0D7FF40; }
+  50% { border-color:#F0D7FF; box-shadow:0 0 0 4px #F0D7FF70; }
+}
+@media(prefers-reduced-motion:reduce) { .returning-account-actions .find-teacher-highlight { animation:none; border-color:#F0D7FF; box-shadow:0 0 0 2px #F0D7FF40; } }

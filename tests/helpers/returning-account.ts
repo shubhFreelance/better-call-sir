@@ -100,6 +100,16 @@ export function returningAccountChecks() {
       );
       await expect(page.locator(".returning-account-card")).toHaveCSS("background-color", "rgb(228, 228, 208)");
       await expect(page.locator(".returning-account-card").getByRole("heading")).toHaveText(hi ? "आपकी सहेजी हुई जानकारी तैयार है" : "Your saved progress is ready");
+      await expect(page.locator(".returning-account-notice").getByRole("link").first()).toHaveAttribute("href", "/teachers");
+      if (role === "GUARDIAN") {
+        const actions = page.locator(".returning-account-actions");
+        expect(await actions.getByRole("link").evaluateAll(nodes => nodes.map(node => node.getAttribute("href")))).toEqual(["/teachers", "/onboarding/guardian", "/guardian-verification", "/support", "/guardian-verification"]);
+        await expect(actions.getByRole("link").last()).toHaveAttribute("data-variant", "outline");
+        await expect(actions.locator('a[data-variant="default"]')).toHaveCount(4);
+        for (const href of ["/onboarding/guardian", "/guardian-verification", "/support"]) await expect(page.locator(`.dashboard-sidebar a[href="${href}"]`)).toHaveCount(0);
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await expect(actions.locator(".find-teacher-highlight")).toHaveCSS("animation-name", "none");
+      }
       if (role === "GUARDIAN")
         await expect(
           page.locator(".returning-account-notice").getByRole("link").last(),

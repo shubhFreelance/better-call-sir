@@ -57,5 +57,9 @@ export function dashboardNavigationChecks() {
     await page.reload();
     await expect(page.locator(".delivery-workspace")).toBeVisible();
     await expect(page.locator(".dashboard-sidebar")).toBeVisible();
+    await expect(page.locator(".guardian-dashboard-actions a")).toHaveCount(5);
+    await expect(page.locator('.guardian-dashboard-actions a[href="/onboarding/guardian"]')).toBeVisible();
+    await expect(page.locator('.guardian-dashboard-actions a[href="/support"]')).toBeVisible();
+    await expect(page.locator(".returning-account-notice")).toHaveCount(0);
   });
 }

@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Guardian top actions — 24 October 2026
+
+Plan: guardian external destinations move from sidebar to the top action row: Find a teacher, Guardian setup, Guardian verification, Help & safety, then the existing outlined Review saved verification requests action. Use existing teal shared buttons and a slow, restrained teal/lavender border pulse for teacher discovery; stop the animation for reduced motion and pause on hover/focus. The saved-account notice retains its wording and identity gate. Provide the same compact shortcut row on guardian dashboard deep links/refresh when that memory-only notice is absent. Preserve other roles, original destinations, permissions and saved verification history. Validate both languages, keyboard targets, refresh availability and sidebar persistence.
+
 ## Persistent dashboard navigation — 24 October 2026
 
 Plan: keep the existing visual design and move the dashboard App into a shared Next.js dashboard layout, with null index/catch-all leaf pages. Preserve the auth/query providers, header, sidebar DOM and disclosure state across internal dashboard navigation; key the right-hand content by section and the shell by account/role so workspace state resets at appropriate boundaries. Disable automatic whole-page scroll reset for internal sidebar links. Render learner education profiles inside the same dashboard shell with one main landmark and no nested viewport-sized container. Public teacher discovery/server-prefetch routes remain separate. Validate DOM identity, no document requests or repeated session bootstrap during section changes, browser history/deep links, all roles, sign-in recovery, private-read denial and learner verification/consent gates.

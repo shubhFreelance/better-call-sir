@@ -1700,7 +1700,7 @@ test("mobile dashboard menu shows the current section and supports keyboard navi
     navigation.getByRole("link", { name: "Learners & access", exact: true }),
   ).toHaveAttribute("aria-current", "page");
   await expect(
-    navigation.getByRole("link", { name: "Help & safety", exact: true }),
+    page.locator(".guardian-dashboard-actions").getByRole("link", { name: "Help & safety", exact: true }),
   ).toBeVisible();
   const result = await new AxeBuilder({ page }).analyze();
   expect(

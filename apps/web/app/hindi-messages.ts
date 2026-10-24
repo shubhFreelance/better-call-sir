@@ -1,5 +1,6 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Guardian shortcuts": "अभिभावक के ज़रूरी काम",
   "Invited access": "आमंत्रण से मिली पहुँच",
   "Learning highlights": "पढ़ाई की मुख्य बातें",
   "Pause highlights": "चलती जानकारी रोकें",
