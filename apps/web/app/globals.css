@@ -5954,6 +5954,18 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .guardian-learner-group.invited .guardian-learner-cards > li { background:#FFFFFF; border-color:#E7D4F0; }
 .guardian-learner-group.invited .guardian-learner-status { background:#F0D7FF; color:#402E4A; }
 .guardian-learner-group.invited .history-controls { background:#FFFFFF; border:1px solid #E7D4F0; }
+.guardian-learners-heading p,.guardian-learner-group > p,.guardian-learner-cards p,.guardian-learners .history-controls { font-size:12px; line-height:1.6; }
+.guardian-learner-group > p { padding:12px; margin:0 0 12px; border-radius:10px; background:#F3F5EC; }
+.guardian-learner-group > p:has(+ p) { margin-bottom:0; border-bottom-left-radius:0; border-bottom-right-radius:0; }
+.guardian-learner-group > p + p { padding-top:0; border-top-left-radius:0; border-top-right-radius:0; }
+.guardian-learner-group.invited > p { background:#FFFFFF; }
+.guardian-learner-cards li > p { margin:0; padding:10px 12px; background:#FFFFFF; }
+.guardian-learner-cards li > p:first-of-type { margin-top:12px; border-top-left-radius:10px; border-top-right-radius:10px; }
+.guardian-learner-cards li > p + p { padding-top:0; }
+.guardian-learner-cards li > p:last-of-type { margin-bottom:12px; border-bottom-left-radius:10px; border-bottom-right-radius:10px; }
+.guardian-learner-group.invited .guardian-learner-cards li > p { background:#F7F2FA; }
+.guardian-learners .history-controls p { font-size:12px; }
+.guardian-learners [data-slot=button] { font-size:13px; line-height:1.5; }
 
 .guardian-invitation-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
 .guardian-invitation-header h3 { flex:1 1 180px; min-width:0; margin:0; font-size:19px; line-height:1.4; }
