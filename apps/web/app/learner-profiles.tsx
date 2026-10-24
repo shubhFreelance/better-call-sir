@@ -9,6 +9,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { Info } from "lucide-react";
+import { CardSearch } from "../components/ui/card-search";
 type Profile = components["schemas"]["LearnerProfile"];
 type Profiles = components["schemas"]["LearnerProfiles"];
 type ProfileInput = components["schemas"]["LearnerProfileInput"];
@@ -505,10 +506,10 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
           )}
           {session.account.role === "GUARDIAN" && !targetName && !denied && !adding && (
             <section className="care-card learner-setup-card" aria-label={appText("Verified learners awaiting setup")}>
-              <h2>{appText("Verified learners awaiting setup")}</h2>
+              <CardSearch title={appText("Verified learners awaiting setup")}
+                label={appText("Find your learner")} placeholder={appText("Type a learner name")}
+                value={learnerSearch} onChange={setLearnerSearch} />
               <p>{appText("Complete education details to connect the existing student account.")}</p>
-              <label htmlFor="learner-search">{appText("Find your learner")}</label>
-              <Input id="learner-search" value={learnerSearch} onChange={event => setLearnerSearch(event.target.value)} placeholder={appText("Type a learner name")} />
               {relationships.isPending && <p role="status">{appText("Loading learner profiles…")}</p>}
               {relationships.error && <Alert variant="destructive"><AlertDescription>{appText("We couldn’t load your verified relationships.")} <Button variant="outline" onClick={() => relationships.refetch()}>{appText("Try again")}</Button></AlertDescription></Alert>}
               {!relationships.error && verifiedLearners.filter(row => matchesName(row.learnerName)).map(row => (

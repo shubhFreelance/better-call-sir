@@ -6016,6 +6016,21 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .learner-setup-card > p,.learner-setup-card > label,.learner-setup-card > input { font-size:14px; line-height:1.6; }
 .learner-setup-card > p { margin:12px 0; }
 .learner-setup-card > p:last-child { margin-bottom:0; }
+.card-search-header { display:grid; grid-template-columns:minmax(0,1fr) minmax(180px,260px); align-items:center; gap:12px 20px; margin-bottom:12px; }
+.card-search-header > h2 { min-width:0; margin:0; }
+.learner-profiles .learner-setup-card .card-search-header > h2 { margin:0; }
+.card-search-header > .card-search-toggle { display:none; }
+.card-search-field { position:relative; min-width:0; }
+.card-search-field > svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); pointer-events:none; color:#45534A; }
+.card-search-field > input { width:100%; min-height:44px; padding:10px 12px 10px 38px; border:1px solid #B7CCC4; border-radius:10px; background:#FFF; color:#17201F; font-size:14px; line-height:1.5; }
+@media(max-width:640px) {
+  .card-search-header { grid-template-columns:minmax(0,1fr) 44px; gap:12px; }
+  .card-search-header > .card-search-toggle { display:inline-flex; width:44px; height:44px; border-radius:10px; }
+  .card-search-toggle.has-query { background:#EDF4E5; border-color:#034F46; color:#034F46; }
+  .card-search-field { display:none; grid-column:1/-1; }
+  .card-search-field.is-open { display:block; }
+  .card-search-field > input { font-size:16px; }
+}
 
 .guardian-priorities { padding:24px; background:#F0D7FF; border:1px solid #C7A8DC; border-left:5px solid #034F46; border-radius:18px; margin:20px 0; }
 .guardian-priorities h2 { font-size:24px; margin:0 0 10px; }
