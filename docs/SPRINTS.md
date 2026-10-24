@@ -1,5 +1,7 @@
 # Delivery board
 
+25 October 2026 — Owner-authorized H1/H2 coverage-fix main integration: fetched main and fast-forwarded to `f2bfd9e` without conflicts. Application/test tree exactly matches accepted fix branch; its focused validation and recorded 213/216 full API outcome apply without repetition. Preserved the owner's uncommitted generated-client file and fix branch. Tracker-only delivery record follows. Next remains reviewed dependency remediation; no phase/launch qualification, deployment or additional scope accepted.
+
 ## H1/H2 — Validate teacher coverage before direct enquiry — 25 October 2026
 
 Guardian and managed-student direct intake now checks the selected teacher's current subject and education coverage using the existing `covers` policy before creating a request/conversation. This includes class/board, early-years level and college course/year as applicable, and also protects saved parent/additional-enquiry onboarding completions. Independent-student intake already applies the eligibility policy; regression coverage verifies its subject/class rejection too. A teacher-scoped transaction lock protects the read; existing consent, ownership, acceptance-time eligibility and capacity checks remain. English/Hindi errors explain the mismatch. Assisted discovery and existing enquiry records remain intact; no schema/client change or automatic class booking.
