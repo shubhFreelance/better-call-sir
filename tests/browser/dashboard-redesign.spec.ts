@@ -136,11 +136,13 @@ for (const hi of [false, true]) {
         ).toBeVisible();
       if (role === "INDEPENDENT_STUDENT") {
         await expect(page.locator(".independent-profile .overview-card-art")).toHaveCount(1);
-        await expect(page.locator(".dashboard-content .independent-guide")).toHaveCSS("background-color", "rgb(230, 230, 210)");
+        await expect(page.locator(".dashboard-content .independent-guide")).toHaveCSS("background-color", "rgb(255, 255, 235)");
       } else {
         await expect(page.locator(".overview-stat-card")).toHaveCount(4);
         await expect(page.locator(".overview-stat-card dd")).toHaveText(["0", "0", "0", "0"]);
-        await expect(page.locator(".overview-stat-card").first()).toHaveCSS("background-color", "rgb(230, 230, 210)");
+        await expect(page.locator(".overview-stat-card").first()).toHaveCSS("background-color", "rgb(228, 228, 208)");
+        await expect(page.locator(".overview-stat-card.tone-teal")).toHaveCSS("background-color", "rgb(255, 255, 255)");
+        await expect(page.locator(".hiring-overview .care-card").first()).toHaveCSS("background-color", "rgb(255, 255, 255)");
         await expect(page.locator(".tone-lavender .overview-stat-art")).toHaveCSS("background-color", "rgb(240, 215, 255)");
         await expect(page.locator(".tone-teal .overview-stat-art")).toHaveCSS("background-color", "rgb(3, 79, 70)");
       }

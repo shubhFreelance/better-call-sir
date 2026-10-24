@@ -98,6 +98,8 @@ export function returningAccountChecks() {
       await expect(page.locator(".returning-account-notice")).toContainText(
         hi ? "यह ईमेल पहले से पंजीकृत है" : "This email is already registered",
       );
+      await expect(page.locator(".returning-account-card")).toHaveCSS("background-color", "rgb(228, 228, 208)");
+      await expect(page.locator(".returning-account-card").getByRole("heading")).toHaveText(hi ? "आपकी सहेजी हुई जानकारी तैयार है" : "Your saved progress is ready");
       if (role === "GUARDIAN")
         await expect(
           page.locator(".returning-account-notice").getByRole("link").last(),
@@ -119,7 +121,7 @@ export function returningAccountChecks() {
       } else await expect(page.locator(".dashboard-layout")).toBeVisible();
       if (hi) await checkHindi(page);
       if (role === "GUARDIAN") {
-        const a = await new AxeBuilder({ page }).include("#main").analyze();
+        const a = await new AxeBuilder({ page }).include("#main").include(".returning-account-notice").analyze();
         expect(
           a.violations.filter((v) =>
             ["critical", "serious"].includes(v.impact || ""),

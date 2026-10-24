@@ -1,5 +1,6 @@
 "use client";
 import { useAccountEntry } from "./account-entry";
+import { LandingMotion } from "./landing-motion";
 import {ServiceFollowups} from "./service-followups";
 import { NotificationWorkspace } from "./notification-workspace";
 import { TuitionMinimumWorkspace } from "./tuition-minimum-workspace";
@@ -709,7 +710,7 @@ function Home() {
     queryFn: ({ signal }) => api<{ items: Teacher[] }>("/teachers", { signal }),
   });
   return (
-    <>
+    <LandingMotion>
       <section className="hero container">
         <div className="hero-copy">
           <div className="location-pill">
@@ -876,7 +877,7 @@ function Home() {
           </p>
         </div>
       </section>
-    </>
+    </LandingMotion>
   );
 }
 function Teachers() {
@@ -3485,11 +3486,19 @@ function AppContent() {
           </a>
           <Header />
           {session && entry?.accountId === session.account.id && entry.existing && (
-            <div className="container returning-account-notice"><Alert role="status"><AlertDescription>
-              <p>{appText("This email is already registered. You are signed in to your existing account; your saved progress is available from your dashboard.")}</p>
-              <div className="care-actions"><Link className="inline-link" href="/dashboard">{appText("Open dashboard")}</Link>
-              {session.account.role === "GUARDIAN" && <Link className="inline-link" href="/guardian-verification">{appText("Review saved verification requests")}</Link>}</div>
-            </AlertDescription></Alert></div>
+            <div className="container returning-account-notice">
+              <Alert role="status" className="returning-account-card">
+                <CheckCircle2 aria-hidden="true" />
+                <AlertDescription>
+                  <h2>{appText("Your saved progress is ready")}</h2>
+                  <p>{appText("This email is already registered. You are signed in to your existing account; your saved progress is available from your dashboard.")}</p>
+                  <div className="returning-account-actions">
+                    <SharedButton asChild><Link href="/dashboard">{appText("Open dashboard")}<ArrowUpRight size={16} aria-hidden="true" /></Link></SharedButton>
+                    {session.account.role === "GUARDIAN" && <SharedButton asChild variant="outline"><Link href="/guardian-verification">{appText("Review saved verification requests")}</Link></SharedButton>}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            </div>
           )}
           {switchMessage && (
             <div className="container">
