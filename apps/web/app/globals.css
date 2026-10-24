@@ -5980,6 +5980,7 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
   .student-registration-grid .registration-card p { font-size:15px; line-height:1.65; }
 }
 
+.learner-profiles .hiring-section-heading { margin-bottom:20px; }
 .learner-education-list { display:grid; gap:16px; list-style:none; padding:0; }
 .learner-education-list > .saved-learner-card { padding:24px; border:1px solid #DADAC4; border-radius:18px; background:#F3F1EB; margin:0; }
 .saved-profile-feedback .inline-link { display:inline-flex; align-items:center; min-height:44px; margin:8px 10px 0 0; padding:8px 14px; border:1px solid #B7CCC4; border-radius:10px; background:#F3F3E0; color:#034F46; font-weight:600; }
