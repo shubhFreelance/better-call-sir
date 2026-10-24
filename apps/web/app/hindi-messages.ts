@@ -1,5 +1,6 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Complete learning permission and education details here. Student sign-in remains subject to acknowledgment and access permissions.": "पढ़ाई की अनुमति और शिक्षा की जानकारी यहीं पूरी करें। विद्यार्थी साइन-इन के लिए पुष्टि और पहुँच की अनुमतियाँ ज़रूरी हैं।",
   "Your student access": "आपकी विद्यार्थी पहुँच",
   "Your learning profile is ready": "आपकी पढ़ाई की प्रोफ़ाइल तैयार है",
   "Use your own email every time. A matching name alone never links accounts.": "हर बार अपना ईमेल इस्तेमाल करें। केवल नाम मिलने से खाते नहीं जुड़ते।",

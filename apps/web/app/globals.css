@@ -5979,3 +5979,27 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
   .student-registration-grid .registration-card h2 { font-size:22px; }
   .student-registration-grid .registration-card p { font-size:15px; line-height:1.65; }
 }
+
+.learner-education-list { display:grid; gap:16px; list-style:none; padding:0; }
+.learner-education-list > .saved-learner-card { padding:24px; border:1px solid #DADAC4; border-radius:18px; background:#F3F1EB; margin:0; }
+.saved-profile-feedback .inline-link { display:inline-flex; align-items:center; min-height:44px; margin:8px 10px 0 0; padding:8px 14px; border:1px solid #B7CCC4; border-radius:10px; background:#F3F3E0; color:#034F46; font-weight:600; }
+.guardian-verification-workspace.care-workspace { padding:28px; border:1px solid #DADAC4; border-radius:24px; background:#F3F1EB; gap:20px; }
+.guardian-verification-workspace > h2 { font-size:clamp(25px,3vw,34px); line-height:1.2; margin:12px 0; }
+.guardian-verification-workspace > label { display:grid; gap:10px; padding:20px; background:#E4E4D0; border-radius:16px; color:#034F46; font-weight:600; }
+.guardian-verification-workspace.care-workspace .staff-person { padding:20px; border:1px solid #DADAC4; border-radius:16px; background:#FFF; margin:12px 0; }
+.guardian-verification-workspace.care-workspace .guardian-verification-editor { width:100%; max-width:none; padding:28px; border:1px solid #034F46; border-radius:20px; background:#FFF; margin-top:24px; }
+.guardian-verification-workspace.care-workspace .guardian-verification-editor > h3 { padding:16px 20px; background:#F0D7FF; border-radius:12px; color:#034F46; margin:0 0 20px; }
+.guardian-verification-workspace.care-workspace .guardian-verification-editor fieldset { padding:22px; border:1px solid #DADAC4; border-radius:16px; margin-top:20px; }
+.evidence-download { display:inline-flex; align-items:center; min-height:48px; padding:12px 18px; border:2px solid #034F46; border-radius:12px; background:#034F46; color:#FFF; font-weight:600; margin:16px 0; }
+.evidence-download:hover { background:#F0D7FF; color:#034F46; }
+.guardian-inline-setup { padding:20px; background:#F3F1EB; border:1px solid #DADAC4; border-radius:16px; margin-top:20px; }
+.guardian-inline-setup .learner-profile-layout { display:block; }
+.guardian-inline-setup .learner-profile-layout > aside { display:none; }
+.guardian-inline-setup .learner-profiles h2 { font-size:24px; line-height:1.3; }
+.guardian-inline-setup .learner-profiles { padding:0; }
+@media(max-width:640px) { .guardian-verification-workspace.care-workspace, .guardian-verification-workspace.care-workspace .guardian-verification-editor, .guardian-inline-setup { padding:16px; } .saved-profile-feedback .inline-link { display:flex; margin-right:0; } }
+
+.saved-profile-feedback { display:block; }
+
+.learner-profiles .care-card h2 { font-size:clamp(22px,2.4vw,28px); line-height:1.3; }
+.saved-learner-card h3 { font-size:22px; margin:0 0 12px; color:#034F46; }

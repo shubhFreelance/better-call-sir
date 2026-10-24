@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Inline guardian completion and reviewer workspace — 24 October 2026
+
+Frame each saved learner independently with ivory surfaces, restrained borders and aligned teal saved-profile links. Give the staff verification queue a compact status panel and white evidence/decision cards with lavender headings; make the scanner-cleared report link a prominent teal action without changing its protected endpoint. Reuse the existing purpose-specific consent form and learner editor within approved verification step six, scoped to the named/linked learner. Retain uncertainty recovery, role/region gates, privacy pauses, scanner restrictions and both interface languages. Keep guardian-form padding independent of reviewer styles.
+
 ## Student access handoff — 24 October 2026
 
 Add a third student entry card for shared guardian management, with authorization explained as separate from preference. Preserve independent and private-code routes. Use inline email verification at student entry instead of a generic sign-in detour. Provide owner-scoped relationship progress, authoritative linked profile and management summaries, explicit refresh/error states and paginated requests. Mirror meaningful status on the dashboard without confusing a provisional student email account with confirmed guardian ownership. Reuse cream/white cards, teal actions and lavender accents; translate English/Hindi labels and retain scoped routing, privacy and consent boundaries.
@@ -525,3 +529,5 @@ B13 acceptance: English desktop and Hindi phone screenshots inspected;320/390/43
 
 
 24 October 2026 — F49 compact student registration row complete. All three student choices share equal-width columns from1000px upward, with20px gaps,26px padding and reduced heading/body sizes. Existing narrow-screen stacking, colours, actions and permissions remain unchanged. Both desktop geometry/no-overflow and Hindi mobile/status browser checks pass; desktop screenshot reviewed. CSS-only application change; production build and backend suites not repeated. Frontend branch delivery; no main merge/deployment. Next remains reviewed dependency remediation; existing implementation, launch and deferred backlog unchanged.
+
+Inline completion also reuses the protected invitation issuance/recovery controls after education setup. Guardians can finish their setup actions on the same page; activating a student device remains a separate explicit authorization.

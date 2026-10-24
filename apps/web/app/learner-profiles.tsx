@@ -45,19 +45,19 @@ const gateMessages = {
     "You can view your linked profile. Your guardian currently manages education details.",
   READY: "",
 };
-export function LearnerProfiles({ session }: { session: Session }) {
+export function LearnerProfiles({ session, targetName, targetId }: { session: Session; targetName?: string; targetId?: string }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
   const client = useQueryClient();
   const [cursor, setCursor] = useState<string | null>(null),
-    [adding, setAdding] = useState(false),
+    [adding, setAdding] = useState(!!targetName && !targetId),
     [saved, setSaved] = useState<Profile | null>(null);
   const [editing, setEditing] = useState<Profile | null>(null),
     [openingId, setOpeningId] = useState<string | null>(null),
     [openError, setOpenError] = useState(""),
     [editNotice, setEditNotice] = useState(""),
     [stale, setStale] = useState(false);
-  const [values, setValues] = useState(initial),
+  const [values, setValues] = useState({...initial, alias: targetName || ""}),
     [review, setReview] = useState<ProfileInput | null>(null),
     [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false),
@@ -70,8 +70,8 @@ export function LearnerProfiles({ session }: { session: Session }) {
     } | null>(null),
     heading = useRef<HTMLHeadingElement>(null);
   const query = useQuery({
-    queryKey: ["learner-profiles", session.account.id, cursor],
-    queryFn: ({ signal }) =>
+    queryKey: ["learner-profiles", session.account.id, cursor, targetId],
+    queryFn: async ({ signal }) => targetId ? {creationStatus:"READY" as const, items:[await api<Profile>("/learner-profiles/"+targetId,{signal})],nextCursor:null} :
       api<Profiles>(
         "/learner-profiles?limit=10" + (cursor ? "&cursor=" + cursor : ""),
         { signal },
@@ -285,6 +285,8 @@ export function LearnerProfiles({ session }: { session: Session }) {
       await client.invalidateQueries({ queryKey: ["learner-profiles"] });
       await client.invalidateQueries({ queryKey: ["guardian-setup"] });
       await client.invalidateQueries({ queryKey: ["learner-relationships"] });
+      await client.invalidateQueries({ queryKey: ["guardian-verification"] });
+      await client.invalidateQueries({ queryKey: ["guardian-verifications"] });
     } catch (error) {
       const unknown =
         !(error instanceof ApiError) ||
@@ -367,7 +369,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
   }
   return (
     <section className="learner-profiles">
-      <header className="wizard-title">
+      {!targetName && <header className="wizard-title">
         <h1>
           {session.account.role === "STUDENT"
             ? appText("Your education profile.")
@@ -395,7 +397,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
             </>
           )}
         </div>
-      </header>
+      </header>}
       <div className="learner-profile-layout">
         <aside className="learner-profile-intro">
           <h2>{appText("Start with the learner.")}</h2>
@@ -418,7 +420,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
         <div className="learner-profile-main">
           {saved && !denied && (
             <Alert>
-              <AlertDescription>
+              <AlertDescription className="saved-profile-feedback">
                 <strong>
                   {saved.alias}
                   {appText("’s profile is saved.")}
@@ -432,9 +434,9 @@ export function LearnerProfiles({ session }: { session: Session }) {
                         "The profile is saved. Complete its education details before starting an enquiry.",
                       )}
                 </p>
-                <Link href="/onboarding/guardian" className="inline-link">
+{!targetName && (                <Link href="/onboarding/guardian" className="inline-link">
                   {appText("Continue guardian setup")}{" "}
-                </Link>
+                </Link>)}
                 {saved.enquiryEligible && (
                   <Link className="inline-link" href="/onboarding/parent">
                     {appText("Start a tuition enquiry")}{" "}
@@ -500,7 +502,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
               </AlertDescription>
             </Alert>
           )}
-          {session.account.role === "GUARDIAN" && !denied && !adding && (
+          {session.account.role === "GUARDIAN" && !targetName && !denied && !adding && (
             <section className="care-card" aria-label={appText("Verified learners awaiting setup")}>
               <h2>{appText("Verified learners awaiting setup")}</h2>
               <p>{appText("Relationship approval is complete. Review learning permission and finish education details to connect the student account. Do not create another student account.")}</p>
@@ -544,7 +546,7 @@ export function LearnerProfiles({ session }: { session: Session }) {
                 >
                   <div className="hiring-section-heading">
                     <h2>{appText("Saved profiles")}</h2>
-                    {session.account.role === "GUARDIAN" && !adding && (
+                    {session.account.role === "GUARDIAN" && !targetName && !adding && (
                       <Button asChild disabled={locked}>
                         <Link href="/guardian-verification?new=1">{appText("Add a child or learner")}</Link>
                       </Button>
@@ -554,8 +556,8 @@ export function LearnerProfiles({ session }: { session: Session }) {
                     <p>{appText("No learner profiles saved yet.")}</p>
                   ) : (
                     <ul className="learner-education-list">
-                      {query.data.items.filter(p => matchesName(p.alias)).map((p) => (
-                        <li key={p.id}>
+                      {query.data.items.filter(p => matchesName(p.alias) && (!targetName || p.alias.toLowerCase() === targetName.toLowerCase())).map((p) => (
+                        <li key={p.id} className="saved-learner-card">
                           <h3>{p.alias}</h3>
                           <EducationSummary education={p.education} />
                           {(session.account.role === "GUARDIAN" ||

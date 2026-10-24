@@ -1,6 +1,6 @@
 "use client";
 import { useAppTranslation } from "./locale";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
@@ -11,7 +11,9 @@ type Setup = components["schemas"]["GuardianSetup"];
 export function GuardianSetup({
   session,
   onSessionChange,
+  embeddedChildren,
 }: {
+  embeddedChildren?: ReactNode;
   session: Session;
   onSessionChange: (session: Session) => void;
 }) {
@@ -94,6 +96,69 @@ export function GuardianSetup({
   }
   const ready = data?.gate === "READY",
     hasLearners = ready && (data.learnerCount || 0) > 0;
+  const permissionPanel = <>                  <h2>{appText("Your permission comes first.")}</h2>
+                  <p>
+                    {appText(
+                      "We use learner education details and tuition needs to review teacher fit and manage learning records. This permission does not authorise AI training.",
+                    )}{" "}
+                  </p>
+                  <p>
+                    {appText(
+                      "You choose a teacher after reviewing suitable options. You can review or withdraw permission in Family access.",
+                    )}{" "}
+                  </p>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      consent();
+                    }}
+                  >
+                    <label className="wizard-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={accepted}
+                        disabled={locked}
+                        onChange={(e) => setAccepted(e.target.checked)}
+                        aria-describedby="guardian-permission-notice"
+                      />
+                      <span>
+                        {appText(
+                          "I am the learner’s parent or lawful guardian. I agree to the use described above for tuition matching and learning records.",
+                        )}{" "}
+                      </span>
+                    </label>
+                    <p className="wizard-help" id="guardian-permission-notice">
+                      {appText(
+                        "Current permission notice: development-v1. Saving permission does not send a tuition enquiry.",
+                      )}{" "}
+                    </p>
+                    <div className="wizard-actions">
+                      {pending ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={busy}
+                          onClick={refresh}
+                        >
+                          {appText("Check permission status")}{" "}
+                        </Button>
+                      ) : (
+                        <Button type="submit" disabled={!accepted || locked}>
+                          {busy
+                            ? appText("Saving permission…")
+                            : appText("Agree and continue")}
+                        </Button>
+                      )}
+                    </div>
+                  </form></>;
+  if (embeddedChildren !== undefined) return <section className="guardian-inline-setup">
+    {status.isPending && <p role="status">{appText("Loading your guardian setup…")}</p>}
+    {(status.error || readError || message) && <Alert variant="destructive"><AlertDescription>{appError(readError || message || "We couldn’t confirm your current setup. Refresh before continuing.")}</AlertDescription></Alert>}
+    {data?.gate === "CONSENT_REQUIRED" && permissionPanel}
+    {ready && embeddedChildren}
+    {data && !ready && data.gate !== "CONSENT_REQUIRED" && <p role="status">{appText(data.gate === "PRIVACY_PAUSED" ? "Learner setup is paused." : "Guardian verification is pending.")}</p>}
+    <Button type="button" variant="outline" disabled={busy || status.isFetching} onClick={refresh}>{appText("Refresh setup")}</Button>
+  </section>;
   return (
     <main className="container section guardian-setup">
       <header className="wizard-title">
@@ -234,61 +299,7 @@ export function GuardianSetup({
                 </>
               ) : data.gate === "CONSENT_REQUIRED" ? (
                 <>
-                  <h2>{appText("Your permission comes first.")}</h2>
-                  <p>
-                    {appText(
-                      "We use learner education details and tuition needs to review teacher fit and manage learning records. This permission does not authorise AI training.",
-                    )}{" "}
-                  </p>
-                  <p>
-                    {appText(
-                      "You choose a teacher after reviewing suitable options. You can review or withdraw permission in Family access.",
-                    )}{" "}
-                  </p>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      consent();
-                    }}
-                  >
-                    <label className="wizard-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={accepted}
-                        disabled={locked}
-                        onChange={(e) => setAccepted(e.target.checked)}
-                        aria-describedby="guardian-permission-notice"
-                      />
-                      <span>
-                        {appText(
-                          "I am the learner’s parent or lawful guardian. I agree to the use described above for tuition matching and learning records.",
-                        )}{" "}
-                      </span>
-                    </label>
-                    <p className="wizard-help" id="guardian-permission-notice">
-                      {appText(
-                        "Current permission notice: development-v1. Saving permission does not send a tuition enquiry.",
-                      )}{" "}
-                    </p>
-                    <div className="wizard-actions">
-                      {pending ? (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          disabled={busy}
-                          onClick={refresh}
-                        >
-                          {appText("Check permission status")}{" "}
-                        </Button>
-                      ) : (
-                        <Button type="submit" disabled={!accepted || locked}>
-                          {busy
-                            ? appText("Saving permission…")
-                            : appText("Agree and continue")}
-                        </Button>
-                      )}
-                    </div>
-                  </form>
+                  {permissionPanel}
                 </>
               ) : (
                 <>
