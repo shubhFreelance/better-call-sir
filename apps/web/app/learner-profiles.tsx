@@ -8,6 +8,7 @@ import { api, ApiError, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Alert, AlertDescription } from "../components/ui/alert";
+import { Info } from "lucide-react";
 type Profile = components["schemas"]["LearnerProfile"];
 type Profiles = components["schemas"]["LearnerProfiles"];
 type ProfileInput = components["schemas"]["LearnerProfileInput"];
@@ -560,17 +561,9 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
                         <li key={p.id} className="saved-learner-card">
                           <h3>{p.alias}</h3>
                           <EducationSummary education={p.education} />
-                          {(session.account.role === "GUARDIAN" ||
-                            !!studentManagement.data?.canManageLearning) && (
-                            <Button
-                              variant="outline"
-                              disabled={!ready || locked || adding}
-                              onClick={() => openEdit(p.id)}
-                            >
-                              {appText("Edit profile for")} {p.alias}
-                            </Button>
-                          )}
-                          <p className="care-help">
+                          <div className="saved-learner-info">
+                            <Info size={18} aria-hidden="true" />
+                            <p>
                             {p.enquiryEligible
                               ? appText(
                                   "Education details are ready for an enquiry. Teacher fit and availability still need to be checked.",
@@ -583,7 +576,20 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
                                 : appText(
                                     "Complete the education details before requesting a teacher.",
                                   )}
-                          </p>
+                            </p>
+                          </div>
+                          {(session.account.role === "GUARDIAN" ||
+                            !!studentManagement.data?.canManageLearning) && (
+                            <div className="saved-learner-actions">
+                              <Button
+                                variant="outline"
+                                disabled={!ready || locked || adding}
+                                onClick={() => openEdit(p.id)}
+                              >
+                                {appText("Edit profile for")} {p.alias}
+                              </Button>
+                            </div>
+                          )}
                         </li>
                       ))}
                     </ul>

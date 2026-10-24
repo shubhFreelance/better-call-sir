@@ -6003,7 +6003,14 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .saved-profile-feedback { display:block; }
 
 .learner-profiles .care-card h2 { font-size:clamp(22px,2.4vw,28px); line-height:1.3; }
-.saved-learner-card h3 { font-size:22px; margin:0 0 12px; color:#034F46; }
+.saved-learner-card h3 { font-size:20px; font-weight:650; line-height:1.3; margin:0 0 12px; color:#034F46; }
+.saved-learner-card .learner-education-summary p { font-size:14px; line-height:1.6; margin:6px 0; color:#45534A; }
+.saved-learner-card .learner-education-summary p:first-child { font-weight:650; color:#17201F; }
+.saved-learner-info { display:flex; align-items:flex-start; gap:10px; margin-top:16px; padding:12px 14px; border:1px solid #D7E4CB; border-radius:10px; background:#EDF4E5; color:#344A32; }
+.saved-learner-info > svg { flex-shrink:0; margin-top:2px; }
+.saved-learner-info > p { margin:0; font-size:13px; line-height:1.6; }
+.saved-learner-actions { display:flex; justify-content:flex-end; margin-top:16px; }
+.saved-learner-actions [data-slot=button] { min-height:44px; height:auto; max-width:100%; padding:10px 14px; font-size:13px; line-height:1.5; white-space:normal; text-align:center; }
 
 .guardian-priorities { padding:24px; background:#F0D7FF; border:1px solid #C7A8DC; border-left:5px solid #034F46; border-radius:18px; margin:20px 0; }
 .guardian-priorities h2 { font-size:24px; margin:0 0 10px; }
