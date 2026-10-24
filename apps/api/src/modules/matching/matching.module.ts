@@ -34,7 +34,7 @@ import {
 class MatchingController {
   constructor(@Inject(AppService) private readonly service: AppService) {}
   async request(db: DB, actor: Account, id: string, write=true) {
-    if(familyActor(actor)){const request=await requestAuthority(db,this.service,actor,id,write);if(request.status!=="OPEN")fail(409,"CONFLICT","Request is not open.");return request;}
+    if(familyActor(actor)){const request=await requestAuthority(db,this.service,actor,id,write);if(write&&await db.directEnquiry.count({where:{kind:"GUARDIAN",sourceId:id}}))fail(409,"DIRECT_ENQUIRY","Use the direct enquiry conversation for this request.");if(write&&request.status!=="OPEN")fail(409,"CONFLICT","Request is not open.");return request;}
     let request = await db.tuitionRequest.findUnique({ where: { id } });
     if (
       !request ||
@@ -43,9 +43,10 @@ class MatchingController {
         : actor.role === "OPERATOR" && request.region !== actor.region)
     )
       fail(404, "NOT_FOUND", "Request not found.");
+    if(write&&await db.directEnquiry.count({where:{kind:"GUARDIAN",sourceId:id}}))fail(409,"DIRECT_ENQUIRY","Use the direct enquiry conversation for this request.");
     await this.service.guardian(db, request.guardianId);
     request = await db.tuitionRequest.findUniqueOrThrow({ where: { id } });
-    if (request.status !== "OPEN")
+    if (write && request.status !== "OPEN")
       fail(409, "CONFLICT", "Request is not open.");
     return request;
   }
@@ -217,7 +218,7 @@ class MatchingController {
   @Get("admin/requests/:id/recommendations") async candidates(@Req() req:HttpRequest,@Param('id') id:string){
     parse(uuid,id);const actor=await this.service.actor(req,['ADMIN','OPERATOR']);
     return this.service.db.$transaction(async db=>{
-      const request=await this.request(db,actor,id),child=await db.child.findUniqueOrThrow({where:{id:request.childId}});
+      const request=await this.request(db,actor,id,false),child=await db.child.findUniqueOrThrow({where:{id:request.childId}});
       const run=await db.recommendationRun.findFirst({where:{requestId:id},orderBy:[{requestVersion:'desc'},{createdAt:'desc'},{id:'desc'}]});
       const items=[];
       if(run)for(const c of await db.recommendation.findMany({where:{requestId:id,runId:run.id},orderBy:[{score:'desc'},{teacherId:'asc'}],take:10})){
@@ -237,7 +238,7 @@ class MatchingController {
     parse(uuid, id);
     const actor = await this.service.actor(req, ["ADMIN", "OPERATOR"]);
     return this.service.db.$transaction(async (db) => {
-      await this.request(db, actor, id);
+      await this.request(db, actor, id,false);
       const anchor=data.cursor?await db.recommendationRun.findFirst({where:{requestId:id,id:data.cursor}}):null;
       if(data.cursor&&!anchor)fail(404,'NOT_FOUND','Run cursor is unavailable.');
       return pageResult(await db.recommendationRun.findMany({where:{requestId:id,...(anchor?{OR:[{requestVersion:{lt:anchor.requestVersion}},{requestVersion:anchor.requestVersion,createdAt:{lt:anchor.createdAt}},{requestVersion:anchor.requestVersion,createdAt:anchor.createdAt,id:{lt:anchor.id}}]}:{})},orderBy:[{requestVersion:'desc'},{createdAt:'desc'},{id:'desc'}],take:data.limit+1}),data.limit);
@@ -450,6 +451,7 @@ class MatchingController {
         let request = await db.tuitionRequest.findUniqueOrThrow({
           where: { id: candidate.requestId },
         });
+        if(await db.directEnquiry.count({where:{kind:"GUARDIAN",sourceId:request.id}}))fail(409,"DIRECT_ENQUIRY","Use the direct enquiry conversation for this request.");
         await this.service.guardian(db, request.guardianId);
         await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${teacher.id},0))`;
         const current = await db.recommendation.findUniqueOrThrow({

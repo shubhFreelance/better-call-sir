@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/direct-enquiries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Immediate direct enquiries and regional staff oversight, newest first; no staff approval */
+        get: operations["getDirectEnquiries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/direct-enquiries/{id}/responses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assigned teacher accepts/declines/proposes; owner decides proposal; optimistic concurrency and exact retry */
+        post: operations["respondDirectEnquiry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/teacher/pending-enquiries": {
         parameters: {
             query?: never;
@@ -7473,6 +7507,285 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getDirectEnquiries: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Scoped direct enquiry inbox */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "GUARDIAN" | "INDEPENDENT";
+                            /** Format: uuid */
+                            sourceId: string;
+                            /** Format: uuid */
+                            ownerId: string;
+                            /** Format: uuid */
+                            childId: string | null;
+                            /** Format: uuid */
+                            teacherId: string;
+                            region: string;
+                            /** @enum {string} */
+                            status: "PENDING" | "PROPOSED" | "ACCEPTED" | "DECLINED";
+                            proposal: {
+                                /** @enum {string} */
+                                format?: "ONE_TO_ONE" | "GROUP";
+                                timing?: string;
+                                message?: string;
+                                /** @constant */
+                                timezone?: "Asia/Kolkata";
+                            } | null;
+                            /** Format: uuid */
+                            arrangementId: string | null;
+                            version: number;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            subject: string;
+                            mode: string;
+                            language: string;
+                            parentName: string;
+                            teacherName: string;
+                            preferredTime: string;
+                            learner: {
+                                name: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            canReply: boolean;
+                            canDecide: boolean;
+                            sourceOpen: boolean;
+                            sourceVersion: number;
+                        }[];
+                        counts: {
+                            [key: string]: number;
+                        };
+                        /** Format: uuid */
+                        nextCursor: string | null;
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    respondDirectEnquiry: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    action: "ACCEPT" | "DECLINE" | "ACCEPT_PROPOSAL" | "DECLINE_PROPOSAL";
+                    expectedVersion: number;
+                    /** @constant */
+                    confirmed: true;
+                    expectedSourceVersion: number;
+                } | {
+                    /** @constant */
+                    action: "PROPOSE";
+                    expectedVersion: number;
+                    /** @constant */
+                    confirmed: true;
+                    /** @enum {string} */
+                    format: "ONE_TO_ONE" | "GROUP";
+                    timing: string;
+                    message: string;
+                    expectedSourceVersion: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Recorded reply; accepted replies open tuition terms without staff */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        kind: "GUARDIAN" | "INDEPENDENT";
+                        /** Format: uuid */
+                        sourceId: string;
+                        /** Format: uuid */
+                        ownerId: string;
+                        /** Format: uuid */
+                        childId: string | null;
+                        /** Format: uuid */
+                        teacherId: string;
+                        region: string;
+                        /** @enum {string} */
+                        status: "PENDING" | "PROPOSED" | "ACCEPTED" | "DECLINED";
+                        proposal: {
+                            /** @enum {string} */
+                            format?: "ONE_TO_ONE" | "GROUP";
+                            timing?: string;
+                            message?: string;
+                            /** @constant */
+                            timezone?: "Asia/Kolkata";
+                        } | null;
+                        /** Format: uuid */
+                        arrangementId: string | null;
+                        version: number;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        updatedAt: string;
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getTeacherPendingEnquiries: {
         parameters: {
             query?: {

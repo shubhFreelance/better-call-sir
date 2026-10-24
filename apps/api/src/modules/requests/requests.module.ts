@@ -1,3 +1,4 @@
+import {createDirectEnquiry} from '../direct-enquiries/direct-enquiries.module';
 import {learningAuthority,requestAuthority} from '../learners/learning-management';
 import {guardianProof,linkVerifiedLearner} from '../verification/guardian-verification';
 import {enabledRegion} from '../administration/commercial-policy';
@@ -46,6 +47,7 @@ export async function createIntake(db:DB,service:AppService,account:Account,req:
       }
       if(!learnerScope(child,data.subject))fail(409,'LEARNER_DETAILS_REQUIRED','Complete the learner education profile before requesting a teacher.');
       const request=await db.tuitionRequest.create({data:{discoveryMethod:data.discoveryMethod,preferredTeacherId:data.preferredTeacherId,region:account.region,...(preferences?{schedulePreferences:preferences,scheduleStatus:'CONFIRMED'}:{}),guardianId:account.id,childId:child.id,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,schedule:data.schedule}});
+      if(data.discoveryMethod==='MANUAL'&&data.preferredTeacherId)await createDirectEnquiry(db,{kind:'GUARDIAN',sourceId:request.id,ownerId:account.id,childId:child.id,teacherId:data.preferredTeacherId,region:request.region});
       await service.audit(db,initiator,req,'REQUEST_CREATED',request.id,'Family member submitted supported tuition need',undefined,{region:request.region,scheduleStatus:request.scheduleStatus});await service.event(db,'request.created',request.id);return request;
 }
 

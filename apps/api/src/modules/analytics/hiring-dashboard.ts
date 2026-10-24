@@ -23,7 +23,8 @@ export async function hiringDashboard(service:AppService,req:HttpRequest,input:u
   const familyScope=Prisma.sql`r."childId" IN (SELECT c.id FROM "Child" c WHERE c.id=ANY(${childIds}::uuid[]))`;
   // Keep unpresented, expired and processing-paused family enquiries out of teacher discovery.
   const teacherScope=Prisma.sql`r.status='OPEN' AND EXISTS(SELECT 1 FROM "Recommendation" x WHERE x."requestId"=r.id AND x."teacherId"=${tid}::uuid AND x."presentedAt" IS NOT NULL AND x."runId" IS NOT NULL AND x."expiresAt">${now}) AND EXISTS(SELECT 1 FROM "Account" a JOIN "Consent" c ON c."guardianId"=a.id WHERE a.id=r."guardianId" AND a.verified AND NOT a.disabled AND c."withdrawnAt" IS NULL) AND NOT EXISTS(SELECT 1 FROM "PrivacyRequest" p WHERE p."accountId"=r."guardianId" AND p.kind='DELETION' AND p.scope IN ('ACCOUNT','CHILD') AND p.status='PENDING')`;
-  const scope=actor.role==='TEACHER'?teacherScope:familyScope;
+  const baseScope=actor.role==='TEACHER'?teacherScope:familyScope;
+  const scope=Prisma.sql`(${baseScope}) AND NOT EXISTS(SELECT 1 FROM "DirectEnquiry" d WHERE d.kind='GUARDIAN' AND d."sourceId"=r.id)`;
   const placementWhere={...(actor.role==='TEACHER'?{teacherId:tid}:{childId:{in:childIds}}),...(data.arrangementId?{id:data.arrangementId}:{})};
   if(data.arrangementId&&!await db.placement.count({where:placementWhere}))fail(404,'NOT_FOUND','Arrangement not found.');
   const totals=await db.$queryRaw<{enquiries:bigint;openEnquiries:bigint;pendingResponses:bigint}[]>(Prisma.sql`SELECT count(*) AS enquiries,count(*) FILTER(WHERE r.status='OPEN') AS "openEnquiries",count(*) FILTER(WHERE EXISTS(SELECT 1 FROM "Recommendation" x WHERE x."requestId"=r.id AND x."teacherId"=${tid}::uuid AND x.response='PENDING' AND x."presentedAt" IS NOT NULL AND x."expiresAt">${now})) AS "pendingResponses" FROM "TuitionRequest" r WHERE (${scope})`);

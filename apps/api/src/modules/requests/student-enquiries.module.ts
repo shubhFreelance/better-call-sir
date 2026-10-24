@@ -1,3 +1,4 @@
+import {createDirectEnquiry} from '../direct-enquiries/direct-enquiries.module';
 import {enabledRegion} from '../administration/commercial-policy';
 import {studentAuthority} from '../learners/student-authority';
 import {Module,Controller,Get,Post,Param,Query,Req,Body,Inject} from '@nestjs/common';
@@ -50,6 +51,7 @@ class StudentEnquiriesController {
     if(!teacher||!owner||owner.disabled||owner.role!=='TEACHER'||!eligible(data,learner,teacher)||(data.mode==='HOME'&&(teacher.region!==current.region||!teacher.travelAccepted)))fail(409,'TEACHER_UNAVAILABLE','This teacher does not currently fit the reviewed criteria. Use assisted search or choose another teacher.');
    }
    const row=await db.studentEnquiry.create({data:{studentAccountId:ownerId,profileVersion:current.profileVersion,educationScope:current.educationScope,region:current.region,discoveryMethod:data.discoveryMethod,preferredTeacherId:data.preferredTeacherId,subject:data.subject,mode:data.mode,language:data.language,locality:data.locality,budgetPaise:data.budgetPaise,preferences}});
+   if(data.discoveryMethod==='MANUAL'&&data.preferredTeacherId)await createDirectEnquiry(db,{kind:'INDEPENDENT',sourceId:row.id,ownerId,teacherId:data.preferredTeacherId,region:row.region});
    await this.service.audit(db,actor,req,'STUDENT_ENQUIRY_SUBMITTED',row.id,'Student submitted criteria for staff review; no match, hire or booking created',undefined,{discoveryMethod:data.discoveryMethod,profileVersion:current.profileVersion});
    await this.service.event(db,'student-enquiry.created',row.id);return {id:row.id};
   });

@@ -111,7 +111,7 @@ module.exports = async function targets(db, job) {
         r.childId,
         "/dashboard/requests?request=" + id,
       );
-      if (t === "request.created" || t === "matching.review_ready")
+      if (!r.preferredTeacherId && (t === "request.created" || t === "matching.review_ready"))
         await staff(r.region);
       if (t === "shortlist.published" && r.status === "OPEN")
         for (const c of await db.recommendation.findMany({
@@ -136,7 +136,7 @@ module.exports = async function targets(db, job) {
         "/dashboard/student-enquiries?enquiry=" + id,
       );
       if (
-        ["student-enquiry.created", "student-enquiry.review_ready"].includes(t)
+        !e.preferredTeacherId && ["student-enquiry.created", "student-enquiry.review_ready"].includes(t)
       )
         await staff(e.region);
       if (t === "student-enquiry.published" && e.status === "SUBMITTED")
