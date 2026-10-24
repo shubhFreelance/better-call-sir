@@ -2190,7 +2190,7 @@ function DashboardShell({
             "Who manages learning?",
             Users,
           ] as [string, string, LucideIcon],
-          ["/dashboard/learners", "Education profiles", GraduationCap] as [
+          ["/dashboard/learners", role === "GUARDIAN" ? "Manage children & learners" : "Education profiles", GraduationCap] as [
             string,
             string,
             LucideIcon,

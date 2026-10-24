@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Manage children and learners — 24 October 2026
+
+Use guardian-facing relationship language for the sidebar and management heading. Begin new-child setup with a relationship-verification draft, not education entry. The Add action opens the existing verification form without sending a request automatically. Existing approved relationships retain their explicit education-completion action. Explain that approvals are per child and education saves do not submit verification. Reuse existing surfaces and maintain English/Hindi wording; no new personal data in URLs or storage. Preserve server consent, acknowledgment and privacy boundaries.
+
 ## Verified learner setup bridge — 24 October 2026
 
 Show approved relationships awaiting education setup alongside completed learner profiles. Reuse care-card surfaces, visible name-search labels and shared action controls. Names come only from the signed-in guardian’s owned records, with explicit pagination/retry states. Prefill the approved name; retain consent and account-acknowledgment boundaries. Clearly distinguish relationship approval from finished education setup. Preserve both languages and avoid a public child directory.

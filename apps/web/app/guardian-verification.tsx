@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
@@ -87,6 +88,8 @@ function GuardianRequests({
   const { appText } = useAppTranslation(),
     heading = useRef<HTMLHeadingElement>(null),
     [selected, setSelected] = useState<Verification | "new" | null>(null);
+  const params = useSearchParams();
+  useEffect(() => { if (params.get("new") === "1") setSelected("new"); }, [params]);
   const history = useHistory<{
     items: Verification[];
     nextCursor: string | null;
@@ -100,6 +103,7 @@ function GuardianRequests({
   }
   return (
     <section className="care-workspace guardian-requests">
+      <Notice>{appText("Verify your relationship with each child separately. Approval for another child remains valid. Submit this request to send it to staff; saving education details does not submit verification.")}</Notice>
       <header className="staff-heading">
         <div>
           <h2 ref={heading} tabIndex={-1}>

@@ -38,7 +38,7 @@ export function dashboardNavigationChecks() {
     await alive();
     await expect((await nav()).getByRole("link",{name:t("Notifications"),exact:true})).toHaveAttribute("aria-current","page");
     await expect((await nav()).locator('.dashboard-nav-item').filter({has:page.locator('a[href="/dashboard"]')}).getByRole("button")).toHaveAttribute("aria-expanded","true");
-    await (await nav()).getByRole("link",{name:t("Education profiles"),exact:true}).click();
+    await (await nav()).getByRole("link",{name:t("Manage children & learners"),exact:true}).click();
     await expect(page).toHaveURL(/dashboard\/learners$/);
     await expect(page.locator(".learner-profiles")).toBeVisible();
     await expect(page.getByRole("main")).toHaveCount(1);

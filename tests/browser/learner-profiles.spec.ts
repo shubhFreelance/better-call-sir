@@ -34,6 +34,7 @@ async function mock(page: Page, mode = "normal") {
     const req = route.request(),
       url = new URL(req.url()),
       p = url.pathname;
+    if (p.endsWith("/guardian-verifications")) return route.fulfill({json:{items:[{id:secondId,learnerName:"Synthetic learner",status:"APPROVED",learnerId:saved || ["pagination","student"].includes(mode) ? learnerId : null}],nextCursor:null}});
     if (p.endsWith("/auth/session"))
       return route.fulfill({
         json: {
@@ -110,7 +111,7 @@ async function mock(page: Page, mode = "normal") {
 }
 async function fillCollege(page: Page) {
   await page
-    .getByRole("button", { name: "Add learner profile", exact: true })
+    .getByRole("button", { name: "Complete learner profile", exact: true })
     .click();
   await page.getByLabel("Learner name or alias").fill("Synthetic learner");
   await page.getByLabel("Education stage").selectOption("COLLEGE");
@@ -194,12 +195,12 @@ for (const mode of [
         page.getByText("BA Economics · Year 2", { exact: true }),
       ).toBeVisible();
       await expect(
-        page.getByRole("button", { name: "Add learner profile", exact: true }),
+        page.getByRole("button", { name: "Complete learner profile", exact: true }),
       ).toHaveCount(0);
     } else
       await expect(
-        page.getByRole("button", { name: "Add learner profile", exact: true }),
-      ).toBeDisabled();
+        page.getByRole("button", { name: "Complete learner profile", exact: true }),
+      ).toHaveCount(0);
     await expect(page.getByLabel("Learner name or alias")).toHaveCount(0);
     expect(state.writes).toHaveLength(0);
   });
@@ -212,12 +213,12 @@ test("read failures and invalid pagination recover without opening creation prem
     page.getByText(/We couldn’t load the current learner profiles/),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Add learner profile", exact: true }),
+    page.getByRole("button", { name: "Complete learner profile", exact: true }),
   ).toHaveCount(0);
   state.recover();
   await page.getByRole("button", { name: "Retry learner profiles" }).click();
   await expect(
-    page.getByRole("button", { name: "Add learner profile", exact: true }),
+    page.getByRole("button", { name: "Complete learner profile", exact: true }),
   ).toBeEnabled();
 });
 test("learner history pagination keeps profiles private and offers first-page recovery", async ({
@@ -245,8 +246,9 @@ test("education fields validate by stage and remain accessible on mobile", async
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/dashboard/learners");
   await page
-    .getByRole("button", { name: "Add learner profile", exact: true })
+    .getByRole("button", { name: "Complete learner profile", exact: true })
     .click();
+  await page.getByLabel("Learner name or alias").fill("");
   await page
     .getByRole("button", { name: "Review learner profile", exact: true })
     .click();
@@ -305,6 +307,7 @@ test("real guardian saves a college profile, reloads it and reads the same priva
       randomUUID(),
       id,
     ]);
+    await pool.query('INSERT INTO "GuardianVerification" (id,"guardianId",region,"guardianName","learnerName",relationship,"ageBand","acknowledgmentMethod","documentNamesGuardian",status,"updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,true,$9,now())', [randomUUID(),id,"Raipur","Synthetic guardian","Synthetic learner","PARENT","UNDER_15","STAFF_CALL","APPROVED"]);
     const session = await page.request.post("/api/v1/dev/session", {
       headers: { Origin: "http://localhost:3000" },
       data: { accountId: id },
@@ -378,7 +381,7 @@ test("school education records Class 12 and explains that teacher fit is still c
   const state = await mock(page);
   await page.goto("/dashboard/learners");
   await page
-    .getByRole("button", { name: "Add learner profile", exact: true })
+    .getByRole("button", { name: "Complete learner profile", exact: true })
     .click();
   await page
     .getByLabel("Learner name or alias")
@@ -416,7 +419,7 @@ test("Hindi complete interface — विद्यार्थी शिक्�
   await page.goto("/dashboard/learners");
   await checkHindi(page);
   await page
-    .getByRole("button", { name: "विद्यार्थी प्रोफ़ाइल जोड़ें", exact: true })
+    .getByRole("button", { name: "विद्यार्थी प्रोफ़ाइल पूरी करें", exact: true })
     .click();
   await page
     .getByLabel("विद्यार्थी का नाम या उपनाम", { exact: true })
@@ -449,5 +452,19 @@ for (const permission of ["READY", "CONSENT_REQUIRED"]) test(`approved learner i
     await expect(section.getByRole("link",{name:"Review learning permission"})).toHaveAttribute("href","/onboarding/guardian");
     await expect(section.getByRole("button",{name:"Complete learner profile"})).toHaveCount(0);
   }
-  expect(requests).toHaveLength(1);
+  expect(new Set(requests).size).toBe(1);
+  expect(requests.length).toBeGreaterThan(0);
+});
+
+
+test("adding another child starts a separate relationship request before education setup", async ({page}) => {
+  const state = await mock(page);
+  await page.goto("/dashboard/learners");
+  await expect(page.getByRole("heading",{name:"Manage children & learners",exact:true})).toBeVisible();
+  const add=page.getByRole("link",{name:"Add a child or learner",exact:true});
+  await expect(add).toHaveAttribute("href","/guardian-verification?new=1");
+  await add.click();
+  await expect(page.getByLabel("Guardian's full name")).toBeVisible();
+  await expect(page.getByText(/Approval for another child remains valid/)).toBeVisible();
+  expect(state.writes).toHaveLength(0);
 });

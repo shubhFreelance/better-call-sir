@@ -1,5 +1,9 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Manage children & learners": "बच्चों और विद्यार्थियों का प्रबंधन",
+  "Add a child or learner": "बच्चा या विद्यार्थी जोड़ें",
+  "Add each child separately: verify your relationship, review learning permission, then complete their education details. Approval for one child does not cover another.": "हर बच्चे को अलग जोड़ें: पहले रिश्ते की पुष्टि करें, फिर पढ़ाई की अनुमति की समीक्षा करें और शिक्षा की जानकारी पूरी करें। एक बच्चे के लिए मिली मंज़ूरी दूसरे बच्चे पर लागू नहीं होती।",
+  "Verify your relationship with each child separately. Approval for another child remains valid. Submit this request to send it to staff; saving education details does not submit verification.": "हर बच्चे के साथ अपने रिश्ते की अलग पुष्टि करें। दूसरे बच्चे की मंज़ूरी बनी रहती है। स्टाफ को भेजने के लिए यह अनुरोध जमा करें; शिक्षा की जानकारी सहेजने से सत्यापन अनुरोध नहीं जाता।",
   "Verified learners awaiting setup": "सत्यापित विद्यार्थी जिनका सेटअप बाकी है",
   "Relationship approval is complete. Review learning permission and finish education details to connect the student account. Do not create another student account.": "रिश्ते की पुष्टि हो गई है। विद्यार्थी खाता जोड़ने के लिए पढ़ाई की अनुमति की समीक्षा करें और शिक्षा की जानकारी पूरी करें। नया विद्यार्थी खाता न बनाएँ।",
   "Find your learner": "अपना विद्यार्थी खोजें",

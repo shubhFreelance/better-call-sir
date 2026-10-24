@@ -3,7 +3,6 @@ import { onboardingAccessDenied } from "./onboarding-read-boundary";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
@@ -49,9 +48,7 @@ const gateMessages = {
 export function LearnerProfiles({ session }: { session: Session }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
-  const client = useQueryClient(),
-    params = useSearchParams(),
-    router = useRouter();
+  const client = useQueryClient();
   const [cursor, setCursor] = useState<string | null>(null),
     [adding, setAdding] = useState(false),
     [saved, setSaved] = useState<Profile | null>(null);
@@ -116,17 +113,6 @@ export function LearnerProfiles({ session }: { session: Session }) {
   useEffect(() => {
     if (adding && !locked && ready) heading.current?.focus();
   }, [adding, editing, review, locked, ready]);
-  useEffect(() => {
-    if (
-      params.get("new") !== "1" ||
-      !ready ||
-      adding ||
-      session.account.role !== "GUARDIAN"
-    )
-      return;
-    setAdding(true);
-    router.replace("/dashboard/learners", { scroll: false });
-  }, [params, ready, adding, session.account.role, router]);
 
   async function openEdit(id: string) {
     setOpeningId(id);
@@ -385,11 +371,11 @@ export function LearnerProfiles({ session }: { session: Session }) {
         <h1>
           {session.account.role === "STUDENT"
             ? appText("Your education profile.")
-            : appText("Every learner has a different starting point.")}
+            : appText("Manage children & learners")}
         </h1>
         <p>
           {appText(
-            "School, early years or college: keep the details that help explain what they’re learning.",
+            "Add each child separately: verify your relationship, review learning permission, then complete their education details. Approval for one child does not cover another.",
           )}{" "}
         </p>
         <div className="learner-profile-navigation">
@@ -559,22 +545,8 @@ export function LearnerProfiles({ session }: { session: Session }) {
                   <div className="hiring-section-heading">
                     <h2>{appText("Saved profiles")}</h2>
                     {session.account.role === "GUARDIAN" && !adding && (
-                      <Button
-                        disabled={!ready || locked}
-                        onClick={() => {
-                          setAdding(true);
-                          setEditing(null);
-                          setValues(initial);
-                          setErrors({});
-                          setReview(null);
-                          setStale(false);
-                          setOpenError("");
-                          setEditNotice("");
-                          setSaved(null);
-                          setMessage("");
-                        }}
-                      >
-                        {appText("Add learner profile")}{" "}
+                      <Button asChild disabled={locked}>
+                        <Link href="/guardian-verification?new=1">{appText("Add a child or learner")}</Link>
                       </Button>
                     )}
                   </div>
