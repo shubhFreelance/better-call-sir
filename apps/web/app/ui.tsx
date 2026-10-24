@@ -1,6 +1,7 @@
 "use client";
 import { useAccountEntry } from "./account-entry";
 import { LandingMotion } from "./landing-motion";
+import { PromiseTicker } from "./promise-ticker";
 import {ServiceFollowups} from "./service-followups";
 import { NotificationWorkspace } from "./notification-workspace";
 import { TuitionMinimumWorkspace } from "./tuition-minimum-workspace";
@@ -766,26 +767,7 @@ function Home() {
         <Illustration />
       </section>
       <div className="container home-registration"><RegistrationChoices /></div>
-      <section className="promise-bar">
-        <div className="container promise-inner">
-          <span>
-            <ShieldCheck />
-            {appText("Reviewed teacher coverage")}{" "}
-          </span>
-          <span>
-            <MapPin />
-            {appText("At home or online")}{" "}
-          </span>
-          <span>
-            <Heart />
-            {appText("Free teacher matching")}{" "}
-          </span>
-          <span>
-            <Users />
-            {appText("Students, parents and teachers")}{" "}
-          </span>
-        </div>
-      </section>
+      <PromiseTicker />
       <section className="container section">
         <div className="section-heading">
           <div>

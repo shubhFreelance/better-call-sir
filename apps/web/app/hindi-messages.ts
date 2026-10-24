@@ -1,5 +1,8 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Learning highlights": "पढ़ाई की मुख्य बातें",
+  "Pause highlights": "चलती जानकारी रोकें",
+  "Resume highlights": "जानकारी फिर चलाएँ",
   "Your saved progress is ready": "आपकी सहेजी हुई जानकारी तैयार है",
   "Details for {0}": "{0} की जानकारी",
   "Wait for the school report to pass its safety scan.": "स्कूल रिपोर्ट की सुरक्षा जाँच पास होने का इंतज़ार करें।",
