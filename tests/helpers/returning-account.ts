@@ -109,6 +109,8 @@ export function returningAccountChecks() {
         for (const href of ["/onboarding/guardian", "/guardian-verification", "/support"]) await expect(page.locator(`.dashboard-sidebar a[href="${href}"]`)).toHaveCount(0);
         await page.emulateMedia({ reducedMotion: "reduce" });
         await expect(actions.locator(".find-teacher-highlight")).toHaveCSS("animation-name", "none");
+        await expect(actions.locator(".find-teacher-highlight")).toHaveCSS("background-color", "rgb(0, 0, 0)");
+        await expect(page.locator('.dashboard-sidebar a[href="/teachers"]')).toHaveCount(0);
       }
       if (role === "GUARDIAN")
         await expect(

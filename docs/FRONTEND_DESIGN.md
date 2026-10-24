@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Guardian action-card refinement — 24 October 2026
+
+Keep all five shortcuts inside the existing #E4E4D0 saved-progress card, including direct entry and refresh. Use truthful session-restored wording when the registration notice is unavailable. The discovery button is black with a restrained teal/lavender animated outline and static reduced-motion fallback. Remove guardian sidebar discovery duplication and use Parent or Guardian Dashboard as the heading. Other roles and access rules remain unchanged.
+
 ## Guardian top actions — 24 October 2026
 
 Plan: guardian external destinations move from sidebar to the top action row: Find a teacher, Guardian setup, Guardian verification, Help & safety, then the existing outlined Review saved verification requests action. Use existing teal shared buttons and a slow, restrained teal/lavender border pulse for teacher discovery; stop the animation for reduced motion and pause on hover/focus. The saved-account notice retains its wording and identity gate. Provide the same compact shortcut row on guardian dashboard deep links/refresh when that memory-only notice is absent. Preserve other roles, original destinations, permissions and saved verification history. Validate both languages, keyboard targets, refresh availability and sidebar persistence.

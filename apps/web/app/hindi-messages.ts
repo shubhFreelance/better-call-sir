@@ -180,6 +180,8 @@ export const hindiMessages: Record<string, string> = {
   "Marketplace overview": "प्लैटफ़ॉर्म का अवलोकन",
   "Your student dashboard": "आपका विद्यार्थी डैशबोर्ड",
   "Your parent or guardian dashboard": "आपका अभिभावक डैशबोर्ड",
+  "Parent or Guardian Dashboard": "माता-पिता या अभिभावक डैशबोर्ड",
+  "Your profile and saved progress are available here. Choose what you would like to do next.": "आपकी प्रोफ़ाइल और सहेजी हुई जानकारी यहाँ उपलब्ध हैं। चुनें कि आप आगे क्या करना चाहते हैं।",
   "Welcome, {0}. Here is what needs your attention.": "स्वागत है, {0}। जिन कामों पर ध्यान देना है, वे यहाँ हैं।",
   "Your priorities and latest progress": "आपके अगले काम और ताज़ा प्रगति",
   "Updates about your account and enquiries": "आपके खाते और पूछताछ के अपडेट",

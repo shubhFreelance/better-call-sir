@@ -14,6 +14,7 @@ export function dashboardNavigationChecks() {
     const t = (s:string) => translateText(hi,s);
     await page.goto("/dashboard");
     await expect(page.locator(".dashboard-sidebar")).toBeVisible();
+    await expect(page.getByRole("heading", {name:t("Parent or Guardian Dashboard"),exact:true})).toBeVisible();
     const sidebar = await page.locator(".dashboard-sidebar").elementHandle();
     const header = await page.locator("header.header").elementHandle();
     const initialSessionReads = f.reads.filter(p=>p==="/api/v1/auth/session").length;
@@ -57,9 +58,10 @@ export function dashboardNavigationChecks() {
     await page.reload();
     await expect(page.locator(".delivery-workspace")).toBeVisible();
     await expect(page.locator(".dashboard-sidebar")).toBeVisible();
-    await expect(page.locator(".guardian-dashboard-actions a")).toHaveCount(5);
-    await expect(page.locator('.guardian-dashboard-actions a[href="/onboarding/guardian"]')).toBeVisible();
-    await expect(page.locator('.guardian-dashboard-actions a[href="/support"]')).toBeVisible();
-    await expect(page.locator(".returning-account-notice")).toHaveCount(0);
+    await expect(page.locator(".returning-account-notice a")).toHaveCount(5);
+    await expect(page.locator('.returning-account-notice a[href="/onboarding/guardian"]')).toBeVisible();
+    await expect(page.locator('.returning-account-notice a[href="/support"]')).toBeVisible();
+    await expect(page.locator(".returning-account-notice")).toBeVisible();
+    await expect(page.locator(".returning-account-notice")).not.toContainText("This email is already registered");
   });
 }

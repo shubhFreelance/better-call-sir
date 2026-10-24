@@ -2173,7 +2173,7 @@ function DashboardShell({
           ] as [string, string, LucideIcon],
         ]
       : []),
-    ["/teachers", "Find a teacher", Search],
+    ...(role !== "GUARDIAN" ? [["/teachers", "Find a teacher", Search] as [string, string, LucideIcon]] : []),
     ...(["STUDENT", "ADMIN", "REVIEWER"].includes(role || "")
       ? [
           ["/guardian-verification", "Guardian verification", ShieldCheck] as [
@@ -2576,7 +2576,7 @@ function DashboardPage({ tab }: { tab: string }) {
       <DashboardShell tab={tab}>
         <PageTitle
           eyebrow={appText("")}
-          title={appText(session.account.role === "TEACHER" ? "Your teaching dashboard" : session.account.role === "ADMIN" ? "Marketplace overview" : session.account.role === "STUDENT" ? "Your student dashboard" : "Your parent or guardian dashboard")}
+          title={appText(session.account.role === "TEACHER" ? "Your teaching dashboard" : session.account.role === "ADMIN" ? "Marketplace overview" : session.account.role === "STUDENT" ? "Your student dashboard" : "Parent or Guardian Dashboard")}
           subtitle={appText(
             "Welcome, {0}. Here is what needs your attention.", [session.account.name.split(" · ")[0]]
           )}
@@ -3480,20 +3480,17 @@ function AppContent() {
             {hindi ? "मुख्य सामग्री पर जाएँ" : appText("Skip to content")}
           </a>
           <Header />
-          {session && entry?.accountId === session.account.id && entry.existing && (
+          {session && ((entry?.accountId === session.account.id && entry.existing) || (session.account.role === "GUARDIAN" && path.startsWith("/dashboard"))) && (
             <div className="container returning-account-notice">
               <Alert role="status" className="returning-account-card">
                 <CheckCircle2 aria-hidden="true" />
                 <AlertDescription>
                   <h2>{appText("Your saved progress is ready")}</h2>
-                  <p>{appText("This email is already registered. You are signed in to your existing account; your saved progress is available from your dashboard.")}</p>
+                  <p>{appText(entry?.accountId === session.account.id && entry.existing ? "This email is already registered. You are signed in to your existing account; your saved progress is available from your dashboard." : "Your profile and saved progress are available here. Choose what you would like to do next.")}</p>
                   <AccountQuickActions guardian={session.account.role === "GUARDIAN"} />
                 </AlertDescription>
               </Alert>
             </div>
-          )}
-          {session?.account.role === "GUARDIAN" && path.startsWith("/dashboard") && !(entry?.accountId === session.account.id && entry.existing) && (
-            <nav className="container guardian-dashboard-actions" aria-label={appText("Guardian shortcuts")}><AccountQuickActions guardian /></nav>
           )}
           {switchMessage && (
             <div className="container">
