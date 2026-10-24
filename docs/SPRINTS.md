@@ -1257,3 +1257,6 @@ Validation:8 initial new-flow development cases and8 returning-account/dashboard
 
 
 24 October 2026 — F49 compact student registration row complete. All three student choices share equal-width columns from1000px upward, with20px gaps,26px padding and reduced heading/body sizes. Existing narrow-screen stacking, colours, actions and permissions remain unchanged. Both desktop geometry/no-overflow and Hindi mobile/status browser checks pass; desktop screenshot reviewed. CSS-only application change; production build and backend suites not repeated. Frontend branch delivery; no main merge/deployment. Next remains reviewed dependency remediation; existing implementation, launch and deferred backlog unchanged.
+
+
+24 October 2026 — Owner-authorized F49 main integration: fast-forwarded main to frontend bc6bf4a without conflicts; implementation branch preserved. Application/test tree exactly matched the tested feature before this note. Fresh main23 security/client/localization/CI checks pass; the two desktop-row/Hindi-mobile browser checks apply to identical source and were not repeated. Next remains reviewed dependency remediation; existing implementation/launch/deferred backlog unchanged. No production build, deployment or physical-device qualification for this CSS-only merge.
