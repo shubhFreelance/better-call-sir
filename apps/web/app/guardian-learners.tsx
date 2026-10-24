@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { Link2 } from "lucide-react";
 import type { Session, components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { useAppTranslation } from "./locale";
@@ -139,6 +140,7 @@ export function GuardianLearners({ session }: { session: Session }) {
           className="guardian-learner-group invited"
           aria-labelledby="guardian-invitations-heading"
         >
+          <span className="guardian-invitation-label"><Link2 size={16} aria-hidden="true" />{appText("Invited access")}</span>
           <h3 id="guardian-invitations-heading">
             {appText("Students who invited you")}
           </h3>

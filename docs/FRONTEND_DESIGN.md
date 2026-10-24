@@ -1,5 +1,13 @@
 # Frontend design direction
 
+## Distinct invited-student access — 24 October 2026
+
+Plan: distinguish student-granted support from guardian-managed learner relationships through a pale lavender #F8ECFF shell, #DAB7EC border, retained lavender top stripe and white inset student/history cards. Add a small link icon and translated Invited access label so the distinction also uses text, not colour alone. Keep verified relationship cards white with their existing verification status, and preserve all permission descriptions, invitation statuses, actions and API behavior. Retain black keyboard-focus borders, accessible contrast and narrow Hindi layouts.
+
+## Continuous learning highlights — 24 October 2026
+
+Plan: turn only the four-message promise strip into a linear GSAP ticker at38px/second, with equal repeated groups and matching seam spacing. Keep the existing pale background, teal/olive icons and translated labels. Measure the viewport/group after fonts and on resize so the loop fills wide screens without a blank gap. Expose the content once to assistive technology; the visual copy is aria-hidden. Provide a shared pause/resume button, pause while hovering or keyboard-focusing the viewport, and show a static responsive list for reduced motion or unavailable enhancement. Keep native scrolling, landing entrance motion and route cleanup intact. Validate actual leftward movement, pause/resume, duplicate geometry, narrow Hindi, resize, reduced motion and strict production CSP.
+
 ## Landing motion and selective sage accents — 24 October 2026
 
 Plan: apply owner-selected #E4E4D0 to the returning-account notice, dashboard welcome panel and selected summary tiles; restore white/ivory to ordinary cards and remove the global sage inset rim. Retain lavender/teal icon accents, cream/black border hierarchy and #F3F1EB sidebar. Give the returning-account notice a clear bilingual heading and grouped44px actions without changing identity/resume behavior. Load pinned GSAP3.15.0 and ScrollTrigger dynamically on the landing page only: small entrance/scroll translations, no scroll hijacking or hidden initial content. Scope animations to the landing root, revert on unmount/preference changes and skip loading for reduced motion. Clip decorative mobile illustration overflow. Validate actual GSAP initialization, reduced motion, keyboard navigation, both languages, saved-account links and strict production CSP.
