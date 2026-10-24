@@ -88,6 +88,10 @@ export function guardianLearnerChecks() {
       await expect(own).toHaveCSS("border-top-color", "rgb(243, 243, 224)");
       await expect(own).toHaveCSS("border-top-width", "2px");
       await expect(invited).toHaveCSS("border-top-color", "rgb(240, 215, 255)");
+      await expect(invited).toHaveCSS("background-color", "rgb(248, 236, 255)");
+      await expect(own).toHaveCSS("background-color", "rgb(255, 255, 255)");
+      await expect(invited.getByText(t("Invited access"), { exact: true })).toBeVisible();
+      await expect(own.getByText(t("Invited access"), { exact: true })).toHaveCount(0);
       await expect(
         own.getByRole("heading", { name: "Anshuman", exact: true }),
       ).toBeVisible();
@@ -103,6 +107,7 @@ export function guardianLearnerChecks() {
         meera = invited.locator("li").filter({
           has: page.getByRole("heading", { name: "Meera", exact: true }),
         });
+      await expect(ram).toHaveCSS("background-color", "rgb(255, 255, 255)");
       await expect(
         ram.getByRole("link", { name: t("Review invitation"), exact: true }),
       ).toHaveAttribute("href", "/dashboard/supported-students");

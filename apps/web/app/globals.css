@@ -5850,6 +5850,7 @@ html body :is(
   &:focus-within {
     border-color:var(--card-border-strong);
   }
+  &:where(.guardian-learner-group.invited) { border-color:#DAB7EC; }
   &:where(.guardian-learner-group.invited),
   &:where(.guardian-learner-group.invited):focus-within {
     border-top:4px solid #F0D7FF;
@@ -5945,3 +5946,11 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
   .landing-page .hero-copy { min-width:0; }
   .landing-page .hero h1 { font-size:52px; letter-spacing:-.035em; }
 }
+
+/* Invited support is a separate access channel from verified learner relationships. */
+.guardian-learner-group.invited { --card-fill:#F8ECFF; }
+.guardian-invitation-label { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; margin-bottom:16px; max-width:100%; border-radius:8px; background:#F0D7FF; color:#402E4A; font-size:12px; font-weight:700; line-height:1.5; }
+.guardian-invitation-label svg { flex-shrink:0; }
+.guardian-learner-group.invited .guardian-learner-cards > li { background:#FFFFFF; border-color:#E7D4F0; }
+.guardian-learner-group.invited .guardian-learner-status { background:#F0D7FF; color:#402E4A; }
+.guardian-learner-group.invited .history-controls { background:#FFFFFF; border:1px solid #E7D4F0; }
