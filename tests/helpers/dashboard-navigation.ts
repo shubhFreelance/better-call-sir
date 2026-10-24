@@ -26,7 +26,7 @@ export function dashboardNavigationChecks() {
     };
     const initialNav = await nav();
     const overview = initialNav.locator('.dashboard-nav-item').filter({has:page.locator('a[href="/dashboard"]')});
-    await overview.getByRole("button").click();
+    await overview.locator(".dashboard-nav-disclosure").click();
     const alive = async () => {
       expect(await sidebar!.evaluate(el=>el.isConnected)).toBe(true);
       expect(await page.locator(".dashboard-sidebar").evaluate((el,old)=>el===old,sidebar)).toBe(true);
@@ -37,7 +37,7 @@ export function dashboardNavigationChecks() {
     await expect(page.locator(".delivery-workspace")).toBeVisible();
     await alive();
     await expect((await nav()).getByRole("link",{name:t("Notifications"),exact:true})).toHaveAttribute("aria-current","page");
-    await expect((await nav()).locator('.dashboard-nav-item').filter({has:page.locator('a[href="/dashboard"]')}).getByRole("button")).toHaveAttribute("aria-expanded","true");
+    await expect((await nav()).locator('.dashboard-nav-item').filter({has:page.locator('a[href="/dashboard"]')}).locator(".dashboard-nav-disclosure")).toHaveAttribute("aria-expanded","true");
     await (await nav()).getByRole("link",{name:t("Manage children & learners"),exact:true}).click();
     await expect(page).toHaveURL(/dashboard\/learners$/);
     await expect(page.locator(".learner-profiles")).toBeVisible();

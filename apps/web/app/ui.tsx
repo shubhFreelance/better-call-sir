@@ -23,6 +23,7 @@ import {
   type TeacherSearchPage,
 } from "./teacher-search-state";
 import { StudentSupporters, StudentDevices } from "./independent-access";
+import { GuardianPriorities } from "./guardian-priorities";
 import { GuardianLearners } from "./guardian-learners";
 import {
   StudentArrangements,
@@ -2096,11 +2097,13 @@ function DashboardNavItem({
   onNavigate?: () => void;
 }) {
   const { appText } = useAppTranslation();
+  const {session: navSession} = useAuth();
   const [expanded, setExpanded] = useState(false);
   const descriptionId = `${mobile ? "mobile-" : ""}nav-description-${href.replace(/[^a-z]/gi, "-")}`;
   return (
     <div className={`dashboard-nav-item${active ? " is-active" : ""}`}>
       <div className="dashboard-nav-row">
+        {href === "/dashboard" && navSession?.account.role === "GUARDIAN" && <GuardianPriorities session={navSession} indicator/>}
         <Link
           href={href}
           scroll={href.startsWith("/dashboard") ? false : undefined}
@@ -2591,6 +2594,7 @@ function DashboardPage({ tab }: { tab: string }) {
           )}
         />
         {["GUARDIAN","STUDENT"].includes(session.account.role) && tab === "/dashboard" && <StudentConnection session={session} onSessionChange={setSession} compact/>}
+        {session.account.role === "GUARDIAN" && tab === "/dashboard" && <GuardianPriorities session={session}/>}
         {session.account.role === "GUARDIAN" && tab === "/dashboard" && (
           <GuardianLearners key={session.account.id} session={session} />
         )}

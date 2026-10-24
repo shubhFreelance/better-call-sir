@@ -375,6 +375,13 @@ async function staffFields(page: Page) {
     .check();
 }
 export function guardianVerificationTests() {
+  test("guardian overview request link opens its named verification without a history search",async({page})=>{
+    const f=await setup(page,{empty:true});
+    await page.goto("/guardian-verification?request="+f.state().id);
+    await expect(page.getByRole("heading",{name:"Your relationship verification",exact:true})).toBeVisible();
+    await expect(page.locator(".guardian-verification-editor")).toContainText(f.state().learnerName);
+  });
+
   test("staff school report download is distinct and only scanner-cleared evidence is linked",async({page})=>{
     const f=await setup(page,{role:"ADMIN"}); await openStaff(page);
     const download=page.getByRole("link",{name:"Download private school report",exact:true});

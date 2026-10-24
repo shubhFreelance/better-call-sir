@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Guardian overview priorities — 24 October 2026
+
+Surface unfinished guardian relationships and named step-six profiles in a lavender overview panel with white action cards. Reuse owner-scoped setup/verification APIs and exhaust cursor pages before presenting a count. Add a small teal-framed lavender/ivory circular count before the Overview link; hover title summarizes steps, keyboard/tap opens an actionable panel. Use explicit loading/error states, refresh on mount/focus and periodically, and hide completed work. Deep-link actions open the exact owned relationship instead of requiring a history search. Preserve sidebar state, account isolation and English/Hindi mobile layouts.
+
 ## Inline guardian completion and reviewer workspace — 24 October 2026
 
 Frame each saved learner independently with ivory surfaces, restrained borders and aligned teal saved-profile links. Give the staff verification queue a compact status panel and white evidence/decision cards with lavender headings; make the scanner-cleared report link a prominent teal action without changing its protected endpoint. Reuse the existing purpose-specific consent form and learner editor within approved verification step six, scoped to the named/linked learner. Retain uncertainty recovery, role/region gates, privacy pauses, scanner restrictions and both interface languages. Keep guardian-form padding independent of reviewer styles.
