@@ -8,6 +8,12 @@ async function erase(db:DB,scope:string,resourceId:string,accountId:string){
  if(scope==='NOTE'){await db.note.updateMany({where:{id:resourceId,guardianId:accountId},data:{text:'[deleted]',sharedTeacherId:null,version:{increment:1}}});return;}
  const children=await db.child.findMany({where:scope==='CHILD'?{id:resourceId,guardianId:accountId}:{guardianId:accountId}}),childIds=children.map(c=>c.id),students=children.flatMap(c=>c.studentAccountId?[c.studentAccountId]:[]);
  await eraseGuardianVerification(db,accountId,childIds,scope==='ACCOUNT');
+ const erasedTeacher=scope==='ACCOUNT'?await db.teacher.findUnique({where:{accountId}}):null;
+ const directWhere={OR:[{childId:{in:childIds}},...(scope==='ACCOUNT'?[{ownerId:accountId},...(erasedTeacher?[{teacherId:erasedTeacher.id}]:[])]:[])]};
+ const directIds=(await db.directEnquiry.findMany({where:directWhere,select:{id:true}})).map(row=>row.id);
+ await db.directEnquiry.updateMany({where:{id:{in:directIds}},data:{proposal:Prisma.DbNull,version:{increment:1}}});
+ for(const id of directIds)await db.idempotency.deleteMany({where:{operation:{contains:'/direct-enquiries/'+id}}});
+
  const mailAccounts=await db.account.findMany({where:{id:{in:scope==='ACCOUNT'?[accountId,...students]:students}},select:{id:true,email:true}});
  const mailWhere={OR:[{accountId:{in:mailAccounts.map(a=>a.id)}},{accountId:null,recipientHash:{in:mailAccounts.flatMap(a=>a.email?[hash(a.email.toLowerCase())]:[])}}]};
  const mailIds=(await db.emailDelivery.findMany({where:mailWhere,select:{id:true}})).map(m=>m.id);

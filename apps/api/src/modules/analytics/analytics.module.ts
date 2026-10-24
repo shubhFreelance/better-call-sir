@@ -3,13 +3,25 @@ import {hiringDashboard} from './hiring-dashboard';
 import {learningDashboard} from './learning-dashboard';
 import {Prisma} from '@prisma/client';
 import {z} from 'zod';
-import {AppService,PersistenceModule,HttpRequest,fail,parse} from '../../shared';
+import {AppService,PersistenceModule,HttpRequest,fail,parse,uuid} from '../../shared';
 const range=z.object({from:z.iso.datetime({offset:true}),to:z.iso.datetime({offset:true})}).strict();
 function window(query:unknown){const data=parse(range,query),from=new Date(data.from),to=new Date(data.to);if(to<=from||to.getTime()-from.getTime()>366*86400000)fail(400,'INVALID_RANGE','Use a date range of up to one year.');return {from,to,timezone:'Asia/Kolkata',metricVersion:'operations-v1'};}
 function amounts(row:Record<string,bigint|number>){return Object.fromEntries(Object.entries(row).map(([key,value])=>{const number=Number(value);if(!Number.isSafeInteger(number))fail(503,'REPORT_LIMIT','Report exceeds safe integer limits.');return [key,number];}));}
 @Controller('api/v1')
 class AnalyticsController{
  constructor(@Inject(AppService) private readonly service:AppService){}
+ @Get('teacher/pending-enquiries') async pendingEnquiries(@Req() req:HttpRequest,@Query() query:unknown){
+  const actor=await this.service.actor(req,['TEACHER']);
+  const q=parse(z.object({cursor:uuid.optional(),limit:z.coerce.number().int().min(1).max(50).default(10)}).strict(),query);
+  const teacher=await this.service.db.teacher.findUnique({where:{accountId:actor.id}});
+  if(!teacher||!(await this.service.publicTeachers({id:teacher.id},1)).length)return {items:[],nextCursor:null};
+  return this.service.db.$transaction(async db=>{
+   const scope=Prisma.sql`NOT EXISTS(SELECT 1 FROM "DirectEnquiry" de WHERE de.kind='GUARDIAN' AND de."sourceId"=r.id) AND r."preferredTeacherId"=${teacher.id}::uuid AND r.status='OPEN' AND EXISTS(SELECT 1 FROM "Account" a JOIN "Consent" c ON c."guardianId"=a.id WHERE a.id=r."guardianId" AND a.verified AND NOT a.disabled AND c."withdrawnAt" IS NULL) AND EXISTS(SELECT 1 FROM "Child" ch WHERE ch.id=r."childId" AND (ch."guardianVerificationId" IS NULL OR EXISTS(SELECT 1 FROM "GuardianVerification" v WHERE v.id=ch."guardianVerificationId" AND v.status='APPROVED'))) AND NOT EXISTS(SELECT 1 FROM "PrivacyRequest" p WHERE p."accountId"=r."guardianId" AND p.kind='DELETION' AND p.scope IN ('ACCOUNT','CHILD') AND p.status='PENDING') AND NOT EXISTS(SELECT 1 FROM "Recommendation" x WHERE x."requestId"=r.id AND x."teacherId"=${teacher.id}::uuid AND x."presentedAt" IS NOT NULL AND x."runId" IS NOT NULL AND x."expiresAt">now())`;
+   if(q.cursor&&!(await db.$queryRaw<{id:string}[]>(Prisma.sql`SELECT r.id FROM "TuitionRequest" r WHERE ${scope} AND r.id=${q.cursor}::uuid`)).length)fail(404,'NOT_FOUND','Enquiry cursor is unavailable.');
+   const rows=await db.$queryRaw<{id:string;subject:string;mode:string;createdAt:Date}[]>(Prisma.sql`SELECT r.id,r.subject,r.mode,r."createdAt" FROM "TuitionRequest" r WHERE ${scope} AND (${q.cursor||null}::uuid IS NULL OR r.id<${q.cursor||null}::uuid) ORDER BY r.id DESC LIMIT ${q.limit+1}`);
+   return {items:rows.slice(0,q.limit),nextCursor:rows.length>q.limit?rows[q.limit-1].id:null};
+  },{isolationLevel:Prisma.TransactionIsolationLevel.RepeatableRead});
+ }
  @Get('dashboard/hiring') async hiring(@Req() req:HttpRequest,@Query() query:unknown){return hiringDashboard(this.service,req,query);}
  @Get('dashboard/learning') async learning(@Req() req:HttpRequest,@Query() query:unknown){return learningDashboard(this.service,req,query);}
  @Get('admin/reports/regions') async regions(@Req() req:HttpRequest){const actor=await this.service.actor(req,['ADMIN','OPERATOR']);const rows=actor.role==='OPERATOR'?[{region:actor.region}]:await this.service.db.tuitionRequest.findMany({distinct:['region'],select:{region:true},orderBy:{region:'asc'},take:101});await this.service.audit(this.service.db,actor,req,'REPORT_REGIONS_READ','reports','Staff accessed scoped report region choices');return {items:rows.slice(0,100),limited:rows.length>100,scope:actor.role==='OPERATOR'?'REGION':'GLOBAL'};}

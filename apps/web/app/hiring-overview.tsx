@@ -235,7 +235,7 @@ export function HiringOverview({ session }: { session: Session }) {
             )}
           <dl className="hiring-counts">
             {[
-              { name: teacher ? "Guardian-led enquiries" : "Enquiries", value: data.counts.enquiries, Icon: ClipboardList, tone: "lavender" },
+              { name: teacher ? "Assisted enquiries" : "Assisted enquiries", value: data.counts.enquiries, Icon: ClipboardList, tone: "lavender" },
               { name: teacher ? "Awaiting your response" : "Open enquiries", value: teacher ? data.counts.pendingResponses : data.counts.openEnquiries, Icon: MessageCircle, tone: "teal" },
               { name: "Awaiting tuition start", value: data.counts.termsPending, Icon: CalendarCheck, tone: "ivory" },
               { name: "Active arrangements", value: data.counts.activeArrangements, Icon: GraduationCap, tone: "warm" },

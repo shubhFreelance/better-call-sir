@@ -965,3 +965,23 @@ model ServiceContact {
  createdAt DateTime @default(now())
  @@index([followupId,createdAt,id])
 }
+
+model DirectEnquiry {
+ id String @id @default(uuid()) @db.Uuid
+ kind String
+ sourceId String @db.Uuid
+ ownerId String @db.Uuid
+ childId String? @db.Uuid
+ teacherId String @db.Uuid
+ region String
+ status String @default("PENDING")
+ proposal Json?
+ arrangementId String? @db.Uuid
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@unique([kind,sourceId])
+ @@index([teacherId,createdAt,id])
+ @@index([ownerId,createdAt,id])
+ @@index([region,createdAt,id])
+}

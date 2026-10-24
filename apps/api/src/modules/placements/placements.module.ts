@@ -52,6 +52,7 @@ class PlacementsController {
     const actor=await this.service.actor(req,['GUARDIAN','STUDENT']);const data=parse(z.object({requestId:uuid,teacherId:uuid}).strict(),body);
     return this.service.once(req,actor,'placement.create',data,async db=>{
       const request=await requestAuthority(db,this.service,actor,data.requestId,true);
+      if(await db.directEnquiry.count({where:{kind:'GUARDIAN',sourceId:request.id}}))fail(409,'DIRECT_ENQUIRY','Accept the direct enquiry to open its tuition arrangement.');
       if (!request || request.status!=='OPEN') fail(404,'NOT_FOUND','Active request not found.');
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${data.teacherId},0))`;
       const child=await db.child.findUniqueOrThrow({where:{id:request.childId}}),teacher=await db.teacher.findUnique({where:{id:data.teacherId}});

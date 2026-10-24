@@ -108,3 +108,15 @@ test("teacher overview displays published adult-student enquiries as well as the
  await expect(page.locator(".teacher-opportunities-panel").getByRole("button",{name:"Review interest",exact:true})).toBeVisible();
  await expect(page.locator(".hiring-overview")).toBeVisible();
 });
+
+test("teacher receives direct requests immediately with collapsed learning details",async({page})=>{
+ await dashboard(page,"TEACHER");
+ await page.route("**/api/v1/direct-enquiries**",route=>route.fulfill({json:{items:[{id:child,kind:"GUARDIAN",sourceId:child,ownerId:id,teacherId:id,region:"Raipur",childId:child,status:"PENDING",proposal:null,arrangementId:null,version:1,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),subject:"Maths",mode:"ONLINE",language:"English",parentName:"Synthetic Papa",teacherName:"Rohan Verma",learner:{name:"Synthetic Amit",grade:8,board:"CBSE",institution:"Synthetic School",subjects:["Maths"]},preferredTime:"Monday 5pm IST",sourceVersion:1,canReply:true,canDecide:false,sourceOpen:true}],counts:{PENDING:1},nextCursor:null}}));
+ await page.goto("/dashboard");
+ const inbox=page.locator(".direct-inbox"),card=inbox.locator("details");
+ await expect(inbox).toContainText("Enquiries received");await expect(card).not.toHaveAttribute("open");
+ await expect(card.locator("summary")).toContainText("Synthetic Papa");
+ await expect(card.getByText("Monday 5pm IST",{exact:true})).not.toBeVisible();
+ await card.locator("summary").click();await expect(card.getByText("Monday 5pm IST",{exact:true})).toBeVisible();
+ await expect(card.getByRole("button",{name:"Accept enquiry",exact:true})).toBeVisible();
+});

@@ -24,6 +24,7 @@ import {
 } from "./teacher-search-state";
 import { StudentSupporters, StudentDevices } from "./independent-access";
 import { GuardianPriorities } from "./guardian-priorities";
+import { DirectEnquiries } from "./direct-enquiries";
 import { GuardianLearners } from "./guardian-learners";
 import {
   StudentArrangements,
@@ -1616,7 +1617,7 @@ function Profile({ slug }: { slug: string }) {
                 </Link>
                 <p className="care-help">
                   {appText(
-                    "Your teacher interest is recorded for staff review. It does not reserve, hire or charge you.",
+                    "Your enquiry goes directly to this teacher. Review their reply before agreeing tuition terms.",
                   )}{" "}
                 </p>
               </>
@@ -2481,6 +2482,7 @@ function DashboardPage({ tab }: { tab: string }) {
   }
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (session.account.role === "OPERATOR" && tab === "/dashboard") return <DashboardShell tab={tab}><DirectEnquiries session={session}/></DashboardShell>;
   if (tab === "/dashboard/learners") return <DashboardShell tab={tab}><LearnerProfilesPage /></DashboardShell>;
   if (tab === "/dashboard/service-followups") return <DashboardShell tab={tab}><ServiceFollowups session={session}/></DashboardShell>;
   if (["/dashboard/notifications", "/dashboard/email-delivery"].includes(tab))
@@ -2530,7 +2532,7 @@ function DashboardPage({ tab }: { tab: string }) {
         {tab === "/dashboard/student-arrangements" ? (
           <StudentArrangements session={session} hindi={hindi} />
         ) : tab === "/dashboard/student-opportunities" ? (
-          <StudentOpportunities session={session} hindi={hindi} />
+          <><DirectEnquiries session={session}/><StudentOpportunities session={session} hindi={hindi} /></>
         ) : (
           <StudentSupporters session={session} hindi={hindi} />
         )}
@@ -2542,12 +2544,13 @@ function DashboardPage({ tab }: { tab: string }) {
   )
     return (
       <DashboardShell tab={tab}>
-        <StudentEnquiries session={session} hindi={hindi} />
+        <><DirectEnquiries session={session}/><StudentEnquiries session={session} hindi={hindi} /></>
       </DashboardShell>
     );
   if (session.account.role === "INDEPENDENT_STUDENT")
     return (
       <DashboardShell tab={tab}>
+        {["/dashboard","/dashboard/enquiries","/dashboard/student-enquiries"].includes(tab) && <DirectEnquiries session={session}/>}
         {tab === "/dashboard/enquiries" ||
         tab === "/dashboard/student-enquiries" ? (
           <StudentEnquiries
@@ -2600,7 +2603,8 @@ function DashboardPage({ tab }: { tab: string }) {
         {session.account.role === "GUARDIAN" && tab === "/dashboard" && (
           <GuardianLearners key={session.account.id} session={session} />
         )}
-        {session.account.role === "TEACHER" && <section className="care-card teacher-opportunities-panel"><p>{appText("Enquiries from adult students have a separate response queue. Guardian-led enquiries appear below after staff publishes the match; choosing your profile alone does not publish a request.")}</p><StudentOpportunities session={session} hindi={hindi} embedded/></section>}
+        <DirectEnquiries session={session}/>
+        {session.account.role === "TEACHER" && <section className="care-card teacher-opportunities-panel"><p>{appText("Direct enquiries arrive immediately above. Assisted-search opportunities appear in the separate queues below.")}</p><StudentOpportunities session={session} hindi={hindi} embedded/></section>}
         <HiringOverview
           key={`${session.account.id}:${session.account.role}`}
           session={session}
