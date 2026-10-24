@@ -33,6 +33,9 @@ export const hindiMessages: Record<string, string> = {
 "Latest notifications":"नई सूचनाएँ",
 "Older notifications":"पुरानी सूचनाएँ",
 
+  "About learner setup": "विद्यार्थी सेटअप की जानकारी",
+  "Complete education details to connect the existing student account.": "मौजूदा विद्यार्थी खाता जोड़ने के लिए शिक्षा की जानकारी पूरी करें।",
+  "No matching learners awaiting setup. Check saved profiles below.": "इस खोज में किसी विद्यार्थी का सेटअप बाकी नहीं है। नीचे सहेजी प्रोफ़ाइल देखें।",
   "Subjects": "विषय",
   "Direct enquiry oversight": "सीधे अनुरोधों की निगरानी",
   "Direct enquiries": "सीधे अनुरोध",
