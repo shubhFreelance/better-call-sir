@@ -4179,28 +4179,56 @@ footer {
 .learning-workspace .learning-state {
   overflow-wrap: anywhere;
 }
-/* The shortlist header grounds the decision; lavender distinguishes the request brief. */
 .tuition-request-review > .panel-title {
-  background: var(--primary);
-  color: var(--white);
+  background: #F4F4EC;
+  color: #034F46;
   border-radius: 12px;
-  padding: 22px;
+  border:1px solid #E4E4D0;
+  padding:16px 18px;
+  gap:16px;
+  flex-wrap:wrap;
 }
 .tuition-request-review > .panel-title h2 {
-  color: var(--white);
+  color: #034F46;
+  font-size:22px;
+  line-height:1.3;
+  letter-spacing:-.4px;
+  margin:0;
 }
 .tuition-request-review > .panel-title button:focus-visible {
-  outline: 3px solid var(--green);
+  outline: 2px solid #034F46;
   outline-offset: 4px;
 }
 .tuition-request-review > .tuition-summary {
-  background: var(--green);
+  background: #FFFFFF;
   border-radius: 10px;
-  padding: 22px;
+  border:1px solid #E4E4D0;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:16px;
+  padding:16px 18px;
+  margin:16px 0;
 }
 .tuition-request-review > .tuition-summary dt {
-  color: #46514d;
+  color: #58645D;
+  font-size:11px;
+  line-height:1.5;
+  margin-bottom:6px;
 }
+.tuition-request-review > .tuition-summary dd { font-size:13px; line-height:1.6; color:#17201F; }
+.tuition-request-review > .tuition-summary > div:nth-child(3) dd { font-size:16px; font-weight:650; color:#034F46; }
+.tuition-request-review > .tuition-summary > div:last-child dd { display:inline-block; padding:3px 8px; border-radius:6px; background:#F3F1EB; color:#45534A; font-size:12px; }
+.tuition-request-review .enquiry-progress { gap:8px; margin:18px 0; }
+.tuition-request-review .enquiry-progress li { padding:12px; border:1px solid #E4E4D0; border-radius:10px; background:#F7F8F3; font-size:12px; line-height:1.6; }
+.tuition-request-review .enquiry-progress li[aria-current] { background:#F0E2FA; border-color:#DCC2EF; color:#402E4A; }
+.enquiry-availability-panel,.enquiry-options-panel { padding:18px; margin:18px 0; border:1px solid #DFE5D8; border-radius:12px; background:#FAFBF7; }
+.tuition-request-review .enquiry-availability-panel > h3,.tuition-request-review .enquiry-options-panel > h3 { margin:0 0 10px; font-size:15px; line-height:1.4; color:#034F46; }
+.tuition-request-review .wizard-help,.tuition-request-review .enquiry-schedule-note { font-size:12px; line-height:1.65; color:#58645D; margin:10px 0; }
+.enquiry-availability-panel > ul { margin:10px 0; padding-left:20px; font-size:13px; font-weight:600; line-height:1.7; color:#034F46; }
+.enquiry-options-panel > [data-slot=alert][role=status] { background:#EDF4E5; }
+.tuition-request-review [data-slot=alert-description],.tuition-request-review .history-controls p { font-size:12px; line-height:1.6; }
+.tuition-request-review [data-slot=button],.tuition-request-review > .inline-link { min-height:44px; height:auto; font-size:12px; line-height:1.5; white-space:normal; }
+@media(max-width:900px) { .tuition-request-review > .tuition-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:480px) { .tuition-request-review.panel { padding:16px; } .enquiry-availability-panel,.enquiry-options-panel { padding:14px; } .tuition-request-review > .panel-title { padding:14px; } .tuition-request-review > .panel-title h2 { font-size:20px; } }
 .tuition-candidate {
   border-top: 4px solid var(--primary);
 }

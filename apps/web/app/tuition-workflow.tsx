@@ -593,7 +593,6 @@ export function RequestReview({
           <dd>{appText(request.status.toLowerCase().replaceAll("_", " "))}</dd>
         </div>
       </dl>
-      <p>{request.schedule}</p>
       <ol
         className="enquiry-progress"
         aria-label={appText("Enquiry to hiring progress")}
@@ -634,9 +633,11 @@ export function RequestReview({
           </li>
         ))}
       </ol>
+      <div className="enquiry-availability-panel">
       <h3 id="enquiry-availability" tabIndex={-1}>
         {appText("Your availability preferences")}{" "}
       </h3>
+      <p className="enquiry-schedule-note">{request.schedule}</p>
       {request.schedulePreferences &&
       "weekly" in request.schedulePreferences ? (
         <WeeklySummary preferences={request.schedulePreferences} />
@@ -698,6 +699,7 @@ export function RequestReview({
           {appText("Update availability preferences")}{" "}
         </Button>
       )}
+      </div>
       {scheduleOpen && (
         <form
           tabIndex={-1}
@@ -870,6 +872,7 @@ export function RequestReview({
         </section>
       ) : (
         <>
+          <section className="enquiry-options-panel">
           <h3>{appText("Reviewed teacher options")}</h3>
           <p className="wizard-help">
             {appText(
@@ -1088,6 +1091,7 @@ export function RequestReview({
               )}{" "}
             </p>
           )}
+          </section>
         </>
       )}
       {!placement && completedDemos.length > 0 && (

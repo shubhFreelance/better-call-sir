@@ -18,6 +18,7 @@ async function mock(
   mode:
     | "normal"
     | "weekly"
+    | "waiting"
     | "uncertain"
     | "stale"
     | "terms"
@@ -80,7 +81,7 @@ async function mock(
     discoveryMethod: "ASSISTED",
     preferredTeacherId: null,
     scheduleStatus: "CONFIRMED",
-    matchStatus: mode === "no-match" ? "NO_MATCH" : "MATCHED",
+    matchStatus: mode === "no-match" ? "NO_MATCH" : mode === "waiting" ? "PENDING" : "MATCHED",
     selectedCandidateId: null,
     schedulePreferences: {
       timezone: "Asia/Kolkata",
@@ -93,11 +94,11 @@ async function mock(
         },
       ],
     },
-    candidates: ["no-match", "completed-demo"].includes(mode)
+    candidates: ["no-match", "completed-demo", "waiting"].includes(mode)
       ? []
       : [candidate],
   };
-  if (mode === "weekly")
+  if (mode === "weekly" || mode === "waiting")
     request.schedulePreferences = {
       timezone: "Asia/Kolkata",
       weekly: [{ weekday: 1, startMinute: 960, endMinute: 1200 }],
@@ -964,6 +965,29 @@ test("no-match recovery preserves the enquiry and offers availability, manual se
   ).toBeVisible();
   expect(state.paths.filter((p) => p.startsWith("POST"))).toEqual([]);
 });
+
+for (const [width, hindi] of [[1280, false], [390, false], [320, true]] as const) {
+  test(`enquiry brief has compact grouped facts and preferences at ${width}px ${hindi ? "Hindi" : "English"}`, async ({ page }) => {
+    if (hindi) await chooseHindi(page);
+    const state = await mock(page, "waiting");
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto("/dashboard/requests");
+    const card = page.locator(".tuition-request-review");
+    await expect(card.locator(".tuition-summary dt").first()).toHaveCSS("font-size", "11px");
+    await expect(card.locator(".tuition-summary dd").nth(2)).toHaveCSS("font-size", "16px");
+    await expect(card.locator(".enquiry-availability-panel .wizard-help")).toHaveCSS("font-size", "12px");
+    await expect(card.locator(".enquiry-options-panel [role=status]")).toBeVisible();
+    await expect(card.locator(".enquiry-progress [aria-current=step]")).toHaveCount(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const accessibility = await new AxeBuilder({ page }).include(".tuition-request-review").analyze();
+    expect(accessibility.violations.filter(item => ["serious", "critical"].includes(item.impact || ""))).toEqual([]);
+    if (hindi) await checkHindi(page);
+    await card.screenshot({ path: `test-results/enquiry-brief-${width}-${hindi ? "hi" : "en"}.png` });
+    await card.getByRole("button", { name: hindi ? "उपलब्धता की पसंद बदलें" : "Update availability preferences", exact: true }).click();
+    await expect(card.locator("form.tuition-confirm")).toBeVisible();
+    expect(state.paths.filter(path => path.startsWith("POST"))).toEqual([]);
+  });
+}
 
 test("Hindi complete interface — शिक्षक की सूची और चयन", async ({ page }) => {
   await chooseHindi(page);
