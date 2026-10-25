@@ -429,7 +429,8 @@ export function guardianVerificationTests() {
   test("staff school report preview sits beside clearance and only scanner-cleared evidence is available",async({page})=>{
     const f=await setup(page,{role:"ADMIN"}); await openStaff(page);
     const download=page.getByRole("button",{name:"See uploaded document",exact:true});
-    await expect(download).toHaveCSS("background-color","rgb(238, 245, 243)");
+    await expect(download).toHaveCSS("background-color","rgba(0, 0, 0, 0)");
+    await expect(download).toHaveCSS("border-top-width","0px");
     await download.hover();await expect(download).toHaveCSS("color","rgb(240, 215, 255)");
     await expect(page.locator(".evidence-scan-status")).toContainText("Scan cleared");
     expect(f.reads.some(url=>url.pathname.endsWith("/content"))).toBe(false);
