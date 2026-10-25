@@ -615,6 +615,9 @@ test("console and privacy review fit mobile with accessible controls and screens
   await mock(page);
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/dashboard/admin");
+  const strip=page.getByRole("tablist");await expect(strip).toHaveCSS("background-color","rgb(238, 245, 243)");
+  await expect(strip.getByRole("tab",{selected:true})).toHaveCSS("background-color","rgb(240, 215, 255)");
+  expect(await strip.evaluate(el=>Math.abs(el.getBoundingClientRect().width-el.parentElement!.getBoundingClientRect().width))).toBeLessThanOrEqual(1);
   await expect(
     page.getByRole("heading", { name: "Feature controls", exact: true }),
   ).toBeVisible();

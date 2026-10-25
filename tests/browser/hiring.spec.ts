@@ -296,6 +296,23 @@ async function mock(page: Page, role = "GUARDIAN", mode = "normal") {
 }
 const ready = (page: Page) =>
   expect(page.getByRole("button", { name: "Refresh overview" })).toBeVisible();
+for(const role of ["GUARDIAN","STUDENT","TEACHER"]) for(const hindi of [false,true]) {
+  test(`dashboard tabs fill their section for ${role} (${hindi ? "Hindi phone" : "English desktop"})`,async({page})=>{
+    if(hindi) await chooseHindi(page);await mock(page,role);await page.setViewportSize({width:hindi?320:1440,height:1000});
+    await page.goto("/dashboard");const tabs=page.locator('.hiring-records [role="tablist"]');
+    await expect(tabs).toHaveCSS("background-color","rgb(238, 245, 243)");
+    await expect(tabs.getByRole("tab",{selected:true})).toHaveCSS("background-color","rgb(240, 215, 255)");
+    const dimensions=await tabs.evaluate(el=>({width:el.getBoundingClientRect().width,parent:el.parentElement!.getBoundingClientRect().width,children:[...el.children].map(c=>c.getBoundingClientRect().width)}));
+    expect(Math.abs(dimensions.width-dimensions.parent)).toBeLessThanOrEqual(1);expect(Math.abs(dimensions.children[0]-dimensions.children[1])).toBeLessThanOrEqual(1);
+    await tabs.getByRole("tab").first().focus();await page.keyboard.press("ArrowRight");
+    await expect(tabs.getByRole("tab").nth(1)).toHaveAttribute("aria-selected","true");
+    await expect(tabs.getByRole("tab").nth(1)).toHaveCSS("background-color","rgb(240, 215, 255)");
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    const a=await new AxeBuilder({page}).include(".hiring-records").analyze();expect(a.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+    await tabs.screenshot({path:`test-results/dashboard-tabs-${role}-${hindi?"hi":"en"}.png`});
+  });
+}
+
 test("guardian gets enquiry details, next actions and learner controls without primary class tools", async ({
   page,
 }) => {

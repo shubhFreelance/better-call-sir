@@ -557,6 +557,9 @@ test("mobile case review and tab panels have accessible keyboard controls and pa
   await mock(page);
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/dashboard/support");
+  const strip=page.getByRole("tablist");await expect(strip).toHaveCSS("background-color","rgb(238, 245, 243)");
+  await expect(strip.getByRole("tab",{selected:true})).toHaveCSS("background-color","rgb(240, 215, 255)");
+  expect(await strip.evaluate(el=>Math.abs(el.getBoundingClientRect().width-el.parentElement!.getBoundingClientRect().width))).toBeLessThanOrEqual(1);
   await pick(page);
   await triage(page);
   expect(

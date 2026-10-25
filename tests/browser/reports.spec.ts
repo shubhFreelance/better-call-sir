@@ -471,6 +471,9 @@ test("mobile reports preserve padding, chart/table readability and accessible co
   await mock(page);
   await page.setViewportSize({ width: 360, height: 800 });
   await open(page);
+  const strip=page.getByRole("tablist");await expect(strip).toHaveCSS("background-color","rgb(238, 245, 243)");
+  await expect(strip.getByRole("tab",{selected:true})).toHaveCSS("background-color","rgb(240, 215, 255)");
+  expect(await strip.evaluate(el=>Math.abs(el.getBoundingClientRect().width-el.parentElement!.getBoundingClientRect().width))).toBeLessThanOrEqual(1);
   await expect(
     page.getByRole("heading", { name: "Day-30 continuation evidence" }),
   ).toBeVisible();
