@@ -5641,7 +5641,7 @@ fieldset.catalog-filters { min-inline-size:0; margin-inline:0; }
 /* Guardian verification: a quiet worksheet with progress tied to the saved request. */
 body:has(.guardian-verification-page) { background:#FFFFEB; }
 .guardian-verification-page { --paper:#FFFFEB; --ink:#17201F; --line:#D9E4DF; color:#17201F; }
-.guardian-verification-page .page-title { padding:24px; margin-bottom:24px; border:1px solid #034F46; border-left:4px solid #F0D7FF; border-radius:20px; background:#034F46; }
+.guardian-verification-page .page-title { padding:24px; margin-bottom:24px; border:1px solid #034F46; border-radius:20px; background:#034F46; }
 .guardian-verification-page .page-title h1 { margin:0 0 10px; color:#FFFFEB; font-size:32px; line-height:1.25; }
 .guardian-verification-page .page-title p { margin:0; color:#E1EEE7; font-size:13px; line-height:1.7; max-width:75ch; }
 .guardian-requests .guardian-verification-guidance { padding:14px 16px; border:1px solid #DAE5DC; border-radius:12px; background:#F0F6EB; font-size:12px; line-height:1.7; }
