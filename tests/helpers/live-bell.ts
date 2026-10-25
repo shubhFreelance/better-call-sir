@@ -43,6 +43,14 @@ for (const hindi of [false, true])
     await bell.click();
     const panel = page.locator(".live-bell-panel");
     await expect(panel).toBeVisible();
+    const close = panel.locator('.live-bell-close');
+    await expect(close).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+    await expect(close).toHaveCSS('border-top-color','rgba(0, 0, 0, 0)');
+    await close.hover();
+    await expect(close).toHaveCSS('border-radius','10px');
+    await expect(close).toHaveCSS('border-top-color','rgb(3, 79, 70)');
+    await expect(panel.locator('.live-bell-item > button')).toHaveCSS('height','44px');
+    await expect(panel.locator('.live-bell-symbol')).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
     expect((await panel.boundingBox())!.width).toBeLessThanOrEqual(390);
     await panel
       .getByRole("button", {
