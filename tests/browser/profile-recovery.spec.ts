@@ -13,6 +13,7 @@ const profile = {
   demoAvailable: true,
   lockInDays: 15,
 };
+const studentProfile = { accountId: "10000000-0000-4000-8000-000000000751", education: { stage: "SCHOOL", grade: 8, board: "CBSE", institutionName: "Synthetic school", subjects: ["Maths"] }, version: 1, editStatus: "EDITABLE" };
 for (const assisted of [false, true]) {
   test(`slow session lookup cannot route an independent student into guardian ${assisted ? "assisted search" : "profile enquiry"}`, async ({
     page,
@@ -25,6 +26,8 @@ for (const assisted of [false, true]) {
     const sessionRead = page.waitForRequest("**/api/v1/auth/session");
     await page.route("**/api/v1/**", async (route) => {
       const path = new URL(route.request().url()).pathname;
+      if (path === "/api/v1/live" || path === "/api/v1/live/") return route.abort();
+      if (path === "/api/v1/inbox") return route.fulfill({ json: { items: [], unread: 0, nextCursor: null } });
       if (path.endsWith("/auth/session")) {
         await gate;
         return route.fulfill({
@@ -39,6 +42,7 @@ for (const assisted of [false, true]) {
           },
         });
       }
+      if (path === "/api/v1/independent-student/profile") return route.fulfill({ json: studentProfile });
       if (path === "/api/v1/teachers/recovery-teacher")
         return route.fulfill({ json: profile });
       if (path === "/api/v1/teachers")
@@ -47,14 +51,14 @@ for (const assisted of [false, true]) {
     });
     try {
       await page.goto(
-        assisted ? "/teachers?tab=assisted" : "/teachers/recovery-teacher",
+        assisted ? "/teachers?tab=assisted" : "/teachers/recovery-teacher?subject=Maths",
       );
       await sessionRead;
       if (assisted) await expect(page.locator(".discovery-tabs")).toBeVisible();
       else
         await expect(
           page.getByRole("heading", { name: profile.name, exact: true }),
-        ).toBeVisible();
+        ).toHaveCount(0);
       const action = page.getByRole("link", {
         name: assisted ? "Share my criteria" : "Enquire about this teacher",
       });
@@ -69,7 +73,7 @@ for (const assisted of [false, true]) {
         "href",
         assisted
           ? "/dashboard/enquiries?new=1"
-          : `/dashboard/enquiries?new=1&teacher=${profile.id}&profile=${profile.slug}`,
+          : `/dashboard/enquiries?new=1&teacher=${profile.id}&profile=${profile.slug}&learner=${studentProfile.accountId}&subject=Maths`,
       );
     } finally {
       release();
@@ -91,6 +95,9 @@ async function setup(
   await page.route("**/api/v1/**", async (route) => {
     const req = route.request();
     const path = new URL(req.url()).pathname;
+    // Notification transport is independent of profile decisions.
+    if (path === "/api/v1/live" || path === "/api/v1/live/") return route.abort();
+    if (path === "/api/v1/inbox") return route.fulfill({ json: { items: [], unread: 0, nextCursor: null } });
     if (req.method() !== "GET") {
       writes.push(path);
       return route.fulfill({
@@ -114,6 +121,7 @@ async function setup(
                 csrfToken: "synthetic-csrf",
               },
       });
+    if (path === "/api/v1/independent-student/profile") return route.fulfill({ json: studentProfile });
     if (path === "/api/v1/teachers/recovery-teacher") {
       reads.push(path);
       const status = mode;
@@ -130,8 +138,8 @@ async function setup(
     }
     return route.fallback();
   });
-  await page.goto("/teachers/recovery-teacher");
-  await page.waitForLoadState("networkidle");
+  await page.goto("/teachers/recovery-teacher" + (role === "INDEPENDENT_STUDENT" ? "?subject=Maths" : ""));
+  await expect(page.locator(initial === "ready" ? ".booking-panel" : ".profile-recovery")).toBeVisible();
   return {
     reads,
     writes,
@@ -223,7 +231,7 @@ for (const role of ["ANONYMOUS", "INDEPENDENT_STUDENT"])
     ).toHaveAttribute(
       "href",
       role === "INDEPENDENT_STUDENT"
-        ? `/dashboard/enquiries?new=1&teacher=${id}&profile=recovery-teacher`
+        ? `/dashboard/enquiries?new=1&teacher=${id}&profile=recovery-teacher&learner=${studentProfile.accountId}&subject=Maths`
         : `/onboarding/parent?teacher=${id}&profile=recovery-teacher`,
     );
     s.setMode("missing");

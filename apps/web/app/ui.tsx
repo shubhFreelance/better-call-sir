@@ -43,6 +43,8 @@ import {
   boardSuggestions,
 } from "./curriculum-choice";
 import { LearnerProfiles } from "./learner-profiles";
+import { EducationSummary } from "./learner-profiles";
+import { useLearnerDiscovery } from "./learner-discovery";
 import { TeacherLockIn } from "./teacher-lock-in";
 import { WaitlistWorkspace } from "./waitlist-workspace";
 import { HiringOverview } from "./hiring-overview";
@@ -635,7 +637,7 @@ function Illustration() {
     </div>
   );
 }
-function TeacherCard({ teacher }: { teacher: Teacher }) {
+function TeacherCard({ teacher, context = "" }: { teacher: Teacher; context?: string }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
   return (
@@ -651,7 +653,7 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
           <ShieldCheck size={12} /> {appText("Reviewed coverage")}{" "}
         </Badge>
       </div>
-      <Link href={`/teachers/${teacher.slug}`} className="teacher-name">
+      <Link href={`/teachers/${teacher.slug}${context}`} className="teacher-name">
         <h3>{teacher.name}</h3>
         <ArrowUpRight size={19} />
       </Link>
@@ -698,7 +700,7 @@ function TeacherCard({ teacher }: { teacher: Teacher }) {
           <small> {appText("/ month · tuition paid directly")}</small>
         </div>
         <Link
-          href={`/teachers/${teacher.slug}`}
+          href={`/teachers/${teacher.slug}${context}`}
           className="round-link"
           aria-label={appText("View {0}", [teacher.name])}
         >
@@ -877,6 +879,8 @@ function Teachers() {
   const { session } = useAuth();
   const independent = session?.account.role === "INDEPENDENT_STUDENT";
   const discoveryParams = useSearchParams();
+  const learnerSearch = useLearnerDiscovery(session);
+  const canSearch = !authLoading && (!learnerSearch.required || learnerSearch.ready);
   const [filterReset, setFilterReset] = useState(0);
   const [interactive, setInteractive] = useState(false);
   useEffect(() => setInteractive(true), []);
@@ -896,7 +900,6 @@ function Teachers() {
     locality,
     maxMonthly,
   } = filters;
-  const activeFilterCount = Object.values(filters).filter((value) => value.trim()).length;
   function resetSearch() {
     setFilterReset((value) => value + 1);
     setSearchState({ filters: { ...emptyTeacherFilters } });
@@ -928,20 +931,27 @@ function Teachers() {
     setTab(discoveryParams.get("tab") === "assisted" ? "assisted" : "manual");
   }, [discoveryParams]);
   const params = new URLSearchParams();
-  if (stage) params.set("stage", stage);
-  if (level) params.set("level", level);
-  if (courseName.trim()) params.set("courseName", courseName.trim());
-  if (studyYear) params.set("studyYear", studyYear);
+  if (learnerSearch.required) {
+    if (learnerSearch.learner) params.set("learnerId", learnerSearch.learner.id);
+  } else {
+    if (stage) params.set("stage", stage);
+    if (level) params.set("level", level);
+    if (courseName.trim()) params.set("courseName", courseName.trim());
+    if (studyYear) params.set("studyYear", studyYear);
+    if (board) params.set("board", board);
+    if (grade) params.set("grade", grade);
+  }
   if (q.trim()) params.set("q", q.trim());
-  if (subject) params.set("subject", subject);
+  const effectiveSubject = subject || discoveryParams.get("subject") || "";
+  if (effectiveSubject) params.set("subject", effectiveSubject);
   if (mode) params.set("mode", mode);
-  if (board) params.set("board", board);
-  if (grade) params.set("grade", grade);
   if (language) params.set("language", language);
   if (locality) params.set("locality", locality);
   if (maxMonthly)
     params.set("maxMonthlyPaise", String(Number(maxMonthly) * 100));
-  const searchKey = params.toString();
+  const searchKey = params.toString() + (learnerSearch.learner ? "|profile=" + learnerSearch.learner.version : "");
+  const activeFilterCount = params.size - (params.has("learnerId") ? 1 : 0);
+  const learnerContext = learnerSearch.learner ? "?" + new URLSearchParams({ learner: learnerSearch.learner.id, ...(effectiveSubject ? { subject: effectiveSubject } : {}) }) : "";
   const saved = results?.key === searchKey ? results : undefined;
   const query = useInfiniteQuery<
     TeacherSearchPage,
@@ -951,11 +961,12 @@ function Teachers() {
     string
   >({
     queryKey: ["teacher-search", searchKey],
+    enabled: canSearch,
     initialPageParam: "",
     initialDataUpdatedAt: saved?.updatedAt,
     initialData: () => {
       if (saved) return saved.data;
-      const first = !params.size
+      const first = !learnerSearch.required && !params.size
         ? client.getQueryData<{ items: Teacher[]; nextCursor?: string | null }>(
             ["teachers"],
           )
@@ -1068,7 +1079,7 @@ function Teachers() {
                     ? "/dashboard/learning-choices?new=1"
                     : searchSession?.account.role === "INDEPENDENT_STUDENT"
                       ? "/dashboard/enquiries?new=1"
-                      : "/onboarding/parent?discovery=ASSISTED"
+                      : "/onboarding/parent?discovery=ASSISTED" + (learnerSearch.learner ? "&learner=" + learnerSearch.learner.id : "")
                 }
               >
                 {appText("Share your criteria")} <ArrowRight size={18} />
@@ -1077,9 +1088,22 @@ function Teachers() {
           )}
         </TabsContent>
         <TabsContent value="manual">
+          {learnerSearch.required && <section className="learner-search-context" aria-label={appText("Search for a learner")}>
+            <label htmlFor="search-learner">{appText("Choose learner")}</label>
+            <select id="search-learner" value={learnerSearch.learner?.id || ""} onChange={e => learnerSearch.select(e.target.value)}>
+              <option value="">{appText("Choose learner")}</option>
+              {learnerSearch.learners.map(row => <option key={row.id} value={row.id}>{row.alias}</option>)}
+            </select>
+            {learnerSearch.learner && <EducationSummary education={learnerSearch.learner.education} />}
+            <p>{appText("Only teachers covering this learner's education and selected subject are shown.")}</p>
+            {learnerSearch.query.isPending && <p role="status">{appText("Loading learner profiles…")}</p>}
+            {learnerSearch.query.error && <p role="alert">{appError(learnerSearch.query.error.message)} <UiButton onClick={() => learnerSearch.query.refetch()}>{appText("Try again")}</UiButton></p>}
+            {!learnerSearch.query.isPending && !learnerSearch.ready && <p role="status">{appText("Choose a learner with complete education details before choosing a teacher.")} <Link href={independent ? "/onboarding/independent-student" : "/dashboard/learners"}>{appText("Open education profiles")}</Link></p>}
+            {learnerSearch.query.hasNextPage && <UiButton onClick={() => learnerSearch.query.fetchNextPage()} disabled={learnerSearch.query.isFetchingNextPage}>{appText("Load more learners")}</UiButton>}
+          </section>}
           <fieldset
             className="filter-bar catalog-filters"
-            disabled={!interactive}
+            disabled={!interactive || !canSearch}
             aria-busy={!interactive}
             aria-label={appText("Teacher search criteria")}
           >
@@ -1098,7 +1122,7 @@ function Teachers() {
               />
               </span>
             </label>
-            <div className="filter-select">
+            {!learnerSearch.required && <div className="filter-select">
               <label className="filter-label" htmlFor="search-stage">
                 {appText("Education stage")}{" "}
               </label>
@@ -1118,7 +1142,7 @@ function Teachers() {
                   {appText("College / university")}
                 </option>
               </select>
-            </div>
+            </div>}
             <div className="filter-select">
               <label className="filter-label" htmlFor="search-subject">
                 {appText("Subject")}{" "}
@@ -1126,7 +1150,7 @@ function Teachers() {
               <CurriculumChoice
                 key={"subject-" + filterReset}
                 id="search-subject"
-                value={subject}
+                value={effectiveSubject}
                 onChange={(value) => changeFilter("subject", value)}
                 suggestions={subjectSuggestions}
                 customLabel={appText("Subject name")}
@@ -1145,7 +1169,7 @@ function Teachers() {
                 <option value="ONLINE">{appText("Online")}</option>
               </select>
             </label>
-            {(!stage || stage === "SCHOOL") && (
+            {!learnerSearch.required && (!stage || stage === "SCHOOL") && (
               <>
                 <div className="filter-select">
                   <label className="filter-label" htmlFor="search-board">
@@ -1184,7 +1208,7 @@ function Teachers() {
                 </label>
               </>
             )}
-            {stage === "EARLY_YEARS" && (
+            {!learnerSearch.required && stage === "EARLY_YEARS" && (
               <label className="filter-select">
                 <span className="filter-label">
                   {appText("Early years level")}
@@ -1201,7 +1225,7 @@ function Teachers() {
                 </select>
               </label>
             )}
-            {stage === "COLLEGE" && (
+            {!learnerSearch.required && stage === "COLLEGE" && (
               <>
                 <label className="filter-select">
                   <span className="filter-label">
@@ -1293,7 +1317,7 @@ function Teachers() {
           {!interactive && (
             <p role="status">{appText("Preparing teacher search…")}</p>
           )}
-          <div className="results-heading">
+          {canSearch && <><div className="results-heading">
             <span role="status" ref={resultSummary} tabIndex={-1}>
               {query.isPending
                 ? appText("Searching for teachers…")
@@ -1316,7 +1340,7 @@ function Teachers() {
             aria-busy={query.isFetching}
           >
             {!unavailable &&
-              teachers.map((t) => <TeacherCard key={t.id} teacher={t} />)}
+              teachers.map((t) => <TeacherCard key={t.id} teacher={t} context={learnerContext} />)}
           </div>
           {!unavailable && teachers.length > 0 && (
             <section
@@ -1412,9 +1436,10 @@ function Teachers() {
               {appText("Help me choose")} <ArrowRight size={17} aria-hidden="true" />
             </UiButton>
           </div>}
+          </>}
         </TabsContent>
       </Tabs>
-      {(tab === "assisted" || query.isPending || unavailable || teachers.length > 0) && <p className="coverage-discovery-link">
+      {canSearch && (tab === "assisted" || query.isPending || unavailable || teachers.length > 0) && <p className="coverage-discovery-link">
         {appText("Looking outside our current pilot coverage?")}{" "}
         <Link className="inline-link" href="/waitlist">
           {appText("Request future coverage")}{" "}
@@ -1428,10 +1453,17 @@ function Profile({ slug }: { slug: string }) {
 
   const { session, loading: authLoading } = useAuth();
   const independent = session?.account.role === "INDEPENDENT_STUDENT";
+  const learnerSearch = useLearnerDiscovery(session);
+  const profileParams = useSearchParams();
+  const learnerBound = learnerSearch.required && (session?.account.role !== "GUARDIAN" || !!profileParams.get("learner"));
+  const selectedSubject = profileParams.get("subject") || "";
+  const academic = new URLSearchParams(learnerBound && learnerSearch.learner ? { learnerId: learnerSearch.learner.id, ...(selectedSubject ? { subject: selectedSubject } : {}) } : {});
+  const context = learnerBound && learnerSearch.learner ? "&" + new URLSearchParams({ learner: learnerSearch.learner.id, ...(selectedSubject ? { subject: selectedSubject } : {}) }) : "";
   const query = useQuery({
-    queryKey: ["teacher", slug],
+    queryKey: ["teacher", slug, academic.toString(), learnerBound ? learnerSearch.learner?.version : undefined],
     queryFn: ({ signal }) =>
-      api<Teacher>(`/teachers/${encodeURIComponent(slug)}`, { signal }),
+      api<Teacher>(`/teachers/${encodeURIComponent(slug)}${academic.size ? "?" + academic : ""}`, { signal }),
+    enabled: !authLoading && (!learnerBound || learnerSearch.ready),
     retry: false,
   });
   const t = query.data;
@@ -1458,10 +1490,15 @@ function Profile({ slug }: { slug: string }) {
     }
   }, [query.error, query.isFetching, query.isSuccess, t, slug]);
   const missing = failure instanceof ApiError && failure.status === 404;
+  if (!authLoading && learnerBound && !learnerSearch.ready) return <main className="container section">
+    <State loading={learnerSearch.query.isPending} />
+    <p>{appText("Choose a learner with complete education details before choosing a teacher.")}</p>
+    <Link className="button" href="/teachers">{appText("Back to teacher search")}</Link>
+  </main>;
   return (
     <main className="container section">
       <div className="profile-navigation">
-        <Link className="inline-link" href="/teachers">
+        <Link className="inline-link" href={"/teachers" + (context ? "?" + context.slice(1) : "")}>
           {appText("← All teachers")}{" "}
         </Link>
         {t && !failure && (
@@ -1608,11 +1645,15 @@ function Profile({ slug }: { slug: string }) {
             </p>
             {authLoading ? (
               <State loading />
+            ) : learnerSearch.required && !learnerBound ? (
+              <Link className="button" href="/teachers">{appText("Choose learner")}</Link>
+            ) : learnerSearch.required && !selectedSubject ? (
+              <Link className="button" href={"/teachers?learner=" + learnerSearch.learner!.id}>{appText("Choose a subject before enquiring")}</Link>
             ) : independent ? (
               <>
                 <Link
                   className="button"
-                  href={`/dashboard/enquiries?new=1&teacher=${t.id}&profile=${encodeURIComponent(t.slug)}`}
+                  href={`/dashboard/enquiries?new=1&teacher=${t.id}&profile=${encodeURIComponent(t.slug)}${context}`}
                 >
                   {appText("Enquire about this teacher")}{" "}
                   <ArrowUpRight size={18} />
@@ -1627,7 +1668,7 @@ function Profile({ slug }: { slug: string }) {
               <>
                 <Link
                   className="button"
-                  href={`${session?.account.role === "STUDENT" ? "/dashboard/learning-choices?new=1&" : "/onboarding/parent?"}teacher=${t.id}&profile=${encodeURIComponent(t.slug)}`}
+                  href={`${session?.account.role === "STUDENT" ? "/dashboard/learning-choices?new=1&" : "/onboarding/parent?"}teacher=${t.id}&profile=${encodeURIComponent(t.slug)}${context}`}
                 >
                   {appText("Enquire about this teacher")}{" "}
                   <ArrowUpRight size={18} />

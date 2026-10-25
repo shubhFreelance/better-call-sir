@@ -634,7 +634,7 @@ export function learningManagementTests() {
       mode: "SHARED",
       manual: true,
     });
-    await page.goto("/teachers/synthetic-teacher");
+    await page.goto("/teachers/synthetic-teacher?subject=Maths");
     const entry = page.getByRole("link", {
       name: "Enquire about this teacher",
       exact: true,

@@ -359,14 +359,14 @@ function LearningEnquiryEditor({
   const manual = !!params.get("teacher"),
     slug = params.get("profile") || "";
   const teacher = useQuery({
-    queryKey: ["teacher", slug],
+    queryKey: ["teacher", slug, child.id, params.get("subject")],
     queryFn: ({ signal }) =>
-      api<Teacher>("/teachers/" + encodeURIComponent(slug), { signal }),
+      api<Teacher>("/teachers/" + encodeURIComponent(slug) + "?" + new URLSearchParams({learnerId:child.id,...(params.get("subject")?{subject:params.get("subject")!}:{})}), { signal }),
     enabled: manual && !!slug,
     retry: false,
   });
   const [savedId, setSavedId] = useState<string | null>(null);
-  const [subject, setSubject] = useState(""),
+  const [subject, setSubject] = useState(params.get("subject") || ""),
     [budget, setBudget] = useState(""),
     [format, setFormat] = useState("ONLINE"),
     [language, setLanguage] = useState("English"),

@@ -1,5 +1,11 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Choose a subject before enquiring": "अनुरोध भेजने से पहले विषय चुनें",
+  "Search for a learner": "विद्यार्थी के लिए शिक्षक खोजें",
+  "Choose learner": "विद्यार्थी चुनें",
+  "Only teachers covering this learner's education and selected subject are shown.": "केवल विद्यार्थी के शैक्षिक स्तर और चुने हुए विषय को पढ़ाने वाले शिक्षक दिखाए जाते हैं।",
+  "Choose a learner with complete education details before choosing a teacher.": "शिक्षक चुनने से पहले पूरी शिक्षा जानकारी वाले विद्यार्थी को चुनें।",
+  "Load more learners": "और विद्यार्थी दिखाएँ",
   "All": "सभी",
   "Filter enquiries": "अनुरोध छाँटें",
   "No enquiries match this filter.": "इस फ़िल्टर में कोई अनुरोध नहीं मिला।",

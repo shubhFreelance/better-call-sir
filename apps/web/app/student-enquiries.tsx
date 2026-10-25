@@ -335,14 +335,14 @@ function StudentEnquiryForm({
     refetchOnWindowFocus: false,
   });
   const teacher = useQuery({
-    queryKey: ["student-enquiry-teacher", teacherId, slug],
+    queryKey: ["student-enquiry-teacher", teacherId, slug, session.account.id, params.get("subject")],
     queryFn: ({ signal }) =>
-      api<Teacher>("/teachers/" + encodeURIComponent(slug || ""), { signal }),
+      api<Teacher>("/teachers/" + encodeURIComponent(slug || "") + (session.account.role === "INDEPENDENT_STUDENT" ? "?" + new URLSearchParams({learnerId:session.account.id,...(params.get("subject")?{subject:params.get("subject")!}:{})}) : ""), { signal }),
     enabled: !!teacherId && !!slug,
     retry: false,
     refetchOnWindowFocus: false,
   });
-  const [subject, setSubject] = useState(""),
+  const [subject, setSubject] = useState(params.get("subject") || ""),
     [mode, setMode] = useState(""),
     [language, setLanguage] = useState(""),
     [locality, setLocality] = useState(""),

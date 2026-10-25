@@ -243,10 +243,12 @@ export function GuardianOnboarding({
   const profile = params.get("profile"),
     teacherId =
       params.get("teacher") || initial?.draft.preferredTeacherId || "";
+  const learnerId = params.get("learner") || initial?.draft.childId;
+  const subject = params.get("subject") || initial?.draft.subject;
   const teacher = useQuery({
-    queryKey: ["teacher", profile],
+    queryKey: ["teacher", profile, learnerId, subject],
     queryFn: ({ signal }) =>
-      api<Teacher>(`/teachers/${encodeURIComponent(profile!)}`, { signal }),
+      api<Teacher>(`/teachers/${encodeURIComponent(profile!)}${learnerId ? "?" + new URLSearchParams({learnerId,...(subject?{subject}:{})}) : ""}`, { signal }),
     enabled: !!profile && !!teacherId,
     retry: false,
   });
@@ -352,7 +354,9 @@ export function GuardianOnboarding({
     !initial.completedResourceId &&
     Object.keys(initial.draft).length &&
     params.get("teacher") &&
-    params.get("teacher") !== initial.draft.preferredTeacherId
+    (params.get("teacher") !== initial.draft.preferredTeacherId ||
+      params.get("learner") && initial.draft.childId && params.get("learner") !== initial.draft.childId ||
+      params.get("subject") && initial.draft.subject && params.get("subject") !== initial.draft.subject)
   )
     return (
       <main className="container narrow section">
@@ -391,7 +395,7 @@ export function GuardianOnboarding({
   return (
     <OnboardingReadBoundary error={error} busy={checking} onRetry={retrySetup}>
       <Wizard
-        key={`${session.account.id}:${reload}`}
+        key={`${session.account.id}:${reload}:${teacherId}:${params.get("learner") || ""}:${params.get("subject") || ""}`}
         session={session}
         initial={initial}
         enquiry={enquiry.data}
@@ -427,6 +431,7 @@ function Wizard({
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
   const client = useQueryClient();
+  const searchContext = useSearchParams();
   const [progress, setProgress] = useState(initial);
   const [additional, setAdditional] = useState(initial.kind === "ENQUIRY");
   const [success, setSuccess] = useState(initial.completedResourceId || "");
@@ -444,13 +449,13 @@ function Wizard({
   const retry = useRef<{ signature: string; key: string } | null>(null);
   const submission = useRef<{ path: string; body: unknown } | null>(null);
   const initialValues = (): Values => ({
-    childId: initial.draft.childId || "",
+    childId: initial.draft.childId || searchContext.get("learner") || "",
     schoolName: initial.draft.schoolName || "",
     schoolSubjects: initial.draft.schoolSubjects?.join(", ") || "",
     alias: initial.draft.alias || "",
     grade: String(initial.draft.grade || 8),
     board: initial.draft.board || "CBSE",
-    subject: initial.draft.subject || teacher?.subjects[0] || "Maths",
+    subject: initial.draft.subject || searchContext.get("subject") || teacher?.subjects[0] || "Maths",
     mode: initial.draft.mode || teacher?.modes[0] || "HOME",
     language: initial.draft.language || teacher?.languages[0] || "English",
     locality:
@@ -490,6 +495,11 @@ function Wizard({
     enabled: step > 0,
     retry: false,
   });
+  useEffect(() => {
+    if (!searchContext.get("learner") || initial.draft.childId && initial.draft.childId !== searchContext.get("learner")) return;
+    const child = children.data?.items.find(c => c.id === searchContext.get("learner"));
+    if (child) setValues(old => old.childId === child.id && old.alias ? old : ({...old,childId:child.id,alias:child.alias,schoolName:child.schoolName || "",schoolSubjects:child.schoolSubjects?.join(", ") || "",grade:String(child.grade ?? ""),board:child.board || ""}));
+  }, [children.data, initial.draft.childId, searchContext]);
   useEffect(() => {
     heading.current?.focus();
   }, [step, success]);
