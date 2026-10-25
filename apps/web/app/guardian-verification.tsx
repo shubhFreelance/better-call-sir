@@ -926,6 +926,7 @@ function OwnerVerification({
                       )}
                     </p>
                   </section>
+                  <div className="guardian-review-confirmation">
                   <label className="care-check">
                     <input
                       type="checkbox"
@@ -956,6 +957,7 @@ function OwnerVerification({
                       {appText("Back to details")}
                     </FilterButton>
                   </FilterButtonGroup>
+                  </div>
                 </>
               )}
             </form>

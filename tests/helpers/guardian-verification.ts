@@ -402,6 +402,9 @@ export function guardianVerificationTests() {
     if(hindi) await page.getByRole("button",{name:"Switch English and Hindi",exact:true}).click();await page.setViewportSize({width:hindi?320:1440,height:1000});
     const t=(s:string)=>hindi?hindiMessages[s]||s:s,summary=page.locator(".guardian-relationship-review"),actions=page.locator(".guardian-verification-actions");
     await expect(summary.locator("dd")).toHaveText(["Synthetic Parent","Synthetic Child"]);await expect(summary).toHaveCSS("background-color","rgb(255, 255, 235)");
+    for(const row of await summary.locator("dl > div").all()) {const alignment=await row.evaluate(el=>({label:el.querySelector("dt")!.getBoundingClientRect().left,name:el.querySelector("dd")!.getBoundingClientRect().left}));expect(Math.abs(alignment.label-alignment.name)).toBeLessThanOrEqual(1);}
+    const confirmation=page.locator(".guardian-review-confirmation"),checkbox=confirmation.locator(".care-check");
+    await expect(confirmation).toHaveCSS("padding","16px");const box=await checkbox.boundingBox(),buttons=await actions.boundingBox();expect(buttons!.y-box!.y-box!.height).toBeGreaterThanOrEqual(16);
     await expect(actions).toHaveCSS("background-color","rgb(238, 245, 243)");
     const save=actions.getByRole("button",{name:t("Save relationship details"),exact:true}),back=actions.getByRole("button",{name:t("Back to details"),exact:true});
     await expect(save).toBeDisabled();await expect(save).toHaveAttribute("type","submit");await expect(back).toHaveAttribute("type","button");await back.hover();await expect(back).toHaveCSS("background-color","rgb(238, 245, 243)");

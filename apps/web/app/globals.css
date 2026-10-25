@@ -5689,9 +5689,12 @@ body:has(.guardian-verification-page) { background:#FFFFEB; }
 .guardian-relationship-review { padding:20px; margin:16px 0 20px; border:1px solid #DEE4D3; border-radius:16px; background:#FFFFEB; }
 .guardian-relationship-review h4 { margin:0; color:#034F46; font-size:17px; }
 .guardian-relationship-review dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:16px 0; }
-.guardian-relationship-review dl > div { min-width:0; padding:14px; border:1px solid #E2E7DC; border-radius:10px; background:#FFF; }
-.guardian-relationship-review dt { color:#52655F; font-size:11px; }
-.guardian-relationship-review dd { margin:6px 0 0; color:#034F46; font-size:14px; font-weight:600; overflow-wrap:anywhere; }
+.guardian-verification-editor .guardian-relationship-review dl > div { display:grid; align-content:start; gap:6px; min-width:0; padding:16px; border:1px solid #E2E7DC; border-radius:10px; background:#FFF; text-align:left; }
+.guardian-verification-editor .guardian-relationship-review dt { margin:0; padding:0; color:#52655F; font-size:11px; text-align:left; }
+.guardian-verification-editor .guardian-relationship-review dd { margin:0; padding:0; color:#034F46; font-size:14px; font-weight:600; overflow-wrap:anywhere; text-align:left; }
+.guardian-review-confirmation { display:grid; gap:16px; padding:16px; border:1px solid #E2E7DC; border-radius:14px; background:#FFF; }
+.guardian-verification-editor .guardian-review-confirmation > .care-check { margin:0; padding:16px; }
+.guardian-verification-editor .guardian-review-confirmation > .filter-button-group { margin:0; }
 .guardian-relationship-review p { margin:12px 0 0; font-size:12px; line-height:1.7; }
 @media(max-width:640px) { .guardian-relationship-review { padding:16px; } .guardian-relationship-review dl { grid-template-columns:minmax(0,1fr); } }
 .guardian-verification-editor button { min-height: 44px; }
