@@ -8938,6 +8938,8 @@ export interface operations {
     getTeachers: {
         parameters: {
             query?: {
+                /** @description Requires an authenticated guardian or student. Uses the authorized saved learner education; caller-supplied education filters cannot override it. */
+                learnerId?: string;
                 q?: string;
                 /** @description Empty value is treated as no filter for compatibility with existing v1 callers. */
                 subject?: string;
@@ -9040,7 +9042,11 @@ export interface operations {
     };
     getTeachersSlug: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Requires an authenticated guardian or student. Uses the authorized saved learner education; caller-supplied education filters cannot override it. */
+                learnerId?: string;
+                subject?: string;
+            };
             header?: never;
             path: {
                 slug: string;

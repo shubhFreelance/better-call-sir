@@ -2645,6 +2645,7 @@
           }
         },
         "parameters": [
+          {"name":"learnerId","in":"query","description":"Requires an authenticated guardian or student. Uses the authorized saved learner education; caller-supplied education filters cannot override it.","schema":{"type":"string","format":"uuid"}},
           {
             "name": "q",
             "in": "query",
@@ -2993,6 +2994,8 @@
           }
         },
         "parameters": [
+          {"name":"learnerId","in":"query","description":"Requires an authenticated guardian or student. Uses the authorized saved learner education; caller-supplied education filters cannot override it.","schema":{"type":"string","format":"uuid"}},
+          {"name":"subject","in":"query","schema":{"type":"string","maxLength":60}},
           {
             "name": "slug",
             "in": "path",

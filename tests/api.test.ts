@@ -2101,6 +2101,23 @@ test('direct teacher requests are visible as pending only to the chosen teacher 
  assert.equal((await rohanClient.call('/teacher/pending-enquiries')).data.items.some((r:any)=>r.id===request.id),false);
 });
 
+test('learner-bound discovery uses saved education before pagination and rejects mismatched profile links',async()=>{
+ const f=await educationActors(),rohan=await db.teacher.findFirstOrThrow({where:{name:'Rohan Verma'}});
+ await db.child.update({where:{id:f.linkedChild.id},data:{grade:12}});
+ const url='/teachers?learnerId='+f.linkedChild.id+'&subject=Maths&grade=8&board=CBSE';
+ for(const client of [f.g,f.s]){const result=await client.call(url);assert.equal(result.status,200,JSON.stringify(result.data));assert.equal(result.data.items.length,0);assert.equal((await client.call('/teachers/'+rohan.slug+'?learnerId='+f.linkedChild.id+'&subject=Maths')).status,404);}
+ const foreign=await educationActors();assert.equal((await foreign.g.call(url)).status,404);assert.equal((await new Client().call(url)).status,401);
+ await db.child.update({where:{id:f.linkedChild.id},data:{grade:7}});
+ const match=await f.g.call(url+'&limit=1');assert.equal(match.status,200);assert.equal(match.data.items.length,1);assert(match.data.items[0].grades.includes(7));
+ assert.equal((await f.g.call('/teachers?learnerId='+f.linkedChild.id+'&subject=Physics')).data.items.length,0);
+ assert.equal((await f.g.call('/teachers/'+rohan.slug+'?learnerId='+f.linkedChild.id+'&subject=Maths')).status,200);
+ const adult=await enquiryStudent();const own=await adult.c.call('/teachers?learnerId='+adult.account.id+'&subject=Maths');assert.equal(own.status,200);assert(own.data.items.length>0);
+ await db.independentStudentProfile.update({where:{accountId:adult.account.id},data:{education:{stage:'SCHOOL',institutionName:'Synthetic school',subjects:['Maths'],grade:12,board:'CBSE'}}});
+ assert.equal((await adult.c.call('/teachers?learnerId='+adult.account.id+'&subject=Maths&grade=8')).data.items.length,0);
+ assert.equal((await adult.c.call('/teachers?learnerId='+f.linkedChild.id)).status,404);
+ await db.consent.update({where:{guardianId:f.owner.id},data:{withdrawnAt:new Date()}});assert.equal((await f.g.call(url)).status,403);
+});
+
 test('manual enquiry intake rejects incompatible education and subject before creating guardian or student conversations',async()=>{
  const {owner,linkedChild,g,s}=await educationActors(),rohan=await db.teacher.findFirstOrThrow({where:{name:'Rohan Verma'}});
  await db.child.update({where:{id:linkedChild.id},data:{learningManagementMode:'SHARED'}});
