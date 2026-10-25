@@ -432,6 +432,9 @@ export function guardianVerificationTests() {
     await expect(download).toHaveCSS("background-color","rgba(0, 0, 0, 0)");
     await expect(download).toHaveCSS("border-top-width","0px");
     await download.hover();await expect(download).toHaveCSS("color","rgb(240, 215, 255)");
+    await expect(download).toHaveCSS("background-color","rgba(0, 0, 0, 0)");
+    await expect(download).toHaveCSS("border-top-width","0px");
+    await expect(download).toHaveCSS("box-shadow","none");
     await expect(page.locator(".evidence-scan-status")).toContainText("Scan cleared");
     expect(f.reads.some(url=>url.pathname.endsWith("/content"))).toBe(false);
     await download.click();const modal=page.getByRole("dialog");await expect(modal.getByRole("img")).toBeVisible();
