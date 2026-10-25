@@ -14,6 +14,7 @@ import { useAppTranslation } from "./locale";
 import { useHistory, HistoryPages } from "./history";
 import { Feedback, Notice, useDecision } from "./tuition-workflow";
 import { InfoTooltip } from "../components/ui/info-tooltip";
+import { LearningManagementBadge } from "../components/ui/learning-management-badge";
 type Child = components["schemas"]["Child"];
 type Verification = components["schemas"]["GuardianVerification"];
 type Application = components["schemas"]["GuardianVerificationInput"];
@@ -221,9 +222,7 @@ function GuardianRequests({
                       : r.guardianName}{" "}
                     · {appText(statuses[r.status])}
                   </p>
-                  <small>
-                    {appText(guardianManagementLabels[r.managementMode])}
-                  </small>
+                  <LearningManagementBadge label={appText(guardianManagementLabels[r.managementMode])} items={[appText("Relationship approval is separate from learning permission and profile setup.")]} />
                 </div>
                 <Button
                   variant="outline"
@@ -498,12 +497,7 @@ function VerificationSummary({ record: r,
         </p>
       )}
       <aside className="guardian-management-summary" data-management={r.managementMode}>
-        <strong>{appText(guardianManagementLabels[r.managementMode])}</strong>
-        <p>
-          {appText(
-            "The student sees this choice before acknowledging the relationship. Management permissions are separate from learning-data consent.",
-          )}
-        </p>
+        <LearningManagementBadge label={appText(guardianManagementLabels[r.managementMode])} items={[appText("The student sees this choice before acknowledging the relationship. Management permissions are separate from learning-data consent.")]} />
       </aside>
       {r.reason && (
         <Notice>
@@ -920,11 +914,7 @@ function OwnerVerification({
                     <p>
                       {application.guardianName} · {application.learnerName}
                     </p>
-                    <p>
-                      {appText(
-                        guardianManagementLabels[application.managementMode],
-                      )}
-                    </p>
+                    <LearningManagementBadge label={appText(guardianManagementLabels[application.managementMode])} items={[appText("The student sees this choice before acknowledging the relationship. Management permissions are separate from learning-data consent.")]} />
                     <p>
                       {appText(
                         application.acknowledgmentMethod === "STAFF_CALL"
@@ -1297,9 +1287,7 @@ function StudentAcknowledgments({
             >
               <h3>{current.guardianName}</h3>
               <p>{current.learnerName}</p>
-              <strong>
-                {appText(guardianManagementLabels[current.managementMode])}
-              </strong>
+              <LearningManagementBadge label={appText(guardianManagementLabels[current.managementMode])} items={[appText("Acknowledgment confirms the relationship you recognize. It does not make you an adult or replace separate guardian consent.")]} />
               <p>
                 {appText(
                   "Acknowledgment confirms the relationship you recognize. It does not make you an adult or replace separate guardian consent.",

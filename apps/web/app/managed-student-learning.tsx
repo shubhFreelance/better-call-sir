@@ -12,9 +12,7 @@ import {
   type components,
 } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
-import { InfoTooltip } from "../components/ui/info-tooltip";
-import { StatusBadge } from "../components/ui/status-controls";
-import { ShieldCheck } from "lucide-react";
+import { LearningManagementBadge } from "../components/ui/learning-management-badge";
 import { Input } from "../components/ui/input";
 import {
   Notice,
@@ -150,10 +148,7 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
           <article className="care-card management-current learner-choice-card">
             <header className="learner-choice-heading">
               <div><h2>{child.alias}</h2><p>{appText(educationLabel(child))}</p></div>
-              <div className="learner-choice-permission">
-                <StatusBadge label={appText(learningModes[management.data.mode].title)} tone="accent" icon={ShieldCheck} />
-                <InfoTooltip label={appText("Review who manages learning")} items={[appText("Learning consent, account access and financial commencement remain with your guardian.")]} />
-              </div>
+              <LearningManagementBadge label={appText(learningModes[management.data.mode].title)} items={[appText("Learning consent, account access and financial commencement remain with your guardian.")]} />
             </header>
             <p className="learner-choice-guidance">{appText(learningModes[management.data.mode].help)}</p>
             <div className="learner-choice-actions">

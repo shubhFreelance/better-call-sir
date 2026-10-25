@@ -4,6 +4,7 @@ import {useState} from "react";
 import {useInfiniteQuery, useQuery} from "@tanstack/react-query";
 import {api, type Session, type components} from "@bcs/api-client";
 import {Button} from "../components/ui/button";
+import {LearningManagementBadge} from "../components/ui/learning-management-badge";
 import {useAppTranslation} from "./locale";
 import {guardianManagementLabels} from "./guardian-verification";
 
@@ -37,7 +38,7 @@ export function StudentConnection({session, onSessionChange, compact=false}: {se
     {linked&&learner&&!context.error&&<>
       <h3>{learner.alias}</h3>
       <p>{appText("Your guardian has completed your education profile. Review your details and current permissions before choosing a teacher.")}</p>
-      {management.error?<p role="alert">{appText("Your learning permissions could not be confirmed. Open your permissions page before making decisions.")}</p>:management.data&&<p><strong>{appText("Who manages learning?")}: </strong>{appText(guardianManagementLabels[management.data.mode])}</p>}
+      {management.error?<p role="alert">{appText("Your learning permissions could not be confirmed. Open your permissions page before making decisions.")}</p>:management.data&&<p><strong>{appText("Who manages learning?")}: </strong><LearningManagementBadge label={appText(guardianManagementLabels[management.data.mode])} items={[appText("Learning consent, account access and financial commencement remain with your guardian.")]} /></p>}
       <div className="wizard-actions"><Button asChild><Link href="/dashboard">{appText("Open dashboard")}</Link></Button><Button asChild variant="outline"><Link href="/dashboard/learning-management">{appText("Review learning permissions")}</Link></Button><Button asChild variant="outline"><Link href="/onboarding/student">{appText("Review education details")}</Link></Button></div>
     </>}
     {!linked&&!invitations.error&&rows.map(row=>{
@@ -46,7 +47,7 @@ export function StudentConnection({session, onSessionChange, compact=false}: {se
       return <article key={row.id} className="care-card"><h3>{row.guardianName} · {row.learnerName}</h3>
         <p><strong>{appText(confirm?"Confirm your guardian":waiting?"Your guardian is completing setup":"This relationship needs attention")}</strong></p>
         <p>{appText(confirm?"Confirm only a guardian you recognize. This does not grant learning-data consent.":waiting?"Your guardian must finish relationship review, learning permission and education setup. Refresh here when they are done.":"This request is not active. Ask your guardian or support for help; it does not grant learning access.")}</p>
-        <p>{appText("Requested management")}: {appText(guardianManagementLabels[row.managementMode])}</p>
+        <p>{appText("Requested management")}: <LearningManagementBadge label={appText(guardianManagementLabels[row.managementMode])} items={[appText("Acknowledgment confirms the relationship you recognize. It does not make you an adult or replace separate guardian consent.")]} /></p>
         <Button asChild variant="outline"><Link href="/guardian-verification?view=student">{appText("Review relationship request")}</Link></Button>
       </article>;
     })}

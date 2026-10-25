@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Link2 } from "lucide-react";
 import type { Session, components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
+import { LearningManagementBadge } from "../components/ui/learning-management-badge";
 import { useAppTranslation } from "./locale";
 import { useHistory, HistoryPages } from "./history";
 type S = components["schemas"];
@@ -100,14 +101,14 @@ export function GuardianLearners({ session }: { session: Session }) {
                     </div>
                     <p>
                       <strong>{appText("Verification choice")}: </strong>
-                      {appText(
+                      <LearningManagementBadge label={appText(
                         {
                           GUARDIAN_ONLY: "Guardian manages learning",
                           SHARED: "Guardian and student manage together",
                           STUDENT_LED:
                             "Student manages; guardian follows progress",
                         }[row.managementMode],
-                      )}
+                      )} items={[appText("Relationship approval is separate from learning permission and profile setup.")]} />
                     </p>
                     <p className="care-help">
                       {appText(

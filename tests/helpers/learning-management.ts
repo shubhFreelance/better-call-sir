@@ -326,10 +326,7 @@ export function learningManagementTests() {
     const f = await fixture(page, { role: "STUDENT", mode: "SHARED" });
     await page.goto("/dashboard/learning-management");
     await expect(
-      page.getByRole("heading", {
-        name: "We manage learning together",
-        exact: true,
-      }),
+      page.getByText("We manage learning together", { exact:true }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", {
@@ -384,10 +381,7 @@ export function learningManagementTests() {
       page.getByText("Synthetic backend private detail"),
     ).toHaveCount(0);
     await expect(
-      page.getByRole("heading", {
-        name: "Student leads; guardian stays involved",
-        exact: true,
-      }),
+      page.getByText("Student leads; guardian stays involved", { exact:true }),
     ).toHaveCount(0);
     f.restore();
     await page
@@ -395,10 +389,7 @@ export function learningManagementTests() {
       .last()
       .click();
     await expect(
-      page.getByRole("heading", {
-        name: "Student leads; guardian stays involved",
-        exact: true,
-      }),
+      page.getByText("Student leads; guardian stays involved", { exact:true }),
     ).toBeVisible();
     expect(f.writes).toHaveLength(1);
   });
@@ -430,7 +421,14 @@ export function learningManagementTests() {
       await expect(card.locator(".learner-choice-guidance")).toHaveCSS("font-size","12px");
       await expect(card.locator(".status-badge")).toHaveCSS("font-size","11px");
       await expect(card.locator(".learner-choice-actions button")).toBeDisabled();
+      await card.locator(".learner-choice-actions button").hover();
+      await expect(card.locator(".learner-choice-actions button")).toHaveCSS("cursor","not-allowed");
       await expect(card.locator(".learner-choice-actions a")).toHaveAttribute("href","/teachers");
+      await card.locator(".learner-choice-actions a").hover();
+      await expect(card.locator(".learner-choice-actions a")).toHaveCSS("cursor","pointer");
+      await expect(card.locator(".learner-choice-actions a")).toHaveCSS("background-color","rgb(240, 215, 255)");
+      const [first,second]=await card.locator(".learner-choice-actions > *").evaluateAll(elements=>elements.map(el=>{const r=el.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height};}));
+      expect(second.y>first.y+1?second.y-first.y-first.height:second.x-first.x-first.width).toBeGreaterThanOrEqual(15.5);
       await card.locator(".info-tooltip-trigger").focus();await expect(page.getByRole("tooltip").getByRole("listitem")).toHaveCount(1);
       await page.keyboard.press("Escape");await expect(page.getByRole("tooltip")).toHaveCount(0);
       if(hindi) await checkHindi(page);
@@ -440,6 +438,11 @@ export function learningManagementTests() {
       expect(f.writes).toHaveLength(0);
     });
   }
+  test("enabled teacher-choice actions have distinct hover feedback",async({page})=>{
+    await fixture(page,{role:"STUDENT",mode:"SHARED"});await page.goto("/dashboard/learning-choices");
+    const action=page.locator(".learner-choice-actions button");await expect(action).toBeEnabled();await action.hover();
+    await expect(action).toHaveCSS("cursor","pointer");await expect(action).toHaveCSS("background-color","rgb(2, 62, 55)");
+  });
   test("a permitted student can ask a guardian to decide for one enquiry and resume without changing standing permissions", async ({
     page,
   }) => {

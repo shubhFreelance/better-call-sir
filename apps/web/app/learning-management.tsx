@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
+import { LearningManagementBadge } from "../components/ui/learning-management-badge";
 import { Notice, Feedback, useDecision } from "./tuition-workflow";
 import { useAppTranslation } from "./locale";
 type Mode = components["schemas"]["LearningManagement"]["mode"];
@@ -204,7 +205,7 @@ export function LearningManagementWorkspace({ session }: { session: Session }) {
           <p className="eyebrow">{appText("CURRENT FAMILY CHOICE")}</p>
           <h2>{selected.alias}</h2>
           <div className="management-current">
-            <h3>{appText(learningModes[visible.mode].title)}</h3>
+            <LearningManagementBadge label={appText(learningModes[visible.mode].title)} items={[appText("Only the guardian can change this permission, manage consent or confirm a financial commitment. A student can still ask their guardian to decide for one enquiry.")]} />
             <p>{appText(learningModes[visible.mode].help)}</p>
           </div>
           <Notice>
