@@ -2151,7 +2151,17 @@ test('direct guardian enquiry is immediate, scoped, negotiable and accepted with
  const proposed=await t.call('/direct-enquiries/'+item.id+'/responses',{action:'PROPOSE',expectedVersion:1,expectedSourceVersion:1,confirmed:true,format:'GROUP',timing:'Monday 6pm IST',message:'My one-to-one slots are full; a group place is available.'});assert.equal(proposed.status,201,JSON.stringify(proposed.data));assert.equal(proposed.data.status,'PROPOSED');
  assert.equal((await s.call('/direct-enquiries/'+item.id+'/responses',{action:'ACCEPT_PROPOSAL',expectedVersion:2,expectedSourceVersion:1,confirmed:true})).status,403);
  assert.equal((await g.call('/direct-enquiries/'+item.id+'/responses',{action:'ACCEPT_PROPOSAL',expectedVersion:1,expectedSourceVersion:1,confirmed:true})).status,409);
- const key=randomUUID(),decision={action:'ACCEPT_PROPOSAL',expectedVersion:2,expectedSourceVersion:1,confirmed:true};const accepted=await g.call('/direct-enquiries/'+item.id+'/responses',decision,{key});assert.equal(accepted.status,201,JSON.stringify(accepted.data));assert.equal(accepted.data.status,'ACCEPTED');assert(accepted.data.arrangementId);assert.equal((await g.call('/direct-enquiries/'+item.id+'/responses',decision,{key})).data.arrangementId,accepted.data.arrangementId);
+ const reply=(action:string,expectedVersion:number)=>({action,expectedVersion,expectedSourceVersion:1,confirmed:true});
+ assert.equal((await t.call('/direct-enquiries/'+item.id+'/responses',reply('ACCEPT',2))).status,409);
+ assert.equal(await db.placement.count({where:{requestId:created.data.id}}),0);
+ const changed=await t.call('/direct-enquiries/'+item.id+'/responses',{...reply('PROPOSE',2),format:'ONE_TO_ONE',timing:'Original Monday 5pm IST',message:'My original time is now available.'});assert.equal(changed.status,201,JSON.stringify(changed.data));
+ assert.equal((await g.call('/direct-enquiries/'+item.id+'/responses',reply('ACCEPT_PROPOSAL',2))).status,409);
+ const key=randomUUID(),decision=reply('ACCEPT_PROPOSAL',3),confirmed=await g.call('/direct-enquiries/'+item.id+'/responses',decision,{key});assert.equal(confirmed.status,201,JSON.stringify(confirmed.data));assert.equal(confirmed.data.status,'PENDING');assert.equal(confirmed.data.arrangementId,null);assert.equal(confirmed.data.proposal.familyConfirmed,true);assert.equal(await db.placement.count({where:{requestId:created.data.id}}),0);
+ assert.equal((await g.call('/direct-enquiries/'+item.id+'/responses',decision,{key})).data.version,4);
+ const edited=await t.call('/direct-enquiries/'+item.id+'/responses',{...reply('PROPOSE',4),format:'GROUP',timing:'Tuesday 6pm IST',message:'Updated time; please confirm again.'});assert.equal(edited.status,201);assert.equal(edited.data.proposal.familyConfirmed,undefined);
+ assert.equal((await t.call('/direct-enquiries/'+item.id+'/responses',reply('ACCEPT',5))).status,409);
+ assert.equal((await g.call('/direct-enquiries/'+item.id+'/responses',reply('ACCEPT_PROPOSAL',5))).status,201);
+ const acceptKey=randomUUID(),acceptBody=reply('ACCEPT',6),accepted=await t.call('/direct-enquiries/'+item.id+'/responses',acceptBody,{key:acceptKey});assert.equal(accepted.status,201,JSON.stringify(accepted.data));assert.equal(accepted.data.status,'ACCEPTED');assert(accepted.data.arrangementId);assert.equal((await t.call('/direct-enquiries/'+item.id+'/responses',acceptBody,{key:acceptKey})).data.arrangementId,accepted.data.arrangementId);
  assert.equal(await db.placement.count({where:{requestId:created.data.id}}),1);
  assert.equal((await db.placement.findUniqueOrThrow({where:{id:accepted.data.arrangementId}})).guardianAccepted,false);
  const foreign=await educationActors();assert.equal((await foreign.g.call('/direct-enquiries?cursor='+item.id)).status,404);

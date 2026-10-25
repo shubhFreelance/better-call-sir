@@ -377,7 +377,8 @@
                               "message": {
                                 "type": "string"
                               },
-                              "timezone": {
+                              "familyConfirmed": { "type": "boolean", "description": "Family confirmed this exact proposal; teacher acceptance is still required." },
+"timezone": {
                                 "type": "string",
                                 "const": "Asia/Kolkata"
                               }
@@ -676,7 +677,8 @@
                         "message": {
                           "type": "string"
                         },
-                        "timezone": {
+                        "familyConfirmed": { "type": "boolean", "description": "Family confirmed this exact proposal; teacher acceptance is still required." },
+"timezone": {
                           "type": "string",
                           "const": "Asia/Kolkata"
                         }
@@ -708,7 +710,7 @@
           }
         },
         "operationId": "respondDirectEnquiry",
-        "summary": "Assigned teacher accepts/declines/proposes; owner decides proposal; optimistic concurrency and exact retry",
+        "summary": "Teacher proposes or edits; family confirms the latest proposal; teacher then accepts. Pending proposals block acceptance. Version checks and exact retries apply.",
         "parameters": [
           {
             "name": "id",

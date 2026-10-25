@@ -472,6 +472,8 @@ class DirectEnquiriesController {
           );
         if (actor.role !== "TEACHER" && row.status !== "PROPOSED")
           fail(409, "CONFLICT", "There is no current proposal to decide.");
+        if (data.action === "ACCEPT" && row.status === "PROPOSED")
+          fail(409, "CONFLICT", "Wait for the family to confirm your latest proposal before accepting.");
         if (
           data.action !== "DECLINE" &&
           data.action !== "DECLINE_PROPOSAL" &&
@@ -502,14 +504,15 @@ class DirectEnquiriesController {
         }
         if (!["DECLINE", "DECLINE_PROPOSAL"].includes(data.action))
           await currentFit(db, row, context);
-        const accepted =
-          data.action === "ACCEPT" || data.action === "ACCEPT_PROPOSAL";
+        const accepted = data.action === "ACCEPT";
         const arrangementId = accepted
           ? await openArrangement(db, row, context)
           : null;
         const status =
           data.action === "PROPOSE"
             ? "PROPOSED"
+            : data.action === "ACCEPT_PROPOSAL"
+              ? "PENDING"
             : accepted
               ? "ACCEPTED"
               : "DECLINED";
@@ -521,8 +524,8 @@ class DirectEnquiriesController {
                 message: data.message,
                 timezone: "Asia/Kolkata",
               }
-            : data.action === "ACCEPT"
-              ? Prisma.DbNull
+            : data.action === "ACCEPT_PROPOSAL"
+              ? { ...(row.proposal as Prisma.JsonObject), familyConfirmed: true }
               : (row.proposal ?? Prisma.DbNull);
         const updated = await db.directEnquiry.update({
           where: { id },

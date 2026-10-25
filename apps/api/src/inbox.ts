@@ -153,7 +153,7 @@ export async function recordInbox(
         topic: job.type,
         actionPath: r.actionPath,
         important:
-          /request|enquiry|placement|arrangement|tuition|invited|verification|case/.test(
+          /direct\.|request|enquiry|placement|arrangement|tuition|invited|verification|case/.test(
             job.type,
           ),
       },

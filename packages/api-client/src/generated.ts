@@ -64,7 +64,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Assigned teacher accepts/declines/proposes; owner decides proposal; optimistic concurrency and exact retry */
+        /** Teacher proposes or edits; family confirms the current proposal; teacher then accepts. Pending proposals block acceptance. Version checks and exact retries apply. */
         post: operations["respondDirectEnquiry"];
         delete?: never;
         options?: never;
@@ -7724,6 +7724,8 @@ export interface operations {
                                 message?: string;
                                 /** @constant */
                                 timezone?: "Asia/Kolkata";
+                                /** @description The family confirmed this exact proposal. Teacher acceptance is still required. */
+                                familyConfirmed?: boolean;
                             } | null;
                             /** Format: uuid */
                             arrangementId: string | null;
@@ -7885,6 +7887,8 @@ export interface operations {
                             message?: string;
                             /** @constant */
                             timezone?: "Asia/Kolkata";
+                            /** @description The family confirmed this exact proposal. Teacher acceptance is still required. */
+                            familyConfirmed?: boolean;
                         } | null;
                         /** Format: uuid */
                         arrangementId: string | null;
