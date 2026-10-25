@@ -1,5 +1,7 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Preparing document…": "दस्तावेज़ तैयार हो रहा है…",
+  "Uploading document…": "दस्तावेज़ अपलोड हो रहा है…",
   "Close": "बंद करें",
   "School report for {0}": "{0} की स्कूल रिपोर्ट",
   "This document is private and available only with current permission.": "यह दस्तावेज़ निजी है और केवल वर्तमान अनुमति होने पर उपलब्ध है।",

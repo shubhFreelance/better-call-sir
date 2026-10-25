@@ -17,6 +17,7 @@ import { Feedback, Notice, useDecision } from "./tuition-workflow";
 import { InfoTooltip } from "../components/ui/info-tooltip";
 import { LearningManagementBadge } from "../components/ui/learning-management-badge";
 import { GuardianDocumentPreview } from "./guardian-document-preview";
+import { LoaderCircle, UploadCloud } from "lucide-react";
 type Child = components["schemas"]["Child"];
 type Verification = components["schemas"]["GuardianVerification"];
 type Application = components["schemas"]["GuardianVerificationInput"];
@@ -619,6 +620,7 @@ function OwnerVerification({
     root = useRef<HTMLElement>(null),
     fileRef = useRef<HTMLInputElement>(null);
   const [invitationLocked, setInvitationLocked] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [id, setId] = useState(initial?.id || ""),
     [application, setApplication] = useState<Application>(
       initial
@@ -806,7 +808,7 @@ function OwnerVerification({
             : "Student and guardian details",
         )}
       </h3>
-      <Feedback decision={decision} />
+      <Feedback decision={decision} floating />
       {(decision.conflict || unavailable || (!!id && !editing)) &&
         !decision.uncertain && (
           <Button
@@ -983,18 +985,15 @@ function OwnerVerification({
                     >
                       {appText("Edit relationship details")}
                     </Button>
-                    <section className="guardian-evidence-step">
-                      <h4>{appText("Upload the school report")}</h4>
+                    <section className="guardian-evidence-step guardian-report-upload" aria-busy={reading || uploading}>
+                      <header><UploadCloud size={24} aria-hidden="true" /><h4>{appText("Upload the school report")}</h4>
+                        <InfoTooltip label={appText("Upload the school report")} items={[appText("Keep the learner and guardian names visible. Crop unrelated grades, identifiers and other pupils. The image stays private and must pass a safety scan.")]} />
+                      </header>
                       <small>
                         {appText(
                           "PNG or JPEG, up to 5 MiB. Report images are never public.",
                         )}
                       </small>
-                      <p>
-                        {appText(
-                          "Keep the learner and guardian names visible. Crop unrelated grades, identifiers and other pupils. The image stays private and must pass a safety scan.",
-                        )}
-                      </p>
                       <label>
                         {appText("School marksheet or performance-card image")}
                         <Input
@@ -1007,18 +1006,20 @@ function OwnerVerification({
                       </label>
                       <Button
                         disabled={locked || !file}
-                        onClick={() =>
-                          decision.run({
+                        onClick={async () => {
+                          setUploading(true);
+                          try { await decision.run({
                             path: `/guardian-verifications/${id}/evidence`,
                             body: { expectedVersion: r.version, ...file },
                             message:
                               "School report uploaded privately. Scan clearance is still required.",
                             onSaved: saved,
-                          })
-                        }
+                          }); } finally { setUploading(false); }
+                        }}
                       >
                         {appText("Upload school report")}
                       </Button>
+                      {(reading || uploading) && <div className="report-upload-progress" role="status"><LoaderCircle className="upload-spinner" size={18} aria-hidden="true" />{appText(reading ? "Preparing document…" : "Uploading document…")}<span className="upload-progress-track" aria-hidden="true" /></div>}
                     </section>
                     <label className="care-check">
                       <input
@@ -1206,7 +1207,7 @@ function StudentAcknowledgments({
           "Only acknowledge someone you recognize as your guardian. You can decline a relationship that is wrong.",
         )}
       </p>
-      <Feedback decision={decision} />
+      <Feedback decision={decision} floating />
       {decision.conflict && !decision.uncertain && (
         <Button
           variant="outline"
@@ -1598,7 +1599,7 @@ function StaffVerification({
       aria-label={appText("Review guardian evidence")}
     >
       <h3>{appText("Review guardian evidence")}</h3>
-      <Feedback decision={decision} />
+      <Feedback decision={decision} floating />
       {!decision.uncertain && (!retryScan || decision.conflict || unavailable) && (
         <Button
           variant="outline"

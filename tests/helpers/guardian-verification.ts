@@ -838,6 +838,28 @@ export function guardianVerificationTests() {
     await expect(page.getByRole("button",{name:"See uploaded document",exact:true})).toHaveCount(0);
     await expect(page.getByRole("button",{name:"Record verification decision",exact:true})).toBeDisabled();
   });
+  test("upload progress stays visible and confirmation floats above the scrolled card", async ({page}) => {
+    await setup(page); await openOwner(page);
+    await page.setViewportSize({width:390,height:720});
+    await page.getByLabel("School marksheet or performance-card image",{exact:true}).setInputFiles({name:"report.png",mimeType:"image/png",buffer:image});
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    await page.route("**/guardian-verifications/*/evidence",async route => { await gate; await route.fallback(); });
+    await page.getByRole("button",{name:"Upload school report",exact:true}).click();
+    await expect(page.getByText("Uploading document…",{exact:true})).toBeVisible();
+    await expect(page.locator(".guardian-report-upload")).toHaveAttribute("aria-busy","true");
+    await expect(page.getByRole("button",{name:"Upload school report",exact:true})).toBeDisabled();
+    await page.locator(".guardian-report-upload").screenshot({path:"test-results/guardian-upload-progress.png"});
+    release();
+    const toast=page.locator(".action-toast");
+    await expect(toast).toContainText("School report uploaded privately. Scan clearance is still required.");
+    await expect(page.locator(".report-upload-progress")).toHaveCount(0);
+    await page.evaluate(() => window.scrollTo(0,document.body.scrollHeight));
+    const box=await toast.boundingBox(); expect(box!.y).toBeGreaterThanOrEqual(0); expect(box!.y+box!.height).toBeLessThan(720); expect(box!.x+box!.width).toBeLessThanOrEqual(390);
+    await page.screenshot({path:"test-results/guardian-upload-toast.png"});
+    expect((await new AxeBuilder({page}).include(".action-toast").analyze()).violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+    await toast.getByRole("button",{name:"Close",exact:true}).click(); await expect(toast).toHaveCount(0);
+  });
   test("school reports validate type, stay private in quarantine and submit only the recorded current version", async ({
     page,
   }) => {

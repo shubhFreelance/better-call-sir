@@ -29,6 +29,7 @@ import {
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Alert, AlertDescription } from "../components/ui/alert";
+import { ActionToast } from "../components/ui/action-toast";
 import {
   preferences as buildPreferences,
   localTime,
@@ -185,19 +186,22 @@ export function useDecision(
 }
 export function Feedback({
   decision,
+  floating = false,
   translate = (text: string) => text,
 }: {
   decision: ReturnType<typeof useDecision>;
+  floating?: boolean;
   translate?: (text: string) => string;
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
   return (
     <>
-      {decision.error && (
+      {floating && <ActionToast message={decision.error ? appError(translate(decision.error)) : decision.success ? appText(translate(decision.success)) : ""} error={!!decision.error} />}
+      {!floating && decision.error && (
         <Notice error>{appError(translate(decision.error))}</Notice>
       )}
-      {decision.success && (
+      {!floating && decision.success && (
         <Notice>{appText(translate(decision.success))}</Notice>
       )}
       {decision.busy && (
