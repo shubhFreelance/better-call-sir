@@ -24,6 +24,7 @@ import {
 } from "./teacher-search-state";
 import { StudentSupporters, StudentDevices } from "./independent-access";
 import { GuardianPriorities } from "./guardian-priorities";
+import { LiveBell } from "./live-bell";
 import { DirectEnquiries } from "./direct-enquiries";
 import { GuardianLearners } from "./guardian-learners";
 import {
@@ -434,6 +435,7 @@ function Header() {
             </SharedButton>
             {session ? (
               <>
+                <LiveBell session={session}/>
                 <Link className="button small secondary" href="/dashboard">
                   <span className="header-action-desktop">
                     {hindi ? "मेरा डैशबोर्ड" : appText("My dashboard")}

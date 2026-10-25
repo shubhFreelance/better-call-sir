@@ -138,6 +138,7 @@ class IdentityController {
     await db.invitation.updateMany({where:{childId:id,usedAt:null,expiresAt:{gt:new Date()}},data:{expiresAt:new Date()}});
     const invite=await db.invitation.create({data:{childId:id,guardianId:actor.id,tokenHash:hash(secret),expiresAt:new Date(Date.now()+86_400_000)}});
     const updated=await db.child.update({where:{id},data:{version:{increment:1}}});
+    await this.service.event(db,'student.invited',id);
     await this.service.audit(db,actor,req,'STUDENT_INVITATION_ISSUED',id,'Guardian issued an invitation and invalidated earlier codes');
     return {expiresAt:invite.expiresAt.toISOString(),childVersion:updated.version};
   }

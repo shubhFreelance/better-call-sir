@@ -1,3 +1,4 @@
+import {LiveInboxModule} from './modules/notifications/live-inbox.module';
 import {DirectEnquiriesModule} from './modules/direct-enquiries/direct-enquiries.module';
 import {ServiceModule} from './modules/service/service.module';
 import {NotificationsModule} from './modules/notifications/notifications.module';
@@ -35,5 +36,5 @@ import {NotesModule} from './modules/notes/notes.module';
 import {SupportModule} from './modules/support/support.module';
 import {MembershipsModule} from './modules/memberships/memberships.module';
 import {AdministrationModule} from './modules/administration/administration.module';
-@Module({imports:[DirectEnquiriesModule,ServiceModule,NotificationsModule,TuitionMinimumModule,LearningManagementModule,GuardianVerificationModule,CommercialModule,StaffModule,StudentSupportModule,StudentHiringModule,StudentEnquiriesModule,IndependentStudentsModule,LearnersModule,MfaModule,AnalyticsModule,PrivacyModule,MeetingsModule,PaymentsModule,RecurringModule,StudentAccessModule,OnboardingModule,SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,PlacementsModule,TeachersModule,RevisionModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
+@Module({imports:[LiveInboxModule,DirectEnquiriesModule,ServiceModule,NotificationsModule,TuitionMinimumModule,LearningManagementModule,GuardianVerificationModule,CommercialModule,StaffModule,StudentSupportModule,StudentHiringModule,StudentEnquiriesModule,IndependentStudentsModule,LearnersModule,MfaModule,AnalyticsModule,PrivacyModule,MeetingsModule,PaymentsModule,RecurringModule,StudentAccessModule,OnboardingModule,SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,PlacementsModule,TeachersModule,RevisionModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
 export class AppModule {}

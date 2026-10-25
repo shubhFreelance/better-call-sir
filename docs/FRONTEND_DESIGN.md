@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Live notification bell — 24 October 2026
+
+Use a44px ivory/teal bell with a compact unread counter in the header. The390px non-modal popover has a sage #E4E4D0 header, white cards and restrained lavender #F0D7FF icon tiles/priority backgrounds. Small readable typography distinguishes event, priority, timestamp and action. Retain the page behind it, keyboard/outside dismissal, read receipts and explicit offline/error/empty states. Reuse protected recipient-scoped APIs; send only invalidation over Socket.IO. Keep email history separate and never expose evidence or invitation secrets.
+
 ## Direct teacher conversations — 24 October 2026
 
 Use the owner’s #E4E4D0 count card with a lavender clipboard tile, existing Manrope/Noto typography and quiet ivory/white enquiry disclosures. Keep every row collapsed initially and newest first; show learner, family, subject and received time in the summary, then highlight preferred time and relevant academic details inside. Reuse explicit, confirmed decision forms for accept/decline and one-to-one/group alternatives. Families decide proposals directly. Staff see regional read-only oversight. Retain pagination, stale-version/uncertain-response handling, English/Hindi, keyboard operation and mobile wrapping. New notification badges, in-app alerts, delivery queues and email are deferred by the owner.

@@ -202,3 +202,7 @@ test("staff can inspect direct enquiries without reply controls; failed reads ne
   await expect(panel.getByRole("alert")).toBeVisible();
   await expect(panel.locator(".direct-inbox-count strong")).toHaveText("—");
 });
+
+test('notification deep link opens the selected enquiry and retains access to the full inbox',async({page})=>{
+ const {items}=await inbox(page);await page.goto('/dashboard/enquiries?conversation='+items[1].id);const cards=page.locator('.direct-inbox details');await expect(cards).toHaveCount(3);await expect(cards.nth(1)).toHaveAttribute('open','');await expect(cards.first()).not.toHaveAttribute('open');await page.locator('.direct-inbox').getByRole('link',{name:'All enquiries',exact:true}).click();await expect(page).toHaveURL(/\/dashboard\/enquiries$/);
+});

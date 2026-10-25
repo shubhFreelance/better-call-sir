@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read own live notification history */
+        get: operations["getLiveInbox"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/inbox/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark own notification read; repeated requests are safe */
+        post: operations["readLiveNotification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/direct-enquiries": {
         parameters: {
             query?: never;
@@ -7507,11 +7541,150 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getLiveInbox: {
+        parameters: {
+            query?: {
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Own durable notifications and unread count */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            id: string;
+                            topic: string;
+                            actionPath: string;
+                            important: boolean;
+                            /** Format: date-time */
+                            readAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                        }[];
+                        unread: number;
+                        /** Format: uuid */
+                        nextCursor: string | null;
+                        tasks: {
+                            /** Format: uuid */
+                            id: string;
+                            title: string;
+                            actionPath: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Invalid input or current-state conflict */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Session required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Cursor unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid input or current-state conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    readLiveNotification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Own notification read receipt */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        read: boolean;
+                    };
+                };
+            };
+            /** @description Invalid input or current-state conflict */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Session required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Notification unavailable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid input or current-state conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     getDirectEnquiries: {
         parameters: {
             query?: {
                 cursor?: string;
                 limit?: number;
+                /** @description Open one owned enquiry while retaining overall counts. */
+                id?: string;
             };
             header?: never;
             path?: never;

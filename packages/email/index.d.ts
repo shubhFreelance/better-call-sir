@@ -41,3 +41,4 @@ export function enqueueEvent(
   db: any,
   job: { id: string; type: string; aggregateId: string; createdAt?: Date },
 ): Promise<void>;
+export function notificationTargets(db:any,job:{type:string;aggregateId:string}):Promise<{accountId?:string;to?:string;actionPath:string}[]>;

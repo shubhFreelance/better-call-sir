@@ -1,3 +1,4 @@
+import {liveSocket} from './live-socket';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
 import {Module, Controller, Get, Post, Param, Query, Body, Req, Res, Injectable, Inject, HttpException, Catch, ExceptionFilter, ArgumentsHost} from '@nestjs/common';
@@ -46,6 +47,8 @@ async function bootstrap() {
   const normal=json({limit:'64kb'}),upload=json({limit:'8mb'}),webhook=json({limit:'128kb',verify:(req,_,buffer)=>{(req as HttpRequest).rawBody=Buffer.from(buffer);}});
   app.use((req:HttpRequest,res:Response,next:(error?:unknown)=>void)=>{const parser=['/api/v1/billing/webhooks/razorpay','/api/v1/notifications/webhooks/resend'].includes(req.path)?webhook:req.method==='POST'&&/^\/api\/v1\/(?:teachers|guardian-verifications)\/[^/]+\/evidence$/.test(req.path)?upload:normal;parser(req,res,error=>{if(!error)return next();const large=error.type==='entity.too.large';res.status(large?413:400).json({code:large?'UPLOAD_TOO_LARGE':'INVALID_JSON',message:large?'The request body exceeds the upload limit.':'Request JSON is invalid.',requestId:req.requestId});});});
   app.useGlobalFilters(new ErrorFilter());app.enableShutdownHooks();
+  const live=liveSocket(app.getHttpServer(),service);
+  app.getHttpServer().on("close",()=>live.close());
   await app.listen(Number(process.env.PORT || 4000),'0.0.0.0');
   const server=app.getHttpServer();server.requestTimeout=15000;server.headersTimeout=10000;server.timeout=30000;server.keepAliveTimeout=5000;
 }

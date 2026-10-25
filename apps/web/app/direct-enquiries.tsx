@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type Session, type paths } from "@bcs/api-client";
 import { ClipboardList, ChevronDown } from "lucide-react";
@@ -27,12 +28,15 @@ export function DirectEnquiries({ session }: { session: Session }) {
     [format, setFormat] = useState("ONE_TO_ONE"),
     [timing, setTiming] = useState(""),
     [message, setMessage] = useState("");
-  const cursor = cursors.at(-1);
+  const conversation = useSearchParams().get("conversation");
+  const cursor = conversation ? undefined : cursors.at(-1);
   const query = useQuery({
-    queryKey: ["direct-enquiries", session.account.id, cursor],
+    queryKey: ["direct-enquiries", session.account.id, cursor, conversation],
     queryFn: ({ signal }) =>
       api<Inbox>(
-        "/direct-enquiries?limit=10" + (cursor ? "&cursor=" + cursor : ""),
+        "/direct-enquiries?limit=10" +
+          (cursor ? "&cursor=" + cursor : "") +
+          (conversation ? "&id=" + encodeURIComponent(conversation) : ""),
         { signal },
       ),
     retry: false,
@@ -153,6 +157,11 @@ export function DirectEnquiries({ session }: { session: Session }) {
           </p>
         </div>
       </header>
+      {conversation && (
+        <Button asChild variant="outline">
+          <Link href="/dashboard/enquiries">{appText("All enquiries")}</Link>
+        </Button>
+      )}
       <Feedback decision={decision} />
       {query.isPending && <p role="status">{appText("Loading enquiries…")}</p>}
       {query.error ? (
@@ -183,7 +192,11 @@ export function DirectEnquiries({ session }: { session: Session }) {
             },
             education = l.education ?? l;
           return (
-            <details className="direct-enquiry-card" key={item.id}>
+            <details
+              className="direct-enquiry-card"
+              key={item.id}
+              open={conversation === item.id ? true : undefined}
+            >
               <summary>
                 <div>
                   <strong>{l.name}</strong>

@@ -985,3 +985,16 @@ model DirectEnquiry {
  @@index([ownerId,createdAt,id])
  @@index([region,createdAt,id])
 }
+
+model InboxNotification {
+ id String @id @default(uuid()) @db.Uuid
+ accountId String @db.Uuid
+ eventId String @db.Uuid
+ topic String
+ actionPath String
+ important Boolean @default(false)
+ readAt DateTime?
+ createdAt DateTime @default(now())
+ @@unique([accountId,eventId])
+ @@index([accountId,createdAt,id])
+}
