@@ -2,6 +2,7 @@ import {test,expect} from "@playwright/test";
 import {dashboard} from "./dashboard-redesign";
 import {chooseHindi} from "./hindi";
 import {translateText} from "../../apps/web/app/locale";
+import AxeBuilder from "@axe-core/playwright";
 const first="30000000-0000-4000-8000-000000000801",second="30000000-0000-4000-8000-000000000802";
 for(const mode of ["pending","complete","error","pending-phone-hi"])test(`guardian overview remaining steps are authoritative (${mode})`,async({page})=>{
  const hi=mode==="pending-phone-hi",t=(text:string)=>translateText(hi,text);
@@ -18,6 +19,14 @@ for(const mode of ["pending","complete","error","pending-phone-hi"])test(`guardi
  await page.goto("/dashboard");
  const card=page.locator(".guardian-priorities"),badge=page.locator(hi?".dashboard-mobile-nav .guardian-priority-dot":".dashboard-desktop-nav .guardian-priority-dot");
  if(mode==="complete"){await expect(card).toHaveCount(0);await expect(badge).toHaveCount(0);return;}
+ await expect(card).toHaveCSS("background-color","rgb(3, 79, 70)");
+ await expect(card.locator(".guardian-priorities-note")).toHaveCSS("font-size","12px");
+ await expect(card).toContainText(t("Pending staff review does not need another submission."));
+ const info=card.locator(".info-tooltip-trigger");await info.scrollIntoViewIfNeeded();await info.focus();await info.press("Enter");await expect(page.getByRole("tooltip")).toContainText(t("Complete these steps for each child. Pending staff review does not need another submission."));await page.keyboard.press("Escape");
+ const refresh=card.getByRole("button",{name:t("Refresh remaining steps"),exact:true});await expect(refresh).toHaveCSS("background-color","rgb(255, 255, 235)");await refresh.hover();await expect(refresh).toHaveCSS("background-color","rgb(240, 215, 255)");
+ const a=await new AxeBuilder({page}).include(".guardian-priorities").analyze();expect(a.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await card.screenshot({path:`test-results/guardian-priorities-${mode}.png`,style:"nextjs-portal{display:none!important}"});
  if(mode==="error"){await expect(card.getByRole("alert")).toBeVisible();await expect(badge).toHaveText("!");return;}
  await expect(card).toContainText(t("Your verification is pending"));await expect(card).toContainText(t("Child profile setup is remaining — step 6"));
  if(hi)await page.locator(".dashboard-mobile-trigger").click();
