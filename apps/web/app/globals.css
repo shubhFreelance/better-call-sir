@@ -6080,7 +6080,21 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .direct-enquiry-card summary > div:first-child { flex:1; min-width:0; }
 .direct-enquiry-card summary strong { font-size:19px; color:#034F46; }
 .direct-enquiry-card summary span { display:block; font-size:14px; line-height:1.6; }
-.direct-enquiry-summary-meta { text-align:right; font-size:13px; color:#394239; }
+.direct-enquiry-summary-meta { display:flex; flex-direction:column; align-items:flex-end; gap:6px; text-align:right; font-size:13px; color:#394239; }
+.status-tone-accent { --status-ink:#583575; --status-fill:#F0E2FA; --status-line:#DCC2EF; }
+.status-tone-warning { --status-ink:#705000; --status-fill:#FFF5CE; --status-line:#E8D593; }
+.status-tone-success { --status-ink:#245437; --status-fill:#E8F3E7; --status-line:#C8DCC3; }
+.status-tone-danger { --status-ink:#952D35; --status-fill:#FCEBED; --status-line:#EFC7CD; }
+.status-tone-neutral { --status-ink:#45534A; --status-fill:#F0F2ED; --status-line:#D9DFD3; }
+.status-filters { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 16px; }
+.status-filters .status-filter { min-height:44px; height:auto; padding:10px 14px; border:1px solid var(--status-line); border-radius:10px; background:#FFF; color:var(--status-ink); font-size:13px; line-height:1.5; white-space:normal; }
+.status-filters .status-filter:hover,.status-filters .status-filter[aria-pressed=true] { background:var(--status-fill); }
+.status-filters .status-filter[aria-pressed=true] { border-color:var(--status-ink); box-shadow:inset 0 0 0 1px var(--status-ink); }
+.direct-enquiry-summary-meta .status-badge,.status-badge { display:inline-flex; align-items:center; gap:5px; max-width:100%; padding:4px 8px; border:1px solid var(--status-line); border-radius:6px; background:var(--status-fill); color:var(--status-ink); font-size:11px; line-height:1.5; text-align:left; vertical-align:middle; }
+.status-badge svg { flex-shrink:0; }
+.direct-enquiry-summary-meta .status-badge { margin-top:0; }
+@media(max-width:480px) { .status-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .status-filters .status-filter { padding:8px; font-size:12px; } }
+@media(max-width:640px) { .direct-enquiry-summary-meta { align-items:flex-start; } }
 .direct-enquiry-card summary:focus-visible { outline:2px solid #000; outline-offset:3px; border-radius:16px; }
 .direct-enquiry-card[open] > summary { background:#F3F1EB; border-radius:16px 16px 0 0; }
 .direct-enquiry-card[open] > summary > svg { transform:rotate(180deg); }

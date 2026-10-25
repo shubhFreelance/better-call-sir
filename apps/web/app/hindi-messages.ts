@@ -1,5 +1,8 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "All": "सभी",
+  "Filter enquiries": "अनुरोध छाँटें",
+  "No enquiries match this filter.": "इस फ़िल्टर में कोई अनुरोध नहीं मिला।",
   "Manage your child here. Each relationship and invitation has its own permissions.": "यहाँ अपने बच्चे की पढ़ाई सँभालें। हर रिश्ते और निमंत्रण की अनुमतियाँ अलग हैं।",
   "Hi, Verify each additional child separately.": "नमस्ते, हर अतिरिक्त बच्चे के लिए रिश्ते की पुष्टि अलग से कराएँ।",
   "Welcome, {0}.": "स्वागत है, {0}।",

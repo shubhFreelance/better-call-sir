@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type Session, type paths } from "@bcs/api-client";
-import { ClipboardList, ChevronDown } from "lucide-react";
+import { ClipboardList, ChevronDown, ListFilter, Clock3, CircleCheck, CircleX, MessageSquare, CircleMinus } from "lucide-react";
+import { StatusBadge, StatusFilters } from "../components/ui/status-controls";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
@@ -13,6 +14,7 @@ import { useDecision, Feedback } from "./tuition-workflow";
 type Inbox =
   paths["/direct-enquiries"]["get"]["responses"][200]["content"]["application/json"];
 type Item = Inbox["items"][number];
+type Filter = "ALL" | "PENDING" | "ACCEPTED" | "DECLINED";
 type Action =
   | "ACCEPT"
   | "DECLINE"
@@ -23,6 +25,7 @@ export function DirectEnquiries({ session }: { session: Session }) {
   const { appText, appCurriculum, appLocale } = useAppTranslation(),
     client = useQueryClient();
   const [cursors, setCursors] = useState<string[]>([]),
+    [filter, setFilter] = useState<Filter>("ALL"),
     [review, setReview] = useState<{ item: Item; action: Action } | null>(null),
     [confirmed, setConfirmed] = useState(false),
     [format, setFormat] = useState("ONE_TO_ONE"),
@@ -30,12 +33,14 @@ export function DirectEnquiries({ session }: { session: Session }) {
     [message, setMessage] = useState("");
   const conversation = useSearchParams().get("conversation");
   const cursor = conversation ? undefined : cursors.at(-1);
+  const status = conversation ? "ALL" : filter;
   const query = useQuery({
-    queryKey: ["direct-enquiries", session.account.id, cursor, conversation],
+    queryKey: ["direct-enquiries", session.account.id, cursor, conversation, status],
     queryFn: ({ signal }) =>
       api<Inbox>(
         "/direct-enquiries?limit=10" +
           (cursor ? "&cursor=" + cursor : "") +
+          (status !== "ALL" ? "&status=" + status : "") +
           (conversation ? "&id=" + encodeURIComponent(conversation) : ""),
         { signal },
       ),
@@ -157,6 +162,15 @@ export function DirectEnquiries({ session }: { session: Session }) {
           </p>
         </div>
       </header>
+      {!conversation && <StatusFilters<Filter> label={appText("Filter enquiries")}
+        value={filter} disabled={decision.locked} onChange={next => {
+          setFilter(next); setCursors([]); setReview(null);
+        }} options={[
+          { value: "ALL", label: appText("All"), tone: "accent", icon: ListFilter },
+          { value: "PENDING", label: appText("Awaiting teacher reply"), tone: "warning", icon: Clock3 },
+          { value: "ACCEPTED", label: appText("Accepted"), tone: "success", icon: CircleCheck },
+          { value: "DECLINED", label: appText("Declined"), tone: "danger", icon: CircleX },
+        ]} />}
       {conversation && (
         <Button asChild variant="outline">
           <Link href="/dashboard/enquiries">{appText("All enquiries")}</Link>
@@ -169,7 +183,7 @@ export function DirectEnquiries({ session }: { session: Session }) {
           {appText("Enquiries could not be loaded. Refresh before acting.")}
         </p>
       ) : query.data && !query.data.items.length ? (
-        <p>{appText("No direct enquiries yet.")}</p>
+        <p role="status">{appText(status === "ALL" ? "No direct enquiries yet." : "No enquiries match this filter.")}</p>
       ) : null}
       {!query.error &&
         query.data?.items.map((item) => {
@@ -220,8 +234,8 @@ export function DirectEnquiries({ session }: { session: Session }) {
                       timeStyle: "short",
                     })}
                   </time>
-                  <span>
-                    {appText(
+                  <StatusBadge
+                    label={appText(
                       !item.sourceOpen &&
                         ["PENDING", "PROPOSED"].includes(item.status)
                         ? "Closed"
@@ -233,7 +247,9 @@ export function DirectEnquiries({ session }: { session: Session }) {
                               ? "Accepted"
                               : "Declined",
                     )}
-                  </span>
+                    tone={!item.sourceOpen && ["PENDING", "PROPOSED"].includes(item.status) ? "neutral" : item.status === "PENDING" ? "warning" : item.status === "ACCEPTED" ? "success" : item.status === "DECLINED" ? "danger" : "accent"}
+                    icon={!item.sourceOpen && ["PENDING", "PROPOSED"].includes(item.status) ? CircleMinus : item.status === "PENDING" ? Clock3 : item.status === "ACCEPTED" ? CircleCheck : item.status === "DECLINED" ? CircleX : MessageSquare}
+                  />
                 </div>
                 <ChevronDown size={18} aria-hidden="true" />
               </summary>

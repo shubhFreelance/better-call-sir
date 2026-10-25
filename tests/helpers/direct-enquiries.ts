@@ -1,11 +1,13 @@
 import { test, expect, type Page } from "@playwright/test";
 import { dashboard } from "./dashboard-redesign";
 import { chooseHindi, checkHindi } from "./hindi";
+import AxeBuilder from "@axe-core/playwright";
 const id = "10000000-0000-4000-8000-000000000661";
-async function inbox(page: Page, role = "TEACHER") {
+async function inbox(page: Page, role = "TEACHER", pageSize = 10) {
   await dashboard(page, role);
   await page.route("**/api/v1/student-opportunities**",route=>route.fulfill({json:{items:[],nextCursor:null}}));
   const writes: any[] = [];
+  const reads: string[] = [];
   const items = [0, 1, 2].map((n) => ({
     id: `20000000-0000-4000-8000-00000000066${n}`,
     kind: "GUARDIAN",
@@ -64,19 +66,72 @@ async function inbox(page: Page, role = "TEACHER") {
       });
       return route.fulfill({ status: 201, json: item });
     }
+    const url = new URL(route.request().url());
+    reads.push(url.search);
+    const filtered = items.filter(item => !url.searchParams.has("status") || item.status === url.searchParams.get("status") && (item.status !== "PENDING" || item.sourceOpen));
+    const offset = url.searchParams.has("cursor") ? filtered.findIndex(item => item.id === url.searchParams.get("cursor")) + 1 : 0;
+    const pageItems = filtered.slice(offset, offset + pageSize);
     return route.fulfill({
       json: {
-        items,
+        items: pageItems,
         counts: items.reduce(
           (m: any, i) => ((m[i.status] = (m[i.status] ?? 0) + 1), m),
           {},
         ),
-        nextCursor: null,
+        nextCursor: offset + pageSize < filtered.length ? pageItems.at(-1)!.id : null,
       },
     });
   });
-  return { writes, items };
+  return { writes, items, reads };
 }
+for (const role of ["GUARDIAN", "TEACHER", "STUDENT", "INDEPENDENT_STUDENT", "ADMIN", "OPERATOR"]) {
+  test(`shared enquiry filters and status badges work for ${role}`, async ({ page }) => {
+    const { items } = await inbox(page, role);
+    const hindi = role === "GUARDIAN";
+    if (hindi) { await chooseHindi(page); await page.setViewportSize({ width: 320, height: 1000 }); }
+    items[1].status = "ACCEPTED";
+    items[2].status = "DECLINED";
+    items.push({ ...items[0], id: "20000000-0000-4000-8000-000000000669", status: "PROPOSED" });
+    items.push({ ...items[0], id: "20000000-0000-4000-8000-000000000668", sourceOpen: false });
+    await page.goto(role === "OPERATOR" ? "/dashboard" : "/dashboard/enquiries");
+    const panel = page.locator(".direct-inbox"), filters = panel.getByRole("group", { name: hindi ? "अनुरोध छाँटें" : "Filter enquiries" });
+    await expect(panel.locator("details")).toHaveCount(5);
+    const labels = hindi ? ["सभी", "शिक्षक के जवाब की प्रतीक्षा", "स्वीकार किया", "मना किया"] : ["All", "Awaiting teacher reply", "Accepted", "Declined"];
+    for (const [index, tone] of [[1, "warning"], [2, "success"], [3, "danger"]] as const) {
+      const button = filters.getByRole("button", { name: labels[index], exact: true });
+      await button.focus(); await page.keyboard.press("Enter");
+      await expect(button).toHaveAttribute("aria-pressed", "true");
+      await expect(panel.locator("details")).toHaveCount(1);
+      await expect(panel.locator(`summary .status-badge.status-tone-${tone}`)).toHaveCount(1);
+      await expect(panel.locator("summary .status-badge svg")).toHaveCount(1);
+      await expect(panel.locator("summary .status-badge")).toHaveCSS("font-size", "11px");
+    }
+    await filters.getByRole("button", { name: labels[0], exact: true }).click();
+    await expect(panel.locator("details")).toHaveCount(5);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (hindi) await checkHindi(page);
+    const accessibility = await new AxeBuilder({ page }).include(".direct-inbox").analyze();
+    expect(accessibility.violations.filter(item => ["serious", "critical"].includes(item.impact || ""))).toEqual([]);
+    await panel.screenshot({ path: `test-results/enquiry-filters-${role}.png` });
+  });
+}
+
+test("changing enquiry filters resets pagination and empty filters are explicit", async ({ page }) => {
+  const { items, reads } = await inbox(page, "TEACHER", 1);
+  items[1].status = "ACCEPTED"; items[2].status = "ACCEPTED";
+  await page.goto("/dashboard/enquiries");
+  const panel = page.locator(".direct-inbox"), filters = panel.getByRole("group", { name: "Filter enquiries" });
+  await filters.getByRole("button", { name: "Accepted", exact: true }).click();
+  await expect(panel.locator("details").first()).toContainText("Learner 1");
+  await panel.getByRole("button", { name: "Older enquiries", exact: true }).click();
+  await expect(panel.locator("details").first()).toContainText("Learner 2");
+  await filters.getByRole("button", { name: "Declined", exact: true }).click();
+  await expect(panel.getByRole("status")).toHaveText("No enquiries match this filter.");
+  expect(reads.at(-1)).toContain("status=DECLINED"); expect(reads.at(-1)).not.toContain("cursor=");
+  await filters.getByRole("button", { name: "Accepted", exact: true }).click();
+  await expect(panel.locator("details").first()).toContainText("Learner 1");
+});
+
 test("teacher compact inbox, keyboard expansion, proposal and accepted arrangement", async ({
   page,
 }) => {
