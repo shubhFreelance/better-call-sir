@@ -5908,6 +5908,11 @@ html body .hiring-counts > .overview-stat-card { position:relative; background:v
 .overview-card-art { display:grid; place-items:center; width:72px; height:72px; border-radius:16px; margin:0 0 24px; color:#191919; }
 .overview-card-art.is-lavender { background:var(--green); }
 .overview-card-art.is-teal { background:var(--primary); color:var(--card-inset); }
+.dashboard-content :is(.hiring-profile,.hiring-help,.independent-profile,.independent-guide):has(> .overview-card-art) { display:grid; grid-template-columns:72px minmax(0,1fr); column-gap:16px; align-content:start; }
+.dashboard-content :is(.hiring-profile,.hiring-help,.independent-profile,.independent-guide) > :not(.overview-card-art) { grid-column:1 / -1; }
+.dashboard-content :is(.hiring-profile,.hiring-help,.independent-profile,.independent-guide) > .overview-card-art { grid-column:1; grid-row:1; margin:0 0 20px; align-self:start; }
+.dashboard-content :is(.hiring-profile,.hiring-help,.independent-profile,.independent-guide) > .overview-card-art + :is(h2,h3,.hiring-section-heading) { grid-column:2; grid-row:1; margin:0 0 20px; align-self:center; min-width:0; }
+@media(max-width:640px) { .dashboard-content :is(.hiring-profile,.hiring-help,.independent-profile,.independent-guide):has(> .overview-card-art) { grid-template-columns:60px minmax(0,1fr); } }
 html body .hiring-card-grid .hiring-record,
 html body .dashboard-content .independent-summary { background:var(--card-inset); }
 .guardian-learner-cards > li { background:var(--card-inset); border:1px solid var(--card-border); border-radius:14px; padding:18px; margin-top:14px; }

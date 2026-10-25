@@ -147,6 +147,14 @@ for (const hi of [false, true]) {
         await expect(page.locator(".tone-teal .overview-stat-art")).toHaveCSS("background-color", "rgb(3, 79, 70)");
       }
       if (role === "TEACHER") {
+        await expect(page.locator(".hiring-profile .overview-card-art")).toHaveCount(1);
+      }
+      for(const icon of await page.locator(".dashboard-content .overview-card-art").all()) {
+        const layout=await icon.evaluate(el=>{const art=el.getBoundingClientRect(),heading=el.nextElementSibling!.getBoundingClientRect();return{right:art.right,x:heading.x,top:art.top,bottom:art.bottom,titleTop:heading.top,titleBottom:heading.bottom};});
+        expect(layout.x).toBeGreaterThanOrEqual(layout.right+15);
+        expect(layout.titleTop).toBeLessThan(layout.bottom);expect(layout.titleBottom).toBeGreaterThan(layout.top);
+      }
+      if (role === "TEACHER") {
         await expect(page.locator(".teacher-dashboard-details")).toContainText(
           "MSc Mathematics",
         );
