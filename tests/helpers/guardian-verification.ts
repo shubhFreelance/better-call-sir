@@ -591,6 +591,11 @@ export function guardianVerificationTests() {
       );
       await expect(page.locator('.verification-summary-card .learning-management-badge')).toBeVisible();
       await expect(page.locator('.guardian-management-summary')).toHaveCount(0);
+      if (status === "PENDING") {
+        await expect(page.locator('.guardian-review-notice')).toHaveCSS("background-color","rgb(248, 237, 255)");
+        await expect(page.locator('.guardian-review-notice p')).toHaveCSS("font-size","13px");
+        await expect(page.locator('.guardian-verification-actions .filter-button').filter({hasText:"Cancel verification request"})).toBeVisible();
+      }
       if (label) await expect(current).toHaveText(new RegExp(label));
       else {
         await expect(current).toHaveCount(0);
@@ -849,6 +854,7 @@ export function guardianVerificationTests() {
     await expect(page.getByText("Uploading document…",{exact:true})).toBeVisible();
     await expect(page.locator(".guardian-report-upload")).toHaveAttribute("aria-busy","true");
     await expect(page.getByRole("button",{name:"Upload school report",exact:true})).toBeDisabled();
+    await expect(page.locator('.guardian-verification-actions .filter-button')).toHaveCount(2);
     await page.locator(".guardian-report-upload").screenshot({path:"test-results/guardian-upload-progress.png"});
     await page.clock.install();
     release();

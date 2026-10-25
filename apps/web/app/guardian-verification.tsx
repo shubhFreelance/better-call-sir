@@ -1034,33 +1034,14 @@ function OwnerVerification({
                         )}
                       </span>
                     </label>
-                    <Button
-                      disabled={
-                        locked ||
-                        !confirmed ||
-                        !r.evidence ||
-                        ["INFECTED", "DELETED"].includes(r.evidence.status)
-                      }
-                      onClick={() =>
-                        decision.run({
-                          path: `/guardian-verifications/${id}/submissions`,
-                          body: { expectedVersion: r.version, confirmed: true },
-                          message:
-                            "Verification submitted. Follow acknowledgment, scan and staff-review progress here.",
-                          onSaved: saved,
-                        })
-                      }
-                    >
-                      {appText("Send for staff review")}
-                    </Button>
                   </>
                 )}
                 {r.status === "PENDING" && (
-                  <Notice>
-                    {appText(
-                      "Staff will review the report and relationship. If the guardian name is missing or does not match, a video or phone review is required. You can explore teachers while waiting.",
-                    )}
-                  </Notice>
+                  <aside className="guardian-review-notice">
+                    <h4>{appText("Staff review")} <InfoTooltip label={appText("Staff review")} items={[appText("Staff will review the report and relationship. If the guardian name is missing or does not match, a video or phone review is required. You can explore teachers while waiting.")]} /></h4>
+                    <p>{appText("Our team checks the relationship and asks for changes if needed.")}</p>
+                    <small>{appText("You can explore teachers while waiting.")}</small>
+                  </aside>
                 )}
                 {r.status === "APPROVED" && (
                   <section className="guardian-evidence-step">
@@ -1096,11 +1077,29 @@ function OwnerVerification({
                       ))}
                   </section>
                 )}
-                {["DRAFT", "PENDING", "CHANGES_REQUESTED"].includes(
-                  r.status,
-                ) && (
-                  <Button
-                    variant="outline"
+                {["DRAFT", "PENDING", "CHANGES_REQUESTED"].includes(r.status) && <FilterButtonGroup className="guardian-verification-actions">
+                {editable(r) && (
+                    <FilterButton accent
+                      disabled={
+                        locked ||
+                        !confirmed ||
+                        !r.evidence ||
+                        ["INFECTED", "DELETED"].includes(r.evidence.status)
+                      }
+                      onClick={() =>
+                        decision.run({
+                          path: `/guardian-verifications/${id}/submissions`,
+                          body: { expectedVersion: r.version, confirmed: true },
+                          message:
+                            "Verification submitted. Follow acknowledgment, scan and staff-review progress here.",
+                          onSaved: saved,
+                        })
+                      }
+                    >
+                      {appText("Send for staff review")}
+                    </FilterButton>
+                )}
+                  <FilterButton
                     disabled={locked}
                     onClick={() =>
                       decision.run({
@@ -1112,8 +1111,8 @@ function OwnerVerification({
                     }
                   >
                     {appText("Cancel verification request")}
-                  </Button>
-                )}
+                  </FilterButton>
+                </FilterButtonGroup>}
               </>
             )
           )}

@@ -6381,3 +6381,7 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 @keyframes upload-slide { to { transform:translateX(150%); } }
 @media(max-width:640px) { .action-toast { top:12px; right:16px; } .guardian-verification-editor .guardian-report-upload { padding:16px; } }
 @media(prefers-reduced-motion:reduce) { .upload-spinner,.upload-progress-track::after { animation:none; } }
+.guardian-review-notice { margin-block:20px 16px; padding:20px; border:1px solid #DAB7EC; border-radius:14px; background:#F8EDFF; }
+.guardian-review-notice h4 { display:flex; align-items:center; gap:8px; margin:0 0 8px; color:#034F46; font-size:15px; }
+.guardian-verification-editor .guardian-review-notice p { margin:0; color:#344A43; font-size:13px; line-height:1.65; }
+.guardian-review-notice small { display:block; margin-top:10px; padding:10px 12px; border-radius:8px; background:#FFFFEB; color:#034F46; font-size:12px; }
