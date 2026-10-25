@@ -7,6 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import { api, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { LearningManagementBadge } from "../components/ui/learning-management-badge";
+import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
+import { ShieldCheck, UsersRound } from "lucide-react";
 import { Notice, Feedback, useDecision } from "./tuition-workflow";
 import { useAppTranslation } from "./locale";
 type Mode = components["schemas"]["LearningManagement"]["mode"];
@@ -80,14 +82,16 @@ export function LearningManagementWorkspace({ session }: { session: Session }) {
   }, [editing]);
   return (
     <section className="care-workspace learning-management-workspace">
-      <header>
-        <p className="eyebrow">{appText("LEARNING TOGETHER")}</p>
+      <header className="management-page-heading">
+        <UsersRound size={26} aria-hidden="true" />
+        <div>
         <h1>{appText("Who manages learning?")}</h1>
         <p>
           {appText(
             "A clear choice for your family. Learning decisions stay separate from consent, account access and financial commitments.",
           )}
         </p>
+        </div>
       </header>
       {profiles.isPending && (
         <p role="status">{appText("Loading learner profiles…")}</p>
@@ -109,7 +113,7 @@ export function LearningManagementWorkspace({ session }: { session: Session }) {
       {!profiles.error && profiles.data && (
         <>
           {profiles.data.items.length > 0 ? (
-            <label className="field">
+            <label className="field management-learner-select">
               {appText("Choose a learner")}
               <select
                 value={selected?.id || chosen}
@@ -137,10 +141,9 @@ export function LearningManagementWorkspace({ session }: { session: Session }) {
           {(cursors.length > 0 || !!profiles.data.nextCursor) && (
             <nav
               aria-label={appText("Learner history pages")}
-              className="care-actions"
+              className="filter-button-group"
             >
-              <Button
-                variant="outline"
+              <FilterButton
                 disabled={locked || !cursors.length || profiles.isFetching}
                 onClick={() => {
                   setChosen("");
@@ -148,9 +151,8 @@ export function LearningManagementWorkspace({ session }: { session: Session }) {
                 }}
               >
                 {appText("Previous")}
-              </Button>
-              <Button
-                variant="outline"
+              </FilterButton>
+              <FilterButton
                 disabled={
                   locked || !profiles.data.nextCursor || profiles.isFetching
                 }
@@ -160,7 +162,7 @@ export function LearningManagementWorkspace({ session }: { session: Session }) {
                 }}
               >
                 {appText("Next")}
-              </Button>
+              </FilterButton>
             </nav>
           )}
           {chosen && !selected && (
@@ -200,25 +202,18 @@ export function LearningManagementWorkspace({ session }: { session: Session }) {
         </Notice>
       )}
       {visible && selected && (
-        <article className="care-card">
-          <p className="eyebrow">{appText("CURRENT FAMILY CHOICE")}</p>
+        <article className="care-card management-choice-card">
+          <header className="management-card-heading">
+          <p>{appText("Current family choice")}</p>
           <h2>{selected.alias}</h2>
+          </header>
           <div className="management-current">
-            <LearningManagementBadge label={appText(learningModes[visible.mode].title)} items={[appText("Only the guardian can change this permission, manage consent or confirm a financial commitment. A student can still ask their guardian to decide for one enquiry.")]} />
+            <LearningManagementBadge label={appText(learningModes[visible.mode].title)} items={[appText("Only the guardian can change this permission, manage consent or confirm a financial commitment. A student can still ask their guardian to decide for one enquiry."), appText("Under 15, guardian guidance can help with learning decisions. Age or class alone does not grant adult account rights. Guardian authorization and learning-data consent remain separate.")]} />
             <p>{appText(learningModes[visible.mode].help)}</p>
           </div>
-          <Notice>
-            {appText(
-              "Under 15, guardian guidance can help with learning decisions. Age or class alone does not grant adult account rights. Guardian authorization and learning-data consent remain separate.",
-            )}
-          </Notice>
-          <p>
-            {appText(
-              "Only the guardian can change this permission, manage consent or confirm a financial commitment. A student can still ask their guardian to decide for one enquiry.",
-            )}
-          </p>
+          <div className="management-permission-note"><ShieldCheck size={18} aria-hidden="true" /><p>{appText("Only the guardian can change this permission.")}</p></div>
           {visible.canChangeManagement && !mode && (
-            <Button
+            <FilterButton accent className="management-review-action"
               disabled={decision.locked || state.isFetching}
               onClick={() => {
                 setMode(visible.mode);
@@ -227,7 +222,7 @@ export function LearningManagementWorkspace({ session }: { session: Session }) {
               }}
             >
               {appText("Review management choice")}
-            </Button>
+            </FilterButton>
           )}
           {mode && (
             <form
@@ -305,37 +300,35 @@ export function LearningManagementWorkspace({ session }: { session: Session }) {
                     </label>
                   </>
                 )}
-                <div className="care-actions">
-                  <Button type="submit" disabled={review && !ack}>
+                <FilterButtonGroup>
+                  <FilterButton accent type="submit" disabled={review && !ack}>
                     {appText(
                       review
                         ? "Confirm management choice"
                         : "Review this choice",
                     )}
-                  </Button>
+                  </FilterButton>
                   {review && (
-                    <Button
+                    <FilterButton
                       type="button"
-                      variant="outline"
                       onClick={() => {
                         setReview(false);
                         setAck(false);
                       }}
                     >
                       {appText("Back to editing")}
-                    </Button>
+                    </FilterButton>
                   )}
-                  <Button
+                  <FilterButton
                     type="button"
-                    variant="outline"
                     onClick={() => {
                       setMode(null);
                       setReview(false);
                     }}
                   >
                     {appText("Discard changes")}
-                  </Button>
-                </div>
+                  </FilterButton>
+                </FilterButtonGroup>
               </fieldset>
             </form>
           )}

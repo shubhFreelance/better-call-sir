@@ -6418,3 +6418,27 @@ html body button.refresh-button[data-slot=button] { display:inline-flex; align-i
 html body button.refresh-button[data-slot=button]:not(:disabled):hover { background:#F0D7FF; border-color:#DAB7EC; color:#034F46; }
 html body button.refresh-button[data-slot=button]:focus-visible { outline:2px solid #034F46; outline-offset:3px; }
 html body button.refresh-button[data-slot=button]:disabled { cursor:not-allowed; opacity:.55; }
+.learning-management-workspace .management-page-heading { display:flex; align-items:flex-start; gap:16px; width:100%; max-width:none; padding:28px; margin:0; border-radius:18px; background:#034F46; }
+.management-page-heading > svg { flex:none; margin-top:5px; color:#F0D7FF; }
+.learning-management-workspace .management-page-heading h1 { margin:0 0 12px; max-width:none; font-size:30px; line-height:1.25; letter-spacing:-.7px; color:#FCFEEB; }
+.learning-management-workspace .management-page-heading p { margin:0; max-width:65ch; font-size:13px; line-height:1.75; color:#E1EEE7; }
+.learning-management-workspace .management-learner-select { display:grid; grid-template-columns:auto minmax(180px,360px); align-items:center; justify-content:space-between; gap:16px; margin:0; padding:18px 20px; border:1px solid #D9E4DF; border-radius:14px; background:#EEF5F3; font-size:13px; font-weight:600; }
+.management-learner-select select { margin:0; width:100%; min-height:44px; padding:10px 12px; border:1px solid #D9E4DF; border-radius:8px; background:#FFF; font-size:13px; }
+.learning-management-workspace .management-choice-card { padding:24px; border-radius:18px; background:#FFF; }
+.management-card-heading { margin-bottom:20px; }
+.learning-management-workspace .management-card-heading > p { margin:0 0 6px; font-size:12px; color:#586562; }
+.learning-management-workspace .management-card-heading h2 { margin:0; font-size:24px; color:#034F46; }
+.learning-management-workspace .management-current { padding:20px; border:1px solid #E5CFF0; border-radius:14px; background:#F8EDFF; }
+.learning-management-workspace .management-current p { margin:12px 0 0; max-width:70ch; font-size:13px; line-height:1.75; color:#344A43; }
+.management-permission-note { display:flex; align-items:center; gap:10px; margin:16px 0 20px; padding:12px 14px; border:1px solid #D9E4DF; border-radius:10px; background:#EEF5F3; color:#034F46; }
+.management-permission-note > svg { flex:none; }
+.learning-management-workspace .management-permission-note p { margin:0; color:#034F46; font-size:12px; line-height:1.6; }
+.learning-management-workspace .care-editor { margin-top:24px; padding:20px; border:1px solid #D9E4DF; border-radius:14px; background:#FFFFEB; }
+.learning-management-workspace .care-editor h3 { margin-top:0; color:#034F46; }
+.learning-management-workspace .management-option { margin:12px 0; padding:16px; border:1px solid #D9E4DF; border-radius:12px; background:#FFF; }
+.learning-management-workspace .management-option:has(input:checked) { border-color:#034F46; background:#F8EDFF; }
+.learning-management-workspace .management-option strong { font-size:14px; }
+.learning-management-workspace .management-option small { font-size:12px; line-height:1.7; }
+.learning-management-workspace .care-editor .filter-button-group { margin-top:20px; }
+.learning-management-workspace .care-editor [data-slot=alert] { margin-block:16px; font-size:12px; }
+@media(max-width:640px) { .learning-management-workspace .management-page-heading { padding:20px; gap:12px; } .learning-management-workspace .management-page-heading h1 { font-size:24px; } .learning-management-workspace .management-learner-select { grid-template-columns:minmax(0,1fr); gap:10px; padding:16px; } .learning-management-workspace .management-choice-card { padding:18px; } .learning-management-workspace .management-current,.learning-management-workspace .care-editor { padding:16px; } }

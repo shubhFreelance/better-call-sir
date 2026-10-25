@@ -298,6 +298,20 @@ async function reviewMode(page: Page) {
     .click();
 }
 export function learningManagementTests() {
+  for (const hindi of [false,true]) test(`management settings use compact themed cards and accessible guidance (${hindi ? "Hindi phone" : "English desktop"})`,async({page})=>{
+    if(hindi) await chooseHindi(page);
+    await fixture(page,{mode:"STUDENT_LED"});await page.setViewportSize({width:hindi?320:1440,height:1000});await page.goto("/dashboard/learning-management");
+    const workspace=page.locator(".learning-management-workspace");
+    await expect(workspace.locator(".management-page-heading")).toHaveCSS("background-color","rgb(3, 79, 70)");
+    await expect(workspace.locator(".management-current p")).toHaveCSS("font-size","13px");
+    await expect(workspace.locator(".management-permission-note p")).toHaveCSS("font-size","12px");
+    const info=workspace.locator(".management-current .info-tooltip-trigger");await info.focus();await info.press("Enter");await expect(page.getByRole("tooltip").locator("li")).toHaveCount(2);await page.keyboard.press("Escape");
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    expect((await new AxeBuilder({page}).include(".learning-management-workspace").analyze()).violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+    await workspace.screenshot({path:`test-results/management-settings-${hindi?"hi-phone":"desktop"}.png`});
+    await workspace.locator(".management-review-action").click();
+    await expect(workspace.locator(".care-editor .filter-button-group .filter-button")).toHaveCount(2);
+  });
   test("guardian reviews a mode change and the API records the exact permission separately from consent", async ({
     page,
   }) => {
