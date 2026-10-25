@@ -375,6 +375,23 @@ async function staffFields(page: Page) {
     .check();
 }
 export function guardianVerificationTests() {
+  for(const [width,hindi] of [[1440,false],[390,false],[320,true]] as const) {
+    test(`guardian verification overview uses themed cards and tooltips (${width}px)`,async({page})=>{
+      const f=await setup(page,{empty:true});if(hindi) await page.getByRole("button",{name:"Switch English and Hindi",exact:true}).click();await page.setViewportSize({width,height:1000});
+      const t=(text:string)=>hindi?hindiMessages[text]||text:text,card=page.locator(".guardian-verification-page");
+      await expect(card.locator(".page-title")).toHaveCSS("background-color","rgb(3, 79, 70)");
+      await expect(card.locator(".guardian-verification-guidance")).toContainText(t("Verify each child separately. Saving education details does not send a verification request."));
+      await expect(card.locator(".guardian-verification-steps > li")).toHaveCount(4);
+      await expect(card.locator(".guardian-verification-steps")).toHaveCSS("background-color","rgb(238, 245, 243)");
+      const info=card.locator(".guardian-verification-title .info-tooltip-trigger");await info.scrollIntoViewIfNeeded();await info.focus();await info.press("Enter");
+      await expect(page.getByRole("tooltip")).toContainText(t("Verify your relationship with each child separately. Approval for another child remains valid. Submit this request to send it to staff; saving education details does not submit verification."));await page.keyboard.press("Escape");
+      const start=card.getByRole("button",{name:t("Start guardian verification"),exact:true});await expect(start).toHaveCSS("background-color","rgb(240, 215, 255)");await start.hover();await expect(start).toHaveCSS("background-color","rgb(231, 195, 250)");
+      if(hindi) await checkHindi(page);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+      const a=await new AxeBuilder({page}).include(".guardian-verification-page").analyze();expect(a.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+      await card.screenshot({path:`test-results/guardian-verification-overview-${width}.png`,style:"nextjs-portal{display:none!important}"});
+      await start.focus();await page.keyboard.press("Enter");await expect(card.locator(".guardian-verification-editor")).toBeVisible();expect(f.writes).toHaveLength(0);
+    });
+  }
   test("guardian overview request link opens its named verification without a history search",async({page})=>{
     const f=await setup(page,{empty:true});
     await page.goto("/guardian-verification?request="+f.state().id);

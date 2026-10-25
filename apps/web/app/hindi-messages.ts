@@ -1,5 +1,6 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Verify each child separately. Saving education details does not send a verification request.": "हर बच्चे का अलग से सत्यापन करें। शिक्षा विवरण सहेजने से सत्यापन अनुरोध नहीं भेजा जाता।",
   "Pending staff review does not need another submission.": "कर्मचारी समीक्षा लंबित होने पर दोबारा अनुरोध भेजने की ज़रूरत नहीं है।",
   "Codes cannot be recovered. Replacing an invitation cancels earlier codes for this learner. Manage an existing student account through device access.": "कोड दोबारा प्राप्त नहीं किया जा सकता। निमंत्रण बदलने से इस विद्यार्थी के पुराने कोड रद्द हो जाएँगे। मौजूदा विद्यार्थी खाते को उपकरण पहुँच से सँभालें।",
   "This sends your enquiry using your saved education details. No class booking, charge or financial commitment is made.": "आपके सहेजे गए शिक्षा विवरण के साथ अनुरोध भेजा जाएगा। कोई कक्षा बुकिंग, शुल्क या आर्थिक प्रतिबद्धता नहीं होगी।",

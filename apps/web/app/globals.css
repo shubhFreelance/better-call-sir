@@ -5639,9 +5639,32 @@ fieldset.catalog-filters { min-inline-size:0; margin-inline:0; }
 }
 
 /* Guardian verification: a quiet worksheet with progress tied to the saved request. */
-body:has(.guardian-verification-page) { background: #F4F4EC; }
-.guardian-verification-page { --paper: #F4F4EC; --ink: #000000; --line: #DADAD0; color: #000000; }
-.guardian-verification-page .guardian-verification-steps { background: #FFFFFF; border: 1px solid #DADAD0; }
+body:has(.guardian-verification-page) { background:#FFFFEB; }
+.guardian-verification-page { --paper:#FFFFEB; --ink:#17201F; --line:#D9E4DF; color:#17201F; }
+.guardian-verification-page .page-title { padding:24px; margin-bottom:24px; border:1px solid #034F46; border-left:4px solid #F0D7FF; border-radius:20px; background:#034F46; }
+.guardian-verification-page .page-title h1 { margin:0 0 10px; color:#FFFFEB; font-size:32px; line-height:1.25; }
+.guardian-verification-page .page-title p { margin:0; color:#E1EEE7; font-size:13px; line-height:1.7; max-width:75ch; }
+.guardian-requests .guardian-verification-guidance { padding:14px 16px; border:1px solid #DAE5DC; border-radius:12px; background:#F0F6EB; font-size:12px; line-height:1.7; }
+.guardian-requests > .guardian-verification-intro { padding:20px; border:1px solid #D9E4DF; border-radius:16px; background:#FFF; gap:20px; }
+.guardian-requests .guardian-verification-title { display:flex; align-items:center; gap:8px; }
+.guardian-requests .guardian-verification-title h2 { margin:0; color:#034F46; font-size:20px; }
+.guardian-requests .guardian-verification-title .info-tooltip-trigger { flex:none; min-height:44px; }
+.guardian-verification-workspace .guardian-verification-intro p { padding:0; margin:8px 0 0; border:0; background:transparent; font-size:12px; }
+.guardian-requests .guardian-verification-ready { padding:14px 16px; margin:0; border:1px solid #E3C8F4; border-radius:12px; background:#F8EDFF; color:#45534A; font-size:12px; line-height:1.7; }
+.guardian-verification-page .guardian-verification-steps { padding:12px; gap:12px; border:1px solid #D9E4DF; border-radius:18px; background:#EEF5F3; }
+.guardian-verification-steps li { flex-direction:column; gap:12px; padding:18px; border:1px solid #E2E6D8; border-radius:12px; background:#FFF; }
+.guardian-verification-steps li > span { width:32px; height:32px; border:1px solid #DAB7EC; background:#F0D7FF; color:#034F46; }
+.guardian-verification-steps strong { color:#034F46; }
+.guardian-verification-steps p { font-size:12px; color:#52655F; line-height:1.7; }
+@media(max-width:640px) {
+  .guardian-verification-page .page-title { padding:18px; }
+  .guardian-verification-page .page-title h1 { font-size:26px; }
+  .guardian-requests > .guardian-verification-intro { padding:16px; align-items:stretch; }
+  .guardian-requests .guardian-verification-title h2 { font-size:18px; }
+  .guardian-requests > .guardian-verification-intro > .filter-button { width:100%; }
+  .guardian-verification-page .guardian-verification-steps { padding:12px; }
+  .guardian-verification-steps li { padding:16px; }
+}
 .guardian-verification-editor .verification-progress { display: block; padding: 0 0 24px; margin: 0 0 28px; border-bottom: 1px solid #DADAD0; }
 .verification-progress-status { font-size: 14px; font-weight: 750; color: #000000; margin: 0 0 24px; }
 .verification-progress ol { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); list-style: none; margin: 0; padding: 0; gap: 0; }

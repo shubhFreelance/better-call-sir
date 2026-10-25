@@ -1,5 +1,9 @@
 # Frontend design direction
 
+## Guardian verification overview — 25 October 2026
+
+Use the latest ivory #FFFFEB page with a compact #034F46 title panel and lavender edge/accent. Keep per-child verification and explicit submission requirements visible in12px sage guidance; put fuller reassurance in the existing InfoTooltip. Frame the introduction in white, use the accent FilterButton for starting verification, and display the four real overview stages as individual white cards with lavender number markers on a #EEF5F3 track. Keep the visible ready-to-begin note in pale lavender. Use32px desktop/26px phone page titles,20/18px section headings and12px descriptions; stack stage cards on phones. Preserve the distinct six-step saved-request editor, scanner/authority/acknowledgment gates and current-status evidence. This supersedes the earlier grey/black overview palette.
+
 ## `filter-button` — owner design memory, 25 October 2026
 
 The owner named the student-access action design **filter-button**. Reuse `FilterButton` and `FilterButtonGroup` from `apps/web/components/ui/filter-button.tsx` rather than copying page CSS. This is an action-button design; it does not add filtering behavior. `FilterButton` composes the house Button and accepts its standard action/link props except `variant`; white is the default and `accent` selects lavender #F0D7FF. Use `asChild` with a Next Link for navigation. The group supplies the rounded #EEF5F3 tray, balanced widths,12px spacing and full-width phone stacking. Buttons retain44px targets, visible focus, white/sage or lavender hover feedback, disabled semantics and reduced-motion support. Keep labels translated by the caller.

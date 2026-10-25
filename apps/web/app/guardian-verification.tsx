@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
+import { FilterButton } from "../components/ui/filter-button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { useAppTranslation } from "./locale";
@@ -112,12 +113,15 @@ function GuardianRequests({
   return (
     <section className="care-workspace guardian-requests">
       {requested.error && <Notice error>{appText("Verification records could not be loaded.")}</Notice>}
-      <Notice>{appText("Verify your relationship with each child separately. Approval for another child remains valid. Submit this request to send it to staff; saving education details does not submit verification.")}</Notice>
-      <header className="staff-heading">
+      <aside className="guardian-verification-guidance" role="note">{appText("Verify each child separately. Saving education details does not send a verification request.")}</aside>
+      <header className="staff-heading guardian-verification-intro">
         <div>
+          <div className="guardian-verification-title">
           <h2 ref={heading} tabIndex={-1}>
             {appText("How guardian verification works")}
           </h2>
+          <InfoTooltip label={appText("How guardian verification works")} items={[appText("Verify your relationship with each child separately. Approval for another child remains valid. Submit this request to send it to staff; saving education details does not submit verification.")]} />
+          </div>
           <p>
             {appText(
               "First we check your relationship with the student. After approval, you can give learning permission and create their profile.",
@@ -125,12 +129,12 @@ function GuardianRequests({
           </p>
         </div>
         {!selected && (
-          <Button
+          <FilterButton accent
             disabled={!!history.error || history.isPending}
             onClick={() => setSelected("new")}
           >
             {appText("Start guardian verification")}
-          </Button>
+          </FilterButton>
         )}
       </header>
       {!selected && (
@@ -202,11 +206,11 @@ function GuardianRequests({
               <h3>{appText("Your verification requests")}</h3>
             )}
             {!history.data?.items.length && !selected && (
-              <Notice>
+              <p className="guardian-verification-ready">
                 {appText(
                   "Ready to begin? Start guardian verification, then enter your name and the student’s name as shown on the school report.",
                 )}
-              </Notice>
+              </p>
             )}
             {history.data?.items.map((r) => (
               <article key={r.id} className="staff-person">
@@ -224,13 +228,12 @@ function GuardianRequests({
                   </p>
                   <LearningManagementBadge label={appText(guardianManagementLabels[r.managementMode])} items={[appText("Relationship approval is separate from learning permission and profile setup.")]} />
                 </div>
-                <Button
-                  variant="outline"
+                <FilterButton
                   disabled={!!selected}
                   onClick={() => setSelected(r)}
                 >
                   {appText("View verification")}
-                </Button>
+                </FilterButton>
               </article>
             ))}
           </div>
