@@ -1,6 +1,8 @@
 import {test,expect,type Page} from "@playwright/test";
 import {dashboard} from "./dashboard-redesign";
 import {chooseHindi,checkHindi} from "./hindi";
+import {translateText} from "../../apps/web/app/locale";
+import AxeBuilder from "@axe-core/playwright";
 const id="10000000-0000-4000-8000-000000000661", child="20000000-0000-4000-8000-000000000661";
 async function fixture(page:Page,{signed=true,role="GUARDIAN",status="PENDING",ack=false,denied=false}={}){
  const writes:string[]=[];
@@ -25,6 +27,7 @@ for(const item of [{status:"NONE",heading:"No linked learning profile yet"},{sta
  const writes=await fixture(page,item);await page.goto("/onboarding/student?mode=together");
  await expect(page.getByText(item.heading,{exact:true})).toBeVisible();
  await expect(page.getByRole("link",{name:"Open dashboard",exact:true})).toHaveCount(0);
+ if(item.status==="PENDING"){const review=page.locator(".student-access-request").getByRole("link",{name:"Review relationship request",exact:true});await review.hover();await expect(review).toHaveCSS("background-color","rgb(231, 195, 250)");}
  expect(writes).toEqual([]);
 });
 for(const denied of [false,true])test(`linked student readiness respects current access (${denied})`,async({page})=>{
@@ -56,6 +59,22 @@ test("shared-management card and status are available in Hindi on mobile",async(
  await expect(page.getByText("अपने अभिभावक की पुष्टि करें",{exact:true})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.screenshot({path:"test-results/student-connection-hi-phone.png",fullPage:true});
+});
+
+for(const [width,hindi] of [[1440,false],[320,true]] as const) test(`student access design is compact and keyboard accessible (${width}px)`,async({page})=>{
+ if(hindi) await chooseHindi(page);await fixture(page,{status:"NONE"});await page.setViewportSize({width,height:1000});await page.goto("/onboarding/student?mode=together");
+ const card=page.locator(".student-connection"),t=(text:string)=>translateText(hindi,text);
+ await expect(card.locator(".student-access-empty")).toContainText(t("No linked learning profile yet"));
+ await expect(card.locator(".student-access-header")).toHaveCSS("background-color","rgb(3, 79, 70)");
+ await expect(card.locator(".student-access-note")).toHaveCSS("font-size","12px");
+ const info=card.locator(".student-access-header .info-tooltip-trigger");await expect(info).toHaveCSS("color","rgb(240, 215, 255)");await info.scrollIntoViewIfNeeded();await info.focus();await info.press("Enter");
+ await expect(page.getByRole("tooltip").getByRole("listitem")).toHaveCount(2);await page.keyboard.press("Escape");await expect(page.getByRole("tooltip")).toHaveCount(0);
+ const parent=card.getByRole("link",{name:t("My parent or guardian needs an account"),exact:true});await expect(parent).toHaveAttribute("href","/signup/guardian");await parent.hover();await expect(parent).toHaveCSS("background-color","rgb(2, 62, 55)");
+ const invite=card.getByRole("link",{name:t("I have a private invitation code"),exact:true});await expect(invite).toHaveAttribute("href","/onboarding/student?mode=invitation");await invite.hover();await expect(invite).toHaveCSS("background-color","rgb(231, 195, 250)");
+ const refresh=card.getByRole("button",{name:t("Refresh my access"),exact:true});expect((await refresh.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+ if(hindi) await checkHindi(page);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ const a=await new AxeBuilder({page}).include(".student-connection").analyze();expect(a.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+ await card.screenshot({path:`test-results/student-access-redesign-${width}.png`,style:"nextjs-portal{display:none!important}"});
 });
 
 test("refresh discovers the student account linked after guardian setup",async({page})=>{
