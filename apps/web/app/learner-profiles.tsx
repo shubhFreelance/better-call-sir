@@ -8,6 +8,9 @@ import { api, ApiError, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Alert, AlertDescription } from "../components/ui/alert";
+import { Info } from "lucide-react";
+import { CardSearch } from "../components/ui/card-search";
+import { InfoTooltip } from "../components/ui/info-tooltip";
 type Profile = components["schemas"]["LearnerProfile"];
 type Profiles = components["schemas"]["LearnerProfiles"];
 type ProfileInput = components["schemas"]["LearnerProfileInput"];
@@ -90,6 +93,7 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
   });
   const verifiedLearners = relationships.data?.pages.flatMap(page => page.items).filter(row => row.status === "APPROVED" && !row.learnerId) ?? [];
   const matchesName = (name: string) => name.toLocaleLowerCase().includes(learnerSearch.trim().toLocaleLowerCase());
+  const noPendingLearners = !relationships.isPending && !relationships.error && !verifiedLearners.some(row => matchesName(row.learnerName));
   const ownProfile = query.data?.items[0];
   const studentManagement = useQuery({
     queryKey: ["learning-management", session.account.id, ownProfile?.id],
@@ -503,12 +507,13 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
             </Alert>
           )}
           {session.account.role === "GUARDIAN" && !targetName && !denied && !adding && (
-            <section className="care-card" aria-label={appText("Verified learners awaiting setup")}>
-              <h2>{appText("Verified learners awaiting setup")}</h2>
-              <p>{appText("Relationship approval is complete. Review learning permission and finish education details to connect the student account. Do not create another student account.")}</p>
-              <label htmlFor="learner-search">{appText("Find your learner")}</label>
-              <Input id="learner-search" value={learnerSearch} onChange={event => setLearnerSearch(event.target.value)} placeholder={appText("Type a learner name")} />
-              <p className="care-help">{appText("Only your own verified relationships and saved profiles are shown. Load more to search older relationships.")}</p>
+            <section className="care-card learner-setup-card" aria-label={appText("Verified learners awaiting setup")}>
+              <CardSearch title={<>{appText("Verified learners awaiting setup")}<InfoTooltip
+                label={appText("About learner setup")}
+                items={[appText("Complete education details to connect the existing student account."),
+                  ...(noPendingLearners ? [appText("No matching learners awaiting setup. Check saved profiles below.")] : [])]} /></>}
+                label={appText("Find your learner")} placeholder={appText("Type a learner name")}
+                value={learnerSearch} onChange={setLearnerSearch} />
               {relationships.isPending && <p role="status">{appText("Loading learner profiles…")}</p>}
               {relationships.error && <Alert variant="destructive"><AlertDescription>{appText("We couldn’t load your verified relationships.")} <Button variant="outline" onClick={() => relationships.refetch()}>{appText("Try again")}</Button></AlertDescription></Alert>}
               {!relationships.error && verifiedLearners.filter(row => matchesName(row.learnerName)).map(row => (
@@ -519,7 +524,7 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
                   {ready ? <Button disabled={locked} onClick={() => {setValues({...initial, alias: row.learnerName}); setAdding(true); setSaved(null); setReview(null); setErrors({}); setMessage("");}}>{appText("Complete learner profile")}</Button> : <Button asChild variant="outline"><Link href="/onboarding/guardian">{appText("Review learning permission")}</Link></Button>}
                 </article>
               ))}
-              {!relationships.isPending && !relationships.error && !verifiedLearners.filter(row => matchesName(row.learnerName)).length && <p role="status">{appText("No verified learners awaiting setup match this name. Check saved profiles below or verify another relationship.")}</p>}
+              {noPendingLearners && <p role="status" className="sr-only">{appText("No matching learners awaiting setup. Check saved profiles below.")}</p>}
               {relationships.hasNextPage && <Button variant="outline" disabled={relationships.isFetchingNextPage} onClick={() => relationships.fetchNextPage()}>{appText("Load more relationships")}</Button>}
             </section>
           )}
@@ -560,17 +565,9 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
                         <li key={p.id} className="saved-learner-card">
                           <h3>{p.alias}</h3>
                           <EducationSummary education={p.education} />
-                          {(session.account.role === "GUARDIAN" ||
-                            !!studentManagement.data?.canManageLearning) && (
-                            <Button
-                              variant="outline"
-                              disabled={!ready || locked || adding}
-                              onClick={() => openEdit(p.id)}
-                            >
-                              {appText("Edit profile for")} {p.alias}
-                            </Button>
-                          )}
-                          <p className="care-help">
+                          <div className="saved-learner-info">
+                            <Info size={18} aria-hidden="true" />
+                            <p>
                             {p.enquiryEligible
                               ? appText(
                                   "Education details are ready for an enquiry. Teacher fit and availability still need to be checked.",
@@ -583,7 +580,20 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
                                 : appText(
                                     "Complete the education details before requesting a teacher.",
                                   )}
-                          </p>
+                            </p>
+                          </div>
+                          {(session.account.role === "GUARDIAN" ||
+                            !!studentManagement.data?.canManageLearning) && (
+                            <div className="saved-learner-actions">
+                              <Button
+                                variant="outline"
+                                disabled={!ready || locked || adding}
+                                onClick={() => openEdit(p.id)}
+                              >
+                                {appText("Edit profile for")} {p.alias}
+                              </Button>
+                            </div>
+                          )}
                         </li>
                       ))}
                     </ul>
