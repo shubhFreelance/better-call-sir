@@ -1,5 +1,11 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Close": "बंद करें",
+  "School report for {0}": "{0} की स्कूल रिपोर्ट",
+  "This document is private and available only with current permission.": "यह दस्तावेज़ निजी है और केवल वर्तमान अनुमति होने पर उपलब्ध है।",
+  "Loading uploaded document…": "अपलोड किया गया दस्तावेज़ लोड हो रहा है…",
+  "The document could not be loaded. Your permission or the document may have changed.": "दस्तावेज़ लोड नहीं हो सका। आपकी अनुमति या दस्तावेज़ बदल गया हो सकता है।",
+  "Uploaded school report": "अपलोड की गई स्कूल रिपोर्ट",
   "Verify each child separately. Saving education details does not send a verification request.": "हर बच्चे का अलग से सत्यापन करें। शिक्षा विवरण सहेजने से सत्यापन अनुरोध नहीं भेजा जाता।",
   "Pending staff review does not need another submission.": "कर्मचारी समीक्षा लंबित होने पर दोबारा अनुरोध भेजने की ज़रूरत नहीं है।",
   "Codes cannot be recovered. Replacing an invitation cancels earlier codes for this learner. Manage an existing student account through device access.": "कोड दोबारा प्राप्त नहीं किया जा सकता। निमंत्रण बदलने से इस विद्यार्थी के पुराने कोड रद्द हो जाएँगे। मौजूदा विद्यार्थी खाते को उपकरण पहुँच से सँभालें।",

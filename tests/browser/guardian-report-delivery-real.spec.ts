@@ -102,11 +102,15 @@ test("real guardian report reaches the admin queue and downloads as the original
       .getByRole("button", { name: "Review guardian evidence", exact: true })
       .click();
     await expect(
-      adminPage.getByRole("link", {
+      adminPage.getByRole("button", {
         name: "See uploaded document",
         exact: true,
       }),
     ).toBeVisible({ timeout: 45000 });
+    await adminPage.getByRole("button",{name:"See uploaded document",exact:true}).click();
+    await expect(adminPage.getByRole("dialog").getByRole("img")).toBeVisible();
+    expect(await adminPage.getByRole("dialog").getByRole("img").evaluate((el:HTMLImageElement)=>el.complete&&el.naturalWidth>0)).toBe(true);
+    await adminPage.keyboard.press("Escape");
     const path =
       "/api/v1/guardian-evidence/" +
       verification.currentEvidenceId +

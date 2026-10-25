@@ -17,3 +17,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+Owner modal pattern (25 October 2026): reuse components/ui/modal.tsx for popups with controlled open/onOpenChange, title and optional description. Preserve the teal header, lavender controls, ivory body, keyboard focus, Escape/backdrop closing and focus restoration. Private document previews use an eye beside scan status, load currently authorized scanner-cleared evidence only while open, request a fresh URL on reopening, and remove the image on close.

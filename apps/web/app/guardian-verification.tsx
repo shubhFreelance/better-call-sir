@@ -16,6 +16,7 @@ import { useHistory, HistoryPages } from "./history";
 import { Feedback, Notice, useDecision } from "./tuition-workflow";
 import { InfoTooltip } from "../components/ui/info-tooltip";
 import { LearningManagementBadge } from "../components/ui/learning-management-badge";
+import { GuardianDocumentPreview } from "./guardian-document-preview";
 type Child = components["schemas"]["Child"];
 type Verification = components["schemas"]["GuardianVerification"];
 type Application = components["schemas"]["GuardianVerificationInput"];
@@ -461,6 +462,7 @@ function VerificationSummary({ record: r,
         </dd>
         <dt>{appText("School report")}</dt>
         <dd>
+          <span className="evidence-scan-status">
           {r.evidence
             ? appText(
                 r.evidence.status === "CLEAN"
@@ -474,6 +476,8 @@ function VerificationSummary({ record: r,
                         : "Scan pending",
               )
             : appText("No image uploaded")}
+          {r.evidence?.status === "CLEAN" && <GuardianDocumentPreview key={r.evidence.id} evidenceId={r.evidence.id} learnerName={r.learnerName} />}
+          </span>
         </dd>
       </dl>
       {r.evidence?.status === "QUARANTINED" && (
@@ -511,16 +515,6 @@ function VerificationSummary({ record: r,
               : r.reason}
           </p>
         </Notice>
-      )}
-      {r.evidence?.status === "CLEAN" && (
-        <a
-          className="button evidence-download"
-          href={`/api/v1/guardian-evidence/${r.evidence.id}/content`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {appText("See uploaded document")}
-        </a>
       )}
     </>
   );

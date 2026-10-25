@@ -137,6 +137,12 @@ async function setup(
       });
     if (req.method() === "GET") {
       reads.push(u);
+      if(p.includes("/guardian-evidence/") && p.endsWith("/content")) return route.fulfill({
+        status:!fail&&row.evidence?.status==="CLEAN"?200:403,
+        headers:{"Cache-Control":"no-store","Content-Disposition":"attachment; filename=school-report.png"},
+        contentType:!fail&&row.evidence?.status==="CLEAN"?"image/png":"application/json",
+        body:!fail&&row.evidence?.status==="CLEAN"?image:JSON.stringify({code:"FORBIDDEN",message:"Private document unavailable"})
+      });
       if (
         fail &&
         (p.includes("guardian-verifications") ||
@@ -420,17 +426,45 @@ export function guardianVerificationTests() {
     await expect(page.locator(".guardian-verification-editor")).toContainText(f.state().learnerName);
   });
 
-  test("staff school report download is distinct and only scanner-cleared evidence is linked",async({page})=>{
+  test("staff school report preview sits beside clearance and only scanner-cleared evidence is available",async({page})=>{
     const f=await setup(page,{role:"ADMIN"}); await openStaff(page);
-    const download=page.getByRole("link",{name:"See uploaded document",exact:true});
-    await expect(download).toHaveCSS("background-color","rgb(3, 79, 70)");
-    await expect(download).toHaveAttribute("rel","noopener noreferrer");
+    const download=page.getByRole("button",{name:"See uploaded document",exact:true});
+    await expect(download).toHaveCSS("background-color","rgb(238, 245, 243)");
+    await download.hover();await expect(download).toHaveCSS("color","rgb(240, 215, 255)");
+    await expect(page.locator(".evidence-scan-status")).toContainText("Scan cleared");
+    expect(f.reads.some(url=>url.pathname.endsWith("/content"))).toBe(false);
+    await download.click();const modal=page.getByRole("dialog");await expect(modal.getByRole("img")).toBeVisible();
+    expect(await modal.getByRole("img").evaluate((el:HTMLImageElement)=>el.complete&&el.naturalWidth>0)).toBe(true);
+    await page.keyboard.press("Escape");await expect(modal).toHaveCount(0);await expect(download).toBeFocused();await expect(page.locator(".document-preview-image")).toHaveCount(0);
     await page.screenshot({path:"test-results/guardian-review-redesign-desktop.png",fullPage:true});
     f.state().evidence.status="QUARANTINED";
     await page.getByRole("button",{name:"Refresh verification details",exact:true}).click();
     await expect(download).toHaveCount(0);
   });
 
+  for(const hindi of [false,true]) test(`guardian document modal preserves private preview and keyboard focus (${hindi?"Hindi phone":"English desktop"})`,async({page})=>{
+    const f=await setup(page);f.state().evidence={id:evidenceId,status:"CLEAN",mediaType:"image/png",version:1,uploadedAt:new Date().toISOString()};f.state().currentEvidenceId=evidenceId;
+    if(hindi) await page.getByRole("button",{name:"Switch English and Hindi",exact:true}).click();await page.setViewportSize({width:hindi?320:1440,height:1000});
+    const t=(s:string)=>hindi?hindiMessages[s]||s:s;await page.getByRole("button",{name:t("View verification"),exact:true}).first().click();
+    const eye=page.getByRole("button",{name:t("See uploaded document"),exact:true});await eye.hover();await expect(eye).toHaveCSS("color","rgb(240, 215, 255)");
+    expect(f.reads.some(url=>url.pathname.endsWith("/content"))).toBe(false);let downloads=0;page.on("download",()=>downloads++);
+    await eye.click();const modal=page.getByRole("dialog");await expect(modal).toHaveAccessibleName(t("School report for {0}").replace("{0}",f.state().learnerName));
+    const report=modal.getByRole("img");await expect(report).toBeVisible();expect(await report.evaluate((el:HTMLImageElement)=>el.naturalWidth>0)).toBe(true);
+    await expect(modal.getByRole("button",{name:t("Close"),exact:true})).toBeFocused();await page.keyboard.press("Tab");expect(await modal.evaluate(el=>el.contains(document.activeElement))).toBe(true);
+    expect(await page.evaluate(()=>document.body.style.overflow)).toBe("hidden");
+    const a=await new AxeBuilder({page}).include(".app-modal").analyze();expect(a.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+    const box=(await modal.boundingBox())!;expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(hindi?320:1440);
+    await modal.screenshot({path:`test-results/guardian-document-${hindi?"hi-phone":"en-desktop"}.png`,style:"nextjs-portal{display:none!important}"});
+    await modal.getByRole("button",{name:t("Close"),exact:true}).click();await expect(modal).toHaveCount(0);await expect(eye).toBeFocused();await expect(page.locator(".document-preview-image")).toHaveCount(0);expect(await page.evaluate(()=>document.body.style.overflow)).toBe("");
+    await eye.click();await expect(page.getByRole("dialog").getByRole("img")).toBeVisible();await page.mouse.click(1,1);await expect(page.getByRole("dialog")).toHaveCount(0);expect(downloads).toBe(0);expect(f.reads.filter(url=>url.pathname.endsWith("/content")).length).toBe(2);
+  });
+  test("document preview shows denied reads and retries without exposing stale evidence",async({page})=>{
+    const f=await setup(page,{role:"ADMIN"});await openStaff(page);let denied=true;
+    await page.route("**/api/v1/guardian-evidence/*/content*",route=>denied?route.fulfill({status:403,contentType:"application/json",headers:{"Cache-Control":"no-store"},body:JSON.stringify({code:"FORBIDDEN",message:"Private detail must not render"})}):route.fulfill({contentType:"image/png",headers:{"Cache-Control":"no-store"},body:image}));
+    await page.getByRole("button",{name:"See uploaded document",exact:true}).click();const modal=page.getByRole("dialog");await expect(modal.getByRole("alert")).toContainText("The document could not be loaded");await expect(modal).not.toContainText("Private detail must not render");await expect(modal.locator("img")).toHaveCount(0);
+    denied=false;await modal.getByRole("button",{name:"Retry",exact:true}).click();await expect(modal.getByRole("img")).toBeVisible();await page.keyboard.press("Escape");await expect(page.locator(".document-preview-image")).toHaveCount(0);
+    f.state().evidence.status="QUARANTINED";await page.getByRole("button",{name:"Refresh verification details",exact:true}).click();await expect(page.getByRole("button",{name:"See uploaded document",exact:true})).toHaveCount(0);
+  });
   test("approved guardian completes consent and student education on the verification page", async ({page}) => {
     const f=await setup(page); f.state().status="APPROVED";
     let consent=false, saved=false;
@@ -581,7 +615,7 @@ export function guardianVerificationTests() {
       }),
     ).toHaveCount(0);
     await expect(
-      page.getByRole("link", {
+      page.getByRole("button", {
         name: hindiMessages["See uploaded document"],
         exact: true,
       }),
@@ -749,9 +783,9 @@ export function guardianVerificationTests() {
     await page.getByLabel("School marksheet or performance-card image",{exact:true}).setInputFiles({name:"report.png",mimeType:"image/png",buffer:image});
     await page.getByRole("button",{name:"Upload school report",exact:true}).click();
     await expect(page.getByText("Scan pending",{exact:true})).toBeVisible();
-    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("button",{name:"See uploaded document",exact:true})).toHaveCount(0);
     f.state().evidence.status="CLEAN";f.state().evidence.version++;f.state().scanStatus="CLEARED";
-    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toBeVisible({timeout:10000});
+    await expect(page.getByRole("button",{name:"See uploaded document",exact:true})).toBeVisible({timeout:10000});
     expect(f.writes).toHaveLength(1);expect(f.state().status).toBe("DRAFT");
     await expect(page.getByRole("button",{name:"Refresh verification details",exact:true})).toBeVisible();
   });
@@ -760,7 +794,7 @@ export function guardianVerificationTests() {
     f.state().evidence.status="QUARANTINED";f.state().scanStatus="RETRY_REQUIRED";f.state().scanRetry={jobId:"40000000-0000-4000-8000-000000000911",expectedAttempts:5};
     await openStaff(page);
     await expect(page.getByText("Safety scan needs recovery",{exact:true})).toBeVisible();
-    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("button",{name:"See uploaded document",exact:true})).toHaveCount(0);
     await expect(page.getByRole("button",{name:"Record verification decision",exact:true})).toBeDisabled();
     await page.getByRole("button",{name:"Review scan retry",exact:true}).click();
     await expect(page.getByRole("button",{name:"Retry safety scan",exact:true})).toBeDisabled();
@@ -770,9 +804,9 @@ export function guardianVerificationTests() {
     await page.getByRole("button",{name:"Retry same decision",exact:true}).click();
     await expect(page.getByText("Safety scan queued again. The report stays blocked until the scanner clears it.",{exact:true})).toBeVisible();
     expect(f.writes).toHaveLength(2);expect(f.writes[0]).toEqual(f.writes[1]);
-    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("button",{name:"See uploaded document",exact:true})).toHaveCount(0);
     f.state().evidence.status="CLEAN";f.state().evidence.version++;f.state().scanStatus="CLEARED";
-    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toBeVisible({timeout:10000});
+    await expect(page.getByRole("button",{name:"See uploaded document",exact:true})).toBeVisible({timeout:10000});
     await expect(page.getByRole("button",{name:"Record verification decision",exact:true})).toBeDisabled();
   });
   test("stale scan retry unlocks an explicit status refresh without repeating the mutation",async({page})=>{
@@ -796,7 +830,7 @@ export function guardianVerificationTests() {
   test("reviewer sees failed scan guidance without an administrator retry action",async({page})=>{
     const f=await setup(page,{role:"REVIEWER"});f.state().evidence.status="QUARANTINED";f.state().scanStatus="RETRY_REQUIRED";await openStaff(page);
     await expect(page.getByText("Safety scan needs recovery",{exact:true})).toBeVisible();await expect(page.getByRole("button",{name:"Review scan retry",exact:true})).toHaveCount(0);
-    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("button",{name:"See uploaded document",exact:true})).toHaveCount(0);
     await expect(page.getByRole("button",{name:"Record verification decision",exact:true})).toBeDisabled();
   });
   test("school reports validate type, stay private in quarantine and submit only the recorded current version", async ({
@@ -827,7 +861,7 @@ export function guardianVerificationTests() {
       .click();
     await expect(page.getByText("Scan pending", { exact: true })).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "See uploaded document" }),
+      page.getByRole("button", { name: "See uploaded document" }),
     ).toHaveCount(0);
     await page
       .getByRole("checkbox", {

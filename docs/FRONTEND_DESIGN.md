@@ -574,3 +574,5 @@ Inline completion also reuses the protected invitation issuance/recovery control
 ## Directed enquiry review state — 24 October 2026
 
 Make directly selected teacher requests visible before publication in a separate ivory card with a clear staff-review status. Show only reference, subject and mode to the intended active teacher. Keep response controls in the published queue and add parent-facing flow guidance. Reuse current history controls, error/retry patterns and English/Hindi labels; never imply that selecting a profile completes staff matching.
+
+Owner modal pattern (25 October 2026): reuse components/ui/modal.tsx for popups with controlled open/onOpenChange, title and optional description. Preserve the teal header, lavender controls, ivory body, keyboard focus, Escape/backdrop closing and focus restoration. Private document previews use an eye beside scan status, load currently authorized scanner-cleared evidence only while open, request a fresh URL on reopening, and remove the image on close.
