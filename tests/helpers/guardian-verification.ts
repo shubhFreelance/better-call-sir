@@ -589,7 +589,8 @@ export function guardianVerificationTests() {
       const current = page.locator(
         '.verification-progress [aria-current="step"]',
       );
-      await expect(page.locator('.guardian-management-summary[data-management="SHARED"]')).toHaveCSS("background-color","rgb(240, 215, 255)");
+      await expect(page.locator('.verification-summary-card .learning-management-badge')).toBeVisible();
+      await expect(page.locator('.guardian-management-summary')).toHaveCount(0);
       if (label) await expect(current).toHaveText(new RegExp(label));
       else {
         await expect(current).toHaveCount(0);

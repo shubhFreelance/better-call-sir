@@ -439,7 +439,11 @@ function VerificationSummary({ record: r,
   const { appText } = useAppTranslation();
   return (
     <>
-      <dl className="staff-summary">
+      <section className="staff-summary verification-summary-card">
+        <div className="verification-summary-management">
+          <LearningManagementBadge label={appText(guardianManagementLabels[r.managementMode])} items={[appText("The student sees this choice before acknowledging the relationship. Management permissions are separate from learning-data consent.")]} />
+        </div>
+      <dl className="verification-summary-fields">
         <dt>{appText("Guardian")}</dt>
         <dd>
           {r.status === "DELETED"
@@ -480,6 +484,7 @@ function VerificationSummary({ record: r,
           </span>
         </dd>
       </dl>
+      </section>
       {r.evidence?.status === "QUARANTINED" && (
         <Notice>
           {appText(
@@ -503,9 +508,6 @@ function VerificationSummary({ record: r,
           )}
         </p>
       )}
-      <aside className="guardian-management-summary" data-management={r.managementMode}>
-        <LearningManagementBadge label={appText(guardianManagementLabels[r.managementMode])} items={[appText("The student sees this choice before acknowledging the relationship. Management permissions are separate from learning-data consent.")]} />
-      </aside>
       {r.reason && (
         <Notice>
           <strong>{appText("Staff feedback")}</strong>

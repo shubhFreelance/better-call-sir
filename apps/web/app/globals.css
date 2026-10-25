@@ -6117,6 +6117,10 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .guardian-verification-workspace.care-workspace .guardian-verification-editor > h3 { padding:16px 20px; background:#F0D7FF; border-radius:12px; color:#034F46; margin:0 0 20px; }
 .guardian-verification-workspace.care-workspace .guardian-verification-editor fieldset { padding:22px; border:1px solid #DADAC4; border-radius:16px; margin-top:20px; }
 .evidence-scan-status { display:inline-flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.guardian-verification-editor .verification-summary-card { display:block; }
+.verification-summary-management { display:flex; justify-content:flex-end; margin-bottom:16px; }
+.verification-summary-fields { display:grid; grid-template-columns:minmax(140px,1fr) minmax(0,2fr); gap:14px 24px; margin:0; }
+@media(max-width:640px) { .verification-summary-management { justify-content:flex-start; } .verification-summary-fields { grid-template-columns:minmax(0,1fr); gap:6px; } }
 [data-slot=button][data-variant=ghost].evidence-preview-trigger,
 [data-slot=button][data-variant=ghost].evidence-preview-trigger:is(:hover,:focus,:active) { width:44px; height:44px; min-height:44px; padding:0; border:0; border-radius:0; background:none; box-shadow:none; color:#034F46; }
 [data-slot=button][data-variant=ghost].evidence-preview-trigger:hover { color:#F0D7FF; }
