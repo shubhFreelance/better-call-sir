@@ -1,4 +1,5 @@
 "use client";
+import { EnquirySummary } from "./enquiry-summary";
 import { useAppTranslation } from "./locale";
 import { StudentFeedback } from "./independent-journey";
 import { enquiryText } from "./student-enquiry-copy";
@@ -739,32 +740,12 @@ function StudentEnquiryForm({
               </form>
             ) : (
               <>
-                <dl className="independent-summary">
-                  <dt>{appText(enquiryText(hindi, "Search approach"))}</dt>
-                  <dd>
-                    {review.discoveryMethod === "MANUAL"
-                      ? enquiryText(hindi, "My selected teacher")
-                      : enquiryText(hindi, "Let us search for you")}
-                  </dd>
-                  <dt>{appText(enquiryText(hindi, "Subject and format"))}</dt>
-                  <dd>
-                    {appCurriculum(review.subject)} ·{" "}
-                    {review.mode === "HOME"
-                      ? enquiryText(hindi, "At home")
-                      : enquiryText(hindi, "Online")}{" "}
-                    · {appCurriculum(review.language)}
-                  </dd>
-                  <dt>{appText(enquiryText(hindi, "Locality"))}</dt>
-                  <dd>{review.locality}</dd>
-                  <dt>{appText(enquiryText(hindi, "Monthly budget"))}</dt>
-                  <dd>{rupees(review.budgetPaise, appLocale)}</dd>
-                </dl>
-                <WeeklySummary preferences={review.preferences} />
-                <p>
+                <EnquirySummary learner={studentId ? appText("Enquiry summary") : session.account.name} teacher={review.discoveryMethod === "MANUAL" ? teacher.data?.name : undefined} {...review} />
+                <p className="enquiry-summary-note">
                   {appText(
                     enquiryText(
                       hindi,
-                      "We will record these criteria for staff review. This does not reserve a teacher, confirm hiring, book classes or charge you.",
+                      "We save your criteria for the selected teacher or assisted search. No teacher reservation, hiring, class booking or charge is confirmed.",
                     ),
                   )}
                 </p>

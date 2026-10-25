@@ -5654,7 +5654,7 @@ body:has(.guardian-verification-page) { background: #F4F4EC; }
 .verification-progress li[data-state=current] strong { font-weight: 800; }
 .verification-progress li[data-state=current] .verification-step-marker { color: #FFFFFF; background: #000000; border-color: #000000; box-shadow: 0 0 0 5px #F4F4EC; animation: verification-arrive 500ms ease-out; }
 .verification-step-hint { padding: 16px 18px; margin: 24px 0 0; border-radius: 10px; background: #F4F4EC; color: #393932; font-size: 14px; line-height: 1.7; animation: verification-hint 250ms ease-out; }
-.guardian-verification-editor .guardian-management-option:has(input:checked), .guardian-verification-editor .guardian-management-summary { background: #F4F4EC; border: 1px solid #034F46; }
+.guardian-verification-editor .guardian-management-option:has(input:checked) { background: #F4F4EC; border: 1px solid #034F46; }
 .guardian-verification-editor .staff-summary { display: grid; grid-template-columns: minmax(140px,1fr) minmax(0,2fr); gap: 14px 24px; padding: 24px; background: #F4F4EC; }
 .guardian-verification-editor .staff-summary dt { margin: 0; color: #000000; font-weight: 750; }
 .guardian-verification-editor .staff-summary dd { margin: 0; font-size: 14px; line-height: 1.65; }
@@ -6154,4 +6154,61 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 @media (max-width:420px) {
   .header-inner:has(.live-bell) .logo { min-width:44px; min-height:44px; justify-content:center; }
   .header-inner:has(.live-bell) .logo > span:last-child { display:none; }
+}
+
+.decision-guidance, .enquiry-summary-note { padding:14px 16px; border:1px solid #D8E5D9; border-radius:12px; background:#F0F6EB; font-size:12px; line-height:1.65; }
+.decision-success { background:#E1F1E9; color:#034F46; }
+.guardian-verification-page :is(.care-help,.wizard-help,[data-slot="alert-description"]), .guardian-verification-editor :is(p,[data-slot="alert-description"]) { font-size:12px; line-height:1.65; }
+.guardian-verification-workspace .staff-heading p, .guardian-verification-workspace.care-workspace > p { padding:12px 16px; border:1px solid #E2E5D6; border-radius:12px; background:#F4F4EC; font-size:12px; line-height:1.65; max-width:80ch; }
+.guardian-verification-editor .staff-summary { border:1px solid #E2E5D6; border-radius:16px; background:#FFFFEB; font-size:12px; }
+.guardian-verification-editor .guardian-management-summary { padding:18px 20px; border:1px solid #E3C8F4; border-radius:14px; margin:20px 0; background:#F8EDFF; }
+.guardian-verification-editor .guardian-management-summary[data-management="SHARED"] { background:#F0D7FF; border-color:#DDB5F3; }
+.guardian-management-summary strong { font-size:14px; color:#034F46; }
+.guardian-management-summary p { margin:8px 0 0; }
+.guardian-verification-editor .guardian-evidence-step:has(.guardian-inline-setup) { padding:20px; margin-top:24px; border:1px solid #DFE3CF; border-radius:18px; background:#FFFFEB; }
+.guardian-verification-editor .guardian-evidence-step h4 { display:flex; align-items:center; gap:8px; }
+.guardian-inline-setup { padding:0; border:0; background:transparent; }
+.guardian-inline-setup .learner-profile-layout { margin:0; }
+.guardian-inline-setup .learner-profiles :is(.care-card,.wizard-card) { padding:20px; margin:16px 0 0; border:1px solid #DDE3D3; border-radius:16px; background:#FFF; }
+.guardian-inline-setup .learner-profiles h2 { font-size:20px; }
+.guardian-inline-setup .learner-profiles .wizard-fields { padding:16px; gap:18px; background:#F5F6EF; border-radius:12px; }
+.invitation-recovery { display:grid; gap:18px; padding:24px; border:1px solid #DDE3D3; border-radius:20px; background:#FFF; }
+.invitation-recovery .panel-title { gap:16px; align-items:center; }
+.invitation-recovery h3 { margin:0; font-size:18px; }
+.invitation-recovery :is(p,li) { font-size:12px; line-height:1.7; margin:0; }
+.invitation-status-box { display:flex; align-items:center; flex-wrap:wrap; gap:12px 20px; padding:14px 16px; border:1px solid #D8E5D9; border-radius:12px; background:#F0F6EB; }
+.invitation-status-box .badge { font-weight:600; color:#034F46; }
+.invitation-note { padding:14px 16px; border:1px solid #E4E5D8; border-radius:12px; background:#F6F6F0; max-width:75ch; }
+.invitation-recovery .family-invitation { display:grid; gap:18px; padding:22px; border:1px solid #E0D4EA; border-radius:16px; background:#FFFFEB; }
+.invitation-recovery .family-invitation ol { margin:0; padding:16px 18px 16px 36px; border:1px solid #E2E5D6; border-radius:12px; background:#FFF; }
+.invitation-recovery .family-invitation ol li + li { margin-top:8px; }
+.invitation-recovery :is(button,.invitation-onboarding) { min-height:46px; width:100%; max-width:320px; justify-content:center; text-align:center; font-size:13px; white-space:normal; }
+.invitation-recovery .invitation-reveal { background:#F0D7FF; color:#034F46; border:2px solid #C69CDE; animation:invitation-glow 2s ease-in-out 2; }
+.invitation-recovery .invitation-onboarding { display:inline-flex; align-items:center; padding:10px 16px; border:2px solid #034F46; border-radius:10px; background:#034F46; color:#FFF; font-weight:600; text-decoration:none; }
+@keyframes invitation-glow { 50% { box-shadow:0 0 0 4px #F0D7FF,0 0 14px #C69CDE; } }
+@media(prefers-reduced-motion:reduce) { .invitation-recovery .invitation-reveal { animation:none; } }
+.enquiry-summary { overflow:hidden; border:1px solid #DDE3D3; border-radius:18px; background:#FFF; margin:16px 0 20px; }
+.enquiry-summary header { padding:18px 20px; background:#FFFFEB; border-bottom:1px solid #E2E5D6; }
+.enquiry-summary h3 { margin:0; color:#034F46; font-size:20px; }
+.enquiry-summary header p { margin:6px 0 0; font-size:12px; }
+.enquiry-summary dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 24px; padding:20px; margin:0; }
+.enquiry-summary dl > div { min-width:0; }
+.enquiry-summary dt { font-size:11px; line-height:1.6; color:#52655F; }
+.enquiry-summary dd { margin:4px 0 0; font-size:14px; line-height:1.5; font-weight:600; overflow-wrap:anywhere; }
+.enquiry-summary dd.enquiry-budget { color:#034F46; font-size:20px; }
+.enquiry-summary-times { padding:16px 20px; border-top:1px solid #E2E5D6; background:#F8EDFF; font-size:12px; }
+.enquiry-summary-times .tuition-windows { margin:10px 0 0; font-size:13px; }
+.care-card:has(.enquiry-summary) :is(.care-notice,.check-label), .student-enquiry-form:has(.enquiry-summary) .wizard-checkbox { font-size:12px; line-height:1.65; }
+.wizard-review .wizard-review-row { padding:18px; border:1px solid #E2E5D6; border-radius:12px; background:#FFFFEB; }
+.wizard-review-row h3 { font-size:14px; }
+.wizard-review-row p { font-size:13px; }
+.student-enquiry-layout .independent-guide p { font-size:12px; line-height:1.7; padding:12px 14px; border:1px solid #E0D4EA; border-radius:12px; }
+@media(max-width:640px) {
+  .invitation-recovery, .invitation-recovery .family-invitation, .guardian-verification-editor .guardian-evidence-step:has(.guardian-inline-setup) { padding:16px; }
+  .guardian-verification-workspace.care-workspace .guardian-verification-editor .guardian-scan-recovery { padding:14px; }
+  .guardian-verification-workspace.care-workspace .guardian-verification-editor .guardian-scan-recovery fieldset { padding:0; border:0; }
+  .invitation-recovery .panel-title { align-items:stretch; flex-direction:column; }
+  .invitation-recovery :is(button,.invitation-onboarding) { max-width:none; }
+  .guardian-inline-setup .learner-profiles :is(.care-card,.wizard-card) { padding:16px; }
+  .enquiry-summary dl { gap:16px; padding:16px; }
 }

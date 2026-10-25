@@ -384,7 +384,7 @@ export function guardianVerificationTests() {
 
   test("staff school report download is distinct and only scanner-cleared evidence is linked",async({page})=>{
     const f=await setup(page,{role:"ADMIN"}); await openStaff(page);
-    const download=page.getByRole("link",{name:"Download private school report",exact:true});
+    const download=page.getByRole("link",{name:"See uploaded document",exact:true});
     await expect(download).toHaveCSS("background-color","rgb(3, 79, 70)");
     await expect(download).toHaveAttribute("rel","noopener noreferrer");
     await page.screenshot({path:"test-results/guardian-review-redesign-desktop.png",fullPage:true});
@@ -425,6 +425,14 @@ export function guardianVerificationTests() {
     await page.getByRole("button",{name:"Create first student invitation",exact:true}).click();
     await page.getByRole("checkbox",{name:/I am the learner’s guardian and will authorize only the intended student device/}).check();
     await page.getByRole("button",{name:"Create invitation",exact:true}).click();
+    const invite=page.locator(".invitation-recovery"), reveal=invite.getByRole("button",{name:"Reveal invitation code",exact:true}), onboarding=invite.getByRole("link",{name:"Open student onboarding",exact:true});
+    await expect(reveal).toHaveCSS("background-color","rgb(240, 215, 255)");
+    expect((await reveal.boundingBox())!.width).toBe((await onboarding.boundingBox())!.width);
+    await page.emulateMedia({reducedMotion:"reduce"});await expect(reveal).toHaveCSS("animation-name","none");
+    await page.setViewportSize({width:390,height:900});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    const accessibility=await new AxeBuilder({page}).include(".invitation-recovery").analyze();expect(accessibility.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+    await invite.screenshot({path:"test-results/invitation-redesign-phone.png"});
     await page.getByRole("button",{name:"Reveal invitation code",exact:true}).click();
     await expect(page.getByLabel("Private invitation code",{exact:true})).toHaveValue("synthetic-invitation-code");
     await expect(page).toHaveURL(/guardian-verification$/);
@@ -505,6 +513,7 @@ export function guardianVerificationTests() {
       const current = page.locator(
         '.verification-progress [aria-current="step"]',
       );
+      await expect(page.locator('.guardian-management-summary[data-management="SHARED"]')).toHaveCSS("background-color","rgb(240, 215, 255)");
       if (label) await expect(current).toHaveText(new RegExp(label));
       else {
         await expect(current).toHaveCount(0);
@@ -535,7 +544,7 @@ export function guardianVerificationTests() {
     ).toHaveCount(0);
     await expect(
       page.getByRole("link", {
-        name: hindiMessages["Download private school report"],
+        name: hindiMessages["See uploaded document"],
         exact: true,
       }),
     ).toHaveCount(0);
@@ -704,9 +713,9 @@ export function guardianVerificationTests() {
     await page.getByLabel("School marksheet or performance-card image",{exact:true}).setInputFiles({name:"report.png",mimeType:"image/png",buffer:image});
     await page.getByRole("button",{name:"Upload school report",exact:true}).click();
     await expect(page.getByText("Scan pending",{exact:true})).toBeVisible();
-    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toHaveCount(0);
     f.state().evidence.status="CLEAN";f.state().evidence.version++;f.state().scanStatus="CLEARED";
-    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toBeVisible({timeout:10000});
+    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toBeVisible({timeout:10000});
     expect(f.writes).toHaveLength(1);expect(f.state().status).toBe("DRAFT");
     await expect(page.getByRole("button",{name:"Refresh verification details",exact:true})).toBeVisible();
   });
@@ -715,7 +724,7 @@ export function guardianVerificationTests() {
     f.state().evidence.status="QUARANTINED";f.state().scanStatus="RETRY_REQUIRED";f.state().scanRetry={jobId:"40000000-0000-4000-8000-000000000911",expectedAttempts:5};
     await openStaff(page);
     await expect(page.getByText("Safety scan needs recovery",{exact:true})).toBeVisible();
-    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toHaveCount(0);
     await expect(page.getByRole("button",{name:"Record verification decision",exact:true})).toBeDisabled();
     await page.getByRole("button",{name:"Review scan retry",exact:true}).click();
     await expect(page.getByRole("button",{name:"Retry safety scan",exact:true})).toBeDisabled();
@@ -725,9 +734,9 @@ export function guardianVerificationTests() {
     await page.getByRole("button",{name:"Retry same decision",exact:true}).click();
     await expect(page.getByText("Safety scan queued again. The report stays blocked until the scanner clears it.",{exact:true})).toBeVisible();
     expect(f.writes).toHaveLength(2);expect(f.writes[0]).toEqual(f.writes[1]);
-    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toHaveCount(0);
     f.state().evidence.status="CLEAN";f.state().evidence.version++;f.state().scanStatus="CLEARED";
-    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toBeVisible({timeout:10000});
+    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toBeVisible({timeout:10000});
     await expect(page.getByRole("button",{name:"Record verification decision",exact:true})).toBeDisabled();
   });
   test("stale scan retry unlocks an explicit status refresh without repeating the mutation",async({page})=>{
@@ -751,7 +760,7 @@ export function guardianVerificationTests() {
   test("reviewer sees failed scan guidance without an administrator retry action",async({page})=>{
     const f=await setup(page,{role:"REVIEWER"});f.state().evidence.status="QUARANTINED";f.state().scanStatus="RETRY_REQUIRED";await openStaff(page);
     await expect(page.getByText("Safety scan needs recovery",{exact:true})).toBeVisible();await expect(page.getByRole("button",{name:"Review scan retry",exact:true})).toHaveCount(0);
-    await expect(page.getByRole("link",{name:"Download private school report",exact:true})).toHaveCount(0);
+    await expect(page.getByRole("link",{name:"See uploaded document",exact:true})).toHaveCount(0);
     await expect(page.getByRole("button",{name:"Record verification decision",exact:true})).toBeDisabled();
   });
   test("school reports validate type, stay private in quarantine and submit only the recorded current version", async ({
@@ -782,7 +791,7 @@ export function guardianVerificationTests() {
       .click();
     await expect(page.getByText("Scan pending", { exact: true })).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Download private school report" }),
+      page.getByRole("link", { name: "See uploaded document" }),
     ).toHaveCount(0);
     await page
       .getByRole("checkbox", {

@@ -13,6 +13,7 @@ import { Textarea } from "../components/ui/textarea";
 import { useAppTranslation } from "./locale";
 import { useHistory, HistoryPages } from "./history";
 import { Feedback, Notice, useDecision } from "./tuition-workflow";
+import { InfoTooltip } from "../components/ui/info-tooltip";
 type Child = components["schemas"]["Child"];
 type Verification = components["schemas"]["GuardianVerification"];
 type Application = components["schemas"]["GuardianVerificationInput"];
@@ -496,7 +497,7 @@ function VerificationSummary({ record: r,
           )}
         </p>
       )}
-      <aside className="guardian-management-summary">
+      <aside className="guardian-management-summary" data-management={r.managementMode}>
         <strong>{appText(guardianManagementLabels[r.managementMode])}</strong>
         <p>
           {appText(
@@ -521,7 +522,7 @@ function VerificationSummary({ record: r,
           target="_blank"
           rel="noopener noreferrer"
         >
-          {appText("Download private school report")}
+          {appText("See uploaded document")}
         </a>
       )}
     </>
@@ -1075,13 +1076,8 @@ function OwnerVerification({
                     <h4>
                       {appText(
                         "Student setup",
-                      )}
+                      )} <InfoTooltip label={appText("Student setup")} items={[appText("Complete learning permission and education details here. Student sign-in remains subject to acknowledgment and access permissions.")]} />
                     </h4>
-                    <p>
-                      {appText(
-                        "Complete learning permission and education details here. Student sign-in remains subject to acknowledgment and access permissions.",
-                      )}
-                    </p>
                     <GuardianSetup session={session} onSessionChange={onSessionChange} embeddedChildren={<><LearnerProfiles key={r.id} session={session} targetName={r.learnerName} targetId={r.learnerId || undefined} />{r.learnerId && !r.studentAccountId && <InvitationRecovery session={session} childId={r.learnerId} alias={r.learnerName} blocked={decision.locked || unavailable} consentActive onLockChange={setInvitationLocked} />}</>} />
                     {existing
                       .filter((c) => c.guardianVerificationId !== r.id)

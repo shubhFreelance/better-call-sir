@@ -103,7 +103,7 @@ test("real guardian report reaches the admin queue and downloads as the original
       .click();
     await expect(
       adminPage.getByRole("link", {
-        name: "Download private school report",
+        name: "See uploaded document",
         exact: true,
       }),
     ).toBeVisible({ timeout: 45000 });

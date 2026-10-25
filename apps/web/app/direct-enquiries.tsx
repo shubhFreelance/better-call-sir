@@ -64,9 +64,9 @@ export function DirectEnquiries({ session }: { session: Session }) {
   function choose(item: Item, action: Action) {
     setReview({ item, action });
     setConfirmed(false);
-    setFormat("ONE_TO_ONE");
-    setTiming("");
-    setMessage("");
+    setFormat(item.proposal?.format ?? "ONE_TO_ONE");
+    setTiming(item.proposal?.timing ?? "");
+    setMessage(item.proposal?.message ?? "");
   }
   function preferred(value: string) {
     try {
@@ -307,6 +307,11 @@ export function DirectEnquiries({ session }: { session: Session }) {
                       {item.proposal.timing}
                     </p>
                     <p>{item.proposal.message}</p>
+                    <p className="decision-guidance" role="status">{appText(item.status === "PROPOSED"
+                      ? "Waiting for the family to confirm this proposal. Editing it requires a new confirmation."
+                      : item.status === "PENDING"
+                        ? "The family confirmed this proposal. The teacher can now accept the enquiry."
+                        : "This is the proposal recorded for this enquiry.")}</p>
                   </aside>
                 )}
                 {item.sourceOpen &&
@@ -317,7 +322,7 @@ export function DirectEnquiries({ session }: { session: Session }) {
                           [
                             ["ACCEPT", "Accept enquiry"],
                             ["DECLINE", "Decline enquiry"],
-                            ["PROPOSE", "Propose another time or group"],
+                            ["PROPOSE", item.proposal ? "Edit proposal" : "Propose another time or group"],
                           ] as [Action, string][]
                         ).map(([action, label]) => (
                           <Button
@@ -325,7 +330,7 @@ export function DirectEnquiries({ session }: { session: Session }) {
                               action === "ACCEPT" ? "default" : "outline"
                             }
                             key={action}
-                            disabled={decision.locked}
+                            disabled={decision.locked || action === "ACCEPT" && item.status === "PROPOSED"}
                             onClick={() => choose(item, action)}
                           >
                             {appText(label)}
@@ -351,7 +356,8 @@ export function DirectEnquiries({ session }: { session: Session }) {
                     </div>
                   )}
                 {item.status === "ACCEPTED" && (
-                  <p>
+                  <p className="decision-guidance decision-success" role="status">
+                    <strong>{appText("The teacher has accepted this enquiry.")}</strong>{" "}
                     {appText(
                       "Enquiry accepted. Your tuition arrangement is ready; both parties review its recorded financial terms separately.",
                     )}
@@ -414,6 +420,11 @@ export function DirectEnquiries({ session }: { session: Session }) {
             )}
           </p>
           <fieldset disabled={decision.locked}>
+            {review.action !== "PROPOSE" && review.item.proposal && <aside className="direct-proposal">
+              <strong>{appText(review.item.proposal.format === "GROUP" ? "Group learning proposal" : "One-to-one proposal")}</strong>
+              <p>{appText("Suggested time (IST)")}: {review.item.proposal.timing}</p>
+              <p>{review.item.proposal.message}</p>
+            </aside>}
             {review.action === "PROPOSE" && (
               <>
                 <label>
@@ -476,8 +487,11 @@ export function DirectEnquiries({ session }: { session: Session }) {
       <div className="wizard-actions">
         <Button
           variant="outline"
-          disabled={query.isFetching || decision.locked}
-          onClick={() => refresh().catch(() => {})}
+          disabled={query.isFetching || decision.busy || decision.uncertain}
+          onClick={() => {
+            setReview(null); setConfirmed(false);
+            (decision.conflict ? decision.reload() : refresh()).catch(() => {});
+          }}
         >
           {appText("Refresh enquiries")}
         </Button>

@@ -192,17 +192,17 @@ export function InvitationRecovery({
       ) : (
         current && (
           <>
-            <p className="badge">
-              {
+            <div className="invitation-status-box"><p className="badge">
+              {appText(
                 {
                   NONE: "No invitation yet",
                   ACTIVE: "Invitation ready",
                   EXPIRED: "Invitation expired",
                   ACTIVATED: "Student space activated",
                 }[current.state]
-              }
+              )}
             </p>
-            {current.expiresAt && current.state !== "ACTIVATED" && (
+            {current.expiresAt && current.state !== "ACTIVATED" && !invite && (
               <p>
                 {appText("Invitation expiry:")}{" "}
                 {new Date(current.expiresAt).toLocaleString(appLocale, {
@@ -211,9 +211,9 @@ export function InvitationRecovery({
                 {appText("IST.")}{" "}
               </p>
             )}
-            <p className="wizard-help">
+            </div><p className="wizard-help invitation-note">
               {appText(
-                "Lost a code or returned to this page? Codes cannot be retrieved. Replacing an invitation invalidates all earlier codes for this learner. Existing student accounts are managed through device access.",
+                "Codes cannot be recovered. Replacing an invitation cancels earlier codes for this learner. Manage an existing student account through device access.",
               )}{" "}
             </p>
             {current.state !== "ACTIVATED" && !review && (
@@ -320,7 +320,7 @@ export function InvitationRecovery({
               </Button>
             </div>
           ) : (
-            <Button variant="outline" onClick={() => setReveal(true)}>
+            <Button className="invitation-reveal" variant="outline" onClick={() => setReveal(true)}>
               {appText("Reveal invitation code")}{" "}
             </Button>
           )}
@@ -344,7 +344,7 @@ export function InvitationRecovery({
               "Keep this code private. It is not saved in browser storage or placed in a link.",
             )}{" "}
           </p>
-          <Link className="inline-link" href="/onboarding/student">
+          <Link className="button invitation-onboarding" href="/onboarding/student">
             {appText("Open student onboarding")}{" "}
           </Link>
         </div>

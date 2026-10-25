@@ -2179,6 +2179,19 @@ test('adult direct enquiry appears immediately and teacher acceptance opens own 
  const terms={expectedVersion:1,confirmed:true,policyVersion:'independent-hiring-development-v1',contactShareAccepted:true};assert.equal((await c.call('/student-arrangements/'+result.data.arrangementId+'/acceptances',terms)).status,201);const agreed=await t.call('/student-arrangements/'+result.data.arrangementId+'/acceptances',{...terms,expectedVersion:2});assert.equal(agreed.status,201,JSON.stringify(agreed.data));assert.equal(agreed.data.status,'CONFIRMED');
 });
 
+test('independent student confirms the latest proposal before teacher acceptance and receives its notification',async()=>{
+ const {c}=await enquiryStudent(),rohan=await db.teacher.findFirstOrThrow({where:{name:'Rohan Verma'}}),t=await dashboardLogin(rohan.accountId!);
+ const submitted=await c.call('/student-enquiries',{...studentEnquiryInput,discoveryMethod:'MANUAL',preferredTeacherId:rohan.id,budgetPaise:400000});assert.equal(submitted.status,201);
+ const row=(await t.call('/direct-enquiries')).data.items.find((r:any)=>r.sourceId===submitted.data.id),path='/direct-enquiries/'+row.id+'/responses';
+ const reply=(action:string,expectedVersion:number)=>({action,expectedVersion,expectedSourceVersion:1,confirmed:true});
+ assert.equal((await t.call(path,{...reply('PROPOSE',1),format:'ONE_TO_ONE',timing:'Tuesday 6pm IST',message:'Please review this alternative.'})).status,201);
+ assert.equal((await t.call(path,reply('ACCEPT',2))).status,409);
+ const confirmed=await c.call(path,reply('ACCEPT_PROPOSAL',2));assert.equal(confirmed.data.status,'PENDING');assert.equal(confirmed.data.arrangementId,null);
+ const accepted=await t.call(path,reply('ACCEPT',3));assert.equal(accepted.status,201,JSON.stringify(accepted.data));assert(accepted.data.arrangementId);
+ const inbox=await c.call('/inbox'),notification=inbox.data.items.find((n:any)=>n.topic==='direct.accept');assert(notification);assert.equal(notification.important,true);assert.equal(notification.actionPath,'/dashboard/enquiries?conversation='+row.id);
+ assert.equal((await t.call(path,{...reply('PROPOSE',4),format:'GROUP',timing:'Friday',message:'Cannot revise accepted terms here.'})).status,409);
+});
+
 test('direct enquiry status filters precede pagination and preserve scoped counts and cursors',async()=>{
  const f=await educationActors(),t=await db.teacher.findFirstOrThrow({where:{name:'Rohan Verma'}}),tc=await dashboardLogin(t.accountId!),rows=[];
  for(const [n,status] of ['DECLINED','PENDING','ACCEPTED','PROPOSED','ACCEPTED','PENDING','PENDING'].entries()){

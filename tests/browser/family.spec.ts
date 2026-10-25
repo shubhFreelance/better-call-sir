@@ -11,9 +11,10 @@ async function login(page: Page, name = "Kavita") {
   await page.goto("/login");
   await page.getByText("Development accounts", { exact: true }).click();
   await page.getByRole("button", { name: new RegExp(name) }).click();
-  await expect(
-    page.getByRole("heading", { name: new RegExp(`Hello, ${name}`) }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/dashboard/);
+  const session=await (await page.request.get("/api/v1/auth/session")).json();
+  expect(session.account.name).toContain(name);
+  await expect(page.getByRole("heading",{level:1})).toBeVisible();
 }
 async function mock(
   page: Page,
@@ -656,7 +657,7 @@ test("real guardian invitation and student device access stay owner-bound and re
       .getByRole("link", { name: "Open dashboard", exact: true })
       .click();
     await expect(
-      device.getByRole("heading", { name: new RegExp(`Hello, ${alias}`) }),
+      device.getByRole("heading", { name: "Your student dashboard", exact:true }),
     ).toBeVisible();
     await expect(
       device.getByRole("link", { name: "Learners & access", exact: true }),
@@ -955,7 +956,7 @@ test("guardian overview and access confirmation work on mobile with no serious a
   await mock(page);
   await page.goto("/dashboard");
   await expect(
-    page.getByRole("heading", { name: "Your family’s learning, together." }),
+    page.getByRole("heading", { name: "Parent or Guardian Dashboard", exact:true }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Manage Synthetic Learner’s access" }),

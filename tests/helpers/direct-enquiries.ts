@@ -46,12 +46,15 @@ async function inbox(page: Page, role = "TEACHER", pageSize = 10) {
         item = items.find((i) => route.request().url().includes(i.id))!;
       writes.push(body);
       expect(route.request().headers()["idempotency-key"]).toBeTruthy();
+      if(body.expectedVersion !== item.version) return route.fulfill({status:409,json:{code:"CONFLICT",message:"Enquiry changed or is already answered. Refresh before continuing."}});
       Object.assign(item, {
         version: item.version + 1,
         status:
           body.action === "PROPOSE"
             ? "PROPOSED"
-            : body.action === "DECLINE"
+            : body.action === "ACCEPT_PROPOSAL"
+              ? "PENDING"
+              : body.action === "DECLINE" || body.action === "DECLINE_PROPOSAL"
               ? "DECLINED"
               : "ACCEPTED",
         proposal:
@@ -135,7 +138,7 @@ test("changing enquiry filters resets pagination and empty filters are explicit"
 test("teacher compact inbox, keyboard expansion, proposal and accepted arrangement", async ({
   page,
 }) => {
-  const { writes } = await inbox(page);
+  const { writes, items } = await inbox(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/dashboard");
   const panel = page.locator(".direct-inbox"),
@@ -181,12 +184,29 @@ test("teacher compact inbox, keyboard expansion, proposal and accepted arrangeme
     confirmed: true,
   });
   await expect(cards.first()).toContainText("Alternative proposed");
+  await expect(cards.first().getByRole("button", { name:"Accept enquiry", exact:true })).toBeDisabled();
+  await expect(cards.first()).toContainText("Waiting for the family to confirm this proposal.");
+  await cards.first().getByRole("button",{name:"Edit proposal",exact:true}).click();
+  await expect(form.getByLabel("Suggested time (IST)",{exact:true})).toHaveValue("Tuesday 6pm IST");
+  await form.getByLabel("Suggested time (IST)",{exact:true}).fill("Original Monday 5pm IST");
+  await form.getByRole("checkbox").check();
+  await form.getByRole("button",{name:"Confirm reply",exact:true}).click();
+  expect(writes[1]).toMatchObject({action:"PROPOSE",expectedVersion:2,timing:"Original Monday 5pm IST"});
+  await expect(cards.first().getByRole("button",{name:"Accept enquiry",exact:true})).toBeDisabled();
+  items[0].status="PENDING";items[0].version=4;items[0].proposal.familyConfirmed=true;
+  await panel.getByRole("button",{name:"Refresh enquiries",exact:true}).click();
+  await expect(cards.first()).toContainText("The family confirmed this proposal.");
+  await cards.first().getByRole("button",{name:"Accept enquiry",exact:true}).click();
+  await expect(form).toContainText("Original Monday 5pm IST");await form.getByRole("checkbox").check();
+  await form.getByRole("button",{name:"Confirm reply",exact:true}).click();
+  expect(writes[2]).toMatchObject({action:"ACCEPT",expectedVersion:4});
+  await expect(cards.first()).toContainText("The teacher has accepted this enquiry.");
   await page.screenshot({
     path: "test-results/direct-enquiries-desktop.png",
     fullPage: true,
   });
 });
-test("guardian accepts an alternative directly while staff is read only", async ({
+test("guardian confirms an alternative and waits for teacher acceptance", async ({
   page,
 }) => {
   const { writes, items } = await inbox(page, "GUARDIAN");
@@ -211,7 +231,22 @@ test("guardian accepts an alternative directly while staff is read only", async 
     .click();
   await expect(panel.locator("form")).toHaveCount(0);
   expect(writes[0].action).toBe("ACCEPT_PROPOSAL");
+  await expect(panel).toContainText("The family confirmed this proposal. The teacher can now accept the enquiry.");
+  await expect(panel.getByRole("link",{name:"View tuition arrangement"})).toHaveCount(0);
 });
+test("a changed proposal requires refresh and fresh family confirmation",async({page})=>{
+ const {items,writes}=await inbox(page,"GUARDIAN");Object.assign(items[0],{status:"PROPOSED",proposal:{format:"GROUP",timing:"Monday 5pm IST",message:"Original proposal",timezone:"Asia/Kolkata"}});
+ await page.goto("/dashboard/enquiries");const panel=page.locator(".direct-inbox");await panel.locator("summary").first().click();
+ await panel.getByRole("button",{name:"Accept proposal",exact:true}).click();await panel.locator("form").getByRole("checkbox").check();
+ items[0].version=2;items[0].proposal.timing="Tuesday 6pm IST";
+ await panel.getByRole("button",{name:"Confirm reply",exact:true}).click();await expect(panel.getByRole("alert")).toContainText("Enquiry changed");
+ await panel.getByRole("button",{name:"Refresh enquiries",exact:true}).click();await expect(panel.locator("form")).toHaveCount(0);
+ await expect(panel.locator("details").first()).toContainText("Tuesday 6pm IST");
+ await panel.getByRole("button",{name:"Accept proposal",exact:true}).click();await expect(panel.locator("form")).toContainText("Tuesday 6pm IST");
+ await expect(panel.getByRole("button",{name:"Confirm reply",exact:true})).toBeDisabled();
+ await panel.locator("form").getByRole("checkbox").check();await panel.getByRole("button",{name:"Confirm reply",exact:true}).click();expect(writes.map(w=>w.expectedVersion)).toEqual([1,2]);
+});
+
 test("Hindi mobile inbox keeps details collapsed and fits the viewport", async ({
   page,
 }) => {

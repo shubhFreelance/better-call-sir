@@ -25,6 +25,8 @@ import {
   weeklyPreferences,
 } from "./weekly-availability";
 import { DemoJourney } from "./demo-journey";
+import { EnquirySummary } from "./enquiry-summary";
+import { educationLabel } from "./learner-education";
 import { learningModes } from "./learning-management";
 import { useAppTranslation } from "./locale";
 type Permissions = components["schemas"]["LearningManagement"];
@@ -475,7 +477,7 @@ function LearningEnquiryEditor({
             : "Tell us what you want to learn",
         )}
       </h2>
-      {manual && (
+      {manual && !review && (
         <Notice>
           {teacher.data
             ? teacher.data.name
@@ -511,7 +513,9 @@ function LearningEnquiryEditor({
           )}
         </Notice>
       )}
-      <fieldset disabled={decision.locked || !ready}>
+      <fieldset aria-label={appText("Teacher search criteria")} disabled={decision.locked || !ready}>
+        {review && proposed.current && <EnquirySummary learner={child.alias} education={appText(educationLabel(child))} teacher={manual ? teacher.data?.name : undefined} subject={subject} mode={format} language={language} locality={locality.trim()} budgetPaise={Number(budget) * 100} preferences={weeklyPreferences(weekly)!} />}
+        {!review && <>
         <legend>{appText("Teacher search criteria")}</legend>
         <label className="field">
           {appText("Subject")}
@@ -578,11 +582,12 @@ function LearningEnquiryEditor({
           <legend>{appText("Weekly learning preferences")}</legend>
           <WeeklyAvailability rows={weekly} onChange={setWeekly} />
         </fieldset>
+        </>}
         {review && (
           <>
             <Notice>
               {appText(
-                "This saves an enquiry for your existing education profile. It does not book a class, charge you or authorize financial commencement.",
+                "This sends your enquiry using your saved education details. No class booking, charge or financial commitment is made.",
               )}
             </Notice>
             <label className="check-label">

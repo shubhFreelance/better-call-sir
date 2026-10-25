@@ -534,6 +534,18 @@ export function learningManagementTests() {
         .getByRole("button", { name: "Review teacher enquiry", exact: true })
         .click();
       expect(f.writes).toHaveLength(0);
+      const summary=page.getByRole("region",{name:"Enquiry summary",exact:true});
+      await expect(summary).toContainText("Maths");await expect(summary).toContainText("1,500");await expect(summary).toContainText("Monday");
+      await expect(page.getByRole("spinbutton",{name:"Monthly budget (INR)",exact:true})).toHaveCount(0);
+      if(failure === "none") {
+        await page.getByRole("button",{name:"Back to editing",exact:true}).click();
+        await expect(page.getByRole("spinbutton",{name:"Monthly budget (INR)",exact:true})).toHaveValue("1500");
+        await page.getByRole("button",{name:"Review teacher enquiry",exact:true}).click();
+        await page.setViewportSize({width:390,height:900});
+        expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+        const accessibility=await new AxeBuilder({page}).include(".enquiry-summary").analyze();expect(accessibility.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+        await summary.screenshot({path:"test-results/enquiry-summary-phone.png"});
+      }
       await page
         .getByLabel(
           "I reviewed these learning criteria and want to send this enquiry.",

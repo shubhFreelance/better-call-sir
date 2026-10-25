@@ -102,7 +102,7 @@ export function LiveBell({ session }: { session: Session }) {
     const labels: Record<string, string> = {
       "direct.accept": "Enquiry accepted — review tuition terms",
       "direct.decline": "Enquiry declined",
-      "direct.accept_proposal": "Alternative proposal accepted",
+      "direct.accept_proposal": "Proposal confirmed — awaiting teacher acceptance",
       "direct.decline_proposal": "Alternative proposal declined",
       "placement.terms_requested": "Tuition terms need your review",
       "placement.started": "Tuition has started",

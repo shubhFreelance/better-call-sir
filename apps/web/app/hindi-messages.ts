@@ -1,5 +1,17 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Codes cannot be recovered. Replacing an invitation cancels earlier codes for this learner. Manage an existing student account through device access.": "कोड दोबारा प्राप्त नहीं किया जा सकता। निमंत्रण बदलने से इस विद्यार्थी के पुराने कोड रद्द हो जाएँगे। मौजूदा विद्यार्थी खाते को उपकरण पहुँच से सँभालें।",
+  "This sends your enquiry using your saved education details. No class booking, charge or financial commitment is made.": "आपके सहेजे गए शिक्षा विवरण के साथ अनुरोध भेजा जाएगा। कोई कक्षा बुकिंग, शुल्क या आर्थिक प्रतिबद्धता नहीं होगी।",
+  "We save your criteria for the selected teacher or assisted search. No teacher reservation, hiring, class booking or charge is confirmed.": "चुने गए शिक्षक या सहायता प्राप्त खोज के लिए आपकी ज़रूरतें सहेजी जाएँगी। शिक्षक आरक्षण, नियुक्ति, कक्षा बुकिंग या शुल्क की पुष्टि नहीं होगी।",
+  "Enquiry summary": "अनुरोध का सारांश",
+  "See uploaded document": "अपलोड किया गया दस्तावेज़ देखें",
+  "Edit proposal": "प्रस्ताव बदलें",
+  "Waiting for the family to confirm this proposal. Editing it requires a new confirmation.": "परिवार की पुष्टि की प्रतीक्षा है। प्रस्ताव बदलने पर दोबारा पुष्टि ज़रूरी होगी।",
+  "The family confirmed this proposal. The teacher can now accept the enquiry.": "परिवार ने इस प्रस्ताव की पुष्टि की है। शिक्षक अब अनुरोध स्वीकार कर सकते हैं।",
+  "This is the proposal recorded for this enquiry.": "इस अनुरोध के लिए यह प्रस्ताव दर्ज है।",
+  "The teacher has accepted this enquiry.": "शिक्षक ने यह अनुरोध स्वीकार कर लिया है।",
+  "Proposal confirmed — awaiting teacher acceptance": "प्रस्ताव की पुष्टि हुई — शिक्षक की स्वीकृति की प्रतीक्षा है",
+  "Wait for the family to confirm your latest proposal before accepting.": "स्वीकार करने से पहले परिवार से अपने नवीनतम प्रस्ताव की पुष्टि की प्रतीक्षा करें।",
   "Choose a subject before enquiring": "अनुरोध भेजने से पहले विषय चुनें",
   "Search for a learner": "विद्यार्थी के लिए शिक्षक खोजें",
   "Choose learner": "विद्यार्थी चुनें",
