@@ -89,7 +89,9 @@ export function guardianLearnerChecks() {
       await expect(own).toHaveCSS("border-top-width", "2px");
       await expect(invited).toHaveCSS("border-top-color", "rgb(240, 215, 255)");
       await expect(invited).toHaveCSS("background-color", "rgb(248, 236, 255)");
-      await expect(own).toHaveCSS("background-color", "rgb(255, 255, 255)");
+      await expect(own).toHaveCSS("background-color", "rgb(255, 255, 235)");
+      await expect(own.locator(".guardian-learner-cards > li").first()).toHaveCSS("background-color", "rgb(255, 255, 255)");
+      await expect(own.locator(".guardian-learner-cards li > p").first()).toHaveCSS("background-color", "rgb(243, 245, 236)");
       await expect(invited.getByText(t("Invited access"), { exact: true })).toBeVisible();
       await expect(own.getByText(t("Invited access"), { exact: true })).toHaveCount(0);
       await expect(

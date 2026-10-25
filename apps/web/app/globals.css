@@ -5982,6 +5982,10 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .guardian-learner-group.invited .guardian-learner-cards > li { background:#FFFFFF; border-color:#E7D4F0; }
 .guardian-learner-group.invited .guardian-learner-status { background:#F0D7FF; color:#402E4A; }
 .guardian-learner-group.invited .history-controls { background:#FFFFFF; border:1px solid #E7D4F0; }
+.guardian-learner-group:not(.invited) { --card-fill:#FFFFEB; background:#FFFFEB; }
+.guardian-learner-group:not(.invited) .guardian-learner-cards > li { background:#FFFFFF; border-color:#E1E6D7; }
+.guardian-learner-group:not(.invited) .guardian-learner-cards li > p { background:#F3F5EC; }
+.guardian-learner-group:not(.invited) .history-controls { background:#FFFFFF; border:1px solid #E1E6D7; }
 .guardian-learners-heading p,.guardian-learner-group > p,.guardian-learner-cards p,.guardian-learners .history-controls { font-size:12px; line-height:1.6; }
 .guardian-learner-group > p { padding:12px; margin:0 0 12px; border-radius:10px; background:#F3F5EC; }
 .guardian-learner-group > p:has(+ p) { margin-bottom:0; border-bottom-left-radius:0; border-bottom-right-radius:0; }
