@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
+import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
 import { Input } from "../components/ui/input";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { Info } from "lucide-react";
@@ -803,11 +804,10 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
                   {appText("Retry opening profile")}{" "}
                 </Button>
               )}
-              <div className="wizard-actions">
+              <FilterButtonGroup>
                 {review ? (
                   <>
-                    <Button
-                      variant="outline"
+                    <FilterButton
                       disabled={locked}
                       onClick={() => {
                         setReview(null);
@@ -815,8 +815,8 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
                       }}
                     >
                       {appText("Edit details")}{" "}
-                    </Button>
-                    <Button
+                    </FilterButton>
+                    <FilterButton accent
                       disabled={
                         busy || stale || !!openingId || (!ready && !uncertain)
                       }
@@ -829,19 +829,18 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
                           : editing
                             ? appText("Confirm and save changes")
                             : appText("Confirm and save profile")}
-                    </Button>
+                    </FilterButton>
                   </>
                 ) : (
-                  <Button
+                  <FilterButton accent
                     type="submit"
                     form="learner-education-form"
                     disabled={locked || stale || !ready}
                   >
                     {appText("Review learner profile")}{" "}
-                  </Button>
+                  </FilterButton>
                 )}
-                <Button
-                  variant="ghost"
+                <FilterButton
                   disabled={locked}
                   onClick={() => {
                     setAdding(false);
@@ -853,8 +852,8 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
                   }}
                 >
                   {appText("Cancel")}{" "}
-                </Button>
-              </div>
+                </FilterButton>
+              </FilterButtonGroup>
             </section>
           )}
         </div>

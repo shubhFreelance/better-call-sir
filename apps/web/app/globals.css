@@ -6409,3 +6409,7 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .guardian-staff-queue .guardian-verification-editor form > fieldset > label:not(.care-check) { display:grid; gap:8px; font-size:13px; }
 .guardian-staff-queue .guardian-verification-editor form small,.guardian-staff-queue .guardian-decision-readiness li { font-size:12px; line-height:1.7; }
 @media(max-width:640px) { .guardian-staff-queue.care-workspace { padding:16px; } .guardian-queue-heading { padding:18px; } .guardian-queue-heading h2 { font-size:22px; } .guardian-staff-queue .guardian-queue-filter { grid-template-columns:minmax(0,1fr); gap:8px; } .guardian-staff-queue .guardian-queue-row { gap:12px; padding:14px; } .guardian-staff-queue .guardian-queue-row > [data-slot=button] { max-width:124px; } .guardian-staff-queue .guardian-verification-editor { padding:16px; } }
+.guardian-inline-setup { display:grid; gap:24px; }
+.guardian-inline-setup > [data-slot=button] { justify-self:start; margin:0; }
+.guardian-inline-setup .learner-profiles .hiring-section-heading > h2,
+.guardian-inline-setup .invitation-recovery .panel-title > h3 { margin:0; font-family:var(--font-family); font-size:20px; font-weight:650; line-height:1.4; letter-spacing:-.4px; color:#034F46; }
