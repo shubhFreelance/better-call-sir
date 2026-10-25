@@ -1,5 +1,21 @@
 # Frontend design direction
 
+## `filter-button` — owner design memory, 25 October 2026
+
+The owner named the student-access action design **filter-button**. Reuse `FilterButton` and `FilterButtonGroup` from `apps/web/components/ui/filter-button.tsx` rather than copying page CSS. This is an action-button design; it does not add filtering behavior. `FilterButton` composes the house Button and accepts its standard action/link props except `variant`; white is the default and `accent` selects lavender #F0D7FF. Use `asChild` with a Next Link for navigation. The group supplies the rounded #EEF5F3 tray, balanced widths,12px spacing and full-width phone stacking. Buttons retain44px targets, visible focus, white/sage or lavender hover feedback, disabled semantics and reduced-motion support. Keep labels translated by the caller.
+
+```tsx
+import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
+import Link from "next/link";
+
+<FilterButtonGroup>
+  <FilterButton onClick={refresh} disabled={loading}>{appText("Refresh my access")}</FilterButton>
+  <FilterButton asChild accent><Link href="/next">{appText("Continue")}</Link></FilterButton>
+</FilterButtonGroup>
+```
+
+When the owner asks for a `filter-button`, use this pattern. Existing segmented status filters remain the separate `StatusFilters` component.
+
 ## Live notification bell — 24 October 2026
 
 Use a44px ivory/teal bell with a compact unread counter in the header. The390px non-modal popover has a sage #E4E4D0 header, white cards and restrained lavender #F0D7FF icon tiles/priority backgrounds. Small readable typography distinguishes event, priority, timestamp and action. Retain the page behind it, keyboard/outside dismissal, read receipts and explicit offline/error/empty states. Reuse protected recipient-scoped APIs; send only invalidation over Socket.IO. Keep email history separate and never expose evidence or invitation secrets.

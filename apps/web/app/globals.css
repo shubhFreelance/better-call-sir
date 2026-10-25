@@ -6025,6 +6025,15 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .student-connection > h2 { font-size:clamp(24px,3vw,30px); line-height:1.25; margin:0 0 14px; }
 .student-connection h3 { font-size:20px; line-height:1.4; }
 .student-connection { margin-bottom:24px; }
+.filter-button-group { display:flex; flex-wrap:wrap; gap:12px; width:100%; padding:14px; border:1px solid #DFE7E1; border-radius:12px; background:#EEF5F3; }
+.filter-button-group > .filter-button { flex:1 1 180px; }
+[data-slot=button].filter-button { height:auto; min-height:44px; padding:8px 16px; border:1px solid #D9E4DF; border-radius:6px; background:#FFFFFF; color:#034F46; font-size:13px; line-height:1.5; white-space:normal; text-align:center; cursor:pointer; box-shadow:0 1px 2px #17201F0D; transition:background-color .15s ease,border-color .15s ease; }
+[data-slot=button].filter-button[data-accent=true] { background:#F0D7FF; border-color:#DAB7EC; box-shadow:none; }
+[data-slot=button].filter-button:not(:disabled):hover { background:#EEF5F3; border-color:#034F46; }
+[data-slot=button].filter-button[data-accent=true]:not(:disabled):hover { background:#E7C3FA; border-color:#DAB7EC; }
+[data-slot=button].filter-button:disabled { pointer-events:auto; cursor:not-allowed; }
+@media(max-width:640px) { .filter-button-group { flex-direction:column; } .filter-button-group > .filter-button { flex:auto; width:100%; } }
+@media(prefers-reduced-motion:reduce) { [data-slot=button].filter-button { transition:none; } }
 .student-connection .student-access-header { display:flex; align-items:center; gap:12px; padding:18px; border-radius:14px; background:#034F46; }
 .student-connection .student-access-header h2 { flex:1; min-width:0; margin:0; color:#FFFFEB; font-size:22px; line-height:1.35; overflow-wrap:anywhere; }
 .student-access-symbol { display:grid; place-items:center; flex:none; width:44px; height:44px; border-radius:12px; background:#F0D7FF; color:#034F46; }
@@ -6041,12 +6050,11 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .student-connection .wizard-actions { gap:12px; }
 .student-connection [data-slot=button]:not(.info-tooltip-trigger) { height:auto; min-height:44px; font-size:13px; white-space:normal; text-align:center; transition:background-color .15s ease,border-color .15s ease; }
 .student-connection [data-slot=button][data-variant=default]:not(:disabled):hover { background:#023E37; }
-.student-connection [data-slot=button][data-variant=outline]:not(:disabled):hover { background:#EEF5F3; border-color:#034F46; }
+.student-connection [data-slot=button][data-variant=outline]:not(.filter-button):not(:disabled):hover { background:#EEF5F3; border-color:#034F46; }
 .student-connection [data-slot=button]:disabled { pointer-events:auto; cursor:not-allowed; }
-.student-connection .student-access-actions { display:flex; flex-wrap:wrap; justify-content:flex-start; margin:20px 0 0; padding:14px; border:1px solid #DFE7E1; border-radius:12px; background:#EEF5F3; }
-.student-access-actions > [data-slot=button] { flex:1 1 180px; }
-.student-access-actions > [data-slot=button][data-variant=ghost], .student-connection .student-access-request > [data-slot=button] { border:1px solid #DAB7EC; background:#F0D7FF; color:#034F46; }
-.student-access-actions > [data-slot=button][data-variant=ghost]:hover, .student-connection .student-access-request > [data-slot=button][data-variant=outline]:not(:disabled):hover { background:#E7C3FA; }
+.student-connection .student-access-actions { margin:20px 0 0; }
+.student-connection .student-access-request > [data-slot=button] { border:1px solid #DAB7EC; background:#F0D7FF; color:#034F46; }
+.student-connection .student-access-request > [data-slot=button][data-variant=outline]:not(:disabled):hover { background:#E7C3FA; }
 @media(prefers-reduced-motion:reduce) { .student-connection [data-slot=button] { transition:none; } }
 @media(max-width:640px) {
   .student-connection .student-access-header { padding:14px; gap:8px; }
