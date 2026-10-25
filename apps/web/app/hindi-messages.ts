@@ -1,5 +1,6 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Page {0}": "पृष्ठ {0}",
   "You can explore teachers while waiting.": "प्रतीक्षा के दौरान आप शिक्षक खोज सकते हैं।",
   "Preparing document…": "दस्तावेज़ तैयार हो रहा है…",
   "Uploading document…": "दस्तावेज़ अपलोड हो रहा है…",

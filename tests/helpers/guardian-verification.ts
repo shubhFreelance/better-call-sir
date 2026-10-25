@@ -445,6 +445,36 @@ export function guardianVerificationTests() {
     await page.getByRole("button",{name:"Refresh verification details",exact:true}).click();
     await expect(download).toHaveCount(0);
   });
+  test("staff queue shows ten requests per page with right-aligned review actions and safe reload",async({page})=>{
+    await setup(page,{role:"ADMIN"});
+    const rows=Array.from({length:30},(_,index)=>record({id:`20000000-0000-4000-8000-${String(index+100).padStart(12,"0")}`,learnerName:`Queue learner ${index+1}`,guardianName:`Guardian ${index+1}`,status:"PENDING"}));
+    const cursors:string[]=[]; let failNext=false;
+    await page.route("**/api/v1/admin/guardian-verifications?**",route=>{
+      const url=new URL(route.request().url());expect(url.searchParams.get("limit")).toBe("10");
+      const cursor=url.searchParams.get("cursor");if(cursor)cursors.push(cursor);
+      if(cursor&&failNext)return route.fulfill({status:503,json:{code:"UNAVAILABLE",message:"Unavailable"}});
+      const start=cursor?rows.findIndex(r=>r.id===cursor)+1:0;
+      const items=url.searchParams.get("status")==="APPROVED"?[]:rows.slice(start,start+10);
+      return route.fulfill({json:{items,nextCursor:items.length&&start+10<rows.length?items.at(-1)!.id:null}});
+    });
+    const pagination=page.getByRole("navigation",{name:"Guardian review queue",exact:true});
+    await pagination.getByRole("button",{name:"Reload history",exact:true}).click();
+    const list=page.locator(".guardian-queue-list"), next=pagination.getByRole("button",{name:"Next page",exact:true}),previous=pagination.getByRole("button",{name:"Previous page",exact:true});
+    await expect(list.locator("article")).toHaveCount(10);await expect(previous).toBeDisabled();
+    const row=list.locator("article").first(), name=await row.locator("h3").boundingBox(),button=await row.getByRole("button").boundingBox();expect(button!.x).toBeGreaterThan(name!.x+name!.width);
+    await page.screenshot({path:"test-results/guardian-queue-desktop.png",fullPage:true});
+    await next.click();await expect(list).toContainText("Queue learner 11");await expect(list.locator("article")).toHaveCount(10);await expect(list.getByRole("heading",{name:"Queue learner 1",exact:true})).toHaveCount(0);
+    await next.click();await expect(list).toContainText("Queue learner 30");await expect(list.locator("article")).toHaveCount(10);await expect(next).toBeDisabled();
+    await previous.click();await expect(list).toContainText("Queue learner 11");expect(cursors).toHaveLength(2);
+    await page.getByRole("combobox",{name:"Verification queue status",exact:true}).selectOption("APPROVED");await expect(list.locator("article")).toHaveCount(0);await expect(pagination).toContainText("Page 1");
+    await page.getByRole("combobox",{name:"Verification queue status",exact:true}).selectOption("PENDING");await pagination.getByRole("button",{name:"Reload history",exact:true}).click();
+    failNext=true;await next.click();await expect(page.locator(".guardian-staff-queue").getByRole("alert")).toContainText("Verification records could not be loaded.");await expect(list).toHaveCount(0);
+    failNext=false;await pagination.getByRole("button",{name:"Reload history",exact:true}).click();await expect(list.locator("article")).toHaveCount(10);
+    await page.getByRole("button",{name:"Switch English and Hindi"}).click();await page.setViewportSize({width:320,height:800});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    expect((await new AxeBuilder({page}).include(".guardian-staff-queue").analyze()).violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+    await page.screenshot({path:"test-results/guardian-queue-hindi-phone.png",fullPage:true});
+  });
 
   for(const hindi of [false,true]) test(`guardian document modal preserves private preview and keyboard focus (${hindi?"Hindi phone":"English desktop"})`,async({page})=>{
     const f=await setup(page);f.state().evidence={id:evidenceId,status:"CLEAN",mediaType:"image/png",version:1,uploadedAt:new Date().toISOString()};f.state().currentEvidenceId=evidenceId;

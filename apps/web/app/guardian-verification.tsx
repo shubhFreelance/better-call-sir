@@ -1381,6 +1381,7 @@ function StudentAcknowledgments({
 function VerificationQueue({ session }: { session: Session }) {
   const { appText } = useAppTranslation(),
     [status, setStatus] = useState("PENDING"),
+    [page, setPage] = useState(0),
     [selected, setSelected] = useState<Verification | null>(null),
     heading = useRef<HTMLHeadingElement>(null);
   const queue = useHistory<{
@@ -1388,27 +1389,37 @@ function VerificationQueue({ session }: { session: Session }) {
     nextCursor: string | null;
   }>({
     queryKey: ["guardian-review-queue", session.account.id, status],
-    path: "/admin/guardian-verifications" + (status ? "?status=" + status : ""),
+    path: "/admin/guardian-verifications?limit=10" + (status ? "&status=" + status : ""),
   });
+  const currentPage = Math.min(page, Math.max(0, Math.ceil((queue.data?.items.length || 0) / 10) - 1));
+  const visible = queue.data?.items.slice(currentPage * 10, (currentPage + 1) * 10) || [];
+  const canNext = !!queue.data && (queue.data.items.length > (currentPage + 1) * 10 || queue.hasNextPage);
+  async function nextPage() {
+    if (queue.isFetching || selected) return;
+    if ((currentPage + 1) * 10 >= (queue.data?.items.length || 0)) {
+      const result = await queue.fetchNextPage();
+      if (result.error) return;
+    }
+    setPage(currentPage + 1);
+    requestAnimationFrame(() => heading.current?.focus());
+  }
   return (
-    <section className="care-workspace guardian-verification-workspace">
+    <section className="care-workspace guardian-verification-workspace guardian-staff-queue">
+      <header className="guardian-queue-heading">
       <Link className="inline-link" href="/dashboard/security">
         {appText("Authenticator & recovery")}
       </Link>
       <h2 ref={heading} tabIndex={-1}>
         {appText("Review the relationship behind the account.")}
       </h2>
-      <p>
-        {appText(
-          "A clean school report is evidence for a human review. Check adult status, authority, student acknowledgment and the named relationship separately.",
-        )}
-      </p>
-      <label>
+      <InfoTooltip label={appText("Guardian review queue")} items={[appText("A clean school report is evidence for a human review. Check adult status, authority, student acknowledgment and the named relationship separately.")]} />
+      </header>
+      <label className="guardian-queue-filter">
         {appText("Verification queue status")}
         <select
           disabled={!!selected}
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={(e) => { setStatus(e.target.value); setPage(0); }}
         >
           <option value="">{appText("All statuses")}</option>
           {Object.entries(statuses).map(([key, label]) => (
@@ -1433,8 +1444,9 @@ function VerificationQueue({ session }: { session: Session }) {
           {!queue.isPending && !queue.data?.items.length && (
             <Notice>{appText("No guardian requests for this status.")}</Notice>
           )}
-          {queue.data?.items.map((r) => (
-            <article className="staff-person" key={r.id}>
+          <div className="guardian-queue-list" aria-busy={queue.isFetching}>
+          {visible.map((r) => (
+            <article className="staff-person guardian-queue-row" key={r.id}>
               <div>
                 <h3>
                   {r.status === "DELETED"
@@ -1448,22 +1460,26 @@ function VerificationQueue({ session }: { session: Session }) {
                   · {appText(statuses[r.status])}
                 </p>
               </div>
-              <Button
-                variant="outline"
+              <FilterButton accent
                 disabled={!!selected}
                 onClick={() => setSelected(r)}
               >
                 {appText("Review guardian evidence")}
-              </Button>
+              </FilterButton>
             </article>
           ))}
-          <HistoryPages
-            label={appText("Guardian review queue")}
-            history={queue}
-            disabled={!!selected}
-          />
+          </div>
         </>
       )}
+      <nav className="guardian-queue-pagination" aria-label={appText("Guardian review queue")}>
+        <p role="status">{appText("Page {0}", [currentPage + 1])}{" · "}{appText("Showing {0} records.", [visible.length])}</p>
+        {queue.looped && <Notice error>{appText("History changed. Reload from the beginning.")}</Notice>}
+        <FilterButtonGroup>
+          <FilterButton disabled={!!selected || queue.isFetching || !currentPage || !!queue.error} onClick={() => { setPage(currentPage - 1); requestAnimationFrame(() => heading.current?.focus()); }}>{appText("Previous page")}</FilterButton>
+          <FilterButton accent disabled={!!selected || queue.isFetching || !canNext || queue.looped || !!queue.error} onClick={() => void nextPage()}>{appText("Next page")}</FilterButton>
+          <FilterButton disabled={!!selected || queue.isFetching} onClick={() => { setPage(0); void queue.restart(); }}>{appText("Reload history")}</FilterButton>
+        </FilterButtonGroup>
+      </nav>
       {selected && (
         <StaffVerification
           key={selected.id}

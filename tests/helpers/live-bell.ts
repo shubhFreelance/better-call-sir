@@ -47,8 +47,13 @@ for (const hindi of [false, true])
     await expect(close).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
     await expect(close).toHaveCSS('border-top-color','rgba(0, 0, 0, 0)');
     await close.hover();
-    await expect(close).toHaveCSS('border-radius','10px');
-    await expect(close).toHaveCSS('border-top-color','rgb(3, 79, 70)');
+    await expect(close).toHaveCSS('border-radius','50%');
+    await expect(close).toHaveCSS('border-top-color','rgb(240, 215, 255)');
+    const mark = panel.locator('.live-bell-item > button');
+    await expect(mark).toHaveCSS('border-top-color','rgba(0, 0, 0, 0)');
+    await mark.hover();
+    await expect(mark).toHaveCSS('border-radius','50%');
+    await expect(mark).toHaveCSS('border-top-color','rgb(240, 215, 255)');
     await expect(panel.locator('.live-bell-item > button')).toHaveCSS('height','44px');
     await expect(panel.locator('.live-bell-symbol')).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
     expect((await panel.boundingBox())!.width).toBeLessThanOrEqual(390);
