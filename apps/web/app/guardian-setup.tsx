@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
 import { Check, GraduationCap, ShieldCheck, Search } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { FilterButton } from "../components/ui/filter-button";
 import { Alert, AlertDescription } from "../components/ui/alert";
 type Setup = components["schemas"]["GuardianSetup"];
 export function GuardianSetup({
@@ -143,11 +144,11 @@ export function GuardianSetup({
                           {appText("Check permission status")}{" "}
                         </Button>
                       ) : (
-                        <Button type="submit" disabled={!accepted || locked}>
+                        <FilterButton accent type="submit" disabled={!accepted || locked}>
                           {busy
                             ? appText("Saving permission…")
                             : appText("Agree and continue")}
-                        </Button>
+                        </FilterButton>
                       )}
                     </div>
                   </form></>;
