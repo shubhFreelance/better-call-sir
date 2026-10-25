@@ -16,6 +16,8 @@ npm run db:seed
 npm run dev
 ```
 
+The API development command watches source files and restarts automatically after changes. If upgrading an already-running session from the previous non-watching command, restart the API once so it loads the watcher and current routes.
+
 The web uses port 3000 and the API port 4000. Start from the web's **Get started** button and choose a synthetic parent, student, teacher or admin. Parent Kavita has a linked student, active teaching assignment and a demo prepaid Pro entitlement. New/unverified parents cannot submit child data. Tuition matching and safety-support access do not require Pro.
 
 The root `.env` is ignored. The example database credentials are for a loopback-only local development database. Do not use them on a public host. No real OTP, guardian verification, checkout, masked audio or notification providers are configured. The API and worker deliberately refuse live startup.
