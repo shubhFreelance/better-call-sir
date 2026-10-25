@@ -260,6 +260,7 @@ class DirectEnquiriesController {
         .object({
           cursor: uuid.optional(),
           id: uuid.optional(),
+          status: z.enum(["PENDING", "ACCEPTED", "DECLINED"]).optional(),
           limit: z.coerce.number().int().min(1).max(50).default(10),
         })
         .strict(),
@@ -300,10 +301,13 @@ class DirectEnquiriesController {
                   : Prisma.sql`d."ownerId" IN (${Prisma.join(ids.map((id) => Prisma.sql`${id}::uuid`))})`;
         const active = Prisma.sql`EXISTS(SELECT 1 FROM "Account" a WHERE a.id=d."ownerId" AND NOT a.disabled AND ((d.kind='GUARDIAN' AND a.role='GUARDIAN' AND a.verified AND EXISTS(SELECT 1 FROM "Consent" c WHERE c."guardianId"=a.id AND c."withdrawnAt" IS NULL) AND EXISTS(SELECT 1 FROM "Child" ch WHERE ch.id=d."childId" AND ch."guardianId"=a.id AND (ch."guardianVerificationId" IS NULL OR EXISTS(SELECT 1 FROM "GuardianVerification" v WHERE v.id=ch."guardianVerificationId" AND v.status='APPROVED')))) OR (d.kind='INDEPENDENT' AND a.role='INDEPENDENT_STUDENT' AND EXISTS(SELECT 1 FROM "IndependentStudentProfile" p WHERE p."accountId"=a.id)))) AND NOT EXISTS(SELECT 1 FROM "PrivacyRequest" p WHERE p."accountId"=d."ownerId" AND p.kind='DELETION' AND p.scope IN ('ACCOUNT','CHILD') AND p.status='PENDING')`;
         const scope = Prisma.sql`(${own}) AND (${active})`;
+        const filter = q.status
+          ? Prisma.sql`d.status::text=${q.status} AND (${q.status}!='PENDING' OR EXISTS(SELECT 1 FROM "TuitionRequest" r WHERE r.id=d."sourceId" AND d.kind='GUARDIAN' AND r.status='OPEN') OR EXISTS(SELECT 1 FROM "StudentEnquiry" e WHERE e.id=d."sourceId" AND d.kind='INDEPENDENT' AND e.status='SUBMITTED'))`
+          : Prisma.sql`TRUE`;
         let cursor: DirectEnquiry | null = null;
         if (q.cursor) {
           const allowed = await db.$queryRaw<{ id: string }[]>(
-            Prisma.sql`SELECT d.id FROM "DirectEnquiry" d WHERE ${scope} AND d.id=${q.cursor}::uuid`,
+            Prisma.sql`SELECT d.id FROM "DirectEnquiry" d WHERE ${scope} AND (${filter}) AND d.id=${q.cursor}::uuid`,
           );
           if (!allowed.length)
             fail(404, "NOT_FOUND", "Enquiry cursor is unavailable.");
@@ -315,7 +319,7 @@ class DirectEnquiriesController {
           Prisma.sql`SELECT d.status,count(*) AS count FROM "DirectEnquiry" d WHERE ${scope} GROUP BY d.status`,
         );
         const rows = await db.$queryRaw<{ id: string }[]>(
-          Prisma.sql`SELECT d.id FROM "DirectEnquiry" d WHERE ${scope} AND (${q.id ?? null}::uuid IS NULL OR d.id=${q.id ?? null}::uuid) AND (${cursor?.id ?? null}::uuid IS NULL OR d."createdAt"<${cursor?.createdAt ?? new Date()} OR (d."createdAt"=${cursor?.createdAt ?? new Date()} AND d.id<${cursor?.id ?? null}::uuid)) ORDER BY d."createdAt" DESC,d.id DESC LIMIT ${q.limit + 1}`,
+          Prisma.sql`SELECT d.id FROM "DirectEnquiry" d WHERE ${scope} AND (${filter}) AND (${q.id ?? null}::uuid IS NULL OR d.id=${q.id ?? null}::uuid) AND (${cursor?.id ?? null}::uuid IS NULL OR d."createdAt"<${cursor?.createdAt ?? new Date()} OR (d."createdAt"=${cursor?.createdAt ?? new Date()} AND d.id<${cursor?.id ?? null}::uuid)) ORDER BY d."createdAt" DESC,d.id DESC LIMIT ${q.limit + 1}`,
         );
         if (q.id && !rows.length)
           fail(404, "NOT_FOUND", "Enquiry unavailable.");

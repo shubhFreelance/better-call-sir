@@ -7681,6 +7681,8 @@ export interface operations {
     getDirectEnquiries: {
         parameters: {
             query?: {
+                /** @description Filter before pagination. PENDING includes only open sources awaiting a teacher reply. Counts retain the full authorized scope; cursors must belong to this filter. */
+                status?: "PENDING" | "ACCEPTED" | "DECLINED";
                 cursor?: string;
                 limit?: number;
                 /** @description Open one owned enquiry while retaining overall counts. */

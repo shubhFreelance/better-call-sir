@@ -472,6 +472,15 @@
         "summary": "Immediate direct enquiries and regional staff oversight, newest first; no staff approval",
         "parameters": [
   {
+    "name": "status",
+    "in": "query",
+    "description": "Filter before pagination. PENDING includes only open sources awaiting a teacher reply. Counts retain the full authorized scope; cursors must belong to this filter.",
+    "schema": {
+      "type": "string",
+      "enum": ["PENDING", "ACCEPTED", "DECLINED"]
+    }
+  },
+  {
     "name": "cursor",
     "in": "query",
     "schema": {

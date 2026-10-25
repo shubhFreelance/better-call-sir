@@ -2152,6 +2152,24 @@ test('adult direct enquiry appears immediately and teacher acceptance opens own 
  const terms={expectedVersion:1,confirmed:true,policyVersion:'independent-hiring-development-v1',contactShareAccepted:true};assert.equal((await c.call('/student-arrangements/'+result.data.arrangementId+'/acceptances',terms)).status,201);const agreed=await t.call('/student-arrangements/'+result.data.arrangementId+'/acceptances',{...terms,expectedVersion:2});assert.equal(agreed.status,201,JSON.stringify(agreed.data));assert.equal(agreed.data.status,'CONFIRMED');
 });
 
+test('direct enquiry status filters precede pagination and preserve scoped counts and cursors',async()=>{
+ const f=await educationActors(),t=await db.teacher.findFirstOrThrow({where:{name:'Rohan Verma'}}),tc=await dashboardLogin(t.accountId!),rows=[];
+ for(const [n,status] of ['DECLINED','PENDING','ACCEPTED','PROPOSED','ACCEPTED','PENDING','PENDING'].entries()){
+  const request=await db.tuitionRequest.create({data:{guardianId:f.owner.id,childId:f.linkedChild.id,subject:'Maths',mode:'ONLINE',language:'English',locality:'Raipur',budgetPaise:400000,schedule:'Synthetic filter fixture',status:n===6?'CLOSED':'OPEN'}});
+  rows.push(await db.directEnquiry.create({data:{kind:'GUARDIAN',sourceId:request.id,ownerId:f.owner.id,childId:f.linkedChild.id,teacherId:t.id,region:'Raipur',status:status as any,createdAt:new Date(Date.now()+60000-n*1000)}}));
+ }
+ for(const client of [f.g,tc,(await staffAdmin('status oversight')).client]){
+  const accepted=await client.call('/direct-enquiries?status=ACCEPTED&limit=1');assert.equal(accepted.status,200,JSON.stringify(accepted.data));assert.equal(accepted.data.items[0].id,rows[2].id);assert(accepted.data.counts.PENDING>=3);
+  const older=await client.call('/direct-enquiries?status=ACCEPTED&limit=1&cursor='+accepted.data.nextCursor);assert.equal(older.data.items[0].id,rows[4].id);if(client===f.g)assert.equal(older.data.nextCursor,null);
+  assert.equal((await client.call('/direct-enquiries?status=DECLINED')).data.items[0].id,rows[0].id);
+  const pending=await client.call('/direct-enquiries?status=PENDING');assert.deepEqual(pending.data.items.filter((r:any)=>rows.some(row=>row.id===r.id)).map((r:any)=>r.id),[rows[1].id,rows[5].id]);
+  assert.equal((await client.call('/direct-enquiries?status=DECLINED&cursor='+rows[2].id)).status,404);
+ }
+ assert.equal((await f.g.call('/direct-enquiries')).data.items.length,7);
+ assert.equal((await f.g.call('/direct-enquiries?status=OTHER')).status,400);
+ const foreign=await educationActors();assert.equal((await foreign.g.call('/direct-enquiries?status=ACCEPTED&cursor='+rows[2].id)).status,404);assert.equal((await foreign.g.call('/direct-enquiries?status=ACCEPTED')).data.items.length,0);
+});
+
 test('direct enquiries paginate newest first, preserve staff oversight and reject old matching routes',async()=>{
  const oversight=(await staffAdmin('direct oversight')).client;
  const f=await educationActors(),rohan=await db.teacher.findFirstOrThrow({where:{name:'Rohan Verma'}}),tc=await dashboardLogin(rohan.accountId!),rows=[];
