@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, rupees, type Session, type components } from "@bcs/api-client";
@@ -545,13 +546,11 @@ function ConfigurationEditor({
       <h3>{appText("Review configuration effects")}</h3>
       <Feedback decision={decision} />
       {(decision.error || decision.conflict || unavailable) && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
-        >
-          {appText("Reload configuration records")}
-        </Button>
+         label={appText("Reload configuration records")} />
       )}
       <Button variant="ghost" disabled={decision.locked} onClick={close}>
         {appText(

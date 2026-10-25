@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { TeacherDashboardProfile } from "./teacher-dashboard-profile";
 import { minimumHref } from "./tuition-minimum-workspace";
 import { useAppTranslation } from "./locale";
@@ -194,13 +195,11 @@ export function HiringOverview({ session }: { session: Session }) {
               {appText("Current records · Updated")}{" "}
               {date(data.asOf, appLocale)} {appText("IST")}
             </span>
-            <Button
+            <RefreshButton
               variant="outline"
               disabled={locked || query.isFetching}
               onClick={() => query.refetch()}
-            >
-              {appText("Refresh overview")}{" "}
-            </Button>
+             label={appText("Refresh overview")} />
           </div>
           {guardian &&
             data.gate &&
@@ -922,15 +921,13 @@ export function HiringOverview({ session }: { session: Session }) {
                 </section>
               )}
               {decision.conflict && !decision.uncertain && (
-                <Button
+                <RefreshButton
                   variant="outline"
                   disabled={decision.busy}
                   onClick={() => decision.reload()}
-                >
-                  {section === "ARRANGEMENTS"
+                 label={section === "ARRANGEMENTS"
                     ? appText("Reload current hiring terms")
-                    : appText("Reload current enquiries")}
-                </Button>
+                    : appText("Reload current enquiries")} />
               )}
               <section className="care-card hiring-help">
                 <div className="overview-card-art is-lavender" aria-hidden="true"><LifeBuoy size={30} /></div>

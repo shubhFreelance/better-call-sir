@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { minimumHref } from "./tuition-minimum-workspace";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
@@ -248,7 +249,7 @@ export function PlacementCare({
       </section>
       <Feedback decision={decision} />
       {decision.conflict && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy}
           onClick={() => {
@@ -256,9 +257,7 @@ export function PlacementCare({
             setAgreed(false);
             void decision.reload();
           }}
-        >
-          {appText("Refresh arrangement")}{" "}
-        </Button>
+         label={appText("Refresh arrangement")} />
       )}
       {!permitted && (
         <Notice>
@@ -327,13 +326,11 @@ export function PlacementCare({
                 </option>
               ))}
             </select>
-            <Button
+            <RefreshButton
               variant="outline"
               disabled={locked}
               onClick={() => decision.reload()}
-            >
-              {appText("Refresh arrangements")}{" "}
-            </Button>
+             label={appText("Refresh arrangements")} />
           </div>
           {selected && !p && (
             <Notice error>

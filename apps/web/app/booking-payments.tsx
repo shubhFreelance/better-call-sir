@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
@@ -191,13 +192,11 @@ export function MeetingAccess({
             {appText("Join Google Meet")}{" "}
           </a>
         )}
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={query.isFetching}
           onClick={() => query.refetch()}
-        >
-          {appText("Refresh meeting access")}{" "}
-        </Button>
+         label={appText("Refresh meeting access")} />
         <Link href="/support" className="inline-link">
           {appText("Get meeting help")}{" "}
         </Link>
@@ -638,9 +637,7 @@ export function CheckoutReview({
             {appText("Check payment status")}{" "}
           </Button>
           {scriptError && (
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              {appText("Refresh page to reload checkout")}{" "}
-            </Button>
+            <RefreshButton variant="outline" onClick={() => window.location.reload()} label={appText("Refresh page to reload checkout")} />
           )}
         </div>
         {review && (

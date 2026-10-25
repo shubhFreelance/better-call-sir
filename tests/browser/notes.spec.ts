@@ -473,9 +473,9 @@ test("real guardian shares a private note, teacher acknowledges it and withdrawa
     await p.goto("/login");
     await p.getByText("Development accounts", { exact: true }).click();
     await p.getByRole("button", { name: new RegExp(name) }).click();
-    await expect(
-      p.getByRole("heading", { name: new RegExp(`Hello, ${name}`) }),
-    ).toBeVisible();
+    await expect(p).toHaveURL(/\/dashboard/);
+    const session = await p.request.get("/api/v1/auth/session");
+    expect((await session.json()).account.name).toContain(name);
   };
   const text = "Synthetic browser learning note " + randomUUID();
   await login(page, "Kavita");

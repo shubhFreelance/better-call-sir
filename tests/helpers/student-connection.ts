@@ -72,7 +72,8 @@ for(const [width,hindi] of [[1440,false],[320,true]] as const) test(`student acc
  const parent=card.getByRole("link",{name:t("My parent or guardian needs an account"),exact:true});await expect(parent).toHaveAttribute("href","/signup/guardian");await parent.hover();await expect(parent).toHaveCSS("background-color","rgb(2, 62, 55)");
  const invite=card.getByRole("link",{name:t("I have a private invitation code"),exact:true});await expect(invite).toHaveAttribute("href","/onboarding/student?mode=invitation");await invite.hover();await expect(invite).toHaveCSS("background-color","rgb(231, 195, 250)");
  const refresh=card.getByRole("button",{name:t("Refresh my access"),exact:true});expect((await refresh.boundingBox())!.height).toBeGreaterThanOrEqual(44);
- await expect(refresh).toHaveCSS("background-color","rgb(255, 255, 255)");await refresh.hover();await expect(refresh).toHaveCSS("background-color","rgb(238, 245, 243)");
+ await expect(refresh).toHaveText("");await expect(refresh).toHaveAttribute("title",t("Refresh my access"));await expect(refresh).toHaveCSS("border-radius","50%");
+ await expect(refresh).toHaveCSS("background-color","rgb(243, 241, 235)");await refresh.hover();await expect(refresh).toHaveCSS("background-color","rgb(240, 215, 255)");
  await expect(invite).toHaveCSS("background-color","rgb(240, 215, 255)");
  await expect(card.locator(".filter-button-group")).toHaveCSS("background-color","rgb(238, 245, 243)");
  if(hindi) await checkHindi(page);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import Link from "next/link";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
@@ -384,7 +385,7 @@ function TeacherReview({
       <>
         <Feedback decision={decision} />
         <Button disabled>{appText("Review teacher decision")}</Button>
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => {
@@ -392,9 +393,7 @@ function TeacherReview({
             setAgreed(false);
             void decision.reload();
           }}
-        >
-          {appText("Refresh screening")}
-        </Button>
+         label={appText("Refresh screening")} />
       </>
     );
   return (
@@ -431,7 +430,7 @@ function TeacherReview({
       </section>
       <Feedback decision={decision} />
       {decision.conflict && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy}
           onClick={() => {
@@ -439,20 +438,16 @@ function TeacherReview({
             setAgreed(false);
             void decision.reload();
           }}
-        >
-          {appText("Refresh screening")}{" "}
-        </Button>
+         label={appText("Refresh screening")} />
       )}
       {!own && (
         <>
           <div className="care-actions">
-            <Button
+            <RefreshButton
               variant="outline"
               disabled={decision.locked || !!action}
               onClick={() => decision.reload()}
-            >
-              {appText("Refresh evidence and checks")}{" "}
-            </Button>
+             label={appText("Refresh evidence and checks")} />
             <Button
               disabled={
                 decision.locked ||

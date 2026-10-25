@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import Link from "next/link";
 import {useState} from "react";
 import {useInfiniteQuery, useQuery} from "@tanstack/react-query";
@@ -56,6 +57,6 @@ export function StudentConnection({session, onSessionChange, compact=false}: {se
     })}
     {!linked&&!invitations.error&&!invitations.isPending&&!rows.length&&<section className="student-access-empty"><h3>{appText("No linked learning profile yet")}</h3><p>{appText("Ask your guardian to enter this exact email in your relationship request. You will confirm them here; after approval and setup, sign in with the same email to use your profile.")}</p><Button asChild><Link href="/signup/guardian">{appText("My parent or guardian needs an account")}</Link></Button></section>}
     {invitations.hasNextPage&&<Button disabled={invitations.isFetchingNextPage} variant="outline" onClick={()=>invitations.fetchNextPage()}>{appText("Load more records")}</Button>}
-    <FilterButtonGroup className="student-access-actions"><FilterButton disabled={refreshing} onClick={refresh}>{appText(refreshing?"Checking your profile connection…":"Refresh my access")}</FilterButton>{!compact&&<FilterButton asChild accent><Link href="/onboarding/student?mode=invitation">{appText("I have a private invitation code")}</Link></FilterButton>}</FilterButtonGroup>
+    <FilterButtonGroup className="student-access-actions"><RefreshButton disabled={refreshing} onClick={refresh} label={appText(refreshing?"Checking your profile connection…":"Refresh my access")} />{!compact&&<FilterButton asChild accent><Link href="/onboarding/student?mode=invitation">{appText("I have a private invitation code")}</Link></FilterButton>}</FilterButtonGroup>
   </section>;
 }

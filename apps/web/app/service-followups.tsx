@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -202,13 +203,11 @@ export function ServiceFollowups({ session }: { session: Session }) {
             {q.error && (
               <Notice error>
                 {appError(q.error.message)}{" "}
-                <Button
+                <RefreshButton
                   variant="outline"
                   disabled={locked || q.isFetching}
                   onClick={() => q.refetch()}
-                >
-                  {t("Reload follow-ups")}
-                </Button>
+                 label={t("Reload follow-ups")} />
                 {!!cursors.length && (
                   <Button
                     disabled={locked}
@@ -292,13 +291,11 @@ export function ServiceFollowups({ session }: { session: Session }) {
               >
                 {t("Next follow-ups")}
               </Button>
-              <Button
+              <RefreshButton
                 variant="ghost"
                 disabled={!!selected || q.isFetching}
                 onClick={() => q.refetch()}
-              >
-                {t("Reload follow-ups")}
-              </Button>
+               label={t("Reload follow-ups")} />
             </div>
           </section>
         </>
@@ -410,13 +407,11 @@ function FollowupDetail({
       <Feedback decision={decision} />
       {q.isPending && <p role="status">{t("Loading follow-up details…")}</p>}
       {(q.error || decision.conflict) && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy}
           onClick={() => decision.reload()}
-        >
-          {t("Reload follow-up details")}
-        </Button>
+         label={t("Reload follow-up details")} />
       )}
       {q.error && (
         <Notice error>

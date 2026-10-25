@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import {
@@ -445,9 +446,7 @@ export function RequestReview({
           </Button>
         )}
         {decision.conflict && (
-          <Button disabled={decision.busy} onClick={() => decision.reload()}>
-            {appText("Reload current details")}
-          </Button>
+          <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload current details")} />
         )}
       </>
     );
@@ -562,13 +561,11 @@ export function RequestReview({
           {child?.alias || appText("Your learner")} ·{" "}
           {appCurriculum(request.subject)}
         </h2>
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
-        >
-          {appText("Refresh shortlist")}{" "}
-        </Button>
+         label={appText("Refresh shortlist")} />
       </div>
       <dl className="tuition-summary">
         <div>
@@ -1715,13 +1712,11 @@ function TermsReview({
         </p>
       )}
       <div className="wizard-actions">
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
-        >
-          {appText("Refresh tuition terms")}{" "}
-        </Button>
+         label={appText("Refresh tuition terms")} />
         {!accepted && (
           <Button
             className="button"

@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { minimumHref } from "./tuition-minimum-workspace";
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -129,7 +130,7 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
           {appText(
             "Your current learning choices could not be loaded. Private details are hidden.",
           )}{" "}
-          <Button
+          <RefreshButton
             variant="outline"
             hidden={locked}
             disabled={
@@ -138,9 +139,7 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
               history.isFetching
             }
             onClick={() => refresh().catch(() => {})}
-          >
-            {appText("Reload learning choices")}
-          </Button>
+           label={appText("Reload learning choices")} />
         </Notice>
       )}
       {visible && child && management.data && (
@@ -438,9 +437,7 @@ function LearningEnquiryEditor({
           </Button>
         )}
         {decision.conflict && (
-          <Button disabled={decision.busy} onClick={() => decision.reload()}>
-            {appText("Reload learning choices")}
-          </Button>
+          <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning choices")} />
         )}
       </>
     );
@@ -449,9 +446,7 @@ function LearningEnquiryEditor({
       <section className="care-card">
         <Feedback decision={decision} />
         {decision.conflict && (
-          <Button disabled={decision.busy} onClick={() => decision.reload()}>
-            {appText("Reload learning choices")}
-          </Button>
+          <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning choices")} />
         )}
         <Button disabled={decision.locked} onClick={() => onSaved(savedId)}>
           {appText("View saved enquiry")}
@@ -622,9 +617,7 @@ function LearningEnquiryEditor({
         </Button>
       )}
       {decision.conflict && (
-        <Button disabled={decision.busy} onClick={() => decision.reload()}>
-          {appText("Reload learning choices")}
-        </Button>
+        <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning choices")} />
       )}
     </form>
   );
@@ -664,9 +657,7 @@ function EnquiryAuthority({
           </Button>
         )}
         {decision.conflict && (
-          <Button disabled={decision.busy} onClick={() => decision.reload()}>
-            {appText("Reload learning choices")}
-          </Button>
+          <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning choices")} />
         )}
       </>
     );
@@ -753,9 +744,7 @@ function EnquiryAuthority({
         </Button>
       )}
       {decision.conflict && (
-        <Button disabled={decision.busy} onClick={() => decision.reload()}>
-          {appText("Reload learning choices")}
-        </Button>
+        <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning choices")} />
       )}
     </section>
   );
@@ -812,9 +801,7 @@ function StudentLearningTerms({
           </Button>
         )}
         {decision.conflict && (
-          <Button disabled={decision.busy} onClick={() => decision.reload()}>
-            {appText("Reload learning choices")}
-          </Button>
+          <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning choices")} />
         )}
       </>
     );
@@ -828,9 +815,7 @@ function StudentLearningTerms({
               : "Loading learning permissions…",
           )}
         </Notice>
-        <Button variant="outline" onClick={() => request.refetch()}>
-          {appText("Reload arrangement permissions")}
-        </Button>
+        <RefreshButton variant="outline" onClick={() => request.refetch()} label={appText("Reload arrangement permissions")} />
         <Feedback decision={decision} />
         {decision.uncertain && (
           <Button disabled={decision.busy} onClick={() => decision.run()}>
@@ -838,9 +823,7 @@ function StudentLearningTerms({
           </Button>
         )}
         {decision.conflict && (
-          <Button disabled={decision.busy} onClick={() => decision.reload()}>
-            {appText("Reload learning choices")}
-          </Button>
+          <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning choices")} />
         )}
       </section>
     );
@@ -940,9 +923,7 @@ function StudentLearningTerms({
         </Button>
       )}
       {decision.conflict && (
-        <Button disabled={decision.busy} onClick={() => decision.reload()}>
-          {appText("Reload learning choices")}
-        </Button>
+        <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning choices")} />
       )}
       <Link
         className="inline-link"

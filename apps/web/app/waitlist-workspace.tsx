@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import { useEffect, useRef, useState } from "react";
@@ -536,13 +537,11 @@ function WaitlistForm({ session }: { session: Session }) {
           <h2 ref={historyTitle} tabIndex={-1}>
             {appText("Your coverage requests")}
           </h2>
-          <Button
+          <RefreshButton
             variant="outline"
             disabled={busy || uncertain || query.isFetching}
             onClick={() => query.refetch()}
-          >
-            {appText("Refresh coverage requests")}{" "}
-          </Button>
+           label={appText("Refresh coverage requests")} />
         </div>
         <p className="wizard-help">
           {appText(

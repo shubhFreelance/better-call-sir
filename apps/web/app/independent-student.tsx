@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { GraduationCap, Search } from "lucide-react";
 import {
   OnboardingReadBoundary,
@@ -577,11 +578,9 @@ export function StudentForm({
         </Message>
       )}
       {stale && (
-        <Button variant="outline" onClick={() => reload()}>
-          {appText(
+        <RefreshButton variant="outline" onClick={() => reload()} label={appText(
             t("Discard edits and reload", "बदलाव छोड़ें और फिर लोड करें"),
-          )}
-        </Button>
+          )} />
       )}
       {blocked && (
         <Link href="/login" className="inline-link">

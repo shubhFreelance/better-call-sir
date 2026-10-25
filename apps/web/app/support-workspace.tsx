@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { Button as SharedButton } from "../components/ui/button";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
@@ -356,13 +357,11 @@ export function SupportWorkspace({
           <div className="support-toolbar">
             <h2>{appText(t("Your support cases"))}</h2>
             <div className="support-toolbar-actions">
-              <Button
+              <RefreshButton
                 variant="outline"
                 disabled={locked}
                 onClick={() => decision.reload()}
-              >
-                {appText(t("Refresh cases"))}{" "}
-              </Button>
+               label={appText(t("Refresh cases"))} />
               <Button
                 disabled={
                   locked ||
@@ -478,7 +477,7 @@ export function SupportWorkspace({
             translate={t}
           />
           {decision.conflict && (
-            <Button
+            <RefreshButton
               variant="outline"
               disabled={decision.busy}
               onClick={() => {
@@ -486,9 +485,7 @@ export function SupportWorkspace({
                 setAgreed(false);
                 void decision.reload();
               }}
-            >
-              {appText(t("Refresh current case"))}{" "}
-            </Button>
+             label={appText(t("Refresh current case"))} />
           )}
           {composing && (
             <section className="support-compose" ref={form} tabIndex={-1}>

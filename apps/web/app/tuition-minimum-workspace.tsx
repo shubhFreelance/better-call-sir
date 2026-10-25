@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -316,9 +317,7 @@ function MinimumDetail({
     <>
       <Feedback decision={decision} />
       {decision.conflict && !query.error && (
-        <Button disabled={decision.busy} onClick={() => decision.reload()}>
-          {appText("Reload current terms")}
-        </Button>
+        <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload current terms")} />
       )}
       {query.isPending && (
         <p role="status">{appText("Loading minimum tuition…")}</p>
@@ -326,13 +325,11 @@ function MinimumDetail({
       {query.error && (
         <Notice error>
           {appError(query.error.message)}{" "}
-          <Button
+          <RefreshButton
             variant="outline"
             disabled={decision.busy}
             onClick={() => decision.reload()}
-          >
-            {appText("Reload current terms")}
-          </Button>
+           label={appText("Reload current terms")} />
         </Notice>
       )}
       {view && (

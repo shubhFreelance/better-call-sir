@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { privacyText, privacyError } from "./privacy-copy";
@@ -215,13 +216,11 @@ export function PrivacyWorkspace({
         translate={t}
       />
       {decision.conflict && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy}
           onClick={() => decision.reload()}
-        >
-          {appText(t("Refresh privacy records"))}
-        </Button>
+         label={appText(t("Refresh privacy records"))} />
       )}
       {guardian && (pause || d?.consent?.withdrawnAt) && (
         <Notice>
@@ -268,13 +267,11 @@ export function PrivacyWorkspace({
         >
           {appText(t("Create privacy request"))}
         </Button>
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.locked || composing || history.isFetching}
           onClick={() => decision.reload()}
-        >
-          {appText(t("Refresh request history"))}
-        </Button>
+         label={appText(t("Refresh request history"))} />
       </div>
       {history.isFetching && (
         <p role="status">{appText(t("Loading privacy requests…"))}</p>

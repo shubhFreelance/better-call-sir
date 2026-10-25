@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -189,15 +190,13 @@ export function LearningManagementWorkspace({ session }: { session: Session }) {
           {appText(
             "Current learning permissions could not be loaded. Private details are hidden.",
           )}{" "}
-          <Button
+          <RefreshButton
             variant="outline"
             disabled={decision.busy || decision.uncertain}
             onClick={() =>
               decision.conflict ? decision.reload() : state.refetch()
             }
-          >
-            {appText("Reload learning permissions")}
-          </Button>
+           label={appText("Reload learning permissions")} />
         </Notice>
       )}
       {visible && selected && (
@@ -354,9 +353,7 @@ export function LearningManagementWorkspace({ session }: { session: Session }) {
         </Button>
       )}
       {decision.conflict && (
-        <Button disabled={decision.busy} onClick={() => decision.reload()}>
-          {appText("Reload learning permissions")}
-        </Button>
+        <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning permissions")} />
       )}
     </section>
   );

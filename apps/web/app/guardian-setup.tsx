@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
@@ -158,7 +159,7 @@ export function GuardianSetup({
     {data?.gate === "CONSENT_REQUIRED" && permissionPanel}
     {ready && embeddedChildren}
     {data && !ready && data.gate !== "CONSENT_REQUIRED" && <p role="status">{appText(data.gate === "PRIVACY_PAUSED" ? "Learner setup is paused." : "Guardian verification is pending.")}</p>}
-    <Button type="button" variant="outline" disabled={busy || status.isFetching} onClick={refresh}>{appText("Refresh setup")}</Button>
+    <RefreshButton type="button" variant="outline" disabled={busy || status.isFetching} onClick={refresh} label={appText("Refresh setup")} />
   </section>;
   return (
     <main className="container section guardian-setup">
@@ -254,13 +255,11 @@ export function GuardianSetup({
                       : appText("Verified")}
                   </p>
                 </div>
-                <Button
+                <RefreshButton
                   variant="ghost"
                   disabled={busy || status.isFetching}
                   onClick={refresh}
-                >
-                  {appText("Refresh setup")}{" "}
-                </Button>
+                 label={appText("Refresh setup")} />
               </div>
               {message && (
                 <Alert variant="destructive">

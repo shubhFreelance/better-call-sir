@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { CommercialConfiguration } from "./commercial-configuration";
 import { StaffAdministration } from "./staff-administration";
 import { useHistory, HistoryPages } from "./history";
@@ -1184,17 +1185,15 @@ function AdminDecision({
         <Notice error>
           {appText("Records are unavailable. Refresh before continuing.")}
         </Notice>
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
-        >
-          {appText(
+         label={appText(
             decision.conflict
               ? "Refresh administrator review"
               : "Reload current decision record",
-          )}
-        </Button>
+          )} />
         <Button variant="ghost" disabled={decision.locked} onClick={onClose}>
           {saved
             ? appText("Close recorded decision")
@@ -1426,20 +1425,18 @@ function AdminDecision({
         </Button>
       )}
       {decision.conflict && (
-        <Button
+        <RefreshButton
           disabled={decision.busy}
           onClick={async () => {
             await decision.reload();
             setReview(false);
             setAgreed(false);
           }}
-        >
-          {appText("Refresh administrator review")}{" "}
-        </Button>
+         label={appText("Refresh administrator review")} />
       )}
       <div className="care-actions">
         {!saved && !decision.conflict && (
-          <Button
+          <RefreshButton
             variant="outline"
             disabled={decision.busy || decision.uncertain}
             onClick={async () => {
@@ -1447,9 +1444,7 @@ function AdminDecision({
               setReview(false);
               setAgreed(false);
             }}
-          >
-            {appText("Reload current decision record")}{" "}
-          </Button>
+           label={appText("Reload current decision record")} />
         )}
         <Button variant="outline" disabled={decision.locked} onClick={onClose}>
           {saved

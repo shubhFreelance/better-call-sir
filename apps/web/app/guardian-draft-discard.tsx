@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
@@ -174,9 +175,7 @@ export function GuardianDraftDiscard({
           {appText("Keep draft")}{" "}
         </Button>
         {conflict ? (
-          <Button disabled={busy} onClick={reload}>
-            {appText("Reload saved draft")}{" "}
-          </Button>
+          <RefreshButton disabled={busy} onClick={reload} label={appText("Reload saved draft")} />
         ) : (
           !unavailable && (
             <Button disabled={busy || (!ack && !uncertain)} onClick={discard}>

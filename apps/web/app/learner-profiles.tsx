@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { onboardingAccessDenied } from "./onboarding-read-boundary";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -404,7 +405,7 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
         </div>
       </header>}
       <div className="learner-profile-layout">
-        <aside className="learner-profile-intro">
+        <div className="learner-profile-intro">
           <h2>{appText("Start with the learner.")}</h2>
           <p>
             {appText(
@@ -421,7 +422,7 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
               "These details are private. Add education information only; do not enter identity documents or contact details.",
             )}{" "}
           </p>
-        </aside>
+        </div>
         <div className="learner-profile-main">
           {saved && !denied && (
             <Alert>
@@ -785,13 +786,11 @@ export function LearnerProfiles({ session, targetName, targetId }: { session: Se
                     {appText(
                       "The saved profile changed or can no longer be edited. Your edits are retained. Reloading discards them; review the latest profile before saving again.",
                     )}{" "}
-                    <Button
+                    <RefreshButton
                       variant="outline"
                       disabled={locked}
                       onClick={() => openEdit(editing.id)}
-                    >
-                      {appText("Discard edits and reload profile")}{" "}
-                    </Button>
+                     label={appText("Discard edits and reload profile")} />
                   </AlertDescription>
                 </Alert>
               )}

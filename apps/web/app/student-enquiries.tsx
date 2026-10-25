@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { EnquirySummary } from "./enquiry-summary";
 import { useAppTranslation } from "./locale";
 import { StudentFeedback } from "./independent-journey";
@@ -462,13 +463,11 @@ function StudentEnquiryForm({
         </h2>
         <StudentFeedback decision={decision} hindi={hindi} />
         {decision.error && !decision.uncertain && (
-          <Button
+          <RefreshButton
             variant="outline"
             disabled={decision.busy}
             onClick={() => decision.reload()}
-          >
-            {appText(enquiryText(hindi, "Reload criteria and review again"))}
-          </Button>
+           label={appText(enquiryText(hindi, "Reload criteria and review again"))} />
         )}
         {context.isPending && (
           <p role="status">
@@ -912,9 +911,7 @@ function StudentEnquiryDetail({
       <h2>{appText(enquiryText(hindi, "Enquiry details"))}</h2>
       <StudentFeedback decision={decision} hindi={hindi} />
       {decision.conflict && (
-        <Button onClick={() => decision.reload()} disabled={decision.busy}>
-          {appText(enquiryText(hindi, "Reload enquiry"))}
-        </Button>
+        <RefreshButton onClick={() => decision.reload()} disabled={decision.busy} label={appText(enquiryText(hindi, "Reload enquiry"))} />
       )}
       {query.isPending && (
         <p role="status">
