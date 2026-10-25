@@ -5685,7 +5685,15 @@ body:has(.guardian-verification-page) { background:#FFFFEB; }
 .guardian-verification-editor .guardian-evidence-step { background: #F4F4EC; padding: 24px; gap: 18px; }
 .guardian-verification-editor .guardian-evidence-step h4 { margin: 0; font-size: 18px; }
 .guardian-verification-editor .guardian-evidence-step input[type=file] { background: #FFFFFF; padding: 12px; height: auto; }
-.guardian-verification-editor .verification-form-actions { justify-content: space-between; gap: 16px; margin-top: 12px; }
+.guardian-verification-actions { margin:16px 0 0; }
+.guardian-relationship-review { padding:20px; margin:16px 0 20px; border:1px solid #DEE4D3; border-radius:16px; background:#FFFFEB; }
+.guardian-relationship-review h4 { margin:0; color:#034F46; font-size:17px; }
+.guardian-relationship-review dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:16px 0; }
+.guardian-relationship-review dl > div { min-width:0; padding:14px; border:1px solid #E2E7DC; border-radius:10px; background:#FFF; }
+.guardian-relationship-review dt { color:#52655F; font-size:11px; }
+.guardian-relationship-review dd { margin:6px 0 0; color:#034F46; font-size:14px; font-weight:600; overflow-wrap:anywhere; }
+.guardian-relationship-review p { margin:12px 0 0; font-size:12px; line-height:1.7; }
+@media(max-width:640px) { .guardian-relationship-review { padding:16px; } .guardian-relationship-review dl { grid-template-columns:minmax(0,1fr); } }
 .guardian-verification-editor button { min-height: 44px; }
 .guardian-verification-editor form > fieldset { padding: 20px; background: #F4F4EC; border-radius: 12px; }
 .guardian-verification-editor form > .guardian-verification-fields { padding: 0; background: transparent; }
@@ -5700,8 +5708,6 @@ body:has(.guardian-verification-page) { background:#FFFFEB; }
   .guardian-verification-editor .staff-summary { grid-template-columns: minmax(0,1fr); gap: 6px; padding: 18px; }
   .guardian-verification-editor .staff-summary dd:not(:last-child) { margin-bottom: 12px; }
   .guardian-verification-editor .guardian-evidence-step { padding: 18px; }
-  .guardian-verification-editor .verification-form-actions { display: flex; flex-direction: column-reverse; }
-  .guardian-verification-editor .verification-form-actions button { width: 100%; }
 }
 @media(prefers-reduced-motion:reduce) { .verification-progress *, .verification-progress *::before { animation: none !important; transition: none !important; } }
 

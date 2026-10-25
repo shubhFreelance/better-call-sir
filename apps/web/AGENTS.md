@@ -4,6 +4,8 @@ Owner design memory (25 October 2026): `filter-button` means the reusable white/
 
 Frontend features belong on `feat/frontend-implementation`; backend/API changes belong on `feat/backend-completion`. Keep backend changes in dedicated tested commits and bring required contracts into the frontend branch as dependencies.
 
+Owner standing rule (25 October 2026): whenever two or three action buttons are arranged horizontally, use `FilterButtonGroup` with `FilterButton`; use `accent` for the main action. Keep explicit submit/button types, links, disabled/uncertain-state locks and keyboard behavior intact. Semantic tabs and status filters retain their existing shared components.
+
 Use the installed `../../.agents/skills/frontend-design/SKILL.md` and read `../../docs/FRONTEND_DESIGN.md` before frontend design work. The owner chose shadcn/ui and supplied the Wispr Flow palette: teal `#034F46`, lavender `#F0D7FF`, cream `#FFFFEB`, white and charcoal neutrals. Preserve these tokens and use the shared component system for new screens. Complete login, onboarding, search and dashboard flows with visible labels, accessible controls and API-confirmed results; track unfinished workflows in the sprint board.
 
 <!-- BEGIN:nextjs-agent-rules -->

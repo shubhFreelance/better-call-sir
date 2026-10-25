@@ -392,6 +392,24 @@ export function guardianVerificationTests() {
       await start.focus();await page.keyboard.press("Enter");await expect(card.locator(".guardian-verification-editor")).toBeVisible();expect(f.writes).toHaveLength(0);
     });
   }
+  for(const hindi of [false,true]) test(`guardian review names are enclosed with filter-button actions (${hindi?"Hindi phone":"English desktop"})`,async({page})=>{
+    const f=await setup(page,{empty:true});await page.getByRole("button",{name:"Start guardian verification",exact:true}).click();
+    await page.getByLabel("Guardian's full name",{exact:true}).fill("Synthetic Parent");await page.getByLabel("Learner's name on the school report",{exact:true}).fill("Synthetic Child");
+    await page.getByRole("button",{name:"Continue",exact:true}).click();await page.getByRole("radio",{name:/Guardian and student manage together/}).check();await page.getByRole("button",{name:"Continue",exact:true}).click();
+    await page.getByRole("checkbox",{name:"I am an adult authorized to act for this learner, and I acknowledge this guardian relationship.",exact:true}).check();
+    await page.getByRole("checkbox",{name:"I permit private review of these relationship details and the school report for verification. This does not grant learning-data consent.",exact:true}).check();
+    await page.getByRole("button",{name:"Review relationship details",exact:true}).click();
+    if(hindi) await page.getByRole("button",{name:"Switch English and Hindi",exact:true}).click();await page.setViewportSize({width:hindi?320:1440,height:1000});
+    const t=(s:string)=>hindi?hindiMessages[s]||s:s,summary=page.locator(".guardian-relationship-review"),actions=page.locator(".guardian-verification-actions");
+    await expect(summary.locator("dd")).toHaveText(["Synthetic Parent","Synthetic Child"]);await expect(summary).toHaveCSS("background-color","rgb(255, 255, 235)");
+    await expect(actions).toHaveCSS("background-color","rgb(238, 245, 243)");
+    const save=actions.getByRole("button",{name:t("Save relationship details"),exact:true}),back=actions.getByRole("button",{name:t("Back to details"),exact:true});
+    await expect(save).toBeDisabled();await expect(save).toHaveAttribute("type","submit");await expect(back).toHaveAttribute("type","button");await back.hover();await expect(back).toHaveCSS("background-color","rgb(238, 245, 243)");
+    if(hindi) await checkHindi(page);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    const a=await new AxeBuilder({page}).include(".guardian-verification-editor").analyze();expect(a.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+    await page.locator(".guardian-verification-editor").screenshot({path:`test-results/guardian-review-${hindi?"hi-phone":"en-desktop"}.png`,style:"nextjs-portal{display:none!important}"});
+    await back.click();expect(f.writes).toHaveLength(0);await expect(page.getByRole("button",{name:t("Review relationship details"),exact:true})).toBeVisible();
+  });
   test("guardian overview request link opens its named verification without a history search",async({page})=>{
     const f=await setup(page,{empty:true});
     await page.goto("/guardian-verification?request="+f.state().id);
@@ -677,9 +695,7 @@ export function guardianVerificationTests() {
       .getByRole("button", { name: "Review relationship details", exact: true })
       .click();
     expect(f.writes).toHaveLength(0);
-    await expect(
-      page.getByText("Synthetic Parent · Synthetic Child"),
-    ).toBeVisible();
+    await expect(page.locator(".guardian-relationship-review dd")).toHaveText(["Synthetic Parent","Synthetic Child"]);
     await page
       .getByRole("checkbox", {
         name: "I reviewed the names, management choice and verification permission.",

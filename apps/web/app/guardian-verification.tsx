@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
-import { FilterButton } from "../components/ui/filter-button";
+import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { useAppTranslation } from "./locale";
@@ -890,33 +890,33 @@ function OwnerVerification({
                       </label>
                     </fieldset>
                   )}
-                  <div className="care-actions verification-form-actions">
+                  <FilterButtonGroup className="guardian-verification-actions">
                     {formStep > 0 && (
-                      <Button
+                      <FilterButton
                         type="button"
-                        variant="outline"
                         disabled={locked}
                         onClick={() => setFormStep(formStep - 1)}
                       >
                         {appText("Back")}
-                      </Button>
+                      </FilterButton>
                     )}
-                    <Button type="submit" disabled={locked}>
+                    <FilterButton accent type="submit" disabled={locked}>
                       {appText(
                         formStep < 2
                           ? "Continue"
                           : "Review relationship details",
                       )}
-                    </Button>
-                  </div>
+                    </FilterButton>
+                  </FilterButtonGroup>
                 </>
               ) : (
                 <>
-                  <div className="commercial-comparison">
+                  <section className="guardian-relationship-review" aria-label={appText("Student and guardian details")}>
                     <h4>{appText("Check the names before sending")}</h4>
-                    <p>
-                      {application.guardianName} · {application.learnerName}
-                    </p>
+                    <dl>
+                      <div><dt>{appText("Guardian")}</dt><dd>{application.guardianName}</dd></div>
+                      <div><dt>{appText("Learner")}</dt><dd>{application.learnerName}</dd></div>
+                    </dl>
                     <LearningManagementBadge label={appText(guardianManagementLabels[application.managementMode])} items={[appText("The student sees this choice before acknowledging the relationship. Management permissions are separate from learning-data consent.")]} />
                     <p>
                       {appText(
@@ -925,7 +925,7 @@ function OwnerVerification({
                           : "The named student must acknowledge from their separate account.",
                       )}
                     </p>
-                  </div>
+                  </section>
                   <label className="care-check">
                     <input
                       type="checkbox"
@@ -940,12 +940,11 @@ function OwnerVerification({
                       )}
                     </span>
                   </label>
-                  <div className="care-actions">
-                    <Button type="submit" disabled={locked || !confirmed}>
+                  <FilterButtonGroup className="guardian-verification-actions">
+                    <FilterButton accent type="submit" disabled={locked || !confirmed}>
                       {appText("Save relationship details")}
-                    </Button>
-                    <Button
-                      variant="outline"
+                    </FilterButton>
+                    <FilterButton
                       disabled={locked}
                       type="button"
                       onClick={(event) => {
@@ -955,8 +954,8 @@ function OwnerVerification({
                       }}
                     >
                       {appText("Back to details")}
-                    </Button>
-                  </div>
+                    </FilterButton>
+                  </FilterButtonGroup>
                 </>
               )}
             </form>
@@ -1349,9 +1348,8 @@ function StudentAcknowledgments({
                   </fieldset>
                 </form>
               )}
-              <div className="care-actions">
-                <Button
-                  variant="outline"
+              <FilterButtonGroup>
+                <FilterButton
                   disabled={decision.busy || decision.uncertain}
                   onClick={() => {
                     setSelected(null);
@@ -1359,9 +1357,8 @@ function StudentAcknowledgments({
                   }}
                 >
                   {appText("Close relationship review")}
-                </Button>
-                <Button
-                  variant="ghost"
+                </FilterButton>
+                <FilterButton accent
                   disabled={decision.locked}
                   onClick={async () => {
                     try {
@@ -1374,8 +1371,8 @@ function StudentAcknowledgments({
                   }}
                 >
                   {appText("Refresh account status")}
-                </Button>
-              </div>
+                </FilterButton>
+              </FilterButtonGroup>
             </section>
           )}
         </>
@@ -1706,24 +1703,23 @@ function StaffVerification({
                           </span>
                         </label>
                       </fieldset>
-                      <div className="care-actions">
-                        <Button
+                      <FilterButtonGroup>
+                        <FilterButton accent
                           type="submit"
                           disabled={
                             locked || !retryConfirmed || !retryReason.trim()
                           }
                         >
                           {appText("Retry safety scan")}
-                        </Button>
-                        <Button
+                        </FilterButton>
+                        <FilterButton
                           type="button"
-                          variant="outline"
                           disabled={decision.locked}
                           onClick={() => setRetryScan(false)}
                         >
                           {appText("Go back")}
-                        </Button>
-                      </div>
+                        </FilterButton>
+                      </FilterButtonGroup>
                     </form>
                   )}
                 </section>

@@ -20,6 +20,8 @@ import Link from "next/link";
 
 When the owner asks for a `filter-button`, use this pattern. Existing segmented status filters remain the separate `StatusFilters` component.
 
+Owner standing rule, 25 October 2026: use FilterButtonGroup/FilterButton wherever two or three action buttons appear in a horizontal row, with lavender accent for the main action and white secondary actions. Preserve explicit submit types, navigation destinations, confirmation/uncertainty locks and keyboard behavior. Keep semantic tabs and status filters on their existing components. Guardian verification review and Back/Continue navigation adopt this rule; review names appear in separately labelled Guardian/Learner boxes within an ivory summary card.
+
 ## Live notification bell — 24 October 2026
 
 Use a44px ivory/teal bell with a compact unread counter in the header. The390px non-modal popover has a sage #E4E4D0 header, white cards and restrained lavender #F0D7FF icon tiles/priority backgrounds. Small readable typography distinguishes event, priority, timestamp and action. Retain the page behind it, keyboard/outside dismissal, read receipts and explicit offline/error/empty states. Reuse protected recipient-scoped APIs; send only invalidation over Socket.IO. Keep email history separate and never expose evidence or invitation secrets.
