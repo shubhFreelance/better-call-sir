@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type Session, type paths } from "@bcs/api-client";
-import { ClipboardList, ChevronDown, ListFilter, Clock3, CircleCheck, CircleX, MessageSquare, CircleMinus } from "lucide-react";
+import { ClipboardList, ChevronDown, Clock3, CircleCheck, CircleX, MessageSquare, CircleMinus } from "lucide-react";
 import { StatusBadge, StatusFilters } from "../components/ui/status-controls";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -166,10 +166,10 @@ export function DirectEnquiries({ session }: { session: Session }) {
         value={filter} disabled={decision.locked} onChange={next => {
           setFilter(next); setCursors([]); setReview(null);
         }} options={[
-          { value: "ALL", label: appText("All"), tone: "accent", icon: ListFilter },
-          { value: "PENDING", label: appText("Awaiting teacher reply"), tone: "warning", icon: Clock3 },
-          { value: "ACCEPTED", label: appText("Accepted"), tone: "success", icon: CircleCheck },
-          { value: "DECLINED", label: appText("Declined"), tone: "danger", icon: CircleX },
+          { value: "ALL", label: appText("All") },
+          { value: "PENDING", label: appText("Awaiting teacher reply") },
+          { value: "DECLINED", label: appText("Declined") },
+          { value: "ACCEPTED", label: appText("Accepted") },
         ]} />}
       {conversation && (
         <Button asChild variant="outline">

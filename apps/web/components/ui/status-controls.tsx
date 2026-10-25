@@ -12,16 +12,16 @@ export function StatusBadge({ label, tone, icon: Icon }: Omit<StatusOption<strin
 
 export function StatusFilters<T extends string>({ label, options, value, onChange, disabled }: {
   label: string;
-  options: readonly StatusOption<T>[];
+  options: readonly { value: T; label: string }[];
   value: T;
   onChange: (value: T) => void;
   disabled?: boolean;
 }) {
   return <div className="status-filters" role="group" aria-label={label}>
-    {options.map(({ value: key, label: text, tone, icon: Icon }) => <Button key={key}
-      type="button" variant="outline" className={`status-filter status-tone-${tone}`}
+    {options.map(({ value: key, label: text }) => <Button key={key}
+      type="button" variant="outline" className="status-filter"
       aria-pressed={value === key} disabled={disabled} onClick={() => onChange(key)}>
-      <Icon size={15} aria-hidden="true" />{text}
+      {text}
     </Button>)}
   </div>;
 }

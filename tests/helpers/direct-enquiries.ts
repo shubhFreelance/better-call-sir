@@ -98,12 +98,17 @@ for (const role of ["GUARDIAN", "TEACHER", "STUDENT", "INDEPENDENT_STUDENT", "AD
     items.push({ ...items[0], id: "20000000-0000-4000-8000-000000000668", sourceOpen: false });
     await page.goto(role === "OPERATOR" ? "/dashboard" : "/dashboard/enquiries");
     const panel = page.locator(".direct-inbox"), filters = panel.getByRole("group", { name: hindi ? "अनुरोध छाँटें" : "Filter enquiries" });
+    await expect(filters).toHaveCSS("background-color","rgb(238, 245, 243)");
+    await expect(filters.locator("button")).toHaveText(hindi ? ["सभी","शिक्षक के जवाब की प्रतीक्षा","मना किया","स्वीकार किया"] : ["All","Awaiting teacher reply","Declined","Accepted"]);
+    await expect(filters.locator("svg")).toHaveCount(0);
     await expect(panel.locator("details")).toHaveCount(5);
     const labels = hindi ? ["सभी", "शिक्षक के जवाब की प्रतीक्षा", "स्वीकार किया", "मना किया"] : ["All", "Awaiting teacher reply", "Accepted", "Declined"];
     for (const [index, tone] of [[1, "warning"], [2, "success"], [3, "danger"]] as const) {
       const button = filters.getByRole("button", { name: labels[index], exact: true });
       await button.focus(); await page.keyboard.press("Enter");
       await expect(button).toHaveAttribute("aria-pressed", "true");
+      await button.hover();await expect(button).toHaveCSS("background-color","rgb(240, 215, 255)");
+      await expect(filters.locator('[aria-pressed="true"]')).toHaveCount(1);
       await expect(panel.locator("details")).toHaveCount(1);
       await expect(panel.locator(`summary .status-badge.status-tone-${tone}`)).toHaveCount(1);
       await expect(panel.locator("summary .status-badge svg")).toHaveCount(1);
