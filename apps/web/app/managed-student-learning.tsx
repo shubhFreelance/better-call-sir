@@ -12,6 +12,9 @@ import {
   type components,
 } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
+import { InfoTooltip } from "../components/ui/info-tooltip";
+import { StatusBadge } from "../components/ui/status-controls";
+import { ShieldCheck } from "lucide-react";
 import { Input } from "../components/ui/input";
 import {
   Notice,
@@ -110,7 +113,6 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
   return (
     <section className="care-workspace managed-learning-workspace">
       <header>
-        <p className="eyebrow">{appText("YOUR LEARNING, YOUR NEXT STEP")}</p>
         <h1>{appText("My teacher choices")}</h1>
         <p>
           {appText(
@@ -145,24 +147,16 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
       )}
       {visible && child && management.data && (
         <>
-          <article className="care-card management-current">
-            <h2>{child.alias}</h2>
-            <strong>
-              {appText(learningModes[management.data.mode].title)}
-            </strong>
-            <p>{appText(learningModes[management.data.mode].help)}</p>
-            <p>
-              {appText(
-                "Learning consent, account access and financial commencement remain with your guardian.",
-              )}
-            </p>
-            {!management.data.canManageLearning && (
-              <Notice>
-                {appText(
-                  "Your guardian currently makes learning decisions. You can explore teachers and follow your enquiries here.",
-                )}
-              </Notice>
-            )}
+          <article className="care-card management-current learner-choice-card">
+            <header className="learner-choice-heading">
+              <div><h2>{child.alias}</h2><p>{appText(educationLabel(child))}</p></div>
+              <div className="learner-choice-permission">
+                <StatusBadge label={appText(learningModes[management.data.mode].title)} tone="accent" icon={ShieldCheck} />
+                <InfoTooltip label={appText("Review who manages learning")} items={[appText("Learning consent, account access and financial commencement remain with your guardian.")]} />
+              </div>
+            </header>
+            <p className="learner-choice-guidance">{appText(learningModes[management.data.mode].help)}</p>
+            <div className="learner-choice-actions">
             {!open && (
               <Button
                 disabled={locked || !management.data.canManageLearning}
@@ -170,10 +164,11 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
               >
                 {appText("Find a teacher for another subject")}
               </Button>
-            )}{" "}
-            <Link className="inline-link" href="/teachers">
+            )}
+            <Button asChild variant="outline"><Link href="/teachers">
               {appText("Explore teacher profiles")}
-            </Link>
+            </Link></Button>
+            </div>
           </article>
         </>
       )}

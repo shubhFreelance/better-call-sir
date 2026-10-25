@@ -6157,6 +6157,25 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 }
 
 .decision-guidance, .enquiry-summary-note { padding:14px 16px; border:1px solid #D8E5D9; border-radius:12px; background:#F0F6EB; font-size:12px; line-height:1.65; }
+.managed-learning-workspace > header { margin-bottom:4px; max-width:75ch; }
+.managed-learning-workspace > header h1 { margin:0 0 12px; font-size:32px; line-height:1.2; }
+.managed-learning-workspace > header p { margin:0 0 12px; font-size:13px; line-height:1.7; }
+.managed-learning-workspace > header .inline-link { font-size:12px; }
+.managed-learning-workspace .learner-choice-card { padding:24px; }
+.learner-choice-heading { display:flex; align-items:center; justify-content:space-between; gap:12px 20px; flex-wrap:wrap; }
+.managed-learning-workspace .learner-choice-heading h2 { margin:0; font-size:22px; color:#034F46; }
+.learner-choice-heading p { margin:6px 0 0; font-size:12px; }
+.learner-choice-permission { display:flex; align-items:center; gap:8px; min-width:0; }
+.learner-choice-permission .status-badge { white-space:normal; }
+.learner-choice-card .learner-choice-guidance { margin:16px 0 20px; padding:14px 16px; border:1px solid #DDE5D7; border-radius:12px; background:#F0F6EB; font-size:12px; line-height:1.7; max-width:80ch; }
+.learner-choice-actions { display:flex; gap:12px; flex-wrap:wrap; }
+.learner-choice-actions [data-slot="button"] { min-height:44px; font-size:13px; white-space:normal; text-align:center; }
+@media(max-width:640px) {
+  .managed-learning-workspace > header h1 { font-size:26px; }
+  .managed-learning-workspace .learner-choice-card { padding:18px; }
+  .learner-choice-actions { display:grid; grid-template-columns:minmax(0,1fr); }
+  .learner-choice-actions [data-slot="button"] { width:100%; }
+}
 .decision-success { background:#E1F1E9; color:#034F46; }
 .guardian-verification-page :is(.care-help,.wizard-help,[data-slot="alert-description"]), .guardian-verification-editor :is(p,[data-slot="alert-description"]) { font-size:12px; line-height:1.65; }
 .guardian-verification-workspace .staff-heading p, .guardian-verification-workspace.care-workspace > p { padding:12px 16px; border:1px solid #E2E5D6; border-radius:12px; background:#F4F4EC; font-size:12px; line-height:1.65; max-width:80ch; }

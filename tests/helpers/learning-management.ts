@@ -421,6 +421,25 @@ export function learningManagementTests() {
     ).toBeDisabled();
     expect(f.writes).toHaveLength(0);
   });
+  for(const [width,hindi] of [[1440,false],[390,false],[320,true]] as const) {
+    test(`learner choices card is compact and accessible at ${width}px (${hindi ? "Hindi" : "English"})`,async({page})=>{
+      if(hindi) await chooseHindi(page);
+      const f=await fixture(page,{role:"STUDENT",history:true});await page.setViewportSize({width,height:1000});
+      await page.goto("/dashboard/learning-choices");const card=page.locator(".learner-choice-card");
+      await expect(card.locator("h2")).toHaveCSS("font-size","22px");
+      await expect(card.locator(".learner-choice-guidance")).toHaveCSS("font-size","12px");
+      await expect(card.locator(".status-badge")).toHaveCSS("font-size","11px");
+      await expect(card.locator(".learner-choice-actions button")).toBeDisabled();
+      await expect(card.locator(".learner-choice-actions a")).toHaveAttribute("href","/teachers");
+      await card.locator(".info-tooltip-trigger").focus();await expect(page.getByRole("tooltip").getByRole("listitem")).toHaveCount(1);
+      await page.keyboard.press("Escape");await expect(page.getByRole("tooltip")).toHaveCount(0);
+      if(hindi) await checkHindi(page);
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+      const accessibility=await new AxeBuilder({page}).include(".learner-choice-card").analyze();expect(accessibility.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+      await card.screenshot({path:`test-results/learner-choice-${width}.png`,style:"nextjs-portal{display:none!important}"});
+      expect(f.writes).toHaveLength(0);
+    });
+  }
   test("a permitted student can ask a guardian to decide for one enquiry and resume without changing standing permissions", async ({
     page,
   }) => {
