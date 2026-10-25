@@ -6385,7 +6385,7 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .guardian-review-notice h4 { display:flex; align-items:center; gap:8px; margin:0 0 8px; color:#034F46; font-size:15px; }
 .guardian-verification-editor .guardian-review-notice p { margin:0; color:#344A43; font-size:13px; line-height:1.65; }
 .guardian-review-notice small { display:block; margin-top:10px; padding:10px 12px; border-radius:8px; background:#FFFFEB; color:#034F46; font-size:12px; }
-.live-bell :is(.live-bell-trigger,.live-bell-close,.live-bell-item > button) { display:grid; place-items:center; flex:none; align-self:flex-start; width:44px; height:44px; padding:0; border:1px solid transparent; border-radius:10px; background:transparent; color:#034F46; cursor:pointer; }
-.live-bell :is(.live-bell-trigger,.live-bell-close,.live-bell-item > button):is(:hover,:focus-visible) { border-color:#034F46; background:transparent; }
+.live-bell :is(.live-bell-close,.live-bell-item > button) { display:grid; place-items:center; flex:none; align-self:flex-start; width:44px; height:44px; padding:0; border:1px solid transparent; border-radius:10px; background:transparent; color:#034F46; cursor:pointer; }
+.live-bell :is(.live-bell-close,.live-bell-item > button):is(:hover,:focus-visible) { border-color:#034F46; background:transparent; }
 .live-bell-symbol { display:grid; place-items:center; flex:none; width:36px; height:36px; padding:0; border:1px solid transparent; border-radius:10px; background:transparent; }
 .live-bell-symbol:hover { border-color:#034F46; }
