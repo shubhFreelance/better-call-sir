@@ -51,7 +51,7 @@ export function GuardianLearners({ session }: { session: Session }) {
           </h2>
           <p>
             {appText(
-              "Support more than one learner from this account. Each relationship and invitation has its own permissions.",
+              "Manage your child here. Each relationship and invitation has its own permissions.",
             )}
           </p>
         </div>
@@ -71,7 +71,7 @@ export function GuardianLearners({ session }: { session: Session }) {
           </h3>
           <p>
             {appText(
-              "Verification applies to the named learner only. Verify each additional child separately.",
+              "Hi, Verify each additional child separately.",
             )}
           </p>
           {relationships.data && (

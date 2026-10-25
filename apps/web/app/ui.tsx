@@ -2597,7 +2597,7 @@ function DashboardPage({ tab }: { tab: string }) {
           eyebrow={appText("")}
           title={appText(session.account.role === "TEACHER" ? "Your teaching dashboard" : session.account.role === "ADMIN" ? "Marketplace overview" : session.account.role === "STUDENT" ? "Your student dashboard" : "Parent or Guardian Dashboard")}
           subtitle={appText(
-            "Welcome, {0}. Here is what needs your attention.", [session.account.name.split(" · ")[0]]
+            "Welcome, {0}.", [session.account.name.split(" · ")[0]]
           )}
         />
         {["GUARDIAN","STUDENT"].includes(session.account.role) && tab === "/dashboard" && <StudentConnection session={session} onSessionChange={setSession} compact/>}
