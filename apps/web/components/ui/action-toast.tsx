@@ -9,7 +9,12 @@ export function ActionToast({ message, error = false }: { message: string; error
   const [mounted, setMounted] = useState(false), [dismissed, setDismissed] = useState(false);
   const { appText } = useAppTranslation();
   useEffect(() => setMounted(true), []);
-  useEffect(() => setDismissed(false), [message, error]);
+  useEffect(() => {
+    setDismissed(false);
+    if (!message) return;
+    const timer = window.setTimeout(() => setDismissed(true), 5000);
+    return () => window.clearTimeout(timer);
+  }, [message, error]);
   if (!mounted || !message || dismissed) return null;
   const Icon = error ? CircleAlert : CheckCircle2;
   return createPortal(<div className="action-toast" data-error={error} role={error ? "alert" : "status"}>

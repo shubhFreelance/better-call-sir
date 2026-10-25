@@ -6360,6 +6360,7 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .action-toast { position:fixed; z-index:1200; top:20px; right:20px; display:flex; align-items:flex-start; gap:12px; width:min(400px,calc(100vw - 32px)); padding:16px; border:1px solid #DAB7EC; border-radius:14px; background:#034F46; color:#FFFFEB; box-shadow:0 8px 28px #17201F26; }
 .action-toast > svg { flex:none; margin-top:3px; color:#F0D7FF; }
 .action-toast p { margin:0; flex:1; color:inherit; font-size:13px; line-height:1.65; overflow-wrap:anywhere; }
+.action-toast[data-error=false] p { color:#FCFEEB; }
 .action-toast [data-slot=button][data-variant=ghost] { flex:none; width:32px; height:32px; color:#F0D7FF; }
 .action-toast [data-slot=button][data-variant=ghost]:hover { background:#F0D7FF; color:#034F46; }
 .action-toast[data-error=true] { background:#FFF4F4; border-color:#E6BFC3; color:#952D35; }
