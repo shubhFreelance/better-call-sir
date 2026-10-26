@@ -6258,10 +6258,10 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .direct-learning-details { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 .direct-learning-details dt { font-weight:700; color:#17201F; }
 .direct-learning-details dd { margin:6px 0; overflow-wrap:anywhere; }
-.direct-reply-form { padding:24px; background:#F3F1EB; border:1px solid #034F46; border-radius:18px; margin:16px 0; }
+.direct-reply-form { padding:0; background:transparent; border:0; margin:0; }
 .direct-reply-form fieldset { display:grid; gap:16px; border:0; padding:0; }
 .direct-reply-form label:not(.wizard-checkbox) { display:grid; gap:8px; font-weight:600; }
-@media(max-width:640px) { .direct-inbox-heading { grid-template-columns:1fr; padding:20px; gap:16px; } .direct-inbox-count strong { font-size:46px; } .direct-enquiry-card .direct-enquiry-heading { flex-wrap:wrap; padding:16px; } .direct-enquiry-summary-meta { flex-basis:100%; order:3; text-align:left; } .direct-reply-form { padding:16px; } .direct-learning-details { grid-template-columns:1fr; } }
+@media(max-width:640px) { .direct-inbox-heading { grid-template-columns:1fr; padding:20px; gap:16px; } .direct-inbox-count strong { font-size:46px; } .direct-enquiry-card .direct-enquiry-heading { flex-wrap:wrap; padding:16px; } .direct-enquiry-summary-meta { flex-basis:100%; order:3; text-align:left; }  .direct-learning-details { grid-template-columns:1fr; } }
 .live-bell { position:relative; }
 .live-bell-trigger { position:relative;display:grid;place-items:center;width:44px;height:44px;background:#F3F1EB;border:1px solid #E4E4D0;border-radius:50%;color:#034F46; }
 .live-bell-badge { position:absolute;right:-4px;top:-3px;background:#034F46;color:white;border:2px solid #FFFFEB;border-radius:20px;min-width:22px;font-size:11px;line-height:18px;padding:0 4px;font-weight:700; }
@@ -6583,3 +6583,14 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .direct-enquiry-card .layered-summary-card-body .direct-proposal { margin-top:18px; }
 
 .layered-summary-card>summary:focus-visible { outline:2px solid #034F46; outline-offset:-3px; }
+
+.direct-reply-summary h3 { margin:0; color:#034F46; font-size:20px; font-weight:700; }
+.direct-reply-summary .layered-summary-card-header p { margin:6px 0 0; color:#52655F; font-size:13px; }
+.direct-reply-summary .direct-learning-details { margin:0; gap:16px 20px; }
+.direct-reply-summary dt { color:#52655F; font-size:12px; font-weight:500; }
+.direct-reply-summary dd { margin:4px 0 0; font-size:14px; font-weight:600; line-height:1.6; }
+.direct-reply-summary .wizard-checkbox { display:flex; align-items:flex-start; gap:12px; margin:0; padding:14px; border:1px solid #E2E5D6; border-radius:10px; background:#FFFFEB; font-size:13px; line-height:1.7; cursor:pointer; }
+.direct-reply-summary .wizard-checkbox input { flex-shrink:0; width:18px; height:18px; margin:2px 0 0; accent-color:#034F46; }
+.direct-reply-summary .direct-proposal { margin-top:16px; font-size:13px; }
+
+.direct-reply-summary .direct-learning-details>div:last-child { grid-column:1/-1; }

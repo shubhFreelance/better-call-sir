@@ -166,7 +166,7 @@ test("teacher compact inbox, keyboard expansion, proposal and accepted arrangeme
     .first()
     .getByRole("button", { name: "Propose another time or group", exact: true })
     .click();
-  const form = panel.locator("form");
+  const form = page.locator(".direct-reply-form");
   await form.getByLabel("Teaching format").selectOption("GROUP");
   await form
     .getByLabel("Suggested time (IST)", { exact: true })
@@ -231,11 +231,11 @@ test("guardian confirms an alternative and waits for teacher acceptance", async 
   await panel
     .getByRole("button", { name: "Accept proposal", exact: true })
     .click();
-  await panel.locator("form").getByRole("checkbox").check();
-  await panel
+  await page.locator(".direct-reply-form").getByRole("checkbox").check();
+  await page.getByRole("dialog")
     .getByRole("button", { name: "Confirm reply", exact: true })
     .click();
-  await expect(panel.locator("form")).toHaveCount(0);
+  await expect(page.locator(".direct-reply-form")).toHaveCount(0);
   expect(writes[0].action).toBe("ACCEPT_PROPOSAL");
   await expect(panel).toContainText("The family confirmed this proposal. The teacher can now accept the enquiry.");
   await expect(panel.getByRole("link",{name:"View tuition arrangement"})).toHaveCount(0);
@@ -243,14 +243,14 @@ test("guardian confirms an alternative and waits for teacher acceptance", async 
 test("a changed proposal requires refresh and fresh family confirmation",async({page})=>{
  const {items,writes}=await inbox(page,"GUARDIAN");Object.assign(items[0],{status:"PROPOSED",proposal:{format:"GROUP",timing:"Monday 5pm IST",message:"Original proposal",timezone:"Asia/Kolkata"}});
  await page.goto("/dashboard/enquiries");const panel=page.locator(".direct-inbox");await panel.locator("summary").first().click();
- await panel.getByRole("button",{name:"Accept proposal",exact:true}).click();await panel.locator("form").getByRole("checkbox").check();
+ await panel.getByRole("button",{name:"Accept proposal",exact:true}).click();await page.locator(".direct-reply-form").getByRole("checkbox").check();
  items[0].version=2;items[0].proposal.timing="Tuesday 6pm IST";
- await panel.getByRole("button",{name:"Confirm reply",exact:true}).click();await expect(panel.getByRole("alert")).toContainText("Enquiry changed");
- await panel.getByRole("button",{name:"Refresh enquiries",exact:true}).click();await expect(panel.locator("form")).toHaveCount(0);
+ await page.getByRole("dialog").getByRole("button",{name:"Confirm reply",exact:true}).click();await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Enquiry changed");
+ await page.getByRole("dialog").getByRole("button",{name:"Refresh enquiries",exact:true}).click();await expect(page.locator(".direct-reply-form")).toHaveCount(0);
  await expect(panel.locator("details").first()).toContainText("Tuesday 6pm IST");
- await panel.getByRole("button",{name:"Accept proposal",exact:true}).click();await expect(panel.locator("form")).toContainText("Tuesday 6pm IST");
- await expect(panel.getByRole("button",{name:"Confirm reply",exact:true})).toBeDisabled();
- await panel.locator("form").getByRole("checkbox").check();await panel.getByRole("button",{name:"Confirm reply",exact:true}).click();expect(writes.map(w=>w.expectedVersion)).toEqual([1,2]);
+ await panel.getByRole("button",{name:"Accept proposal",exact:true}).click();await expect(page.locator(".direct-reply-form")).toContainText("Tuesday 6pm IST");
+ await expect(page.getByRole("dialog").getByRole("button",{name:"Confirm reply",exact:true})).toBeDisabled();
+ await page.locator(".direct-reply-form").getByRole("checkbox").check();await page.getByRole("dialog").getByRole("button",{name:"Confirm reply",exact:true}).click();expect(writes.map(w=>w.expectedVersion)).toEqual([1,2]);
 });
 
 test("Hindi mobile inbox keeps details collapsed and fits the viewport", async ({
@@ -301,4 +301,17 @@ test("staff can inspect direct enquiries without reply controls; failed reads ne
 
 test('notification deep link opens the selected enquiry and retains access to the full inbox',async({page})=>{
  const {items}=await inbox(page);await page.goto('/dashboard/enquiries?conversation='+items[1].id);const cards=page.locator('.direct-inbox details');await expect(cards).toHaveCount(3);await expect(cards.nth(1)).toHaveAttribute('open','');await expect(cards.first()).not.toHaveAttribute('open');await page.locator('.direct-inbox').getByRole('link',{name:'All enquiries',exact:true}).click();await expect(page).toHaveURL(/\/dashboard\/enquiries$/);
+});
+
+
+test("accept enquiry uses a compact modal with acknowledgement, cancellation and exact retry recovery",async({page})=>{
+  const {writes}=await inbox(page);const attempts:any[]=[];
+  await page.route("**/api/v1/direct-enquiries/*/responses",route=>{attempts.push({body:route.request().postDataJSON(),key:route.request().headers()["idempotency-key"]});return attempts.length===1?route.abort("failed"):route.fallback();});
+  await page.goto("/dashboard");const card=page.locator(".direct-inbox details").first();await card.locator("summary").click();const accept=card.getByRole("button",{name:"Accept enquiry",exact:true});await accept.click();
+  const dialog=page.getByRole("dialog",{name:"Review your reply",exact:true});await expect(dialog).toBeVisible();await expect(dialog).toContainText("Learner 0");await expect(dialog).toContainText("Maths");await expect(dialog).toContainText("Monday 5pm IST");
+  await expect(dialog.locator("input:not([type=checkbox]),select,textarea")).toHaveCount(0);await expect(dialog.locator(".filter-button-group button")).toHaveText(["Confirm reply","Cancel"]);await expect(dialog.getByRole("button",{name:"Confirm reply",exact:true})).toBeDisabled();
+  await dialog.getByRole("button",{name:"Cancel",exact:true}).click();await expect(dialog).not.toBeVisible();await expect(accept).toBeFocused();expect(writes).toHaveLength(0);
+  await accept.click();await page.setViewportSize({width:360,height:850});expect((await new AxeBuilder({page}).include(".app-modal").analyze()).violations).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await dialog.screenshot({path:"test-results/reply-confirmation-modal.png",style:"nextjs-portal{display:none!important}"});
+  await dialog.getByRole("checkbox").check();await dialog.getByRole("button",{name:"Confirm reply",exact:true}).click();await expect(dialog.getByRole("button",{name:"Cancel",exact:true})).toBeDisabled();await page.keyboard.press("Escape");await expect(dialog).toBeVisible();await dialog.getByRole("button",{name:"Retry same decision",exact:true}).click();await expect(dialog).not.toBeVisible();
+  expect(attempts).toHaveLength(2);expect(attempts[1]).toEqual(attempts[0]);expect(attempts[0].body).toMatchObject({action:"ACCEPT",expectedVersion:1,expectedSourceVersion:1,confirmed:true});expect(writes).toHaveLength(1);
 });

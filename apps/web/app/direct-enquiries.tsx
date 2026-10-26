@@ -10,6 +10,7 @@ import { StatusBadge, StatusFilters } from "../components/ui/status-controls";
 import { Button } from "../components/ui/button";
 import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
 import { LayeredSummaryCard } from "../components/ui/layered-summary-card";
+import { Modal } from "../components/ui/modal";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { useAppTranslation } from "./locale";
@@ -179,7 +180,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
           <Link href="/dashboard/enquiries">{appText("All enquiries")}</Link>
         </Button>
       )}
-      <Feedback decision={decision} />
+      {!review && <Feedback decision={decision} />}
       {query.isPending && <p role="status">{appText("Loading enquiries…")}</p>}
       {query.error ? (
         <p role="alert">
@@ -384,12 +385,23 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                 )}
           </LayeredSummaryCard>;
         })}
+      <Modal open={!!review} onOpenChange={next => {if(!next && !decision.locked){setReview(null);setConfirmed(false);}}} title={appText("Review your reply")} description={review ? appText(
+              review.action === "ACCEPT"
+                ? "Accept the requested teaching enquiry"
+                : review.action === "DECLINE"
+                  ? "Decline this teaching enquiry"
+                  : review.action === "ACCEPT_PROPOSAL"
+                    ? "Accept the teacher’s current proposal"
+                    : review.action === "DECLINE_PROPOSAL"
+                      ? "Decline the teacher’s current proposal"
+                      : "Send an alternative teaching proposal",
+            ) : undefined}>
       {review && (
         <form
           className="direct-reply-form"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!confirmed) return;
+            if (!confirmed || decision.locked) return;
             decision.run({
               path: "/direct-enquiries/" + review.item.id + "/responses",
               body: {
@@ -406,23 +418,40 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
             });
           }}
         >
-          <h3>
-            {appText("Review your reply")}: {review.item.learner.name}
-          </h3>
-          <p>
-            {appText(
-              review.action === "ACCEPT"
-                ? "Accept the requested teaching enquiry"
-                : review.action === "DECLINE"
-                  ? "Decline this teaching enquiry"
-                  : review.action === "ACCEPT_PROPOSAL"
-                    ? "Accept the teacher’s current proposal"
-                    : review.action === "DECLINE_PROPOSAL"
-                      ? "Decline the teacher’s current proposal"
-                      : "Send an alternative teaching proposal",
-            )}
-          </p>
+          <Feedback decision={decision}/>
+          {decision.conflict && <RefreshButton label={appText("Refresh enquiries")} disabled={decision.busy} onClick={() => {setReview(null);setConfirmed(false);void decision.reload();}}/>}
           <fieldset disabled={decision.locked}>
+            <LayeredSummaryCard className="direct-reply-summary" header={<><h3>{review.item.learner.name}</h3><p>{appCurriculum(review.item.subject)}</p></>} footer={
+              <label className="wizard-checkbox">
+              <input
+                type="checkbox"
+                checked={confirmed}
+                onChange={(e) => setConfirmed(e.target.checked)}
+              />
+              <span>
+                {appText(
+                  "I reviewed this learner, the preferred time and my exact reply.",
+                )}
+              </span>
+            </label>
+            } actions={
+              <FilterButtonGroup>
+              <FilterButton accent type="submit" disabled={!confirmed}>
+                {appText("Confirm reply")}
+              </FilterButton>
+              <FilterButton
+                type="button"
+                onClick={() => setReview(null)}
+              >
+                {appText("Cancel")}
+              </FilterButton>
+            </FilterButtonGroup>
+            }>
+            <dl className="direct-learning-details">
+              <div><dt>{appText(teacher || staff ? review.item.kind === "GUARDIAN" ? "Parent" : "Student" : "Teacher")}</dt><dd>{teacher || staff ? review.item.parentName : review.item.teacherName}</dd></div>
+              <div><dt>{appText("Lesson mode")}</dt><dd>{appText(review.item.mode === "ONLINE" ? "Online" : "At home")} {"\u00b7"} {appCurriculum(review.item.language)}</dd></div>
+              <div><dt>{appText("Preferred time")}</dt><dd>{preferred(review.item.preferredTime)}</dd></div>
+            </dl>
             {review.action !== "PROPOSE" && review.item.proposal && <aside className="direct-proposal">
               <strong>{appText(review.item.proposal.format === "GROUP" ? "Group learning proposal" : "One-to-one proposal")}</strong>
               <p>{appText("Suggested time (IST)")}: {review.item.proposal.timing}</p>
@@ -460,33 +489,11 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                 </label>
               </>
             )}
-            <label className="wizard-checkbox">
-              <input
-                type="checkbox"
-                checked={confirmed}
-                onChange={(e) => setConfirmed(e.target.checked)}
-              />
-              <span>
-                {appText(
-                  "I reviewed this learner, the preferred time and my exact reply.",
-                )}
-              </span>
-            </label>
-            <div className="wizard-actions">
-              <Button type="submit" disabled={!confirmed}>
-                {appText("Confirm reply")}
-              </Button>
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => setReview(null)}
-              >
-                {appText("Cancel")}
-              </Button>
-            </div>
+            </LayeredSummaryCard>
           </fieldset>
         </form>
       )}
+      </Modal>
       <div className="wizard-actions">
         <RefreshButton
           variant="outline"
