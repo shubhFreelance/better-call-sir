@@ -1337,6 +1337,20 @@ test('guardian setup gates hide learner and enquiry metadata and deny non-guardi
  const paused=await db.privacyRequest.create({data:{accountId:owner.id,kind:'DELETION',scope:'CHILD',resourceId:(await db.child.findFirstOrThrow({where:{guardianId:owner.id}})).id,reason:'Synthetic setup privacy pause'}});await gate('PRIVACY_PAUSED');await db.privacyRequest.update({where:{id:paused.id},data:{status:'REJECTED'}});await db.consent.delete({where:{guardianId:owner.id}});await gate('CONSENT_REQUIRED');
 });
 
+test('guardian and student share owned learner spaces with concurrency and subject search gates',async()=>{
+ const {s,g,linkedChild}=await educationActors(),path='/children/'+linkedChild.id+'/learning-spaces';
+ assert.equal((await s.call('/teachers?learnerId='+linkedChild.id+'&subject=Maths')).data.code,'LEARNING_SPACE_REQUIRED');
+ const initial=await g.call(path);assert.equal(initial.status,200);assert.deepEqual(initial.data.spaces,[]);
+ const body={expectedVersion:0,educationVersion:linkedChild.version,confirmed:true,spaces:[{subject:'Maths',language:'Hindi'}]};
+ const saved=await g.call(path,body);assert.equal(saved.status,201,JSON.stringify(saved.data));assert(operationValidator('/children/{id}/learning-spaces','post','201')(saved.data));
+ assert.deepEqual((await s.call(path)).data.spaces,body.spaces);assert.deepEqual((await s.call('/onboarding/student/context')).data.progress.draft.spaces,body.spaces);
+ assert.equal((await s.call('/teachers?learnerId='+linkedChild.id+'&subject=Maths')).status,200);
+ assert.equal((await s.call('/teachers?learnerId='+linkedChild.id+'&subject=Science')).data.code,'LEARNING_SPACE_REQUIRED');
+ assert.equal((await g.call(path,body)).status,409);
+ assert.equal((await other.call(path)).status,404);
+ assert.equal((await s.call('/onboarding/student/confirmations',{expectedVersion:0,spacesVersion:0,educationVersion:linkedChild.version,confirmed:true,draft:{spaces:body.spaces}})).status,409);
+ const student=await s.call('/onboarding/student/confirmations',{expectedVersion:0,spacesVersion:1,educationVersion:linkedChild.version,confirmed:true,draft:{spaces:[{subject:'Maths',language:'English'}]}});assert.equal(student.status,201);assert.equal((await g.call(path)).data.spaces[0].language,'English');
+});
 test('student subject spaces retain independent preferences and reject duplicate subjects without changing authority',async()=>{
  const {s,linkedChild}=await educationActors(),path='/onboarding/student/confirmations';
  const before=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}});
@@ -1349,9 +1363,9 @@ test('student subject spaces retain independent preferences and reject duplicate
  const duplicate=await s.call(path,{...body,expectedVersion:1,draft:{spaces:[spaces[0],{subject:'maths',language:'English'}]}});
  assert.equal(duplicate.status,400);assert.match(JSON.stringify(duplicate.data),/already created a space/);
  const edited=[{subject:'Physics',language:'English'},spaces[1]];
- const updated=await s.call(path,{...body,expectedVersion:1,draft:{spaces:edited}});assert.equal(updated.status,201);assert.deepEqual(updated.data.draft.spaces,edited);
+ const updated=await s.call(path,{...body,expectedVersion:1,spacesVersion:1,draft:{spaces:edited}});assert.equal(updated.status,201);assert.deepEqual(updated.data.draft.spaces,edited);
  assert.equal((await s.call(path,{...body,expectedVersion:1})).status,409);
- assert.deepEqual(await db.child.findUniqueOrThrow({where:{id:linkedChild.id}}),before);
+ const after=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}});assert.deepEqual({...after,learningSpaces:before.learningSpaces,learningSpacesVersion:before.learningSpacesVersion},before);
 });
 test('student setup saves without a repeated support choice and preserves existing management permissions',async()=>{
  const {s,linkedChild}=await educationActors(),path='/onboarding/student/confirmations';

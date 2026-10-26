@@ -11,6 +11,172 @@
     }
   ],
   "paths": {
+    "/children/{id}/learning-spaces": {
+      "get": {
+        "operationId": "getLearnerSpaces",
+        "summary": "Read or confirm owned learner subject spaces",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned subject spaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerSpaces"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "saveLearnerSpaces",
+        "summary": "Read or confirm owned learner subject spaces",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Owned subject spaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerSpaces"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearnerSpacesConfirmation"
+              }
+            }
+          }
+        }
+      }
+    },
     "/inbox": {
       "get": {
         "operationId": "getLiveInbox",
@@ -46206,6 +46372,62 @@
           "enquiryStatus"
         ]
       },
+      "LearnerSpaces": {
+        "type": "object",
+        "properties": {
+          "learner": {
+            "$ref": "#/components/schemas/LearnerProfile"
+          },
+          "spaces": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/StudentSubjectSpace"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "learner",
+          "spaces",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "LearnerSpacesConfirmation": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "educationVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "confirmed": {
+            "const": true,
+            "type": "boolean"
+          },
+          "spaces": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/StudentSubjectSpace"
+            }
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "educationVersion",
+          "confirmed",
+          "spaces"
+        ],
+        "additionalProperties": false
+      },
       "StudentSubjectSpace": {
         "type": "object",
         "properties": {
@@ -46288,6 +46510,10 @@
           "authority": {
             "type": "string",
             "const": "GUARDIAN_MANAGED"
+          },
+          "spacesVersion": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "required": [
@@ -46355,6 +46581,10 @@
               }
             },
             "additionalProperties": false
+          },
+          "spacesVersion": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "required": [

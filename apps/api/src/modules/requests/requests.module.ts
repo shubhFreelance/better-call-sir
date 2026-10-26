@@ -1,5 +1,6 @@
 import {createDirectEnquiry} from '../direct-enquiries/direct-enquiries.module';
 import {learningAuthority,requestAuthority} from '../learners/learning-management';
+import {requireLearningSpace} from '../learners/learning-spaces';
 import {guardianProof,linkVerifiedLearner} from '../verification/guardian-verification';
 import {enabledRegion} from '../administration/commercial-policy';
 import {pageQuery,pageBefore,pageResult} from '../../pagination';
@@ -39,6 +40,8 @@ export async function createIntake(db:DB,service:AppService,account:Account,req:
       const proof=data.childId?null:await guardianProof(db,account.id,data.alias);
       const child=data.childId?await service.child(db,account,data.childId):await db.child.create({data:{guardianId:account.id,alias:data.alias,grade:data.grade,board:data.board,schoolName:data.schoolName,schoolSubjects:data.schoolSubjects}});
       if(!data.childId)await linkVerifiedLearner(db,proof,child.id);
+      if(data.childId)await requireLearningSpace(db,child,data.subject);
+      else await db.child.update({where:{id:child.id},data:{learningSpaces:[{subject:data.subject,language:data.language}],learningSpacesVersion:1}});
       if((data.grade!==undefined&&child.grade!==data.grade)||(data.board!==undefined&&child.board!==data.board))fail(409,"CHILD_CHANGED","The linked learner grade or board differs from this request.");
       if(data.childId&&(data.schoolName||data.schoolSubjects)){
        if(!data.schoolName||!data.schoolSubjects)fail(400,'LEARNER_DETAILS_REQUIRED','Supply both school and class subjects.');

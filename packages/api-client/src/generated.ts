@@ -4,6 +4,24 @@
  */
 
 export interface paths {
+    "/children/{id}/learning-spaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read or confirm owned learner subject spaces */
+        get: operations["getLearnerSpaces"];
+        put?: never;
+        /** Read or confirm owned learner subject spaces */
+        post: operations["saveLearnerSpaces"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/inbox": {
         parameters: {
             query?: never;
@@ -6496,7 +6514,27 @@ export interface components {
             /** @enum {string|null} */
             enquiryStatus: "NOT_STARTED" | "DRAFT" | "SUBMITTED" | null;
         };
+        LearnerSpaces: {
+            learner: components["schemas"]["LearnerProfile"];
+            spaces: components["schemas"]["StudentSubjectSpace"][];
+            version: number;
+        };
+        LearnerSpacesConfirmation: {
+            expectedVersion: number;
+            educationVersion: number;
+            /** @constant */
+            confirmed: true;
+            spaces: components["schemas"]["StudentSubjectSpace"][];
+        };
+        StudentSubjectSpace: {
+            subject: string;
+            /** @enum {string} */
+            language?: "English" | "Hindi";
+            learningPreferences?: string;
+        };
         StudentLearningPreferences: {
+            /** @description Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces. */
+            spaces?: components["schemas"]["StudentSubjectSpace"][];
             /**
              * @description Requested learning support; does not grant authority or establish adulthood.
              * @enum {string}
@@ -6506,14 +6544,13 @@ export interface components {
             /** @enum {string} */
             language?: "English" | "Hindi";
             learningPreferences?: string;
-            /** @description Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces. */
-            spaces?: components["schemas"]["StudentSubjectSpace"][];
         };
         StudentSetupContext: {
             learner: components["schemas"]["LearnerProfile"];
             progress: components["schemas"]["OnboardingProgress"];
             /** @constant */
             authority: "GUARDIAN_MANAGED";
+            spacesVersion?: number;
         };
         StudentSetupConfirmation: {
             expectedVersion: number;
@@ -6521,6 +6558,8 @@ export interface components {
             /** @constant */
             confirmed: true;
             draft: {
+                /** @description Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces. */
+                spaces?: components["schemas"]["StudentSubjectSpace"][];
                 /**
                  * @description Requested learning support; does not grant authority or establish adulthood.
                  * @enum {string}
@@ -6530,9 +6569,8 @@ export interface components {
                 /** @enum {string} */
                 language?: "English" | "Hindi";
                 learningPreferences?: string;
-                /** @description Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces. */
-                spaces?: components["schemas"]["StudentSubjectSpace"][];
             };
+            spacesVersion?: number;
         };
         StudentDeviceLabel: {
             expectedVersion: number;
@@ -7543,12 +7581,6 @@ export interface components {
             /** @enum {string} */
             status: "RECORDED";
         };
-        StudentSubjectSpace: {
-            subject: string;
-            /** @enum {string} */
-            language?: "English" | "Hindi";
-            learningPreferences?: string;
-        };
     };
     responses: never;
     parameters: never;
@@ -7558,6 +7590,144 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getLearnerSpaces: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owned subject spaces */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerSpaces"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    saveLearnerSpaces: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LearnerSpacesConfirmation"];
+            };
+        };
+        responses: {
+            /** @description Owned subject spaces */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerSpaces"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getLiveInbox: {
         parameters: {
             query?: {

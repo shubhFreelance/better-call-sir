@@ -1,5 +1,6 @@
 import {coverageQuery,coverageWhere,scopeFilter,learnerScope} from '../../coverage';
 import {learningAuthority} from '../learners/learning-management';
+import {requireLearningSpace} from '../learners/learning-spaces';
 import {studentContext} from '../requests/student-enquiries.module';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
@@ -27,7 +28,7 @@ class CatalogController {
         if(id!==actor.id)fail(404,'NOT_FOUND','Learner unavailable.');
         const context=await studentContext(db,actor.id);if(context.gate!=='READY')fail(403,'LEARNER_DETAILS_REQUIRED','Complete your learning setup before choosing a teacher.');
         const e=context.educationScope;learner={educationStage:e.stage,grade:'grade' in e?e.grade??null:null,board:'board' in e?e.board??null:null,courseName:'courseName' in e?e.courseName:null,studyYear:'studyYear' in e?e.studyYear:null};
-      }else learner=await learningAuthority(db,this.service,actor,id);
+      }else {learner=await learningAuthority(db,this.service,actor,id);await requireLearningSpace(db,learner,subject);}
       const academic=learnerScope(learner,subject);if(!academic)fail(409,'LEARNER_DETAILS_REQUIRED','Complete the learner education profile before requesting a teacher.');
       return coverageWhere(academic);
     });

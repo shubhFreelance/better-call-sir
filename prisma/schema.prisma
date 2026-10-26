@@ -69,6 +69,8 @@ model Consent {
   withdrawnAt DateTime?
 }
 model Child {
+  learningSpaces Json?
+  learningSpacesVersion Int @default(0)
   learningManagementMode String @default("GUARDIAN_ONLY")
   learningManagementVersion Int @default(1)
   guardianVerificationId String? @unique @db.Uuid
