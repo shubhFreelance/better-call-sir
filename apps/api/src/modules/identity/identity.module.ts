@@ -42,7 +42,7 @@ class IdentityController {
   }
 
   @Post('auth/otp/verify') async otpVerify(@Body() body: unknown,@Req() req: Request,@Res({passthrough:true}) res: Response) {
-    const {email,code,name}=parse(z.object({email:emailAddress,code:z.string().regex(/^\d{6}$/),name:text(80).optional()}).strict(),body);
+    const {email,code,name,registrationIntent}=parse(z.object({email:emailAddress,code:z.string().regex(/^\d{6}$/),name:text(80).optional(),registrationIntent:z.enum(['STUDENT','GUARDIAN']).optional()}).strict(),body);
     await this.service.limit(`verify:${req.ip}`,10);
     let digest:string;try{digest=otpDigest(email,code);}catch{fail(503,'AUTH_UNAVAILABLE','Authentication is temporarily unavailable. Please retry later.');}
     const result = await this.db.$transaction(async db=>{
@@ -54,9 +54,13 @@ class IdentityController {
       await db.otp.delete({where:{address:email}});
       const existing=await db.account.findUnique({where:{email}});
       if(!existing&&!name)return {registrationRequired:true} as const;
-      const account=existing
+      let account=existing
         ? await db.account.update({where:{id:existing.id},data:{emailLocale:otp.locale}})
-        : await db.account.create({data:{email,name:name!,emailLocale:otp.locale}});
+        : await db.account.create({data:{email,name:name!,emailLocale:otp.locale,registrationIntent:registrationIntent==='STUDENT'?'STUDENT':null}});
+      if(existing&&registrationIntent){
+        await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${existing.id},0))`;
+        if(await unusedAccount(db,existing.id))account=await db.account.update({where:{id:existing.id},data:{registrationIntent:registrationIntent==='STUDENT'?'STUDENT':null}});
+      }
       return {account,accountCreated:!existing};
     });
     if(result&&'registrationRequired' in result)fail(409,'REGISTRATION_REQUIRED','No account exists for this verified email. Create an account to continue.');
@@ -67,7 +71,7 @@ class IdentityController {
   @Get('auth/session') async session(@Req() req: Request) {
     const account = await this.service.actor(req);
     const current = await this.db.session.findUniqueOrThrow({where:{accessHash:hash(req.cookies.bcs_access)}});
-    return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified},csrfToken:current.csrf};
+    return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified,...(account.role==='GUARDIAN'&&account.registrationIntent==='STUDENT'?{studentSetupPending:true}:{})},csrfToken:current.csrf};
   }
 
   @Post('auth/refresh') async refresh(@Req() req: Request,@Res({passthrough:true}) res: Response) {

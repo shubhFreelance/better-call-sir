@@ -64,7 +64,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Teacher proposes or edits; family confirms the current proposal; teacher then accepts. Pending proposals block acceptance. Version checks and exact retries apply. */
+        /** Teacher proposes or edits; family confirms the latest proposal; teacher then accepts. Pending proposals block acceptance. Version checks and exact retries apply. */
         post: operations["respondDirectEnquiry"];
         delete?: never;
         options?: never;
@@ -4076,6 +4076,8 @@ export interface components {
             /** @enum {string} */
             role: "GUARDIAN" | "STUDENT" | "TEACHER" | "OPERATOR" | "REVIEWER" | "FINANCE" | "ADMIN" | "INDEPENDENT_STUDENT";
             verified: boolean;
+            /** @description Student registration awaits an authorized learner link. This flag grants no student authority. */
+            readonly studentSetupPending?: boolean;
         };
         Session: {
             account: components["schemas"]["Account"];
@@ -4285,6 +4287,11 @@ export interface components {
             locale: "en" | "hi";
         };
         OtpVerify: {
+            /**
+             * @description Onboarding intent for an unused email account only; never assigns a role or changes an established account.
+             * @enum {string}
+             */
+            registrationIntent?: "STUDENT" | "GUARDIAN";
             code: string;
             /** @description Required only when creating an account; omitted for existing-account sign-in. Never replaces an existing account name. */
             name?: string;
@@ -7722,10 +7729,10 @@ export interface operations {
                                 format?: "ONE_TO_ONE" | "GROUP";
                                 timing?: string;
                                 message?: string;
+                                /** @description Family confirmed this exact proposal; teacher acceptance is still required. */
+                                familyConfirmed?: boolean;
                                 /** @constant */
                                 timezone?: "Asia/Kolkata";
-                                /** @description The family confirmed this exact proposal. Teacher acceptance is still required. */
-                                familyConfirmed?: boolean;
                             } | null;
                             /** Format: uuid */
                             arrangementId: string | null;
@@ -7885,10 +7892,10 @@ export interface operations {
                             format?: "ONE_TO_ONE" | "GROUP";
                             timing?: string;
                             message?: string;
+                            /** @description Family confirmed this exact proposal; teacher acceptance is still required. */
+                            familyConfirmed?: boolean;
                             /** @constant */
                             timezone?: "Asia/Kolkata";
-                            /** @description The family confirmed this exact proposal. Teacher acceptance is still required. */
-                            familyConfirmed?: boolean;
                         } | null;
                         /** Format: uuid */
                         arrangementId: string | null;

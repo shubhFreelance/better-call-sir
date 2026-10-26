@@ -6,6 +6,7 @@ datasource db {
   provider = "postgresql"
 }
 model Account {
+  registrationIntent String?
   emailLocale String @default("en")
   authVersion Int @default(0)
   id String @id @default(uuid()) @db.Uuid

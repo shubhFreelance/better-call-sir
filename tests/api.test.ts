@@ -229,6 +229,26 @@ test('valid sandbox email OTP creates only an unverified guardian, is single-use
  assert.equal((await client.call('/auth/otp/verify',body)).status,401);assert.equal((await client.call('/consents',{purpose:'tuition-and-learning-records',policyVersion:'development-v1',accepted:true})).status,403);assert.equal((await client.call('/requests',intake())).status,403);
 });
 async function resetReturningOtpBudget(){await db.rateBucket.deleteMany({where:{key:{in:['otp-ip:127.0.0.1','verify:127.0.0.1'].map(k=>createHash('sha256').update(k).digest('hex'))}}});}
+
+test('student registration intent survives email login without granting student authority or relabelling an established guardian',async(t)=>{
+ await resetReturningOtpBudget();t.after(resetReturningOtpBudget);
+ const c=new Client(),email='pending-student-'+randomUUID()+'@example.test';
+ const first=await c.call('/auth/otp/request',{email});
+ const created=await c.call('/auth/otp/verify',{email,code:first.data.developmentCode,name:'Pending student',registrationIntent:'STUDENT'});
+ assert.equal(created.status,201);assert.equal(created.data.account.role,'GUARDIAN');assert.equal(created.data.account.studentSetupPending,true);
+ const id=created.data.account.id;assert.equal((await c.call('/auth/session')).data.account.studentSetupPending,true);
+ assert.equal((await c.call('/requests',intake())).status,403);
+ assert.equal((await c.call('/inbox')).data.tasks.some((task:any)=>task.actionPath.startsWith('/guardian-verification')),false);
+ await c.call('/auth/logout',{});
+ const again=await c.call('/auth/otp/request',{email});const restored=await c.call('/auth/otp/verify',{email,code:again.data.developmentCode});
+ assert.equal(restored.data.account.id,id);assert.equal(restored.data.account.studentSetupPending,true);assert.equal(await db.account.count({where:{email}}),1);
+ const guardian=new Client(),parentEmail='actual-parent-'+randomUUID()+'@example.test',parentOtp=await guardian.call('/auth/otp/request',{email:parentEmail});
+ const parent=await guardian.call('/auth/otp/verify',{email:parentEmail,code:parentOtp.data.developmentCode,name:'Existing parent'});
+ assert.equal((await guardian.call('/guardian-verifications',guardianApplication({guardianName:'Existing parent'}))).status,201);
+ await guardian.call('/auth/logout',{});const challenge=await guardian.call('/auth/otp/request',{email:parentEmail});
+ const kept=await guardian.call('/auth/otp/verify',{email:parentEmail,code:challenge.data.developmentCode,registrationIntent:'STUDENT'});
+ assert.equal(kept.data.account.id,parent.data.account.id);assert.equal(kept.data.account.role,'GUARDIAN');assert.equal(kept.data.account.studentSetupPending,undefined);
+});
 test('returning email OTP restores the same guardian and saved verification after logout without a name',async(t)=>{
  await resetReturningOtpBudget();t.after(resetReturningOtpBudget);
  const c=new Client(),email='return-'+randomUUID()+'@example.test',first=await c.call('/auth/otp/request',{email});

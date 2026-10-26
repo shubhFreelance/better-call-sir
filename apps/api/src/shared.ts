@@ -116,7 +116,7 @@ export class AppService {
     res.cookie('bcs_access',state.access,{...cookie,maxAge:Math.min(600_000,remaining)});
     res.cookie('bcs_refresh',state.refresh,{...cookie,maxAge:remaining});
     res.setHeader('Cache-Control','no-store');
-    return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified},csrfToken:state.csrf};
+    return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified,...(account.role==='GUARDIAN'&&account.registrationIntent==='STUDENT'?{studentSetupPending:true}:{})},csrfToken:state.csrf};
   }
   async session(account: Account, res: Response, familyId: string = randomUUID()) {
     return this.sessionResponse(account,await this.issueSession(account,familyId),res);

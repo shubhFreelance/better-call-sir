@@ -55,7 +55,7 @@ class InboxController {
       take: 21,
     });
     const tasks: { id: string; title: string; actionPath: string }[] = [];
-    if (a.role === "GUARDIAN")
+    if (a.role === "GUARDIAN" && a.registrationIntent !== "STUDENT")
       for (const v of await db.guardianVerification.findMany({
         where: {
           guardianId: a.id,

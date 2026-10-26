@@ -36113,6 +36113,11 @@
           },
           "verified": {
             "type": "boolean"
+          },
+          "studentSetupPending": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "Student registration awaits an authorized learner link. This flag grants no student authority."
           }
         },
         "required": [
@@ -36931,6 +36936,11 @@
       "OtpVerify": {
         "type": "object",
         "properties": {
+          "registrationIntent": {
+            "type": "string",
+            "enum": ["STUDENT", "GUARDIAN"],
+            "description": "Onboarding intent for an unused email account only; never assigns a role or changes an established account."
+          },
           "code": {
             "type": "string",
             "pattern": "^\\d{6}$"
