@@ -1,3 +1,4 @@
+import {spacesSchema,learnerSpaces} from '../learners/learning-spaces';
 import {learnerProjection} from '../learners/learners.module';
 import {subjectSchema} from '../../coverage';
 import {Module,Controller,Get,Post,Param,Req,Body,Inject} from '@nestjs/common';
@@ -9,8 +10,7 @@ import {applicationSchema,submitTeacher} from '../teachers/teachers.module';
 const kindSchema=z.enum(['parent','teacher','student','enquiry']);
 const childFields=['alias','grade','board','childId','schoolName','schoolSubjects'];
 const managementPreference=z.enum(['SELF_DIRECTED','GUARDIAN_GUIDED']);
-const studentSpace=z.object({subject:subjectSchema,language:z.enum(['English','Hindi']).optional(),learningPreferences:text(500).optional()}).strict();
-const studentDraft=z.object({managementPreference:managementPreference.optional(),subjects:z.array(subjectSchema).max(20).refine(a=>new Set(a.map(s=>s.toLowerCase())).size===a.length,'Choose distinct subjects.').optional(),language:z.enum(['English','Hindi']).optional(),learningPreferences:text(500).optional(),spaces:z.array(studentSpace).max(20).refine(a=>new Set(a.map(s=>s.subject.toLowerCase())).size===a.length,'You cannot change the subject because you have already created a space for it.').optional()}).strict();
+const studentDraft=z.object({managementPreference:managementPreference.optional(),subjects:z.array(subjectSchema).max(20).refine(a=>new Set(a.map(s=>s.toLowerCase())).size===a.length,'Choose distinct subjects.').optional(),language:z.enum(['English','Hindi']).optional(),learningPreferences:text(500).optional(),spaces:spacesSchema.optional()}).strict();
 @Controller('api/v1')
 class OnboardingController {
  constructor(@Inject(AppService) private readonly service:AppService){}
@@ -64,11 +64,12 @@ class OnboardingController {
   return this.service.db.$transaction(async db=>{
    const child=await db.child.findUniqueOrThrow({where:{studentAccountId:actor.id}});
    await this.service.guardian(db,child.guardianId);
-   return {learner:learnerProjection(child),progress:await this.result(db,actor,'STUDENT'),authority:'GUARDIAN_MANAGED'};
+   const progress=await this.result(db,actor,'STUDENT'),spaces=await learnerSpaces(db,child);
+   return {learner:learnerProjection(child),progress:child.learningSpaces===null?progress:{...progress,draft:{...(progress.draft as object),spaces,subjects:spaces.map(s=>s.subject)}},spacesVersion:child.learningSpacesVersion,authority:'GUARDIAN_MANAGED'};
   });
  }
  @Post('onboarding/student/confirmations') async confirmStudent(@Req() req:HttpRequest,@Body() body:unknown){
-  const actor=await this.service.actor(req,['STUDENT']),data=parse(z.object({expectedVersion:z.number().int().nonnegative(),educationVersion:version,confirmed:z.literal(true),draft:studentDraft}).strict(),body);
+  const actor=await this.service.actor(req,['STUDENT']),data=parse(z.object({expectedVersion:z.number().int().nonnegative(),educationVersion:version,spacesVersion:z.number().int().nonnegative().optional(),confirmed:z.literal(true),draft:studentDraft}).strict(),body);
   return this.service.once(req,actor,'student.onboarding.confirm',data,async db=>{
    const linked=await db.child.findUniqueOrThrow({where:{studentAccountId:actor.id}});
    await this.service.guardian(db,linked.guardianId);
@@ -78,6 +79,10 @@ class OnboardingController {
    if(!learnerProjection(child).enquiryEligible)fail(409,'EDUCATION_INCOMPLETE','Ask your guardian to complete your education details before confirming setup.');
    const current=await db.onboardingProgress.findUnique({where:{accountId_kind:{accountId:actor.id,kind:'STUDENT'}}});
    if((current?.version||0)!==data.expectedVersion)fail(409,'CONFLICT','Your saved setup changed. Reload and review it again.');
+   if(data.draft.spaces){
+    if((data.spacesVersion??0)!==child.learningSpacesVersion)fail(409,'CONFLICT','Your subject spaces changed. Reload them before saving.');
+    await db.child.update({where:{id:child.id},data:{learningSpaces:data.draft.spaces,learningSpacesVersion:{increment:1}}});
+   }
    const legacyPreference=managementPreference.safeParse((current?.draft as {managementPreference?:unknown}|null)?.managementPreference);
    const saved={draft:{...(legacyPreference.success?{managementPreference:legacyPreference.data}:{}),...data.draft,...(data.draft.spaces?{subjects:data.draft.spaces.map(space=>space.subject)}:{})},completedResourceId:child.id};
    const progress=current?await db.onboardingProgress.update({where:{id:current.id},data:{...saved,version:{increment:1}}}):await db.onboardingProgress.create({data:{accountId:actor.id,kind:'STUDENT',...saved}});

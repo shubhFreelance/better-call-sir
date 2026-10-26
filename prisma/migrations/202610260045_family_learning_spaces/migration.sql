@@ -1,0 +1,2 @@
+ALTER TABLE "Child" ADD COLUMN "learningSpaces" JSONB;
+ALTER TABLE "Child" ADD COLUMN "learningSpacesVersion" INTEGER NOT NULL DEFAULT 0;
