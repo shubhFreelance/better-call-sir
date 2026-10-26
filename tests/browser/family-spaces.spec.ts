@@ -59,8 +59,8 @@ test('saved-space dropdown controls personalised search while everyone can explo
 });
 test('student dashboard highlights the linked guardian and the details page shows the recorded sibling relationship',async({page})=>{
  const state=await setup(page,'STUDENT');await page.goto('/dashboard');
- await expect(page.locator('.student-guardian-card.compact')).toContainText('Synthetic sister');await expect(page.locator('.student-guardian-card.compact')).toContainText('Sibling');
- await page.locator('.student-guardian-card.compact').getByRole('link',{name:'View guardian details',exact:true}).click();
+ await expect(page.locator('.student-connection .student-guardian-summary')).toContainText('Synthetic sister');await expect(page.locator('.student-connection .student-guardian-summary')).toContainText('Sibling');
+ await page.locator('.student-connection .student-guardian-summary').getByRole('link',{name:'View guardian details',exact:true}).click();
  await expect(page.locator('.student-guardian-card')).toContainText('sister@example.test');await expect(page.locator('.guardian-verification-badge')).toHaveText('Not verified');
  await page.getByRole('button',{name:'Ping your guardian',exact:true}).click();await expect(page.locator('.action-toast')).toContainText('Your guardian has been notified.');expect(state.pings).toEqual([{confirmed:true}]);await expect(page.getByRole('button',{name:'Ping your guardian',exact:true})).toBeDisabled();
  await expect(page.locator('.dashboard-sidebar').getByRole('link',{name:'Guardian details',exact:true})).toBeVisible();await expect(page.locator('.dashboard-sidebar').getByRole('link',{name:'Guardian verification',exact:true})).toHaveCount(0);
@@ -95,4 +95,10 @@ test('guardian unsaved preferences survive focus refresh and concurrent space ed
 
 test('guardians with incomplete learner details get their own education action before adding a space',async({page})=>{
  const state=await setup(page);state.learners[0].enquiryEligible=false;await page.goto('/dashboard/learning-preferences?learner='+childId);await expect(page.getByRole('button',{name:'Add a subject space',exact:true})).toBeDisabled();await expect(page.getByRole('link',{name:'Open education profiles',exact:true})).toHaveAttribute('href','/dashboard/learners');expect(state.saves).toHaveLength(0);
+});
+
+test('guardian summary is embedded beside the education profile on desktop and stacks inside it on phones',async({page})=>{
+ await setup(page,'STUDENT',true);await page.setViewportSize({width:1440,height:1000});await page.goto('/dashboard');const ready=page.locator('.student-access-ready'),summary=ready.locator('.student-guardian-summary');await expect(summary).toContainText('Synthetic sister');await expect(summary).toContainText('Sibling');await expect(summary.locator('.guardian-verification-badge')).toHaveText('Verified');await expect(page.locator('.student-guardian-card')).toHaveCount(0);
+ const details=await ready.locator('.student-access-profile-details').boundingBox(),guardian=await summary.boundingBox();expect(guardian!.x).toBeGreaterThan(details!.x+details!.width);await expect(summary).toHaveCSS('background-color','rgba(0, 0, 0, 0)');await expect(summary).toHaveCSS('border-top-width','0px');await page.addStyleTag({content:'nextjs-portal {display:none}'});await ready.screenshot({path:'test-results/student-profile-guardian-inline.png'});
+ await page.setViewportSize({width:360,height:800});const phoneDetails=await ready.locator('.student-access-profile-details').boundingBox(),phoneGuardian=await summary.boundingBox();expect(phoneGuardian!.y).toBeGreaterThan(phoneDetails!.y+phoneDetails!.height);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.student-connection').analyze()).violations).toEqual([]);
 });

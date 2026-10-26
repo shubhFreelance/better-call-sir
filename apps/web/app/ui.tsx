@@ -2665,7 +2665,6 @@ function DashboardPage({ tab }: { tab: string }) {
             "Welcome, {0}.", [session.account.name.split(" · ")[0]]
           )}
         />
-        {session.account.role === "STUDENT" && tab === "/dashboard" && <StudentGuardianDetails session={session} compact/>}
         {["GUARDIAN","STUDENT"].includes(session.account.role) && tab === "/dashboard" && <CreateSpacesCard guardian={session.account.role === "GUARDIAN"}/>}
         {["GUARDIAN","STUDENT"].includes(session.account.role) && tab === "/dashboard" && <StudentConnection session={session} onSessionChange={setSession} compact/>}
         {session.account.role === "GUARDIAN" && tab === "/dashboard" && <GuardianPriorities session={session}/>}
