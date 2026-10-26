@@ -594,3 +594,13 @@ Profile summary refinement (26 October 2026): keep the learner name and manageme
 Inline profile type scale (26 October 2026): learner 24px/700 (22px phone), guardian name 16px/700, guardian label/relationship/link 12px. Stack relationship below the guardian name; use a subtle vertical divider and 28px inset on desktop, a horizontal divider and 20px top inset when stacked. Retain the shared lavender management badge and tooltip.
 
 Teacher search context (26 October 2026): learner and saved-subject selectors share equal desktop columns, 13px semibold labels and matching 48px white dropdowns. Stack below 640px. Keep compact education metadata and eligibility guidance below a divider; preserve loading/error/empty states and manage-spaces navigation.
+
+## Layered Summary Card - 26 October 2026
+
+Owner-approved name: **Layered Summary Card** (`LayeredSummaryCard` from `components/ui/layered-summary-card.tsx`). Use for summaries with primary identity/highlights in a #FFFFEB cream header, details in a white body, and additional important information in a #F8EDFF lavender footer. Reuse its rounded frame, separators and responsive padding; pass semantic headings/detail lists as content and an accessible section label. EnquirySummary is the first consumer.
+
+```tsx
+<LayeredSummaryCard aria-label="Profile summary" header={<h3>Learner name</h3>} footer={<p>Important next step</p>}>
+  <p>Supporting details</p>
+</LayeredSummaryCard>
+```

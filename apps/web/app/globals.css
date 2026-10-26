@@ -6331,16 +6331,19 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .invitation-recovery .invitation-onboarding { display:inline-flex; align-items:center; padding:10px 16px; border:2px solid #034F46; border-radius:10px; background:#034F46; color:#FFF; font-weight:600; text-decoration:none; }
 @keyframes invitation-glow { 50% { box-shadow:0 0 0 4px #F0D7FF,0 0 14px #C69CDE; } }
 @media(prefers-reduced-motion:reduce) { .invitation-recovery .invitation-reveal { animation:none; } }
-.enquiry-summary { overflow:hidden; border:1px solid #DDE3D3; border-radius:18px; background:#FFF; margin:16px 0 20px; }
-.enquiry-summary header { padding:18px 20px; background:#FFFFEB; border-bottom:1px solid #E2E5D6; }
+.layered-summary-card { min-width:0; overflow:hidden; border:1px solid #DDE3D3; border-radius:18px; background:#FFF; }
+.layered-summary-card-header { padding:18px 20px; background:#FFFFEB; border-bottom:1px solid #E2E5D6; }
+.layered-summary-card-body { padding:20px; }
+.layered-summary-card-footer { padding:16px 20px; border-top:1px solid #E2E5D6; background:#F8EDFF; font-size:12px; }
+.layered-summary-card :is(.layered-summary-card-header,.layered-summary-card-body,.layered-summary-card-footer) { min-width:0; overflow-wrap:anywhere; }
+.enquiry-summary { margin:16px 0 20px; }
 .enquiry-summary h3 { margin:0; color:#034F46; font-size:20px; }
 .enquiry-summary header p { margin:6px 0 0; font-size:12px; }
-.enquiry-summary dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 24px; padding:20px; margin:0; }
+.enquiry-summary dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 24px; padding:0; margin:0; }
 .enquiry-summary dl > div { min-width:0; }
 .enquiry-summary dt { font-size:11px; line-height:1.6; color:#52655F; }
 .enquiry-summary dd { margin:4px 0 0; font-size:14px; line-height:1.5; font-weight:600; overflow-wrap:anywhere; }
 .enquiry-summary dd.enquiry-budget { color:#034F46; font-size:20px; }
-.enquiry-summary-times { padding:16px 20px; border-top:1px solid #E2E5D6; background:#F8EDFF; font-size:12px; }
 .enquiry-summary-times .tuition-windows { margin:10px 0 0; font-size:13px; }
 .care-card:has(.enquiry-summary) :is(.care-notice,.check-label), .student-enquiry-form:has(.enquiry-summary) .wizard-checkbox { font-size:12px; line-height:1.65; }
 .wizard-review .wizard-review-row { padding:18px; border:1px solid #E2E5D6; border-radius:12px; background:#FFFFEB; }
@@ -6354,7 +6357,8 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
   .invitation-recovery .panel-title { align-items:stretch; flex-direction:column; }
   .invitation-recovery :is(button,.invitation-onboarding) { max-width:none; }
   .guardian-inline-setup .learner-profiles :is(.care-card,.wizard-card) { padding:16px; }
-  .enquiry-summary dl { gap:16px; padding:16px; }
+  .layered-summary-card-header,.layered-summary-card-body,.layered-summary-card-footer { padding:16px; }
+  .enquiry-summary dl { gap:16px; }
 }
 
 .action-toast { position:fixed; z-index:1200; top:20px; right:20px; display:flex; align-items:flex-start; gap:12px; width:min(400px,calc(100vw - 32px)); padding:16px; border:1px solid #DAB7EC; border-radius:14px; background:#034F46; color:#FFFFEB; box-shadow:0 8px 28px #17201F26; }
