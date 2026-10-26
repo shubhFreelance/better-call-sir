@@ -69,7 +69,7 @@ class IdentityController {
   }
 
   @Get('auth/session') async session(@Req() req: Request) {
-    const account = await this.service.actor(req);
+    const account = await this.service.actor(req,undefined,true,true);
     const current = await this.db.session.findUniqueOrThrow({where:{accessHash:hash(req.cookies.bcs_access)}});
     return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified,...(account.role==='GUARDIAN'&&account.registrationIntent==='STUDENT'?{studentSetupPending:true}:{})},csrfToken:current.csrf};
   }
@@ -82,7 +82,7 @@ class IdentityController {
       if(!original) return {error:true} as const;
       const account=await db.account.findUniqueOrThrow({where:{id:original.accountId}});
       if(account.disabled||original.authVersion!==account.authVersion) return {error:true} as const;
-      if(account.role==='STUDENT'&&!await this.service.activeStudent(db,account.id,true))return {error:true} as const;
+      if(account.role==='STUDENT'&&!await this.service.activeStudent(db,account.id,true)&&!await this.service.recoverableStudent(db,account.id))return {error:true} as const;
       // Family lock serializes every generation, replay and logout with replacement insertion.
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${original.familyId},0))`;
       const session=await db.session.findUniqueOrThrow({where:{id:original.id}});
@@ -99,7 +99,7 @@ class IdentityController {
   }
 
   @Post('auth/logout') async logout(@Req() req: Request,@Res({passthrough:true}) res: Response) {
-    await this.service.actor(req);
+    await this.service.actor(req,undefined,true,true);
     const session=await this.db.session.findUniqueOrThrow({where:{accessHash:hash(req.cookies.bcs_access)}});
     await this.db.$transaction(async db=>{
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${session.familyId},0))`;
