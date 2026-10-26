@@ -1,9 +1,9 @@
 "use client";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -13,6 +13,8 @@ import { EducationSummary } from "./learner-profiles";
 import { LearningManagementBadge } from "../components/ui/learning-management-badge";
 import { learningModes } from "./learning-management";
 import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
+import { ActionToast } from "../components/ui/action-toast";
+import { emptyTeacherFilters, useTeacherSearchState } from "./teacher-search-state";
 type Context = components["schemas"]["StudentSetupContext"];
 type Preferences = components["schemas"]["StudentLearningPreferences"];
 type Confirmation = components["schemas"]["StudentSetupConfirmation"];
@@ -24,6 +26,7 @@ const splitSubjects = (text: string) =>
     .filter(Boolean);
 export function StudentWelcome({ session }: { session: Session }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+  const client = useQueryClient(), [savedNotice, setSavedNotice] = useState(0);
 
   const query = useQuery({
     queryKey: ["student-setup", session.account.id],
@@ -37,6 +40,7 @@ export function StudentWelcome({ session }: { session: Session }) {
     query.error instanceof ApiError && [401, 403].includes(query.error.status);
   return (
     <main className="container section student-welcome">
+      <ActionToast key={savedNotice} message={savedNotice ? appText("Your student setup is saved.") : ""} />
       <header className="wizard-title">
         <h1>{appText("Set up your student space.")}</h1>
         <p>
@@ -98,6 +102,10 @@ export function StudentWelcome({ session }: { session: Session }) {
                 context={query.data}
                 readBlocked={!!query.error || query.isFetching}
                 onReload={() => query.refetch()}
+                onSaved={progress => {
+                  setSavedNotice(count => count + 1);
+                  client.setQueryData<Context>(["student-setup",session.account.id], current => current ? {...current,progress} : current);
+                }}
               />
             </div>
           )}
@@ -134,16 +142,20 @@ function StudentSetupForm({
   context,
   readBlocked,
   onReload,
+  onSaved,
 }: {
   session: Session;
   context: Context;
   readBlocked: boolean;
   onReload: () => Promise<unknown>;
+  onSaved: (progress: Progress) => void;
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
   const initial = context.progress.draft as Preferences,
     suggestions = context.learner.education.subjects;
+  const completed = context.progress.kind === "STUDENT" && context.progress.state === "READY" && context.progress.completedResourceId === context.learner.id;
+  const [, setTeacherSearch] = useTeacherSearchState();
   const management = useQuery({queryKey:["learning-management",session.account.id,context.learner.id],queryFn:({signal})=>api<components["schemas"]["LearningManagement"]>(`/children/${context.learner.id}/learning-management`,{signal}),retry:false});
   const currentManagement = !management.error && management.data ? learningModes[management.data.mode] : undefined;
   const [subjects, setSubjects] = useState(
@@ -157,17 +169,19 @@ function StudentSetupForm({
   const [correct, setCorrect] = useState(false),
     [language, setLanguage] = useState(initial.language || ""),
     [notes, setNotes] = useState(initial.learningPreferences || "");
-  const [review, setReview] = useState<Confirmation["draft"] | null>(null),
+  const [review, setReview] = useState<Confirmation["draft"] | null>(completed ? initial : null),
     [version, setVersion] = useState(context.progress.version),
     [busy, setBusy] = useState(false),
     [uncertain, setUncertain] = useState(false),
     [conflict, setConflict] = useState(false),
-    [saved, setSaved] = useState(false),
+    [saved, setSaved] = useState(completed),
     [error, setError] = useState(""),
     [errors, setErrors] = useState<Record<string, string>>({});
   const pending = useRef<{ body: Confirmation; key: string } | null>(null),
     heading = useRef<HTMLHeadingElement>(null);
   const locked = busy || uncertain || conflict || readBlocked;
+  useEffect(() => { if (saved) heading.current?.focus(); }, [saved]);
+  const teacherSearch = "/teachers?" + new URLSearchParams({learner:context.learner.id,...(review?.subjects?.length === 1 ? {subject:review.subjects[0]} : {})});
   function prepare() {
     const chosen = [...subjects, ...splitSubjects(other)],
       invalid: Record<string, string> = {};
@@ -249,7 +263,7 @@ function StudentSetupForm({
       setLanguage(confirmed.language || "");
       setNotes(confirmed.learningPreferences || "");
       setReview(confirmed as Confirmation["draft"]);
-      requestAnimationFrame(() => heading.current?.focus());
+      onSaved(result);
     } catch (e) {
       const unknown =
         !(e instanceof ApiError) ||
@@ -293,12 +307,13 @@ function StudentSetupForm({
         className="student-setup-steps"
         aria-label={appText("Student setup progress")}
       >
-        <li aria-current={!review ? "step" : undefined}>
+        <li aria-current={!review && !saved ? "step" : undefined}>
           {appText("1 · Details and preferences")}{" "}
         </li>
-        <li aria-current={review ? "step" : undefined}>
+        <li aria-current={review && !saved ? "step" : undefined}>
           {appText("2 · Review and save")}
         </li>
+        <li aria-current={saved ? "step" : undefined}>{appText("3 · Setup saved")}</li>
       </ol>
       <h2 ref={heading} tabIndex={-1}>
         {saved
@@ -307,6 +322,9 @@ function StudentSetupForm({
             ? appText("Review your student setup")
             : appText("What helps you learn?")}
       </h2>
+      {saved && <p className="student-saved-prompt">{review?.subjects?.length
+        ? appText("Your setup is saved for {0}. Update it to add other subjects.",[review.subjects.map(subject => appCurriculum(subject)).join(", ")])
+        : appText("Your preferences are saved. You can update your setup to add subjects.")}</p>}
       {review ? (
         <div className="student-setup-review">
           <section className="student-review-education">
@@ -510,7 +528,7 @@ function StudentSetupForm({
               {appText("Update student setup")}{" "}
             </FilterButton>
             <FilterButton asChild accent>
-              <Link href="/teachers">{appText("Explore teachers")}</Link>
+              <Link href={teacherSearch} onClick={() => setTeacherSearch({filters:{...emptyTeacherFilters,subject:review?.subjects?.length === 1 ? review.subjects[0] : "",language:review?.language || ""}})}>{appText("Explore teachers")}</Link>
             </FilterButton>
             <FilterButton asChild><Link href="/dashboard">
               {appText("Open dashboard")}{" "}

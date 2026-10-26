@@ -1,5 +1,8 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "3 · Setup saved": "3 · सेटअप सहेजा गया",
+  "Your setup is saved for {0}. Update it to add other subjects.": "{0} के लिए आपका सेटअप सहेजा गया है। दूसरे विषय जोड़ने के लिए इसे अपडेट करें।",
+  "Your preferences are saved. You can update your setup to add subjects.": "आपकी पसंद सहेज ली गई है। विषय जोड़ने के लिए अपना सेटअप अपडेट करें।",
   "Saving these preferences does not change who manages learning.": "इन पसंदों को सहेजने से पढ़ाई के निर्णय लेने की अनुमति नहीं बदलती।",
   "Review your education and learning preferences before saving.": "सहेजने से पहले अपनी शिक्षा और पढ़ाई की पसंद की समीक्षा करें।",
   "1 · Details and preferences": "1 · जानकारी और पसंद",

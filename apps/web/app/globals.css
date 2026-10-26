@@ -6470,3 +6470,4 @@ html body button.refresh-button[data-slot=button]:disabled { cursor:not-allowed;
 .student-setup-review .student-review-authority p { margin:10px 0 0; color:#344A43; font-size:12px; line-height:1.7; }
 .student-setup-actions { margin-top:24px; }
 @media(max-width:640px) { .student-review-education,.student-review-preferences { padding:16px; } .student-review-preferences dl { grid-template-columns:minmax(0,1fr); } .student-setup-form > h2 { font-size:22px; } }
+.student-setup-form .student-saved-prompt { margin:0 0 20px; padding:12px 14px; border:1px solid #D9E4DF; border-radius:10px; background:#EEF5F3; color:#034F46; font-size:12px; line-height:1.7; }

@@ -44,7 +44,7 @@ async function setup(page: Page, mode = "normal") {
     fail = mode === "load-error",
     denied = false;
   const bodies: any[] = [],
-    keys: (string | undefined)[] = [];
+    keys: (string | undefined)[] = [], searches: URL[] = [];
   await page.route("**/api/v1/**", async (route) => {
     const req = route.request(),
       path = new URL(req.url()).pathname;
@@ -61,6 +61,8 @@ async function setup(page: Page, mode = "normal") {
         },
       });
     if (path.endsWith("/learning-management")) return route.fulfill({json:{childId:learner.id,mode:"STUDENT_LED",version:1,canManageLearning:true,canChangeManagement:false}});
+    if (path.endsWith("/learner-profiles")) return route.fulfill({json:{items:[learner],nextCursor:null}});
+    if (path.endsWith("/teachers")) { searches.push(new URL(req.url())); return route.fulfill({json:{items:[],nextCursor:null}}); }
     if (path.endsWith("/onboarding/student/context")) {
       if (denied)
         return route.fulfill({
@@ -159,6 +161,7 @@ async function setup(page: Page, mode = "normal") {
   return {
     bodies,
     keys,
+    searches,
     recover: () => {
       fail = false;
     },
@@ -201,6 +204,27 @@ async function save(page: Page) {
     }),
   ).toBeVisible();
 }
+test("confirmed setup has a saved step and five-second toast, survives returning and adds subjects to the same setup",async({page})=>{
+  const state=await setup(page);await page.goto("/onboarding/student");await choose(page);
+  await page.getByRole("checkbox",{name:"Maths",exact:true}).check();await review(page);await page.clock.install();await save(page);
+  await expect(page.locator(".student-setup-steps [aria-current=step]")).toHaveText("3 · Setup saved");
+  const toast=page.locator(".action-toast");await expect(toast).toContainText("Your student setup is saved.");
+  await expect(page.locator(".student-setup-actions .filter-button")).toHaveCount(3);
+  await expect(page.locator(".student-saved-prompt")).toContainText("Maths");
+  await page.screenshot({path:"test-results/student-setup-saved-toast.png",fullPage:true});
+  await page.clock.fastForward(5000);await expect(toast).toHaveCount(0);
+  await page.reload();await expect(page.getByRole("heading",{name:"Your student setup is saved.",exact:true})).toBeVisible();await expect(toast).toHaveCount(0);
+  await expect(page.getByRole("link",{name:"Explore teachers",exact:true})).toHaveAttribute("href",/subject=Maths/);
+  await page.getByRole("button",{name:"Update student setup",exact:true}).click();
+  await expect(page.getByRole("checkbox",{name:"Maths",exact:true})).toBeChecked();await choose(page);await page.getByRole("checkbox",{name:"Science",exact:true}).check();await review(page);await save(page);
+  expect(state.bodies).toHaveLength(2);expect(state.bodies[1]).toMatchObject({expectedVersion:1,draft:{subjects:["Maths","Science"]}});
+});
+test("saved setup carries its learner, single subject and preferred language into teacher discovery",async({page})=>{
+  const state=await setup(page);await page.goto("/onboarding/student");await choose(page);await page.getByRole("checkbox",{name:"Maths",exact:true}).check();
+  await page.getByLabel("Language you prefer (optional)").selectOption("Hindi");await review(page);await save(page);
+  await page.getByRole("link",{name:"Explore teachers",exact:true}).click();
+  await expect.poll(()=>state.searches.some(url=>url.searchParams.get("learnerId")==="20000000-0000-4000-8000-000000000424"&&url.searchParams.get("subject")==="Maths"&&url.searchParams.get("language")==="Hindi")).toBe(true);
+});
 test("student reviews education and saves preferences without a second management question", async ({
   page,
 }) => {
@@ -242,6 +266,9 @@ test("student reviews education and saves preferences without a second managemen
     }),
   ).toHaveCount(0);
   await page.reload();
+  await expect(page.getByRole("heading",{name:"Your student setup is saved.",exact:true})).toBeVisible();
+  await expect(page.locator(".student-saved-prompt")).toContainText("Maths, Physics");
+  await page.getByRole("button",{name:"Update student setup",exact:true}).click();
   await expect(
     page.getByLabel("How do you like to learn? (optional)"),
   ).toHaveValue("More worked examples, please.");
