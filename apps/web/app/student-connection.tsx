@@ -1,4 +1,5 @@
 "use client";
+import {StudentGuardianDetails} from "./student-guardian-details";
 import { RefreshButton } from "../components/ui/refresh-button";
 import Link from "next/link";
 import {useState} from "react";
@@ -36,14 +37,16 @@ export function StudentConnection({session, onSessionChange, compact=false}: {se
   if(compact&&!linked&&(!rows.length||invitations.error))return null;
   return <section className="care-card student-connection" aria-label={appText("Your student access")}>
     <header className="student-access-header"><span className="student-access-symbol" aria-hidden="true"><Link2 size={24} /></span><h2>{appText(linked&&learner&&!context.error?"Your learning profile is ready":"Your student access")}</h2><InfoTooltip label={appText("Your student access")} items={[appText("Acknowledgment confirms the relationship you recognize. It does not make you an adult or replace separate guardian consent."),appText("Relationship approval is separate from learning permission and profile setup.")]} /></header>
-    <p className="student-access-note">{appText("Use your own email every time. A matching name alone never links accounts.")}</p>
+    <p className="student-access-note">{appText(session.account.studentSetupPending ? "Your guardian’s relationship approval is separate from connecting your student account. Accept their student invitation using your own email." : "Use your own email every time. A matching name alone never links accounts.")}</p>
     {(linked?context.isPending:invitations.isPending)&&<p role="status">{appText("Checking your profile connection…")}</p>}
     {(refreshError||(linked?context.error:invitations.error))&&<p role="alert">{appText("We couldn’t confirm your access. Refresh before continuing; your account has not been changed.")}</p>}
+    {linked&&(!learner||!!context.error)&&<StudentGuardianDetails session={session} compact/>}
     {linked&&learner&&!context.error&&<section className="student-access-ready">
-      <h3>{learner.alias}</h3>
+      <div className="student-access-ready-layout"><div className="student-access-profile-details"><h3>{learner.alias}</h3>
       <p>{appText("Your guardian has completed your education profile. Review your details and current permissions before choosing a teacher.")}</p>
       {management.error?<p role="alert">{appText("Your learning permissions could not be confirmed. Open your permissions page before making decisions.")}</p>:management.data&&<p><strong>{appText("Who manages learning?")}: </strong><LearningManagementBadge label={appText(guardianManagementLabels[management.data.mode])} items={[appText("Learning consent, account access and financial commencement remain with your guardian.")]} /></p>}
-      <div className="wizard-actions"><Button asChild><Link href="/dashboard">{appText("Open dashboard")}</Link></Button><Button asChild variant="outline"><Link href="/dashboard/learning-management">{appText("Review learning permissions")}</Link></Button><Button asChild variant="outline"><Link href="/onboarding/student">{appText("Review education details")}</Link></Button></div>
+      </div><StudentGuardianDetails session={session} compact/></div>
+      <FilterButtonGroup className="student-profile-actions"><FilterButton asChild accent><Link href="/dashboard">{appText("Open dashboard")}</Link></FilterButton><FilterButton asChild><Link href="/dashboard/learning-management">{appText("Review learning permissions")}</Link></FilterButton><FilterButton asChild><Link href="/onboarding/student">{appText("Review education details")}</Link></FilterButton></FilterButtonGroup>
     </section>}
     {!linked&&!invitations.error&&rows.map(row=>{
       const confirm=["DRAFT","PENDING"].includes(row.status)&&!row.studentAcknowledgedAt;
@@ -55,7 +58,7 @@ export function StudentConnection({session, onSessionChange, compact=false}: {se
         <Button asChild variant="outline"><Link href="/guardian-verification?view=student">{appText("Review relationship request")}</Link></Button>
       </article>;
     })}
-    {!linked&&!invitations.error&&!invitations.isPending&&!rows.length&&<section className="student-access-empty"><h3>{appText("No linked learning profile yet")}</h3><p>{appText("Ask your guardian to enter this exact email in your relationship request. You will confirm them here; after approval and setup, sign in with the same email to use your profile.")}</p><Button asChild><Link href="/signup/guardian">{appText("My parent or guardian needs an account")}</Link></Button></section>}
+    {!linked&&!invitations.error&&!invitations.isPending&&!rows.length&&<section className="student-access-empty"><h3>{appText(session.account.studentSetupPending ? "Connect your student account" : "No linked learning profile yet")}</h3><p>{appText(session.account.studentSetupPending ? "Ask your guardian for a student invitation code. Accept it with your own email to connect the saved learner profile." : "Ask your guardian to enter this exact email in your relationship request. You will confirm them here; after approval and setup, sign in with the same email to use your profile.")}</p>{!session.account.studentSetupPending && <Button asChild><Link href="/signup/guardian">{appText("My parent or guardian needs an account")}</Link></Button>}</section>}
     {invitations.hasNextPage&&<Button disabled={invitations.isFetchingNextPage} variant="outline" onClick={()=>invitations.fetchNextPage()}>{appText("Load more records")}</Button>}
     <FilterButtonGroup className="student-access-actions"><RefreshButton disabled={refreshing} onClick={refresh} label={appText(refreshing?"Checking your profile connection…":"Refresh my access")} />{!compact&&<FilterButton asChild accent><Link href="/onboarding/student?mode=invitation">{appText("I have a private invitation code")}</Link></FilterButton>}</FilterButtonGroup>
   </section>;

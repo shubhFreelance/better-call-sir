@@ -40,11 +40,12 @@ async function setup(page: Page, mode = "normal") {
       subjects: ["Language", "Numbers"],
       level: "KG2",
     };
+  if(mode === "legacy") progress={kind:"STUDENT",state:"READY",version:3,completedResourceId:learner.id,draft:{subjects:["Maths","Science"],language:"Hindi",learningPreferences:"Existing shared notes"}};
   let first = true,
     fail = mode === "load-error",
     denied = false;
   const bodies: any[] = [],
-    keys: (string | undefined)[] = [];
+    keys: (string | undefined)[] = [], searches: URL[] = [];
   await page.route("**/api/v1/**", async (route) => {
     const req = route.request(),
       path = new URL(req.url()).pathname;
@@ -60,6 +61,10 @@ async function setup(page: Page, mode = "normal") {
           csrfToken: "synthetic-csrf",
         },
       });
+    if (path.endsWith("/learning-management")) return route.fulfill({json:{childId:learner.id,mode:"STUDENT_LED",version:1,canManageLearning:true,canChangeManagement:false}});
+    if(path.endsWith("/learning-spaces")) return route.fulfill({json:{learner,spaces:progress.draft.spaces||(progress.draft.subjects||[]).map((subject:string)=>({subject,language:progress.draft.language})),version:progress.version}});
+    if (path.endsWith("/learner-profiles")) return route.fulfill({json:{items:[learner],nextCursor:null}});
+    if (path.endsWith("/teachers")) { searches.push(new URL(req.url())); return route.fulfill({json:{items:[],nextCursor:null}}); }
     if (path.endsWith("/onboarding/student/context")) {
       if (denied)
         return route.fulfill({
@@ -77,7 +82,7 @@ async function setup(page: Page, mode = "normal") {
             message: "Synthetic setup read unavailable",
           },
         });
-      const value = { learner, progress, authority: "GUARDIAN_MANAGED" };
+      const value = { learner, progress, spacesVersion:progress.version, authority: "GUARDIAN_MANAGED" };
       expect(
         operationValidator("/onboarding/student/context", "get", "200")(value),
       ).toBe(true);
@@ -106,6 +111,7 @@ async function setup(page: Page, mode = "normal") {
             version: 1,
             draft: {
               managementPreference: "GUARDIAN_GUIDED",
+              subjects:["Maths"],
               learningPreferences: "Newer saved preference",
             },
           };
@@ -126,7 +132,7 @@ async function setup(page: Page, mode = "normal") {
         progress = {
           kind: "STUDENT",
           state: "READY",
-          draft: body.draft,
+          draft: {...body.draft,...(body.draft.spaces ? {subjects:body.draft.spaces.map((space:any)=>space.subject)} : {})},
           version: body.expectedVersion + 1,
           completedResourceId: learner.id,
         };
@@ -141,7 +147,7 @@ async function setup(page: Page, mode = "normal") {
       } else if (!["uncertain", "unreadable"].includes(mode))
         progress = {
           ...progress,
-          draft: body.draft,
+          draft: {...body.draft,...(body.draft.spaces ? {subjects:body.draft.spaces.map((space:any)=>space.subject)} : {})},
           version: body.expectedVersion + 1,
         };
       expect(
@@ -158,6 +164,7 @@ async function setup(page: Page, mode = "normal") {
   return {
     bodies,
     keys,
+    searches,
     recover: () => {
       fail = false;
     },
@@ -166,14 +173,22 @@ async function setup(page: Page, mode = "normal") {
     },
   };
 }
-async function choose(page: Page, choice = "I can manage my learning") {
+async function openEditor(page:Page) {
+  await expect(page.locator(".student-welcome")).toBeVisible();
+  await expect(page.getByText("Loading your student setup\u2026",{exact:true})).toHaveCount(0);
+  const add=page.getByRole("button",{name:"Add a subject space",exact:true});
+  if(await add.isVisible() && await add.isEnabled()) await add.click();
+}
+async function choose(page: Page) {
+  await openEditor(page);
+  if(await page.getByRole("radio").count() && !(await page.locator('input[name="student-space-subject"]:checked').count())) await page.getByRole("radio").first().check();
   await page
     .getByRole("checkbox", {
       name: "These education details are correct",
       exact: true,
     })
     .check();
-  await page.getByRole("radio", { name: new RegExp(choice) }).check();
+  await expect(page.locator(".student-support-choices")).toHaveCount(0);
 }
 async function review(page: Page) {
   await page
@@ -200,81 +215,43 @@ async function save(page: Page) {
     }),
   ).toBeVisible();
 }
-test("student reviews education, chooses support, saves broad subjects and can resume and clear optional preferences", async ({
-  page,
-}) => {
-  const state = await setup(page);
-  await page.goto("/onboarding/student");
-  await choose(page);
-  await page.getByRole("checkbox", { name: "Maths", exact: true }).check();
-  await page.getByLabel("Other subjects (optional)").fill("Physics");
-  await page.getByLabel("Language you prefer (optional)").selectOption("Hindi");
-  await page
-    .getByLabel("How do you like to learn? (optional)")
-    .fill("More worked examples, please.");
-  await review(page);
-  expect(state.bodies).toHaveLength(0);
-  await page
-    .getByRole("button", { name: "Edit setup details", exact: true })
-    .click();
-  await expect(page.getByLabel("Other subjects (optional)")).toHaveValue(
-    "Physics",
-  );
-  await review(page);
-  await save(page);
-  expect(state.bodies[0]).toEqual({
-    expectedVersion: 0,
-    educationVersion: 1,
-    confirmed: true,
-    draft: {
-      managementPreference: "SELF_DIRECTED",
-      subjects: ["Maths", "Physics"],
-      language: "Hindi",
-      learningPreferences: "More worked examples, please.",
-    },
-  });
-  await expect(
-    page.getByRole("button", {
-      name: "Confirm and save student setup",
-      exact: true,
-    }),
-  ).toHaveCount(0);
-  await page.reload();
-  await expect(
-    page.getByLabel("How do you like to learn? (optional)"),
-  ).toHaveValue("More worked examples, please.");
-  await expect(
-    page.getByRole("radio", { name: /I can manage my learning/ }),
-  ).toBeChecked();
-  await expect(
-    page.getByRole("checkbox", {
-      name: "These education details are correct",
-      exact: true,
-    }),
-  ).not.toBeChecked();
-  await choose(page, "I need guardian help");
-  await page.getByRole("checkbox", { name: "Maths", exact: true }).uncheck();
-  await page.getByLabel("Other subjects (optional)").fill("");
-  await page.getByLabel("Language you prefer (optional)").selectOption("");
-  await page.getByLabel("How do you like to learn? (optional)").fill("");
-  await review(page);
-  await save(page);
-  expect(state.bodies[1].draft).toEqual({
-    managementPreference: "GUARDIAN_GUIDED",
-    subjects: [],
-  });
-  expect(state.bodies[1].expectedVersion).toBe(1);
-  expect(
-    await page.evaluate(() =>
-      JSON.stringify({ ...localStorage, ...sessionStorage }),
-    ),
-  ).not.toContain("More worked examples");
+test("subject spaces keep the dashboard sidebar, saved summary and five-second toast; adding and editing preserve other subjects",async({page})=>{
+ const state=await setup(page);await page.goto("/onboarding/student");
+ await expect(page.locator(".dashboard-sidebar")).toBeVisible();
+ await expect(page.locator(".student-subject-card")).toHaveCount(1);
+ await openEditor(page);await choose(page);await page.getByLabel("Language you prefer (optional)").selectOption("Hindi");
+ await page.getByLabel("How do you like to learn? (optional)").fill("Use pictures");await review(page);await page.clock.install();await save(page);
+ await expect(page.locator(".student-setup-steps [aria-current=step]")).toHaveText("3 \u00b7 Setup saved");
+ await expect(page.locator(".action-toast")).toContainText("Your student setup is saved.");await page.clock.fastForward(5000);await expect(page.locator(".action-toast")).toHaveCount(0);
+ await expect(page.locator(".student-setup-actions .filter-button")).toHaveCount(3);
+ await page.reload();await expect(page.getByRole("button",{name:"Edit Maths space",exact:true})).toBeVisible();await expect(page.locator(".action-toast")).toHaveCount(0);
+ await expect(page.locator(".student-subject-card").first()).toContainText("Hindi");
+ await openEditor(page);await page.getByRole("checkbox",{name:"These education details are correct",exact:true}).check();await page.getByRole("radio",{name:"Science",exact:true}).check();await review(page);await save(page);
+ expect(state.bodies[1].draft.spaces).toEqual([{subject:"Maths",language:"Hindi",learningPreferences:"Use pictures"},{subject:"Science"}]);
+ await page.getByRole("button",{name:"Back to subject spaces",exact:true}).click();
+ await expect(page.locator(".student-subject-card")).toHaveCount(3);
+ const cards=page.locator(".student-subject-card");expect(await cards.first().evaluate(el=>getComputedStyle(el).backgroundColor)).toBe("rgb(228, 228, 208)");
+ await page.getByRole("button",{name:"Edit Maths space",exact:true}).click();await expect(page.getByLabel("Language you prefer (optional)")).toHaveValue("Hindi");await choose(page);
+ await page.getByRole("radio",{name:"Science",exact:true}).click();
+ await expect(page.locator(".action-toast")).toContainText("You cannot change the subject because you have already created a space for it.");expect(state.bodies).toHaveLength(2);
+ await page.getByRole("radio",{name:"Maths",exact:true}).check();await page.getByLabel("Language you prefer (optional)").selectOption("English");await review(page);await save(page);
+ expect(state.bodies[2].draft.spaces).toEqual([{subject:"Science"},{subject:"Maths",language:"English",learningPreferences:"Use pictures"}]);
+ await page.getByRole("button",{name:"Back to subject spaces",exact:true}).click();
+ await page.setViewportSize({width:1440,height:1000});await page.addStyleTag({content:"nextjs-portal {display:none}"});await page.screenshot({path:"test-results/student-subject-spaces.png",fullPage:true});
+ await page.setViewportSize({width:360,height:800});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ expect((await new AxeBuilder({page}).include(".student-welcome").analyze()).violations).toEqual([]);
 });
-test("education acknowledgement and support choice are required before review; duplicate subjects fail with focus", async ({
+test("saved setup carries its learner, selected subject and preferred language into teacher discovery",async({page})=>{
+ const state=await setup(page);await page.goto("/onboarding/student");await choose(page);
+ await page.getByLabel("Language you prefer (optional)").selectOption("Hindi");await review(page);await save(page);
+ await page.reload();await page.getByRole("link",{name:"Maths",exact:true}).click();
+ await expect.poll(()=>state.searches.some(url=>url.searchParams.get("learnerId")==="20000000-0000-4000-8000-000000000424"&&url.searchParams.get("subject")==="Maths"&&url.searchParams.get("language")==="Hindi")).toBe(true);
+});
+test("education acknowledgement and one subject are required before review", async ({
   page,
 }) => {
   const state = await setup(page);
-  await page.goto("/onboarding/student");
+  await page.goto("/onboarding/student");await openEditor(page);
   await page
     .getByRole("button", { name: "Review student setup", exact: true })
     .click();
@@ -290,21 +267,15 @@ test("education acknowledgement and support choice are required before review; d
       exact: true,
     })
     .check();
-  await page
-    .getByRole("button", { name: "Review student setup", exact: true })
-    .click();
-  await expect(
-    page.getByRole("radio", { name: /I can manage my learning/ }),
-  ).toBeFocused();
   await choose(page);
-  await page.getByRole("checkbox", { name: "Maths", exact: true }).check();
-  await page.getByLabel("Other subjects (optional)").fill("maths");
+  await page.getByRole("radio", { name: "Maths", exact: true }).check();
+  await page.getByLabel("Other subject").fill("Maths, Science");
   await page
     .getByRole("button", { name: "Review student setup", exact: true })
     .click();
-  await expect(page.getByLabel("Other subjects (optional)")).toBeFocused();
+  await expect(page.getByLabel("Other subject")).toBeFocused();
   await expect(
-    page.getByText(/Choose up to 20 distinct subjects/),
+    page.getByText("Choose one subject for this space.",{exact:true}).first(),
   ).toBeVisible();
   expect(state.bodies).toHaveLength(0);
 });
@@ -314,7 +285,7 @@ for (const mode of ["uncertain", "unreadable"])
       " student setup writes freeze details and retry the identical reviewed body and key",
     async ({ page }) => {
       const state = await setup(page, mode);
-      await page.goto("/onboarding/student");
+      await page.goto("/onboarding/student");await openEditor(page);
       await choose(page);
       await review(page);
       await page
@@ -352,7 +323,7 @@ for (const mode of ["stale", "education-stale"])
       " changes retain the local review until explicit reload and require education review again",
     async ({ page }) => {
       await setup(page, mode);
-      await page.goto("/onboarding/student");
+      await page.goto("/onboarding/student");await openEditor(page);
       await choose(page);
       await page
         .getByLabel("How do you like to learn? (optional)")
@@ -388,7 +359,7 @@ for (const mode of ["stale", "education-stale"])
       if (mode === "stale")
         await expect(
           page.getByLabel("How do you like to learn? (optional)"),
-        ).toHaveValue("Newer saved preference");
+        ).toHaveValue("");
       else
         await expect(
           page.getByText("Class 9 · CBSE", { exact: true }),
@@ -399,7 +370,7 @@ test("failed reload retains reviewed local edits and blocks saves until fresh co
   page,
 }) => {
   const state = await setup(page, "stale");
-  await page.goto("/onboarding/student");
+  await page.goto("/onboarding/student");await openEditor(page);
   await choose(page);
   await page
     .getByLabel("How do you like to learn? (optional)")
@@ -430,13 +401,13 @@ test("failed reload retains reviewed local edits and blocks saves until fresh co
     .click();
   await expect(
     page.getByLabel("How do you like to learn? (optional)"),
-  ).toHaveValue("Newer saved preference");
+  ).toHaveValue("");
 });
 test("failed initial reads block setup entry and can recover while guardian support stays available", async ({
   page,
 }) => {
   const state = await setup(page, "load-error");
-  await page.goto("/onboarding/student");
+  await page.goto("/onboarding/student");await openEditor(page);
   await expect(
     page.getByText(/We couldn’t load your saved student setup/),
   ).toBeVisible();
@@ -445,23 +416,23 @@ test("failed initial reads block setup entry and can recover while guardian supp
   ).toHaveCount(0);
   await expect(
     page.getByRole("link", {
-      name: "Get help with your guardian",
+      name: "Learning preferences",
       exact: true,
     }),
-  ).toHaveAttribute("href", "/support");
+  ).toHaveAttribute("href", "/onboarding/student");
   state.recover();
   await page
     .getByRole("button", { name: "Retry loading student setup", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Review student setup", exact: true }),
+    page.getByRole("button", { name: "Add a subject space", exact: true }),
   ).toBeVisible();
 });
 test("revoked permission hides the previously loaded form and offers guardian recovery", async ({
   page,
 }) => {
   await setup(page, "denied");
-  await page.goto("/onboarding/student");
+  await page.goto("/onboarding/student");await openEditor(page);
   await choose(page);
   await review(page);
   await page
@@ -489,31 +460,29 @@ for (const mode of ["college", "early"])
       " education uses its real level and subjects without school-grade assumptions",
     async ({ page }) => {
       const state = await setup(page, mode);
-      await page.goto("/onboarding/student");
+      await page.goto("/onboarding/student");await openEditor(page);
       await expect(
         page.getByText(mode === "college" ? "BSc Physics · Year 2" : "KG2", {
           exact: true,
         }),
       ).toBeVisible();
-      await choose(page, "I need guardian help");
+      await choose(page);
       await page
-        .getByRole("checkbox", {
+        .getByRole("radio", {
           name: mode === "college" ? "Mechanics" : "Language",
           exact: true,
         })
         .check();
       await review(page);
       await save(page);
-      expect(state.bodies[0].draft.subjects).toEqual([
-        mode === "college" ? "Mechanics" : "Language",
-      ]);
+      expect(state.bodies[0].draft.spaces).toEqual([{subject:mode === "college" ? "Mechanics" : "Language"}]);
     },
   );
 test("incomplete education cannot be confirmed and guides the student back to their guardian", async ({
   page,
 }) => {
   const state = await setup(page, "incomplete");
-  await page.goto("/onboarding/student");
+  await page.goto("/onboarding/student");await openEditor(page);
   await expect(
     page.getByText(/Some education details are missing/),
   ).toBeVisible();
@@ -526,7 +495,7 @@ test("student setup and review have accessible desktop/mobile layouts with curre
   page,
 }) => {
   await setup(page);
-  await page.goto("/onboarding/student");
+  await page.goto("/onboarding/student");await openEditor(page);
   await choose(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.screenshot({
@@ -540,16 +509,13 @@ test("student setup and review have accessible desktop/mobile layouts with curre
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
-    const form = await page.locator(".student-welcome-main").boundingBox(),
-      guidance = await page.locator(".student-welcome-notice").boundingBox();
-    expect(form!.y).toBeLessThan(guidance!.y);
     if (width <= 640) {
       for (const button of await page
         .locator(".student-setup-form button:visible")
         .all())
         expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
       const actions = await page
-        .locator(".student-setup-form .wizard-actions > *")
+        .locator(".student-setup-form .student-setup-actions > *")
         .evaluateAll((buttons) =>
           buttons.map((b) => b.getBoundingClientRect().width),
         );
@@ -572,6 +538,11 @@ test("student setup and review have accessible desktop/mobile layouts with curre
     fullPage: true,
   });
   await review(page);
+  await expect(page.locator(".student-setup-actions .filter-button")).toHaveCount(2);
+  await expect(page.locator(".student-review-authority")).toContainText("Student leads; guardian stays involved");
+  await page.setViewportSize({width:1440,height:1000});
+  await page.locator(".student-setup-form").screenshot({path:"test-results/student-review-card-desktop.png"});
+  await page.setViewportSize({width:390,height:844});
   expect(
     (await new AxeBuilder({ page }).include(".student-welcome").analyze())
       .violations,
@@ -582,7 +553,7 @@ test("student setup and review have accessible desktop/mobile layouts with curre
   });
   await expect(
     page.getByText(
-      "Your guardian continues to handle enquiries, teacher choices and tuition agreements.",
+      "Saving these preferences does not change who manages learning.",
       { exact: true },
     ),
   ).toBeVisible();
@@ -591,8 +562,18 @@ test("student setup and review have accessible desktop/mobile layouts with curre
  test("Hindi complete interface — विद्यार्थी सहायता और पसंद", async ({ page }) => {
  await chooseHindi(page);
  await setup(page);
- await page.goto("/onboarding/student");
+ await page.goto("/onboarding/student");await openEditor(page);
  await checkHindi(page);
  await page.setViewportSize({ width: 360, height: 800 });
  await checkHindi(page);
  });
+
+test("existing saved subjects become individual cards and editing one retains the others",async({page})=>{
+ const state=await setup(page,"legacy");await page.goto("/onboarding/student");
+ await expect(page.getByRole("button",{name:"Edit Maths space",exact:true})).toBeVisible();
+ await expect(page.getByRole("button",{name:"Edit Science space",exact:true})).toBeVisible();
+ await expect(page.locator(".student-subject-card")).toHaveCount(3);
+ await page.getByRole("button",{name:"Edit Science space",exact:true}).click();await expect(page.getByLabel("Language you prefer (optional)")).toHaveValue("Hindi");await expect(page.getByLabel("How do you like to learn? (optional)")).toHaveValue("Existing shared notes");
+ await choose(page);await page.getByLabel("Language you prefer (optional)").selectOption("English");await review(page);await save(page);
+ expect(state.bodies[0]).toMatchObject({expectedVersion:3,draft:{spaces:[{subject:"Maths",language:"Hindi",learningPreferences:"Existing shared notes"},{subject:"Science",language:"English",learningPreferences:"Existing shared notes"}]}});
+});

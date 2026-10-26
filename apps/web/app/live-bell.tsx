@@ -100,6 +100,7 @@ export function LiveBell({ session }: { session: Session }) {
   }, [open]);
   function title(topic: string) {
     const labels: Record<string, string> = {
+      "guardian-verification.ping": "Your student is asking you to complete guardian verification.",
       "direct.accept": "Enquiry accepted — review tuition terms",
       "direct.decline": "Enquiry declined",
       "direct.accept_proposal": "Proposal confirmed — awaiting teacher acceptance",

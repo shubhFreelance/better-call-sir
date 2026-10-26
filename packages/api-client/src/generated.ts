@@ -4,6 +4,58 @@
  */
 
 export interface paths {
+    "/children/{id}/learning-spaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read or confirm owned learner subject spaces */
+        get: operations["getLearnerSpaces"];
+        put?: never;
+        /** Read or confirm owned learner subject spaces */
+        post: operations["saveLearnerSpaces"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student/guardian": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Owned linked guardian details or a rate-limited live verification reminder */
+        get: operations["getStudentGuardian"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/student/guardian/pings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Owned linked guardian details or a rate-limited live verification reminder */
+        post: operations["pingStudentGuardian"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/inbox": {
         parameters: {
             query?: never;
@@ -64,7 +116,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Teacher proposes or edits; family confirms the current proposal; teacher then accepts. Pending proposals block acceptance. Version checks and exact retries apply. */
+        /** Teacher proposes or edits; family confirms the latest proposal; teacher then accepts. Pending proposals block acceptance. Version checks and exact retries apply. */
         post: operations["respondDirectEnquiry"];
         delete?: never;
         options?: never;
@@ -4076,6 +4128,8 @@ export interface components {
             /** @enum {string} */
             role: "GUARDIAN" | "STUDENT" | "TEACHER" | "OPERATOR" | "REVIEWER" | "FINANCE" | "ADMIN" | "INDEPENDENT_STUDENT";
             verified: boolean;
+            /** @description Student registration awaits an authorized learner link. This flag grants no student authority. */
+            readonly studentSetupPending?: boolean;
         };
         Session: {
             account: components["schemas"]["Account"];
@@ -4285,6 +4339,11 @@ export interface components {
             locale: "en" | "hi";
         };
         OtpVerify: {
+            /**
+             * @description Onboarding intent for an unused email account only; never assigns a role or changes an established account.
+             * @enum {string}
+             */
+            registrationIntent?: "STUDENT" | "GUARDIAN";
             code: string;
             /** @description Required only when creating an account; omitted for existing-account sign-in. Never replaces an existing account name. */
             name?: string;
@@ -6489,7 +6548,49 @@ export interface components {
             /** @enum {string|null} */
             enquiryStatus: "NOT_STARTED" | "DRAFT" | "SUBMITTED" | null;
         };
+        LearnerSpaces: {
+            learner: components["schemas"]["LearnerProfile"];
+            spaces: components["schemas"]["StudentSubjectSpace"][];
+            version: number;
+        };
+        LearnerSpacesConfirmation: {
+            expectedVersion: number;
+            educationVersion: number;
+            /** @constant */
+            confirmed: true;
+            spaces: components["schemas"]["StudentSubjectSpace"][];
+        };
+        StudentGuardianDetails: {
+            /** Format: uuid */
+            learnerId: string;
+            learnerName: string;
+            guardianName: string;
+            /** Format: email */
+            guardianEmail: string | null;
+            /** @enum {string|null} */
+            relationship: "PARENT" | "SIBLING" | "OTHER" | null;
+            relationshipStatus: string;
+            verified: boolean;
+            /** @enum {string} */
+            managementMode: "GUARDIAN_ONLY" | "SHARED" | "STUDENT_LED";
+            canPing: boolean;
+            /** Format: date-time */
+            nextPingAt: string | null;
+        };
+        GuardianPing: {
+            sent: boolean;
+            /** Format: date-time */
+            nextPingAt: string;
+        };
+        StudentSubjectSpace: {
+            subject: string;
+            /** @enum {string} */
+            language?: "English" | "Hindi";
+            learningPreferences?: string;
+        };
         StudentLearningPreferences: {
+            /** @description Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces. */
+            spaces?: components["schemas"]["StudentSubjectSpace"][];
             /**
              * @description Requested learning support; does not grant authority or establish adulthood.
              * @enum {string}
@@ -6505,6 +6606,7 @@ export interface components {
             progress: components["schemas"]["OnboardingProgress"];
             /** @constant */
             authority: "GUARDIAN_MANAGED";
+            spacesVersion?: number;
         };
         StudentSetupConfirmation: {
             expectedVersion: number;
@@ -6512,16 +6614,19 @@ export interface components {
             /** @constant */
             confirmed: true;
             draft: {
+                /** @description Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces. */
+                spaces?: components["schemas"]["StudentSubjectSpace"][];
                 /**
                  * @description Requested learning support; does not grant authority or establish adulthood.
                  * @enum {string}
                  */
-                managementPreference: "SELF_DIRECTED" | "GUARDIAN_GUIDED";
+                managementPreference?: "SELF_DIRECTED" | "GUARDIAN_GUIDED";
                 subjects?: string[];
                 /** @enum {string} */
                 language?: "English" | "Hindi";
                 learningPreferences?: string;
             };
+            spacesVersion?: number;
         };
         StudentDeviceLabel: {
             expectedVersion: number;
@@ -7541,6 +7646,281 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getLearnerSpaces: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owned subject spaces */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerSpaces"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    saveLearnerSpaces: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LearnerSpacesConfirmation"];
+            };
+        };
+        responses: {
+            /** @description Owned subject spaces */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerSpaces"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getStudentGuardian: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Owned guardian result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentGuardianDetails"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    pingStudentGuardian: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @constant */
+                    confirmed: true;
+                };
+            };
+        };
+        responses: {
+            /** @description Owned guardian result */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardianPing"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getLiveInbox: {
         parameters: {
             query?: {
@@ -7722,10 +8102,10 @@ export interface operations {
                                 format?: "ONE_TO_ONE" | "GROUP";
                                 timing?: string;
                                 message?: string;
+                                /** @description Family confirmed this exact proposal; teacher acceptance is still required. */
+                                familyConfirmed?: boolean;
                                 /** @constant */
                                 timezone?: "Asia/Kolkata";
-                                /** @description The family confirmed this exact proposal. Teacher acceptance is still required. */
-                                familyConfirmed?: boolean;
                             } | null;
                             /** Format: uuid */
                             arrangementId: string | null;
@@ -7885,10 +8265,10 @@ export interface operations {
                             format?: "ONE_TO_ONE" | "GROUP";
                             timing?: string;
                             message?: string;
+                            /** @description Family confirmed this exact proposal; teacher acceptance is still required. */
+                            familyConfirmed?: boolean;
                             /** @constant */
                             timezone?: "Asia/Kolkata";
-                            /** @description The family confirmed this exact proposal. Teacher acceptance is still required. */
-                            familyConfirmed?: boolean;
                         } | null;
                         /** Format: uuid */
                         arrangementId: string | null;

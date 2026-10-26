@@ -37,7 +37,7 @@ export class AppService {
     const rows=await this.db.$queryRaw<{count:number}[]>`INSERT INTO "RateBucket" (key,count,"resetsAt") VALUES (${digest},1,CURRENT_TIMESTAMP+${seconds}*interval '1 second') ON CONFLICT (key) DO UPDATE SET count=CASE WHEN "RateBucket"."resetsAt"<=CURRENT_TIMESTAMP THEN 1 ELSE "RateBucket".count+1 END,"resetsAt"=CASE WHEN "RateBucket"."resetsAt"<=CURRENT_TIMESTAMP THEN EXCLUDED."resetsAt" ELSE "RateBucket"."resetsAt" END RETURNING count`;
     if(rows[0].count>max)fail(429,'RATE_LIMIT','Too many attempts. Try again after the current limit window.');
   }
-  async actor(req: Request, roles?: string[], touch=true): Promise<Account> {
+  async actor(req: Request, roles?: string[], touch=true, studentRecovery=false): Promise<Account> {
     const secret = req.cookies?.bcs_access;
     if (typeof secret !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(secret)) fail(401,'SESSION_REQUIRED','Sign in to continue.');
     const session = await this.db.session.findUnique({where:{accessHash:hash(secret)}});
@@ -45,7 +45,7 @@ export class AppService {
     const account = await this.db.account.findUnique({where:{id:session.accountId}});
     if (!account || account.disabled || session.authVersion!==account.authVersion) fail(401,'SESSION_REVOKED','This account is unavailable.');
     if (!['GET','HEAD','OPTIONS'].includes(req.method) && !same(req.get('X-CSRF-Token') || '',session.csrf)) fail(403,'CSRF','Refresh this page before continuing.');
-    if(account.role==='STUDENT'&&!await this.activeStudent(this.db,account.id))fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
+    if(account.role==='STUDENT'&&!await this.activeStudent(this.db,account.id)&&!(studentRecovery&&await this.recoverableStudent(this.db,account.id)))fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
     if (roles && !roles.includes(account.role)) fail(403,'FORBIDDEN','Your role cannot perform this action.');
     if(privileged(account.role)){
       if(session.createdAt.getTime()<Date.now()-8*3600000||session.lastSeenAt.getTime()<Date.now()-900000)fail(401,'SESSION_EXPIRED','Staff session expired. Sign in again.');
@@ -64,6 +64,14 @@ export class AppService {
     const guardian=await db.account.findUnique({where:{id:child.guardianId}}),consent=await db.consent.findUnique({where:{guardianId:child.guardianId}}),proof=child.guardianVerificationId?await db.guardianVerification.findUnique({where:{id:child.guardianVerificationId}}):null;
     return !guardian||guardian.disabled||!guardian.verified||guardian.role!=='GUARDIAN'||!consent||consent.withdrawnAt||child.studentAccessRevokedAt||child.guardianVerificationId&&proof?.status!=='APPROVED'?null:child;
   }
+  async recoverableStudent(db:DB,accountId:string) {
+    const child=await db.child.findUnique({where:{studentAccountId:accountId}});
+    if(!child||child.studentAccessRevokedAt)return null;
+    const guardian=await db.account.findUnique({where:{id:child.guardianId}}),consent=await db.consent.findUnique({where:{guardianId:child.guardianId}});
+    if(!guardian||guardian.disabled||guardian.role!=='GUARDIAN'||!consent||consent.withdrawnAt||await db.privacyRequest.count({where:{accountId:child.guardianId,kind:'DELETION',status:'PENDING',scope:{in:['ACCOUNT','CHILD']}}}))return null;
+    if(child.guardianVerificationId){const proof=await db.guardianVerification.findUnique({where:{id:child.guardianVerificationId}});if(!proof||proof.guardianId!==child.guardianId||proof.learnerId!==child.id||['REVOKED','REJECTED','DELETED','CANCELLED'].includes(proof.status))return null;}
+    return child;
+  }
   async guardian(db: DB, id: string) {
     await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${id},0))`;
     const account = await db.account.findUnique({where:{id}});
@@ -81,7 +89,7 @@ export class AppService {
     return db.audit.create({data:{actorId:actor.id,action,aggregateId:id,reason,requestId:req.requestId || randomUUID(),before,after}});
   }
   async event(db: DB,type: string,id: string,version=1) {const job=await db.outbox.create({data:{type,aggregateId:id,payload:{version}}});await recordInbox(db,job);return job;}
-  async once<T>(req: Request, actor: Account, operation: string, body: unknown, fn: (db: DB) => Promise<T>, authorize?: (db: DB) => Promise<unknown>): Promise<T> {
+  async once<T>(req: Request, actor: Account, operation: string, body: unknown, fn: (db: DB) => Promise<T>, authorize?: (db: DB) => Promise<unknown>, studentRecovery=false): Promise<T> {
     operation += ':' + req.path;
     const key = req.get('Idempotency-Key');
     if (!key || key.length > 128) fail(400,'IDEMPOTENCY_REQUIRED','A valid Idempotency-Key is required.');
@@ -89,7 +97,7 @@ export class AppService {
     const committed=await this.db.$transaction(async db => {
       await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${actor.id + operation + key},0))`;
       if(privileged(actor.role))await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended('staff-administration',0))`;
-      if(actor.role==='STUDENT'&&!await this.activeStudent(db,actor.id,true))fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
+      if(actor.role==='STUDENT'&&!await this.activeStudent(db,actor.id,true)&&!(studentRecovery&&await this.recoverableStudent(db,actor.id)))fail(401,'STUDENT_ACCESS_REVOKED','Guardian authorization is no longer active.');
       // Staff role changes advance authVersion; onboarding may change role within the same epoch.
       const current=await db.account.findUnique({where:{id:actor.id}}),session=await db.session.findUnique({where:{accessHash:hash(req.cookies?.bcs_access||'')}});
       if(!current||current.disabled||current.authVersion!==actor.authVersion||current.region!==actor.region||!session||session.accountId!==actor.id||session.revoked||session.rotated||session.authVersion!==current.authVersion||session.accessExpiresAt<=new Date()||session.expiresAt<=new Date())fail(401,'SESSION_REVOKED','Your access changed. Sign in again.');
@@ -116,7 +124,7 @@ export class AppService {
     res.cookie('bcs_access',state.access,{...cookie,maxAge:Math.min(600_000,remaining)});
     res.cookie('bcs_refresh',state.refresh,{...cookie,maxAge:remaining});
     res.setHeader('Cache-Control','no-store');
-    return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified},csrfToken:state.csrf};
+    return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified,...(account.role==='GUARDIAN'&&account.registrationIntent==='STUDENT'?{studentSetupPending:true}:{})},csrfToken:state.csrf};
   }
   async session(account: Account, res: Response, familyId: string = randomUUID()) {
     return this.sessionResponse(account,await this.issueSession(account,familyId),res);

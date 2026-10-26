@@ -325,7 +325,7 @@ export function EmailLogin({
     try {
       const session = await api<Session>("/auth/otp/verify", {
         method: "POST",
-        body: { email, ...(creating ? { name } : {}), code },
+        body: { email, ...(creating ? { name } : {}), code, ...(purpose === "student-signup" ? {registrationIntent:"STUDENT"} : purpose === "guardian-signup" ? {registrationIntent:"GUARDIAN"} : {}) },
         signal: AbortSignal.timeout(12000),
       });
       setCode("");

@@ -11,6 +11,328 @@
     }
   ],
   "paths": {
+    "/children/{id}/learning-spaces": {
+      "get": {
+        "operationId": "getLearnerSpaces",
+        "summary": "Read or confirm owned learner subject spaces",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Owned subject spaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerSpaces"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "saveLearnerSpaces",
+        "summary": "Read or confirm owned learner subject spaces",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Owned subject spaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerSpaces"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearnerSpacesConfirmation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/student/guardian": {
+      "get": {
+        "operationId": "getStudentGuardian",
+        "summary": "Owned linked guardian details or a rate-limited live verification reminder",
+        "responses": {
+          "200": {
+            "description": "Owned guardian result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentGuardianDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/student/guardian/pings": {
+      "post": {
+        "operationId": "pingStudentGuardian",
+        "summary": "Owned linked guardian details or a rate-limited live verification reminder",
+        "responses": {
+          "201": {
+            "description": "Owned guardian result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuardianPing"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "confirmed": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "confirmed"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
     "/inbox": {
       "get": {
         "operationId": "getLiveInbox",
@@ -36113,6 +36435,11 @@
           },
           "verified": {
             "type": "boolean"
+          },
+          "studentSetupPending": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "Student registration awaits an authorized learner link. This flag grants no student authority."
           }
         },
         "required": [
@@ -36931,6 +37258,11 @@
       "OtpVerify": {
         "type": "object",
         "properties": {
+          "registrationIntent": {
+            "type": "string",
+            "enum": ["STUDENT", "GUARDIAN"],
+            "description": "Onboarding intent for an unused email account only; never assigns a role or changes an established account."
+          },
           "code": {
             "type": "string",
             "pattern": "^\\d{6}$"
@@ -46196,9 +46528,187 @@
           "enquiryStatus"
         ]
       },
+      "LearnerSpaces": {
+        "type": "object",
+        "properties": {
+          "learner": {
+            "$ref": "#/components/schemas/LearnerProfile"
+          },
+          "spaces": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/StudentSubjectSpace"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "learner",
+          "spaces",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "LearnerSpacesConfirmation": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "educationVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "confirmed": {
+            "const": true,
+            "type": "boolean"
+          },
+          "spaces": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/StudentSubjectSpace"
+            }
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "educationVersion",
+          "confirmed",
+          "spaces"
+        ],
+        "additionalProperties": false
+      },
+      "StudentGuardianDetails": {
+        "type": "object",
+        "properties": {
+          "learnerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "learnerName": {
+            "type": "string"
+          },
+          "guardianName": {
+            "type": "string"
+          },
+          "guardianEmail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "relationship": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "PARENT",
+              "SIBLING",
+              "OTHER",
+              null
+            ]
+          },
+          "relationshipStatus": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "managementMode": {
+            "type": "string",
+            "enum": [
+              "GUARDIAN_ONLY",
+              "SHARED",
+              "STUDENT_LED"
+            ]
+          },
+          "canPing": {
+            "type": "boolean"
+          },
+          "nextPingAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "learnerId",
+          "learnerName",
+          "guardianName",
+          "guardianEmail",
+          "relationship",
+          "relationshipStatus",
+          "verified",
+          "managementMode",
+          "canPing",
+          "nextPingAt"
+        ],
+        "additionalProperties": false
+      },
+      "GuardianPing": {
+        "type": "object",
+        "properties": {
+          "sent": {
+            "type": "boolean"
+          },
+          "nextPingAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "sent",
+          "nextPingAt"
+        ],
+        "additionalProperties": false
+      },
+      "StudentSubjectSpace": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "English",
+              "Hindi"
+            ]
+          },
+          "learningPreferences": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "subject"
+        ],
+        "additionalProperties": false
+      },
       "StudentLearningPreferences": {
         "type": "object",
         "properties": {
+          "spaces": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/StudentSubjectSpace"
+            },
+            "description": "Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces."
+          },
           "managementPreference": {
             "type": "string",
             "enum": [
@@ -46244,6 +46754,10 @@
           "authority": {
             "type": "string",
             "const": "GUARDIAN_MANAGED"
+          },
+          "spacesVersion": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "required": [
@@ -46271,6 +46785,14 @@
           "draft": {
             "type": "object",
             "properties": {
+              "spaces": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "$ref": "#/components/schemas/StudentSubjectSpace"
+                },
+                "description": "Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces."
+              },
               "managementPreference": {
                 "type": "string",
                 "enum": [
@@ -46302,10 +46824,11 @@
                 "maxLength": 500
               }
             },
-            "additionalProperties": false,
-            "required": [
-              "managementPreference"
-            ]
+            "additionalProperties": false
+          },
+          "spacesVersion": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "required": [

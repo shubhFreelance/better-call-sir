@@ -229,6 +229,26 @@ test('valid sandbox email OTP creates only an unverified guardian, is single-use
  assert.equal((await client.call('/auth/otp/verify',body)).status,401);assert.equal((await client.call('/consents',{purpose:'tuition-and-learning-records',policyVersion:'development-v1',accepted:true})).status,403);assert.equal((await client.call('/requests',intake())).status,403);
 });
 async function resetReturningOtpBudget(){await db.rateBucket.deleteMany({where:{key:{in:['otp-ip:127.0.0.1','verify:127.0.0.1'].map(k=>createHash('sha256').update(k).digest('hex'))}}});}
+
+test('student registration intent survives email login without granting student authority or relabelling an established guardian',async(t)=>{
+ await resetReturningOtpBudget();t.after(resetReturningOtpBudget);
+ const c=new Client(),email='pending-student-'+randomUUID()+'@example.test';
+ const first=await c.call('/auth/otp/request',{email});
+ const created=await c.call('/auth/otp/verify',{email,code:first.data.developmentCode,name:'Pending student',registrationIntent:'STUDENT'});
+ assert.equal(created.status,201);assert.equal(created.data.account.role,'GUARDIAN');assert.equal(created.data.account.studentSetupPending,true);
+ const id=created.data.account.id;assert.equal((await c.call('/auth/session')).data.account.studentSetupPending,true);
+ assert.equal((await c.call('/requests',intake())).status,403);
+ assert.equal((await c.call('/inbox')).data.tasks.some((task:any)=>task.actionPath.startsWith('/guardian-verification')),false);
+ await c.call('/auth/logout',{});
+ const again=await c.call('/auth/otp/request',{email});const restored=await c.call('/auth/otp/verify',{email,code:again.data.developmentCode});
+ assert.equal(restored.data.account.id,id);assert.equal(restored.data.account.studentSetupPending,true);assert.equal(await db.account.count({where:{email}}),1);
+ const guardian=new Client(),parentEmail='actual-parent-'+randomUUID()+'@example.test',parentOtp=await guardian.call('/auth/otp/request',{email:parentEmail});
+ const parent=await guardian.call('/auth/otp/verify',{email:parentEmail,code:parentOtp.data.developmentCode,name:'Existing parent'});
+ assert.equal((await guardian.call('/guardian-verifications',guardianApplication({guardianName:'Existing parent'}))).status,201);
+ await guardian.call('/auth/logout',{});const challenge=await guardian.call('/auth/otp/request',{email:parentEmail});
+ const kept=await guardian.call('/auth/otp/verify',{email:parentEmail,code:challenge.data.developmentCode,registrationIntent:'STUDENT'});
+ assert.equal(kept.data.account.id,parent.data.account.id);assert.equal(kept.data.account.role,'GUARDIAN');assert.equal(kept.data.account.studentSetupPending,undefined);
+});
 test('returning email OTP restores the same guardian and saved verification after logout without a name',async(t)=>{
  await resetReturningOtpBudget();t.after(resetReturningOtpBudget);
  const c=new Client(),email='return-'+randomUUID()+'@example.test',first=await c.call('/auth/otp/request',{email});
@@ -1196,9 +1216,9 @@ test('contextual support binds enquiries and arrangements without sharing anothe
  try {for(const lockInDays of [null,0,15,30]){await db.teacher.update({where:{id:ids.teacher},data:{lockInDays}});const rows=await new Client().call('/teachers'),shown=rows.data.items.find((t:any)=>t.id===ids.teacher);assert.equal(shown.lockInDays,lockInDays);assert.equal((await new Client().call('/teachers/'+original.slug)).data.lockInDays,lockInDays);assert(operationValidator('/teachers/{slug}','get','200')((await new Client().call('/teachers/'+original.slug)).data));}await assert.rejects(db.teacher.update({where:{id:ids.teacher},data:{lockInDays:7}}));}finally{await db.teacher.update({where:{id:ids.teacher},data:{lockInDays:original.lockInDays}});}
  });
 
-async function educationActors(){
+async function educationActors(withSpaces=true){
  const owner=await db.account.create({data:{name:'Synthetic education owner',role:'GUARDIAN',verified:true}});await db.consent.create({data:{guardianId:owner.id}});
- const studentAccount=await db.account.create({data:{name:'Synthetic education student',role:'STUDENT'}}),linkedChild=await db.child.create({data:{guardianId:owner.id,studentAccountId:studentAccount.id,alias:'Synthetic linked learner',grade:8,board:'CBSE',schoolName:'Synthetic school',schoolSubjects:['Maths']}});
+ const studentAccount=await db.account.create({data:{name:'Synthetic education student',role:'STUDENT'}}),linkedChild=await db.child.create({data:{guardianId:owner.id,studentAccountId:studentAccount.id,...(withSpaces?{learningSpaces:[{subject:'Maths'},{subject:'Science'},{subject:'Physics'}]}:{}),alias:'Synthetic linked learner',grade:8,board:'CBSE',schoolName:'Synthetic school',schoolSubjects:['Maths']}});
  return {owner,linkedChild,g:await dashboardLogin(owner.id),s:await dashboardLogin(studentAccount.id)};
 }
 test('stage-aware learner profiles preserve existing school records and create nursery, school and college without fake grades',async()=>{
@@ -1256,6 +1276,7 @@ test('early years, senior school and college enquiries match owned profiles thro
  await db.availabilityPattern.create({data:{teacherId:t.id,kind:'RECURRING',weekday,startMinute:1025,endMinute:1085,validFrom:new Date(day),validUntil:new Date(day)}});
  for(const education of [{stage:'EARLY_YEARS',level:'KG1',institutionName:'Synthetic campus',subjects:['Language']},{stage:'SCHOOL',grade:12,board:'CBSE',institutionName:'Synthetic campus',subjects:['Physics']},{stage:'COLLEGE',courseName:'BSc Physics',university:'Synthetic university',studyYear:2,institutionName:'Synthetic campus',subjects:['Mechanics']}]){
   const profile=await g.call('/learner-profiles',{alias:'Synthetic scoped learner',education});assert.equal(profile.status,201);
+  await db.child.update({where:{id:profile.data.id},data:{learningSpaces:[{subject:education.subjects[0]}]}});
   const body=intake({childId:profile.data.id,grade:education.stage==='SCHOOL'?12:null,board:education.stage==='SCHOOL'?'CBSE':null,schoolName:undefined,schoolSubjects:undefined,subject:education.subjects[0],mode:'ONLINE',preferences,discoveryMethod:'ASSISTED'});
   const saved=await g.call('/requests',body);assert.equal(saved.status,201,JSON.stringify(saved.data));const rec=await reviewer.call('/admin/requests/'+saved.data.id+'/recommendations',{expectedVersion:1});assert.equal(rec.status,201,JSON.stringify(rec.data));assert.equal(rec.data.matchStatus,'MATCHED');const candidate=rec.data.items.find((x:any)=>x.teacherId===t.id);assert(candidate);assert(!candidate.reasons.join(' ').includes('Class null'));
   const accepted=await covered.client.call('/candidates/'+candidate.id+'/responses',{expectedVersion:candidate.version,response:'ACCEPTED'});assert.equal(accepted.status,201);const published=await reviewer.call('/admin/requests/'+saved.data.id+'/presentations',{expectedVersion:rec.data.requestVersion,runId:rec.data.runId,candidateIds:[candidate.id],reason:'Synthetic reviewed expanded fit'});assert.equal(published.status,201,JSON.stringify(published.data));
@@ -1317,23 +1338,90 @@ test('guardian setup gates hide learner and enquiry metadata and deny non-guardi
  const paused=await db.privacyRequest.create({data:{accountId:owner.id,kind:'DELETION',scope:'CHILD',resourceId:(await db.child.findFirstOrThrow({where:{guardianId:owner.id}})).id,reason:'Synthetic setup privacy pause'}});await gate('PRIVACY_PAUSED');await db.privacyRequest.update({where:{id:paused.id},data:{status:'REJECTED'}});await db.consent.delete({where:{guardianId:owner.id}});await gate('CONSENT_REQUIRED');
 });
 
+test('student guardian details use the owned relationship and verification pings arrive live only to that guardian',async()=>{
+ const {s,g,owner,linkedChild}=await educationActors();
+ await db.account.update({where:{id:owner.id},data:{email:'guardian-'+randomUUID()+'@example.test'}});
+ const proof=await db.guardianVerification.create({data:{guardianId:owner.id,region:'Raipur',guardianName:owner.name,learnerName:linkedChild.alias,relationship:'SIBLING',ageBand:'UNDER_15',managementMode:'STUDENT_LED',acknowledgmentMethod:'STAFF_CALL',documentNamesGuardian:true,status:'APPROVED',learnerId:linkedChild.id}});
+ await db.child.update({where:{id:linkedChild.id},data:{guardianVerificationId:proof.id,learningManagementMode:'STUDENT_LED'}});
+ let detail=await s.call('/student/guardian');assert.equal(detail.status,200);assert.equal(detail.data.relationship,'SIBLING');assert.equal(detail.data.guardianName,owner.name);assert.equal(detail.data.verified,true);assert.equal(detail.data.canPing,false);assert(operationValidator('/student/guardian','get','200')(detail.data));
+ assert.equal((await s.call('/student/guardian/pings',{confirmed:true})).data.code,'ALREADY_VERIFIED');
+ assert.equal((await g.call('/student/guardian')).status,403);
+ await db.account.update({where:{id:owner.id},data:{verified:false}});
+ assert.equal((await s.call('/auth/session')).status,200);assert.equal((await s.call('/onboarding/student/context')).status,401);
+ detail=await s.call('/student/guardian');assert.equal(detail.data.verified,false);assert.equal(detail.data.canPing,true);
+ assert.equal((await s.call('/student/guardian/pings',{confirmed:true,guardianId:ids.otherGuardian})).status,400);
+ const {io}=await import('socket.io-client');
+ const socket=io('http://127.0.0.1:4100',{path:'/api/v1/live',transports:['websocket'],auth:{csrfToken:g.csrf},extraHeaders:{Cookie:g.cookies,Origin:'http://localhost:3000'}});
+ try{
+  await new Promise<void>((resolve,reject)=>{socket.once('connect',()=>resolve());socket.once('connect_error',reject);});
+  const changed=new Promise<void>((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('Guardian ping did not arrive live')),5000);socket.on('inbox:changed',async()=>{const inbox=await g.call('/inbox');if(inbox.data.items?.some((item:any)=>item.topic==='guardian-verification.ping')){clearTimeout(timeout);resolve();}});});
+  const ping=await s.call('/student/guardian/pings',{confirmed:true});assert.equal(ping.status,201);assert.equal(ping.data.sent,true);await changed;
+  assert.equal((await s.call('/student/guardian/pings',{confirmed:true})).data.sent,false);
+  assert.equal(await db.inboxNotification.count({where:{accountId:owner.id,topic:'guardian-verification.ping'}}),1);
+  assert.equal(await db.inboxNotification.count({where:{accountId:ids.otherGuardian,topic:'guardian-verification.ping'}}),0);
+ }finally{socket.disconnect();}
+ await db.child.update({where:{id:linkedChild.id},data:{studentAccessRevokedAt:new Date()}});assert.equal((await s.call('/student/guardian')).status,401);assert.equal((await s.call('/auth/session')).status,401);
+});
+test('guardian and student share owned learner spaces with concurrency and subject search gates',async()=>{
+ const {s,g,linkedChild}=await educationActors(false),path='/children/'+linkedChild.id+'/learning-spaces';
+ assert.equal((await s.call('/teachers?learnerId='+linkedChild.id+'&subject=Maths')).data.code,'LEARNING_SPACE_REQUIRED');
+ const initial=await g.call(path);assert.equal(initial.status,200);assert.deepEqual(initial.data.spaces,[]);
+ const body={expectedVersion:0,educationVersion:linkedChild.version,confirmed:true,spaces:[{subject:'Maths',language:'Hindi'}]};
+ const saved=await g.call(path,body);assert.equal(saved.status,201,JSON.stringify(saved.data));assert(operationValidator('/children/{id}/learning-spaces','post','201')(saved.data));
+ assert.deepEqual((await s.call(path)).data.spaces,body.spaces);assert.deepEqual((await s.call('/onboarding/student/context')).data.progress.draft.spaces,body.spaces);
+ assert.equal((await s.call('/teachers?learnerId='+linkedChild.id+'&subject=Maths')).status,200);
+ assert.equal((await s.call('/teachers?learnerId='+linkedChild.id+'&subject=Science')).data.code,'LEARNING_SPACE_REQUIRED');
+ assert.equal((await g.call(path,body)).status,409);
+ const foreign=(await educationActors()).g;assert.equal((await foreign.call(path)).status,404);
+ assert.equal((await s.call('/onboarding/student/confirmations',{expectedVersion:0,spacesVersion:0,educationVersion:linkedChild.version,confirmed:true,draft:{spaces:body.spaces}})).status,409);
+ const student=await s.call('/onboarding/student/confirmations',{expectedVersion:0,spacesVersion:1,educationVersion:linkedChild.version,confirmed:true,draft:{spaces:[{subject:'Maths',language:'English'}]}});assert.equal(student.status,201);assert.equal((await g.call(path)).data.spaces[0].language,'English');
+ const unlinked=await db.child.create({data:{guardianId:linkedChild.guardianId,alias:'Synthetic unlinked learner',grade:6,board:'CBSE',schoolName:'Synthetic school',schoolSubjects:['Maths']}});
+ const unlinkedPath='/children/'+unlinked.id+'/learning-spaces';assert.equal((await g.call(unlinkedPath,{...body,educationVersion:unlinked.version})).status,201);assert.equal((await g.call(unlinkedPath)).data.spaces[0].subject,'Maths');assert.equal((await s.call(unlinkedPath)).status,404);
+});
+test('student subject spaces retain independent preferences and reject duplicate subjects without changing authority',async()=>{
+ const {s,linkedChild}=await educationActors(false),path='/onboarding/student/confirmations';
+ const before=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}});
+ const spaces=[{subject:'Maths',language:'Hindi',learningPreferences:'Use pictures'},{subject:'Science',language:'English'}];
+ const body={expectedVersion:0,educationVersion:before.version,confirmed:true,draft:{spaces}};
+ const saved=await s.call(path,body);assert.equal(saved.status,201,JSON.stringify(saved.data));
+ assert.deepEqual(saved.data.draft.spaces,spaces);assert.deepEqual(saved.data.draft.subjects,['Maths','Science']);
+ assert(operationValidator(path,'post','201')(saved.data));
+ assert.deepEqual((await s.call('/onboarding/student/context')).data.progress.draft.spaces,spaces);
+ const duplicate=await s.call(path,{...body,expectedVersion:1,draft:{spaces:[spaces[0],{subject:'maths',language:'English'}]}});
+ assert.equal(duplicate.status,400);assert.match(JSON.stringify(duplicate.data),/already created a space/);
+ const edited=[{subject:'Physics',language:'English'},spaces[1]];
+ const updated=await s.call(path,{...body,expectedVersion:1,spacesVersion:1,draft:{spaces:edited}});assert.equal(updated.status,201);assert.deepEqual(updated.data.draft.spaces,edited);
+ assert.equal((await s.call(path,{...body,expectedVersion:1})).status,409);
+ const after=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}});assert.deepEqual({...after,learningSpaces:before.learningSpaces,learningSpacesVersion:before.learningSpacesVersion},before);
+});
+test('student setup saves without a repeated support choice and preserves existing management permissions',async()=>{
+ const {s,linkedChild}=await educationActors(false),path='/onboarding/student/confirmations';
+ const before=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}});
+ const first=await s.call(path,{expectedVersion:0,educationVersion:before.version,confirmed:true,draft:{subjects:['Maths']}});
+ assert.equal(first.status,201);assert.equal(first.data.draft.managementPreference,undefined);
+ assert(operationValidator(path,'post','201')(first.data));
+ assert.deepEqual(await db.child.findUniqueOrThrow({where:{id:linkedChild.id}}),before);
+ const old=await s.call(path,{expectedVersion:1,educationVersion:before.version,confirmed:true,draft:{managementPreference:'GUARDIAN_GUIDED',subjects:['Maths']}});assert.equal(old.status,201);
+ const updated=await s.call(path,{expectedVersion:2,educationVersion:before.version,confirmed:true,draft:{subjects:['Science']}});assert.equal(updated.status,201);assert.equal(updated.data.draft.managementPreference,'GUARDIAN_GUIDED');
+ assert.deepEqual(await db.child.findUniqueOrThrow({where:{id:linkedChild.id}}),before);
+});
 test('student setup reads only the activated learner and confirms both support choices without changing authority or hiring data',async()=>{
- const {s,g,owner,linkedChild}=await educationActors();const before=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}}),context=await s.call('/onboarding/student/context');assert.equal(context.status,200,JSON.stringify(context.data));assert(operationValidator('/onboarding/student/context','get','200')(context.data));assert.equal(context.data.learner.id,linkedChild.id);assert.equal(context.data.authority,'GUARDIAN_MANAGED');assert.equal('guardianId' in context.data.learner,false);
+ const {s,g,owner,linkedChild}=await educationActors(false);const before=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}}),context=await s.call('/onboarding/student/context');assert.equal(context.status,200,JSON.stringify(context.data));assert(operationValidator('/onboarding/student/context','get','200')(context.data));assert.equal(context.data.learner.id,linkedChild.id);assert.equal(context.data.authority,'GUARDIAN_MANAGED');assert.equal('guardianId' in context.data.learner,false);
  const body={expectedVersion:0,educationVersion:linkedChild.version,confirmed:true,draft:{managementPreference:'SELF_DIRECTED',subjects:['Physics','Statistics'],language:'Hindi',learningPreferences:'Synthetic visual examples'}},key=randomUUID(),saved=await s.call('/onboarding/student/confirmations',body,{key});assert.equal(saved.status,201,JSON.stringify(saved.data));assert(operationValidator('/onboarding/student/confirmations','post','201')(saved.data));assert.equal(saved.data.state,'READY');assert.equal(saved.data.completedResourceId,linkedChild.id);await assert.rejects(db.onboardingProgress.update({where:{accountId_kind:{accountId:linkedChild.studentAccountId!,kind:'STUDENT'}},data:{completedResourceId:ids.child}}));assert.deepEqual(saved.data.draft,body.draft);assert.deepEqual((await s.call('/onboarding/student/confirmations',body,{key})).data,saved.data);
  const second=await s.call('/onboarding/student/confirmations',{...body,expectedVersion:1,draft:{managementPreference:'GUARDIAN_GUIDED',subjects:[]}});assert.equal(second.status,201);assert.equal(second.data.version,2);assert.deepEqual((await s.call('/onboarding/student/context')).data.progress.draft,{managementPreference:'GUARDIAN_GUIDED',subjects:[]});
  assert.deepEqual(await db.child.findUniqueOrThrow({where:{id:linkedChild.id}}),before);assert.equal((await db.account.findUniqueOrThrow({where:{id:linkedChild.studentAccountId!}})).role,'STUDENT');assert.equal(await db.tuitionRequest.count({where:{childId:linkedChild.id}}),0);assert.equal(await db.invitation.count({where:{childId:linkedChild.id}}),0);assert.equal(await db.audit.count({where:{aggregateId:linkedChild.id,action:'STUDENT_ONBOARDING_CONFIRMED'}}),2);assert.equal((await s.call('/requests',intake({childId:linkedChild.id}))).status,403);assert.equal((await g.call('/onboarding/student/context')).status,403);
  const edit=await s.call('/onboarding/student/drafts',{expectedVersion:2,draft:{managementPreference:'SELF_DIRECTED',subjects:['Maths']}});assert.equal(edit.status,201);assert.equal(edit.data.completedResourceId,null);assert.equal(edit.data.state,'ACTIVE');assert.equal((await db.child.findUniqueOrThrow({where:{id:linkedChild.id}})).guardianId,owner.id);
 });
 test('student setup rejects stale reviews, incomplete education, mass assignment and concurrent duplicate confirmations',async()=>{
- const {s,g,linkedChild}=await educationActors(),path='/onboarding/student/confirmations',body={expectedVersion:0,educationVersion:1,confirmed:true,draft:{managementPreference:'SELF_DIRECTED',subjects:['Maths']}};
+ const {s,g,linkedChild}=await educationActors(false),path='/onboarding/student/confirmations',body={expectedVersion:0,educationVersion:1,confirmed:true,draft:{managementPreference:'SELF_DIRECTED',subjects:['Maths']}};
  assert.equal((await new Client().call(path,body)).status,401);assert.equal((await g.call(path,body)).status,403);assert.equal((await s.call(path,body,{csrf:'wrong'})).status,403);assert.equal((await s.call(path,body,{origin:'https://untrusted.invalid'})).status,403);
- for(const patch of [{confirmed:false},{childId:ids.child},{educationVersion:0},{draft:{managementPreference:'ADULT'}},{draft:{subjects:['Maths']}},{draft:{...body.draft,role:'ADMIN'}},{draft:{...body.draft,subjects:['Maths','maths']}},{draft:{...body.draft,subjects:Array.from({length:21},(_,i)=>'Subject '+i)}}])assert.equal((await s.call(path,{...body,...patch})).status,400);
+ for(const patch of [{confirmed:false},{childId:ids.child},{educationVersion:0},{draft:{managementPreference:'ADULT'}},{draft:{...body.draft,role:'ADMIN'}},{draft:{...body.draft,subjects:['Maths','maths']}},{draft:{...body.draft,subjects:Array.from({length:21},(_,i)=>'Subject '+i)}}])assert.equal((await s.call(path,{...body,...patch})).status,400);
  assert.equal((await s.call(path,{...body,expectedVersion:1})).status,409);assert.equal((await s.call(path,{...body,educationVersion:2})).data.code,'LEARNER_CHANGED');
  await db.child.update({where:{id:linkedChild.id},data:{schoolName:null,schoolSubjects:[]}});assert.equal((await s.call(path,body)).data.code,'EDUCATION_INCOMPLETE');await db.child.update({where:{id:linkedChild.id},data:{schoolName:'Synthetic school',schoolSubjects:['Maths'],version:{increment:1}}});assert.equal((await s.call(path,body)).data.code,'LEARNER_CHANGED');
  const [a,b]=await Promise.all([s.call(path,{...body,educationVersion:2}),s.call(path,{...body,educationVersion:2,draft:{managementPreference:'GUARDIAN_GUIDED'}})]);assert.deepEqual([a.status,b.status].sort(),[201,409]);assert.equal(await db.audit.count({where:{aggregateId:linkedChild.id,action:'STUDENT_ONBOARDING_CONFIRMED'}}),1);
 });
 test('student setup supports school, early-years and college profiles and enforces current guardian, privacy and revocation gates',async()=>{
- const {s,owner,linkedChild}=await educationActors(),body={expectedVersion:0,educationVersion:1,confirmed:true,draft:{managementPreference:'GUARDIAN_GUIDED'}},path='/onboarding/student/confirmations';
+ const {s,owner,linkedChild}=await educationActors(false),body={expectedVersion:0,educationVersion:1,confirmed:true,draft:{managementPreference:'GUARDIAN_GUIDED'}},path='/onboarding/student/confirmations';
  for(const data of [{educationStage:'EARLY_YEARS',earlyYearsLevel:'KG2',grade:null,board:null,schoolName:'Synthetic early school',schoolSubjects:['Language'],courseName:null,university:null,studyYear:null},{educationStage:'COLLEGE',earlyYearsLevel:null,grade:null,board:null,schoolName:'Synthetic college',schoolSubjects:['Mechanics'],courseName:'BSc Physics',university:'Synthetic university',studyYear:2}]){await db.child.update({where:{id:linkedChild.id},data});const ctx=await s.call('/onboarding/student/context');assert.equal(ctx.status,200);assert(operationValidator('/onboarding/student/context','get','200')(ctx.data));assert.equal(ctx.data.learner.education.stage,data.educationStage);}
  await db.account.update({where:{id:owner.id},data:{verified:false}});assert.equal((await s.call('/onboarding/student/context')).status,401);assert.equal((await s.call(path,body)).status,401);await db.account.update({where:{id:owner.id},data:{verified:true}});
  const privacy=await db.privacyRequest.create({data:{accountId:owner.id,kind:'DELETION',scope:'CHILD',resourceId:linkedChild.id,reason:'Synthetic student setup privacy pause'}});assert.equal((await s.call('/onboarding/student/context')).status,403);assert.equal((await s.call(path,body)).status,403);await db.privacyRequest.update({where:{id:privacy.id},data:{status:'REJECTED'}});
@@ -2065,9 +2153,11 @@ test('student invitation links an unused OTP email to exactly the invited learne
  assert.equal(created.status,201);
  const invite=await g.call('/children/'+created.data.id+'/invitation-replacements',{expectedVersion:1,acknowledged:true});assert.equal(invite.status,201);
  const student=await freshGuardian(),other=await freshGuardian();
+ await db.account.update({where:{id:student.account.id},data:{registrationIntent:'STUDENT'}});
+ assert.equal((await student.client.call('/auth/session')).data.account.studentSetupPending,true);
  assert.equal((await student.client.call('/invitations/check',{token:invite.data.token})).status,201);
  assert.equal((await g.call('/invitations/link-email',{token:invite.data.token,confirmed:true})).status,409);
- const linked=await student.client.call('/invitations/link-email',{token:invite.data.token,confirmed:true});assert.equal(linked.status,201,JSON.stringify(linked.data));assert.equal(linked.data.account.role,'STUDENT');
+ const linked=await student.client.call('/invitations/link-email',{token:invite.data.token,confirmed:true});assert.equal(linked.status,201,JSON.stringify(linked.data));assert.equal(linked.data.account.role,'STUDENT');assert.equal(linked.data.account.studentSetupPending,undefined);
  const row=await db.child.findUniqueOrThrow({where:{id:created.data.id}});assert.equal(row.studentAccountId,student.account.id);assert.equal(row.guardianId,(await db.invitation.findFirstOrThrow({where:{childId:row.id}})).guardianId);
  assert.equal((await student.client.call('/invitations/link-email',{token:invite.data.token,confirmed:true})).status,201);
  assert.equal((await other.client.call('/invitations/link-email',{token:invite.data.token,confirmed:true})).status,409);

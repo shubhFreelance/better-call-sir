@@ -90,6 +90,7 @@ export function GuardianRegistration({
   const { appText } = useAppTranslation();
   const router = useRouter(),
     client = useQueryClient();
+  if (session?.account.studentSetupPending) return <main className="container narrow section"><h1>{appText("Student setup pending")}</h1><Link className="button" href="/onboarding/student?mode=together">{appText("Continue student setup")}</Link></main>;
   if (session)
     return (
       <main className="container narrow section">

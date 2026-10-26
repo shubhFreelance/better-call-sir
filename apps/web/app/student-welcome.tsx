@@ -1,23 +1,31 @@
 "use client";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { BookOpen, Pencil, Plus } from "lucide-react";
+import { InfoTooltip } from "../components/ui/info-tooltip";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { EducationSummary } from "./learner-profiles";
+import { LearningManagementBadge } from "../components/ui/learning-management-badge";
+import { learningModes } from "./learning-management";
+import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
+import { ActionToast } from "../components/ui/action-toast";
+import { emptyTeacherFilters, useTeacherSearchState } from "./teacher-search-state";
 type Context = components["schemas"]["StudentSetupContext"];
 type Preferences = components["schemas"]["StudentLearningPreferences"];
 type Confirmation = components["schemas"]["StudentSetupConfirmation"];
 type Progress = components["schemas"]["OnboardingProgress"];
-const supportLabels = {
-  SELF_DIRECTED: "I can manage my learning",
-  GUARDIAN_GUIDED: "I need guardian help",
-};
+type Space = components["schemas"]["StudentSubjectSpace"];
+function savedSpaces(progress: Progress): Space[] {
+  const draft = progress.draft as Preferences;
+  return draft.spaces ?? (draft.subjects || []).map(subject => ({subject,...(draft.language ? {language:draft.language} : {}),...(draft.learningPreferences ? {learningPreferences:draft.learningPreferences} : {})}));
+}
 const splitSubjects = (text: string) =>
   text
     .split(",")
@@ -25,6 +33,8 @@ const splitSubjects = (text: string) =>
     .filter(Boolean);
 export function StudentWelcome({ session }: { session: Session }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+  const client = useQueryClient(), [notice, setNotice] = useState({id:0,message:"",error:false});
+  const [editor, setEditor] = useState<{subject?:string; saved?:boolean} | null>(null);
 
   const query = useQuery({
     queryKey: ["student-setup", session.account.id],
@@ -37,16 +47,17 @@ export function StudentWelcome({ session }: { session: Session }) {
   const denied =
     query.error instanceof ApiError && [401, 403].includes(query.error.status);
   return (
-    <main className="container section student-welcome">
+    <div className="student-welcome">
+      <ActionToast key={notice.id} message={notice.message ? appText(notice.message) : ""} error={notice.error} />
       <header className="wizard-title">
         <h1>{appText("Set up your student space.")}</h1>
         <p>
           {appText(
-            "Check what you’re learning, choose the help you want, and review your setup before saving.",
+            "Review your education and learning preferences before saving.",
           )}{" "}
         </p>
       </header>
-      <div className="student-welcome-layout">
+      <div>
         <div className="student-welcome-main">
           {query.isPending ? (
             <p role="status">{appText("Loading your student setup…")}</p>
@@ -91,65 +102,78 @@ export function StudentWelcome({ session }: { session: Session }) {
                   </AlertDescription>
                 </Alert>
               )}
-              <StudentSetupForm
-                key={
-                  query.data.progress.version + ":" + query.data.learner.version
-                }
-                session={session}
-                context={query.data}
+              {editor ? <StudentSetupForm
+                key={query.data.progress.version + ":" + query.data.learner.version + ":" + editor.subject + ":" + !!editor.saved}
+                session={session} context={query.data}
+                originalSubject={editor.subject} startSaved={!!editor.saved}
                 readBlocked={!!query.error || query.isFetching}
                 onReload={() => query.refetch()}
-              />
+                onClose={() => setEditor(null)}
+                onDuplicate={() => setNotice(current=>({id:current.id+1,message:"You cannot change the subject because you have already created a space for it.",error:true}))}
+                onSaved={(progress, subject) => {
+                  setNotice(current=>({id:current.id+1,message:"Your student setup is saved.",error:false}));
+                  setEditor({subject,saved:true});
+                  client.setQueryData<Context>(["student-setup",session.account.id], current => current ? {...current,progress,spacesVersion:(current.spacesVersion||0)+1} : current);
+                }}
+              /> : <StudentSpaceCards context={query.data} disabled={!!query.error || query.isFetching} onEdit={subject => setEditor({subject})} />}
+
             </div>
           )}
         </div>
-        <aside className="student-welcome-notice">
-          <h2>{appText("Your learning, with support.")}</h2>
-          <p>
-            {appText(
-              "Your guardian chooses who manages learning. Check your current permissions to see whether you, your guardian or both of you can choose teachers.",
-            )}{" "}
-          </p>
-          <p>
-            {appText(
-              "Your support choice records the help you want. It does not change these permissions.",
-            )}{" "}
-          </p>
-          <Link className="inline-link" href="/dashboard/learning-management">
-            {appText("Review who manages learning")}
-          </Link>
-          <h3>{appText("Keep personal details private.")}</h3>
-          <p>
-            {appText(
-              "Do not add phone numbers, addresses, passwords or identity documents to learning notes.",
-            )}{" "}
-          </p>
-          <Link className="inline-link" href="/support">
-            {appText("Get help with your guardian")}{" "}
-          </Link>
-          <Link className="inline-link" href="/teachers">
-            {appText("Explore teacher profiles")}{" "}
-          </Link>
-        </aside>
+
       </div>
-    </main>
+    </div>
   );
 }
-function StudentSetupForm({
+export function StudentSpaceCards({context, disabled, onEdit,guardian=false}:{context:Context; disabled:boolean; onEdit:(subject?:string)=>void;guardian?:boolean}) {
+  const {appText,appCurriculum} = useAppTranslation();
+  const [,setSearch] = useTeacherSearchState();
+  const spaces = savedSpaces(context.progress);
+  const e = context.learner.education;
+  return <section aria-label={appText("Your subject spaces")}>
+    <div className="student-spaces-heading"><h2>{appText("Your subject spaces")}</h2><InfoTooltip label={appText("About subject spaces")} items={[appText("Create one space per subject, with its own language and learning preferences."),appText("Saving these preferences does not change who manages learning.")]} /></div>
+    <div className="student-spaces-grid">
+      {spaces.map(space => <article className="student-subject-card" key={space.subject}>
+        <div className="student-space-top"><BookOpen size={25} aria-hidden="true"/><button type="button" className="student-space-edit" disabled={disabled} onClick={()=>onEdit(space.subject)} aria-label={appText("Edit {0} space",[appCurriculum(space.subject)])} title={appText("Edit {0} space",[appCurriculum(space.subject)])}><Pencil size={18} aria-hidden="true"/></button></div>
+        <h3><Link href={"/teachers?"+new URLSearchParams({learner:context.learner.id,subject:space.subject})} onClick={()=>setSearch({filters:{...emptyTeacherFilters,subject:space.subject,language:space.language || ""}})}>{appCurriculum(space.subject)}</Link></h3>
+        <p className="student-space-education">{e.stage === "SCHOOL" ? appText("Class {0} · {1}",[e.grade,e.board]) : e.stage === "COLLEGE" ? e.courseName : appText(e.level || "Early years")}</p>
+        <p>{e.institutionName}</p>
+        <p className="student-space-language">{appText("Language")}: <strong>{space.language ? appText(space.language) : appText("No language preference")}</strong></p>
+      </article>)}
+      <button type="button" className="student-subject-card student-space-add" disabled={disabled || spaces.length >= 20 || !context.learner.enquiryEligible} onClick={()=>onEdit()}><Plus size={32} aria-hidden="true"/><span>{appText("Add a subject space")}</span></button>
+    </div>
+    {!context.learner.enquiryEligible && <p role="status">{appText(guardian ? "Complete this learner’s education details before creating a subject space." : "Some education details are missing. Ask your guardian to complete your profile, then reload your setup.")}{guardian && <> <Link href="/dashboard/learners">{appText("Open education profiles")}</Link></>}</p>}
+  </section>;
+}
+export function StudentSetupForm({
   session,
   context,
   readBlocked,
   onReload,
+  onSaved,
+  originalSubject, startSaved, onClose, onDuplicate, saveSpaces,
 }: {
   session: Session;
   context: Context;
   readBlocked: boolean;
   onReload: () => Promise<unknown>;
+  onSaved: (progress: Progress, subject:string) => void;
+  originalSubject?:string;
+  startSaved:boolean;
+  onClose:()=>void;
+  onDuplicate:()=>void;
+  saveSpaces?:(body:Confirmation,key:string)=>Promise<Progress>;
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
-  const initial = context.progress.draft as Preferences,
-    suggestions = context.learner.education.subjects;
+  const spaces = savedSpaces(context.progress);
+  const selected = spaces.find(space => space.subject === originalSubject);
+  const initial:Preferences = selected ? {subjects:[selected.subject],language:selected.language,learningPreferences:selected.learningPreferences} : {};
+  const suggestions = context.learner.education.subjects;
+  const completed = startSaved;
+  const [, setTeacherSearch] = useTeacherSearchState();
+  const management = useQuery({queryKey:["learning-management",session.account.id,context.learner.id],queryFn:({signal})=>api<components["schemas"]["LearningManagement"]>(`/children/${context.learner.id}/learning-management`,{signal}),retry:false});
+  const currentManagement = !management.error && management.data ? learningModes[management.data.mode] : undefined;
   const [subjects, setSubjects] = useState(
       (initial.subjects || []).filter((s) => suggestions.includes(s)),
     ),
@@ -158,30 +182,41 @@ function StudentSetupForm({
         .filter((s) => !suggestions.includes(s))
         .join(", "),
     );
-  const [management, setManagement] = useState(
-      initial.managementPreference || "",
-    ),
-    [correct, setCorrect] = useState(false),
+  const [correct, setCorrect] = useState(false),
     [language, setLanguage] = useState(initial.language || ""),
     [notes, setNotes] = useState(initial.learningPreferences || "");
-  const [review, setReview] = useState<Confirmation["draft"] | null>(null),
+  const [review, setReview] = useState<Confirmation["draft"] | null>(completed ? initial : null),
     [version, setVersion] = useState(context.progress.version),
     [busy, setBusy] = useState(false),
     [uncertain, setUncertain] = useState(false),
     [conflict, setConflict] = useState(false),
-    [saved, setSaved] = useState(false),
+    [saved, setSaved] = useState(completed),
     [error, setError] = useState(""),
     [errors, setErrors] = useState<Record<string, string>>({});
   const pending = useRef<{ body: Confirmation; key: string } | null>(null),
     heading = useRef<HTMLHeadingElement>(null);
   const locked = busy || uncertain || conflict || readBlocked;
+  useEffect(() => { if (saved) heading.current?.focus(); }, [saved]);
+  const teacherSearch = "/teachers?" + new URLSearchParams({learner:context.learner.id,...(review?.subjects?.length === 1 ? {subject:review.subjects[0]} : {})});
+  function chooseSubject(subject:string) {
+    if (spaces.some(space => space.subject !== originalSubject && space.subject.toLowerCase() === subject.toLowerCase())) {
+      onDuplicate();
+      return;
+    }
+    setSubjects([subject]);
+    setOther("");
+  }
   function prepare() {
     const chosen = [...subjects, ...splitSubjects(other)],
       invalid: Record<string, string> = {};
+    if (chosen.some(subject => spaces.some(space => space.subject !== originalSubject && space.subject.toLowerCase() === subject.toLowerCase()))) {
+      onDuplicate();
+      return;
+    }
     if (!correct)
       invalid.education =
         "Review your education details and confirm they are correct.";
-    if (!management) invalid.management = "Choose how much help you want.";
+    if (chosen.length !== 1) invalid.subjects = "Choose one subject for this space.";
     if (
       chosen.length > 20 ||
       chosen.some((s) => s.length > 60) ||
@@ -197,7 +232,6 @@ function StudentSetupForm({
         .getElementById(
           {
             education: "student-education-correct",
-            management: "student-management-self",
             subjects: "student-other-subjects",
             notes: "student-learning-notes",
           }[Object.keys(invalid)[0]] || "student-education-correct",
@@ -206,7 +240,6 @@ function StudentSetupForm({
       return;
     }
     setReview({
-      managementPreference: management as "SELF_DIRECTED" | "GUARDIAN_GUIDED",
       subjects: chosen,
       ...(language ? { language: language as "English" | "Hindi" } : {}),
       ...(notes.trim() ? { learningPreferences: notes.trim() } : {}),
@@ -220,8 +253,9 @@ function StudentSetupForm({
       body: {
         expectedVersion: version,
         educationVersion: context.learner.version,
+        spacesVersion:context.spacesVersion || 0,
         confirmed: true as const,
-        draft: review,
+        draft: {spaces:[...spaces.filter(space => space.subject !== originalSubject),{subject:review.subjects![0],...(review.language ? {language:review.language} : {}),...(review.learningPreferences ? {learningPreferences:review.learningPreferences} : {})}]},
       },
       key: crypto.randomUUID(),
     };
@@ -229,7 +263,7 @@ function StudentSetupForm({
     setBusy(true);
     setError("");
     try {
-      const result = await api<Progress>("/onboarding/student/confirmations", {
+      const result = saveSpaces ? await saveSpaces(attempt.body,attempt.key) : await api<Progress>("/onboarding/student/confirmations", {
         method: "POST",
         body: attempt.body,
         key: attempt.key,
@@ -243,11 +277,13 @@ function StudentSetupForm({
         result.version <= version
       )
         throw new Error("Setup was not confirmed.");
+      const confirmedSpace = savedSpaces(result).find(space=>space.subject === review.subjects![0]);
+      if (!confirmedSpace) throw new Error("Setup was not confirmed.");
       pending.current = null;
       setVersion(result.version);
       setUncertain(false);
       setSaved(true);
-      const confirmed = result.draft as Preferences;
+      const confirmed:Preferences = {subjects:[confirmedSpace.subject],language:confirmedSpace.language,learningPreferences:confirmedSpace.learningPreferences};
       setSubjects(
         (confirmed.subjects || []).filter((s) => suggestions.includes(s)),
       );
@@ -256,11 +292,10 @@ function StudentSetupForm({
           .filter((s) => !suggestions.includes(s))
           .join(", "),
       );
-      setManagement(confirmed.managementPreference || "");
       setLanguage(confirmed.language || "");
       setNotes(confirmed.learningPreferences || "");
       setReview(confirmed as Confirmation["draft"]);
-      requestAnimationFrame(() => heading.current?.focus());
+      onSaved(result, confirmedSpace.subject);
     } catch (e) {
       const unknown =
         !(e instanceof ApiError) ||
@@ -287,9 +322,9 @@ function StudentSetupForm({
         <EducationSummary education={context.learner.education} />
         <Alert>
           <AlertDescription>
-            {appText(
-              "Some education details are missing. Ask your guardian to complete your profile, then reload your setup.",
-            )}{" "}
+            {appText(session.account.role === "GUARDIAN"
+              ? "Complete this learner’s education details before creating a subject space."
+              : "Some education details are missing. Ask your guardian to complete your profile, then reload your setup.") }{" "}
           </AlertDescription>
         </Alert>
         <RefreshButton variant="outline" disabled={readBlocked} onClick={onReload} label={appText("Reload student setup")} />
@@ -300,16 +335,18 @@ function StudentSetupForm({
       className="wizard-card student-setup-form"
       aria-label={appText("Student onboarding")}
     >
+      <Button type="button" variant="ghost" disabled={locked} onClick={onClose}>{appText("Back to subject spaces")}</Button>
       <ol
         className="student-setup-steps"
         aria-label={appText("Student setup progress")}
       >
-        <li aria-current={!review ? "step" : undefined}>
-          {appText("1 · Details and support")}{" "}
+        <li aria-current={!review && !saved ? "step" : undefined}>
+          {appText("1 · Details and preferences")}{" "}
         </li>
-        <li aria-current={review ? "step" : undefined}>
+        <li aria-current={review && !saved ? "step" : undefined}>
           {appText("2 · Review and save")}
         </li>
+        <li aria-current={saved ? "step" : undefined}>{appText("3 · Setup saved")}</li>
       </ol>
       <h2 ref={heading} tabIndex={-1}>
         {saved
@@ -318,25 +355,33 @@ function StudentSetupForm({
             ? appText("Review your student setup")
             : appText("What helps you learn?")}
       </h2>
+      {saved && <p className="student-saved-prompt">{review?.subjects?.length
+        ? appText("Your {0} space is saved. Add another subject from your subject spaces.",[review.subjects.map(subject => appCurriculum(subject)).join(", ")])
+        : appText("Your preferences are saved. You can update your setup to add subjects.")}</p>}
       {review ? (
         <div className="student-setup-review">
+          <section className="student-review-education">
+          <p className="student-review-label">{appText("Your education details")}</p>
           <h3>{context.learner.alias}</h3>
           <EducationSummary education={context.learner.education} />
-          <h3>{appText("Support you want")}</h3>
-          <p>{appText(supportLabels[review.managementPreference])}</p>
+          </section>
+          <section className="student-review-preferences">
           <h3>{appText("Learning preferences")}</h3>
-          <p>
+          <dl><div><dt>{appText("Subjects")}</dt><dd>
             {review.subjects?.length
               ? review.subjects.map((value) => appCurriculum(value)).join(", ")
               : appText("No subjects selected")}
-          </p>
-          <p>{review.language || appText("No language preference")}</p>
-          {review.learningPreferences && <p>{review.learningPreferences}</p>}
+          </dd></div><div><dt>{appText("Language")}</dt><dd>{review.language ? appText(review.language) : appText("No language preference")}</dd></div>
+          {review.learningPreferences && <div className="student-review-notes"><dt>{appText("Learning preferences")}</dt><dd>{review.learningPreferences}</dd></div>}
+          </dl></section>
+          <div className="student-review-authority" role="note">
+          {currentManagement && <LearningManagementBadge label={appText(currentManagement.title)} items={[appText(currentManagement.help)]} />}
           <p>
             {appText(
-              "Your guardian continues to handle enquiries, teacher choices and tuition agreements.",
+              "Saving these preferences does not change who manages learning.",
             )}{" "}
           </p>
+          </div>
         </div>
       ) : (
         <form
@@ -382,85 +427,23 @@ function StudentSetupForm({
                 </p>
               )}
             </div>
-            <fieldset className="student-support-choices">
-              <legend>
-                {appText("How would you like to manage your learning?")}
-              </legend>
-              <p className="wizard-help" id="student-management-help">
-                {appText(
-                  "Choose the support you want. Your current account permissions stay as they are.",
-                )}{" "}
-              </p>
-              {(["SELF_DIRECTED", "GUARDIAN_GUIDED"] as const).map(
-                (choice, i) => (
-                  <label
-                    className={
-                      management === choice
-                        ? "student-support-choice selected"
-                        : "student-support-choice"
-                    }
-                    key={choice}
-                  >
-                    <input
-                      type="radio"
-                      id={
-                        i === 0
-                          ? "student-management-self"
-                          : "student-management-guided"
-                      }
-                      name="student-management"
-                      value={choice}
-                      checked={management === choice}
-                      onChange={() => setManagement(choice)}
-                      aria-invalid={!!errors.management}
-                      aria-describedby={
-                        errors.management
-                          ? "student-management-error"
-                          : "student-management-help"
-                      }
-                    />
-                    <span>
-                      <strong>{appText(supportLabels[choice])}</strong>
-                      <small>
-                        {i === 0
-                          ? appText(
-                              "I want to organise my goals and explore teachers, with help when I ask for it.",
-                            )
-                          : appText(
-                              "I want help understanding my needs and choosing a suitable teacher.",
-                            )}
-                      </small>
-                    </span>
-                  </label>
-                ),
-              )}
-              {errors.management && (
-                <p
-                  className="field-error"
-                  id="student-management-error"
-                  role="alert"
-                >
-                  {appError(errors.management)}
-                </p>
-              )}
-            </fieldset>
+            <section className="student-current-management" aria-label={appText("Current family choice")}>
+              <h3>{appText("Current family choice")}</h3>
+              {currentManagement && <LearningManagementBadge label={appText(currentManagement.title)} items={[appText(currentManagement.help)]} />}
+              <Link className="inline-link" href="/dashboard/learning-management">{appText("Review who manages learning")}</Link>
+            </section>
             <fieldset>
               <legend>
-                {appText("Subjects you want help with (optional)")}
+                {appText("Subject for this space")}
               </legend>
               <div className="teacher-choices">
                 {suggestions.map((s) => (
                   <label key={s} className="teacher-choice">
                     <input
-                      type="checkbox"
+                      type="radio"
+                      name="student-space-subject"
                       checked={subjects.includes(s)}
-                      onChange={(e) =>
-                        setSubjects(
-                          e.target.checked
-                            ? [...subjects, s]
-                            : subjects.filter((v) => v !== s),
-                        )
-                      }
+                      onChange={() => chooseSubject(s)}
                     />
                     <span>{appCurriculum(s)}</span>
                   </label>
@@ -469,12 +452,12 @@ function StudentSetupForm({
             </fieldset>
             <div className="field">
               <label htmlFor="student-other-subjects">
-                {appText("Other subjects (optional)")}{" "}
+                {appText("Other subject")}{" "}
               </label>
               <Input
                 id="student-other-subjects"
                 value={other}
-                onChange={(e) => setOther(e.target.value)}
+                onChange={(e) => {setOther(e.target.value);setSubjects([]);}}
                 maxLength={1220}
                 aria-invalid={!!errors.subjects}
                 aria-describedby={
@@ -485,7 +468,7 @@ function StudentSetupForm({
               />
               <small className="wizard-help" id="student-subjects-help">
                 {appText(
-                  "Separate subjects with commas. Choose up to 20 subjects in total.",
+                  "Choose one subject for this space.",
                 )}{" "}
               </small>
               {errors.subjects && (
@@ -556,13 +539,12 @@ function StudentSetupForm({
           <RefreshButton variant="outline" disabled={readBlocked} onClick={onReload} label={appText("Reload latest student setup")} />
         </div>
       )}
-      <div className="wizard-actions">
+      <FilterButtonGroup className="student-setup-actions">
         {saved ? (
           <>
-            <Button
+            <FilterButton
               key="update"
               type="button"
-              variant="outline"
               onClick={() => {
                 setSaved(false);
                 setReview(null);
@@ -572,20 +554,19 @@ function StudentSetupForm({
               }}
             >
               {appText("Update student setup")}{" "}
-            </Button>
-            <Button asChild>
-              <Link href="/teachers">{appText("Explore teachers")}</Link>
-            </Button>
-            <Link href="/dashboard" className="inline-link">
+            </FilterButton>
+            <FilterButton asChild accent>
+              <Link href={teacherSearch} onClick={() => setTeacherSearch({filters:{...emptyTeacherFilters,subject:review?.subjects?.length === 1 ? review.subjects[0] : "",language:review?.language || ""}})}>{appText("Explore teachers")}</Link>
+            </FilterButton>
+            <FilterButton asChild><Link href="/dashboard">
               {appText("Open dashboard")}{" "}
-            </Link>
+            </Link></FilterButton>
           </>
         ) : review ? (
           <>
-            <Button
+            <FilterButton
               key="edit"
               type="button"
-              variant="outline"
               disabled={locked}
               onClick={() => {
                 setReview(null);
@@ -594,9 +575,9 @@ function StudentSetupForm({
               }}
             >
               {appText("Edit setup details")}{" "}
-            </Button>
-            <Button
-              key="confirm"
+            </FilterButton>
+            <FilterButton
+              accent key="confirm"
               type="button"
               disabled={busy || conflict || readBlocked}
               onClick={save}
@@ -606,24 +587,24 @@ function StudentSetupForm({
                 : uncertain
                   ? appText("Retry saving student setup")
                   : appText("Confirm and save student setup")}
-            </Button>
+            </FilterButton>
           </>
         ) : (
           <>
-            <Button
-              key="review"
+            <FilterButton
+              accent key="review"
               form="student-setup-details"
               type="submit"
               disabled={locked}
             >
               {appText("Review student setup")}{" "}
-            </Button>
-            <Link href="/dashboard" className="inline-link">
+            </FilterButton>
+            <FilterButton asChild><Link href="/dashboard">
               {appText("Do this later")}{" "}
-            </Link>
+            </Link></FilterButton>
           </>
         )}
-      </div>
+      </FilterButtonGroup>
     </section>
   );
 }
