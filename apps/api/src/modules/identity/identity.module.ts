@@ -1,3 +1,4 @@
+import {legacyChild} from '../learners/learning-spaces';
 import {requestOtp} from '../notifications/otp-delivery';
 import 'reflect-metadata';
 import {NestFactory} from '@nestjs/core';
@@ -131,7 +132,7 @@ class IdentityController {
 
   @Get('children') async children(@Req() req: Request) {
     const account=await this.service.actor(req,['GUARDIAN','STUDENT']);
-    return {items:await this.db.child.findMany({where:account.role==='GUARDIAN'?{guardianId:account.id}:{studentAccountId:account.id}})};
+    return {items:(await this.db.child.findMany({where:account.role==='GUARDIAN'?{guardianId:account.id}:{studentAccountId:account.id}})).map(legacyChild)};
   }
 
   async issueInvitation(db:DB,actor:Account,req:HttpRequest,id:string,secret:string,expectedVersion?:number) {

@@ -14,3 +14,5 @@ export async function learnerSpaces(db:DB,child:Child) {
 export async function requireLearningSpace(db:DB,child:Child,subject?:string) {
  if(!subject || !(await learnerSpaces(db,child)).some(space=>space.subject.toLowerCase()===subject.toLowerCase()))fail(409,'LEARNING_SPACE_REQUIRED','Create a subject space and select it before searching for a teacher or sending an enquiry.');
 }
+
+export function legacyChild<T extends {learningSpaces:unknown;learningSpacesVersion:number}>({learningSpaces,learningSpacesVersion,...child}:T){return child;}

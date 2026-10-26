@@ -1216,9 +1216,9 @@ test('contextual support binds enquiries and arrangements without sharing anothe
  try {for(const lockInDays of [null,0,15,30]){await db.teacher.update({where:{id:ids.teacher},data:{lockInDays}});const rows=await new Client().call('/teachers'),shown=rows.data.items.find((t:any)=>t.id===ids.teacher);assert.equal(shown.lockInDays,lockInDays);assert.equal((await new Client().call('/teachers/'+original.slug)).data.lockInDays,lockInDays);assert(operationValidator('/teachers/{slug}','get','200')((await new Client().call('/teachers/'+original.slug)).data));}await assert.rejects(db.teacher.update({where:{id:ids.teacher},data:{lockInDays:7}}));}finally{await db.teacher.update({where:{id:ids.teacher},data:{lockInDays:original.lockInDays}});}
  });
 
-async function educationActors(){
+async function educationActors(withSpaces=true){
  const owner=await db.account.create({data:{name:'Synthetic education owner',role:'GUARDIAN',verified:true}});await db.consent.create({data:{guardianId:owner.id}});
- const studentAccount=await db.account.create({data:{name:'Synthetic education student',role:'STUDENT'}}),linkedChild=await db.child.create({data:{guardianId:owner.id,studentAccountId:studentAccount.id,alias:'Synthetic linked learner',grade:8,board:'CBSE',schoolName:'Synthetic school',schoolSubjects:['Maths']}});
+ const studentAccount=await db.account.create({data:{name:'Synthetic education student',role:'STUDENT'}}),linkedChild=await db.child.create({data:{guardianId:owner.id,studentAccountId:studentAccount.id,...(withSpaces?{learningSpaces:[{subject:'Maths'},{subject:'Science'},{subject:'Physics'}]}:{}),alias:'Synthetic linked learner',grade:8,board:'CBSE',schoolName:'Synthetic school',schoolSubjects:['Maths']}});
  return {owner,linkedChild,g:await dashboardLogin(owner.id),s:await dashboardLogin(studentAccount.id)};
 }
 test('stage-aware learner profiles preserve existing school records and create nursery, school and college without fake grades',async()=>{
@@ -1276,6 +1276,7 @@ test('early years, senior school and college enquiries match owned profiles thro
  await db.availabilityPattern.create({data:{teacherId:t.id,kind:'RECURRING',weekday,startMinute:1025,endMinute:1085,validFrom:new Date(day),validUntil:new Date(day)}});
  for(const education of [{stage:'EARLY_YEARS',level:'KG1',institutionName:'Synthetic campus',subjects:['Language']},{stage:'SCHOOL',grade:12,board:'CBSE',institutionName:'Synthetic campus',subjects:['Physics']},{stage:'COLLEGE',courseName:'BSc Physics',university:'Synthetic university',studyYear:2,institutionName:'Synthetic campus',subjects:['Mechanics']}]){
   const profile=await g.call('/learner-profiles',{alias:'Synthetic scoped learner',education});assert.equal(profile.status,201);
+  await db.child.update({where:{id:profile.data.id},data:{learningSpaces:[{subject:education.subjects[0]}]}});
   const body=intake({childId:profile.data.id,grade:education.stage==='SCHOOL'?12:null,board:education.stage==='SCHOOL'?'CBSE':null,schoolName:undefined,schoolSubjects:undefined,subject:education.subjects[0],mode:'ONLINE',preferences,discoveryMethod:'ASSISTED'});
   const saved=await g.call('/requests',body);assert.equal(saved.status,201,JSON.stringify(saved.data));const rec=await reviewer.call('/admin/requests/'+saved.data.id+'/recommendations',{expectedVersion:1});assert.equal(rec.status,201,JSON.stringify(rec.data));assert.equal(rec.data.matchStatus,'MATCHED');const candidate=rec.data.items.find((x:any)=>x.teacherId===t.id);assert(candidate);assert(!candidate.reasons.join(' ').includes('Class null'));
   const accepted=await covered.client.call('/candidates/'+candidate.id+'/responses',{expectedVersion:candidate.version,response:'ACCEPTED'});assert.equal(accepted.status,201);const published=await reviewer.call('/admin/requests/'+saved.data.id+'/presentations',{expectedVersion:rec.data.requestVersion,runId:rec.data.runId,candidateIds:[candidate.id],reason:'Synthetic reviewed expanded fit'});assert.equal(published.status,201,JSON.stringify(published.data));
@@ -1362,7 +1363,7 @@ test('student guardian details use the owned relationship and verification pings
  await db.child.update({where:{id:linkedChild.id},data:{studentAccessRevokedAt:new Date()}});assert.equal((await s.call('/student/guardian')).status,401);assert.equal((await s.call('/auth/session')).status,401);
 });
 test('guardian and student share owned learner spaces with concurrency and subject search gates',async()=>{
- const {s,g,linkedChild}=await educationActors(),path='/children/'+linkedChild.id+'/learning-spaces';
+ const {s,g,linkedChild}=await educationActors(false),path='/children/'+linkedChild.id+'/learning-spaces';
  assert.equal((await s.call('/teachers?learnerId='+linkedChild.id+'&subject=Maths')).data.code,'LEARNING_SPACE_REQUIRED');
  const initial=await g.call(path);assert.equal(initial.status,200);assert.deepEqual(initial.data.spaces,[]);
  const body={expectedVersion:0,educationVersion:linkedChild.version,confirmed:true,spaces:[{subject:'Maths',language:'Hindi'}]};
@@ -1371,12 +1372,14 @@ test('guardian and student share owned learner spaces with concurrency and subje
  assert.equal((await s.call('/teachers?learnerId='+linkedChild.id+'&subject=Maths')).status,200);
  assert.equal((await s.call('/teachers?learnerId='+linkedChild.id+'&subject=Science')).data.code,'LEARNING_SPACE_REQUIRED');
  assert.equal((await g.call(path,body)).status,409);
- assert.equal((await other.call(path)).status,404);
+ const foreign=(await educationActors()).g;assert.equal((await foreign.call(path)).status,404);
  assert.equal((await s.call('/onboarding/student/confirmations',{expectedVersion:0,spacesVersion:0,educationVersion:linkedChild.version,confirmed:true,draft:{spaces:body.spaces}})).status,409);
  const student=await s.call('/onboarding/student/confirmations',{expectedVersion:0,spacesVersion:1,educationVersion:linkedChild.version,confirmed:true,draft:{spaces:[{subject:'Maths',language:'English'}]}});assert.equal(student.status,201);assert.equal((await g.call(path)).data.spaces[0].language,'English');
+ const unlinked=await db.child.create({data:{guardianId:linkedChild.guardianId,alias:'Synthetic unlinked learner',grade:6,board:'CBSE',schoolName:'Synthetic school',schoolSubjects:['Maths']}});
+ const unlinkedPath='/children/'+unlinked.id+'/learning-spaces';assert.equal((await g.call(unlinkedPath,{...body,educationVersion:unlinked.version})).status,201);assert.equal((await g.call(unlinkedPath)).data.spaces[0].subject,'Maths');assert.equal((await s.call(unlinkedPath)).status,404);
 });
 test('student subject spaces retain independent preferences and reject duplicate subjects without changing authority',async()=>{
- const {s,linkedChild}=await educationActors(),path='/onboarding/student/confirmations';
+ const {s,linkedChild}=await educationActors(false),path='/onboarding/student/confirmations';
  const before=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}});
  const spaces=[{subject:'Maths',language:'Hindi',learningPreferences:'Use pictures'},{subject:'Science',language:'English'}];
  const body={expectedVersion:0,educationVersion:before.version,confirmed:true,draft:{spaces}};
@@ -1392,7 +1395,7 @@ test('student subject spaces retain independent preferences and reject duplicate
  const after=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}});assert.deepEqual({...after,learningSpaces:before.learningSpaces,learningSpacesVersion:before.learningSpacesVersion},before);
 });
 test('student setup saves without a repeated support choice and preserves existing management permissions',async()=>{
- const {s,linkedChild}=await educationActors(),path='/onboarding/student/confirmations';
+ const {s,linkedChild}=await educationActors(false),path='/onboarding/student/confirmations';
  const before=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}});
  const first=await s.call(path,{expectedVersion:0,educationVersion:before.version,confirmed:true,draft:{subjects:['Maths']}});
  assert.equal(first.status,201);assert.equal(first.data.draft.managementPreference,undefined);
@@ -1403,14 +1406,14 @@ test('student setup saves without a repeated support choice and preserves existi
  assert.deepEqual(await db.child.findUniqueOrThrow({where:{id:linkedChild.id}}),before);
 });
 test('student setup reads only the activated learner and confirms both support choices without changing authority or hiring data',async()=>{
- const {s,g,owner,linkedChild}=await educationActors();const before=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}}),context=await s.call('/onboarding/student/context');assert.equal(context.status,200,JSON.stringify(context.data));assert(operationValidator('/onboarding/student/context','get','200')(context.data));assert.equal(context.data.learner.id,linkedChild.id);assert.equal(context.data.authority,'GUARDIAN_MANAGED');assert.equal('guardianId' in context.data.learner,false);
+ const {s,g,owner,linkedChild}=await educationActors(false);const before=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}}),context=await s.call('/onboarding/student/context');assert.equal(context.status,200,JSON.stringify(context.data));assert(operationValidator('/onboarding/student/context','get','200')(context.data));assert.equal(context.data.learner.id,linkedChild.id);assert.equal(context.data.authority,'GUARDIAN_MANAGED');assert.equal('guardianId' in context.data.learner,false);
  const body={expectedVersion:0,educationVersion:linkedChild.version,confirmed:true,draft:{managementPreference:'SELF_DIRECTED',subjects:['Physics','Statistics'],language:'Hindi',learningPreferences:'Synthetic visual examples'}},key=randomUUID(),saved=await s.call('/onboarding/student/confirmations',body,{key});assert.equal(saved.status,201,JSON.stringify(saved.data));assert(operationValidator('/onboarding/student/confirmations','post','201')(saved.data));assert.equal(saved.data.state,'READY');assert.equal(saved.data.completedResourceId,linkedChild.id);await assert.rejects(db.onboardingProgress.update({where:{accountId_kind:{accountId:linkedChild.studentAccountId!,kind:'STUDENT'}},data:{completedResourceId:ids.child}}));assert.deepEqual(saved.data.draft,body.draft);assert.deepEqual((await s.call('/onboarding/student/confirmations',body,{key})).data,saved.data);
  const second=await s.call('/onboarding/student/confirmations',{...body,expectedVersion:1,draft:{managementPreference:'GUARDIAN_GUIDED',subjects:[]}});assert.equal(second.status,201);assert.equal(second.data.version,2);assert.deepEqual((await s.call('/onboarding/student/context')).data.progress.draft,{managementPreference:'GUARDIAN_GUIDED',subjects:[]});
  assert.deepEqual(await db.child.findUniqueOrThrow({where:{id:linkedChild.id}}),before);assert.equal((await db.account.findUniqueOrThrow({where:{id:linkedChild.studentAccountId!}})).role,'STUDENT');assert.equal(await db.tuitionRequest.count({where:{childId:linkedChild.id}}),0);assert.equal(await db.invitation.count({where:{childId:linkedChild.id}}),0);assert.equal(await db.audit.count({where:{aggregateId:linkedChild.id,action:'STUDENT_ONBOARDING_CONFIRMED'}}),2);assert.equal((await s.call('/requests',intake({childId:linkedChild.id}))).status,403);assert.equal((await g.call('/onboarding/student/context')).status,403);
  const edit=await s.call('/onboarding/student/drafts',{expectedVersion:2,draft:{managementPreference:'SELF_DIRECTED',subjects:['Maths']}});assert.equal(edit.status,201);assert.equal(edit.data.completedResourceId,null);assert.equal(edit.data.state,'ACTIVE');assert.equal((await db.child.findUniqueOrThrow({where:{id:linkedChild.id}})).guardianId,owner.id);
 });
 test('student setup rejects stale reviews, incomplete education, mass assignment and concurrent duplicate confirmations',async()=>{
- const {s,g,linkedChild}=await educationActors(),path='/onboarding/student/confirmations',body={expectedVersion:0,educationVersion:1,confirmed:true,draft:{managementPreference:'SELF_DIRECTED',subjects:['Maths']}};
+ const {s,g,linkedChild}=await educationActors(false),path='/onboarding/student/confirmations',body={expectedVersion:0,educationVersion:1,confirmed:true,draft:{managementPreference:'SELF_DIRECTED',subjects:['Maths']}};
  assert.equal((await new Client().call(path,body)).status,401);assert.equal((await g.call(path,body)).status,403);assert.equal((await s.call(path,body,{csrf:'wrong'})).status,403);assert.equal((await s.call(path,body,{origin:'https://untrusted.invalid'})).status,403);
  for(const patch of [{confirmed:false},{childId:ids.child},{educationVersion:0},{draft:{managementPreference:'ADULT'}},{draft:{...body.draft,role:'ADMIN'}},{draft:{...body.draft,subjects:['Maths','maths']}},{draft:{...body.draft,subjects:Array.from({length:21},(_,i)=>'Subject '+i)}}])assert.equal((await s.call(path,{...body,...patch})).status,400);
  assert.equal((await s.call(path,{...body,expectedVersion:1})).status,409);assert.equal((await s.call(path,{...body,educationVersion:2})).data.code,'LEARNER_CHANGED');
@@ -1418,7 +1421,7 @@ test('student setup rejects stale reviews, incomplete education, mass assignment
  const [a,b]=await Promise.all([s.call(path,{...body,educationVersion:2}),s.call(path,{...body,educationVersion:2,draft:{managementPreference:'GUARDIAN_GUIDED'}})]);assert.deepEqual([a.status,b.status].sort(),[201,409]);assert.equal(await db.audit.count({where:{aggregateId:linkedChild.id,action:'STUDENT_ONBOARDING_CONFIRMED'}}),1);
 });
 test('student setup supports school, early-years and college profiles and enforces current guardian, privacy and revocation gates',async()=>{
- const {s,owner,linkedChild}=await educationActors(),body={expectedVersion:0,educationVersion:1,confirmed:true,draft:{managementPreference:'GUARDIAN_GUIDED'}},path='/onboarding/student/confirmations';
+ const {s,owner,linkedChild}=await educationActors(false),body={expectedVersion:0,educationVersion:1,confirmed:true,draft:{managementPreference:'GUARDIAN_GUIDED'}},path='/onboarding/student/confirmations';
  for(const data of [{educationStage:'EARLY_YEARS',earlyYearsLevel:'KG2',grade:null,board:null,schoolName:'Synthetic early school',schoolSubjects:['Language'],courseName:null,university:null,studyYear:null},{educationStage:'COLLEGE',earlyYearsLevel:null,grade:null,board:null,schoolName:'Synthetic college',schoolSubjects:['Mechanics'],courseName:'BSc Physics',university:'Synthetic university',studyYear:2}]){await db.child.update({where:{id:linkedChild.id},data});const ctx=await s.call('/onboarding/student/context');assert.equal(ctx.status,200);assert(operationValidator('/onboarding/student/context','get','200')(ctx.data));assert.equal(ctx.data.learner.education.stage,data.educationStage);}
  await db.account.update({where:{id:owner.id},data:{verified:false}});assert.equal((await s.call('/onboarding/student/context')).status,401);assert.equal((await s.call(path,body)).status,401);await db.account.update({where:{id:owner.id},data:{verified:true}});
  const privacy=await db.privacyRequest.create({data:{accountId:owner.id,kind:'DELETION',scope:'CHILD',resourceId:linkedChild.id,reason:'Synthetic student setup privacy pause'}});assert.equal((await s.call('/onboarding/student/context')).status,403);assert.equal((await s.call(path,body)).status,403);await db.privacyRequest.update({where:{id:privacy.id},data:{status:'REJECTED'}});
