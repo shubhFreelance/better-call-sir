@@ -6471,3 +6471,26 @@ html body button.refresh-button[data-slot=button]:disabled { cursor:not-allowed;
 .student-setup-actions { margin-top:24px; }
 @media(max-width:640px) { .student-review-education,.student-review-preferences { padding:16px; } .student-review-preferences dl { grid-template-columns:minmax(0,1fr); } .student-setup-form > h2 { font-size:22px; } }
 .student-setup-form .student-saved-prompt { margin:0 0 20px; padding:12px 14px; border:1px solid #D9E4DF; border-radius:10px; background:#EEF5F3; color:#034F46; font-size:12px; line-height:1.7; }
+
+.student-welcome .wizard-title { margin-bottom:24px; }
+.student-welcome .wizard-title h1 { font-size:32px; line-height:1.25; }
+.student-welcome .wizard-title p { font-size:13px; line-height:1.7; }
+.student-spaces-heading { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+.student-spaces-heading h2 { margin:0; font-size:20px; color:#034F46; }
+.student-spaces-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); gap:20px; }
+.student-subject-card { min-width:0; min-height:240px; padding:24px; border:1px solid #D5D5BE; border-radius:20px; background:#E4E4D0; color:#034F46; }
+.student-space-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+.student-space-edit { display:inline-flex; justify-content:center; align-items:center; width:44px; height:44px; padding:0; border:1px solid transparent; border-radius:50%; background:transparent; color:#034F46; cursor:pointer; transition:background .15s,border-color .15s; }
+.student-space-edit:hover,.student-space-edit:focus-visible { background:#F0D7FF; border-color:#DAB5EE; }
+.student-subject-card h3 { margin:0 0 14px; font-size:22px; color:#034F46; overflow-wrap:anywhere; }
+.student-subject-card h3 a { text-decoration:none; border-radius:4px; }
+.student-subject-card h3 a:hover { text-decoration:underline; text-underline-offset:4px; }
+.student-subject-card p { margin:5px 0; font-size:12px; line-height:1.7; color:#344A43; overflow-wrap:anywhere; }
+.student-subject-card .student-space-education { font-weight:600; }
+.student-subject-card .student-space-language { margin-top:18px; }
+.student-space-add { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; border-style:dashed; font:inherit; font-size:14px; cursor:pointer; transition:background .15s,border-color .15s; }
+.student-space-add:hover,.student-space-add:focus-visible { background:#F0D7FF; border-color:#034F46; }
+.student-space-add:disabled,.student-space-edit:disabled { opacity:.5; cursor:not-allowed; }
+.student-space-edit:focus-visible,.student-space-add:focus-visible { outline:2px solid #034F46; outline-offset:3px; }
+.student-setup-form > button { margin-bottom:18px; }
+@media(max-width:640px) { .student-welcome .wizard-title h1 { font-size:26px; } .student-subject-card { padding:20px; } }

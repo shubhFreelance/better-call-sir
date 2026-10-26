@@ -2099,7 +2099,7 @@ function StudentOnboarding() {
   </main>;
   if ((mode === "together" || session.account.studentSetupPending) && ["GUARDIAN","STUDENT"].includes(session.account.role)) return <main className="container narrow section"><StudentConnection session={session} onSessionChange={setSession}/></main>;
   if (session.account.role === "STUDENT")
-    return <StudentWelcome session={session} />;
+    return <DashboardShell tab="/onboarding/student"><StudentWelcome session={session} /></DashboardShell>;
   if (session.account.role !== "GUARDIAN")
     return (
       <main className="container narrow section">

@@ -1,5 +1,17 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Your subject spaces": "आपके विषय स्पेस",
+  "Your {0} space is saved. Add another subject from your subject spaces.": "आपका {0} स्पेस सहेजा गया है। अपने विषय स्पेस से दूसरा विषय जोड़ें।",
+  "About subject spaces": "विषय स्पेस के बारे में",
+  "Create one space per subject, with its own language and learning preferences.": "हर विषय के लिए भाषा और सीखने की पसंद के साथ अलग स्पेस बनाएँ।",
+  "Edit {0} space": "{0} स्पेस बदलें",
+  "Add a subject space": "विषय स्पेस जोड़ें",
+  "Back to subject spaces": "विषय स्पेस पर वापस जाएँ",
+  "Subject for this space": "इस स्पेस का विषय",
+  "Other subject": "अन्य विषय",
+  "Choose one subject for this space.": "इस स्पेस के लिए एक विषय चुनें।",
+  "You cannot change the subject because you have already created a space for it.": "आप यह विषय नहीं चुन सकते क्योंकि इसका स्पेस पहले से बना हुआ है।",
+
   "3 · Setup saved": "3 · सेटअप सहेजा गया",
   "Your setup is saved for {0}. Update it to add other subjects.": "{0} के लिए आपका सेटअप सहेजा गया है। दूसरे विषय जोड़ने के लिए इसे अपडेट करें।",
   "Your preferences are saved. You can update your setup to add subjects.": "आपकी पसंद सहेज ली गई है। विषय जोड़ने के लिए अपना सेटअप अपडेट करें।",
