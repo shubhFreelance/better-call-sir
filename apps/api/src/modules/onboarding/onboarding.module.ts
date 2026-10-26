@@ -9,7 +9,8 @@ import {applicationSchema,submitTeacher} from '../teachers/teachers.module';
 const kindSchema=z.enum(['parent','teacher','student','enquiry']);
 const childFields=['alias','grade','board','childId','schoolName','schoolSubjects'];
 const managementPreference=z.enum(['SELF_DIRECTED','GUARDIAN_GUIDED']);
-const studentDraft=z.object({managementPreference:managementPreference.optional(),subjects:z.array(subjectSchema).max(20).refine(a=>new Set(a.map(s=>s.toLowerCase())).size===a.length,'Choose distinct subjects.').optional(),language:z.enum(['English','Hindi']).optional(),learningPreferences:text(500).optional()}).strict();
+const studentSpace=z.object({subject:subjectSchema,language:z.enum(['English','Hindi']).optional(),learningPreferences:text(500).optional()}).strict();
+const studentDraft=z.object({managementPreference:managementPreference.optional(),subjects:z.array(subjectSchema).max(20).refine(a=>new Set(a.map(s=>s.toLowerCase())).size===a.length,'Choose distinct subjects.').optional(),language:z.enum(['English','Hindi']).optional(),learningPreferences:text(500).optional(),spaces:z.array(studentSpace).max(20).refine(a=>new Set(a.map(s=>s.subject.toLowerCase())).size===a.length,'You cannot change the subject because you have already created a space for it.').optional()}).strict();
 @Controller('api/v1')
 class OnboardingController {
  constructor(@Inject(AppService) private readonly service:AppService){}
@@ -78,7 +79,7 @@ class OnboardingController {
    const current=await db.onboardingProgress.findUnique({where:{accountId_kind:{accountId:actor.id,kind:'STUDENT'}}});
    if((current?.version||0)!==data.expectedVersion)fail(409,'CONFLICT','Your saved setup changed. Reload and review it again.');
    const legacyPreference=managementPreference.safeParse((current?.draft as {managementPreference?:unknown}|null)?.managementPreference);
-   const saved={draft:{...(legacyPreference.success?{managementPreference:legacyPreference.data}:{}),...data.draft},completedResourceId:child.id};
+   const saved={draft:{...(legacyPreference.success?{managementPreference:legacyPreference.data}:{}),...data.draft,...(data.draft.spaces?{subjects:data.draft.spaces.map(space=>space.subject)}:{})},completedResourceId:child.id};
    const progress=current?await db.onboardingProgress.update({where:{id:current.id},data:{...saved,version:{increment:1}}}):await db.onboardingProgress.create({data:{accountId:actor.id,kind:'STUDENT',...saved}});
    await this.service.audit(db,actor,req,'STUDENT_ONBOARDING_CONFIRMED',child.id,'Student reviewed education and learning preferences',undefined,{educationVersion:child.version,setupVersion:progress.version,authority:'GUARDIAN_MANAGED'});
    return this.result(db,actor,'STUDENT');

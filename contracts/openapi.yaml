@@ -46206,9 +46206,43 @@
           "enquiryStatus"
         ]
       },
+      "StudentSubjectSpace": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "English",
+              "Hindi"
+            ]
+          },
+          "learningPreferences": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "subject"
+        ],
+        "additionalProperties": false
+      },
       "StudentLearningPreferences": {
         "type": "object",
         "properties": {
+          "spaces": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/StudentSubjectSpace"
+            },
+            "description": "Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces."
+          },
           "managementPreference": {
             "type": "string",
             "enum": [
@@ -46281,6 +46315,14 @@
           "draft": {
             "type": "object",
             "properties": {
+              "spaces": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "$ref": "#/components/schemas/StudentSubjectSpace"
+                },
+                "description": "Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces."
+              },
               "managementPreference": {
                 "type": "string",
                 "enum": [

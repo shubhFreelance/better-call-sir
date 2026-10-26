@@ -1337,6 +1337,22 @@ test('guardian setup gates hide learner and enquiry metadata and deny non-guardi
  const paused=await db.privacyRequest.create({data:{accountId:owner.id,kind:'DELETION',scope:'CHILD',resourceId:(await db.child.findFirstOrThrow({where:{guardianId:owner.id}})).id,reason:'Synthetic setup privacy pause'}});await gate('PRIVACY_PAUSED');await db.privacyRequest.update({where:{id:paused.id},data:{status:'REJECTED'}});await db.consent.delete({where:{guardianId:owner.id}});await gate('CONSENT_REQUIRED');
 });
 
+test('student subject spaces retain independent preferences and reject duplicate subjects without changing authority',async()=>{
+ const {s,linkedChild}=await educationActors(),path='/onboarding/student/confirmations';
+ const before=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}});
+ const spaces=[{subject:'Maths',language:'Hindi',learningPreferences:'Use pictures'},{subject:'Science',language:'English'}];
+ const body={expectedVersion:0,educationVersion:before.version,confirmed:true,draft:{spaces}};
+ const saved=await s.call(path,body);assert.equal(saved.status,201,JSON.stringify(saved.data));
+ assert.deepEqual(saved.data.draft.spaces,spaces);assert.deepEqual(saved.data.draft.subjects,['Maths','Science']);
+ assert(operationValidator(path,'post','201')(saved.data));
+ assert.deepEqual((await s.call('/onboarding/student/context')).data.progress.draft.spaces,spaces);
+ const duplicate=await s.call(path,{...body,expectedVersion:1,draft:{spaces:[spaces[0],{subject:'maths',language:'English'}]}});
+ assert.equal(duplicate.status,400);assert.match(JSON.stringify(duplicate.data),/already created a space/);
+ const edited=[{subject:'Physics',language:'English'},spaces[1]];
+ const updated=await s.call(path,{...body,expectedVersion:1,draft:{spaces:edited}});assert.equal(updated.status,201);assert.deepEqual(updated.data.draft.spaces,edited);
+ assert.equal((await s.call(path,{...body,expectedVersion:1})).status,409);
+ assert.deepEqual(await db.child.findUniqueOrThrow({where:{id:linkedChild.id}}),before);
+});
 test('student setup saves without a repeated support choice and preserves existing management permissions',async()=>{
  const {s,linkedChild}=await educationActors(),path='/onboarding/student/confirmations';
  const before=await db.child.findUniqueOrThrow({where:{id:linkedChild.id}});
