@@ -5,10 +5,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type Session, type paths } from "@bcs/api-client";
-import { ClipboardList, ChevronDown, Clock3, CircleCheck, CircleX, MessageSquare, CircleMinus } from "lucide-react";
+import { ClipboardList, ChevronDown, Clock3, CircleCheck, CircleX, MessageSquare, CircleMinus, Eye } from "lucide-react";
 import { StatusBadge, StatusFilters } from "../components/ui/status-controls";
 import { Button } from "../components/ui/button";
-import { FilterButton } from "../components/ui/filter-button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { useAppTranslation } from "./locale";
@@ -254,7 +253,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                     icon={!item.sourceOpen && ["PENDING", "PROPOSED"].includes(item.status) ? CircleMinus : item.status === "PENDING" ? Clock3 : item.status === "ACCEPTED" ? CircleCheck : item.status === "DECLINED" ? CircleX : MessageSquare}
                   />
                 </div>
-                {onViewEnquiry && item.kind === "GUARDIAN" && <FilterButton disabled={decision.locked || disabled} onClick={() => onViewEnquiry(item.sourceId)}>{appText("View saved enquiry")}</FilterButton>}
+                {onViewEnquiry && item.kind === "GUARDIAN" && <Button type="button" variant="ghost" size="icon" className="evidence-preview-trigger" aria-label={appText("View enquiry {0}", [appCurriculum(item.subject)])} title={appText("View enquiry {0}", [appCurriculum(item.subject)])} aria-haspopup="dialog" disabled={decision.locked || disabled} onClick={() => onViewEnquiry(item.sourceId)}><Eye size={18} aria-hidden="true"/></Button>}
                 {!onViewEnquiry && <ChevronDown size={18} aria-hidden="true" />}
               </CardHeading>
               {!onViewEnquiry && <div className="direct-enquiry-body">

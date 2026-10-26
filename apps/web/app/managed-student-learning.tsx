@@ -14,6 +14,8 @@ import {
 } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
+import { Eye } from "lucide-react";
+import { Modal } from "../components/ui/modal";
 import { LearningManagementBadge } from "../components/ui/learning-management-badge";
 import { Input } from "../components/ui/input";
 import {
@@ -199,7 +201,6 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
           onSaved={(id) => {
             setSelected(id);
             router.replace("/dashboard/learning-choices?request=" + encodeURIComponent(id));
-            setOpen(false);
             setLocked(false);
           }}
         />
@@ -207,7 +208,7 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
       {visible && history.data && dashboard.data && (
         <section className="care-card">
           <h2>{appText("Your enquiries")}</h2>
-          {!open && !selected && <DirectEnquiries session={session} disabled={locked} onViewEnquiry={viewEnquiry}/>}
+          {!open && <DirectEnquiries session={session} disabled={locked} onViewEnquiry={viewEnquiry}/>}
           {history.data.items.length ? (
             <label className="field">
               {appText("Choose an enquiry")}
@@ -266,9 +267,6 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
               </Button>
             </nav>
           )}
-          {selected && selectedRequest.isPending && <p role="status">{appText("Loading enquiries…")}</p>}
-          {selected && selectedRequest.error && <Notice error>{appText("This enquiry is unavailable on the current page.")} <RefreshButton label={appText("Reload learning choices")} disabled={locked || open || selectedRequest.isFetching} onClick={() => selectedRequest.refetch()}/></Notice>}
-          {selected && <FilterButton disabled={locked || open} onClick={() => {setSelected("");router.replace("/dashboard/learning-choices");}}>{appText("All enquiries")}</FilterButton>}
           {selected && !chosen && !selectedRequest.isPending && !selectedRequest.error && (
             <Notice>
               {appText("This enquiry is unavailable on the current page.")}{" "}
@@ -286,7 +284,10 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
           )}
         </section>
       )}
-      {chosen && !open && dashboard.data && (
+      <Modal open={!!selected} title={appText("View saved enquiry")} onOpenChange={next => {if(!next && !locked){setSelected("");router.replace("/dashboard/learning-choices");}}}>
+      {selectedRequest.isPending && <p role="status">{appText("Loading enquiries…")}</p>}
+      {(!visible || selectedRequest.error) && <Notice error>{appText("Your current learning choices could not be loaded. Private details are hidden.")} <RefreshButton label={appText("Reload learning choices")} disabled={locked || selectedRequest.isFetching} onClick={() => {void selectedRequest.refetch();void refresh().catch(() => {});}}/></Notice>}
+      {chosen && visible && dashboard.data && (
         <>
           <EnquiryAuthority
             key={chosen.id}
@@ -316,6 +317,7 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
           />
         </>
       )}
+      </Modal>
       <div id="optional-demos">
         <DemoJourney
           hideEmpty
@@ -469,9 +471,7 @@ function LearningEnquiryEditor({
         {decision.conflict && (
           <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning choices")} />
         )}
-        <FilterButton accent disabled={decision.locked} onClick={() => onSaved(savedId)}>
-          {appText("View saved enquiry")}
-        </FilterButton>
+        <Button type="button" variant="ghost" size="icon" className="evidence-preview-trigger" aria-label={appText("View saved enquiry")} title={appText("View saved enquiry")} aria-haspopup="dialog" disabled={decision.locked} onClick={() => onSaved(savedId)}><Eye size={18} aria-hidden="true"/></Button>
         <DirectEnquiries session={session} disabled={decision.locked} onViewEnquiry={onSaved}/>
       </section>
     );

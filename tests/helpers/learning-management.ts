@@ -308,11 +308,11 @@ export function learningManagementTests() {
     await page.route("**/api/v1/direct-enquiries**",route=>{const status=new URL(route.request().url()).searchParams.get("status");reads.push(status||"ALL");return route.fulfill({json:{items:items.filter(item=>!status||item.status===status),counts:{PENDING:1,ACCEPTED:1},nextCursor:null}});});
     await page.route("**/api/v1/requests/"+secondId,route=>route.fulfill({json:sources[1]}));
     await page.goto("/dashboard/learning-choices");const panel=page.locator(".direct-inbox");
-    await expect(panel.getByRole("button",{name:"View saved enquiry",exact:true})).toHaveCount(2);
+    await expect(panel.getByRole("button",{name:/^View enquiry /})).toHaveCount(2);
     await panel.getByRole("button",{name:"Accepted",exact:true}).click();await expect(panel.locator(".direct-enquiry-card")).toHaveCount(1);
-    await panel.getByRole("button",{name:"View saved enquiry",exact:true}).click();await expect(page).toHaveURL(new RegExp("request="+secondId));
-    await expect(page.locator(".tuition-request-review h2")).toContainText("Science");await page.reload();await expect(page.locator(".tuition-request-review h2")).toContainText("Science");
-    await page.getByRole("button",{name:"All enquiries",exact:true}).click();await expect(page).not.toHaveURL(/request=/);await expect(page.locator(".direct-inbox .direct-enquiry-card")).toHaveCount(2);
+    const eye=panel.getByRole("button",{name:"View enquiry Science",exact:true});await expect(eye).toHaveText("");await expect(eye.locator("svg")).toHaveCount(1);await eye.click();await expect(page).toHaveURL(new RegExp("request="+secondId));
+    await expect(page.getByRole("dialog",{name:"View saved enquiry",exact:true})).toBeVisible();expect(await page.locator(".app-modal[open]").evaluate(node=>getComputedStyle(node,"::backdrop").backgroundColor)).toBe("rgba(0, 0, 0, 0.6)");await expect(page.locator(".tuition-request-review h2")).toContainText("Science");await page.keyboard.press("Escape");await expect(eye).toBeFocused();await eye.click();await page.reload();await expect(page.locator(".tuition-request-review h2")).toContainText("Science");await page.setViewportSize({width:360,height:850});expect((await new AxeBuilder({page}).include(".app-modal").analyze()).violations).toEqual([]);await page.locator(".app-modal").screenshot({path:"test-results/saved-enquiry-modal.png",style:"nextjs-portal{display:none!important}"});
+    await page.getByRole("dialog").getByRole("button",{name:"Close",exact:true}).click();await expect(page).not.toHaveURL(/request=/);await panel.getByRole("button",{name:"All",exact:true}).click();await expect(page.locator(".direct-inbox .direct-enquiry-card")).toHaveCount(2);
     expect(reads).toContain("ACCEPTED");expect(f.writes).toHaveLength(0);
     await page.setViewportSize({width:360,height:850});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     expect((await new AxeBuilder({page}).include(".direct-inbox").analyze()).violations).toEqual([]);
@@ -443,6 +443,7 @@ export function learningManagementTests() {
         exact: true,
       }),
     ).toBeDisabled();
+    await page.getByRole("combobox",{name:"Choose an enquiry",exact:true}).selectOption(enquiryId);
     await expect(
       page.getByRole("button", { name: "Ask guardian to decide", exact: true }),
     ).toBeDisabled();
@@ -487,7 +488,7 @@ export function learningManagementTests() {
       mode: "SHARED",
       history: true,
     });
-    await page.goto("/dashboard/learning-choices");
+    await page.goto("/dashboard/learning-choices?request="+enquiryId);
     await page
       .getByRole("button", { name: "Ask guardian to decide", exact: true })
       .click();
@@ -660,7 +661,7 @@ export function learningManagementTests() {
         .getByRole("button", { name: "View saved enquiry", exact: true })
         .click();
       await expect(
-        page.getByRole("heading", { name: "Your enquiries", exact: true }),
+        page.getByRole("dialog", { name: "View saved enquiry", exact: true }),
       ).toBeVisible();
     });
   }

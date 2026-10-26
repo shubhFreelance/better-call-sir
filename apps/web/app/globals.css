@@ -6128,7 +6128,7 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .app-modal { width:min(880px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); padding:0; border:1px solid #D9E4DF; border-radius:20px; background:#FFFFEB; color:#17201F; overflow:hidden; box-shadow:0 20px 60px #0004; }
 .app-modal:not([open]) { display:none; }
 .app-modal[open] { display:flex; flex-direction:column; }
-.app-modal::backdrop { background:#034F4699; }
+.app-modal::backdrop { background:#0009; }
 .app-modal-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex:none; padding:20px; background:#034F46; }
 .app-modal-header > div { min-width:0; }
 .app-modal-header h2 { margin:0; color:#FFFFEB; font-size:20px; line-height:1.4; overflow-wrap:anywhere; }
@@ -6565,9 +6565,7 @@ html body button.refresh-button[data-slot=button]:disabled { cursor:not-allowed;
 .managed-enquiry-actions { margin-top:20px; }
 @media(max-width:640px) { .managed-enquiry-confirmation { padding:14px; } }
 
-.direct-enquiry-card>.direct-enquiry-heading>.filter-button { flex-shrink:0; min-height:44px; padding:8px 14px; font-size:12px; }
-@media(max-width:640px) { .direct-enquiry-card>.direct-enquiry-heading>.filter-button { margin-left:auto; } }
 
 article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 
-@media(max-width:640px) { article.direct-enquiry-card>.direct-enquiry-heading>div:first-child { flex-basis:100%; } article.direct-enquiry-card .direct-enquiry-summary-meta { order:2; flex-basis:100%; } article.direct-enquiry-card>.direct-enquiry-heading>.filter-button { order:3; width:100%; } }
+@media(max-width:640px) { article.direct-enquiry-card>.direct-enquiry-heading>div:first-child { flex-basis:calc(100% - 64px); } article.direct-enquiry-card .direct-enquiry-summary-meta { order:2; flex-basis:100%; } article.direct-enquiry-card>.direct-enquiry-heading>.evidence-preview-trigger { margin-left:auto; } }
