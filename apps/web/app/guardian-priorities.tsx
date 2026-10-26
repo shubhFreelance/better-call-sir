@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import {useId,useState,useRef} from "react";
 import Link from "next/link";
 import {useQuery} from "@tanstack/react-query";
@@ -29,7 +30,7 @@ export function GuardianPriorities({session,indicator=false}:{session:Session;in
  if(query.data?.setup.gate==="VERIFICATION_REQUIRED"&&!tasks.length)tasks.push({id:"verification",name:"",label:"Start guardian verification",href:"/guardian-verification"});
  const unavailable=!!query.error;
  const title=query.isPending?appText("Checking remaining steps…"):unavailable?appText("Remaining steps could not be checked."):tasks.map(t=>(t.name?t.name+": ":"")+appText(t.label)).join("\n");
- const details=<>{query.isPending?<p role="status">{appText("Checking remaining steps…")}</p>:unavailable?<p role="alert">{appText("Remaining steps could not be checked.")}</p>:<ul>{tasks.map(task=><li key={task.id}><strong>{task.name}</strong><p>{appText(task.label)}</p><Link href={task.href}>{appText(task.label==="Your verification is pending"?"View progress":"Continue setup")}</Link></li>)}</ul>}<Button variant="outline" disabled={query.isFetching} onClick={()=>query.refetch()}>{appText("Refresh remaining steps")}</Button></>;
+ const details=<>{query.isPending?<p role="status">{appText("Checking remaining steps…")}</p>:unavailable?<p role="alert">{appText("Remaining steps could not be checked.")}</p>:<ul>{tasks.map(task=><li key={task.id}><strong>{task.name}</strong><p>{appText(task.label)}</p><Link href={task.href}>{appText(task.label==="Your verification is pending"?"View progress":"Continue setup")}</Link></li>)}</ul>}<RefreshButton variant="outline" disabled={query.isFetching} onClick={()=>query.refetch()} label={appText("Refresh remaining steps")} /></>;
  if(!query.isPending&&!unavailable&&!tasks.length)return null;
  if(indicator)return <div className="guardian-priority-indicator" onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setOpen(false);}} onKeyDown={event=>{if(event.key==="Escape"){setOpen(false);trigger.current?.focus();}}}><button ref={trigger} type="button" className="guardian-priority-dot" aria-label={appText("View remaining crucial steps")} title={title} aria-expanded={open} aria-controls={panel} onClick={()=>setOpen(!open)}>{query.isPending?"…":unavailable?"!":tasks.length}</button>{open&&<div id={panel} className="guardian-priority-popover" role="region" aria-label={appText("Remaining crucial steps")}>{details}</div>}</div>;
  return <section className="guardian-priorities" aria-label={appText("Remaining crucial steps")}><header><h2>{appText("Your next important steps")}</h2><InfoTooltip label={appText("Your next important steps")} items={[appText("Complete these steps for each child. Pending staff review does not need another submission.")]} /></header><p className="guardian-priorities-note">{appText("Pending staff review does not need another submission.")}</p>{details}</section>;

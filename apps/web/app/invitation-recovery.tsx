@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -165,13 +166,11 @@ export function InvitationRecovery({
     <div className="invitation-recovery">
       <div className="panel-title">
         <h3>{appText("Student invitation")}</h3>
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={busy || uncertain || blocked || !consentActive}
           onClick={refresh}
-        >
-          {appText("Refresh invitation status")}{" "}
-        </Button>
+         label={appText("Refresh invitation status")} />
       </div>
       {!consentActive ? (
         <p>

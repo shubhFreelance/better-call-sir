@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
@@ -251,13 +252,11 @@ export function NotesWorkspace({
           </p>
         </div>
         <div>
-          <Button
+          <RefreshButton
             variant="outline"
             disabled={decision.locked || query.isFetching || mode !== null}
             onClick={() => query.refetch()}
-          >
-            {appText("Refresh notes")}{" "}
-          </Button>
+           label={appText("Refresh notes")} />
           {guardian && (
             <Button
               disabled={!canCreate || launchBlocked}
@@ -270,13 +269,11 @@ export function NotesWorkspace({
       </div>
       <Feedback decision={decision} />
       {decision.conflict && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy}
           onClick={() => decision.reload()}
-        >
-          {appText("Refresh current note")}{" "}
-        </Button>
+         label={appText("Refresh current note")} />
       )}
       {query.isPending && <p role="status">{appText("Loading your notes…")}</p>}
       {query.error && (

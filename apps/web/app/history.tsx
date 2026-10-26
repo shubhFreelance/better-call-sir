@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useEffect, useRef } from "react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@bcs/api-client";
@@ -136,13 +137,11 @@ export function HistoryPages({
           {appText("Load more records")}
         </Button>
       )}
-      <Button
+      <RefreshButton
         variant="ghost"
         disabled={disabled || history.isFetching}
         onClick={() => action(history.restart)}
-      >
-        {appText("Reload history")}
-      </Button>
+       label={appText("Reload history")} />
     </div>
   );
 }

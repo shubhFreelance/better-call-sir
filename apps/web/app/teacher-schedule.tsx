@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -391,14 +392,12 @@ export function TeacherSchedule({
             )}{" "}
           </p>
         </div>
-        <Button
+        <RefreshButton
           variant="outline"
           type="button"
           disabled={busy || uncertain}
           onClick={refresh}
-        >
-          {appText("Refresh schedule")}{" "}
-        </Button>
+         label={appText("Refresh schedule")} />
       </div>
       <Tabs
         value={tab}

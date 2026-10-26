@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { GuardianSetup } from "./guardian-setup";
@@ -811,16 +812,14 @@ function OwnerVerification({
       <Feedback decision={decision} floating />
       {(decision.conflict || unavailable || (!!id && !editing)) &&
         !decision.uncertain && (
-          <Button
+          <RefreshButton
             variant="outline"
             disabled={decision.busy || detail.isFetching}
             onClick={() => {
               setConfirmed(false);
               decision.reload();
             }}
-          >
-            {appText("Refresh verification details")}
-          </Button>
+           label={appText("Refresh verification details")} />
         )}
       {unavailable && (
         <Notice error>
@@ -1208,16 +1207,14 @@ function StudentAcknowledgments({
       </p>
       <Feedback decision={decision} floating />
       {decision.conflict && !decision.uncertain && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy}
           onClick={() => {
             setConfirmed(false);
             decision.reload();
           }}
-        >
-          {appText("Refresh relationship requests")}
-        </Button>
+         label={appText("Refresh relationship requests")} />
       )}
       {history.isPending && (
         <p role="status">{appText("Loading acknowledgment requests…")}</p>
@@ -1356,7 +1353,7 @@ function StudentAcknowledgments({
                 >
                   {appText("Close relationship review")}
                 </FilterButton>
-                <FilterButton accent
+                <RefreshButton
                   disabled={decision.locked}
                   onClick={async () => {
                     try {
@@ -1367,9 +1364,7 @@ function StudentAcknowledgments({
                       );
                     }
                   }}
-                >
-                  {appText("Refresh account status")}
-                </FilterButton>
+                 label={appText("Refresh account status")} />
               </FilterButtonGroup>
             </section>
           )}
@@ -1477,7 +1472,7 @@ function VerificationQueue({ session }: { session: Session }) {
         <FilterButtonGroup>
           <FilterButton disabled={!!selected || queue.isFetching || !currentPage || !!queue.error} onClick={() => { setPage(currentPage - 1); requestAnimationFrame(() => heading.current?.focus()); }}>{appText("Previous page")}</FilterButton>
           <FilterButton accent disabled={!!selected || queue.isFetching || !canNext || queue.looped || !!queue.error} onClick={() => void nextPage()}>{appText("Next page")}</FilterButton>
-          <FilterButton disabled={!!selected || queue.isFetching} onClick={() => { setPage(0); void queue.restart(); }}>{appText("Reload history")}</FilterButton>
+          <RefreshButton disabled={!!selected || queue.isFetching} onClick={() => { setPage(0); void queue.restart(); }} label={appText("Reload history")} />
         </FilterButtonGroup>
       </nav>
       {selected && (
@@ -1616,7 +1611,7 @@ function StaffVerification({
       <h3>{appText("Review guardian evidence")}</h3>
       <Feedback decision={decision} floating />
       {!decision.uncertain && (!retryScan || decision.conflict || unavailable) && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || detail.isFetching}
           onClick={() => {
@@ -1625,9 +1620,7 @@ function StaffVerification({
             setConfirmed(false);
             decision.reload();
           }}
-        >
-          {appText("Refresh verification details")}
-        </Button>
+         label={appText("Refresh verification details")} />
       )}
       {detail.isPending && (
         <p role="status">{appText("Loading verification details…")}</p>

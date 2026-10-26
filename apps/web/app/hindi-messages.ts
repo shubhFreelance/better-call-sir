@@ -1,5 +1,7 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Current family choice": "परिवार का वर्तमान निर्णय",
+  "Only the guardian can change this permission.": "केवल अभिभावक ही यह अनुमति बदल सकते हैं।",
   "Page {0}": "पृष्ठ {0}",
   "You can explore teachers while waiting.": "प्रतीक्षा के दौरान आप शिक्षक खोज सकते हैं।",
   "Preparing document…": "दस्तावेज़ तैयार हो रहा है…",

@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import { useState } from "react";
@@ -169,13 +170,11 @@ export function RoleOverview({
                     ? appText("Family activity")
                     : appText("Your learning activity")}
               </h3>
-              <Button
+              <RefreshButton
                 variant="outline"
                 disabled={query.isFetching}
                 onClick={() => query.refetch()}
-              >
-                {appText("Refresh activity")}{" "}
-              </Button>
+               label={appText("Refresh activity")} />
             </div>
             <p>
               {date(data.window.from, appLocale)}–

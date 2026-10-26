@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { useState } from "react";
 import Link from "next/link";
@@ -493,13 +494,11 @@ function ServiceReport({
         )}
         {data && !report.error && (
           <div className="care-actions">
-            <Button
+            <RefreshButton
               variant="outline"
               disabled={report.isFetching}
               onClick={() => report.refetch()}
-            >
-              {appText("Refresh request cohorts")}{" "}
-            </Button>
+             label={appText("Refresh request cohorts")} />
           </div>
         )}
       </section>
@@ -793,13 +792,11 @@ function FinanceReport({ session, range }: { session: Session; range: Range }) {
             </p>
           )}
           <div className="care-actions">
-            <Button
+            <RefreshButton
               variant="outline"
               onClick={() => query.refetch()}
               disabled={query.isFetching}
-            >
-              {appText("Refresh financial report")}{" "}
-            </Button>
+             label={appText("Refresh financial report")} />
             <Link href="/dashboard/finance">
               {appText("Inspect invoices, captures and obligations")}{" "}
             </Link>

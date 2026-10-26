@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { type Session, type components } from "@bcs/api-client";
@@ -347,13 +348,11 @@ function StaffEditor({
     <>
       <Feedback decision={decision} />
       {(decision.error || decision.conflict || unavailable) && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
-        >
-          {appText("Reload staff records")}
-        </Button>
+         label={appText("Reload staff records")} />
       )}
       <Button variant="ghost" disabled={decision.locked} onClick={close}>
         {appText(finished ? "Close staff review" : "Discard staff review")}

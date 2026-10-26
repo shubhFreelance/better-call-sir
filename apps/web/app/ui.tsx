@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAccountEntry } from "./account-entry";
 import { LandingMotion } from "./landing-motion";
 import { PromiseTicker } from "./promise-ticker";
@@ -1367,7 +1368,7 @@ function Teachers() {
                     : appText("All matching teachers are shown.")}
               </p>
               {(query.hasNextPage || paginationBlocked) && (
-                <UiButton
+                <RefreshButton
                   type="button"
                   variant="outline"
                   disabled={query.isFetching}
@@ -1383,8 +1384,7 @@ function Teachers() {
                     if (!next.isError && !next.data?.pages.at(-1)?.nextCursor)
                       resultSummary.current?.focus();
                   }}
-                >
-                  {query.isFetching
+                 label={query.isFetching
                     ? appText(
                         query.isFetchingNextPage
                           ? "Loading more teachers…"
@@ -1394,8 +1394,7 @@ function Teachers() {
                       ? appText("Refresh search")
                       : query.isFetchNextPageError
                         ? appText("Try loading more teachers again")
-                        : appText("Load more teachers")}
-                </UiButton>
+                        : appText("Load more teachers")} iconOnly={paginationBlocked} />
               )}
             </section>
           )}
@@ -1502,16 +1501,14 @@ function Profile({ slug }: { slug: string }) {
           {appText("← All teachers")}{" "}
         </Link>
         {t && !failure && (
-          <UiButton
+          <RefreshButton
             type="button"
             variant="outline"
             disabled={query.isFetching}
             onClick={() => query.refetch({ cancelRefetch: false })}
-          >
-            {appText(
+           label={appText(
               query.isFetching ? "Checking profile…" : "Refresh profile",
-            )}
-          </UiButton>
+            )} />
         )}
       </div>
       <State loading={query.isPending && !failure} />

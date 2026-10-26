@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import {
   OnboardingReadBoundary,
   onboardingAccessDenied,
@@ -277,7 +278,7 @@ export function GuardianOnboarding({
           <Link className="button secondary" href="/teachers">
             {appText("Explore teachers")}{" "}
           </Link>
-          <Button
+          <RefreshButton
             className="button"
             onClick={async () => {
               try {
@@ -287,9 +288,7 @@ export function GuardianOnboarding({
                 setVerificationError((error as Error).message);
               }
             }}
-          >
-            {appText("Refresh verification status")}{" "}
-          </Button>
+           label={appText("Refresh verification status")} />
         </div>
         <Link className="inline-link" href="/support">
           {appText("Get help with your account")}{" "}
@@ -739,9 +738,7 @@ function Wizard({
           <Alert variant="destructive">
             <AlertDescription>
               {appError(serverError)}{" "}
-              <Button variant="outline" disabled={busy} onClick={onReload}>
-                {appText("Reload saved progress")}{" "}
-              </Button>
+              <RefreshButton variant="outline" disabled={busy} onClick={onReload} label={appText("Reload saved progress")} />
             </AlertDescription>
           </Alert>
         )}
@@ -914,9 +911,7 @@ function Wizard({
               <AlertDescription>
                 {appError(serverError)}
                 {conflict && (
-                  <Button variant="outline" disabled={busy} onClick={onReload}>
-                    {appText("Reload saved progress")}{" "}
-                  </Button>
+                  <RefreshButton variant="outline" disabled={busy} onClick={onReload} label={appText("Reload saved progress")} />
                 )}
               </AlertDescription>
             </Alert>

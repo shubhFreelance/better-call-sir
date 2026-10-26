@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -490,13 +491,11 @@ function Timetable({
         </Notice>
       )}
       <div className="learning-actions">
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
-        >
-          {appText("Refresh timetable")}{" "}
-        </Button>
+         label={appText("Refresh timetable")} />
         {!closed && (
           <Button
             className="button"
@@ -801,13 +800,11 @@ function LearningRecords({ session }: { session: Session }) {
           <BookOpen size={24} aria-hidden="true" />
           <h2>{appText("Every lesson, in view.")}</h2>
         </div>
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={locked || query.isFetching}
           onClick={() => query.refetch()}
-        >
-          {appText("Refresh lessons")}{" "}
-        </Button>
+         label={appText("Refresh lessons")} />
       </div>
       <p>
         {appText(
@@ -1504,13 +1501,11 @@ function LessonRecord({
       )}
       <Feedback decision={decision} />
       {decision.conflict && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy}
           onClick={() => decision.reload()}
-        >
-          {appText("Refresh attendance record")}{" "}
-        </Button>
+         label={appText("Refresh attendance record")} />
       )}
     </article>
   );

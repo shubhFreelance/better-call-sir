@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -176,13 +177,11 @@ export function NotificationWorkspace({
             {history.error && (
               <Notice error>
                 {appError(history.error.message)}{" "}
-                <Button
+                <RefreshButton
                   variant="outline"
                   disabled={locked}
                   onClick={() => history.refetch()}
-                >
-                  {appText("Reload delivery records")}
-                </Button>
+                 label={appText("Reload delivery records")} />
               </Notice>
             )}
             {history.data && !history.error && (
@@ -316,13 +315,11 @@ function DeliveryDetail({
         <p role="status">{appText("Loading delivery details…")}</p>
       )}
       {(query.error || decision.conflict) && (
-        <Button
+        <RefreshButton
           disabled={decision.busy}
           variant="outline"
           onClick={() => decision.reload()}
-        >
-          {appText("Reload delivery details")}
-        </Button>
+         label={appText("Reload delivery details")} />
       )}
       {query.error && (
         <Notice error>
@@ -575,13 +572,11 @@ function DeliveryDetail({
               </div>
             )}
           </section>
-          <Button
+          <RefreshButton
             variant="outline"
             disabled={editing}
             onClick={() => decision.reload()}
-          >
-            {appText("Refresh delivery status")}
-          </Button>
+           label={appText("Refresh delivery status")} />
         </>
       )}
     </section>

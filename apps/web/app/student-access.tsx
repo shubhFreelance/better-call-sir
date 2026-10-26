@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -476,9 +477,7 @@ function LearnerAccess({
           {child.alias}
           {appText("’s student space")}
         </h2>
-        <Button variant="outline" disabled={locked} onClick={refresh}>
-          {appText("Refresh student access")}{" "}
-        </Button>
+        <RefreshButton variant="outline" disabled={locked} onClick={refresh} label={appText("Refresh student access")} />
       </div>
       <p>{appText(educationLabel(child))}</p>
       {query.isPending ? (

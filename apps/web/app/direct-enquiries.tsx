@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -485,16 +486,14 @@ export function DirectEnquiries({ session }: { session: Session }) {
         </form>
       )}
       <div className="wizard-actions">
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={query.isFetching || decision.busy || decision.uncertain}
           onClick={() => {
             setReview(null); setConfirmed(false);
             (decision.conflict ? decision.reload() : refresh()).catch(() => {});
           }}
-        >
-          {appText("Refresh enquiries")}
-        </Button>
+         label={appText("Refresh enquiries")} />
         {cursors.length > 0 && (
           <Button
             variant="outline"

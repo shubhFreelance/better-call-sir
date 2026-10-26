@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { WeeklySummary } from "./weekly-availability";
@@ -288,7 +289,7 @@ function MatchRequest({
     <>
       <Feedback decision={decision} />
       {decision.conflict && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy}
           onClick={() => {
@@ -296,22 +297,18 @@ function MatchRequest({
             setAgreed(false);
             void decision.reload();
           }}
-        >
-          {appText("Refresh matching details")}{" "}
-        </Button>
+         label={appText("Refresh matching details")} />
       )}
       {unavailable && (
         <Notice error>
           {appText(
             "Matching details are loading or unavailable. Guardian verification/consent, an open request and regional access are required.",
           )}{" "}
-          <Button
+          <RefreshButton
             variant="outline"
             disabled={decision.uncertain || !!action}
             onClick={() => decision.reload()}
-          >
-            {appText("Reload matching details")}{" "}
-          </Button>
+           label={appText("Reload matching details")} />
         </Notice>
       )}
       {request && (
@@ -381,13 +378,11 @@ function MatchRequest({
         >
           {appText("Review shortlist publication")}{" "}
         </Button>
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.locked || !!action}
           onClick={() => decision.reload()}
-        >
-          {appText("Refresh matching workspace")}{" "}
-        </Button>
+         label={appText("Refresh matching workspace")} />
       </div>
       {latest?.result === "NEEDS_SCHEDULE" && (
         <Notice>

@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
@@ -398,7 +399,7 @@ function StaffCase({
     <>
       <Feedback decision={decision} />
       {decision.conflict && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy}
           onClick={() => {
@@ -406,9 +407,7 @@ function StaffCase({
             setAgreed(false);
             void decision.reload();
           }}
-        >
-          {appText("Refresh current staff case")}{" "}
-        </Button>
+         label={appText("Refresh current staff case")} />
       )}
       {(details.error || readError) && (
         <Notice error>
@@ -522,13 +521,11 @@ function StaffCase({
             >
               {appText("Review status and assignment")}{" "}
             </Button>
-            <Button
+            <RefreshButton
               variant="outline"
               disabled={decision.locked || !!action}
               onClick={() => decision.reload()}
-            >
-              {appText("Refresh case conversation")}{" "}
-            </Button>
+             label={appText("Refresh case conversation")} />
           </div>
           {action && (
             <form
@@ -821,9 +818,7 @@ function DisputeQueue({
           ))}
         </div>
         <div className="care-actions">
-          <Button variant="outline" disabled={locked} onClick={() => refresh()}>
-            {appText("Refresh dispute queue")}{" "}
-          </Button>
+          <RefreshButton variant="outline" disabled={locked} onClick={() => refresh()} label={appText("Refresh dispute queue")} />
           {kind === "lesson" && lessons.hasNextPage && (
             <Button
               variant="outline"
@@ -953,13 +948,11 @@ function DisputeReview({
         <Notice error>
           {appText("Records are unavailable. Refresh before continuing.")}
         </Notice>
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
-        >
-          {appText("Refresh current dispute")}
-        </Button>
+         label={appText("Refresh current dispute")} />
         <Button variant="ghost" disabled={decision.locked} onClick={onCancel}>
           {appText("Cancel dispute review")}
         </Button>
@@ -1074,7 +1067,7 @@ function DisputeReview({
       )}
       <Feedback decision={decision} />
       {decision.conflict && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy}
           onClick={() => {
@@ -1082,9 +1075,7 @@ function DisputeReview({
             setAgreed(false);
             void decision.reload();
           }}
-        >
-          {appText("Refresh current dispute")}{" "}
-        </Button>
+         label={appText("Refresh current dispute")} />
       )}
       <form
         noValidate

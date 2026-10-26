@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { pilotLearner } from "./learner-education";
 import { useEffect, useRef, useState } from "react";
@@ -615,9 +616,7 @@ function RevisionForm({
         )}
         <Feedback decision={decision} />
         {decision.conflict && (
-          <Button variant="outline" onClick={() => decision.reload()}>
-            {appText("Refresh revision details")}{" "}
-          </Button>
+          <RefreshButton variant="outline" onClick={() => decision.reload()} label={appText("Refresh revision details")} />
         )}
         {saved && (
           <Notice>
@@ -840,13 +839,11 @@ function ReservationCard({
               {appText("Review cancellation")}{" "}
             </Button>
           )}
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || decision.uncertain || paymentLocked}
           onClick={() => decision.reload()}
-        >
-          {appText("Refresh booking")}{" "}
-        </Button>
+         label={appText("Refresh booking")} />
       </div>
       {form && (
         <div className="checkout-review" ref={focus} tabIndex={-1}>

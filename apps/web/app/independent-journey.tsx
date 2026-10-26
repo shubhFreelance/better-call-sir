@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { minimumHref } from "./tuition-minimum-workspace";
 import { useAppTranslation } from "./locale";
 import { useState } from "react";
@@ -37,9 +38,7 @@ export function StudentFeedback({
       <>
         <Feedback decision={decision} />
         {decision.conflict && (
-          <Button disabled={decision.busy} onClick={() => decision.reload()}>
-            {appText("Reload current details")}{" "}
-          </Button>
+          <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload current details")} />
         )}
       </>
     );

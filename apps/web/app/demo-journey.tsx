@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { Input as SharedInput } from "../components/ui/input";
 import { Button as SharedButton } from "../components/ui/button";
 import { Textarea as SharedTextarea } from "../components/ui/textarea";
@@ -290,16 +291,14 @@ function DemoCard({
     <>
       <Feedback decision={decision} />
       {(decision.conflict || unavailable) && (
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => {
             focusSaved.current = true;
             void decision.reload();
           }}
-        >
-          {appText("Refresh current demo")}
-        </Button>
+         label={appText("Refresh current demo")} />
       )}
     </>
   );

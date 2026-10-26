@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
@@ -260,13 +261,11 @@ function Finance({ session }: { session: Session }) {
               {appText("Load more financial records")}{" "}
             </Button>
           )}
-          <Button
+          <RefreshButton
             variant="outline"
             disabled={locked || list.isFetching}
             onClick={() => list.refetch()}
-          >
-            {appText("Refresh financial records")}{" "}
-          </Button>
+           label={appText("Refresh financial records")} />
         </div>
       </section>
       {selected && (
@@ -535,19 +534,17 @@ function FinanceRecord({
               : "Current checkout is unavailable.",
           )}
         </Notice>
-        <Button
+        <RefreshButton
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
-        >
-          {appText(
+         label={appText(
             decision.conflict
               ? "Refresh for renewed review"
               : readError
                 ? "Refresh record inspection"
                 : "Retry current checkout",
-          )}
-        </Button>
+          )} iconOnly={!!(decision.conflict || readError)} />
         <Button variant="ghost" disabled={locked} onClick={onClose}>
           {appText("Close record inspection")}
         </Button>
@@ -717,16 +714,14 @@ function FinanceRecord({
         </Button>
       )}
       {decision.conflict && (
-        <Button
+        <RefreshButton
           disabled={decision.busy}
           onClick={async () => {
             await decision.reload();
             setReview(false);
             setAgreed(false);
           }}
-        >
-          {appText("Refresh for renewed review")}{" "}
-        </Button>
+         label={appText("Refresh for renewed review")} />
       )}
       {result && (
         <Notice>

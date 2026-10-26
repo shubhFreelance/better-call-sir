@@ -486,7 +486,7 @@ test("student accounts cannot load teacher schedule data", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "A teacher account is required." }),
   ).toBeVisible();
-  expect(new Set(requests)).toEqual(new Set(["/api/v1/auth/session"]));
+  expect(new Set(requests)).toEqual(new Set(["/api/v1/auth/session", "/api/v1/inbox", "/api/v1/live"]));
 });
 
 test("Hindi complete interface — शिक्षक का समय और छुट्टी", async ({ page }) => {

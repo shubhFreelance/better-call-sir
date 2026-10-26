@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { useRef, useState } from "react";
 import Link from "next/link";
@@ -291,9 +292,7 @@ function StudentSetupForm({
             )}{" "}
           </AlertDescription>
         </Alert>
-        <Button variant="outline" disabled={readBlocked} onClick={onReload}>
-          {appText("Reload student setup")}{" "}
-        </Button>
+        <RefreshButton variant="outline" disabled={readBlocked} onClick={onReload} label={appText("Reload student setup")} />
       </section>
     );
   return (
@@ -554,9 +553,7 @@ function StudentSetupForm({
               "Your edits are retained. Reloading replaces them with the latest saved setup and education details; review them again before saving.",
             )}{" "}
           </p>
-          <Button variant="outline" disabled={readBlocked} onClick={onReload}>
-            {appText("Reload latest student setup")}{" "}
-          </Button>
+          <RefreshButton variant="outline" disabled={readBlocked} onClick={onReload} label={appText("Reload latest student setup")} />
         </div>
       )}
       <div className="wizard-actions">

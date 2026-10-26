@@ -23,7 +23,7 @@ for(const mode of ["pending","complete","error","pending-phone-hi"])test(`guardi
  await expect(card.locator(".guardian-priorities-note")).toHaveCSS("font-size","12px");
  await expect(card).toContainText(t("Pending staff review does not need another submission."));
  const info=card.locator(".info-tooltip-trigger");await info.scrollIntoViewIfNeeded();await info.focus();await info.press("Enter");await expect(page.getByRole("tooltip")).toContainText(t("Complete these steps for each child. Pending staff review does not need another submission."));await page.keyboard.press("Escape");
- const refresh=card.getByRole("button",{name:t("Refresh remaining steps"),exact:true});await expect(refresh).toHaveCSS("background-color","rgb(255, 255, 235)");await refresh.hover();await expect(refresh).toHaveCSS("background-color","rgb(240, 215, 255)");
+ const refresh=card.getByRole("button",{name:t("Refresh remaining steps"),exact:true});await expect(refresh).toHaveText("");await expect(refresh).toHaveAttribute("title",t("Refresh remaining steps"));await expect(refresh).toHaveCSS("background-color","rgb(243, 241, 235)");await refresh.hover();await expect(refresh).toHaveCSS("background-color","rgb(240, 215, 255)");
  const a=await new AxeBuilder({page}).include(".guardian-priorities").analyze();expect(a.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await card.screenshot({path:`test-results/guardian-priorities-${mode}.png`,style:"nextjs-portal{display:none!important}"});

@@ -1,4 +1,5 @@
 "use client";
+import { RefreshButton } from "../components/ui/refresh-button";
 import { useHistory, HistoryPages } from "./history";
 import {
   OnboardingReadBoundary,
@@ -1240,9 +1241,7 @@ Not shown publicly`,
           </fieldset>
           {error && <Message error>{appError(error)}</Message>}
           {conflict && (
-            <Button type="button" variant="outline" onClick={onReload}>
-              {appText("Reload saved application")}{" "}
-            </Button>
+            <RefreshButton type="button" variant="outline" onClick={onReload} label={appText("Reload saved application")} />
           )}
           <div className="wizard-actions">
             {step > 0 && (
@@ -1454,13 +1453,11 @@ function RevisionEditor({
                   ? appText("Retry discarding revision")
                   : appText("Discard saved revision")}
             </Button>
-            <Button
+            <RefreshButton
               variant="ghost"
               disabled={busy || !!pending.current}
               onClick={onReload}
-            >
-              {appText("Reload current application")}{" "}
-            </Button>
+             label={appText("Reload current application")} />
           </div>
         </section>
       </main>
@@ -1582,14 +1579,12 @@ function TeacherWorkspace({
                       )}
             </p>
             <div className="wizard-actions">
-              <Button
+              <RefreshButton
                 variant="outline"
                 className="button secondary"
                 onClick={onReload}
                 disabled={scheduleLocked}
-              >
-                {appText("Refresh review status")}{" "}
-              </Button>
+               label={appText("Refresh review status")} />
               <Button
                 variant="ghost"
                 disabled={scheduleLocked}
