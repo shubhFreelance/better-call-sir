@@ -161,6 +161,7 @@ test("teacher compact inbox, keyboard expansion, proposal and accepted arrangeme
   await page.keyboard.press("Enter");
   await expect(cards.first()).toHaveAttribute("open", "");
   await expect(cards.first()).toContainText("Monday 5pm IST");
+  await expect(cards.first()).toHaveClass(/layered-summary-card/);await expect(cards.first().locator(".layered-summary-card-header")).toHaveCSS("background-color","rgb(255, 255, 235)");await expect(cards.first().locator(".layered-summary-card-footer")).toHaveCSS("background-color","rgb(248, 237, 255)");await expect(cards.first().locator(".direct-enquiry-actions .filter-button")).toHaveCount(3);await expect(cards.first().getByRole("button",{name:"Accept enquiry",exact:true})).toHaveAttribute("data-accent","true");await cards.first().screenshot({path:"test-results/layered-enquiry-teacher.png",style:"nextjs-portal{display:none!important}"});
   await cards
     .first()
     .getByRole("button", { name: "Propose another time or group", exact: true })

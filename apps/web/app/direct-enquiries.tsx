@@ -8,6 +8,8 @@ import { api, type Session, type paths } from "@bcs/api-client";
 import { ClipboardList, ChevronDown, Clock3, CircleCheck, CircleX, MessageSquare, CircleMinus, Eye } from "lucide-react";
 import { StatusBadge, StatusFilters } from "../components/ui/status-controls";
 import { Button } from "../components/ui/button";
+import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
+import { LayeredSummaryCard } from "../components/ui/layered-summary-card";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { useAppTranslation } from "./locale";
@@ -206,14 +208,8 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
               };
             },
             education = l.education ?? l;
-          const Card = onViewEnquiry ? "article" : "details", CardHeading = onViewEnquiry ? "div" : "summary";
-          return (
-            <Card
-              className="direct-enquiry-card"
-              key={item.id}
-              {...(!onViewEnquiry ? {open: conversation === item.id ? true : undefined} : {})}
-            >
-              <CardHeading className="direct-enquiry-heading">
+          const heading = (
+              <div className="direct-enquiry-heading">
                 <div>
                   <strong>{l.name}</strong>
                   <span>
@@ -255,12 +251,57 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                 </div>
                 {onViewEnquiry && item.kind === "GUARDIAN" && <Button type="button" variant="ghost" size="icon" className="evidence-preview-trigger" aria-label={appText("View enquiry {0}", [appCurriculum(item.subject)])} title={appText("View enquiry {0}", [appCurriculum(item.subject)])} aria-haspopup="dialog" disabled={decision.locked || disabled} onClick={() => onViewEnquiry(item.sourceId)}><Eye size={18} aria-hidden="true"/></Button>}
                 {!onViewEnquiry && <ChevronDown size={18} aria-hidden="true" />}
-              </CardHeading>
-              {!onViewEnquiry && <div className="direct-enquiry-body">
+              </div>
+          );
+
+          if (onViewEnquiry) return <article className="direct-enquiry-card" key={item.id}>{heading}</article>;
+          return <LayeredSummaryCard collapsible className="direct-enquiry-card" key={item.id} open={conversation === item.id ? true : undefined} header={heading} footer={<>
                 <div className="direct-preferred-time">
                   <strong>{appText("Preferred time")}</strong>
                   <p>{preferred(item.preferredTime)}</p>
                 </div>
+                {item.sourceOpen &&
+                  (item.canReply || item.canDecide && item.status === "PROPOSED") &&
+                  ["PENDING", "PROPOSED"].includes(item.status) && (
+                    <FilterButtonGroup className="direct-enquiry-actions">
+                      {item.canReply &&
+                        (
+                          [
+                            ["ACCEPT", "Accept enquiry"],
+                            ["DECLINE", "Decline enquiry"],
+                            ["PROPOSE", item.proposal ? "Edit proposal" : "Propose another time or group"],
+                          ] as [Action, string][]
+                        ).map(([action, label]) => (
+                          <FilterButton
+                            accent={action === "ACCEPT"}
+                            key={action}
+                            disabled={decision.locked || action === "ACCEPT" && item.status === "PROPOSED"}
+                            onClick={() => choose(item, action)}
+                          >
+                            {appText(label)}
+                          </FilterButton>
+                        ))}
+                      {item.canDecide && item.status === "PROPOSED" && (
+                        <>
+                          <FilterButton
+                            accent
+                            disabled={decision.locked}
+                            onClick={() => choose(item, "ACCEPT_PROPOSAL")}
+                          >
+                            {appText("Accept proposal")}
+                          </FilterButton>
+                          <FilterButton
+                            disabled={decision.locked}
+                            onClick={() => choose(item, "DECLINE_PROPOSAL")}
+                          >
+                            {appText("Decline proposal")}
+                          </FilterButton>
+                        </>
+                      )}
+                    </FilterButtonGroup>
+                  )}
+          </>}>
+
                 <dl className="direct-learning-details">
                   <div>
                     <dt>{appText("Student")}</dt>
@@ -317,47 +358,6 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                         : "This is the proposal recorded for this enquiry.")}</p>
                   </aside>
                 )}
-                {item.sourceOpen &&
-                  ["PENDING", "PROPOSED"].includes(item.status) && (
-                    <div className="wizard-actions">
-                      {item.canReply &&
-                        (
-                          [
-                            ["ACCEPT", "Accept enquiry"],
-                            ["DECLINE", "Decline enquiry"],
-                            ["PROPOSE", item.proposal ? "Edit proposal" : "Propose another time or group"],
-                          ] as [Action, string][]
-                        ).map(([action, label]) => (
-                          <Button
-                            variant={
-                              action === "ACCEPT" ? "default" : "outline"
-                            }
-                            key={action}
-                            disabled={decision.locked || action === "ACCEPT" && item.status === "PROPOSED"}
-                            onClick={() => choose(item, action)}
-                          >
-                            {appText(label)}
-                          </Button>
-                        ))}
-                      {item.canDecide && item.status === "PROPOSED" && (
-                        <>
-                          <Button
-                            disabled={decision.locked}
-                            onClick={() => choose(item, "ACCEPT_PROPOSAL")}
-                          >
-                            {appText("Accept proposal")}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            disabled={decision.locked}
-                            onClick={() => choose(item, "DECLINE_PROPOSAL")}
-                          >
-                            {appText("Decline proposal")}
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  )}
                 {item.status === "ACCEPTED" && (
                   <p className="decision-guidance decision-success" role="status">
                     <strong>{appText("The teacher has accepted this enquiry.")}</strong>{" "}
@@ -380,9 +380,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                     </Link>
                   </Button>
                 )}
-              </div>}
-            </Card>
-          );
+          </LayeredSummaryCard>;
         })}
       {review && (
         <form
