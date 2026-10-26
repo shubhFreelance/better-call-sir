@@ -6557,3 +6557,10 @@ html body button.refresh-button[data-slot=button]:disabled { cursor:not-allowed;
 .student-guardian-summary>p,.student-guardian-summary [role=alert] { font-size:12px; line-height:1.7; }
 .student-access-ready>.student-profile-actions { margin-top:24px; }
 @media(max-width:760px) { .student-access-ready-layout { grid-template-columns:minmax(0,1fr); gap:20px; } .student-access-profile-details>h3 { font-size:22px; } .student-guardian-summary { padding:20px 0 0; border-left:0; border-top:1px solid #D6E2D2; } }
+
+.managed-enquiry-confirmation { display:grid; gap:14px; margin-top:20px; padding:18px; border:1px solid #D9E4DF; border-radius:14px; background:#EEF5F3; }
+.managed-enquiry-confirmation>[role=status] { margin:0; padding:0; border:0; background:transparent; box-shadow:none; color:#344A43; font-size:12px; line-height:1.7; }
+.managed-enquiry-confirmation .check-label { display:flex; align-items:flex-start; gap:10px; margin:0; padding:14px; border:1px solid #E2E5D6; border-radius:10px; background:#FFFFEB; color:#034F46; font-size:13px; font-weight:600; line-height:1.65; cursor:pointer; }
+.managed-enquiry-confirmation input[type=checkbox] { flex-shrink:0; width:18px; height:18px; margin:2px 0 0; accent-color:#034F46; }
+.managed-enquiry-actions { margin-top:20px; }
+@media(max-width:640px) { .managed-enquiry-confirmation { padding:14px; } }

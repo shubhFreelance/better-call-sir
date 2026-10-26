@@ -13,6 +13,7 @@ import {
   type components,
 } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
+import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
 import { LearningManagementBadge } from "../components/ui/learning-management-badge";
 import { Input } from "../components/ui/input";
 import {
@@ -569,7 +570,7 @@ function LearningEnquiryEditor({
         </fieldset>
         </>}
         {review && (
-          <>
+          <div className="managed-enquiry-confirmation">
             <Notice>
               {appText(
                 "This sends your enquiry using your saved education details. No class booking, charge or financial commitment is made.",
@@ -585,30 +586,29 @@ function LearningEnquiryEditor({
                 "I reviewed these learning criteria and want to send this enquiry.",
               )}
             </label>
-          </>
+          </div>
         )}
-        <div className="care-actions">
-          <Button type="submit" disabled={review && !ack}>
+        <FilterButtonGroup className="managed-enquiry-actions">
+          <FilterButton accent type="submit" disabled={review && !ack}>
             {appText(
               review ? "Confirm teacher enquiry" : "Review teacher enquiry",
             )}
-          </Button>
+          </FilterButton>
           {review && (
-            <Button
+            <FilterButton
               type="button"
-              variant="outline"
               onClick={() => {
                 setReview(false);
                 setAck(false);
               }}
             >
               {appText("Back to editing")}
-            </Button>
+            </FilterButton>
           )}
-          <Button type="button" variant="outline" onClick={onClose}>
+          <FilterButton type="button" onClick={onClose}>
             {appText("Discard changes")}
-          </Button>
-        </div>
+          </FilterButton>
+        </FilterButtonGroup>
       </fieldset>
       <Feedback decision={decision} />
       {decision.uncertain && (

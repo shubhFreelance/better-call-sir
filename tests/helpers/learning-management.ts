@@ -574,6 +574,7 @@ export function learningManagementTests() {
       await expect(summary).toContainText("Maths");await expect(summary).toContainText("1,500");await expect(summary).toContainText("Monday");
       await expect(page.getByRole("spinbutton",{name:"Monthly budget (INR)",exact:true})).toHaveCount(0);
       if(failure === "none") {
+        const actions=page.locator(".managed-enquiry-actions");await expect(actions.locator(".filter-button")).toHaveCount(3);await expect(actions.getByRole("button",{name:"Confirm teacher enquiry",exact:true})).toHaveAttribute("type","submit");await expect(actions.getByRole("button",{name:"Confirm teacher enquiry",exact:true})).toBeDisabled();await page.locator(".managed-enquiry-confirmation").screenshot({path:"test-results/managed-enquiry-confirmation.png"});
         await page.getByRole("button",{name:"Back to editing",exact:true}).click();
         await expect(page.getByRole("spinbutton",{name:"Monthly budget (INR)",exact:true})).toHaveValue("1500");
         await page.getByRole("button",{name:"Review teacher enquiry",exact:true}).click();
