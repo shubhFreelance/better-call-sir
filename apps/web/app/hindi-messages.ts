@@ -1,5 +1,13 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Connect your student account": "अपना विद्यार्थी खाता जोड़ें",
+  "Ask your guardian for a student invitation code. Accept it with your own email to connect the saved learner profile.": "अभिभावक से विद्यार्थी आमंत्रण कोड माँगें। सहेजी गई विद्यार्थी प्रोफ़ाइल जोड़ने के लिए अपने ईमेल से उसे स्वीकार करें।",
+  "Student setup pending": "विद्यार्थी का खाता जोड़ना बाकी है",
+  "Teacher account": "शिक्षक खाता",
+  "Staff account": "कर्मचारी खाता",
+  "Signed in as {0}": "{0} के रूप में साइन इन हैं",
+  "Continue student setup": "विद्यार्थी सेटअप जारी रखें",
+  "Your guardian’s relationship approval is separate from connecting your student account. Accept their student invitation using your own email.": "अभिभावक के रिश्ते की मंज़ूरी और विद्यार्थी का खाता जोड़ना अलग चरण हैं। अपने ईमेल से उनका विद्यार्थी आमंत्रण स्वीकार करें।",
   "Current family choice": "परिवार का वर्तमान निर्णय",
   "Only the guardian can change this permission.": "केवल अभिभावक ही यह अनुमति बदल सकते हैं।",
   "Page {0}": "पृष्ठ {0}",

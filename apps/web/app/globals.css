@@ -6442,3 +6442,10 @@ html body button.refresh-button[data-slot=button]:disabled { cursor:not-allowed;
 .learning-management-workspace .care-editor .filter-button-group { margin-top:20px; }
 .learning-management-workspace .care-editor [data-slot=alert] { margin-block:16px; font-size:12px; }
 @media(max-width:640px) { .learning-management-workspace .management-page-heading { padding:20px; gap:12px; } .learning-management-workspace .management-page-heading h1 { font-size:24px; } .learning-management-workspace .management-learner-select { grid-template-columns:minmax(0,1fr); gap:10px; padding:16px; } .learning-management-workspace .management-choice-card { padding:18px; } .learning-management-workspace .management-current,.learning-management-workspace .care-editor { padding:16px; } }
+.signed-in-identity-row { padding-block:12px; }
+.signed-in-identity { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:10px 12px; font-size:12px; line-height:1.6; }
+.signed-in-name { color:#344A43; font-weight:600; overflow-wrap:anywhere; }
+.signed-in-role { display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border:1px solid #D9E4DF; border-radius:20px; background:#EEF5F3; color:#034F46; }
+.signed-in-role > svg { flex:none; }
+.signed-in-role[data-pending=true] { background:#F8EDFF; border-color:#E5CFF0; }
+@media(max-width:640px) { .signed-in-identity { gap:8px; } .signed-in-identity .learning-management-badge { max-width:100%; } }

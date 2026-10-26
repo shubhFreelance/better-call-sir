@@ -1,5 +1,6 @@
 "use client";
 import { RefreshButton } from "../components/ui/refresh-button";
+import { SignedInIdentity } from "../components/ui/signed-in-identity";
 import { useAccountEntry } from "./account-entry";
 import { LandingMotion } from "./landing-motion";
 import { PromiseTicker } from "./promise-ticker";
@@ -1716,6 +1717,8 @@ function Login() {
           (session.account.role === "GUARDIAN" &&
             /^\/revision(?:\?[^#]*)?$/.test(next)))
         ? next
+        : session.account.studentSetupPending
+          ? "/onboarding/student?mode=together"
         : session.accountCreated === true && session.account.role === "GUARDIAN"
           ? "/onboarding/guardian"
           : "/dashboard",
@@ -1855,6 +1858,7 @@ function IntakeForm() {
       </main>
     );
   if (!session) return <LoginPrompt />;
+  if (session.account.studentSetupPending) return <main className="container narrow section"><StudentConnection session={session} onSessionChange={setSession} /></main>;
 
   if (session.account.role !== "GUARDIAN")
     return (
@@ -1930,6 +1934,7 @@ function GuardianVerificationPage() {
   const { appText } = useAppTranslation();
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (session.account.studentSetupPending && !studentView) return <main className="container narrow section"><StudentConnection session={session} onSessionChange={setSession} /></main>;
   return (
     <main className="container section guardian-verification-page">
       <PageTitle
@@ -1954,6 +1959,7 @@ function GuardianSetupPage() {
   const { session, setSession, loading } = useAuth();
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
+  if (session.account.studentSetupPending) return <main className="container narrow section"><StudentConnection session={session} onSessionChange={setSession} /></main>;
   if (session.account.role !== "GUARDIAN")
     return (
       <main className="container narrow section">
@@ -2091,7 +2097,7 @@ function StudentOnboarding() {
     <header className="wizard-title"><h1>{appText(mode === "together" ? "Manage learning together" : "Activate your student invitation")}</h1><p>{appText(mode === "together" ? "Sign in with your own email to check your guardian request and learning profile. Your guardian must authorize shared management." : "First confirm your own email. Then enter the private invitation code your guardian gave you. Never use your guardian’s email to sign in as the student.")}</p></header>
     <EmailLogin purpose={mode === "together" ? "student-signup" : "general"} hindi={hindi} onLanguageChange={setHindi} onSignedIn={next=>setSession(next)} />
   </main>;
-  if (mode === "together" && ["GUARDIAN","STUDENT"].includes(session.account.role)) return <main className="container narrow section"><StudentConnection session={session} onSessionChange={setSession}/></main>;
+  if ((mode === "together" || session.account.studentSetupPending) && ["GUARDIAN","STUDENT"].includes(session.account.role)) return <main className="container narrow section"><StudentConnection session={session} onSessionChange={setSession}/></main>;
   if (session.account.role === "STUDENT")
     return <StudentWelcome session={session} />;
   if (session.account.role !== "GUARDIAN")
@@ -2473,6 +2479,7 @@ function DashboardPage({ tab }: { tab: string }) {
     queryFn: ({ signal }) => api<Dashboard>("/dashboard", { signal }),
     enabled:
       !!session &&
+      !session.account.studentSetupPending &&
       session.account.role !== "INDEPENDENT_STUDENT" &&
       ![
         "/dashboard/learners",
@@ -2523,6 +2530,7 @@ function DashboardPage({ tab }: { tab: string }) {
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
   if (session.account.role === "OPERATOR" && tab === "/dashboard") return <DashboardShell tab={tab}><DirectEnquiries session={session}/></DashboardShell>;
+  if (session.account.studentSetupPending) return <main className="container narrow section"><StudentConnection session={session} onSessionChange={setSession} /></main>;
   if (tab === "/dashboard/learners") return <DashboardShell tab={tab}><LearnerProfilesPage /></DashboardShell>;
   if (tab === "/dashboard/service-followups") return <DashboardShell tab={tab}><ServiceFollowups session={session}/></DashboardShell>;
   if (["/dashboard/notifications", "/dashboard/email-delivery"].includes(tab))
@@ -3309,10 +3317,11 @@ function Routes() {
     </main>
   );
 }
-function AccountQuickActions({ guardian = false }: { guardian?: boolean }) {
+function AccountQuickActions({ guardian = false, student = false, pending = false }: { guardian?: boolean; student?: boolean; pending?: boolean }) {
   const { appText } = useAppTranslation();
   return <div className="returning-account-actions">
     <SharedButton asChild className="find-teacher-highlight"><Link href="/teachers">{appText("Find a teacher")}<ArrowUpRight size={16} aria-hidden="true" /></Link></SharedButton>
+    {student && <SharedButton asChild><Link href={pending ? "/onboarding/student?mode=together" : "/dashboard/learning-choices"}>{appText(pending ? "Continue student setup" : "Open my teacher choices")}</Link></SharedButton>}
     {guardian && <>
       <SharedButton asChild><Link href="/onboarding/guardian">{appText("Guardian setup")}</Link></SharedButton>
       <SharedButton asChild><Link href="/guardian-verification">{appText("Guardian verification")}</Link></SharedButton>
@@ -3548,11 +3557,12 @@ function AppContent() {
                 <AlertDescription>
                   <h2>{appText("Your saved progress is ready")}</h2>
                   <p>{appText(entry?.accountId === session.account.id && entry.existing ? "This email is already registered. You are signed in to your existing account; your saved progress is available from your dashboard." : "Your profile and saved progress are available here. Choose what you would like to do next.")}</p>
-                  <AccountQuickActions guardian={session.account.role === "GUARDIAN"} />
+                  <AccountQuickActions guardian={session.account.role === "GUARDIAN" && !session.account.studentSetupPending} student={session.account.role === "STUDENT" || !!session.account.studentSetupPending} pending={session.account.studentSetupPending} />
                 </AlertDescription>
               </Alert>
             </div>
           )}
+          {session && <div className="container signed-in-identity-row"><SignedInIdentity session={session} /></div>}
           {switchMessage && (
             <div className="container">
               <Alert role="status">{appError(switchMessage)}</Alert>

@@ -2085,9 +2085,11 @@ test('student invitation links an unused OTP email to exactly the invited learne
  assert.equal(created.status,201);
  const invite=await g.call('/children/'+created.data.id+'/invitation-replacements',{expectedVersion:1,acknowledged:true});assert.equal(invite.status,201);
  const student=await freshGuardian(),other=await freshGuardian();
+ await db.account.update({where:{id:student.account.id},data:{registrationIntent:'STUDENT'}});
+ assert.equal((await student.client.call('/auth/session')).data.account.studentSetupPending,true);
  assert.equal((await student.client.call('/invitations/check',{token:invite.data.token})).status,201);
  assert.equal((await g.call('/invitations/link-email',{token:invite.data.token,confirmed:true})).status,409);
- const linked=await student.client.call('/invitations/link-email',{token:invite.data.token,confirmed:true});assert.equal(linked.status,201,JSON.stringify(linked.data));assert.equal(linked.data.account.role,'STUDENT');
+ const linked=await student.client.call('/invitations/link-email',{token:invite.data.token,confirmed:true});assert.equal(linked.status,201,JSON.stringify(linked.data));assert.equal(linked.data.account.role,'STUDENT');assert.equal(linked.data.account.studentSetupPending,undefined);
  const row=await db.child.findUniqueOrThrow({where:{id:created.data.id}});assert.equal(row.studentAccountId,student.account.id);assert.equal(row.guardianId,(await db.invitation.findFirstOrThrow({where:{childId:row.id}})).guardianId);
  assert.equal((await student.client.call('/invitations/link-email',{token:invite.data.token,confirmed:true})).status,201);
  assert.equal((await other.client.call('/invitations/link-email',{token:invite.data.token,confirmed:true})).status,409);

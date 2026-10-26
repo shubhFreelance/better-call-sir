@@ -17,8 +17,8 @@ export function GuardianPriorities({session,indicator=false}:{session:Session;in
    const items:Verification[]=[];const seen=new Set<string>();let cursor:string|null=null;
    do {const page:{items:Verification[];nextCursor:string|null}=await api<{items:Verification[];nextCursor:string|null}>("/guardian-verifications?limit=50"+(cursor?"&cursor="+cursor:""),{signal});items.push(...page.items);cursor=page.nextCursor;if(cursor&&seen.has(cursor))throw new Error("Invalid history cursor");if(cursor)seen.add(cursor);}while(cursor);
    return {setup,items};
- },enabled:session.account.role==="GUARDIAN",retry:false,staleTime:0,refetchOnMount:"always",refetchInterval:60000,refetchOnWindowFocus:true});
- if(session.account.role!=="GUARDIAN")return null;
+ },enabled:session.account.role==="GUARDIAN"&&!session.account.studentSetupPending,retry:false,staleTime:0,refetchOnMount:"always",refetchInterval:60000,refetchOnWindowFocus:true});
+ if(session.account.role!=="GUARDIAN"||session.account.studentSetupPending)return null;
  const tasks=(query.data?.items??[]).flatMap(row=>{
    const href="/guardian-verification?request="+row.id;
    if(row.status==="APPROVED")return row.learnerId?[]:[{id:row.id,name:row.learnerName,label:"Child profile setup is remaining — step 6",href}];

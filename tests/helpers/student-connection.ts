@@ -4,12 +4,12 @@ import {chooseHindi,checkHindi} from "./hindi";
 import {translateText} from "../../apps/web/app/locale";
 import AxeBuilder from "@axe-core/playwright";
 const id="10000000-0000-4000-8000-000000000661", child="20000000-0000-4000-8000-000000000661";
-async function fixture(page:Page,{signed=true,role="GUARDIAN",status="PENDING",ack=false,denied=false}={}){
+async function fixture(page:Page,{signed=true,role="GUARDIAN",status="PENDING",ack=false,denied=false,pending=false,managementMode="SHARED"}={}){
  const writes:string[]=[];
  await page.route("**/api/v1/**",route=>{
   const path=new URL(route.request().url()).pathname;
   if(route.request().method()!=="GET")writes.push(path);
-  const session={account:{id,name:"Synthetic Amit",email:"amit@example.test",role,verified:true},csrfToken:"synthetic-csrf"};
+  const session={account:{id,name:"Synthetic Amit",email:"amit@example.test",role,verified:true,...(pending?{studentSetupPending:true}:{})},csrfToken:"synthetic-csrf"};
   if(path.endsWith("/dev/accounts"))return route.fulfill({json:[]});
   if(path.endsWith("/auth/session"))return route.fulfill({status:signed?200:401,json:signed?session:{code:"SESSION_REQUIRED",message:"Sign in"}});
   if(path.endsWith("/invitations/check")){expect(route.request().postDataJSON()).toEqual({token:"synthetic-code"});return route.fulfill({status:201,json:{status:"READY"}});}
@@ -18,11 +18,28 @@ async function fixture(page:Page,{signed=true,role="GUARDIAN",status="PENDING",a
   if(path.endsWith("/otp/verify")){signed=true;return route.fulfill({status:201,json:{...session,accountCreated:false}});}
   if(path.endsWith("/guardian-verification-invitations"))return route.fulfill({json:{items:status==="NONE"?[]:[{id:child,guardianName:"Synthetic Papa",learnerName:"Synthetic Amit",managementMode:"SHARED",status,studentAcknowledgedAt:ack?new Date().toISOString():null}],nextCursor:null}});
   if(path.endsWith("/onboarding/student/context"))return route.fulfill({status:denied?403:200,json:denied?{code:"GUARDIAN_REQUIRED",message:"Permission revoked"}:{learner:{id:child,alias:"Synthetic Amit",education:{stage:"SCHOOL",grade:8,board:"CBSE",institutionName:"Synthetic School",subjects:["Maths"]}},progress:{},authority:"GUARDIAN_MANAGED"}});
-  if(path.endsWith("/learning-management"))return route.fulfill({json:{childId:child,mode:"SHARED",canManageLearning:true}});
+  if(path.endsWith("/learning-management"))return route.fulfill({json:{childId:child,mode:managementMode,canManageLearning:true}});
   return route.fulfill({json:{items:[],nextCursor:null}});
  });
  return writes;
 }
+test("pending student identity survives reload and never opens guardian verification or guardian setup",async({page})=>{
+ const reads:string[]=[];page.on("request",request=>{if(request.method()==="GET")reads.push(new URL(request.url()).pathname);});
+ await fixture(page,{pending:true,status:"NONE"});
+ for(const path of ["/dashboard","/guardian-verification","/onboarding/guardian","/onboarding/parent"]){
+  await page.goto(path);await expect(page.locator(".signed-in-role")).toHaveText("Student setup pending");
+  await expect(page.locator(".student-connection")).toBeVisible();await expect(page.locator(".guardian-priorities,.guardian-verification-editor,.guardian-setup-layout")).toHaveCount(0);
+  await expect(page.locator(".returning-account-actions").getByRole("link",{name:"Guardian setup",exact:true})).toHaveCount(0);
+ }
+ await page.reload();await expect(page.locator(".signed-in-role")).toHaveText("Student setup pending");
+ expect(reads.filter(path=>path.includes("/api/v1/guardian-verifications")||path==="/api/v1/onboarding/guardian")).toEqual([]);
+});
+for(const [mode,label] of [["GUARDIAN_ONLY","Guardian manages learning"],["SHARED","We manage learning together"],["STUDENT_LED","Student leads; guardian stays involved"]])test(`signed-in student identity shows actual management ${mode}`,async({page})=>{
+ await fixture(page,{role:"STUDENT",managementMode:mode});await page.goto("/onboarding/student?mode=together");
+ await expect(page.locator(".signed-in-role")).toHaveText("Student account");await expect(page.locator(".signed-in-identity .learning-management-badge")).toContainText(label);
+ await page.setViewportSize({width:320,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ expect((await new AxeBuilder({page}).include(".signed-in-identity").analyze()).violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+});
 for(const item of [{status:"NONE",heading:"No linked learning profile yet"},{status:"PENDING",heading:"Confirm your guardian"},{status:"APPROVED",ack:true,heading:"Your guardian is completing setup"},{status:"REVOKED",heading:"This relationship needs attention"}])test(`student connection explains ${item.status} without granting access`,async({page})=>{
  const writes=await fixture(page,item);await page.goto("/onboarding/student?mode=together");
  await expect(page.getByText(item.heading,{exact:true})).toBeVisible();
