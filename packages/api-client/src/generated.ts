@@ -6506,6 +6506,8 @@ export interface components {
             /** @enum {string} */
             language?: "English" | "Hindi";
             learningPreferences?: string;
+            /** @description Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces. */
+            spaces?: components["schemas"]["StudentSubjectSpace"][];
         };
         StudentSetupContext: {
             learner: components["schemas"]["LearnerProfile"];
@@ -6528,6 +6530,8 @@ export interface components {
                 /** @enum {string} */
                 language?: "English" | "Hindi";
                 learningPreferences?: string;
+                /** @description Subject-specific preferences; subjects must be distinct ignoring case. When supplied, the saved subjects are derived from these spaces. */
+                spaces?: components["schemas"]["StudentSubjectSpace"][];
             };
         };
         StudentDeviceLabel: {
@@ -7538,6 +7542,12 @@ export interface components {
             id: string;
             /** @enum {string} */
             status: "RECORDED";
+        };
+        StudentSubjectSpace: {
+            subject: string;
+            /** @enum {string} */
+            language?: "English" | "Hindi";
+            learningPreferences?: string;
         };
     };
     responses: never;
