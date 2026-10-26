@@ -260,7 +260,8 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                   <strong>{appText("Preferred time")}</strong>
                   <p>{preferred(item.preferredTime)}</p>
                 </div>
-                {item.sourceOpen &&
+          </>} actions={
+                item.sourceOpen &&
                   (item.canReply || item.canDecide && item.status === "PROPOSED") &&
                   ["PENDING", "PROPOSED"].includes(item.status) && (
                     <FilterButtonGroup className="direct-enquiry-actions">
@@ -299,8 +300,9 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                         </>
                       )}
                     </FilterButtonGroup>
-                  )}
-          </>}>
+                  )
+          }>
+
 
                 <dl className="direct-learning-details">
                   <div>

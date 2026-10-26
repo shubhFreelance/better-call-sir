@@ -6576,7 +6576,9 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .direct-enquiry-card .direct-learning-details dd { margin:4px 0 0; color:#17201F; font-size:14px; font-weight:600; line-height:1.6; overflow-wrap:anywhere; }
 .direct-enquiry-card .direct-preferred-time strong { font-size:12px; }
 .direct-enquiry-card .direct-preferred-time p { margin:6px 0 0; font-size:13px; line-height:1.7; }
-.direct-enquiry-actions { margin-top:18px; }
+.direct-enquiry-actions { margin:0; }
+.layered-summary-card-actions { padding:20px; background:#FFF; border-top:1px solid #E2E5D6; }
+@media(max-width:640px) { .layered-summary-card-actions { padding:16px; } }
 
 .direct-enquiry-card .layered-summary-card-body .direct-proposal { margin-top:18px; }
 
