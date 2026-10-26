@@ -456,7 +456,7 @@ function Wizard({
     board: initial.draft.board || "CBSE",
     subject: initial.draft.subject || searchContext.get("subject") || teacher?.subjects[0] || "Maths",
     mode: initial.draft.mode || teacher?.modes[0] || "HOME",
-    language: initial.draft.language || teacher?.languages[0] || "English",
+    language: initial.draft.language || searchContext.get("language") || teacher?.languages[0] || "English",
     locality:
       initial.draft.locality || teacher?.localities[0] || "Shankar Nagar",
     budget: String(

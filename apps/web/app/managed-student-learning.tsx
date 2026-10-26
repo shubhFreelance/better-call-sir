@@ -360,7 +360,7 @@ function LearningEnquiryEditor({
   const [subject, setSubject] = useState(params.get("subject") || ""),
     [budget, setBudget] = useState(""),
     [format, setFormat] = useState("ONLINE"),
-    [language, setLanguage] = useState("English"),
+    [language, setLanguage] = useState(params.get("language") || "English"),
     [locality, setLocality] = useState(""),
     [weekly, setWeekly] = useState(emptyWeekly),
     [review, setReview] = useState(false),

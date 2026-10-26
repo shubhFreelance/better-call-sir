@@ -95,6 +95,8 @@ import {
 import { StudentInvitationSignup } from "./student-invitation-signup";
 import { StudentConnection } from "./student-connection";
 import { StudentWelcome } from "./student-welcome";
+import {CreateSpacesCard,GuardianLearningSpaces} from "./family-learning-spaces";
+import {StudentGuardianDetails} from "./student-guardian-details";
 import { FamilyAccess, StudentActivation } from "./student-access";
 import { EmailLogin } from "./email-login";
 import { DemoJourney } from "./demo-journey";
@@ -882,7 +884,7 @@ function Teachers() {
   const independent = session?.account.role === "INDEPENDENT_STUDENT";
   const discoveryParams = useSearchParams();
   const learnerSearch = useLearnerDiscovery(session);
-  const canSearch = !authLoading && (!learnerSearch.required || learnerSearch.ready);
+  const exploring = discoveryParams.get("explore") === "all";
   const [filterReset, setFilterReset] = useState(0);
   const [interactive, setInteractive] = useState(false);
   useEffect(() => setInteractive(true), []);
@@ -906,6 +908,7 @@ function Teachers() {
     setFilterReset((value) => value + 1);
     setSearchState({ filters: { ...emptyTeacherFilters } });
   }
+  function resetPersonalisedFilters(){resetSearch();if(learnerSearch.managed&&!exploring)learnerSearch.selectSpace("");}
   function changeFilter(field: keyof typeof filters, value: string) {
     setSearchState((current) => ({
       ...current,
@@ -933,7 +936,7 @@ function Teachers() {
     setTab(discoveryParams.get("tab") === "assisted" ? "assisted" : "manual");
   }, [discoveryParams]);
   const params = new URLSearchParams();
-  if (learnerSearch.required) {
+  if (learnerSearch.required && !exploring) {
     if (learnerSearch.learner) params.set("learnerId", learnerSearch.learner.id);
   } else {
     if (stage) params.set("stage", stage);
@@ -945,6 +948,8 @@ function Teachers() {
   }
   if (q.trim()) params.set("q", q.trim());
   const effectiveSubject = subject || discoveryParams.get("subject") || "";
+  const spaceReady=!learnerSearch.managed || !learnerSearch.spacesQuery.isFetching && !learnerSearch.spacesQuery.error && learnerSearch.spaces.some(space=>space.subject.toLowerCase()===effectiveSubject.toLowerCase());
+  const canSearch = !authLoading && (exploring || !learnerSearch.required || learnerSearch.ready && spaceReady);
   if (effectiveSubject) params.set("subject", effectiveSubject);
   if (mode) params.set("mode", mode);
   if (language) params.set("language", language);
@@ -953,7 +958,7 @@ function Teachers() {
     params.set("maxMonthlyPaise", String(Number(maxMonthly) * 100));
   const searchKey = params.toString() + (learnerSearch.learner ? "|profile=" + learnerSearch.learner.version : "");
   const activeFilterCount = params.size - (params.has("learnerId") ? 1 : 0);
-  const learnerContext = learnerSearch.learner ? "?" + new URLSearchParams({ learner: learnerSearch.learner.id, ...(effectiveSubject ? { subject: effectiveSubject } : {}) }) : "";
+  const learnerContext = exploring ? "?explore=all" : learnerSearch.learner ? "?" + new URLSearchParams({ learner: learnerSearch.learner.id, ...(effectiveSubject ? { subject: effectiveSubject } : {}),...(language ? {language} : {}) }) : "";
   const saved = results?.key === searchKey ? results : undefined;
   const query = useInfiniteQuery<
     TeacherSearchPage,
@@ -1046,6 +1051,25 @@ function Teachers() {
             </small>
           </TabsTrigger>
         </TabsList>
+          {learnerSearch.required && <div className="space-browse-actions"><Link className="inline-link" href={exploring?"/teachers":"/teachers?explore=all"} onClick={resetSearch}>{appText(exploring?"Search using a subject space":"Explore all teacher profiles")}</Link></div>}
+          {learnerSearch.required && !exploring && <section className="learner-search-context" aria-label={appText("Search for a learner")}>
+            <label htmlFor="search-learner">{appText("Choose learner")}</label>
+            <select id="search-learner" disabled={learnerSearch.transitioning} value={learnerSearch.learner?.id || ""} onChange={e => {resetSearch();learnerSearch.select(e.target.value);}}>
+              <option value="">{appText("Choose learner")}</option>
+              {learnerSearch.learners.map(row => <option key={row.id} value={row.id}>{row.alias}</option>)}
+            </select>
+            {learnerSearch.learner && <EducationSummary education={learnerSearch.learner.education} />}
+            {learnerSearch.managed && learnerSearch.learner && <div className="search-space-picker"><label htmlFor="search-learning-space">{appText("Choose subject space")}</label><select id="search-learning-space" value={effectiveSubject} disabled={learnerSearch.transitioning||learnerSearch.spacesQuery.isFetching||!!learnerSearch.spacesQuery.error} onChange={e=>{const value=e.target.value;setSearchState({filters:{...filters,subject:value,language:learnerSearch.spaces.find(space=>space.subject===value)?.language||""}});learnerSearch.selectSpace(value);}}><option value="">{appText("Choose subject space")}</option>{learnerSearch.spaces.map(space=><option key={space.subject} value={space.subject}>{appCurriculum(space.subject)}</option>)}</select>
+              {learnerSearch.spacesQuery.isPending?<p role="status">{appText("Loading subject spaces…")}</p>:learnerSearch.spacesQuery.error?<p role="alert">{appError(learnerSearch.spacesQuery.error.message)} <RefreshButton label={appText("Reload student setup")} onClick={()=>learnerSearch.spacesQuery.refetch()}/></p>:!learnerSearch.spaces.length?<p>{appText("Create a subject space before searching for teachers for this learner.")}</p>:null}
+              <Link className="inline-link" href={(session?.account.role==="GUARDIAN"?"/dashboard/learning-preferences?learner=":"/onboarding/student?learner=")+learnerSearch.learner.id}>{appText("Manage subject spaces")}</Link>
+            </div>}
+
+            <p>{appText("Only teachers covering this learner's education and selected subject are shown.")}</p>
+            {learnerSearch.query.isPending && <p role="status">{appText("Loading learner profiles…")}</p>}
+            {learnerSearch.query.error && <p role="alert">{appError(learnerSearch.query.error.message)} <UiButton onClick={() => learnerSearch.query.refetch()}>{appText("Try again")}</UiButton></p>}
+            {!learnerSearch.query.isPending && !learnerSearch.ready && <p role="status">{appText("Choose a learner with complete education details before choosing a teacher.")} <Link href={independent ? "/onboarding/independent-student" : "/dashboard/learners"}>{appText("Open education profiles")}</Link></p>}
+            {learnerSearch.query.hasNextPage && <UiButton onClick={() => learnerSearch.query.fetchNextPage()} disabled={learnerSearch.query.isFetchingNextPage}>{appText("Load more learners")}</UiButton>}
+          </section>}
         <TabsContent value="assisted">
           {authLoading ? (
             <State loading />
@@ -1074,35 +1098,22 @@ function Teachers() {
                   )}{" "}
                 </p>
               </div>
-              <Link
+              {!learnerSearch.managed || canSearch ? (              <Link
                 className="button"
                 href={
                   searchSession?.account.role === "STUDENT"
-                    ? "/dashboard/learning-choices?new=1"
+                    ? "/dashboard/learning-choices?new=1" + (learnerSearch.learner ? "&learner="+learnerSearch.learner.id : "") + (effectiveSubject ? "&subject="+encodeURIComponent(effectiveSubject) : "")
                     : searchSession?.account.role === "INDEPENDENT_STUDENT"
                       ? "/dashboard/enquiries?new=1"
-                      : "/onboarding/parent?discovery=ASSISTED" + (learnerSearch.learner ? "&learner=" + learnerSearch.learner.id : "")
+                      : "/onboarding/parent?discovery=ASSISTED" + (learnerSearch.learner ? "&learner=" + learnerSearch.learner.id : "") + (effectiveSubject ? "&subject="+encodeURIComponent(effectiveSubject) : "")
                 }
               >
                 {appText("Share your criteria")} <ArrowRight size={18} />
-              </Link>
+              </Link>) : <SharedButton disabled>{appText("Choose a subject space first")}</SharedButton>}
             </section>
           )}
         </TabsContent>
         <TabsContent value="manual">
-          {learnerSearch.required && <section className="learner-search-context" aria-label={appText("Search for a learner")}>
-            <label htmlFor="search-learner">{appText("Choose learner")}</label>
-            <select id="search-learner" value={learnerSearch.learner?.id || ""} onChange={e => learnerSearch.select(e.target.value)}>
-              <option value="">{appText("Choose learner")}</option>
-              {learnerSearch.learners.map(row => <option key={row.id} value={row.id}>{row.alias}</option>)}
-            </select>
-            {learnerSearch.learner && <EducationSummary education={learnerSearch.learner.education} />}
-            <p>{appText("Only teachers covering this learner's education and selected subject are shown.")}</p>
-            {learnerSearch.query.isPending && <p role="status">{appText("Loading learner profiles…")}</p>}
-            {learnerSearch.query.error && <p role="alert">{appError(learnerSearch.query.error.message)} <UiButton onClick={() => learnerSearch.query.refetch()}>{appText("Try again")}</UiButton></p>}
-            {!learnerSearch.query.isPending && !learnerSearch.ready && <p role="status">{appText("Choose a learner with complete education details before choosing a teacher.")} <Link href={independent ? "/onboarding/independent-student" : "/dashboard/learners"}>{appText("Open education profiles")}</Link></p>}
-            {learnerSearch.query.hasNextPage && <UiButton onClick={() => learnerSearch.query.fetchNextPage()} disabled={learnerSearch.query.isFetchingNextPage}>{appText("Load more learners")}</UiButton>}
-          </section>}
           <fieldset
             className="filter-bar catalog-filters"
             disabled={!interactive || !canSearch}
@@ -1145,7 +1156,7 @@ function Teachers() {
                 </option>
               </select>
             </div>}
-            <div className="filter-select">
+            {(!learnerSearch.managed || exploring) && (            <div className="filter-select">
               <label className="filter-label" htmlFor="search-subject">
                 {appText("Subject")}{" "}
               </label>
@@ -1158,7 +1169,7 @@ function Teachers() {
                 customLabel={appText("Subject name")}
                 anyLabel={appText("All subjects")}
               />
-            </div>
+            </div>)}
             <label className="filter-select">
               <span className="filter-label">{appText("Lesson mode")}</span>
               <select
@@ -1311,7 +1322,7 @@ function Teachers() {
               type="button"
               variant="outline"
               className="reset-filters"
-              onClick={resetSearch}
+              onClick={resetPersonalisedFilters}
             >
               {appText("Reset filters")}{" "}
             </UiButton>
@@ -1412,7 +1423,7 @@ function Teachers() {
                 )}{" "}
               </p>
               <div className="search-recovery-actions">
-                {activeFilterCount > 0 && <UiButton variant="outline" onClick={resetSearch}>{appText("Clear all filters")}</UiButton>}
+                {activeFilterCount > 0 && <UiButton variant="outline" onClick={resetPersonalisedFilters}>{appText("Clear all filters")}</UiButton>}
                 <UiButton onClick={() => setTab("assisted")}>
                   {appText("Let us search for you")} <ArrowRight size={17} aria-hidden="true" />
                 </UiButton>
@@ -1455,15 +1466,16 @@ function Profile({ slug }: { slug: string }) {
   const independent = session?.account.role === "INDEPENDENT_STUDENT";
   const learnerSearch = useLearnerDiscovery(session);
   const profileParams = useSearchParams();
-  const learnerBound = learnerSearch.required && (session?.account.role !== "GUARDIAN" || !!profileParams.get("learner"));
+  const learnerBound = learnerSearch.required && (!!profileParams.get("learner") || independent && profileParams.get("explore")!=="all" && !!profileParams.get("subject"));
   const selectedSubject = profileParams.get("subject") || "";
+  const profileSpaceReady = !learnerSearch.managed || !learnerSearch.spacesQuery.error && learnerSearch.spaces.some(space=>space.subject.toLowerCase()===selectedSubject.toLowerCase());
   const academic = new URLSearchParams(learnerBound && learnerSearch.learner ? { learnerId: learnerSearch.learner.id, ...(selectedSubject ? { subject: selectedSubject } : {}) } : {});
-  const context = learnerBound && learnerSearch.learner ? "&" + new URLSearchParams({ learner: learnerSearch.learner.id, ...(selectedSubject ? { subject: selectedSubject } : {}) }) : "";
+  const context = learnerBound && learnerSearch.learner ? "&" + new URLSearchParams({ learner: learnerSearch.learner.id, ...(selectedSubject ? { subject: selectedSubject } : {}),...(profileParams.get("language") ? {language:profileParams.get("language")!} : {}) }) : "";
   const query = useQuery({
     queryKey: ["teacher", slug, academic.toString(), learnerBound ? learnerSearch.learner?.version : undefined],
     queryFn: ({ signal }) =>
       api<Teacher>(`/teachers/${encodeURIComponent(slug)}${academic.size ? "?" + academic : ""}`, { signal }),
-    enabled: !authLoading && (!learnerBound || learnerSearch.ready),
+    enabled: !authLoading && (!learnerBound || learnerSearch.ready && profileSpaceReady),
     retry: false,
   });
   const t = query.data;
@@ -1495,10 +1507,11 @@ function Profile({ slug }: { slug: string }) {
     <p>{appText("Choose a learner with complete education details before choosing a teacher.")}</p>
     <Link className="button" href="/teachers">{appText("Back to teacher search")}</Link>
   </main>;
+  if(learnerBound && !profileSpaceReady) return <main className="container section"><State loading={learnerSearch.spacesQuery.isPending||learnerSearch.spacesQuery.isFetching}/><section className="care-card"><p>{appText("Choose a saved subject space before enquiring about this teacher.")}</p><Link className="button" href={"/teachers?learner="+learnerSearch.learner!.id}>{appText("Choose subject space")}</Link>{learnerSearch.spacesQuery.error&&<RefreshButton label={appText("Reload student setup")} onClick={()=>learnerSearch.spacesQuery.refetch()}/>}</section></main>;
   return (
     <main className="container section">
       <div className="profile-navigation">
-        <Link className="inline-link" href={"/teachers" + (context ? "?" + context.slice(1) : "")}>
+        <Link className="inline-link" href={!learnerBound && profileParams.get("explore")==="all" ? "/teachers?explore=all" : "/teachers" + (context ? "?" + context.slice(1) : "")}>
           {appText("← All teachers")}{" "}
         </Link>
         {t && !failure && (
@@ -1512,7 +1525,7 @@ function Profile({ slug }: { slug: string }) {
             )} />
         )}
       </div>
-      <State loading={query.isPending && !failure} />
+      <State loading={query.isFetching && !failure} />
       {failure && (
         <section
           className="profile-recovery panel"
@@ -1935,6 +1948,7 @@ function GuardianVerificationPage() {
   if (loading) return <State loading />;
   if (!session) return <LoginPrompt />;
   if (session.account.studentSetupPending && !studentView) return <main className="container narrow section"><StudentConnection session={session} onSessionChange={setSession} /></main>;
+  if(session.account.role === "STUDENT" && !studentView) return <DashboardShell tab="/dashboard/guardian-details"><StudentGuardianDetails session={session}/></DashboardShell>;
   return (
     <main className="container section guardian-verification-page">
       <PageTitle
@@ -2237,7 +2251,7 @@ function DashboardShell({
     ...(role !== "GUARDIAN" ? [["/teachers", "Find a teacher", Search] as [string, string, LucideIcon]] : []),
     ...(["STUDENT", "ADMIN", "REVIEWER"].includes(role || "")
       ? [
-          ["/guardian-verification", "Guardian verification", ShieldCheck] as [
+          [role === "STUDENT" ? "/dashboard/guardian-details" : "/guardian-verification", role === "STUDENT" ? "Guardian details" : "Guardian verification", ShieldCheck] as [
             string,
             string,
             LucideIcon,
@@ -2274,6 +2288,7 @@ function DashboardShell({
       : []),
     ...(role === "GUARDIAN"
       ? ([
+          ["/dashboard/learning-preferences", "Learning preferences", Settings],
           ["/dashboard/requests", "Enquiries & teacher choices", Users],
           ["/dashboard/arrangements", "Arrangements & replacement", RefreshCw],
           ["/dashboard/family", "Learners & access", ShieldCheck],
@@ -2491,6 +2506,8 @@ function DashboardPage({ tab }: { tab: string }) {
         "/dashboard/student-devices",
         "/dashboard/learning-management",
         "/dashboard/learning-choices",
+        "/dashboard/learning-preferences",
+        "/dashboard/guardian-details",
         "/dashboard/minimum-tuition",
         "/dashboard/service-followups",
         "/dashboard/notifications",
@@ -2531,6 +2548,8 @@ function DashboardPage({ tab }: { tab: string }) {
   if (!session) return <LoginPrompt />;
   if (session.account.role === "OPERATOR" && tab === "/dashboard") return <DashboardShell tab={tab}><DirectEnquiries session={session}/></DashboardShell>;
   if (session.account.studentSetupPending) return <main className="container narrow section"><StudentConnection session={session} onSessionChange={setSession} /></main>;
+  if(tab === "/dashboard/learning-preferences" && session.account.role === "GUARDIAN") return <DashboardShell tab={tab}><GuardianLearningSpaces session={session}/></DashboardShell>;
+  if(tab === "/dashboard/guardian-details" && session.account.role === "STUDENT") return <DashboardShell tab={tab}><StudentGuardianDetails session={session}/></DashboardShell>;
   if (tab === "/dashboard/learners") return <DashboardShell tab={tab}><LearnerProfilesPage /></DashboardShell>;
   if (tab === "/dashboard/service-followups") return <DashboardShell tab={tab}><ServiceFollowups session={session}/></DashboardShell>;
   if (["/dashboard/notifications", "/dashboard/email-delivery"].includes(tab))
@@ -2646,6 +2665,8 @@ function DashboardPage({ tab }: { tab: string }) {
             "Welcome, {0}.", [session.account.name.split(" · ")[0]]
           )}
         />
+        {session.account.role === "STUDENT" && tab === "/dashboard" && <StudentGuardianDetails session={session} compact/>}
+        {["GUARDIAN","STUDENT"].includes(session.account.role) && tab === "/dashboard" && <CreateSpacesCard guardian={session.account.role === "GUARDIAN"}/>}
         {["GUARDIAN","STUDENT"].includes(session.account.role) && tab === "/dashboard" && <StudentConnection session={session} onSessionChange={setSession} compact/>}
         {session.account.role === "GUARDIAN" && tab === "/dashboard" && <GuardianPriorities session={session}/>}
         {session.account.role === "GUARDIAN" && tab === "/dashboard" && (

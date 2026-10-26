@@ -62,6 +62,7 @@ async function setup(page: Page, mode = "normal") {
         },
       });
     if (path.endsWith("/learning-management")) return route.fulfill({json:{childId:learner.id,mode:"STUDENT_LED",version:1,canManageLearning:true,canChangeManagement:false}});
+    if(path.endsWith("/learning-spaces")) return route.fulfill({json:{learner,spaces:progress.draft.spaces||(progress.draft.subjects||[]).map((subject:string)=>({subject,language:progress.draft.language})),version:progress.version}});
     if (path.endsWith("/learner-profiles")) return route.fulfill({json:{items:[learner],nextCursor:null}});
     if (path.endsWith("/teachers")) { searches.push(new URL(req.url())); return route.fulfill({json:{items:[],nextCursor:null}}); }
     if (path.endsWith("/onboarding/student/context")) {
@@ -81,7 +82,7 @@ async function setup(page: Page, mode = "normal") {
             message: "Synthetic setup read unavailable",
           },
         });
-      const value = { learner, progress, authority: "GUARDIAN_MANAGED" };
+      const value = { learner, progress, spacesVersion:progress.version, authority: "GUARDIAN_MANAGED" };
       expect(
         operationValidator("/onboarding/student/context", "get", "200")(value),
       ).toBe(true);

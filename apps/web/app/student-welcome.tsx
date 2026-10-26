@@ -113,7 +113,7 @@ export function StudentWelcome({ session }: { session: Session }) {
                 onSaved={(progress, subject) => {
                   setNotice(current=>({id:current.id+1,message:"Your student setup is saved.",error:false}));
                   setEditor({subject,saved:true});
-                  client.setQueryData<Context>(["student-setup",session.account.id], current => current ? {...current,progress} : current);
+                  client.setQueryData<Context>(["student-setup",session.account.id], current => current ? {...current,progress,spacesVersion:(current.spacesVersion||0)+1} : current);
                 }}
               /> : <StudentSpaceCards context={query.data} disabled={!!query.error || query.isFetching} onEdit={subject => setEditor({subject})} />}
 
@@ -125,7 +125,7 @@ export function StudentWelcome({ session }: { session: Session }) {
     </div>
   );
 }
-function StudentSpaceCards({context, disabled, onEdit}:{context:Context; disabled:boolean; onEdit:(subject?:string)=>void}) {
+export function StudentSpaceCards({context, disabled, onEdit,guardian=false}:{context:Context; disabled:boolean; onEdit:(subject?:string)=>void;guardian?:boolean}) {
   const {appText,appCurriculum} = useAppTranslation();
   const [,setSearch] = useTeacherSearchState();
   const spaces = savedSpaces(context.progress);
@@ -142,16 +142,16 @@ function StudentSpaceCards({context, disabled, onEdit}:{context:Context; disable
       </article>)}
       <button type="button" className="student-subject-card student-space-add" disabled={disabled || spaces.length >= 20 || !context.learner.enquiryEligible} onClick={()=>onEdit()}><Plus size={32} aria-hidden="true"/><span>{appText("Add a subject space")}</span></button>
     </div>
-    {!context.learner.enquiryEligible && <p role="status">{appText("Some education details are missing. Ask your guardian to complete your profile, then reload your setup.")}</p>}
+    {!context.learner.enquiryEligible && <p role="status">{appText(guardian ? "Complete this learner’s education details before creating a subject space." : "Some education details are missing. Ask your guardian to complete your profile, then reload your setup.")}{guardian && <> <Link href="/dashboard/learners">{appText("Open education profiles")}</Link></>}</p>}
   </section>;
 }
-function StudentSetupForm({
+export function StudentSetupForm({
   session,
   context,
   readBlocked,
   onReload,
   onSaved,
-  originalSubject, startSaved, onClose, onDuplicate,
+  originalSubject, startSaved, onClose, onDuplicate, saveSpaces,
 }: {
   session: Session;
   context: Context;
@@ -162,6 +162,7 @@ function StudentSetupForm({
   startSaved:boolean;
   onClose:()=>void;
   onDuplicate:()=>void;
+  saveSpaces?:(body:Confirmation,key:string)=>Promise<Progress>;
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
@@ -252,6 +253,7 @@ function StudentSetupForm({
       body: {
         expectedVersion: version,
         educationVersion: context.learner.version,
+        spacesVersion:context.spacesVersion || 0,
         confirmed: true as const,
         draft: {spaces:[...spaces.filter(space => space.subject !== originalSubject),{subject:review.subjects![0],...(review.language ? {language:review.language} : {}),...(review.learningPreferences ? {learningPreferences:review.learningPreferences} : {})}]},
       },
@@ -261,7 +263,7 @@ function StudentSetupForm({
     setBusy(true);
     setError("");
     try {
-      const result = await api<Progress>("/onboarding/student/confirmations", {
+      const result = saveSpaces ? await saveSpaces(attempt.body,attempt.key) : await api<Progress>("/onboarding/student/confirmations", {
         method: "POST",
         body: attempt.body,
         key: attempt.key,
@@ -320,9 +322,9 @@ function StudentSetupForm({
         <EducationSummary education={context.learner.education} />
         <Alert>
           <AlertDescription>
-            {appText(
-              "Some education details are missing. Ask your guardian to complete your profile, then reload your setup.",
-            )}{" "}
+            {appText(session.account.role === "GUARDIAN"
+              ? "Complete this learner’s education details before creating a subject space."
+              : "Some education details are missing. Ask your guardian to complete your profile, then reload your setup.") }{" "}
           </AlertDescription>
         </Alert>
         <RefreshButton variant="outline" disabled={readBlocked} onClick={onReload} label={appText("Reload student setup")} />

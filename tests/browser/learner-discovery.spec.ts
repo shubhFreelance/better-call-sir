@@ -15,6 +15,7 @@ async function mock(page: import("@playwright/test").Page, role: string) {
     if (route.request().method() !== "GET") writes.push(path);
     if (path.endsWith("/auth/session")) return route.fulfill({ json: { account: { id: account, name: "Synthetic guardian", role, verified: true }, csrfToken: "synthetic-csrf" } });
     const profiles = [{ id: kishan, alias: "Kishan", education: { stage: "SCHOOL", grade: 12, board: "CBSE", institutionName: "DPS", subjects: ["Maths", "Science"] }, version: 1, enquiryEligible: true }, { id: vivek, alias: "Vivek", education: { stage: "SCHOOL", grade: 7, board: "CBSE", institutionName: "Synthetic school", subjects: ["Maths", "Science"] }, version: 1, enquiryEligible: true }];
+    if(path.endsWith("/learning-spaces")){const learner=profiles.find(row=>path.includes(row.id));return route.fulfill({json:{learner,spaces:[{subject:"Maths"},{subject:"Science"}],version:1}});}
     if (path.endsWith("/children")) return route.fulfill({ json: { items: profiles.map(row => ({ id: row.id, alias: row.alias, educationStage: "SCHOOL", grade: row.education.grade, board: "CBSE", schoolName: row.education.institutionName, schoolSubjects: row.education.subjects })) } });
     if (path.endsWith("/onboarding/parent") || path.endsWith("/onboarding/enquiry") || path.endsWith("/onboarding/parent/drafts")) return route.fulfill({ status: route.request().method() === "POST" ? 201 : 200, json: { kind: path.includes("/enquiry") ? "ENQUIRY" : "PARENT", state: "READY", draft: route.request().method() === "POST" ? route.request().postDataJSON().draft : {}, version: route.request().method() === "POST" ? 1 : 0, completedResourceId: null } });
     if (path.endsWith("/consents")) return route.fulfill({ status: 201, json: {} });
@@ -43,24 +44,21 @@ test("guardian chooses the learner before discovery and Class 12 cannot fall bac
   await page.goto("/teachers");
   await expect(page.locator(".teacher-grid .teacher-card")).toHaveCount(0);
   await page.getByLabel("Choose learner", { exact: true }).selectOption(kishan);
+  await page.locator("#search-learning-space").selectOption("Maths");
   await expect(page.getByRole("heading", { name: "No teachers match these filters right now." })).toBeVisible();
   await page.getByRole("button", { name: "Reset filters", exact: true }).click();
   await expect(page.locator(".teacher-grid .teacher-card")).toHaveCount(0);
   await expect(page.getByLabel("Class", { exact: true })).toHaveCount(0);
   await page.getByLabel("Choose learner", { exact: true }).selectOption(vivek);
-  await expect(page.locator(".teacher-grid .teacher-card")).toHaveCount(2);
-  await page.getByRole("link", { name: "Maths Class 7", exact: true }).click();
-  await expect(page.getByRole("link", { name: "Enquire about this teacher", exact: true })).toHaveCount(0);
-  await page.getByRole("link", { name: "Choose a subject before enquiring", exact: true }).click();
-  await page.getByLabel("Subject", { exact: true }).selectOption("Maths");
+  await page.locator("#search-learning-space").selectOption("Maths");
   await expect(page.locator(".teacher-grid .teacher-card")).toHaveCount(1);
   const accessibility = await new AxeBuilder({ page }).include(".teacher-discovery-page").analyze();
   expect(accessibility.violations.filter(item => ["serious", "critical"].includes(item.impact || ""))).toEqual([]);
   await expect(page.getByRole("link", { name: "Maths Class 10", exact: true })).toHaveCount(0);
-  await page.getByLabel("Subject", { exact: true }).selectOption("Science");
+  await page.locator("#search-learning-space").selectOption("Science");
   await expect(page.getByRole("link", { name: "Science Class 7", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Maths Class 7", exact: true })).toHaveCount(0);
-  await page.getByLabel("Subject", { exact: true }).selectOption("Maths");
+  await page.locator("#search-learning-space").selectOption("Maths");
   await page.getByRole("link", { name: "Maths Class 7", exact: true }).click();
   await expect(page.getByRole("link", { name: "Enquire about this teacher", exact: true })).toHaveAttribute("href", new RegExp(`learner=${vivek}.*subject=Maths`));
   await page.goto(`/teachers/maths-7?learner=${kishan}&subject=Maths`);
@@ -71,6 +69,7 @@ test("guardian chooses the learner before discovery and Class 12 cannot fall bac
 for (const role of ["STUDENT", "INDEPENDENT_STUDENT"]) test(`${role} discovery is bound to own Class 12 profile`, async ({ page }) => {
   const state = await mock(page, role);
   await page.goto("/teachers");
+  if(role === "STUDENT") await page.locator("#search-learning-space").selectOption("Maths");
   await expect(page.getByRole("heading", { name: "No teachers match these filters right now." })).toBeVisible();
   await expect(page.locator(".teacher-card")).toHaveCount(0);
   await page.getByRole("button", { name: "Reset filters", exact: true }).click();
@@ -84,8 +83,8 @@ for (const role of ["STUDENT", "INDEPENDENT_STUDENT"]) test(`${role} discovery i
 test("Hindi phone learner discovery hides results on denied profile refresh", async ({ page }) => {
   await chooseHindi(page); await page.setViewportSize({ width: 390, height: 900 });
   const state = await mock(page, "GUARDIAN");
-  await page.goto(`/teachers?learner=${vivek}`);
-  await expect(page.locator(".teacher-grid .teacher-card")).toHaveCount(2);
+  await page.goto(`/teachers?learner=${vivek}&subject=Maths`);
+  await expect(page.locator(".teacher-grid .teacher-card")).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const accessibility = await new AxeBuilder({ page }).include(".teacher-discovery-page").analyze();
   expect(accessibility.violations.filter(item => ["serious", "critical"].includes(item.impact || ""))).toEqual([]);
