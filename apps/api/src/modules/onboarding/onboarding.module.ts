@@ -67,7 +67,7 @@ class OnboardingController {
   });
  }
  @Post('onboarding/student/confirmations') async confirmStudent(@Req() req:HttpRequest,@Body() body:unknown){
-  const actor=await this.service.actor(req,['STUDENT']),data=parse(z.object({expectedVersion:z.number().int().nonnegative(),educationVersion:version,confirmed:z.literal(true),draft:studentDraft.extend({managementPreference})}).strict(),body);
+  const actor=await this.service.actor(req,['STUDENT']),data=parse(z.object({expectedVersion:z.number().int().nonnegative(),educationVersion:version,confirmed:z.literal(true),draft:studentDraft}).strict(),body);
   return this.service.once(req,actor,'student.onboarding.confirm',data,async db=>{
    const linked=await db.child.findUniqueOrThrow({where:{studentAccountId:actor.id}});
    await this.service.guardian(db,linked.guardianId);
@@ -77,9 +77,10 @@ class OnboardingController {
    if(!learnerProjection(child).enquiryEligible)fail(409,'EDUCATION_INCOMPLETE','Ask your guardian to complete your education details before confirming setup.');
    const current=await db.onboardingProgress.findUnique({where:{accountId_kind:{accountId:actor.id,kind:'STUDENT'}}});
    if((current?.version||0)!==data.expectedVersion)fail(409,'CONFLICT','Your saved setup changed. Reload and review it again.');
-   const saved={draft:data.draft,completedResourceId:child.id};
+   const legacyPreference=managementPreference.safeParse((current?.draft as {managementPreference?:unknown}|null)?.managementPreference);
+   const saved={draft:{...(legacyPreference.success?{managementPreference:legacyPreference.data}:{}),...data.draft},completedResourceId:child.id};
    const progress=current?await db.onboardingProgress.update({where:{id:current.id},data:{...saved,version:{increment:1}}}):await db.onboardingProgress.create({data:{accountId:actor.id,kind:'STUDENT',...saved}});
-   await this.service.audit(db,actor,req,'STUDENT_ONBOARDING_CONFIRMED',child.id,'Student reviewed education and learning support preferences',undefined,{educationVersion:child.version,setupVersion:progress.version,managementPreference:data.draft.managementPreference,authority:'GUARDIAN_MANAGED'});
+   await this.service.audit(db,actor,req,'STUDENT_ONBOARDING_CONFIRMED',child.id,'Student reviewed education and learning preferences',undefined,{educationVersion:child.version,setupVersion:progress.version,authority:'GUARDIAN_MANAGED'});
    return this.result(db,actor,'STUDENT');
   });
  }

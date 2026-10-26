@@ -6523,7 +6523,7 @@ export interface components {
                  * @description Requested learning support; does not grant authority or establish adulthood.
                  * @enum {string}
                  */
-                managementPreference: "SELF_DIRECTED" | "GUARDIAN_GUIDED";
+                managementPreference?: "SELF_DIRECTED" | "GUARDIAN_GUIDED";
                 subjects?: string[];
                 /** @enum {string} */
                 language?: "English" | "Hindi";

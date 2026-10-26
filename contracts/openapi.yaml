@@ -46312,10 +46312,7 @@
                 "maxLength": 500
               }
             },
-            "additionalProperties": false,
-            "required": [
-              "managementPreference"
-            ]
+            "additionalProperties": false
           }
         },
         "required": [
