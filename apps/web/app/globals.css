@@ -6452,3 +6452,21 @@ html body button.refresh-button[data-slot=button]:disabled { cursor:not-allowed;
 .student-current-management { display:grid; justify-items:start; gap:12px; padding:18px; margin-block:24px; border:1px solid #E5CFF0; border-radius:12px; background:#F8EDFF; }
 .student-current-management h3 { margin:0; color:#034F46; font-size:14px; }
 .student-current-management > .inline-link { font-size:12px; }
+.student-setup-form > h2 { margin:0 0 20px; color:#034F46; font-size:24px; line-height:1.35; letter-spacing:-.4px; }
+.student-setup-form .student-setup-review { display:grid; gap:16px; }
+.student-review-education,.student-review-preferences { padding:20px; border:1px solid #D9E4DF; border-radius:14px; }
+.student-review-education { background:#FFFFEB; }
+.student-review-preferences { background:#EEF5F3; }
+.student-setup-review .student-review-label { margin:0 0 10px; color:#586562; font-size:12px; }
+.student-setup-review .student-review-education h3 { margin:0 0 10px; color:#034F46; font-size:20px; }
+.student-review-education .learner-education-summary p { margin:6px 0; font-size:13px; line-height:1.65; }
+.student-setup-review .student-review-preferences h3 { margin:0 0 14px; color:#034F46; font-size:15px; }
+.student-review-preferences dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:0; }
+.student-review-preferences dl > div { padding:12px 14px; border:1px solid #E1E8E3; border-radius:10px; background:#FFF; }
+.student-review-preferences dt { margin:0 0 6px; color:#586562; font-size:12px; }
+.student-review-preferences dd { margin:0; color:#17201F; font-size:13px; line-height:1.7; white-space:pre-wrap; overflow-wrap:anywhere; }
+.student-review-notes { grid-column:1/-1; }
+.student-review-authority { padding:16px; border:1px solid #E5CFF0; border-radius:12px; background:#F8EDFF; }
+.student-setup-review .student-review-authority p { margin:10px 0 0; color:#344A43; font-size:12px; line-height:1.7; }
+.student-setup-actions { margin-top:24px; }
+@media(max-width:640px) { .student-review-education,.student-review-preferences { padding:16px; } .student-review-preferences dl { grid-template-columns:minmax(0,1fr); } .student-setup-form > h2 { font-size:22px; } }

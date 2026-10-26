@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "../components/ui/alert";
 import { EducationSummary } from "./learner-profiles";
 import { LearningManagementBadge } from "../components/ui/learning-management-badge";
 import { learningModes } from "./learning-management";
+import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
 type Context = components["schemas"]["StudentSetupContext"];
 type Preferences = components["schemas"]["StudentLearningPreferences"];
 type Confirmation = components["schemas"]["StudentSetupConfirmation"];
@@ -308,21 +309,28 @@ function StudentSetupForm({
       </h2>
       {review ? (
         <div className="student-setup-review">
+          <section className="student-review-education">
+          <p className="student-review-label">{appText("Your education details")}</p>
           <h3>{context.learner.alias}</h3>
           <EducationSummary education={context.learner.education} />
+          </section>
+          <section className="student-review-preferences">
           <h3>{appText("Learning preferences")}</h3>
-          <p>
+          <dl><div><dt>{appText("Subjects")}</dt><dd>
             {review.subjects?.length
               ? review.subjects.map((value) => appCurriculum(value)).join(", ")
               : appText("No subjects selected")}
-          </p>
-          <p>{review.language || appText("No language preference")}</p>
-          {review.learningPreferences && <p>{review.learningPreferences}</p>}
+          </dd></div><div><dt>{appText("Language")}</dt><dd>{review.language ? appText(review.language) : appText("No language preference")}</dd></div>
+          {review.learningPreferences && <div className="student-review-notes"><dt>{appText("Learning preferences")}</dt><dd>{review.learningPreferences}</dd></div>}
+          </dl></section>
+          <div className="student-review-authority" role="note">
+          {currentManagement && <LearningManagementBadge label={appText(currentManagement.title)} items={[appText(currentManagement.help)]} />}
           <p>
             {appText(
-              "Your guardian continues to handle enquiries, teacher choices and tuition agreements.",
+              "Saving these preferences does not change who manages learning.",
             )}{" "}
           </p>
+          </div>
         </div>
       ) : (
         <form
@@ -485,13 +493,12 @@ function StudentSetupForm({
           <RefreshButton variant="outline" disabled={readBlocked} onClick={onReload} label={appText("Reload latest student setup")} />
         </div>
       )}
-      <div className="wizard-actions">
+      <FilterButtonGroup className="student-setup-actions">
         {saved ? (
           <>
-            <Button
+            <FilterButton
               key="update"
               type="button"
-              variant="outline"
               onClick={() => {
                 setSaved(false);
                 setReview(null);
@@ -501,20 +508,19 @@ function StudentSetupForm({
               }}
             >
               {appText("Update student setup")}{" "}
-            </Button>
-            <Button asChild>
+            </FilterButton>
+            <FilterButton asChild accent>
               <Link href="/teachers">{appText("Explore teachers")}</Link>
-            </Button>
-            <Link href="/dashboard" className="inline-link">
+            </FilterButton>
+            <FilterButton asChild><Link href="/dashboard">
               {appText("Open dashboard")}{" "}
-            </Link>
+            </Link></FilterButton>
           </>
         ) : review ? (
           <>
-            <Button
+            <FilterButton
               key="edit"
               type="button"
-              variant="outline"
               disabled={locked}
               onClick={() => {
                 setReview(null);
@@ -523,9 +529,9 @@ function StudentSetupForm({
               }}
             >
               {appText("Edit setup details")}{" "}
-            </Button>
-            <Button
-              key="confirm"
+            </FilterButton>
+            <FilterButton
+              accent key="confirm"
               type="button"
               disabled={busy || conflict || readBlocked}
               onClick={save}
@@ -535,24 +541,24 @@ function StudentSetupForm({
                 : uncertain
                   ? appText("Retry saving student setup")
                   : appText("Confirm and save student setup")}
-            </Button>
+            </FilterButton>
           </>
         ) : (
           <>
-            <Button
-              key="review"
+            <FilterButton
+              accent key="review"
               form="student-setup-details"
               type="submit"
               disabled={locked}
             >
               {appText("Review student setup")}{" "}
-            </Button>
-            <Link href="/dashboard" className="inline-link">
+            </FilterButton>
+            <FilterButton asChild><Link href="/dashboard">
               {appText("Do this later")}{" "}
-            </Link>
+            </Link></FilterButton>
           </>
         )}
-      </div>
+      </FilterButtonGroup>
     </section>
   );
 }

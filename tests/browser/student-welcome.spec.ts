@@ -542,7 +542,7 @@ test("student setup and review have accessible desktop/mobile layouts with curre
         .all())
         expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
       const actions = await page
-        .locator(".student-setup-form .wizard-actions > *")
+        .locator(".student-setup-form .student-setup-actions > *")
         .evaluateAll((buttons) =>
           buttons.map((b) => b.getBoundingClientRect().width),
         );
@@ -565,6 +565,11 @@ test("student setup and review have accessible desktop/mobile layouts with curre
     fullPage: true,
   });
   await review(page);
+  await expect(page.locator(".student-setup-actions .filter-button")).toHaveCount(2);
+  await expect(page.locator(".student-review-authority")).toContainText("Student leads; guardian stays involved");
+  await page.setViewportSize({width:1440,height:1000});
+  await page.locator(".student-setup-form").screenshot({path:"test-results/student-review-card-desktop.png"});
+  await page.setViewportSize({width:390,height:844});
   expect(
     (await new AxeBuilder({ page }).include(".student-welcome").analyze())
       .violations,
@@ -575,7 +580,7 @@ test("student setup and review have accessible desktop/mobile layouts with curre
   });
   await expect(
     page.getByText(
-      "Your guardian continues to handle enquiries, teacher choices and tuition agreements.",
+      "Saving these preferences does not change who manages learning.",
       { exact: true },
     ),
   ).toBeVisible();
