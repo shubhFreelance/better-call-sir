@@ -180,7 +180,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
           <Link href="/dashboard/enquiries">{appText("All enquiries")}</Link>
         </Button>
       )}
-      {!review && <Feedback decision={decision} />}
+      {!review && <Feedback decision={decision} floating />}
       {query.isPending && <p role="status">{appText("Loading enquiries…")}</p>}
       {query.error ? (
         <p role="alert">
@@ -255,6 +255,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
               </div>
           );
 
+          const arrangementLink = item.arrangementId && <FilterButton asChild><Link href={item.kind === "GUARDIAN" ? "/dashboard/arrangements?arrangement=" + item.arrangementId : "/dashboard/student-arrangements"}>{appText("View tuition arrangement")}</Link></FilterButton>;
           if (onViewEnquiry) return <article className="direct-enquiry-card" key={item.id}>{heading}</article>;
           return <LayeredSummaryCard collapsible className="direct-enquiry-card" key={item.id} open={conversation === item.id ? true : undefined} header={heading} footer={<>
                 <div className="direct-preferred-time">
@@ -362,27 +363,13 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                   </aside>
                 )}
                 {item.status === "ACCEPTED" && (
-                  <p className="decision-guidance decision-success" role="status">
-                    <strong>{appText("The teacher has accepted this enquiry.")}</strong>{" "}
-                    {appText(
-                      "Enquiry accepted. Your tuition arrangement is ready; both parties review its recorded financial terms separately.",
-                    )}
-                  </p>
+                  <section className="direct-acceptance">
+                    <CircleCheck size={22} aria-hidden="true"/>
+                    <div role="status"><strong>{appText("The teacher has accepted this enquiry.")}</strong><p>{appText("Your tuition arrangement is ready. Both parties review financial terms separately.")}</p></div>
+                    {arrangementLink}
+                  </section>
                 )}
-                {item.arrangementId && (
-                  <Button asChild variant="outline">
-                    <Link
-                      href={
-                        item.kind === "GUARDIAN"
-                          ? "/dashboard/arrangements?arrangement=" +
-                            item.arrangementId
-                          : "/dashboard/student-arrangements"
-                      }
-                    >
-                      {appText("View tuition arrangement")}
-                    </Link>
-                  </Button>
-                )}
+                {item.status !== "ACCEPTED" && arrangementLink}
           </LayeredSummaryCard>;
         })}
       <Modal open={!!review} onOpenChange={next => {if(!next && !decision.locked){setReview(null);setConfirmed(false);}}} title={appText("Review your reply")} description={review ? appText(

@@ -6594,3 +6594,10 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .direct-reply-summary .direct-proposal { margin-top:16px; font-size:13px; }
 
 .direct-reply-summary .direct-learning-details>div:last-child { grid-column:1/-1; }
+
+.direct-acceptance { display:grid; grid-template-columns:22px minmax(0,1fr) auto; align-items:start; gap:12px; margin-top:20px; padding:18px; border:1px solid #D7E6DD; border-radius:12px; background:#EEF5F3; color:#034F46; }
+.direct-acceptance>svg { margin-top:2px; color:#315E38; }
+.direct-acceptance strong { display:block; font-size:14px; font-weight:650; line-height:1.5; }
+.direct-acceptance p { margin:6px 0 0; color:#52655F; font-size:12px; line-height:1.7; }
+.direct-acceptance>.filter-button { min-height:44px; font-size:12px; align-self:center; }
+@media(max-width:640px) { .direct-acceptance { grid-template-columns:22px minmax(0,1fr); padding:14px; } .direct-acceptance>.filter-button { grid-column:2; width:100%; } }

@@ -1,5 +1,6 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Your tuition arrangement is ready. Both parties review financial terms separately.": "आपकी ट्यूशन व्यवस्था तैयार है। दोनों पक्ष आर्थिक शर्तों की अलग-अलग समीक्षा करेंगे।",
   "Create spaces": "स्पेस बनाएँ",
   "Complete this learner’s education details before creating a subject space.": "विषय स्पेस बनाने से पहले इस विद्यार्थी की शिक्षा की जानकारी पूरी करें।",
   "Guardian details are unavailable for this account.": "इस खाते के लिए अभिभावक की जानकारी उपलब्ध नहीं है।",
