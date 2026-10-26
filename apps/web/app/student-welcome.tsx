@@ -10,14 +10,12 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { EducationSummary } from "./learner-profiles";
+import { LearningManagementBadge } from "../components/ui/learning-management-badge";
+import { learningModes } from "./learning-management";
 type Context = components["schemas"]["StudentSetupContext"];
 type Preferences = components["schemas"]["StudentLearningPreferences"];
 type Confirmation = components["schemas"]["StudentSetupConfirmation"];
 type Progress = components["schemas"]["OnboardingProgress"];
-const supportLabels = {
-  SELF_DIRECTED: "I can manage my learning",
-  GUARDIAN_GUIDED: "I need guardian help",
-};
 const splitSubjects = (text: string) =>
   text
     .split(",")
@@ -42,7 +40,7 @@ export function StudentWelcome({ session }: { session: Session }) {
         <h1>{appText("Set up your student space.")}</h1>
         <p>
           {appText(
-            "Check what you’re learning, choose the help you want, and review your setup before saving.",
+            "Review your education and learning preferences before saving.",
           )}{" "}
         </p>
       </header>
@@ -110,11 +108,6 @@ export function StudentWelcome({ session }: { session: Session }) {
               "Your guardian chooses who manages learning. Check your current permissions to see whether you, your guardian or both of you can choose teachers.",
             )}{" "}
           </p>
-          <p>
-            {appText(
-              "Your support choice records the help you want. It does not change these permissions.",
-            )}{" "}
-          </p>
           <Link className="inline-link" href="/dashboard/learning-management">
             {appText("Review who manages learning")}
           </Link>
@@ -150,6 +143,8 @@ function StudentSetupForm({
 
   const initial = context.progress.draft as Preferences,
     suggestions = context.learner.education.subjects;
+  const management = useQuery({queryKey:["learning-management",session.account.id,context.learner.id],queryFn:({signal})=>api<components["schemas"]["LearningManagement"]>(`/children/${context.learner.id}/learning-management`,{signal}),retry:false});
+  const currentManagement = !management.error && management.data ? learningModes[management.data.mode] : undefined;
   const [subjects, setSubjects] = useState(
       (initial.subjects || []).filter((s) => suggestions.includes(s)),
     ),
@@ -158,10 +153,7 @@ function StudentSetupForm({
         .filter((s) => !suggestions.includes(s))
         .join(", "),
     );
-  const [management, setManagement] = useState(
-      initial.managementPreference || "",
-    ),
-    [correct, setCorrect] = useState(false),
+  const [correct, setCorrect] = useState(false),
     [language, setLanguage] = useState(initial.language || ""),
     [notes, setNotes] = useState(initial.learningPreferences || "");
   const [review, setReview] = useState<Confirmation["draft"] | null>(null),
@@ -181,7 +173,6 @@ function StudentSetupForm({
     if (!correct)
       invalid.education =
         "Review your education details and confirm they are correct.";
-    if (!management) invalid.management = "Choose how much help you want.";
     if (
       chosen.length > 20 ||
       chosen.some((s) => s.length > 60) ||
@@ -197,7 +188,6 @@ function StudentSetupForm({
         .getElementById(
           {
             education: "student-education-correct",
-            management: "student-management-self",
             subjects: "student-other-subjects",
             notes: "student-learning-notes",
           }[Object.keys(invalid)[0]] || "student-education-correct",
@@ -206,7 +196,6 @@ function StudentSetupForm({
       return;
     }
     setReview({
-      managementPreference: management as "SELF_DIRECTED" | "GUARDIAN_GUIDED",
       subjects: chosen,
       ...(language ? { language: language as "English" | "Hindi" } : {}),
       ...(notes.trim() ? { learningPreferences: notes.trim() } : {}),
@@ -256,7 +245,6 @@ function StudentSetupForm({
           .filter((s) => !suggestions.includes(s))
           .join(", "),
       );
-      setManagement(confirmed.managementPreference || "");
       setLanguage(confirmed.language || "");
       setNotes(confirmed.learningPreferences || "");
       setReview(confirmed as Confirmation["draft"]);
@@ -305,7 +293,7 @@ function StudentSetupForm({
         aria-label={appText("Student setup progress")}
       >
         <li aria-current={!review ? "step" : undefined}>
-          {appText("1 · Details and support")}{" "}
+          {appText("1 · Details and preferences")}{" "}
         </li>
         <li aria-current={review ? "step" : undefined}>
           {appText("2 · Review and save")}
@@ -322,8 +310,6 @@ function StudentSetupForm({
         <div className="student-setup-review">
           <h3>{context.learner.alias}</h3>
           <EducationSummary education={context.learner.education} />
-          <h3>{appText("Support you want")}</h3>
-          <p>{appText(supportLabels[review.managementPreference])}</p>
           <h3>{appText("Learning preferences")}</h3>
           <p>
             {review.subjects?.length
@@ -382,68 +368,11 @@ function StudentSetupForm({
                 </p>
               )}
             </div>
-            <fieldset className="student-support-choices">
-              <legend>
-                {appText("How would you like to manage your learning?")}
-              </legend>
-              <p className="wizard-help" id="student-management-help">
-                {appText(
-                  "Choose the support you want. Your current account permissions stay as they are.",
-                )}{" "}
-              </p>
-              {(["SELF_DIRECTED", "GUARDIAN_GUIDED"] as const).map(
-                (choice, i) => (
-                  <label
-                    className={
-                      management === choice
-                        ? "student-support-choice selected"
-                        : "student-support-choice"
-                    }
-                    key={choice}
-                  >
-                    <input
-                      type="radio"
-                      id={
-                        i === 0
-                          ? "student-management-self"
-                          : "student-management-guided"
-                      }
-                      name="student-management"
-                      value={choice}
-                      checked={management === choice}
-                      onChange={() => setManagement(choice)}
-                      aria-invalid={!!errors.management}
-                      aria-describedby={
-                        errors.management
-                          ? "student-management-error"
-                          : "student-management-help"
-                      }
-                    />
-                    <span>
-                      <strong>{appText(supportLabels[choice])}</strong>
-                      <small>
-                        {i === 0
-                          ? appText(
-                              "I want to organise my goals and explore teachers, with help when I ask for it.",
-                            )
-                          : appText(
-                              "I want help understanding my needs and choosing a suitable teacher.",
-                            )}
-                      </small>
-                    </span>
-                  </label>
-                ),
-              )}
-              {errors.management && (
-                <p
-                  className="field-error"
-                  id="student-management-error"
-                  role="alert"
-                >
-                  {appError(errors.management)}
-                </p>
-              )}
-            </fieldset>
+            <section className="student-current-management" aria-label={appText("Current family choice")}>
+              <h3>{appText("Current family choice")}</h3>
+              {currentManagement && <LearningManagementBadge label={appText(currentManagement.title)} items={[appText(currentManagement.help)]} />}
+              <Link className="inline-link" href="/dashboard/learning-management">{appText("Review who manages learning")}</Link>
+            </section>
             <fieldset>
               <legend>
                 {appText("Subjects you want help with (optional)")}

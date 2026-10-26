@@ -60,6 +60,7 @@ async function setup(page: Page, mode = "normal") {
           csrfToken: "synthetic-csrf",
         },
       });
+    if (path.endsWith("/learning-management")) return route.fulfill({json:{childId:learner.id,mode:"STUDENT_LED",version:1,canManageLearning:true,canChangeManagement:false}});
     if (path.endsWith("/onboarding/student/context")) {
       if (denied)
         return route.fulfill({
@@ -166,14 +167,14 @@ async function setup(page: Page, mode = "normal") {
     },
   };
 }
-async function choose(page: Page, choice = "I can manage my learning") {
+async function choose(page: Page) {
   await page
     .getByRole("checkbox", {
       name: "These education details are correct",
       exact: true,
     })
     .check();
-  await page.getByRole("radio", { name: new RegExp(choice) }).check();
+  await expect(page.locator(".student-support-choices")).toHaveCount(0);
 }
 async function review(page: Page) {
   await page
@@ -200,11 +201,13 @@ async function save(page: Page) {
     }),
   ).toBeVisible();
 }
-test("student reviews education, chooses support, saves broad subjects and can resume and clear optional preferences", async ({
+test("student reviews education and saves preferences without a second management question", async ({
   page,
 }) => {
   const state = await setup(page);
   await page.goto("/onboarding/student");
+  await expect(page.locator(".student-current-management .learning-management-badge")).toContainText("Student leads; guardian stays involved");
+  await expect(page.getByRole("radio")).toHaveCount(0);
   await choose(page);
   await page.getByRole("checkbox", { name: "Maths", exact: true }).check();
   await page.getByLabel("Other subjects (optional)").fill("Physics");
@@ -227,7 +230,6 @@ test("student reviews education, chooses support, saves broad subjects and can r
     educationVersion: 1,
     confirmed: true,
     draft: {
-      managementPreference: "SELF_DIRECTED",
       subjects: ["Maths", "Physics"],
       language: "Hindi",
       learningPreferences: "More worked examples, please.",
@@ -243,16 +245,14 @@ test("student reviews education, chooses support, saves broad subjects and can r
   await expect(
     page.getByLabel("How do you like to learn? (optional)"),
   ).toHaveValue("More worked examples, please.");
-  await expect(
-    page.getByRole("radio", { name: /I can manage my learning/ }),
-  ).toBeChecked();
+  await expect(page.locator(".student-support-choices")).toHaveCount(0);
   await expect(
     page.getByRole("checkbox", {
       name: "These education details are correct",
       exact: true,
     }),
   ).not.toBeChecked();
-  await choose(page, "I need guardian help");
+  await choose(page);
   await page.getByRole("checkbox", { name: "Maths", exact: true }).uncheck();
   await page.getByLabel("Other subjects (optional)").fill("");
   await page.getByLabel("Language you prefer (optional)").selectOption("");
@@ -260,7 +260,6 @@ test("student reviews education, chooses support, saves broad subjects and can r
   await review(page);
   await save(page);
   expect(state.bodies[1].draft).toEqual({
-    managementPreference: "GUARDIAN_GUIDED",
     subjects: [],
   });
   expect(state.bodies[1].expectedVersion).toBe(1);
@@ -270,7 +269,7 @@ test("student reviews education, chooses support, saves broad subjects and can r
     ),
   ).not.toContain("More worked examples");
 });
-test("education acknowledgement and support choice are required before review; duplicate subjects fail with focus", async ({
+test("education acknowledgement is required before review; duplicate subjects fail with focus", async ({
   page,
 }) => {
   const state = await setup(page);
@@ -290,12 +289,6 @@ test("education acknowledgement and support choice are required before review; d
       exact: true,
     })
     .check();
-  await page
-    .getByRole("button", { name: "Review student setup", exact: true })
-    .click();
-  await expect(
-    page.getByRole("radio", { name: /I can manage my learning/ }),
-  ).toBeFocused();
   await choose(page);
   await page.getByRole("checkbox", { name: "Maths", exact: true }).check();
   await page.getByLabel("Other subjects (optional)").fill("maths");
@@ -495,7 +488,7 @@ for (const mode of ["college", "early"])
           exact: true,
         }),
       ).toBeVisible();
-      await choose(page, "I need guardian help");
+      await choose(page);
       await page
         .getByRole("checkbox", {
           name: mode === "college" ? "Mechanics" : "Language",

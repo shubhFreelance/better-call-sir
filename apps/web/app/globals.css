@@ -6449,3 +6449,6 @@ html body button.refresh-button[data-slot=button]:disabled { cursor:not-allowed;
 .signed-in-role > svg { flex:none; }
 .signed-in-role[data-pending=true] { background:#F8EDFF; border-color:#E5CFF0; }
 @media(max-width:640px) { .signed-in-identity { gap:8px; } .signed-in-identity .learning-management-badge { max-width:100%; } }
+.student-current-management { display:grid; justify-items:start; gap:12px; padding:18px; margin-block:24px; border:1px solid #E5CFF0; border-radius:12px; background:#F8EDFF; }
+.student-current-management h3 { margin:0; color:#034F46; font-size:14px; }
+.student-current-management > .inline-link { font-size:12px; }

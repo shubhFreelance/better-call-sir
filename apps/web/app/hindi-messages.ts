@@ -1,5 +1,7 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Review your education and learning preferences before saving.": "सहेजने से पहले अपनी शिक्षा और पढ़ाई की पसंद की समीक्षा करें।",
+  "1 · Details and preferences": "1 · जानकारी और पसंद",
   "Connect your student account": "अपना विद्यार्थी खाता जोड़ें",
   "Ask your guardian for a student invitation code. Accept it with your own email to connect the saved learner profile.": "अभिभावक से विद्यार्थी आमंत्रण कोड माँगें। सहेजी गई विद्यार्थी प्रोफ़ाइल जोड़ने के लिए अपने ईमेल से उसे स्वीकार करें।",
   "Student setup pending": "विद्यार्थी का खाता जोड़ना बाकी है",
