@@ -15,8 +15,8 @@ async function seed() {
   ];
   for (const [i,a] of accounts.entries()) await db.account.upsert({where:{id:a.id},create:{...a,phone:`+9100000000${String(i+1).padStart(2,'0')}`},update:{}});
   for (const id of [ids.guardian,ids.otherGuardian]) await db.consent.upsert({where:{guardianId:id},create:{guardianId:id},update:{}});
-  await db.child.upsert({where:{id:ids.child},create:{id:ids.child,guardianId:ids.guardian,alias:'Aarav',grade:8,board:'CBSE',studentAccountId:ids.student},update:{}});
-  await db.child.upsert({where:{id:ids.otherChild},create:{id:ids.otherChild,guardianId:ids.otherGuardian,alias:'Tara',grade:9,board:'CGBSE'},update:{}});
+  await db.child.upsert({where:{id:ids.child},create:{id:ids.child,guardianId:ids.guardian,alias:'Aarav',learningSpaces:[{subject:'Maths'},{subject:'Science'}],grade:8,board:'CBSE',studentAccountId:ids.student},update:{}});
+  await db.child.upsert({where:{id:ids.otherChild},create:{id:ids.otherChild,guardianId:ids.otherGuardian,alias:'Tara',learningSpaces:[{subject:'Maths'},{subject:'Science'}],grade:9,board:'CGBSE'},update:{}});
   for (const [i,t] of teachers.entries()) {
     const accountId=i===0?ids.teacherAccount:`10000000-0000-4000-8000-${String(i+10).padStart(12,'0')}`;
     if (i>0) await db.account.upsert({where:{id:accountId},create:{id:accountId,name:t.name,phone:`+9100000000${i+10}`,role:'TEACHER',verified:true},update:{}});
