@@ -604,3 +604,5 @@ Owner-approved name: **Layered Summary Card** (`LayeredSummaryCard` from `compon
   <p>Supporting details</p>
 </LayeredSummaryCard>
 ```
+
+Saved-enquiry list (26 October 2026): reuse DirectEnquiries with onViewEnquiry for compact status-filtered source-request navigation. This mode uses non-interactive article headings and a separate FilterButton, avoiding nested controls inside disclosure summaries. Keep normal conversation disclosures on other dashboards. Phone cards show full-width names/status metadata and a full-width view action. Use the source request ID in the learning-choices URL and fetch the owned request directly so pagination cannot select the wrong enquiry. Preserve the legacy assisted-request selector.

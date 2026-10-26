@@ -187,6 +187,7 @@ async function fixture(
             metrics: {},
           },
         });
+      if (p.endsWith("/learning-spaces") && options.manual) return route.fulfill({json:{learner:profile,spaces:[{subject:"Maths"}],version:1}});
       if (p.endsWith("/requests"))
         return route.fulfill({
           json: checked("RequestList", { items: rows, nextCursor: null }),
@@ -273,6 +274,7 @@ async function fixture(
     return route.fulfill({ status: 201, json: value });
   });
   return {
+    rows,
     writes,
     restore: () => {
       fail = false;
@@ -298,6 +300,26 @@ async function reviewMode(page: Page) {
     .click();
 }
 export function learningManagementTests() {
+  test("saved enquiry inbox filters statuses and opens the exact source beyond the current history page",async({page})=>{
+    const f=await fixture(page,{role:"STUDENT",mode:"SHARED",history:true});
+    const secondId="20000000-0000-4000-8000-000000000822", reads:string[]=[];
+    const sources=[{...f.rows[0],candidates:[]},{...f.rows[0],id:secondId,subject:"Science",candidates:[]}];
+    const items=sources.map((source,n)=>({id:`30000000-0000-4000-8000-00000000082${n}`,sourceId:source.id,kind:"GUARDIAN",status:n?"ACCEPTED":"PENDING",sourceOpen:true,learner:{name:"Synthetic Learner"},subject:source.subject,teacherName:"Synthetic Teacher",createdAt:"2026-10-26T10:00:00Z",canReply:false,canDecide:false,proposal:null}));
+    await page.route("**/api/v1/direct-enquiries**",route=>{const status=new URL(route.request().url()).searchParams.get("status");reads.push(status||"ALL");return route.fulfill({json:{items:items.filter(item=>!status||item.status===status),counts:{PENDING:1,ACCEPTED:1},nextCursor:null}});});
+    await page.route("**/api/v1/requests/"+secondId,route=>route.fulfill({json:sources[1]}));
+    await page.goto("/dashboard/learning-choices");const panel=page.locator(".direct-inbox");
+    await expect(panel.getByRole("button",{name:"View saved enquiry",exact:true})).toHaveCount(2);
+    await panel.getByRole("button",{name:"Accepted",exact:true}).click();await expect(panel.locator(".direct-enquiry-card")).toHaveCount(1);
+    await panel.getByRole("button",{name:"View saved enquiry",exact:true}).click();await expect(page).toHaveURL(new RegExp("request="+secondId));
+    await expect(page.locator(".tuition-request-review h2")).toContainText("Science");await page.reload();await expect(page.locator(".tuition-request-review h2")).toContainText("Science");
+    await page.getByRole("button",{name:"All enquiries",exact:true}).click();await expect(page).not.toHaveURL(/request=/);await expect(page.locator(".direct-inbox .direct-enquiry-card")).toHaveCount(2);
+    expect(reads).toContain("ACCEPTED");expect(f.writes).toHaveLength(0);
+    await page.setViewportSize({width:360,height:850});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    expect((await new AxeBuilder({page}).include(".direct-inbox").analyze()).violations).toEqual([]);
+    await page.locator(".direct-inbox").screenshot({path:"test-results/saved-enquiry-inbox.png",style:"nextjs-portal{display:none!important}"});
+    await page.route("**/api/v1/requests/"+secondId,route=>route.fulfill({status:404,json:{code:"NOT_FOUND",message:"Enquiry unavailable."}}));
+    await page.goto("/dashboard/learning-choices?request="+secondId);await expect(page.getByRole("button",{name:"Reload learning choices",exact:true})).toBeVisible();await expect(page.locator(".tuition-request-review")).toHaveCount(0);
+  });
   for (const hindi of [false,true]) test(`management settings use compact themed cards and accessible guidance (${hindi ? "Hindi phone" : "English desktop"})`,async({page})=>{
     if(hindi) await chooseHindi(page);
     await fixture(page,{mode:"STUDENT_LED"});await page.setViewportSize({width:hindi?320:1440,height:1000});await page.goto("/dashboard/learning-management");
@@ -625,6 +647,7 @@ export function learningManagementTests() {
       await expect(
         page.getByRole("button", { name: "View saved enquiry", exact: true }),
       ).toBeEnabled();
+      await expect(page.locator(".direct-inbox").getByRole("group",{name:"Filter enquiries",exact:true})).toBeVisible();
       expect(f.writes[0].body).toMatchObject({
         childId: learner,
         subject: "Maths",
@@ -683,7 +706,7 @@ export function learningManagementTests() {
       mode: "SHARED",
       manual: true,
     });
-    await page.goto("/teachers/synthetic-teacher?subject=Maths");
+    await page.goto("/teachers/synthetic-teacher?subject=Maths&learner="+learner);
     const entry = page.getByRole("link", {
       name: "Enquire about this teacher",
       exact: true,

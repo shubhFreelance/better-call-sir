@@ -3,7 +3,7 @@ import { RefreshButton } from "../components/ui/refresh-button";
 import { minimumHref } from "./tuition-minimum-workspace";
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   api,
@@ -29,6 +29,7 @@ import {
 } from "./weekly-availability";
 import { DemoJourney } from "./demo-journey";
 import { EnquirySummary } from "./enquiry-summary";
+import { DirectEnquiries } from "./direct-enquiries";
 import { educationLabel } from "./learner-education";
 import { learningModes } from "./learning-management";
 import { useAppTranslation } from "./locale";
@@ -38,6 +39,7 @@ type Child = NonNullable<Dashboard["children"]>[number];
 export function ManagedStudentLearning({ session }: { session: Session }) {
   const { appText, appCurriculum } = useAppTranslation(),
     params = useSearchParams(),
+    router = useRouter(),
     client = useQueryClient();
   const [cursors, setCursors] = useState<string[]>([]),
     [selected, setSelected] = useState(params.get("request") || ""),
@@ -95,9 +97,21 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
     !dashboard.error &&
     !management.error &&
     !history.error;
-  const chosen =
-    history.data?.items.find((r) => r.id === selected) ||
-    (!selected ? history.data?.items[0] : undefined);
+  useEffect(() => {setSelected(params.get("request") || "");}, [params]);
+  const selectedRequest = useQuery({
+    queryKey: ["request", session.account.id, selected],
+    queryFn: ({signal}) => api<components["schemas"]["TuitionRequestDetails"]>(`/requests/${encodeURIComponent(selected)}`, {signal}),
+    enabled: !!selected && visible,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const chosen = selectedRequest.error ? undefined : selectedRequest.data || history.data?.items.find((r) => r.id === selected) || (!selected ? history.data?.items[0] : undefined);
+  function viewEnquiry(id: string) {
+    if (locked) return;
+    setSelected(id);
+    setOpen(false);
+    router.replace("/dashboard/learning-choices?request=" + encodeURIComponent(id));
+  }
   async function refresh() {
     const results = await Promise.all([
       dashboard.refetch(),
@@ -184,6 +198,7 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
           }}
           onSaved={(id) => {
             setSelected(id);
+            router.replace("/dashboard/learning-choices?request=" + encodeURIComponent(id));
             setOpen(false);
             setLocked(false);
           }}
@@ -192,14 +207,16 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
       {visible && history.data && dashboard.data && (
         <section className="care-card">
           <h2>{appText("Your enquiries")}</h2>
+          {!open && !selected && <DirectEnquiries session={session} disabled={locked} onViewEnquiry={viewEnquiry}/>}
           {history.data.items.length ? (
             <label className="field">
               {appText("Choose an enquiry")}
               <select
                 disabled={locked || open}
                 value={chosen?.id || selected}
-                onChange={(e) => setSelected(e.target.value)}
+                onChange={(e) => {if(e.target.value)viewEnquiry(e.target.value);}}
               >
+                <option value="">{appText("Choose an enquiry")}</option>
                 {history.data.items.map((r) => (
                   <option key={r.id} value={r.id}>
                     {appCurriculum(r.subject)} ·{" "}
@@ -249,7 +266,10 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
               </Button>
             </nav>
           )}
-          {selected && !chosen && (
+          {selected && selectedRequest.isPending && <p role="status">{appText("Loading enquiries…")}</p>}
+          {selected && selectedRequest.error && <Notice error>{appText("This enquiry is unavailable on the current page.")} <RefreshButton label={appText("Reload learning choices")} disabled={locked || open || selectedRequest.isFetching} onClick={() => selectedRequest.refetch()}/></Notice>}
+          {selected && <FilterButton disabled={locked || open} onClick={() => {setSelected("");router.replace("/dashboard/learning-choices");}}>{appText("All enquiries")}</FilterButton>}
+          {selected && !chosen && !selectedRequest.isPending && !selectedRequest.error && (
             <Notice>
               {appText("This enquiry is unavailable on the current page.")}{" "}
               <Button
@@ -449,9 +469,10 @@ function LearningEnquiryEditor({
         {decision.conflict && (
           <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning choices")} />
         )}
-        <Button disabled={decision.locked} onClick={() => onSaved(savedId)}>
+        <FilterButton accent disabled={decision.locked} onClick={() => onSaved(savedId)}>
           {appText("View saved enquiry")}
-        </Button>
+        </FilterButton>
+        <DirectEnquiries session={session} disabled={decision.locked} onViewEnquiry={onSaved}/>
       </section>
     );
   return (

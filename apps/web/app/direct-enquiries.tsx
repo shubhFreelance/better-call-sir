@@ -8,6 +8,7 @@ import { api, type Session, type paths } from "@bcs/api-client";
 import { ClipboardList, ChevronDown, Clock3, CircleCheck, CircleX, MessageSquare, CircleMinus } from "lucide-react";
 import { StatusBadge, StatusFilters } from "../components/ui/status-controls";
 import { Button } from "../components/ui/button";
+import { FilterButton } from "../components/ui/filter-button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { useAppTranslation } from "./locale";
@@ -22,7 +23,7 @@ type Action =
   | "PROPOSE"
   | "ACCEPT_PROPOSAL"
   | "DECLINE_PROPOSAL";
-export function DirectEnquiries({ session }: { session: Session }) {
+export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { session: Session; onViewEnquiry?: (sourceId: string) => void; disabled?: boolean }) {
   const { appText, appCurriculum, appLocale } = useAppTranslation(),
     client = useQueryClient();
   const [cursors, setCursors] = useState<string[]>([]),
@@ -126,7 +127,7 @@ export function DirectEnquiries({ session }: { session: Session }) {
         staff ? "Direct enquiry oversight" : "Direct enquiries",
       )}
     >
-      <header className="direct-inbox-heading">
+      {!onViewEnquiry && <header className="direct-inbox-heading">
         <div className="direct-inbox-count">
           <span className="direct-inbox-icon">
             <ClipboardList aria-hidden="true" />
@@ -162,9 +163,9 @@ export function DirectEnquiries({ session }: { session: Session }) {
             )}
           </p>
         </div>
-      </header>
+      </header>}
       {!conversation && <StatusFilters<Filter> label={appText("Filter enquiries")}
-        value={filter} disabled={decision.locked} onChange={next => {
+        value={filter} disabled={decision.locked || disabled} onChange={next => {
           setFilter(next); setCursors([]); setReview(null);
         }} options={[
           { value: "ALL", label: appText("All") },
@@ -206,13 +207,14 @@ export function DirectEnquiries({ session }: { session: Session }) {
               };
             },
             education = l.education ?? l;
+          const Card = onViewEnquiry ? "article" : "details", CardHeading = onViewEnquiry ? "div" : "summary";
           return (
-            <details
+            <Card
               className="direct-enquiry-card"
               key={item.id}
-              open={conversation === item.id ? true : undefined}
+              {...(!onViewEnquiry ? {open: conversation === item.id ? true : undefined} : {})}
             >
-              <summary>
+              <CardHeading className="direct-enquiry-heading">
                 <div>
                   <strong>{l.name}</strong>
                   <span>
@@ -252,9 +254,10 @@ export function DirectEnquiries({ session }: { session: Session }) {
                     icon={!item.sourceOpen && ["PENDING", "PROPOSED"].includes(item.status) ? CircleMinus : item.status === "PENDING" ? Clock3 : item.status === "ACCEPTED" ? CircleCheck : item.status === "DECLINED" ? CircleX : MessageSquare}
                   />
                 </div>
-                <ChevronDown size={18} aria-hidden="true" />
-              </summary>
-              <div className="direct-enquiry-body">
+                {onViewEnquiry && item.kind === "GUARDIAN" && <FilterButton disabled={decision.locked || disabled} onClick={() => onViewEnquiry(item.sourceId)}>{appText("View saved enquiry")}</FilterButton>}
+                {!onViewEnquiry && <ChevronDown size={18} aria-hidden="true" />}
+              </CardHeading>
+              {!onViewEnquiry && <div className="direct-enquiry-body">
                 <div className="direct-preferred-time">
                   <strong>{appText("Preferred time")}</strong>
                   <p>{preferred(item.preferredTime)}</p>
@@ -378,8 +381,8 @@ export function DirectEnquiries({ session }: { session: Session }) {
                     </Link>
                   </Button>
                 )}
-              </div>
-            </details>
+              </div>}
+            </Card>
           );
         })}
       {review && (
