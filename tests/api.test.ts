@@ -1337,6 +1337,30 @@ test('guardian setup gates hide learner and enquiry metadata and deny non-guardi
  const paused=await db.privacyRequest.create({data:{accountId:owner.id,kind:'DELETION',scope:'CHILD',resourceId:(await db.child.findFirstOrThrow({where:{guardianId:owner.id}})).id,reason:'Synthetic setup privacy pause'}});await gate('PRIVACY_PAUSED');await db.privacyRequest.update({where:{id:paused.id},data:{status:'REJECTED'}});await db.consent.delete({where:{guardianId:owner.id}});await gate('CONSENT_REQUIRED');
 });
 
+test('student guardian details use the owned relationship and verification pings arrive live only to that guardian',async()=>{
+ const {s,g,owner,linkedChild}=await educationActors();
+ await db.account.update({where:{id:owner.id},data:{email:'guardian-'+randomUUID()+'@example.test'}});
+ const proof=await db.guardianVerification.create({data:{guardianId:owner.id,region:'Raipur',guardianName:owner.name,learnerName:linkedChild.alias,relationship:'SIBLING',ageBand:'UNDER_15',managementMode:'STUDENT_LED',acknowledgmentMethod:'STAFF_CALL',documentNamesGuardian:true,status:'APPROVED',learnerId:linkedChild.id}});
+ await db.child.update({where:{id:linkedChild.id},data:{guardianVerificationId:proof.id,learningManagementMode:'STUDENT_LED'}});
+ let detail=await s.call('/student/guardian');assert.equal(detail.status,200);assert.equal(detail.data.relationship,'SIBLING');assert.equal(detail.data.guardianName,owner.name);assert.equal(detail.data.verified,true);assert.equal(detail.data.canPing,false);assert(operationValidator('/student/guardian','get','200')(detail.data));
+ assert.equal((await s.call('/student/guardian/pings',{confirmed:true})).data.code,'ALREADY_VERIFIED');
+ assert.equal((await g.call('/student/guardian')).status,403);
+ await db.account.update({where:{id:owner.id},data:{verified:false}});
+ assert.equal((await s.call('/auth/session')).status,200);assert.equal((await s.call('/onboarding/student/context')).status,401);
+ detail=await s.call('/student/guardian');assert.equal(detail.data.verified,false);assert.equal(detail.data.canPing,true);
+ assert.equal((await s.call('/student/guardian/pings',{confirmed:true,guardianId:ids.otherGuardian})).status,400);
+ const {io}=await import('socket.io-client');
+ const socket=io('http://127.0.0.1:4100',{path:'/api/v1/live',transports:['websocket'],auth:{csrfToken:g.csrf},extraHeaders:{Cookie:g.cookies,Origin:'http://localhost:3000'}});
+ try{
+  await new Promise<void>((resolve,reject)=>{socket.once('connect',()=>resolve());socket.once('connect_error',reject);});
+  const changed=new Promise<void>((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('Guardian ping did not arrive live')),5000);socket.on('inbox:changed',async()=>{const inbox=await g.call('/inbox');if(inbox.data.items?.some((item:any)=>item.topic==='guardian-verification.ping')){clearTimeout(timeout);resolve();}});});
+  const ping=await s.call('/student/guardian/pings',{confirmed:true});assert.equal(ping.status,201);assert.equal(ping.data.sent,true);await changed;
+  assert.equal((await s.call('/student/guardian/pings',{confirmed:true})).data.sent,false);
+  assert.equal(await db.inboxNotification.count({where:{accountId:owner.id,topic:'guardian-verification.ping'}}),1);
+  assert.equal(await db.inboxNotification.count({where:{accountId:ids.otherGuardian,topic:'guardian-verification.ping'}}),0);
+ }finally{socket.disconnect();}
+ await db.child.update({where:{id:linkedChild.id},data:{studentAccessRevokedAt:new Date()}});assert.equal((await s.call('/student/guardian')).status,401);assert.equal((await s.call('/auth/session')).status,401);
+});
 test('guardian and student share owned learner spaces with concurrency and subject search gates',async()=>{
  const {s,g,linkedChild}=await educationActors(),path='/children/'+linkedChild.id+'/learning-spaces';
  assert.equal((await s.call('/teachers?learnerId='+linkedChild.id+'&subject=Maths')).data.code,'LEARNING_SPACE_REQUIRED');
