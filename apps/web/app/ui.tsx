@@ -1053,17 +1053,19 @@ function Teachers() {
         </TabsList>
           {learnerSearch.required && <div className="space-browse-actions"><Link className="inline-link" href={exploring?"/teachers":"/teachers?explore=all"} onClick={resetSearch}>{appText(exploring?"Search using a subject space":"Explore all teacher profiles")}</Link></div>}
           {learnerSearch.required && !exploring && <section className="learner-search-context" aria-label={appText("Search for a learner")}>
-            <label htmlFor="search-learner">{appText("Choose learner")}</label>
+            <div className="search-context-fields"><div className="search-learner-picker"><label htmlFor="search-learner">{appText("Choose learner")}</label>
             <select id="search-learner" disabled={learnerSearch.transitioning} value={learnerSearch.learner?.id || ""} onChange={e => {resetSearch();learnerSearch.select(e.target.value);}}>
               <option value="">{appText("Choose learner")}</option>
               {learnerSearch.learners.map(row => <option key={row.id} value={row.id}>{row.alias}</option>)}
             </select>
-            {learnerSearch.learner && <EducationSummary education={learnerSearch.learner.education} />}
+            </div>
             {learnerSearch.managed && learnerSearch.learner && <div className="search-space-picker"><label htmlFor="search-learning-space">{appText("Choose subject space")}</label><select id="search-learning-space" value={effectiveSubject} disabled={learnerSearch.transitioning||learnerSearch.spacesQuery.isFetching||!!learnerSearch.spacesQuery.error} onChange={e=>{const value=e.target.value;setSearchState({filters:{...filters,subject:value,language:learnerSearch.spaces.find(space=>space.subject===value)?.language||""}});learnerSearch.selectSpace(value);}}><option value="">{appText("Choose subject space")}</option>{learnerSearch.spaces.map(space=><option key={space.subject} value={space.subject}>{appCurriculum(space.subject)}</option>)}</select>
               {learnerSearch.spacesQuery.isPending?<p role="status">{appText("Loading subject spaces…")}</p>:learnerSearch.spacesQuery.error?<p role="alert">{appError(learnerSearch.spacesQuery.error.message)} <RefreshButton label={appText("Reload student setup")} onClick={()=>learnerSearch.spacesQuery.refetch()}/></p>:!learnerSearch.spaces.length?<p>{appText("Create a subject space before searching for teachers for this learner.")}</p>:null}
               <Link className="inline-link" href={(session?.account.role==="GUARDIAN"?"/dashboard/learning-preferences?learner=":"/onboarding/student?learner=")+learnerSearch.learner.id}>{appText("Manage subject spaces")}</Link>
             </div>}
 
+            </div>
+            {learnerSearch.learner && <EducationSummary education={learnerSearch.learner.education} />}
             <p>{appText("Only teachers covering this learner's education and selected subject are shown.")}</p>
             {learnerSearch.query.isPending && <p role="status">{appText("Loading learner profiles…")}</p>}
             {learnerSearch.query.error && <p role="alert">{appError(learnerSearch.query.error.message)} <UiButton onClick={() => learnerSearch.query.refetch()}>{appText("Try again")}</UiButton></p>}

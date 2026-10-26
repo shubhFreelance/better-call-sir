@@ -592,3 +592,5 @@ Guardians use the same #E4E4D0 subject cards and single-subject details/review/s
 Profile summary refinement (26 October 2026): keep the learner name and management badge as the primary content; omit a repeated management label and move supporting education guidance into the existing tooltip. The inline guardian section uses a muted 12px heading, compact details and a top-aligned verification badge with clear column spacing. Preserve phone stacking and visible permission errors.
 
 Inline profile type scale (26 October 2026): learner 24px/700 (22px phone), guardian name 16px/700, guardian label/relationship/link 12px. Stack relationship below the guardian name; use a subtle vertical divider and 28px inset on desktop, a horizontal divider and 20px top inset when stacked. Retain the shared lavender management badge and tooltip.
+
+Teacher search context (26 October 2026): learner and saved-subject selectors share equal desktop columns, 13px semibold labels and matching 48px white dropdowns. Stack below 640px. Keep compact education metadata and eligibility guidance below a divider; preserve loading/error/empty states and manage-spaces navigation.

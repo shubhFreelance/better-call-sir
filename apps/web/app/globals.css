@@ -6516,7 +6516,19 @@ html body button.refresh-button[data-slot=button]:disabled { cursor:not-allowed;
 .student-guardian-information dd { margin:8px 0 0; font-size:14px; overflow-wrap:anywhere; }
 .student-guardian-actions { display:flex; justify-content:flex-end; gap:12px; align-items:center; margin-top:24px; }
 .student-guardian-help { margin:12px 0 0; color:#586562; font-size:12px; text-align:right; }
-.search-space-picker { margin-top:18px; padding-top:18px; border-top:1px solid #D9E4DF; }
+.search-context-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; margin-bottom:18px; }
+.search-context-fields>div { min-width:0; }
+.search-context-fields+.learner-education-summary { display:flex; flex-wrap:wrap; gap:6px 18px; padding-top:16px; border-top:1px solid #D9E4DF; }
+.search-context-fields+.learner-education-summary p { margin:0; }
+.search-context-fields+.learner-education-summary p:first-child { font-weight:650; color:#034F46; }
+.search-context-fields label { display:block; margin-bottom:8px; color:#034F46; font-size:13px; font-weight:650; }
+.search-context-fields select { width:100%; min-height:48px; padding:10px 14px; border:1px solid #B7CCC4; border-radius:10px; background:#FFF; color:#17201F; font:inherit; font-size:14px; cursor:pointer; }
+.search-context-fields select:hover { border-color:#9476A3; }
+.search-context-fields select:focus-visible { outline:2px solid #034F46; outline-offset:3px; }
+.search-context-fields select:disabled { cursor:not-allowed; opacity:.6; }
+.search-space-picker>.inline-link { display:inline-block; margin-top:10px; font-weight:600; text-underline-offset:4px; }
+.search-space-picker>.inline-link:hover { text-decoration:underline; }
+@media(max-width:640px) { .search-context-fields { grid-template-columns:minmax(0,1fr); gap:18px; } }
 .search-space-picker .inline-link,.space-browse-actions { font-size:12px; }
 .space-browse-actions { margin-bottom:16px; }
 @media(max-width:640px) { .create-spaces-card { align-items:flex-start; flex-wrap:wrap; padding:20px; } .create-spaces-card .filter-button { width:100%; } .student-guardian-card { padding:20px; } .student-guardian-heading { flex-wrap:wrap; } .student-guardian-information { grid-template-columns:1fr; } }
