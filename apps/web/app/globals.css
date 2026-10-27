@@ -6639,3 +6639,11 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .placement-summary .inline-link:hover { text-decoration:underline; }
 .placement-summary-support { margin-top:14px; }
 @media(max-width:640px) { .placement-summary-heading>div { grid-template-columns:minmax(0,1fr); } .placement-summary-heading .care-status { grid-column:1; grid-row:auto; justify-self:start; } .placement-summary-heading h3 { font-size:20px; } .placement-summary-details { grid-template-columns:minmax(0,1fr); } }
+
+.placement-closed-state { display:grid; gap:16px; }
+.placement-closed-heading { display:flex; align-items:center; gap:10px; padding:14px 16px; border:1px solid #D9E4DF; border-radius:10px; background:#EEF5F3; color:#034F46; }
+.placement-closed-heading>svg { flex-shrink:0; }
+.placement-closed-heading strong { font-size:14px; font-weight:650; line-height:1.6; }
+.placement-replacement-status { display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; }
+.placement-replacement-status>span:first-child { color:#52655F; font-size:12px; }
+.placement-closed-help { margin:0; color:#52655F; font-size:12px; line-height:1.7; }

@@ -8,7 +8,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw } from "lucide-react";
+import { CircleMinus, RefreshCw } from "lucide-react";
+import { StatusBadge } from "../components/ui/status-controls";
 import {
   api,
   type Dashboard,
@@ -385,35 +386,20 @@ export function PlacementCare({
               </Notice>
             } actions={
               p.status === "CLOSED" ? (
-                <Notice>
-                  {appText("This arrangement is closed.")}{" "}
+                <section className="placement-closed-state">
+                  <div className="placement-closed-heading" role="status"><CircleMinus size={20} aria-hidden="true"/><strong>{appText("This arrangement is closed.")}</strong></div>
                   {replacement ? (
-                    <>
-                      {appText("Replacement request:")}{" "}
-                      {appText(labels[replacement.status]) ||
-                        replacement.status}
-                      ;{" "}
-                      {appText(labels[replacement.matchStatus || ""]) ||
-                        replacement.matchStatus ||
-                        appText("Matching status unavailable")}
-                      .{" "}
-                      <Link
-                        href={`/dashboard/requests?request=${replacement.id}`}
-                      >
-                        {appText("Review replacement progress")}{" "}
-                      </Link>
-                      .
-                    </>
+                    <div className="placement-replacement-status"><span>{appText("Replacement request:")}</span><StatusBadge tone="neutral" icon={RefreshCw} label={`${appText(labels[replacement.status]) || replacement.status} · ${appText(labels[replacement.matchStatus || ""]) || replacement.matchStatus || appText("Matching status unavailable")}`}/></div>
                   ) : (
-                    appText(
+                    <p className="placement-closed-help">{appText(
                       "No linked replacement is shown in the latest request history.",
-                    )
-                  )}{" "}
-                  <Link href={`/support?placement=${p.id}`}>
-                    {appText("View support history")}{" "}
-                  </Link>
-                  .
-                </Notice>
+                    )}</p>
+                  )}
+                  <FilterButtonGroup>
+                    {replacement && <FilterButton asChild accent><Link href={`/dashboard/requests?request=${replacement.id}`}>{appText("Review replacement progress")}</Link></FilterButton>}
+                    <FilterButton asChild><Link href={`/support?placement=${p.id}`}>{appText("View support history")}</Link></FilterButton>
+                  </FilterButtonGroup>
+                </section>
               ) : (
                 !action && (
                   <FilterButtonGroup>

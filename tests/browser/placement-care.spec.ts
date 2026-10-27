@@ -260,9 +260,7 @@ test("replacement saves fresh criteria and displays linked progress without prom
   });
   expect(s.writes[0].body.preferences.timezone).toBe("Asia/Kolkata");
   await page.reload();
-  await expect(
-    page.getByText(/Replacement request: Open; Awaiting matching/),
-  ).toBeVisible();
+  const closed=page.locator(".placement-closed-state");await expect(closed).toContainText("Replacement request:");await expect(closed.locator(".status-badge")).toContainText("Awaiting matching");await expect(closed.locator(".filter-button-group a")).toHaveCount(2);await expect(closed.getByRole("link",{name:"Review replacement progress",exact:true})).toHaveAttribute("href","/dashboard/requests?request="+replacement);await expect(closed.getByRole("link",{name:"View support history",exact:true})).toHaveAttribute("href","/support?placement="+placement);await closed.screenshot({path:"test-results/closed-arrangement-desktop.png",style:"nextjs-portal{display:none!important}"});await page.setViewportSize({width:360,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include(".placement-closed-state").analyze()).violations).toEqual([]);await closed.screenshot({path:"test-results/closed-arrangement-phone.png",style:"nextjs-portal{display:none!important}"});
   await expect(
     page.getByRole("button", { name: "Close arrangement", exact: true }),
   ).toHaveCount(0);
