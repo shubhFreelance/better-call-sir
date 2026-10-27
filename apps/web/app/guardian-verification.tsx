@@ -66,6 +66,25 @@ function StudentAccessGuidance({ learnerId, blocked = false }: { learnerId?: str
     </li>
   </ol>;
 }
+function PendingVerificationSteps({ record }: { record: Verification }) {
+  const { appText } = useAppTranslation();
+  const confirmed = !!record.studentAcknowledgedAt;
+  return <section className="guardian-review-notice" aria-label={appText("Remaining verification steps")}>
+    <header><h4 aria-live="polite">{appText(confirmed ? "1 step remaining" : "2 steps remaining")}</h4>
+      <InfoTooltip label={appText("Staff review")} items={[appText("Staff will review the report and relationship. If the guardian name is missing or does not match, a video or phone review is required. You can explore teachers while waiting.")]} />
+    </header>
+    <StepProgress steps={[appText("Student confirmation"), appText("Staff review")]} currentStep={confirmed ? 1 : 0} label={appText("Remaining verification steps")} />
+    <div className="guardian-review-step-details">
+      <div data-complete={confirmed}><strong>{appText(confirmed ? "Student confirmation recorded" : "Waiting for {0}", [record.learnerName])}</strong>
+        <p>{appText(confirmed ? "Your child's confirmation is saved. No need to confirm again." : record.acknowledgmentMethod === "STUDENT_ACCOUNT" ? "Ask your child to sign in with the email in this request and confirm you as their guardian." : "Your child must confirm the relationship during the staff video or phone call.")}</p>
+      </div>
+      <div><strong>{appText(confirmed ? "Awaiting staff approval" : "Staff approval follows confirmation")}</strong>
+        <p>{appText("Our team checks the relationship and asks for changes if needed.")}</p>
+      </div>
+    </div>
+    <small>{appText("You can explore teachers while waiting.")}</small>
+  </section>;
+}
 export function GuardianVerificationWorkspace({
   session,
   onSessionChange,
@@ -1036,11 +1055,7 @@ function OwnerVerification({
                   </>
                 )}
                 {r.status === "PENDING" && (
-                  <aside className="guardian-review-notice">
-                    <h4>{appText("Staff review")} <InfoTooltip label={appText("Staff review")} items={[appText("Staff will review the report and relationship. If the guardian name is missing or does not match, a video or phone review is required. You can explore teachers while waiting.")]} /></h4>
-                    <p>{appText("Our team checks the relationship and asks for changes if needed.")}</p>
-                    <small>{appText("You can explore teachers while waiting.")}</small>
-                  </aside>
+                  <PendingVerificationSteps record={r} />
                 )}
                 {r.status === "APPROVED" && (
                   <section className="guardian-evidence-step">

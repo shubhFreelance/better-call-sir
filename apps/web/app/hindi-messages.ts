@@ -1,5 +1,15 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "1 step remaining": "1 चरण बाकी है",
+  "2 steps remaining": "2 चरण बाकी हैं",
+  "Remaining verification steps": "सत्यापन के बाकी चरण",
+  "Student confirmation recorded": "विद्यार्थी की पुष्टि दर्ज है",
+  "Waiting for {0}": "{0} की पुष्टि का इंतज़ार है",
+  "Your child's confirmation is saved. No need to confirm again.": "आपके बच्चे की पुष्टि सहेज ली गई है। दोबारा पुष्टि की ज़रूरत नहीं है।",
+  "Ask your child to sign in with the email in this request and confirm you as their guardian.": "बच्चे से इस अनुरोध में दिए ईमेल से साइन इन करके आपको अपना अभिभावक मानने की पुष्टि करने को कहें।",
+  "Your child must confirm the relationship during the staff video or phone call.": "आपके बच्चे को स्टाफ़ की वीडियो या फ़ोन कॉल पर संबंध की पुष्टि करनी होगी।",
+  "Awaiting staff approval": "स्टाफ़ की मंज़ूरी का इंतज़ार है",
+  "Staff approval follows confirmation": "पुष्टि के बाद स्टाफ़ की मंज़ूरी मिलेगी",
   "Generate invitation code": "निमंत्रण कोड बनाएँ",
   "Available after approval and learner setup": "मंज़ूरी और विद्यार्थी की प्रोफ़ाइल तैयार होने के बाद उपलब्ध",
   "Sign up or sign in": "साइन अप या साइन इन करें",

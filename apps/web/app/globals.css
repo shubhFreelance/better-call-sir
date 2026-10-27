@@ -6369,8 +6369,14 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 @media(max-width:640px) { .action-toast { top:12px; right:16px; } .guardian-verification-editor .guardian-report-upload { padding:16px; } }
 @media(prefers-reduced-motion:reduce) { .upload-spinner,.upload-progress-track::after { animation:none; } }
 .guardian-review-notice { margin-block:20px 16px; padding:20px; border:1px solid #DAB7EC; border-radius:14px; background:#F8EDFF; }
-.guardian-review-notice h4 { display:flex; align-items:center; gap:8px; margin:0 0 8px; color:#034F46; font-size:15px; }
-.guardian-verification-editor .guardian-review-notice p { margin:0; color:#344A43; font-size:13px; line-height:1.65; }
+.guardian-review-notice > header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.guardian-review-notice h4 { margin:0; color:#034F46; font-size:16px; font-weight:700; }
+.guardian-review-step-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:12px; }
+.guardian-review-step-details > div { padding:14px; border:1px solid #E4D9EC; border-radius:10px; background:#FFF; }
+.guardian-review-step-details > div[data-complete=true] { background:#EEF5F3; border-color:#D7E4DF; }
+.guardian-review-step-details strong { display:block; margin-bottom:5px; font-size:13px; font-weight:700; color:#034F46; }
+.guardian-verification-editor .guardian-review-notice p { margin:0; color:#344A43; font-size:12px; line-height:1.65; }
+@media(max-width:600px){.guardian-review-notice {padding:16px;}.guardian-review-step-details {grid-template-columns:minmax(0,1fr);}}
 .guardian-review-notice small { display:block; margin-top:10px; padding:10px 12px; border-radius:8px; background:#FFFFEB; color:#034F46; font-size:12px; }
 .live-bell :is(.live-bell-close,.live-bell-item > button) { display:grid; place-items:center; flex:none; align-self:flex-start; width:44px; height:44px; padding:0; border:1px solid transparent; border-radius:50%; background:transparent; color:#034F46; cursor:pointer; }
 .live-bell :is(.live-bell-close,.live-bell-item > button):is(:hover,:focus-visible) { border-color:#F0D7FF; background:transparent; }
