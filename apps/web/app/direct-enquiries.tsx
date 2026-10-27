@@ -25,7 +25,7 @@ type Action =
   | "PROPOSE"
   | "ACCEPT_PROPOSAL"
   | "DECLINE_PROPOSAL";
-export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { session: Session; onViewEnquiry?: (sourceId: string) => void; disabled?: boolean }) {
+export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enquiryId }: { session: Session; onViewEnquiry?: (sourceId: string) => void; disabled?: boolean; enquiryId?: string }) {
   const { appText, appCurriculum, appLocale } = useAppTranslation(),
     client = useQueryClient();
   const [cursors, setCursors] = useState<string[]>([]),
@@ -38,7 +38,8 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
     [message, setMessage] = useState("");
   const timingNeedsConfirmation = review?.action === "ACCEPT" && review.item.proposal?.familyConfirmed === true;
   const timingMismatch = timingNeedsConfirmation && confirmedTiming.trim() !== review?.item.proposal?.timing;
-  const conversation = useSearchParams().get("conversation");
+  const linkedConversation = useSearchParams().get("conversation");
+  const conversation = enquiryId || linkedConversation;
   const cursor = conversation ? undefined : cursors.at(-1);
   const status = conversation ? "ALL" : filter;
   const query = useQuery({
@@ -133,7 +134,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
         staff ? "Direct enquiry oversight" : "Direct enquiries",
       )}
     >
-      {!onViewEnquiry && <header className="direct-inbox-heading">
+      {!onViewEnquiry && !enquiryId && <header className="direct-inbox-heading">
         <div className="direct-inbox-count">
           <span className="direct-inbox-icon">
             <ClipboardList aria-hidden="true" />
@@ -179,7 +180,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
           { value: "DECLINED", label: appText("Declined") },
           { value: "ACCEPTED", label: appText("Accepted") },
         ]} />}
-      {conversation && (
+      {conversation && !enquiryId && (
         <Button asChild variant="outline">
           <Link href="/dashboard/enquiries">{appText("All enquiries")}</Link>
         </Button>
@@ -244,7 +245,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                         ["PENDING", "PROPOSED"].includes(item.status)
                         ? "Closed"
                         : item.status === "PENDING"
-                          ? "Awaiting teacher reply"
+                          ? item.proposal?.familyConfirmed ? "Proposal confirmed by family" : "Awaiting teacher reply"
                           : item.status === "PROPOSED"
                             ? "Alternative proposed"
                             : item.status === "ACCEPTED"
@@ -256,13 +257,13 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                   />
                 </div>
                 {onViewEnquiry && item.kind === "GUARDIAN" && <Button type="button" variant="ghost" size="icon" className="evidence-preview-trigger" aria-label={appText("View enquiry {0}", [appCurriculum(item.subject)])} title={appText("View enquiry {0}", [appCurriculum(item.subject)])} aria-haspopup="dialog" disabled={decision.locked || disabled} onClick={() => onViewEnquiry(item.sourceId)}><Eye size={18} aria-hidden="true"/></Button>}
-                {!onViewEnquiry && <ChevronDown size={18} aria-hidden="true" />}
+                {!onViewEnquiry && !enquiryId && <ChevronDown size={18} aria-hidden="true" />}
               </div>
           );
 
           const arrangementLink = item.arrangementId && <FilterButton asChild><Link href={item.kind === "GUARDIAN" ? "/dashboard/arrangements?arrangement=" + item.arrangementId : "/dashboard/student-arrangements"}>{appText("View tuition arrangement")}</Link></FilterButton>;
           if (onViewEnquiry) return <article className="direct-enquiry-card" key={item.id}>{heading}</article>;
-          return <LayeredSummaryCard collapsible className="direct-enquiry-card" key={item.id} open={conversation === item.id ? true : undefined} header={heading} footer={<>
+          return <LayeredSummaryCard collapsible={!enquiryId} className="direct-enquiry-card" key={item.id} open={conversation === item.id ? true : undefined} header={heading} footer={<>
                 <div className="direct-preferred-time">
                   <strong>{appText(agreedTiming ? "Original preferred time" : "Preferred time")}</strong>
                   <p>{preferred(item.preferredTime)}</p>
@@ -348,7 +349,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                   </div>
                 </dl>
                 {item.proposal && (
-                  <aside className="direct-proposal">
+                  <div className="direct-proposal">
                     <strong>
                       {appText(
                         item.proposal.format === "GROUP"
@@ -366,7 +367,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                       : item.status === "PENDING"
                         ? "The family confirmed this proposal. The teacher can now accept the enquiry."
                         : "This is the proposal recorded for this enquiry.")}</p>
-                  </aside>
+                  </div>
                 )}
                 {item.status === "ACCEPTED" && (
                   <section className="direct-acceptance">
@@ -447,11 +448,11 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
               <div><dt>{appText(review.item.proposal ? "Original preferred time" : "Preferred time")}</dt><dd>{preferred(review.item.preferredTime)}</dd></div>
             </dl>
             {timingNeedsConfirmation && <div className="direct-final-time"><label>{appText("Confirm agreed time (IST)")}<Input required maxLength={300} value={confirmedTiming} onChange={event => {setConfirmedTiming(event.target.value);setConfirmed(false);}}/></label><p>{appText("Confirm the time approved by the family. A different time needs a new proposal and family approval.")}</p>{timingMismatch && <p role="alert">{appText("This time differs from the family-approved proposal. Send a new proposal before accepting.")}</p>}</div>}
-            {review.action !== "PROPOSE" && review.item.proposal && <aside className="direct-proposal">
+            {review.action !== "PROPOSE" && review.item.proposal && <div className="direct-proposal">
               <strong>{appText(review.item.proposal.format === "GROUP" ? "Group learning proposal" : "One-to-one proposal")}</strong>
               <p>{appText("Suggested time (IST)")}: {review.item.proposal.timing}</p>
               <p>{review.item.proposal.message}</p>
-            </aside>}
+            </div>}
             {review.action === "PROPOSE" && (
               <>
                 <label>

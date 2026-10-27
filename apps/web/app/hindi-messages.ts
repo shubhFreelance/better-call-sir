@@ -1,5 +1,14 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "View the recorded enquiry and decision.": "दर्ज पूछताछ और निर्णय देखें।",
+  "Awaiting family confirmation of the teacher's alternative time or format.": "शिक्षक के सुझाए वैकल्पिक समय या प्रारूप पर परिवार की पुष्टि की प्रतीक्षा है।",
+  "Proposal confirmed by family": "परिवार ने प्रस्ताव की पुष्टि की",
+  "Waiting for the teacher to confirm the agreed time and accept.": "शिक्षक द्वारा सहमत समय की पुष्टि करके पूछताछ स्वीकार करने की प्रतीक्षा है।",
+  "Your enquiry is with the selected teacher.": "आपकी पूछताछ चुने गए शिक्षक के पास है।",
+  "This enquiry was declined. Review the recorded decision.": "यह पूछताछ अस्वीकार की गई थी। दर्ज निर्णय की समीक्षा करें।",
+  "Current enquiry status could not be loaded.": "पूछताछ की वर्तमान स्थिति लोड नहीं हो सकी।",
+  "View current enquiry status": "पूछताछ की वर्तमान स्थिति देखें",
+  "Current enquiry status": "पूछताछ की वर्तमान स्थिति",
   "Original preferred time": "मूल पसंदीदा समय",
   "Agreed time (IST)": "सहमत समय (IST)",
   "Family-approved time (IST)": "परिवार द्वारा मंज़ूर समय (IST)",
