@@ -130,8 +130,8 @@ async function mock(page: Page, role = "GUARDIAN", mode = "normal") {
                   status: mode === "terms-closed" ? "CLOSED" : "TERMS_PENDING",
                   guardianAccepted,
                   teacherAccepted,
-                  guardianStarted: false,
-                  teacherReceiptConfirmed: false,
+                  guardianStarted: mode === "classes-started",
+                  teacherReceiptConfirmed: mode === "classes-started",
                   learner: { alias: "Mira", grade: 8, board: "CBSE" },
                   teacher: {
                     id: ids.teacher,
@@ -717,6 +717,10 @@ test("an expired scoped page can return to the first page without retrying a for
   ).toBeVisible();
 });
 
+for(const mode of ['classes-started','free-confirmed'])test('collapsed arrangement start badge follows recorded commencement, not booking: '+mode,async({page})=>{
+ await mock(page,'GUARDIAN',mode);await page.goto('/dashboard');await page.getByRole('tab',{name:'Teaching arrangements',exact:true}).click();const card=page.locator('.tuition-arrangement-card').first();await expect(card).not.toHaveAttribute('open');await expect(card.locator('.arrangement-start-badge')).toHaveCount(mode==='classes-started'?1:0);if(mode==='classes-started'){await expect(card.locator('.arrangement-start-badge')).toHaveText('Classes started');await page.setViewportSize({width:360,height:850});expect((await new AxeBuilder({page}).include('.tuition-arrangement-card').analyze()).violations).toEqual([]);await card.screenshot({path:'test-results/arrangement-started-badge-phone.png',style:'nextjs-portal{display:none!important}'});}
+});
+
 test("arrangements start compact and months reveal an inline calendar with honest activity and completion counts",async({page})=>{
  const state=await mock(page,'GUARDIAN','leap-calendar');state.seedCompletion('2028-02-03');await page.goto('/dashboard');await page.getByRole('tab',{name:'Teaching arrangements',exact:true}).click();const card=page.locator('.tuition-arrangement-card').first();await expect(card).not.toHaveAttribute('open');await expect(card.locator('.monthly-hiring')).not.toBeVisible();await card.locator(':scope > summary').focus();await page.keyboard.press('Enter');await expect(card).toHaveAttribute('open','');
  const calendar=card.locator('.class-calendar');await expect(calendar.locator('.class-calendar-months button')).toHaveCount(12);await expect(calendar.locator('.class-calendar-grid')).toHaveCount(0);await expect(calendar.locator('.has-tuition')).toHaveCount(1);await expect(calendar.locator('.has-tuition')).toHaveCSS('background-color','rgb(240, 215, 255)');await calendar.getByRole('button',{name:'February 2028',exact:true}).click();await expect(calendar.locator('.class-calendar-grid button')).toHaveCount(29);await expect(calendar).toContainText('Classes recorded complete: 1');await expect(calendar.locator('.class-month-detail')).toHaveCSS('animation-name','class-month-reveal');
@@ -734,10 +738,10 @@ test("Pro teacher records and corrects completed class dates; expiry hides compl
  const calendar=page.getByRole('region',{name:'Class completion calendar',exact:true}),grid=calendar.locator('.class-calendar-grid');
  const now=new Date(),today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata'}).format(now),[year,month,day]=today.split('-').map(Number);
  await expect(grid.locator('button')).toHaveCount(new Date(Date.UTC(year,month,0)).getUTCDate());
- const cell=grid.locator('button').nth(day-1);await cell.click();const modal=page.getByRole('dialog',{name:'Record class completion',exact:true});await expect(modal.getByRole('button',{name:'Confirm',exact:true})).toBeDisabled();await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Confirm',exact:true}).click();await expect(cell).toHaveClass('is-completed');await expect(cell).toHaveCSS('background-color','rgb(240, 215, 255)');expect(state.writes[0].body).toMatchObject({date:today,completed:true,expectedVersion:0});
- await cell.click();await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Confirm',exact:true}).click();await expect(cell).not.toHaveClass('is-completed');expect(state.writes[1].body).toMatchObject({date:today,completed:false,expectedVersion:1});
+ const cell=grid.locator('button').nth(day-1);await cell.click();const modal=page.getByRole('dialog',{name:'Record class completion',exact:true});await expect(modal.getByRole('button',{name:'Confirm',exact:true})).toBeDisabled();await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Confirm',exact:true}).click();await expect(cell).toHaveClass('is-completed');await expect(page.locator('.arrangement-start-badge')).toHaveText('Classes started');await expect(cell).toHaveCSS('background-color','rgb(240, 215, 255)');expect(state.writes[0].body).toMatchObject({date:today,completed:true,expectedVersion:0});
+ await cell.click();await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Confirm',exact:true}).click();await expect(cell).not.toHaveClass('is-completed');await expect(page.locator('.arrangement-start-badge')).toHaveCount(0);expect(state.writes[1].body).toMatchObject({date:today,completed:false,expectedVersion:1});
  await cell.click();await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Confirm',exact:true}).click();await expect(cell).toHaveClass('is-completed');await page.setViewportSize({width:390,height:900});expect((await new AxeBuilder({page}).include('.monthly-hiring').analyze()).violations).toEqual([]);await page.locator('.monthly-hiring').screenshot({path:'test-results/pro-class-calendar-phone.png',style:'nextjs-portal{display:none!important}'});
- state.revokePro();await page.locator('.monthly-hiring').getByRole('button',{name:'Refresh enquiries',exact:true}).click();await expect(calendar).toContainText('An active Pro membership is required');await expect(grid.locator('.is-completed')).toHaveCount(0);await expect(cell).toBeDisabled();
+ state.revokePro();await page.locator('.monthly-hiring').getByRole('button',{name:'Refresh enquiries',exact:true}).click();await expect(calendar).toContainText('An active Pro membership is required');await expect(grid.locator('.is-completed')).toHaveCount(0);await expect(page.locator('.arrangement-start-badge')).toHaveCount(0);await expect(cell).toBeDisabled();
 });
 
 test("Pro family calendar is view-only and leap February has 29 real dates",async({page})=>{

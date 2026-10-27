@@ -3,7 +3,7 @@ import {useEffect,useState,useId,useCallback,type ReactNode} from "react";
 import Link from "next/link";
 import {useQuery,useQueryClient} from "@tanstack/react-query";
 import {api,type paths,type Session} from "@bcs/api-client";
-import {CalendarDays,Check,ChevronDown,Clock3,LockKeyhole} from "lucide-react";
+import {CalendarDays,CalendarCheck,Check,ChevronDown,Clock3,LockKeyhole} from "lucide-react";
 import {LayeredSummaryCard} from "../components/ui/layered-summary-card";
 import {FilterButton,FilterButtonGroup} from "../components/ui/filter-button";
 import {InfoTooltip} from "../components/ui/info-tooltip";
@@ -15,20 +15,21 @@ import {useAppTranslation} from "./locale";
 import {Feedback,useDecision} from "./tuition-workflow";
 
 type Booking=paths["/tuition-bookings/{kind}/{id}"]["get"]["responses"][200]["content"]["application/json"];
-export function TuitionArrangementCard({title,subtitle,footer,onLockChange,...props}:{title:ReactNode;subtitle:ReactNode;footer:ReactNode;session:Session;kind:"PLACEMENT"|"INDEPENDENT";id:string;disabled?:boolean;onLockChange?:(locked:boolean,id:string)=>void}){
- const [locked,setLocked]=useState(false);
+export function TuitionArrangementCard({title,subtitle,footer,onLockChange,started=false,...props}:{title:ReactNode;subtitle:ReactNode;footer:ReactNode;started?:boolean;session:Session;kind:"PLACEMENT"|"INDEPENDENT";id:string;disabled?:boolean;onLockChange?:(locked:boolean,id:string)=>void}){
+ const {appText}=useAppTranslation(),[locked,setLocked]=useState(false),[classRecorded,setClassRecorded]=useState(false);
  const lock=useCallback((value:boolean,id:string)=>{setLocked(value);onLockChange?.(value,id);},[onLockChange]);
- return <LayeredSummaryCard collapsible className="tuition-arrangement-card" aria-label={typeof title==='string'?title:undefined} onClick={event=>{if(locked&&(event.target as HTMLElement).closest('summary')===event.currentTarget.firstElementChild)event.preventDefault();}} header={<><div><h4>{title}</h4><p>{subtitle}</p></div><ChevronDown size={18} aria-hidden="true"/></>} footer={footer}>
-  <MonthlyHiring {...props} onLockChange={lock}/>
+ return <LayeredSummaryCard collapsible className="tuition-arrangement-card" aria-label={typeof title==='string'?title:undefined} onClick={event=>{if(locked&&(event.target as HTMLElement).closest('summary')===event.currentTarget.firstElementChild)event.preventDefault();}} header={<><div><h4>{title}</h4><p>{subtitle}</p>{(started||classRecorded)&&<span className="arrangement-start-badge" title={appText("Based on recorded teaching commencement or a class completion reported by the teacher.")}><StatusBadge label={appText("Classes started")} tone="success" icon={CalendarCheck}/></span>}</div><ChevronDown size={18} aria-hidden="true"/></>} footer={footer}>
+  <MonthlyHiring {...props} onLockChange={lock} onClassRecordedChange={setClassRecorded}/>
  </LayeredSummaryCard>;
 }
-export function MonthlyHiring({session,kind,id,disabled=false,onLockChange}:{session:Session;kind:"PLACEMENT"|"INDEPENDENT";id:string;disabled?:boolean;onLockChange?:(locked:boolean,id:string)=>void}){
+export function MonthlyHiring({session,kind,id,disabled=false,onLockChange,onClassRecordedChange}:{session:Session;kind:"PLACEMENT"|"INDEPENDENT";id:string;disabled?:boolean;onLockChange?:(locked:boolean,id:string)=>void;onClassRecordedChange?:(recorded:boolean)=>void}){
  const {appText,appError,appLocale}=useAppTranslation(),client=useQueryClient();
  const [month,setMonth]=useState(""),[ack,setAck]=useState(false),[date,setDate]=useState<string|null>(null),[completionAck,setCompletionAck]=useState(false);
  const path=`/tuition-bookings/${kind}/${id}`;
  const query=useQuery({queryKey:["tuition-booking",session.account.id,kind,id],queryFn:({signal})=>api<Booking>(path,{signal}),retry:false,staleTime:0});
  async function refresh(){const result=await query.refetch();if(result.error)throw result.error;await client.invalidateQueries({queryKey:["hiring-dashboard"]});await client.invalidateQueries({queryKey:["student-arrangements"]});await client.invalidateQueries({queryKey:["direct-enquiries",session.account.id]});}
  const decision=useDecision(session,refresh),data=!query.error?query.data:undefined;
+ useEffect(()=>{onClassRecordedChange?.(!!data?.proActive&&data.completions.some(row=>row.completed));},[data,onClassRecordedChange]);
  useEffect(()=>{onLockChange?.(decision.locked,id);return()=>onLockChange?.(false,id);},[decision.locked,id,onLockChange]);
  useEffect(()=>{if(data){setMonth(data.month);setAck(false);}},[data?.version,data?.bookingVersion]);
  if(query.isPending)return <p role="status">{appText("Loading monthly tuition…")}</p>;

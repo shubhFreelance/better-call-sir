@@ -6840,3 +6840,5 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 @keyframes class-month-reveal {from {opacity:0;transform:translateY(8px);}to {opacity:1;transform:translateY(0);}}
 @media(max-width:600px){.class-calendar {margin:14px;max-width:none;}.tuition-arrangement-card>.layered-summary-card-body {padding:10px;}.class-calendar-months {grid-template-columns:repeat(3,minmax(0,1fr));}.class-month-detail {padding:12px 6px;}}
 @media(prefers-reduced-motion:reduce){.class-month-detail {animation:none;}.class-calendar-months button,.tuition-arrangement-card>.layered-summary-card-header,.tuition-arrangement-card>.layered-summary-card-header>svg {transition:none;}}
+.arrangement-start-badge {display:inline-flex;margin-top:10px;}
+.arrangement-start-badge .status-badge {font-size:11px;}

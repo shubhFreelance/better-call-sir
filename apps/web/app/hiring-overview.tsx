@@ -493,7 +493,7 @@ export function HiringOverview({ session }: { session: Session }) {
                     ) : (
                       <div className="hiring-card-grid">
                         {data.arrangements.map((p) => (
-                          <TuitionArrangementCard key={p.id} session={session} kind="PLACEMENT" id={p.id} title={p.teacher.name} subtitle={<>{appCurriculum(p.subject)} · {p.mode === "HOME" ? appText("At home") : appText("Online")} · {p.learner.alias}</>} disabled={!!selected||decision.locked||!!query.error||query.isFetching||!!monthlyLockedId&&monthlyLockedId!==p.id} onLockChange={monthlyLock} footer={
+                          <TuitionArrangementCard key={p.id} session={session} kind="PLACEMENT" id={p.id} title={p.teacher.name} started={p.guardianStarted && p.teacherReceiptConfirmed} subtitle={<>{appCurriculum(p.subject)} · {p.mode === "HOME" ? appText("At home") : appText("Online")} · {p.learner.alias}</>} disabled={!!selected||decision.locked||!!query.error||query.isFetching||!!monthlyLockedId&&monthlyLockedId!==p.id} onLockChange={monthlyLock} footer={
                             <details className="hiring-support"><summary>{appText("Support and existing records")}</summary>
                             <Link
                               className="inline-link"

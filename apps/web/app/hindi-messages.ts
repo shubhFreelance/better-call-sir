@@ -1,5 +1,7 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Classes started": "कक्षाएँ शुरू हो गई हैं",
+  "Based on recorded teaching commencement or a class completion reported by the teacher.": "दर्ज शिक्षण प्रारंभ या शिक्षक द्वारा पूरी दर्ज की गई कक्षा पर आधारित।",
   "Tuition months": "ट्यूशन के महीने",
   "Tuition recorded": "ट्यूशन दर्ज है",
   "Lavender months have recorded tuition.": "लैवेंडर रंग वाले महीनों में ट्यूशन दर्ज है।",
