@@ -15,6 +15,8 @@ async function erase(db:DB,scope:string,resourceId:string,accountId:string){
  const placementIds=(await db.placement.findMany({where:{OR:[{childId:{in:childIds}},...(scope==='ACCOUNT'?[{guardianId:accountId},...(erasedTeacher?[{teacherId:erasedTeacher.id}]:[])]:[])]},select:{id:true}})).map(p=>p.id);
  const independentIds=scope==='ACCOUNT'?(await db.studentArrangement.findMany({where:{OR:[{studentAccountId:accountId},...(erasedTeacher?[{teacherId:erasedTeacher.id}]:[])]},select:{id:true}})).map(a=>a.id):[];
  await db.tuitionBooking.deleteMany({where:{resourceId:{in:[...placementIds,...independentIds]}}});
+ for(const id of placementIds)await db.idempotency.deleteMany({where:{operation:{contains:'/tuition-bookings/PLACEMENT/'+id}}});
+ for(const id of independentIds)await db.idempotency.deleteMany({where:{operation:{contains:'/tuition-bookings/INDEPENDENT/'+id}}});
  await db.directEnquiry.updateMany({where:{id:{in:directIds}},data:{proposal:Prisma.DbNull,version:{increment:1}}});
  for(const id of directIds)await db.idempotency.deleteMany({where:{operation:{contains:'/direct-enquiries/'+id}}});
 
