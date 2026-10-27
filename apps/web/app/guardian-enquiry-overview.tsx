@@ -52,6 +52,6 @@ function SubmittedEnquiryCard({session,request,current,conversation,learnerName}
   <StatusBadge label={label} tone={closed?"neutral":booked||conversation?.status==="ACCEPTED"?"success":conversation?.status==="DECLINED"?"danger":"neutral"} icon={booked||conversation?.status==="ACCEPTED"?CheckCircle2:Clock3}/><h2>{appCurriculum(request.subject)}</h2>
   {current&&<p className="enquiry-current-label">{appText("Latest saved enquiry")}</p>}
   {(conversation||learnerName)&&<p><strong>{conversation?.learner.name||learnerName}</strong></p>}{conversation&&<p>{conversation.teacherName}</p>}
-  <p>{appText("Request")} <strong>{request.id.slice(0,8)}</strong></p><FilterButton asChild><Link href={"/dashboard/requests?request="+request.id}>{appText("View enquiry")}</Link></FilterButton>
+  <p>{appText("Request")} <strong>{request.id.slice(0,8)}</strong></p><FilterButton asChild><Link href={conversation?.arrangementId?"/dashboard/arrangements?placement="+conversation.arrangementId:"/dashboard/requests?request="+request.id}>{appText(conversation?.arrangementId?"View tuition arrangement":"View enquiry")}</Link></FilterButton>
  </article>;
 }

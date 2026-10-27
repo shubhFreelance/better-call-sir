@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarCheck, CircleMinus, RefreshCw } from "lucide-react";
+import { CalendarCheck, ChevronDown, CircleMinus, RefreshCw } from "lucide-react";
 import { StatusBadge } from "../components/ui/status-controls";
 import {
   api,
@@ -363,7 +363,7 @@ export function PlacementCare({
             </Notice>
           )}
           {p && (
-            <LayeredSummaryCard className="placement-summary" header={
+            <LayeredSummaryCard key={p.id} collapsible className="placement-summary" onClick={event=>{if(locked&&(event.target as HTMLElement).closest('summary')===event.currentTarget.firstElementChild)event.preventDefault();}} header={
               <div className="placement-summary-heading">
                 <div>
                   <StatusBadge label={arrangementLabel(p)} tone={booking?.confirmed||p.status==="ACTIVE"?"success":"neutral"} icon={CalendarCheck}/>
@@ -378,7 +378,7 @@ export function PlacementCare({
                     · <strong className="placement-monthly-price">{money(p.monthlyPaise, appLocale)}</strong>{" "}
                     {appText("monthly")}{" "}
                   </p>
-                </div>
+                </div><ChevronDown size={18} aria-hidden="true"/>
               </div>
             } footer={
               <Notice>

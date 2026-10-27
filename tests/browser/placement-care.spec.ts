@@ -184,7 +184,9 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
   });
   return { writes, reads, p: () => p };
 }
+async function openArrangement(page:Page){const card=page.locator('.placement-summary');await expect(card).toBeVisible();if((await card.getAttribute('open'))===null)await card.locator(':scope > summary').click();}
 async function closeReview(page: Page) {
+  await openArrangement(page);
   await page
     .getByRole("button", { name: "Close arrangement", exact: true })
     .click();
@@ -196,6 +198,7 @@ async function closeReview(page: Page) {
     .click();
 }
 async function replacementReview(page: Page) {
+  await openArrangement(page);
   await page
     .getByRole("button", { name: "Request a replacement", exact: true })
     .click();
@@ -212,28 +215,32 @@ async function replacementReview(page: Page) {
     .getByRole("button", { name: "Review decision", exact: true })
     .click();
 }
+test('dedicated arrangement is compact by default and expands only on selection',async({page})=>{
+ await mock(page,'monthly-confirmed');await page.goto('/dashboard/arrangements?placement='+placement);const card=page.locator('.placement-summary');await expect(card).not.toHaveAttribute('open');await expect(card.locator('.monthly-hiring')).not.toBeVisible();await card.locator(':scope > summary').focus();await page.keyboard.press('Enter');await expect(card).toHaveAttribute('open','');await expect(card.locator('.monthly-hiring')).toBeVisible();await card.locator(':scope > summary').click();await expect(card).not.toHaveAttribute('open');await page.setViewportSize({width:360,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.placement-summary').analyze()).violations).toEqual([]);await card.screenshot({path:'test-results/dedicated-arrangement-collapsed-phone.png',style:'nextjs-portal{display:none!important}'});
+});
+
 test('dedicated arrangement reflects the same booked month despite legacy pending status',async({page})=>{
- const state=await mock(page,'monthly-confirmed');await page.goto('/dashboard/arrangements?placement='+placement);const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');await expect(page.getByLabel('Tuition arrangement',{exact:true})).toContainText('Teacher booked for November 2026');await expect(card.getByRole('region',{name:'Monthly tuition confirmation',exact:true})).toContainText('Both parties confirmed this month.');await expect(card.getByRole('button',{name:'Confirm monthly tuition',exact:true})).toHaveCount(0);await expect(card.locator('.class-calendar-months button')).toHaveCount(12);expect(state.p().status).toBe('TERMS_PENDING');expect(state.writes).toHaveLength(0);await card.screenshot({path:'test-results/dedicated-monthly-agreement.png',style:'nextjs-portal{display:none!important}'});
+ const state=await mock(page,'monthly-confirmed');await page.goto('/dashboard/arrangements?placement='+placement);await openArrangement(page);const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');await expect(page.getByLabel('Tuition arrangement',{exact:true})).toContainText('Teacher booked for November 2026');await expect(card.getByRole('region',{name:'Monthly tuition confirmation',exact:true})).toContainText('Both parties confirmed this month.');await expect(card.getByRole('button',{name:'Confirm monthly tuition',exact:true})).toHaveCount(0);await expect(card.locator('.class-calendar-months button')).toHaveCount(12);expect(state.p().status).toBe('TERMS_PENDING');expect(state.writes).toHaveLength(0);await card.screenshot({path:'test-results/dedicated-monthly-agreement.png',style:'nextjs-portal{display:none!important}'});
 });
 
 test('switching arrangements reads each exact monthly record without carrying over the first booking',async({page})=>{
- const state=await mock(page,'monthly-switch');await page.goto('/dashboard/arrangements?placement='+placement);const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');await page.getByLabel('Tuition arrangement',{exact:true}).selectOption(ids.placement);await expect(card.locator('.monthly-hiring')).toContainText('Confirm tuition for December 2026');await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked for November');await expect(card.locator('.placement-summary-heading')).toContainText('Terms pending');expect(state.reads).toContain('/api/v1/tuition-bookings/PLACEMENT/'+ids.placement);expect(state.writes).toHaveLength(0);
+ const state=await mock(page,'monthly-switch');await page.goto('/dashboard/arrangements?placement='+placement);await openArrangement(page);const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');await page.getByLabel('Tuition arrangement',{exact:true}).selectOption(ids.placement);await expect(card.locator('.monthly-hiring')).toContainText('Confirm tuition for December 2026');await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked for November');await expect(card.locator('.placement-summary-heading')).toContainText('Terms pending');expect(state.reads).toContain('/api/v1/tuition-bookings/PLACEMENT/'+ids.placement);expect(state.writes).toHaveLength(0);
 });
 
 test('dedicated arrangement confirms once and refreshes placement version and labels',async({page})=>{
- const state=await mock(page,'monthly-waiting');await page.goto('/dashboard/arrangements');const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Terms agreed');await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked');await card.getByRole('checkbox',{name:/I agree to the displayed monthly tuition/}).check();await card.getByRole('button',{name:'Confirm monthly tuition',exact:true}).click();await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');expect(state.writes).toHaveLength(1);await closeReview(page);await page.getByRole('checkbox',{name:/I reviewed these effects/}).check();await page.getByRole('button',{name:'Confirm closure',exact:true}).click();expect(state.writes[1].body.expectedVersion).toBe(2);
+ const state=await mock(page,'monthly-waiting');await page.goto('/dashboard/arrangements');await openArrangement(page);const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Terms agreed');await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked');await card.getByRole('checkbox',{name:/I agree to the displayed monthly tuition/}).check();await card.getByRole('button',{name:'Confirm monthly tuition',exact:true}).click();await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');expect(state.writes).toHaveLength(1);await closeReview(page);await page.getByRole('checkbox',{name:/I reviewed these effects/}).check();await page.getByRole('button',{name:'Confirm closure',exact:true}).click();expect(state.writes[1].body.expectedVersion).toBe(2);
 });
 
 test('uncertain monthly confirmation locks arrangement changes and retries the same decision',async({page})=>{
- const state=await mock(page,'monthly-unknown');await page.goto('/dashboard/arrangements');const card=page.locator('.placement-summary');await card.getByRole('checkbox',{name:/I agree to the displayed monthly tuition/}).check();await card.getByRole('button',{name:'Confirm monthly tuition',exact:true}).click();await expect(page.getByLabel('Tuition arrangement',{exact:true})).toBeDisabled();await expect(card.getByRole('button',{name:'Close arrangement',exact:true})).toBeDisabled();await expect(card.getByRole('button',{name:'Request a replacement',exact:true})).toBeDisabled();await card.getByRole('button',{name:'Retry same decision',exact:true}).click();await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');expect(state.writes).toHaveLength(2);expect(state.writes[1]).toEqual(state.writes[0]);
+ const state=await mock(page,'monthly-unknown');await page.goto('/dashboard/arrangements');await openArrangement(page);const card=page.locator('.placement-summary');await card.getByRole('checkbox',{name:/I agree to the displayed monthly tuition/}).check();await card.getByRole('button',{name:'Confirm monthly tuition',exact:true}).click();await expect(page.getByLabel('Tuition arrangement',{exact:true})).toBeDisabled();await expect(card.getByRole('button',{name:'Close arrangement',exact:true})).toBeDisabled();await expect(card.getByRole('button',{name:'Request a replacement',exact:true})).toBeDisabled();await card.locator(':scope > summary').click();await expect(card).toHaveAttribute('open','');await card.getByRole('button',{name:'Retry same decision',exact:true}).click();await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');expect(state.writes).toHaveLength(2);expect(state.writes[1]).toEqual(state.writes[0]);
 });
 
 test('failed booking refresh hides a previously confirmed month instead of retaining stale success',async({page})=>{
- await mock(page,'monthly-confirmed');await page.goto('/dashboard/arrangements');const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');await page.route('**/api/v1/tuition-bookings/PLACEMENT/*',route=>route.fulfill({status:403,json:{code:'FORBIDDEN',message:'Booking unavailable.'}}));await card.locator('.monthly-hiring').getByRole('button',{name:'Refresh enquiries',exact:true}).click();await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked');await expect(card.locator('.class-calendar')).toHaveCount(0);await expect(card.getByRole('alert')).toContainText('Monthly tuition could not be loaded.');
+ await mock(page,'monthly-confirmed');await page.goto('/dashboard/arrangements');await openArrangement(page);const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');await page.route('**/api/v1/tuition-bookings/PLACEMENT/*',route=>route.fulfill({status:403,json:{code:'FORBIDDEN',message:'Booking unavailable.'}}));await card.locator('.monthly-hiring').getByRole('button',{name:'Refresh enquiries',exact:true}).click();await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked');await expect(card.locator('.class-calendar')).toHaveCount(0);await expect(card.getByRole('alert')).toContainText('Monthly tuition could not be loaded.');
 });
 
 test('failed monthly reads hide booked status while keeping support available',async({page})=>{
- await mock(page,'monthly-error');await page.goto('/dashboard/arrangements');const card=page.locator('.placement-summary');await expect(card.getByRole('alert')).toContainText('Monthly tuition could not be loaded.');await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked');await expect(card.locator('.class-calendar')).toHaveCount(0);await expect(card.getByRole('link',{name:'Help and case progress for this arrangement',exact:true})).toBeVisible();
+ await mock(page,'monthly-error');await page.goto('/dashboard/arrangements');await openArrangement(page);const card=page.locator('.placement-summary');await expect(card.getByRole('alert')).toContainText('Monthly tuition could not be loaded.');await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked');await expect(card.locator('.class-calendar')).toHaveCount(0);await expect(card.getByRole('link',{name:'Help and case progress for this arrangement',exact:true})).toBeVisible();
 });
 
 test("closure has explicit effects and requires acknowledgement before writing", async ({
@@ -293,7 +300,7 @@ test("replacement saves fresh criteria and displays linked progress without prom
     budgetPaise: 450050,
   });
   expect(s.writes[0].body.preferences.timezone).toBe("Asia/Kolkata");
-  await page.reload();
+  await page.reload();await openArrangement(page);
   const closed=page.locator(".placement-closed-state");await expect(closed).toContainText("Replacement request:");await expect(closed.locator(".status-badge")).toContainText("Awaiting matching");await expect(closed.locator(".filter-button-group a")).toHaveCount(2);await expect(closed.getByRole("link",{name:"Review replacement progress",exact:true})).toHaveAttribute("href","/dashboard/requests?request="+replacement);await expect(closed.getByRole("link",{name:"View support history",exact:true})).toHaveAttribute("href","/support?placement="+placement);await closed.screenshot({path:"test-results/closed-arrangement-desktop.png",style:"nextjs-portal{display:none!important}"});await page.setViewportSize({width:360,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include(".placement-closed-state").analyze()).violations).toEqual([]);await closed.screenshot({path:"test-results/closed-arrangement-phone.png",style:"nextjs-portal{display:none!important}"});
   await expect(
     page.getByRole("button", { name: "Close arrangement", exact: true }),
@@ -403,7 +410,7 @@ test("missing criteria and withdrawn consent disable replacement without hiding 
   page,
 }) => {
   await mock(page, "missing-source");
-  await page.goto("/dashboard/arrangements");
+  await page.goto("/dashboard/arrangements");await openArrangement(page);
   await expect(
     page.getByRole("button", { name: "Request a replacement", exact: true }),
   ).toBeDisabled();
@@ -412,7 +419,7 @@ test("missing criteria and withdrawn consent disable replacement without hiding 
   ).toBeEnabled();
   await page.unrouteAll();
   const withdrawn=await mock(page, "withdrawn");
-  await page.reload();
+  await page.reload();await openArrangement(page);
   await expect(
     page.getByRole("button", { name: "Close arrangement", exact: true }),
   ).toBeDisabled();
@@ -438,7 +445,7 @@ test("mobile replacement validation, keyboard review and screenshots remain acce
 }) => {
   const s = await mock(page);
   await page.setViewportSize({ width: 360, height: 800 });
-  await page.goto("/dashboard/arrangements");
+  await page.goto("/dashboard/arrangements");await openArrangement(page);
   await page
     .getByRole("button", { name: "Request a replacement", exact: true })
     .click();
@@ -542,7 +549,7 @@ test("real guardian replacement persists for an isolated synthetic learner", asy
     expect(
       (await db.placement.findUniqueOrThrow({ where: { id: p.id } })).status,
     ).toBe("CLOSED");
-    await page.reload();
+    await page.reload();await openArrangement(page);
     await page.getByLabel("Tuition arrangement").selectOption(p.id);
     await expect(page.getByText(/Replacement request: Open/)).toBeVisible();
   } finally {
@@ -554,7 +561,7 @@ test("arrangement links target the exact replacement record and never substitute
   page,
 }) => {
   const state = await mock(page);
-  await page.goto("/dashboard/arrangements?placement=" + placement);
+  await page.goto("/dashboard/arrangements?placement=" + placement);await openArrangement(page);
   await expect(
     page.getByRole("link", {
       name: "Help and case progress for this arrangement",
@@ -576,7 +583,7 @@ test("replacement accepts broad weekly preferences and links to exact recorded p
   page,
 }) => {
   const state = await mock(page);
-  await page.goto("/dashboard/arrangements?placement=" + placement);
+  await page.goto("/dashboard/arrangements?placement=" + placement);await openArrangement(page);
   await page
     .getByRole("button", { name: "Request a replacement", exact: true })
     .click();
@@ -610,7 +617,7 @@ test("replacement accepts broad weekly preferences and links to exact recorded p
     timezone: "Asia/Kolkata",
     weekly: [{ weekday: 1, startMinute: 960, endMinute: 1200 }],
   });
-  await page.reload();
+  await page.reload();await openArrangement(page);
   await expect(
     page.getByRole("link", { name: "Review replacement progress" }),
   ).toHaveAttribute("href", "/dashboard/requests?request=" + replacement);
@@ -629,7 +636,7 @@ test("replacement accepts broad weekly preferences and links to exact recorded p
 test("arrangement uses layered summary, shared actions and exact family-approved timing",async({page})=>{
   const fixture=await mock(page);const timingReads:string[]=[];
   await page.route("**/api/v1/direct-enquiries**",route=>{timingReads.push(new URL(route.request().url()).searchParams.get("arrangementId")||"");return route.fulfill({json:{items:[{id:"70000000-0000-4000-8000-000000000091",arrangementId:placement,status:"ACCEPTED",proposal:{timing:"Monday 5pm IST",agreedTiming:"Monday 5pm IST",familyConfirmed:true}}],counts:{ACCEPTED:1},nextCursor:null}});});
-  await page.goto("/dashboard/arrangements?arrangement="+placement);const card=page.locator(".placement-summary");await expect(card.locator(".placement-agreed-time")).toContainText("Monday 5pm IST");await expect(card).toHaveClass(/layered-summary-card/);await expect(card.locator(".layered-summary-card-actions .filter-button")).toHaveCount(2);await expect(card.getByRole("link",{name:"Help and case progress for this arrangement",exact:true})).toHaveAttribute("href","/support?placement="+placement);expect(timingReads.length).toBeGreaterThan(0);expect(new Set(timingReads)).toEqual(new Set([placement]));
+  await page.goto("/dashboard/arrangements?arrangement="+placement);await openArrangement(page);const card=page.locator(".placement-summary");await expect(card.locator(".placement-agreed-time")).toContainText("Monday 5pm IST");await expect(card).toHaveClass(/layered-summary-card/);await expect(card.locator(".layered-summary-card-actions .filter-button")).toHaveCount(2);await expect(card.getByRole("link",{name:"Help and case progress for this arrangement",exact:true})).toHaveAttribute("href","/support?placement="+placement);expect(timingReads.length).toBeGreaterThan(0);expect(new Set(timingReads)).toEqual(new Set([placement]));
   await card.screenshot({path:"test-results/arrangement-layered-desktop.png",style:"nextjs-portal{display:none!important}"});await page.setViewportSize({width:360,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include(".placement-summary").analyze()).violations).toEqual([]);await card.screenshot({path:"test-results/arrangement-layered-phone.png",style:"nextjs-portal{display:none!important}"});expect(fixture.writes).toHaveLength(0);
-  await page.route("**/api/v1/direct-enquiries**",route=>route.fulfill({status:403,json:{code:"FORBIDDEN",message:"Enquiry unavailable."}}));await page.reload();await expect(card.getByRole("alert")).toContainText("Agreed time could not be loaded");await expect(card.locator(".placement-agreed-time")).toHaveCount(0);
+  await page.route("**/api/v1/direct-enquiries**",route=>route.fulfill({status:403,json:{code:"FORBIDDEN",message:"Enquiry unavailable."}}));await page.reload();await openArrangement(page);await expect(card.getByRole("alert")).toContainText("Agreed time could not be loaded");await expect(card.locator(".placement-agreed-time")).toHaveCount(0);
 });

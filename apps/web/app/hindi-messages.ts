@@ -1,5 +1,7 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Both parties have accepted. Open the arrangement to see the agreed month and class records.": "दोनों पक्षों ने स्वीकार कर लिया है। तय महीना और कक्षाओं का रिकॉर्ड देखने के लिए व्यवस्था खोलें।",
+  "Tuition terms created. View your arrangement to review the amount and both parties’ acceptance.": "ट्यूशन की शर्तें बन गई हैं। राशि और दोनों पक्षों की स्वीकृति देखने के लिए अपनी व्यवस्था खोलें।",
   "Tuitions": "ट्यूशन",
   "Your subject enquiries and saved tuition requests": "आपकी विषयवार पूछताछ और सहेजे गए ट्यूशन अनुरोध",
   "{0} enquiry": "{0} की पूछताछ",

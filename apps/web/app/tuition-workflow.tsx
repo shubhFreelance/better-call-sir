@@ -532,7 +532,7 @@ export function RequestReview({
       path: "/placements",
       body: { requestId: request!.id, teacherId: form.teacherId },
       message:
-        "Tuition terms created. Continue to hiring confirmation to review the amount and both parties’ acceptance.",
+        "Tuition terms created. View your arrangement to review the amount and both parties’ acceptance.",
       onSaved: () => setForm(null),
     });
   }
@@ -844,7 +844,7 @@ export function RequestReview({
               ? appText("Hiring terms confirmed")
               : appText("Your hiring agreement is ready to review")}
           </h3>
-          <p>
+          <p>{placement.guardianAccepted && placement.teacherAccepted ? appText("Both parties have accepted. Open the arrangement to see the agreed month and class records.") : <>
             {appText("Guardian:")}{" "}
             {placement.guardianAccepted
               ? appText("accepted")
@@ -856,16 +856,16 @@ export function RequestReview({
             {appText(
               ". Review the current agreement and both parties’ confirmation. A demo and class timetable are not required.",
             )}{" "}
-          </p>
+          </>}</p>
           <Link
             className="button"
             href={
               session.account.role === "STUDENT"
                 ? `/dashboard/learning-choices?request=${request.id}#learning-arrangement-${placement.id}`
-                : `/dashboard?arrangement=${placement.id}`
+                : `/dashboard/arrangements?placement=${placement.id}`
             }
           >
-            {appText("Continue to hiring confirmation")}{" "}
+            {appText("View tuition arrangement")}{" "}
           </Link>
           <p className="wizard-help">
             {appText(

@@ -6872,3 +6872,17 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .guardian-enquiry-overview [role="alert"] {padding:14px;border:1px solid #D8E3DB;border-radius:12px;background:#fff;font-size:12px;}
 @media(max-width:600px){.guardian-enquiry-overview-heading {padding:18px;gap:10px;}.guardian-enquiry-overview-heading h1 {font-size:23px;}}
 .dashboard-content>.tuition-subject-enquiries,.dashboard-content>.tuition-setup-wizard {width:100%;max-width:none;padding:0;}
+.placement-summary>.layered-summary-card-header {padding:16px 20px;cursor:pointer;list-style:none;transition:background .18s;}
+.placement-summary>.layered-summary-card-header::-webkit-details-marker {display:none;}
+.placement-summary>.layered-summary-card-header:hover {background:#F8EDFF;}
+.placement-summary .placement-summary-heading {display:flex;align-items:center;gap:14px;}
+.placement-summary-heading>div {flex:1;min-width:0;}
+.placement-summary-heading>svg {flex-shrink:0;transition:transform .2s;}
+.placement-summary[open] .placement-summary-heading>svg {transform:rotate(180deg);}
+.placement-summary .placement-summary-heading h3 {font-size:18px;}
+.placement-summary .placement-monthly-price {font-size:14px;}
+.enquiry-handoff {display:grid;gap:12px;padding:18px;}
+.enquiry-handoff h3 {margin:0;font-size:16px;}
+.enquiry-handoff p,.enquiry-handoff .wizard-help {margin:0;font-size:12px;line-height:1.7;}
+.enquiry-handoff>.button {justify-self:start;}
+@media(prefers-reduced-motion:reduce){.placement-summary>.layered-summary-card-header,.placement-summary-heading>svg {transition:none;}}
