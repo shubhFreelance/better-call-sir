@@ -471,12 +471,14 @@ export function HiringOverview({ session }: { session: Session }) {
                     )}
                   </TabsContent>
                   <TabsContent value="ARRANGEMENTS" className="hiring-arrangements-panel">
+                    <header className="hiring-arrangements-heading"><div>
                     <h3>
                       {student
                         ? appText("Your teacher arrangements")
                         : appText("Your teaching arrangements")}
                     </h3>
-                    <p className="care-help">{appText("Confirm your month and tuition below. Everything stays in this card.")} <InfoTooltip label={appText("About monthly hiring")} items={[appText("Mutual monthly confirmation does not confirm service start, attendance or payment.")]}/></p>
+                    <p className="care-help">{appText("Confirm your month and tuition below. Everything stays in this card.")}</p>
+                    </div><InfoTooltip label={appText("About monthly hiring")} items={[appText("Mutual monthly confirmation does not confirm service start, attendance or payment.")]}/></header>
                     {!data.arrangements.length ? (
                       <section className="hiring-empty-state">
                         <h4>{appText("No arrangement recorded yet")}</h4>

@@ -6843,8 +6843,11 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .arrangement-start-badge {display:inline-flex;margin-top:10px;}
 .arrangement-start-badge .status-badge {font-size:11px;}
 .hiring-overview .hiring-arrangements-panel[data-state="active"] {display:grid;gap:16px;align-content:start;}
-.hiring-arrangements-panel>h3 {margin:0;font-size:20px;line-height:1.4;}
-.hiring-arrangements-panel>.care-help {display:flex;align-items:center;gap:8px;margin:0;font-size:12px;line-height:1.6;}
+.hiring-overview .hiring-arrangements-heading {display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px;background:#EEF5F3;border:1px solid #D8E3DB;border-radius:14px;}
+.hiring-arrangements-heading>div {display:grid;gap:6px;min-width:0;}
+.hiring-overview .hiring-arrangements-heading h3 {margin:0;font-size:18px;line-height:1.4;}
+.hiring-overview .hiring-arrangements-heading p {margin:0;font-size:12px;line-height:1.6;color:#52655F;}
+.hiring-arrangements-heading>.info-tooltip-trigger {flex-shrink:0;}
 .hiring-arrangements-panel>.hiring-card-grid {margin:0;gap:16px;align-items:start;}
 .hiring-arrangements-panel>.hiring-card-grid:has(>.tuition-arrangement-card:only-child) {grid-template-columns:1fr;}
 .tuition-arrangement-card>.layered-summary-card-header {padding:16px 20px;}
