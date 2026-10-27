@@ -6802,3 +6802,9 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .tuition-setup-wizard .wizard-review-row>button {position:absolute;top:8px;right:8px;width:36px;height:36px;min-height:36px;border-radius:50%;}
 .tuition-setup-wizard .wizard-review-row:nth-child(3) p {font-size:18px;font-weight:650;}
 .tuition-setup-wizard .wizard-review .tuition-windows {font-size:12px;line-height:1.8;padding-left:18px;}
+
+.proposal-weekly-row,.proposal-dated-row {padding:14px 0;border-bottom:1px solid #D8E3DB;}
+.proposal-weekly-row:last-of-type,.proposal-dated-row:last-of-type {border-bottom:0;}
+.proposal-calendar-fields select {width:100%;min-height:44px;padding:10px;border:1px solid #D8E3DB;border-radius:10px;background:white;font-size:13px;}
+.proposal-calendar-fields strong {font-size:13px;font-weight:600;}
+.proposal-calendar-fields small {display:block;margin-top:6px;font-size:11px;color:#52655F;}

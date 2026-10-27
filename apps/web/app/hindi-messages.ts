@@ -1,5 +1,11 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Edit requested availability": "माँगी गई उपलब्धता बदलें",
+  "Date from the family request": "परिवार के अनुरोध की तारीख",
+  "Edit the family's requested rows. No extra dates or time ranges will be added.": "परिवार की दी गई समय-सूची में बदलाव करें। नई तारीख या अतिरिक्त समय नहीं जोड़ा जाएगा।",
+  "Choose valid, nonoverlapping time ranges.": "सही और बिना टकराव वाले समय चुनें।",
+  "This proposal needs to be revised using the submitted schedule.": "इस प्रस्ताव को भेजी गई समय-सूची के अनुसार बदलना होगा।",
+  "Ask the family to update their availability before proposing a change.": "बदलाव सुझाने से पहले परिवार से उपलब्धता अपडेट करने के लिए कहें।",
   "Additional enquiry": "अतिरिक्त पूछताछ",
   "Additional enquiry information": "अतिरिक्त पूछताछ की जानकारी",
   "Please wait…": "कृपया प्रतीक्षा करें…",

@@ -11,10 +11,9 @@ import { Button } from "../components/ui/button";
 import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
 import { LayeredSummaryCard } from "../components/ui/layered-summary-card";
 import { Modal } from "../components/ui/modal";
-import { Input } from "../components/ui/input";
 import { MonthlyHiring } from "./monthly-hiring";
 import { InfoTooltip } from "../components/ui/info-tooltip";
-import { ProposalScheduleFields, type ProposalSchedule } from "./proposal-schedule";
+import { ProposalScheduleFields,requestedProposalSchedule,readProposalSchedule,matchesRequestedSchedule,validProposalSchedule, type ProposalSchedule } from "./proposal-schedule";
 import { Textarea } from "../components/ui/textarea";
 import { useAppTranslation } from "./locale";
 import { useDecision, Feedback } from "./tuition-workflow";
@@ -39,13 +38,14 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
     [review, setReview] = useState<{ item: Item; action: Action } | null>(null),
     [confirmed, setConfirmed] = useState(false),
     [format, setFormat] = useState("ONE_TO_ONE"),
-    [schedule, setSchedule] = useState<ProposalSchedule>({date:"",startTime:"",endTime:"",timezone:"Asia/Kolkata"}),
+    [schedule, setSchedule] = useState<ProposalSchedule|null>(null),
     [confirmedTiming, setConfirmedTiming] = useState(""),
     [message, setMessage] = useState("");
   const timingNeedsConfirmation = review?.action === "ACCEPT" && review.item.proposal?.familyConfirmed === true;
   const timingMismatch = timingNeedsConfirmation && confirmedTiming.trim() !== review?.item.proposal?.timing;
   const proposing = review?.action === "PROPOSE" || review?.action === "COUNTER_PROPOSE";
-  const invalidSchedule = proposing && (!schedule.date || !schedule.startTime || !schedule.endTime || schedule.endTime<=schedule.startTime);
+  const invalidSchedule = proposing && !validProposalSchedule(schedule);
+  const incompatibleProposal=!!review&&!!review.item.proposal&&["ACCEPT","ACCEPT_PROPOSAL"].includes(review.action)&&(!matchesRequestedSchedule(review.item.preferredTime,review.item.proposal.schedule)||review.item.proposal.sourceVersion!==undefined&&review.item.proposal.sourceVersion!==review.item.sourceVersion);
   const linkedConversation = useSearchParams().get("conversation");
   const conversation = enquiryId || linkedConversation;
   const cursor = conversation ? undefined : cursors.at(-1);
@@ -82,7 +82,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
     setReview({ item, action });
     setConfirmed(false);
     setFormat(item.proposal?.format ?? "ONE_TO_ONE");
-    setSchedule(item.proposal?.schedule ?? {date:"",startTime:"",endTime:"",timezone:"Asia/Kolkata"});
+    setSchedule(matchesRequestedSchedule(item.preferredTime,item.proposal?.schedule)&&(item.proposal?.sourceVersion===undefined||item.proposal?.sourceVersion===item.sourceVersion)?readProposalSchedule(item.proposal?.schedule):requestedProposalSchedule(item.preferredTime));
     setConfirmedTiming(item.proposal?.timing ?? "");
     setMessage(action === "DECLINE_PROPOSAL" || action === "COUNTER_PROPOSE" ? "" : item.proposal?.message ?? "");
   }
@@ -372,7 +372,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
                       {item.proposal.timing}
                     </p>
                     <p>{item.proposal.message}</p>
-                    {item.proposal.schedule && <ProposalScheduleFields value={item.proposal.agreedSchedule ?? item.proposal.schedule} readOnly/>}
+                    {readProposalSchedule(item.proposal.schedule) && <ProposalScheduleFields value={readProposalSchedule(item.proposal.agreedSchedule ?? item.proposal.schedule)!} readOnly/>}
                     {item.proposal.declineReason && <p><strong>{appText("Family response")}: </strong>{item.proposal.declineReason}</p>}
                     <p className="decision-guidance" role="status">{appText(item.status === "PROPOSED"
                       ? item.proposal.proposedBy === "FAMILY" ? "The family suggested another time. Waiting for the teacher to agree or send an alternative." : "Waiting for the family to confirm this proposal. Editing it requires a new confirmation."
@@ -408,7 +408,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
           className="direct-reply-form"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!confirmed || decision.locked || timingMismatch || invalidSchedule) return;
+            if (!confirmed || decision.locked || timingMismatch || invalidSchedule || incompatibleProposal) return;
             decision.run({
               path: "/direct-enquiries/" + review.item.id + "/responses",
               body: {
@@ -418,7 +418,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
                 confirmed: true,
                 ...(timingNeedsConfirmation ? {confirmedTiming: confirmedTiming.trim()} : {}),
                 ...(proposing
-                  ? {format, timing:`${schedule.date} ${schedule.startTime}\u2013${schedule.endTime} IST`, schedule, message}
+                  ? {format, schedule, message}
                   : review.action === "DECLINE_PROPOSAL" && message.trim() ? {message:message.trim()} : {}),
               },
               message: "Enquiry reply recorded.",
@@ -444,7 +444,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
             </label>
             } actions={
               <FilterButtonGroup>
-              <FilterButton accent type="submit" disabled={!confirmed || timingMismatch || invalidSchedule}>
+              <FilterButton accent type="submit" disabled={!confirmed || timingMismatch || invalidSchedule || incompatibleProposal}>
                 {appText("Confirm reply")}
               </FilterButton>
               <FilterButton
@@ -460,13 +460,13 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
               <div><dt>{appText("Lesson mode")}</dt><dd>{appText(review.item.mode === "ONLINE" ? "Online" : "At home")} {"\u00b7"} {appCurriculum(review.item.language)}</dd></div>
               <div><dt>{appText(review.item.proposal ? "Original preferred time" : "Preferred time")}</dt><dd>{preferred(review.item.preferredTime)}</dd></div>
             </dl>
-            {timingNeedsConfirmation && !review.item.proposal?.schedule && <div className="direct-final-time"><label>{appText("Confirm agreed time (IST)")}<Input required maxLength={300} value={confirmedTiming} onChange={event => {setConfirmedTiming(event.target.value);setConfirmed(false);}}/></label><p>{appText("Confirm the time approved by the family. A different time needs a new proposal and family approval.")}</p>{timingMismatch && <p role="alert">{appText("This time differs from the family-approved proposal. Send a new proposal before accepting.")}</p>}</div>}
             {!proposing && review.item.proposal && <div className="direct-proposal">
               <strong>{appText(review.item.proposal.format === "GROUP" ? "Group learning proposal" : "One-to-one proposal")}</strong>
               <p>{appText("Suggested time (IST)")}: {review.item.proposal.timing}</p>
               <p>{review.item.proposal.message}</p>
             </div>}
-            {timingNeedsConfirmation && review.item.proposal?.schedule && <ProposalScheduleFields value={review.item.proposal.schedule} readOnly/>}
+            {timingNeedsConfirmation && readProposalSchedule(review.item.proposal?.schedule) && <ProposalScheduleFields value={readProposalSchedule(review.item.proposal?.schedule)!} readOnly/>}
+            {incompatibleProposal&&<p role="alert">{appText("This proposal needs to be revised using the submitted schedule.")}</p>}
             {review.action === "DECLINE_PROPOSAL" && <label>{appText("Reason for declining (optional)")}<Textarea maxLength={1000} value={message} onChange={e=>{setMessage(e.target.value);setConfirmed(false);}}/></label>}
             {proposing && (
               <>
@@ -480,7 +480,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
                     <option value="GROUP">{appText("Group")}</option>
                   </select>
                 </label>
-                <ProposalScheduleFields value={schedule} onChange={value=>{setSchedule(value);setConfirmed(false);}}/>
+                {schedule?<ProposalScheduleFields value={schedule} onChange={value=>{setSchedule(value);setConfirmed(false);}}/>:<p role="alert">{appText("Ask the family to update their availability before proposing a change.")}</p>}
                 <label>
                   {appText(teacher ? "Message to the family" : "Message to the teacher")}
                   <Textarea
