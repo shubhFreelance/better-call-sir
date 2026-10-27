@@ -56,11 +56,14 @@ const initialApplication = (): Application => ({
 });
 const editable = (r: Verification) =>
   ["DRAFT", "CHANGES_REQUESTED"].includes(r.status);
-function StudentAccessGuidance() {
+function StudentAccessGuidance({ learnerId, blocked = false }: { learnerId?: string; blocked?: boolean }) {
   const { appText } = useAppTranslation();
   return <ol className="guardian-student-access-options">
     <li><strong>{appText("Sign up or sign in")}</strong><span>{appText("Ask your child to use their own email and confirm the relationship. Enter that same email in this request.")}</span></li>
-    <li><strong>{appText("Invitation code — after approval")}</strong><span>{appText("After approval and learner setup, share a student invitation code to link their account. This does not replace relationship confirmation.")}</span></li>
+    <li><strong>{appText("Invitation code — after approval")}</strong><span>{appText("After approval and learner setup, share a student invitation code to link their account. This does not replace relationship confirmation.")}</span>
+      {learnerId && !blocked ? <Button asChild variant="outline"><Link href={`/dashboard/family?learner=${encodeURIComponent(learnerId)}#student-invitation`}>{appText("Generate invitation code")}</Link></Button>
+        : <Button type="button" variant="outline" disabled title={appText("Available after approval and learner setup")}>{appText("Generate invitation code")}</Button>}
+    </li>
   </ol>;
 }
 export function GuardianVerificationWorkspace({
@@ -958,6 +961,7 @@ function OwnerVerification({
                   {r.acknowledgmentMethod==="STAFF_CALL"&&<InfoTooltip label={appText("Student sign-in confirmation")} items={[appText("To confirm by sign-in instead, choose the student's separate email account in relationship details.")]}/>}
                 </aside>}
                 {!r.studentAcknowledgedAt&&["DRAFT","CHANGES_REQUESTED","PENDING"].includes(r.status)&&<StudentAccessGuidance />}
+                {r.status === "APPROVED" && !r.studentAccountId && <StudentAccessGuidance learnerId={r.learnerId || undefined} blocked={locked} />}
                 {editable(r) && (
                   <>
                     <Button

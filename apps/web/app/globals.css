@@ -6905,3 +6905,5 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .guardian-student-access-options li + li { margin-top: 12px; }
 .guardian-student-access-options strong { display: block; font-size: 13px; font-weight: 700; }
 .guardian-student-access-options span { color: #344A43; }
+.guardian-student-access-options li > [data-slot="button"] { display: flex; width: fit-content; margin-top: 12px; font-size: 12px; }
+.invitation-recovery { scroll-margin-top: 24px; }

@@ -1,5 +1,7 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Generate invitation code": "निमंत्रण कोड बनाएँ",
+  "Available after approval and learner setup": "मंज़ूरी और विद्यार्थी की प्रोफ़ाइल तैयार होने के बाद उपलब्ध",
   "Sign up or sign in": "साइन अप या साइन इन करें",
   "Ask your child to use their own email and confirm the relationship. Enter that same email in this request.": "अपने बच्चे से उसके अपने ईमेल से साइन अप या साइन इन करके संबंध की पुष्टि करने को कहें। इस अनुरोध में वही ईमेल भरें।",
   "Invitation code — after approval": "निमंत्रण कोड — मंज़ूरी के बाद",

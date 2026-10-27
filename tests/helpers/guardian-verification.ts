@@ -393,8 +393,15 @@ export function guardianVerificationTests() {
     const f=await setup(page,{empty:true});await page.getByRole('button',{name:'Start guardian verification',exact:true}).click();
     await page.getByLabel("Guardian's full name",{exact:true}).fill('Synthetic Parent');await page.getByLabel("Learner's name on the school report",{exact:true}).fill('Sumi');
     await page.getByRole('button',{name:'Continue',exact:true}).click();await page.getByRole('button',{name:'Continue',exact:true}).click();
-    const guidance=page.locator('.guardian-student-access-options');await expect(guidance.locator('li')).toHaveCount(2);await expect(guidance).toContainText('Enter that same email in this request.');
+    const guidance=page.locator('.guardian-student-access-options');await expect(guidance.locator('li')).toHaveCount(2);await expect(guidance).toContainText('Enter that same email in this request.');await expect(guidance.getByRole('button',{name:'Generate invitation code',exact:true})).toBeDisabled();await expect(guidance.getByRole('link')).toHaveCount(0);
     await page.getByRole('combobox',{name:/How will the student confirm this relationship/}).selectOption('STUDENT_ACCOUNT');await expect(page.getByText("Use your child's own email, even if they still need to sign up. They sign in and confirm or decline this relationship. Do not enter your own email.",{exact:true})).toBeVisible();
+    await page.setViewportSize({width:390,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.guardian-student-access-options').analyze()).violations).toEqual([]);expect(f.writes).toHaveLength(0);
+  });
+  for(const [hasLearner,hindi] of [[true,false],[true,true],[false,false]] as const)test(`guardian invitation navigation uses the approved saved learner (${hasLearner}, ${hindi?'Hindi':'English'})`,async({page})=>{
+    const f=await setup(page,{status:'APPROVED'}),learner='20000000-0000-4000-8000-000000000922';Object.assign(f.state(),{learnerId:hasLearner?learner:null,studentAcknowledgedAt:new Date().toISOString()});await openOwner(page);
+    if(hindi)await page.getByRole('button',{name:'Switch English and Hindi',exact:true}).click();const t=(s:string)=>hindi?hindiMessages[s]||s:s,guidance=page.locator('.guardian-student-access-options');
+    if(hasLearner)await expect(guidance.getByRole('link',{name:t('Generate invitation code'),exact:true})).toHaveAttribute('href',`/dashboard/family?learner=${learner}#student-invitation`);
+    else {await expect(guidance.getByRole('button',{name:t('Generate invitation code'),exact:true})).toBeDisabled();await expect(guidance.getByRole('link')).toHaveCount(0);}
     await page.setViewportSize({width:390,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.guardian-student-access-options').analyze()).violations).toEqual([]);expect(f.writes).toHaveLength(0);
   });
   test('student confirmation guidance is visible on the report step before staff submission',async({page})=>{

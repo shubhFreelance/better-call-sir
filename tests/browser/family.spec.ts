@@ -1202,6 +1202,11 @@ test("stale invitation keeps review visible and requires refresh and renewed ack
   ).toBeVisible();
   expect(state.invitationBodies[1].expectedVersion).toBe(2);
 });
+test("learner invitation deep link opens the invitation controls without generating a code",async({page})=>{
+  const state=await mock(page,"invitation-expired");await page.goto(`/dashboard/family?learner=${childId}#student-invitation`);
+  await expect(page.locator('#family-learner')).toHaveValue(childId);await expect(page.locator('#student-invitation')).toBeInViewport();await expect(page.getByRole('button',{name:'Replace student invitation',exact:true})).toBeVisible();expect(state.getInvitations()).toBe(0);
+});
+
 test("expired invitation replacement is clear, cancellable and accessible on mobile", async ({
   page,
 }) => {
