@@ -699,10 +699,26 @@
                               "message": {
                                 "type": "string"
                               },
-                              "familyConfirmed": { "type": "boolean", "description": "Family confirmed this exact proposal; teacher acceptance is still required." },
-"timezone": {
+                              "familyConfirmed": {
+                                "type": "boolean",
+                                "description": "Family confirmed this exact proposal; teacher acceptance is still required."
+                              },
+                              "timezone": {
                                 "type": "string",
                                 "const": "Asia/Kolkata"
+                              },
+                              "familyConfirmedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "agreedTiming": {
+                                "type": "string",
+                                "maxLength": 300,
+                                "description": "Exact family-approved timing explicitly confirmed by the teacher at acceptance; original preferences are unchanged."
+                              },
+                              "teacherConfirmedAt": {
+                                "type": "string",
+                                "format": "date-time"
                               }
                             }
                           },
@@ -794,43 +810,56 @@
         "operationId": "getDirectEnquiries",
         "summary": "Immediate direct enquiries and regional staff oversight, newest first; no staff approval",
         "parameters": [
-  {
-    "name": "status",
-    "in": "query",
-    "description": "Filter before pagination. PENDING includes only open sources awaiting a teacher reply. Counts retain the full authorized scope; cursors must belong to this filter.",
-    "schema": {
-      "type": "string",
-      "enum": ["PENDING", "ACCEPTED", "DECLINED"]
-    }
-  },
-  {
-    "name": "cursor",
-    "in": "query",
-    "schema": {
-      "type": "string",
-      "format": "uuid"
-    }
-  },
-  {
-    "name": "limit",
-    "in": "query",
-    "schema": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 50,
-      "default": 10
-    }
-  },
-  {
-    "in": "query",
-    "name": "id",
-    "schema": {
-      "type": "string",
-      "format": "uuid"
-    },
-    "description": "Open one owned enquiry while retaining overall counts."
-  }
-]
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter before pagination. PENDING includes only open sources awaiting a teacher reply. Counts retain the full authorized scope; cursors must belong to this filter.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "ACCEPTED",
+                "DECLINED"
+              ]
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Open one owned enquiry while retaining overall counts."
+          },
+          {
+            "name": "arrangementId",
+            "in": "query",
+            "description": "Filter by the exact linked arrangement within the current authorized scope.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
       }
     },
     "/direct-enquiries/{id}/responses": {
@@ -999,10 +1028,26 @@
                         "message": {
                           "type": "string"
                         },
-                        "familyConfirmed": { "type": "boolean", "description": "Family confirmed this exact proposal; teacher acceptance is still required." },
-"timezone": {
+                        "familyConfirmed": {
+                          "type": "boolean",
+                          "description": "Family confirmed this exact proposal; teacher acceptance is still required."
+                        },
+                        "timezone": {
                           "type": "string",
                           "const": "Asia/Kolkata"
+                        },
+                        "familyConfirmedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "agreedTiming": {
+                          "type": "string",
+                          "maxLength": 300,
+                          "description": "Exact family-approved timing explicitly confirmed by the teacher at acceptance; original preferences are unchanged."
+                        },
+                        "teacherConfirmedAt": {
+                          "type": "string",
+                          "format": "date-time"
                         }
                       }
                     },
@@ -1089,6 +1134,12 @@
                       "expectedSourceVersion": {
                         "type": "integer",
                         "minimum": 1
+                      },
+                      "confirmedTiming": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 300,
+                        "description": "On ACCEPT after family approval, confirm the exact current proposal timing. A changed time requires a new proposal and family approval."
                       }
                     }
                   },

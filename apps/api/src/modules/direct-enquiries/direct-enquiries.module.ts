@@ -260,6 +260,7 @@ class DirectEnquiriesController {
         .object({
           cursor: uuid.optional(),
           id: uuid.optional(),
+          arrangementId: uuid.optional(),
           status: z.enum(["PENDING", "ACCEPTED", "DECLINED"]).optional(),
           limit: z.coerce.number().int().min(1).max(50).default(10),
         })
@@ -319,7 +320,7 @@ class DirectEnquiriesController {
           Prisma.sql`SELECT d.status,count(*) AS count FROM "DirectEnquiry" d WHERE ${scope} GROUP BY d.status`,
         );
         const rows = await db.$queryRaw<{ id: string }[]>(
-          Prisma.sql`SELECT d.id FROM "DirectEnquiry" d WHERE ${scope} AND (${filter}) AND (${q.id ?? null}::uuid IS NULL OR d.id=${q.id ?? null}::uuid) AND (${cursor?.id ?? null}::uuid IS NULL OR d."createdAt"<${cursor?.createdAt ?? new Date()} OR (d."createdAt"=${cursor?.createdAt ?? new Date()} AND d.id<${cursor?.id ?? null}::uuid)) ORDER BY d."createdAt" DESC,d.id DESC LIMIT ${q.limit + 1}`,
+          Prisma.sql`SELECT d.id FROM "DirectEnquiry" d WHERE ${scope} AND (${filter}) AND (${q.id ?? null}::uuid IS NULL OR d.id=${q.id ?? null}::uuid) AND (${q.arrangementId ?? null}::uuid IS NULL OR d."arrangementId"=${q.arrangementId ?? null}::uuid) AND (${cursor?.id ?? null}::uuid IS NULL OR d."createdAt"<${cursor?.createdAt ?? new Date()} OR (d."createdAt"=${cursor?.createdAt ?? new Date()} AND d.id<${cursor?.id ?? null}::uuid)) ORDER BY d."createdAt" DESC,d.id DESC LIMIT ${q.limit + 1}`,
         );
         if (q.id && !rows.length)
           fail(404, "NOT_FOUND", "Enquiry unavailable.");
@@ -413,6 +414,7 @@ class DirectEnquiriesController {
             expectedVersion: version,
             expectedSourceVersion: version,
             confirmed: z.literal(true),
+            confirmedTiming: text(300).optional(),
           })
           .strict(),
         z
@@ -474,6 +476,13 @@ class DirectEnquiriesController {
           fail(409, "CONFLICT", "There is no current proposal to decide.");
         if (data.action === "ACCEPT" && row.status === "PROPOSED")
           fail(409, "CONFLICT", "Wait for the family to confirm your latest proposal before accepting.");
+        const currentProposal = row.proposal as Prisma.JsonObject | null;
+        if (data.action === "ACCEPT" && currentProposal?.familyConfirmed === true) {
+          if (!data.confirmedTiming || data.confirmedTiming !== currentProposal.timing)
+            fail(409, "TIMING_CHANGED", "Confirm the family-approved time exactly, or send a new proposal for family approval.");
+        } else if ("confirmedTiming" in data && data.confirmedTiming !== undefined) {
+          fail(400, "INVALID_REQUEST", "Only a family-approved time can be confirmed when accepting an enquiry.");
+        }
         if (
           data.action !== "DECLINE" &&
           data.action !== "DECLINE_PROPOSAL" &&
@@ -525,7 +534,9 @@ class DirectEnquiriesController {
                 timezone: "Asia/Kolkata",
               }
             : data.action === "ACCEPT_PROPOSAL"
-              ? { ...(row.proposal as Prisma.JsonObject), familyConfirmed: true }
+              ? { ...(row.proposal as Prisma.JsonObject), familyConfirmed: true, familyConfirmedAt: new Date().toISOString() }
+              : accepted && currentProposal?.familyConfirmed === true
+                ? { ...currentProposal, agreedTiming: data.action === "ACCEPT" ? data.confirmedTiming : undefined, teacherConfirmedAt: new Date().toISOString() }
               : (row.proposal ?? Prisma.DbNull);
         const updated = await db.directEnquiry.update({
           where: { id },
