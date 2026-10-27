@@ -6198,6 +6198,20 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .dashboard-nav-item:has(.guardian-priority-popover) { overflow:visible; position:relative; z-index:50; }
 .student-invitation-signup h1,.teacher-opportunities-panel .student-workspace > h2 { font-size:28px; line-height:1.3; }
 .teacher-opportunities-panel { margin:20px 0; }
+.student-opportunities-heading { display:flex; align-items:center; gap:12px; padding:18px; border:1px solid #E4E4D0; border-radius:14px; background:#FFFFEB; }
+.student-opportunities-icon { display:grid; place-items:center; flex-shrink:0; width:44px; height:44px; border-radius:12px; background:#034F46; color:#FCFEEB; }
+.student-opportunities-heading > div { flex:1; min-width:0; }
+.student-opportunities-heading :is(h1,h2) { margin:0; color:#034F46; font-size:20px; font-weight:700; line-height:1.35; letter-spacing:-.4px; }
+.student-opportunities-heading p { margin:5px 0 0; color:#52655F; font-size:12px; line-height:1.65; }
+.student-opportunities-heading > .student-opportunities-arrangements { gap:8px; min-height:44px; padding:10px 14px; border-color:#D5E1DC; background:#FFF; color:#034F46; font-size:12px; }
+.student-opportunities-heading > .student-opportunities-arrangements:hover { background:#F0D7FF; border-color:#DAB5EE; }
+.student-opportunities .student-candidate-list:empty { display:none; }
+.student-opportunities-empty { display:flex; align-items:flex-start; gap:14px; margin-top:18px; padding:20px; border:1px solid #D7E4DF; border-radius:12px; background:#EEF5F3; color:#034F46; }
+.student-opportunities-empty > svg { flex-shrink:0; margin-top:2px; }
+.student-opportunities-empty strong { font-size:14px; font-weight:700; }
+.student-opportunities-empty p { margin:5px 0 0; color:#52655F; font-size:12px; line-height:1.65; }
+@media(max-width:700px){.student-opportunities-heading {flex-wrap:wrap; padding:16px;}.student-opportunities-heading :is(h1,h2) {font-size:18px;}.student-opportunities-heading > .student-opportunities-arrangements {width:100%;}.student-opportunities-empty {padding:16px;}}
+@media(max-width:480px){.student-opportunities-heading > .student-opportunities-icon {order:1;}.student-opportunities-heading > .info-tooltip-trigger {order:2; margin-left:auto;}.student-opportunities-heading > div {order:3; flex-basis:100%;}.student-opportunities-heading > .student-opportunities-arrangements {order:4;}}
 .teacher-pending-enquiries { margin:20px 0; background:#F3F1EB; border:1px solid #DADAC4; }
 .teacher-pending-enquiries h2 { font-size:24px; }
 .teacher-pending-enquiries small { overflow-wrap:anywhere; }

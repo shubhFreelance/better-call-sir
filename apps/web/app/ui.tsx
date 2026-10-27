@@ -2678,7 +2678,7 @@ function DashboardPage({ tab }: { tab: string }) {
           <GuardianLearners key={session.account.id} session={session} />
         )}
         <DirectEnquiries session={session}/>
-        {session.account.role === "TEACHER" && <section className="care-card teacher-opportunities-panel"><p>{appText("Direct enquiries arrive immediately above. Assisted-search opportunities appear in the separate queues below.")}</p><StudentOpportunities session={session} hindi={hindi} embedded/></section>}
+        {session.account.role === "TEACHER" && <section className="care-card teacher-opportunities-panel"><StudentOpportunities session={session} hindi={hindi} embedded/></section>}
         <HiringOverview
           key={`${session.account.id}:${session.account.role}`}
           session={session}

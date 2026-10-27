@@ -150,6 +150,13 @@ test("three student choices share one compact desktop row",async({page})=>{
  await page.screenshot({path:"test-results/student-choices-desktop-row.png",fullPage:true});
 });
 
+for(const [width,hindi,path] of [[1440,false,'/dashboard'],[320,true,'/dashboard'],[390,false,'/dashboard/student-opportunities']] as const)test(`teacher student opportunities use a compact header and helpful empty state (${width}, ${path})`,async({page})=>{
+ await dashboard(page,'TEACHER');await page.route('**/api/v1/student-opportunities**',route=>route.fulfill({json:{items:[],nextCursor:null}}));await page.setViewportSize({width,height:1000});if(hindi)await chooseHindi(page);await page.goto(path);const t=(s:string)=>translateText(hindi,s),card=page.locator('.student-opportunities');
+ await expect(card.getByRole('heading',{name:t('Independent student enquiries'),exact:true})).toBeVisible();await expect(card.locator('.student-opportunities-empty')).toContainText(t('No student enquiries yet'));await expect(card.locator('.student-opportunities-heading')).toHaveCSS('background-color','rgb(255, 255, 235)');await expect(card.locator('.student-opportunities-empty p')).toHaveCSS('font-size','12px');
+ const link=card.getByRole('link',{name:t('View student arrangements'),exact:true});await expect(link).toHaveAttribute('href','/dashboard/student-arrangements');await link.hover();await expect(link).toHaveCSS('background-color','rgb(240, 215, 255)');
+ const info=card.locator('.info-tooltip-trigger');await info.focus();await info.press('Enter');await expect(page.getByRole('tooltip')).toContainText(t('Review the learning brief before showing interest. Accepting an enquiry starts a conversation; hiring needs a separate mutual agreement.'));await page.keyboard.press('Escape');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.student-opportunities').analyze()).violations).toEqual([]);await card.screenshot({path:`test-results/student-opportunities-${width}.png`,style:'nextjs-portal{display:none!important}'});
+});
+
 test("teacher overview displays published adult-student enquiries as well as the guardian queue",async({page})=>{
  await dashboard(page,"TEACHER");
  await page.route("**/api/v1/student-opportunities**",route=>route.fulfill({json:{items:[{id:child,enquiryId:child,version:1,response:"PENDING",subject:"Maths",educationScope:{stage:"SCHOOL",grade:12,board:"CBSE"},mode:"ONLINE",language:"English",locality:"Raipur",budgetPaise:100000,preferences:{timezone:"Asia/Kolkata",weekly:[{weekday:1,startMinute:960,endMinute:1020}]}}],nextCursor:null}}));

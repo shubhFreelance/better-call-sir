@@ -1,5 +1,8 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Review the learning brief before showing interest.": "रुचि जताने से पहले पढ़ाई की ज़रूरतें देखें।",
+  "No student enquiries yet": "अभी विद्यार्थी की कोई पूछताछ नहीं है",
+  "Keep your teaching coverage and availability up to date for new opportunities.": "नए अवसरों के लिए अपने पढ़ाने के विषय और उपलब्ध समय अद्यतन रखें।",
   "1 step remaining": "1 चरण बाकी है",
   "2 steps remaining": "2 चरण बाकी हैं",
   "Remaining verification steps": "सत्यापन के बाकी चरण",
