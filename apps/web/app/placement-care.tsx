@@ -8,15 +8,19 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw } from "lucide-react";
+import { CircleMinus, RefreshCw } from "lucide-react";
+import { StatusBadge } from "../components/ui/status-controls";
 import {
   api,
   type Dashboard,
   type Session,
   type Placement,
   type components,
+  type paths,
 } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
+import { LayeredSummaryCard } from "../components/ui/layered-summary-card";
+import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Notice, Feedback, useDecision } from "./tuition-workflow";
@@ -54,7 +58,7 @@ export function PlacementCare({
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
-  const linkedPlacement = useSearchParams().get("placement"),
+  const params = useSearchParams(), linkedPlacement = params.get("placement") || params.get("arrangement"),
     lastLink = useRef(linkedPlacement);
   const client = useQueryClient(),
     canUse = session.account.role === "GUARDIAN";
@@ -92,6 +96,15 @@ export function PlacementCare({
     replacement = requests.data?.items.find(
       (r) => r.rematchFromPlacementId === p?.id,
     );
+  const timingReadable = canUse && !requests.error && !d.consent?.withdrawnAt;
+  const timingRecord = useQuery({
+    queryKey: ["arrangement-timing", session.account.id, p?.id],
+    queryFn: ({signal}) => api<paths["/direct-enquiries"]["get"]["responses"][200]["content"]["application/json"]>("/direct-enquiries?arrangementId=" + p!.id, {signal}),
+    enabled: timingReadable && !!p,
+    retry: false,
+  });
+  const timingProposal = timingReadable && !timingRecord.error && timingRecord.data?.items.find(item => item.status === "ACCEPTED" && item.arrangementId === p?.id)?.proposal;
+  const agreedTiming = timingProposal && timingProposal.familyConfirmed ? timingProposal.agreedTiming || timingProposal.timing : undefined;
   async function refresh() {
     const [next, rs] = await Promise.all([
       api<Dashboard>("/dashboard"),
@@ -340,8 +353,8 @@ export function PlacementCare({
             </Notice>
           )}
           {p && (
-            <section className="care-card">
-              <header>
+            <LayeredSummaryCard className="placement-summary" header={
+              <div className="placement-summary-heading">
                 <div>
                   <span className="care-status">
                     {appText(labels[p.status]) || p.status}
@@ -354,11 +367,12 @@ export function PlacementCare({
                   <p>
                     {d.teachers?.find((t) => t.id === p.teacherId)?.name ||
                       appText("Teacher {0}", [p.teacherId.slice(0, 8)])}{" "}
-                    · {money(p.monthlyPaise, appLocale)}{" "}
+                    · <strong className="placement-monthly-price">{money(p.monthlyPaise, appLocale)}</strong>{" "}
                     {appText("monthly")}{" "}
                   </p>
                 </div>
-              </header>
+              </div>
+            } footer={
               <Notice>
                 {appText(
                   "Ordinary closure or replacement preserves any unpaid agreed minimum. Safety or non-delivery concerns receive staff assessment; help remains available.",
@@ -370,52 +384,27 @@ export function PlacementCare({
                   {appText("Review minimum tuition and payment credits")}
                 </Link>
               </Notice>
-              <Link className="inline-link" href={`/support?placement=${p.id}`}>
-                {appText("Help and case progress for this arrangement")}{" "}
-              </Link>
-              {source && (
-                <p>
-                  {appCurriculum(source.subject)} ·{" "}
-                  {source.mode === "HOME"
-                    ? appText("At home")
-                    : appText("Online")}{" "}
-                  · {appCurriculum(source.language)} · {source.locality}
-                </p>
-              )}
-              {p.status === "CLOSED" ? (
-                <Notice>
-                  {appText("This arrangement is closed.")}{" "}
+            } actions={
+              p.status === "CLOSED" ? (
+                <section className="placement-closed-state">
+                  <div className="placement-closed-heading" role="status"><CircleMinus size={20} aria-hidden="true"/><strong>{appText("This arrangement is closed.")}</strong></div>
                   {replacement ? (
-                    <>
-                      {appText("Replacement request:")}{" "}
-                      {appText(labels[replacement.status]) ||
-                        replacement.status}
-                      ;{" "}
-                      {appText(labels[replacement.matchStatus || ""]) ||
-                        replacement.matchStatus ||
-                        appText("Matching status unavailable")}
-                      .{" "}
-                      <Link
-                        href={`/dashboard/requests?request=${replacement.id}`}
-                      >
-                        {appText("Review replacement progress")}{" "}
-                      </Link>
-                      .
-                    </>
+                    <div className="placement-replacement-status"><span>{appText("Replacement request:")}</span><StatusBadge tone="neutral" icon={RefreshCw} label={`${appText(labels[replacement.status]) || replacement.status} · ${appText(labels[replacement.matchStatus || ""]) || replacement.matchStatus || appText("Matching status unavailable")}`}/></div>
                   ) : (
-                    appText(
+                    <p className="placement-closed-help">{appText(
                       "No linked replacement is shown in the latest request history.",
-                    )
-                  )}{" "}
-                  <Link href={`/support?placement=${p.id}`}>
-                    {appText("View support history")}{" "}
-                  </Link>
-                  .
-                </Notice>
+                    )}</p>
+                  )}
+                  <FilterButtonGroup>
+                    {replacement && <FilterButton asChild accent><Link href={`/dashboard/requests?request=${replacement.id}`}>{appText("Review replacement progress")}</Link></FilterButton>}
+                    <FilterButton asChild><Link href={`/support?placement=${p.id}`}>{appText("View support history")}</Link></FilterButton>
+                  </FilterButtonGroup>
+                </section>
               ) : (
                 !action && (
-                  <div className="care-actions">
-                    <Button
+                  <FilterButtonGroup>
+                    <FilterButton
+                      accent
                       disabled={
                         !permitted ||
                         decision.locked ||
@@ -425,18 +414,25 @@ export function PlacementCare({
                       onClick={() => begin("replace")}
                     >
                       {appText("Request a replacement")}{" "}
-                    </Button>
-                    <Button
-                      variant="outline"
+                    </FilterButton>
+                    <FilterButton
                       disabled={!permitted || decision.locked}
                       onClick={() => begin("close")}
                     >
                       {appText("Close arrangement")}{" "}
-                    </Button>
-                  </div>
+                    </FilterButton>
+                  </FilterButtonGroup>
                 )
-              )}
-            </section>
+              )
+            }>
+              <dl className="placement-summary-details">
+                {source && <><div><dt>{appText("Subject")}</dt><dd>{appCurriculum(source.subject)}</dd></div><div><dt>{appText("Lesson mode")}</dt><dd>{appText(source.mode === "HOME" ? "At home" : "Online")} {"\u00b7"} {appCurriculum(source.language)}</dd></div><div><dt>{appText("City or area")}</dt><dd>{source.locality}</dd></div></>}
+                {agreedTiming && <div className="placement-agreed-time"><dt>{appText(timingProposal && timingProposal.agreedTiming ? "Agreed time (IST)" : "Family-approved time (IST)")}</dt><dd>{agreedTiming}</dd></div>}
+              </dl>
+              {timingRecord.isFetching && <p role="status">{appText("Loading agreed time\u2026")}</p>}
+              {timingRecord.error && <Notice error>{appText("Agreed time could not be loaded. Refresh before relying on the timing.")} <RefreshButton label={appText("Refresh agreed time")} disabled={timingRecord.isFetching} onClick={() => timingRecord.refetch()}/></Notice>}
+              <Link className="inline-link placement-summary-support" href={`/support?placement=${p.id}`}>{appText("Help and case progress for this arrangement")}</Link>
+            </LayeredSummaryCard>
           )}
           {result && (
             <Notice>

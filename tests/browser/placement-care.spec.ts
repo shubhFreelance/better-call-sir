@@ -111,6 +111,7 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
             consent: { withdrawnAt: mode === "withdrawn" ? now() : null },
           },
         });
+      if (path.endsWith("/direct-enquiries")) return route.fulfill({json:{items:[],counts:{},nextCursor:null}});
       if (path.endsWith("/requests"))
         return route.fulfill({
           json: check("RequestList", {
@@ -259,9 +260,7 @@ test("replacement saves fresh criteria and displays linked progress without prom
   });
   expect(s.writes[0].body.preferences.timezone).toBe("Asia/Kolkata");
   await page.reload();
-  await expect(
-    page.getByText(/Replacement request: Open; Awaiting matching/),
-  ).toBeVisible();
+  const closed=page.locator(".placement-closed-state");await expect(closed).toContainText("Replacement request:");await expect(closed.locator(".status-badge")).toContainText("Awaiting matching");await expect(closed.locator(".filter-button-group a")).toHaveCount(2);await expect(closed.getByRole("link",{name:"Review replacement progress",exact:true})).toHaveAttribute("href","/dashboard/requests?request="+replacement);await expect(closed.getByRole("link",{name:"View support history",exact:true})).toHaveAttribute("href","/support?placement="+placement);await closed.screenshot({path:"test-results/closed-arrangement-desktop.png",style:"nextjs-portal{display:none!important}"});await page.setViewportSize({width:360,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include(".placement-closed-state").analyze()).violations).toEqual([]);await closed.screenshot({path:"test-results/closed-arrangement-phone.png",style:"nextjs-portal{display:none!important}"});
   await expect(
     page.getByRole("button", { name: "Close arrangement", exact: true }),
   ).toHaveCount(0);
@@ -378,7 +377,7 @@ test("missing criteria and withdrawn consent disable replacement without hiding 
     page.getByRole("button", { name: "Close arrangement", exact: true }),
   ).toBeEnabled();
   await page.unrouteAll();
-  await mock(page, "withdrawn");
+  const withdrawn=await mock(page, "withdrawn");
   await page.reload();
   await expect(
     page.getByRole("button", { name: "Close arrangement", exact: true }),
@@ -388,6 +387,7 @@ test("missing criteria and withdrawn consent disable replacement without hiding 
       name: "Help and safety reporting remain available",
     }),
   ).toHaveAttribute("href", "/support");
+  expect(withdrawn.reads).not.toContain("/api/v1/direct-enquiries");await expect(page.locator(".placement-agreed-time")).toHaveCount(0);
 });
 test("empty arrangements offer a tuition-request recovery path", async ({
   page,
@@ -590,3 +590,12 @@ test("replacement accepts broad weekly preferences and links to exact recorded p
  await page.setViewportSize({ width: 360, height: 800 });
  await checkHindi(page);
  });
+
+
+test("arrangement uses layered summary, shared actions and exact family-approved timing",async({page})=>{
+  const fixture=await mock(page);const timingReads:string[]=[];
+  await page.route("**/api/v1/direct-enquiries**",route=>{timingReads.push(new URL(route.request().url()).searchParams.get("arrangementId")||"");return route.fulfill({json:{items:[{id:"70000000-0000-4000-8000-000000000091",arrangementId:placement,status:"ACCEPTED",proposal:{timing:"Monday 5pm IST",agreedTiming:"Monday 5pm IST",familyConfirmed:true}}],counts:{ACCEPTED:1},nextCursor:null}});});
+  await page.goto("/dashboard/arrangements?arrangement="+placement);const card=page.locator(".placement-summary");await expect(card.locator(".placement-agreed-time")).toContainText("Monday 5pm IST");await expect(card).toHaveClass(/layered-summary-card/);await expect(card.locator(".layered-summary-card-actions .filter-button")).toHaveCount(2);await expect(card.getByRole("link",{name:"Help and case progress for this arrangement",exact:true})).toHaveAttribute("href","/support?placement="+placement);expect(timingReads.length).toBeGreaterThan(0);expect(new Set(timingReads)).toEqual(new Set([placement]));
+  await card.screenshot({path:"test-results/arrangement-layered-desktop.png",style:"nextjs-portal{display:none!important}"});await page.setViewportSize({width:360,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include(".placement-summary").analyze()).violations).toEqual([]);await card.screenshot({path:"test-results/arrangement-layered-phone.png",style:"nextjs-portal{display:none!important}"});expect(fixture.writes).toHaveLength(0);
+  await page.route("**/api/v1/direct-enquiries**",route=>route.fulfill({status:403,json:{code:"FORBIDDEN",message:"Enquiry unavailable."}}));await page.reload();await expect(card.getByRole("alert")).toContainText("Agreed time could not be loaded");await expect(card.locator(".placement-agreed-time")).toHaveCount(0);
+});

@@ -187,6 +187,7 @@ async function fixture(
             metrics: {},
           },
         });
+      if (p.endsWith("/learning-spaces") && options.manual) return route.fulfill({json:{learner:profile,spaces:[{subject:"Maths"}],version:1}});
       if (p.endsWith("/requests"))
         return route.fulfill({
           json: checked("RequestList", { items: rows, nextCursor: null }),
@@ -273,6 +274,7 @@ async function fixture(
     return route.fulfill({ status: 201, json: value });
   });
   return {
+    rows,
     writes,
     restore: () => {
       fail = false;
@@ -298,6 +300,44 @@ async function reviewMode(page: Page) {
     .click();
 }
 export function learningManagementTests() {
+  test("request summary shows the live proposal stage and opens its exact conversation in a nested modal",async({page})=>{
+    const f=await fixture(page,{role:"STUDENT",mode:"SHARED",history:true});const conversationId="30000000-0000-4000-8000-000000000899";const source={...f.rows[0],discoveryMethod:"MANUAL",directEnquiryId:conversationId,candidates:[]};const replies:any[]=[];let denied=false;
+    const item:any={id:conversationId,kind:"GUARDIAN",sourceId:enquiryId,ownerId:guardian,childId:learner,teacherId:"40000000-0000-4000-8000-000000000899",region:"Raipur",status:"PROPOSED",proposal:{format:"ONE_TO_ONE",timing:"Monday 5pm IST",message:"I am occupied at 6pm.",timezone:"Asia/Kolkata"},arrangementId:null,version:1,createdAt:"2026-10-27T10:00:00Z",updatedAt:"2026-10-27T10:00:00Z",subject:"Maths",mode:"ONLINE",language:"English",parentName:"Synthetic guardian",teacherName:"Synthetic teacher",preferredTime:"Monday 6pm IST",learner:{name:"Synthetic Learner",grade:8,board:"CBSE",institution:"Synthetic School",subjects:["Maths"]},canReply:false,canDecide:true,sourceOpen:true,sourceVersion:1};
+    await page.route("**/api/v1/requests/"+enquiryId,route=>route.fulfill({json:source}));
+    await page.route("**/api/v1/direct-enquiries**",route=>{
+      if(route.request().method()==="POST"){const body=route.request().postDataJSON();replies.push(body);Object.assign(item,{status:"PENDING",proposal:{...item.proposal,familyConfirmed:true},version:2});return route.fulfill({status:201,json:item});}
+      if(denied)return route.fulfill({status:403,json:{code:"FORBIDDEN",message:"Enquiry unavailable."}});
+      const target=new URL(route.request().url()).searchParams.get("id");if(!target)return route.fulfill({json:{items:[],counts:{},nextCursor:null}});expect(target).toBe(conversationId);return route.fulfill({json:{items:[item],counts:{[item.status]:1},nextCursor:null}});
+    });
+    await page.setViewportSize({width:1440,height:1100});await page.goto("/dashboard/learning-choices?request="+enquiryId);const summary=page.locator(".tuition-request-review"),stage=summary.locator(".direct-stage-summary"),eye=stage.getByRole("button",{name:"View current enquiry status",exact:true});await expect(stage).toContainText("Alternative proposed");await expect(summary.getByText("Awaiting reviewed teacher options",{exact:true})).toHaveCount(0);await expect(summary.getByRole("heading",{name:"Reviewed teacher options",exact:true})).toHaveCount(0);await stage.screenshot({path:"test-results/proposal-stage-summary.png",style:"nextjs-portal{display:none!important}"});
+    await eye.click();const statusDialog=page.getByRole("dialog",{name:"Current enquiry status",exact:true});await expect(statusDialog).toContainText("Monday 5pm IST");await expect(statusDialog).toContainText("I am occupied at 6pm.");await statusDialog.getByRole("button",{name:"Accept proposal",exact:true}).click();await expect(page.locator(".app-modal[open]")).toHaveCount(3);await page.keyboard.press("Escape");await expect(statusDialog).toBeVisible();await expect(page.locator(".app-modal[open]")).toHaveCount(2);expect(replies).toHaveLength(0);
+    await page.setViewportSize({width:360,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include(".app-modal[open]").analyze()).violations).toEqual([]);await statusDialog.screenshot({path:"test-results/proposal-current-status-modal.png",style:"nextjs-portal{display:none!important}"});
+    await statusDialog.getByRole("button",{name:"Accept proposal",exact:true}).click();const reply=page.getByRole("dialog",{name:"Review your reply",exact:true});await reply.getByRole("checkbox").check();await reply.getByRole("button",{name:"Confirm reply",exact:true}).click();await expect(statusDialog).toBeVisible();await expect(stage).toContainText("Proposal confirmed by family");await expect(stage).toContainText("Waiting for the teacher");expect(replies[0]).toMatchObject({action:"ACCEPT_PROPOSAL",expectedVersion:1,expectedSourceVersion:1,confirmed:true});
+    await statusDialog.getByRole("button",{name:"Close",exact:true}).click();await expect(eye).toBeFocused();await expect(page.locator(".app-modal[open]")).toHaveCount(1);
+    Object.assign(item,{status:"ACCEPTED",proposal:{...item.proposal,agreedTiming:"Monday 5pm IST"},arrangementId:"50000000-0000-4000-8000-000000000899",version:3});await summary.getByRole("button",{name:"Refresh enquiries",exact:true}).click();await expect(stage.locator(".status-badge")).toHaveText("Accepted");
+    denied=true;await summary.getByRole("button",{name:"Refresh enquiries",exact:true}).click();await expect(summary.getByRole("alert")).toContainText("Current enquiry status could not be loaded.");await expect(stage).toHaveCount(0);
+  });
+
+  test("saved enquiry inbox filters statuses and opens the exact source beyond the current history page",async({page})=>{
+    const f=await fixture(page,{role:"STUDENT",mode:"SHARED",history:true});
+    const secondId="20000000-0000-4000-8000-000000000822", reads:string[]=[];
+    const sources=[{...f.rows[0],candidates:[]},{...f.rows[0],id:secondId,subject:"Science",candidates:[]}];
+    const items=sources.map((source,n)=>({id:`30000000-0000-4000-8000-00000000082${n}`,sourceId:source.id,kind:"GUARDIAN",status:n?"ACCEPTED":"PENDING",sourceOpen:true,learner:{name:"Synthetic Learner"},subject:source.subject,teacherName:"Synthetic Teacher",createdAt:"2026-10-26T10:00:00Z",canReply:false,canDecide:false,proposal:null}));
+    await page.route("**/api/v1/direct-enquiries**",route=>{const status=new URL(route.request().url()).searchParams.get("status");reads.push(status||"ALL");return route.fulfill({json:{items:items.filter(item=>!status||item.status===status),counts:{PENDING:1,ACCEPTED:1},nextCursor:null}});});
+    await page.route("**/api/v1/requests/"+secondId,route=>route.fulfill({json:sources[1]}));
+    await page.goto("/dashboard/learning-choices");const panel=page.locator(".direct-inbox");
+    await expect(panel.getByRole("button",{name:/^View enquiry /})).toHaveCount(2);
+    await panel.getByRole("button",{name:"Accepted",exact:true}).click();await expect(panel.locator(".direct-enquiry-card")).toHaveCount(1);
+    const eye=panel.getByRole("button",{name:"View enquiry Science",exact:true});await expect(eye).toHaveText("");await expect(eye.locator("svg")).toHaveCount(1);await eye.click();await expect(page).toHaveURL(new RegExp("request="+secondId));
+    await expect(page.getByRole("dialog",{name:"View saved enquiry",exact:true})).toBeVisible();expect(await page.locator(".app-modal[open]").evaluate(node=>getComputedStyle(node,"::backdrop").backgroundColor)).toBe("rgba(0, 0, 0, 0.6)");await expect(page.locator(".tuition-request-review h2")).toContainText("Science");await page.keyboard.press("Escape");await expect(eye).toBeFocused();await eye.click();await page.reload();await expect(page.locator(".tuition-request-review h2")).toContainText("Science");await page.setViewportSize({width:360,height:850});expect((await new AxeBuilder({page}).include(".app-modal[open]").analyze()).violations).toEqual([]);await page.locator(".app-modal[open]").screenshot({path:"test-results/saved-enquiry-modal.png",style:"nextjs-portal{display:none!important}"});
+    await page.getByRole("dialog").getByRole("button",{name:"Close",exact:true}).click();await expect(page).not.toHaveURL(/request=/);await panel.getByRole("button",{name:"All",exact:true}).click();await expect(page.locator(".direct-inbox .direct-enquiry-card")).toHaveCount(2);
+    expect(reads).toContain("ACCEPTED");expect(f.writes).toHaveLength(0);
+    await page.setViewportSize({width:360,height:850});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    expect((await new AxeBuilder({page}).include(".direct-inbox").analyze()).violations).toEqual([]);
+    await page.locator(".direct-inbox").screenshot({path:"test-results/saved-enquiry-inbox.png",style:"nextjs-portal{display:none!important}"});
+    await page.route("**/api/v1/requests/"+secondId,route=>route.fulfill({status:404,json:{code:"NOT_FOUND",message:"Enquiry unavailable."}}));
+    await page.goto("/dashboard/learning-choices?request="+secondId);await expect(page.getByRole("button",{name:"Reload learning choices",exact:true})).toBeVisible();await expect(page.locator(".tuition-request-review")).toHaveCount(0);
+  });
   for (const hindi of [false,true]) test(`management settings use compact themed cards and accessible guidance (${hindi ? "Hindi phone" : "English desktop"})`,async({page})=>{
     if(hindi) await chooseHindi(page);
     await fixture(page,{mode:"STUDENT_LED"});await page.setViewportSize({width:hindi?320:1440,height:1000});await page.goto("/dashboard/learning-management");
@@ -421,6 +461,7 @@ export function learningManagementTests() {
         exact: true,
       }),
     ).toBeDisabled();
+    await page.getByRole("combobox",{name:"Choose an enquiry",exact:true}).selectOption(enquiryId);
     await expect(
       page.getByRole("button", { name: "Ask guardian to decide", exact: true }),
     ).toBeDisabled();
@@ -465,7 +506,7 @@ export function learningManagementTests() {
       mode: "SHARED",
       history: true,
     });
-    await page.goto("/dashboard/learning-choices");
+    await page.goto("/dashboard/learning-choices?request="+enquiryId);
     await page
       .getByRole("button", { name: "Ask guardian to decide", exact: true })
       .click();
@@ -625,6 +666,7 @@ export function learningManagementTests() {
       await expect(
         page.getByRole("button", { name: "View saved enquiry", exact: true }),
       ).toBeEnabled();
+      await expect(page.locator(".direct-inbox").getByRole("group",{name:"Filter enquiries",exact:true})).toBeVisible();
       expect(f.writes[0].body).toMatchObject({
         childId: learner,
         subject: "Maths",
@@ -637,7 +679,7 @@ export function learningManagementTests() {
         .getByRole("button", { name: "View saved enquiry", exact: true })
         .click();
       await expect(
-        page.getByRole("heading", { name: "Your enquiries", exact: true }),
+        page.getByRole("dialog", { name: "View saved enquiry", exact: true }),
       ).toBeVisible();
     });
   }
@@ -683,7 +725,7 @@ export function learningManagementTests() {
       mode: "SHARED",
       manual: true,
     });
-    await page.goto("/teachers/synthetic-teacher?subject=Maths");
+    await page.goto("/teachers/synthetic-teacher?subject=Maths&learner="+learner);
     const entry = page.getByRole("link", {
       name: "Enquire about this teacher",
       exact: true,

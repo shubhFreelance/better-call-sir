@@ -2231,6 +2231,29 @@ test('manual enquiry intake rejects incompatible education and subject before cr
  assert.equal(await db.studentEnquiry.count({where:{studentAccountId:adult.account.id}}),0);
 });
 
+test('structured tuition timing supports family counters and records the mutually agreed calendar time',async()=>{
+ const {linkedChild,g}=await educationActors(),rohan=await db.teacher.findFirstOrThrow({where:{name:'Rohan Verma'}}),t=await dashboardLogin(rohan.accountId!);
+ const created=await g.call('/requests',{...intake({childId:linkedChild.id}),alias:linkedChild.alias,schoolName:linkedChild.schoolName!,schoolSubjects:linkedChild.schoolSubjects,discoveryMethod:'MANUAL',preferredTeacherId:rohan.id,budgetPaise:400000,mode:'ONLINE',subject:'Maths'});
+ assert.equal(created.status,201,JSON.stringify(created.data));
+ const row=(await t.call('/direct-enquiries')).data.items.find((item:any)=>item.sourceId===created.data.id),path='/direct-enquiries/'+row.id+'/responses';
+ const schedule={date:'2099-11-02',startTime:'17:00',endTime:'18:00',timezone:'Asia/Kolkata'},reply=(action:string,expectedVersion:number)=>({action,expectedVersion,expectedSourceVersion:1,confirmed:true}),proposal={...reply('PROPOSE',1),format:'ONE_TO_ONE',timing:'Untrusted display text',message:'Please consider this date.',schedule};
+ assert.equal((await t.call(path,{...proposal,schedule:{...schedule,date:'2099-02-30'}})).status,400);
+ assert.equal((await t.call(path,{...proposal,schedule:{...schedule,date:'2000-01-01'}})).status,400);
+ assert.equal((await t.call(path,{...proposal,schedule:{...schedule,endTime:'16:00'}})).status,400);
+ const offered=await t.call(path,proposal);assert.equal(offered.status,201,JSON.stringify(offered.data));assert(offered.data.proposal.timing.includes('17:00'));assert(!offered.data.proposal.timing.includes('Untrusted'));
+ assert.equal((await g.call(path,reply('ACCEPT_PROPOSAL',2))).status,201);
+ const approved=(await g.call('/direct-enquiries?id='+row.id)).data.items[0];assert.deepEqual(approved.proposal.agreedSchedule,schedule);assert.equal(approved.arrangementId,null);
+ const changed=await t.call(path,{...proposal,...reply('PROPOSE',3)});assert.equal(changed.status,201);assert.equal(changed.data.proposal.agreedSchedule,undefined);
+ const counter={...reply('COUNTER_PROPOSE',4),format:'ONE_TO_ONE',timing:'ignored',message:'I can do 3 pm instead.',schedule:{...schedule,startTime:'15:00',endTime:'16:00'}};
+ assert.equal((await t.call(path,counter)).status,403);
+ const key=randomUUID(),sent=await g.call(path,counter,{key});assert.equal(sent.status,201,JSON.stringify(sent.data));assert.equal(sent.data.proposal.proposedBy,'FAMILY');assert.equal(sent.data.status,'PROPOSED');assert.equal((await g.call(path,counter,{key})).data.version,5);
+ assert.equal((await g.call(path,reply('ACCEPT_PROPOSAL',5))).status,409);
+ assert.equal((await t.call(path,{...reply('ACCEPT',5),confirmedTiming:offered.data.proposal.timing})).status,409);
+ const accepted=await t.call(path,{...reply('ACCEPT',5),confirmedTiming:sent.data.proposal.timing});assert.equal(accepted.status,201,JSON.stringify(accepted.data));assert.deepEqual(accepted.data.proposal.agreedSchedule,counter.schedule);assert(accepted.data.arrangementId);
+ assert.equal((await db.tuitionRequest.findUniqueOrThrow({where:{id:created.data.id}})).schedule,created.data.schedule);
+ const read=await t.call('/direct-enquiries?id='+row.id);assert(operationValidator('/direct-enquiries','get','200')(read.data));
+});
+
 test('direct guardian enquiry is immediate, scoped, negotiable and accepted without staff approval',async()=>{
  const {owner,linkedChild,g,s}=await educationActors(),rohan=await db.teacher.findFirstOrThrow({where:{name:'Rohan Verma'}}),t=await dashboardLogin(rohan.accountId!);
  const body={...intake({childId:linkedChild.id}),alias:linkedChild.alias,schoolName:linkedChild.schoolName!,schoolSubjects:linkedChild.schoolSubjects,discoveryMethod:'MANUAL',preferredTeacherId:rohan.id,budgetPaise:400000,mode:'ONLINE',subject:'Maths'};
@@ -2251,10 +2274,10 @@ test('direct guardian enquiry is immediate, scoped, negotiable and accepted with
  const edited=await t.call('/direct-enquiries/'+item.id+'/responses',{...reply('PROPOSE',4),format:'GROUP',timing:'Tuesday 6pm IST',message:'Updated time; please confirm again.'});assert.equal(edited.status,201);assert.equal(edited.data.proposal.familyConfirmed,undefined);
  assert.equal((await t.call('/direct-enquiries/'+item.id+'/responses',reply('ACCEPT',5))).status,409);
  assert.equal((await g.call('/direct-enquiries/'+item.id+'/responses',reply('ACCEPT_PROPOSAL',5))).status,201);
- const acceptKey=randomUUID(),acceptBody=reply('ACCEPT',6),accepted=await t.call('/direct-enquiries/'+item.id+'/responses',acceptBody,{key:acceptKey});assert.equal(accepted.status,201,JSON.stringify(accepted.data));assert.equal(accepted.data.status,'ACCEPTED');assert(accepted.data.arrangementId);assert.equal((await t.call('/direct-enquiries/'+item.id+'/responses',acceptBody,{key:acceptKey})).data.arrangementId,accepted.data.arrangementId);
- assert.equal(await db.placement.count({where:{requestId:created.data.id}}),1);
+ const acceptKey=randomUUID(),acceptBody={...reply('ACCEPT',6),confirmedTiming:'Tuesday 6pm IST'},accepted=await t.call('/direct-enquiries/'+item.id+'/responses',acceptBody,{key:acceptKey});assert.equal(accepted.status,201,JSON.stringify(accepted.data));assert.equal(accepted.data.status,'ACCEPTED');assert(accepted.data.arrangementId);assert.equal((await t.call('/direct-enquiries/'+item.id+'/responses',acceptBody,{key:acceptKey})).data.arrangementId,accepted.data.arrangementId);
+ assert.equal(await db.placement.count({where:{requestId:created.data.id}}),1);assert.equal(accepted.data.proposal.agreedTiming,'Tuesday 6pm IST');assert(accepted.data.proposal.teacherConfirmedAt);assert.equal((await g.call('/requests/'+created.data.id)).data.directEnquiryId,item.id);assert.equal((await db.tuitionRequest.findUniqueOrThrow({where:{id:created.data.id}})).schedule,created.data.schedule);const linked=(await g.call('/direct-enquiries?arrangementId='+accepted.data.arrangementId)).data.items;assert.equal(linked.length,1);assert.equal(linked[0].proposal.agreedTiming,'Tuesday 6pm IST');
  assert.equal((await db.placement.findUniqueOrThrow({where:{id:accepted.data.arrangementId}})).guardianAccepted,false);
- const foreign=await educationActors();assert.equal((await foreign.g.call('/direct-enquiries?cursor='+item.id)).status,404);
+ const foreign=await educationActors();assert.equal((await foreign.g.call('/direct-enquiries?cursor='+item.id)).status,404);assert.equal((await foreign.g.call('/direct-enquiries?arrangementId='+accepted.data.arrangementId)).data.items.length,0);const adminView=(await (await staffAdmin('agreed timing oversight')).client.call('/direct-enquiries?id='+item.id));assert.equal(adminView.data.items[0].proposal.agreedTiming,'Tuesday 6pm IST');
  const consent=await db.consent.findUniqueOrThrow({where:{guardianId:owner.id}});await db.consent.update({where:{id:consent.id},data:{withdrawnAt:new Date()}});assert.equal((await t.call('/direct-enquiries')).data.items.some((r:any)=>r.id===item.id),false);
  assert.equal((await g.call('/direct-enquiries/'+item.id+'/responses',decision,{key})).status,403);
  const deletion=await g.call('/privacy-requests',{kind:'DELETION',scope:'CHILD',resourceId:linkedChild.id,reason:'Synthetic direct enquiry erasure'});assert.equal(deletion.status,201,JSON.stringify(deletion.data));const reviewer=(await staffAdmin('direct privacy')).client;
@@ -2277,7 +2300,8 @@ test('independent student confirms the latest proposal before teacher acceptance
  assert.equal((await t.call(path,{...reply('PROPOSE',1),format:'ONE_TO_ONE',timing:'Tuesday 6pm IST',message:'Please review this alternative.'})).status,201);
  assert.equal((await t.call(path,reply('ACCEPT',2))).status,409);
  const confirmed=await c.call(path,reply('ACCEPT_PROPOSAL',2));assert.equal(confirmed.data.status,'PENDING');assert.equal(confirmed.data.arrangementId,null);
- const accepted=await t.call(path,reply('ACCEPT',3));assert.equal(accepted.status,201,JSON.stringify(accepted.data));assert(accepted.data.arrangementId);
+ assert.equal((await t.call(path,reply('ACCEPT',3))).data.code,'TIMING_CHANGED');assert.equal((await t.call(path,{...reply('ACCEPT',3),confirmedTiming:'Friday 3pm IST'})).data.code,'TIMING_CHANGED');
+ const accepted=await t.call(path,{...reply('ACCEPT',3),confirmedTiming:'Tuesday 6pm IST'});assert.equal(accepted.status,201,JSON.stringify(accepted.data));assert(accepted.data.arrangementId);assert.equal(accepted.data.proposal.agreedTiming,'Tuesday 6pm IST');assert(accepted.data.proposal.familyConfirmedAt);assert(accepted.data.proposal.teacherConfirmedAt);const linked=await c.call('/direct-enquiries?arrangementId='+accepted.data.arrangementId);assert.equal(linked.data.items.length,1);assert.equal(linked.data.items[0].proposal.agreedTiming,'Tuesday 6pm IST');
  const inbox=await c.call('/inbox'),notification=inbox.data.items.find((n:any)=>n.topic==='direct.accept');assert(notification);assert.equal(notification.important,true);assert.equal(notification.actionPath,'/dashboard/enquiries?conversation='+row.id);
  assert.equal((await t.call(path,{...reply('PROPOSE',4),format:'GROUP',timing:'Friday',message:'Cannot revise accepted terms here.'})).status,409);
 });

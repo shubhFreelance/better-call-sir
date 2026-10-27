@@ -4431,6 +4431,11 @@ export interface components {
             /** Format: uuid */
             rematchFromPlacementId?: string | null;
             guardianDecisionRequested?: boolean;
+            /**
+             * Format: uuid
+             * @description Exact direct conversation for this authorized request. Load its current proposal through the scoped direct-enquiry endpoint.
+             */
+            directEnquiryId?: string | null;
         };
         RequestList: {
             items: components["schemas"]["TuitionRequest"][];
@@ -8067,6 +8072,8 @@ export interface operations {
                 limit?: number;
                 /** @description Open one owned enquiry while retaining overall counts. */
                 id?: string;
+                /** @description Filter by the exact linked arrangement within the current authorized scope. */
+                arrangementId?: string;
             };
             header?: never;
             path?: never;
@@ -8106,6 +8113,31 @@ export interface operations {
                                 familyConfirmed?: boolean;
                                 /** @constant */
                                 timezone?: "Asia/Kolkata";
+                                /** Format: date-time */
+                                familyConfirmedAt?: string;
+                                /** @description Exact family-approved timing explicitly confirmed by the teacher at acceptance; original preferences are unchanged. */
+                                agreedTiming?: string;
+                                /** Format: date-time */
+                                teacherConfirmedAt?: string;
+                                schedule?: {
+                                    /** Format: date */
+                                    date: string;
+                                    startTime: string;
+                                    endTime: string;
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                };
+                                agreedSchedule?: {
+                                    /** Format: date */
+                                    date: string;
+                                    startTime: string;
+                                    endTime: string;
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                };
+                                /** @enum {string} */
+                                proposedBy?: "TEACHER" | "FAMILY";
+                                declineReason?: string;
                             } | null;
                             /** Format: uuid */
                             arrangementId: string | null;
@@ -8223,9 +8255,12 @@ export interface operations {
                     /** @constant */
                     confirmed: true;
                     expectedSourceVersion: number;
+                    /** @description On ACCEPT after family approval, confirm the exact current proposal timing. A changed time requires a new proposal and family approval. */
+                    confirmedTiming?: string;
+                    message?: string;
                 } | {
-                    /** @constant */
-                    action: "PROPOSE";
+                    /** @enum {string} */
+                    action: "PROPOSE" | "COUNTER_PROPOSE";
                     expectedVersion: number;
                     /** @constant */
                     confirmed: true;
@@ -8234,6 +8269,14 @@ export interface operations {
                     timing: string;
                     message: string;
                     expectedSourceVersion: number;
+                    schedule?: {
+                        /** Format: date */
+                        date: string;
+                        startTime: string;
+                        endTime: string;
+                        /** @constant */
+                        timezone: "Asia/Kolkata";
+                    };
                 };
             };
         };
@@ -8269,6 +8312,31 @@ export interface operations {
                             familyConfirmed?: boolean;
                             /** @constant */
                             timezone?: "Asia/Kolkata";
+                            /** Format: date-time */
+                            familyConfirmedAt?: string;
+                            /** @description Exact family-approved timing explicitly confirmed by the teacher at acceptance; original preferences are unchanged. */
+                            agreedTiming?: string;
+                            /** Format: date-time */
+                            teacherConfirmedAt?: string;
+                            schedule?: {
+                                /** Format: date */
+                                date: string;
+                                startTime: string;
+                                endTime: string;
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                            };
+                            agreedSchedule?: {
+                                /** Format: date */
+                                date: string;
+                                startTime: string;
+                                endTime: string;
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                            };
+                            /** @enum {string} */
+                            proposedBy?: "TEACHER" | "FAMILY";
+                            declineReason?: string;
                         } | null;
                         /** Format: uuid */
                         arrangementId: string | null;

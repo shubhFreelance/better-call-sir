@@ -3,7 +3,7 @@ import { RefreshButton } from "../components/ui/refresh-button";
 import { minimumHref } from "./tuition-minimum-workspace";
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   api,
@@ -14,6 +14,8 @@ import {
 } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
+import { Eye } from "lucide-react";
+import { Modal } from "../components/ui/modal";
 import { LearningManagementBadge } from "../components/ui/learning-management-badge";
 import { Input } from "../components/ui/input";
 import {
@@ -29,6 +31,7 @@ import {
 } from "./weekly-availability";
 import { DemoJourney } from "./demo-journey";
 import { EnquirySummary } from "./enquiry-summary";
+import { DirectEnquiries } from "./direct-enquiries";
 import { educationLabel } from "./learner-education";
 import { learningModes } from "./learning-management";
 import { useAppTranslation } from "./locale";
@@ -38,6 +41,7 @@ type Child = NonNullable<Dashboard["children"]>[number];
 export function ManagedStudentLearning({ session }: { session: Session }) {
   const { appText, appCurriculum } = useAppTranslation(),
     params = useSearchParams(),
+    router = useRouter(),
     client = useQueryClient();
   const [cursors, setCursors] = useState<string[]>([]),
     [selected, setSelected] = useState(params.get("request") || ""),
@@ -95,9 +99,21 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
     !dashboard.error &&
     !management.error &&
     !history.error;
-  const chosen =
-    history.data?.items.find((r) => r.id === selected) ||
-    (!selected ? history.data?.items[0] : undefined);
+  useEffect(() => {setSelected(params.get("request") || "");}, [params]);
+  const selectedRequest = useQuery({
+    queryKey: ["request", session.account.id, selected],
+    queryFn: ({signal}) => api<components["schemas"]["TuitionRequestDetails"]>(`/requests/${encodeURIComponent(selected)}`, {signal}),
+    enabled: !!selected && visible,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const chosen = selectedRequest.error ? undefined : selectedRequest.data || history.data?.items.find((r) => r.id === selected) || (!selected ? history.data?.items[0] : undefined);
+  function viewEnquiry(id: string) {
+    if (locked) return;
+    setSelected(id);
+    setOpen(false);
+    router.replace("/dashboard/learning-choices?request=" + encodeURIComponent(id));
+  }
   async function refresh() {
     const results = await Promise.all([
       dashboard.refetch(),
@@ -184,7 +200,7 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
           }}
           onSaved={(id) => {
             setSelected(id);
-            setOpen(false);
+            router.replace("/dashboard/learning-choices?request=" + encodeURIComponent(id));
             setLocked(false);
           }}
         />
@@ -192,14 +208,16 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
       {visible && history.data && dashboard.data && (
         <section className="care-card">
           <h2>{appText("Your enquiries")}</h2>
+          {!open && <DirectEnquiries session={session} disabled={locked} onViewEnquiry={viewEnquiry}/>}
           {history.data.items.length ? (
             <label className="field">
               {appText("Choose an enquiry")}
               <select
                 disabled={locked || open}
                 value={chosen?.id || selected}
-                onChange={(e) => setSelected(e.target.value)}
+                onChange={(e) => {if(e.target.value)viewEnquiry(e.target.value);}}
               >
+                <option value="">{appText("Choose an enquiry")}</option>
                 {history.data.items.map((r) => (
                   <option key={r.id} value={r.id}>
                     {appCurriculum(r.subject)} ·{" "}
@@ -249,7 +267,7 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
               </Button>
             </nav>
           )}
-          {selected && !chosen && (
+          {selected && !chosen && !selectedRequest.isPending && !selectedRequest.error && (
             <Notice>
               {appText("This enquiry is unavailable on the current page.")}{" "}
               <Button
@@ -266,7 +284,10 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
           )}
         </section>
       )}
-      {chosen && !open && dashboard.data && (
+      <Modal open={!!selected} title={appText("View saved enquiry")} onOpenChange={next => {if(!next && !locked){setSelected("");router.replace("/dashboard/learning-choices");}}}>
+      {selectedRequest.isPending && <p role="status">{appText("Loading enquiries…")}</p>}
+      {(!visible || selectedRequest.error) && <Notice error>{appText("Your current learning choices could not be loaded. Private details are hidden.")} <RefreshButton label={appText("Reload learning choices")} disabled={locked || selectedRequest.isFetching} onClick={() => {void selectedRequest.refetch();void refresh().catch(() => {});}}/></Notice>}
+      {chosen && visible && dashboard.data && (
         <>
           <EnquiryAuthority
             key={chosen.id}
@@ -296,6 +317,7 @@ export function ManagedStudentLearning({ session }: { session: Session }) {
           />
         </>
       )}
+      </Modal>
       <div id="optional-demos">
         <DemoJourney
           hideEmpty
@@ -449,9 +471,8 @@ function LearningEnquiryEditor({
         {decision.conflict && (
           <RefreshButton disabled={decision.busy} onClick={() => decision.reload()} label={appText("Reload learning choices")} />
         )}
-        <Button disabled={decision.locked} onClick={() => onSaved(savedId)}>
-          {appText("View saved enquiry")}
-        </Button>
+        <Button type="button" variant="ghost" size="icon" className="evidence-preview-trigger" aria-label={appText("View saved enquiry")} title={appText("View saved enquiry")} aria-haspopup="dialog" disabled={decision.locked} onClick={() => onSaved(savedId)}><Eye size={18} aria-hidden="true"/></Button>
+        <DirectEnquiries session={session} disabled={decision.locked} onViewEnquiry={onSaved}/>
       </section>
     );
   return (

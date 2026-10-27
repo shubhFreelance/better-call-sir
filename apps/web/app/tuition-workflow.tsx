@@ -31,6 +31,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { ActionToast } from "../components/ui/action-toast";
+import { DirectEnquiryStatus } from "./direct-enquiry-status";
 import {
   preferences as buildPreferences,
   localTime,
@@ -374,6 +375,7 @@ export function RequestReview({
     if (demoResult.error) throw demoResult.error;
     const current = await api<Dashboard>("/dashboard");
     client.setQueryData(["dashboard", session.account.id], current);
+    await client.invalidateQueries({queryKey:["direct-enquiries",session.account.id]});
   }
   const decision = useDecision(session, refresh);
   useEffect(() => {
@@ -565,7 +567,7 @@ export function RequestReview({
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
-         label={appText("Refresh shortlist")} />
+         label={appText(request.directEnquiryId ? "Refresh enquiries" : "Refresh shortlist")} />
       </div>
       <dl className="tuition-summary">
         <div>
@@ -591,10 +593,10 @@ export function RequestReview({
         </div>
         <div>
           <dt>{appText("Request status")}</dt>
-          <dd>{appText(request.status.toLowerCase().replaceAll("_", " "))}</dd>
+          <dd>{request.directEnquiryId ? <DirectEnquiryStatus session={session} enquiryId={request.directEnquiryId} disabled={decision.locked || !!form || scheduleOpen}/> : appText(request.status.toLowerCase().replaceAll("_", " "))}</dd>
         </div>
       </dl>
-      <ol
+      {!request.directEnquiryId && <ol
         className="enquiry-progress"
         aria-label={appText("Enquiry to hiring progress")}
       >
@@ -633,7 +635,7 @@ export function RequestReview({
             {appText(label)}
           </li>
         ))}
-      </ol>
+      </ol>}
       <div className="enquiry-availability-panel">
       <h3 id="enquiry-availability" tabIndex={-1}>
         {appText("Your availability preferences")}{" "}
@@ -871,7 +873,7 @@ export function RequestReview({
             )}{" "}
           </p>
         </section>
-      ) : (
+      ) : !request.directEnquiryId && (
         <>
           <section className="enquiry-options-panel">
           <h3>{appText("Reviewed teacher options")}</h3>
@@ -1228,11 +1230,11 @@ export function RequestReview({
           )}
         </div>
       )}
-      <HistoryPages
+      {(!request.directEnquiryId || !!demos.data?.items.length) && <HistoryPages
         history={demos}
         label="Optional demo history"
         disabled={decision.locked || !!form || scheduleOpen}
-      />
+      />}
       <Feedback decision={decision} />
       <Link href={`/support?request=${request.id}`} className="inline-link">
         {appText("Get help with this request")}{" "}

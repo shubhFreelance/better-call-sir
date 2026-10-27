@@ -24,7 +24,7 @@ export function Modal({ open, onOpenChange, title, description, children }: {
   }, [open, mounted]);
   if (!mounted) return null;
   return createPortal(<dialog ref={dialog} className="app-modal" aria-labelledby={id} aria-describedby={description ? id + "-description" : undefined}
-    onCancel={event => { event.preventDefault(); onOpenChange(false); }} onClose={() => onOpenChange(false)}
+    onCancel={event => { event.preventDefault(); event.stopPropagation(); onOpenChange(false); }} onClose={event => {event.stopPropagation();onOpenChange(false);}}
     onKeyDown={event => {
       if (event.key !== "Tab" || event.defaultPrevented) return;
       const items = [...event.currentTarget.querySelectorAll<HTMLElement>("button,a[href],input,select,textarea,summary,[tabindex],[contenteditable=true]")]
