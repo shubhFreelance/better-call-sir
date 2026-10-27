@@ -1,5 +1,12 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Please wait…": "कृपया प्रतीक्षा करें…",
+  "Connect your invitation to your own student account.": "अपने आमंत्रण को अपने विद्यार्थी खाते से जोड़ें।",
+  "About your student invitation": "विद्यार्थी आमंत्रण की जानकारी",
+  "Invitation setup": "आमंत्रण सेटअप",
+  "Your own email": "आपका अपना ईमेल",
+  "Student dashboard": "विद्यार्थी डैशबोर्ड",
+  "Enter the private code shared by your guardian.": "अपने अभिभावक द्वारा दिया गया निजी कोड दर्ज करें।",
   "Monthly tuition confirmation is shown below.": "मासिक ट्यूशन की पुष्टि नीचे दिखाई गई है।",
   "Confirm your month and tuition below. Everything stays in this card.": "नीचे महीने और ट्यूशन की पुष्टि करें। सभी चरण इसी कार्ड में हैं।",
   "About monthly hiring": "मासिक ट्यूशन की जानकारी",

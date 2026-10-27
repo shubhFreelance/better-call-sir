@@ -52,6 +52,16 @@ for(const denied of [false,true])test(`linked student readiness respects current
  if(denied){await expect(page.locator(".student-connection").getByRole("alert")).toBeVisible();await expect(page.getByText("Your learning profile is ready",{exact:true})).toHaveCount(0);}
  else {await expect(page.getByRole("heading",{name:"Your learning profile is ready"})).toBeVisible();await expect(page.getByText("Guardian and student manage together",{exact:false})).toBeVisible();await expect(page.getByRole("link",{name:"Open dashboard",exact:true})).toHaveAttribute("href","/dashboard");}
 });
+for(const hindi of [false,true])test(`student invitation uses compact themed guidance and balanced actions (${hindi?"Hindi phone":"English desktop"})`,async({page})=>{
+ if(hindi)await chooseHindi(page);await fixture(page,{signed:false});await page.setViewportSize({width:hindi?360:1440,height:950});await page.goto('/onboarding/student?mode=invitation');
+ const card=page.locator('.student-invitation-signup'),T=(text:string)=>translateText(hindi,text);
+ await expect(card.getByRole('heading',{name:T('Join your guardian’s learning profile'),exact:true})).toBeVisible();await expect(card.locator('[aria-current=step]')).toContainText(T('Invitation code'));
+ const input=card.getByLabel(T('Invitation code'),{exact:true});await expect(input).toHaveAttribute('type','password');await expect(card.getByRole('button',{name:T('Check my invitation'),exact:true})).toBeDisabled();
+ await card.getByRole('button',{name:T('About your student invitation'),exact:true}).focus();await expect(page.getByRole('tooltip')).toContainText(T('Invitation code → your own email → linked student dashboard. Your guardian does not need to create another child profile.'));await page.keyboard.press('Escape');await input.fill('synthetic-code');
+ await expect(card.locator('.filter-button-group')).toHaveCount(1);await expect(card.locator('.invitation-signup-header')).toHaveCSS('background-color','rgb(3, 79, 70)');expect((await new AxeBuilder({page}).include('.student-invitation-signup').analyze()).violations).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await card.screenshot({path:`test-results/student-invitation-${hindi?'hi-phone':'desktop'}.png`,style:'nextjs-portal{display:none!important}'});
+});
+
 test("private invitation is code-first and links the student's verified email without guardian sign-in",async({page})=>{
  await fixture(page,{signed:false});await page.goto("/signup/student");
  await page.getByRole("link",{name:"Use a student invitation",exact:true}).click();

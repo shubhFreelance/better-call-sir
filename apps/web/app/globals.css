@@ -6716,3 +6716,35 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 
 .class-calendar-grid button>span {white-space:nowrap;}
 .class-calendar-grid button>svg {position:absolute;right:2px;bottom:2px;width:9px;height:9px;}
+
+.student-invitation-signup {border:1px solid #D8E3DB;border-radius:24px;background:white;overflow:hidden;color:#034F46;}
+.invitation-signup-header {display:flex;align-items:center;gap:16px;padding:26px;background:#034F46;color:#FCFEEB;}
+.invitation-signup-header>div {flex:1;min-width:0;}
+.invitation-signup-icon {display:grid;place-items:center;flex-shrink:0;width:52px;height:52px;border-radius:16px;background:#F0D7FF;color:#034F46;}
+.student-invitation-signup .invitation-signup-header h1 {margin:0;font-size:28px;line-height:1.3;letter-spacing:-.04em;color:#FCFEEB;}
+.student-invitation-signup .invitation-signup-header p {margin:8px 0 0;font-size:12px;line-height:1.7;color:#FCFEEB;}
+.invitation-signup-header .info-tooltip-trigger {color:#F0D7FF;flex-shrink:0;}
+.invitation-signup-body {padding:26px;display:grid;gap:24px;}
+.invitation-signup-progress {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));list-style:none;margin:0;padding:5px;gap:5px;border-radius:12px;background:#EEF5F3;}
+.invitation-signup-progress li {display:flex;align-items:center;gap:8px;padding:10px;border-radius:9px;font-size:12px;line-height:1.5;}
+.invitation-signup-progress li[data-active=true] {background:#F0D7FF;font-weight:650;}
+.invitation-signup-progress li>span {display:grid;place-items:center;flex-shrink:0;width:22px;height:22px;border:1px solid #CDD8D1;border-radius:50%;font-size:11px;}
+.invitation-code-form,.invitation-link-confirmation {display:grid;gap:24px;}
+.invitation-code-entry {padding:20px;border:1px solid #E4E4D0;border-radius:16px;background:#FFFFEB;}
+.invitation-code-label {display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.invitation-code-label label {font-size:14px;font-weight:650;}
+.invitation-code-entry input {min-height:50px;background:white;letter-spacing:.15em;}
+.student-invitation-signup .invitation-code-entry p {margin:10px 0 0;font-size:12px;line-height:1.7;color:#52655F;}
+.student-invitation-signup .filter-button {min-height:48px;white-space:normal;font-size:12px;line-height:1.5;text-align:center;}
+.invitation-checked {display:flex;align-items:flex-start;gap:10px;margin:0;padding:16px;border:1px solid #D2E4CB;border-radius:12px;background:#EEF5E7;font-size:12px;line-height:1.7;}
+.invitation-checked svg {flex-shrink:0;margin-top:2px;}
+.invitation-link-confirmation .wizard-checkbox {margin:0;padding:16px;background:#F8EDFF;border-radius:12px;font-size:12px;line-height:1.7;}
+.invitation-signup-status {margin:0;font-size:12px;}
+.invitation-signup-error {margin:0;padding:14px 16px;border:1px solid #F0C9C9;border-radius:12px;background:#FFF4F2;color:#8D2727;font-size:12px;line-height:1.7;}
+.invitation-check-spinner {animation:invitation-check-spin 1s linear infinite;}
+@keyframes invitation-check-spin {to{transform:rotate(360deg);}}
+@media(max-width:600px){.invitation-signup-header {padding:20px;flex-wrap:wrap;gap:12px;}.invitation-signup-icon {width:42px;height:42px;border-radius:12px;}.student-invitation-signup .invitation-signup-header h1 {font-size:22px;}.invitation-signup-header>div {flex-basis:calc(100% - 66px);}.invitation-signup-header>.info-tooltip-trigger {margin-left:auto;}.invitation-signup-body {padding:18px;gap:18px;}.invitation-signup-progress li {flex-direction:column;justify-content:flex-start;text-align:center;font-size:11px;padding:8px 4px;}.invitation-code-entry {padding:16px;}}
+@media(prefers-reduced-motion:reduce){.invitation-check-spinner {animation:none;}}
+
+.invitation-signup-header {position:relative;}
+@media(max-width:600px){.invitation-signup-header>.info-tooltip-trigger {position:absolute;right:12px;top:12px;width:32px;height:32px;margin:0;}.invitation-signup-header>div {padding-right:22px;}}
