@@ -8119,6 +8119,25 @@ export interface operations {
                                 agreedTiming?: string;
                                 /** Format: date-time */
                                 teacherConfirmedAt?: string;
+                                schedule?: {
+                                    /** Format: date */
+                                    date: string;
+                                    startTime: string;
+                                    endTime: string;
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                };
+                                agreedSchedule?: {
+                                    /** Format: date */
+                                    date: string;
+                                    startTime: string;
+                                    endTime: string;
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                };
+                                /** @enum {string} */
+                                proposedBy?: "TEACHER" | "FAMILY";
+                                declineReason?: string;
                             } | null;
                             /** Format: uuid */
                             arrangementId: string | null;
@@ -8238,9 +8257,10 @@ export interface operations {
                     expectedSourceVersion: number;
                     /** @description On ACCEPT after family approval, confirm the exact current proposal timing. A changed time requires a new proposal and family approval. */
                     confirmedTiming?: string;
+                    message?: string;
                 } | {
-                    /** @constant */
-                    action: "PROPOSE";
+                    /** @enum {string} */
+                    action: "PROPOSE" | "COUNTER_PROPOSE";
                     expectedVersion: number;
                     /** @constant */
                     confirmed: true;
@@ -8249,6 +8269,14 @@ export interface operations {
                     timing: string;
                     message: string;
                     expectedSourceVersion: number;
+                    schedule?: {
+                        /** Format: date */
+                        date: string;
+                        startTime: string;
+                        endTime: string;
+                        /** @constant */
+                        timezone: "Asia/Kolkata";
+                    };
                 };
             };
         };
@@ -8290,6 +8318,25 @@ export interface operations {
                             agreedTiming?: string;
                             /** Format: date-time */
                             teacherConfirmedAt?: string;
+                            schedule?: {
+                                /** Format: date */
+                                date: string;
+                                startTime: string;
+                                endTime: string;
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                            };
+                            agreedSchedule?: {
+                                /** Format: date */
+                                date: string;
+                                startTime: string;
+                                endTime: string;
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                            };
+                            /** @enum {string} */
+                            proposedBy?: "TEACHER" | "FAMILY";
+                            declineReason?: string;
                         } | null;
                         /** Format: uuid */
                         arrangementId: string | null;
