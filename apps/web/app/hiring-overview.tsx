@@ -470,7 +470,7 @@ export function HiringOverview({ session }: { session: Session }) {
                       </div>
                     )}
                   </TabsContent>
-                  <TabsContent value="ARRANGEMENTS">
+                  <TabsContent value="ARRANGEMENTS" className="hiring-arrangements-panel">
                     <h3>
                       {student
                         ? appText("Your teacher arrangements")

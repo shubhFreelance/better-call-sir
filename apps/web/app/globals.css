@@ -6842,3 +6842,11 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 @media(prefers-reduced-motion:reduce){.class-month-detail {animation:none;}.class-calendar-months button,.tuition-arrangement-card>.layered-summary-card-header,.tuition-arrangement-card>.layered-summary-card-header>svg {transition:none;}}
 .arrangement-start-badge {display:inline-flex;margin-top:10px;}
 .arrangement-start-badge .status-badge {font-size:11px;}
+.hiring-overview .hiring-arrangements-panel[data-state="active"] {display:grid;gap:16px;align-content:start;}
+.hiring-arrangements-panel>h3 {margin:0;font-size:20px;line-height:1.4;}
+.hiring-arrangements-panel>.care-help {display:flex;align-items:center;gap:8px;margin:0;font-size:12px;line-height:1.6;}
+.hiring-arrangements-panel>.hiring-card-grid {margin:0;gap:16px;align-items:start;}
+.hiring-arrangements-panel>.hiring-card-grid:has(>.tuition-arrangement-card:only-child) {grid-template-columns:1fr;}
+.tuition-arrangement-card>.layered-summary-card-header {padding:16px 20px;}
+.hiring-records:has(.hiring-arrangements-panel[data-state="active"]) {padding:24px;}
+@media(max-width:600px){.hiring-records:has(.hiring-arrangements-panel[data-state="active"]) {padding:16px;}.tuition-arrangement-card>.layered-summary-card-header {padding:16px;}}
