@@ -4431,6 +4431,11 @@ export interface components {
             /** Format: uuid */
             rematchFromPlacementId?: string | null;
             guardianDecisionRequested?: boolean;
+            /**
+             * Format: uuid
+             * @description Exact direct conversation for this authorized request. Load its current proposal through the scoped direct-enquiry endpoint.
+             */
+            directEnquiryId?: string | null;
         };
         RequestList: {
             items: components["schemas"]["TuitionRequest"][];

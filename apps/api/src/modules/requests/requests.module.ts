@@ -107,7 +107,8 @@ class RequestsController {
     const child=await this.db.child.findUniqueOrThrow({where:{id:request.childId}}),candidates=[];
     const consent=await this.db.consent.findUnique({where:{guardianId:request.guardianId}});
     if(request.status==='OPEN'&&consent&&!consent.withdrawnAt)for(const candidate of await this.db.recommendation.findMany({where:{requestId:id,presentedAt:{not:null},expiresAt:{gt:new Date()}},orderBy:{position:'asc'}})){const teacher=await this.db.teacher.findUniqueOrThrow({where:{id:candidate.teacherId}});if(await matched(this.db,request,child,teacher))candidates.push(candidate);}
-    return {...request,candidates};
+    const direct=await this.db.directEnquiry.findUnique({where:{kind_sourceId:{kind:'GUARDIAN',sourceId:id}},select:{id:true}});
+    return {...request,candidates,directEnquiryId:direct?.id??null};
   }
 
 }
