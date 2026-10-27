@@ -8552,6 +8552,24 @@ export interface operations {
                                     endTime: string;
                                     /** @constant */
                                     timezone: "Asia/Kolkata";
+                                } | {
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                    weekly: {
+                                        /** @description 0 Sunday through 6 Saturday */
+                                        weekday: number;
+                                        startMinute: number;
+                                        endMinute: number;
+                                    }[];
+                                } | {
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                    slots: {
+                                        /** Format: date-time */
+                                        startsAt: string;
+                                        /** Format: date-time */
+                                        endsAt: string;
+                                    }[];
                                 };
                                 agreedSchedule?: {
                                     /** Format: date */
@@ -8560,10 +8578,30 @@ export interface operations {
                                     endTime: string;
                                     /** @constant */
                                     timezone: "Asia/Kolkata";
+                                } | {
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                    weekly: {
+                                        /** @description 0 Sunday through 6 Saturday */
+                                        weekday: number;
+                                        startMinute: number;
+                                        endMinute: number;
+                                    }[];
+                                } | {
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                    slots: {
+                                        /** Format: date-time */
+                                        startsAt: string;
+                                        /** Format: date-time */
+                                        endsAt: string;
+                                    }[];
                                 };
                                 /** @enum {string} */
                                 proposedBy?: "TEACHER" | "FAMILY";
                                 declineReason?: string;
+                                agreedSourceVersion?: number;
+                                sourceVersion?: number;
                             } | null;
                             /** Format: uuid */
                             arrangementId: string | null;
@@ -8692,16 +8730,27 @@ export interface operations {
                     confirmed: true;
                     /** @enum {string} */
                     format: "ONE_TO_ONE" | "GROUP";
-                    timing: string;
+                    timing?: string;
                     message: string;
                     expectedSourceVersion: number;
                     schedule?: {
-                        /** Format: date */
-                        date: string;
-                        startTime: string;
-                        endTime: string;
                         /** @constant */
                         timezone: "Asia/Kolkata";
+                        weekly: {
+                            /** @description 0 Sunday through 6 Saturday */
+                            weekday: number;
+                            startMinute: number;
+                            endMinute: number;
+                        }[];
+                    } | {
+                        /** @constant */
+                        timezone: "Asia/Kolkata";
+                        slots: {
+                            /** Format: date-time */
+                            startsAt: string;
+                            /** Format: date-time */
+                            endsAt: string;
+                        }[];
                     };
                 };
             };
@@ -8751,6 +8800,24 @@ export interface operations {
                                 endTime: string;
                                 /** @constant */
                                 timezone: "Asia/Kolkata";
+                            } | {
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                                weekly: {
+                                    /** @description 0 Sunday through 6 Saturday */
+                                    weekday: number;
+                                    startMinute: number;
+                                    endMinute: number;
+                                }[];
+                            } | {
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                                slots: {
+                                    /** Format: date-time */
+                                    startsAt: string;
+                                    /** Format: date-time */
+                                    endsAt: string;
+                                }[];
                             };
                             agreedSchedule?: {
                                 /** Format: date */
@@ -8759,10 +8826,30 @@ export interface operations {
                                 endTime: string;
                                 /** @constant */
                                 timezone: "Asia/Kolkata";
+                            } | {
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                                weekly: {
+                                    /** @description 0 Sunday through 6 Saturday */
+                                    weekday: number;
+                                    startMinute: number;
+                                    endMinute: number;
+                                }[];
+                            } | {
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                                slots: {
+                                    /** Format: date-time */
+                                    startsAt: string;
+                                    /** Format: date-time */
+                                    endsAt: string;
+                                }[];
                             };
                             /** @enum {string} */
                             proposedBy?: "TEACHER" | "FAMILY";
                             declineReason?: string;
+                            agreedSourceVersion?: number;
+                            sourceVersion?: number;
                         } | null;
                         /** Format: uuid */
                         arrangementId: string | null;

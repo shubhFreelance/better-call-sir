@@ -1504,7 +1504,7 @@
                               },
                               "agreedTiming": {
                                 "type": "string",
-                                "maxLength": 300,
+                                "maxLength": 1200,
                                 "description": "Exact family-approved timing explicitly confirmed by the teacher at acceptance; original preferences are unchanged."
                               },
                               "teacherConfirmedAt": {
@@ -1512,60 +1512,234 @@
                                 "format": "date-time"
                               },
                               "schedule": {
-                                "type": "object",
-                                "additionalProperties": false,
-                                "required": [
-                                  "date",
-                                  "startTime",
-                                  "endTime",
-                                  "timezone"
-                                ],
-                                "properties": {
-                                  "date": {
-                                    "type": "string",
-                                    "format": "date"
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                      "date",
+                                      "startTime",
+                                      "endTime",
+                                      "timezone"
+                                    ],
+                                    "properties": {
+                                      "date": {
+                                        "type": "string",
+                                        "format": "date"
+                                      },
+                                      "startTime": {
+                                        "type": "string",
+                                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                      },
+                                      "endTime": {
+                                        "type": "string",
+                                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                      },
+                                      "timezone": {
+                                        "type": "string",
+                                        "const": "Asia/Kolkata"
+                                      }
+                                    }
                                   },
-                                  "startTime": {
-                                    "type": "string",
-                                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "timezone": {
+                                        "type": "string",
+                                        "const": "Asia/Kolkata"
+                                      },
+                                      "weekly": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "maxItems": 14,
+                                        "items": {
+                                          "type": "object",
+                                          "additionalProperties": false,
+                                          "properties": {
+                                            "weekday": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 6,
+                                              "description": "0 Sunday through 6 Saturday"
+                                            },
+                                            "startMinute": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 1439
+                                            },
+                                            "endMinute": {
+                                              "type": "integer",
+                                              "minimum": 1,
+                                              "maximum": 1440
+                                            }
+                                          },
+                                          "required": [
+                                            "weekday",
+                                            "startMinute",
+                                            "endMinute"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "timezone",
+                                      "weekly"
+                                    ]
                                   },
-                                  "endTime": {
-                                    "type": "string",
-                                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                                  },
-                                  "timezone": {
-                                    "type": "string",
-                                    "const": "Asia/Kolkata"
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                      "timezone",
+                                      "slots"
+                                    ],
+                                    "properties": {
+                                      "timezone": {
+                                        "const": "Asia/Kolkata",
+                                        "type": "string"
+                                      },
+                                      "slots": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "maxItems": 6,
+                                        "items": {
+                                          "type": "object",
+                                          "additionalProperties": false,
+                                          "required": [
+                                            "startsAt",
+                                            "endsAt"
+                                          ],
+                                          "properties": {
+                                            "startsAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "endsAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
                                   }
-                                }
+                                ]
                               },
                               "agreedSchedule": {
-                                "type": "object",
-                                "additionalProperties": false,
-                                "required": [
-                                  "date",
-                                  "startTime",
-                                  "endTime",
-                                  "timezone"
-                                ],
-                                "properties": {
-                                  "date": {
-                                    "type": "string",
-                                    "format": "date"
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                      "date",
+                                      "startTime",
+                                      "endTime",
+                                      "timezone"
+                                    ],
+                                    "properties": {
+                                      "date": {
+                                        "type": "string",
+                                        "format": "date"
+                                      },
+                                      "startTime": {
+                                        "type": "string",
+                                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                      },
+                                      "endTime": {
+                                        "type": "string",
+                                        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                      },
+                                      "timezone": {
+                                        "type": "string",
+                                        "const": "Asia/Kolkata"
+                                      }
+                                    }
                                   },
-                                  "startTime": {
-                                    "type": "string",
-                                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "timezone": {
+                                        "type": "string",
+                                        "const": "Asia/Kolkata"
+                                      },
+                                      "weekly": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "maxItems": 14,
+                                        "items": {
+                                          "type": "object",
+                                          "additionalProperties": false,
+                                          "properties": {
+                                            "weekday": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 6,
+                                              "description": "0 Sunday through 6 Saturday"
+                                            },
+                                            "startMinute": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 1439
+                                            },
+                                            "endMinute": {
+                                              "type": "integer",
+                                              "minimum": 1,
+                                              "maximum": 1440
+                                            }
+                                          },
+                                          "required": [
+                                            "weekday",
+                                            "startMinute",
+                                            "endMinute"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "timezone",
+                                      "weekly"
+                                    ]
                                   },
-                                  "endTime": {
-                                    "type": "string",
-                                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                                  },
-                                  "timezone": {
-                                    "type": "string",
-                                    "const": "Asia/Kolkata"
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                      "timezone",
+                                      "slots"
+                                    ],
+                                    "properties": {
+                                      "timezone": {
+                                        "const": "Asia/Kolkata",
+                                        "type": "string"
+                                      },
+                                      "slots": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "maxItems": 6,
+                                        "items": {
+                                          "type": "object",
+                                          "additionalProperties": false,
+                                          "required": [
+                                            "startsAt",
+                                            "endsAt"
+                                          ],
+                                          "properties": {
+                                            "startsAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "endsAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
                                   }
-                                }
+                                ]
                               },
                               "proposedBy": {
                                 "type": "string",
@@ -1577,6 +1751,14 @@
                               "declineReason": {
                                 "type": "string",
                                 "maxLength": 1000
+                              },
+                              "agreedSourceVersion": {
+                                "type": "integer",
+                                "minimum": 1
+                              },
+                              "sourceVersion": {
+                                "type": "integer",
+                                "minimum": 1
                               }
                             }
                           },
@@ -1900,7 +2082,7 @@
                         },
                         "agreedTiming": {
                           "type": "string",
-                          "maxLength": 300,
+                          "maxLength": 1200,
                           "description": "Exact family-approved timing explicitly confirmed by the teacher at acceptance; original preferences are unchanged."
                         },
                         "teacherConfirmedAt": {
@@ -1908,60 +2090,234 @@
                           "format": "date-time"
                         },
                         "schedule": {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "required": [
-                            "date",
-                            "startTime",
-                            "endTime",
-                            "timezone"
-                          ],
-                          "properties": {
-                            "date": {
-                              "type": "string",
-                              "format": "date"
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "date",
+                                "startTime",
+                                "endTime",
+                                "timezone"
+                              ],
+                              "properties": {
+                                "date": {
+                                  "type": "string",
+                                  "format": "date"
+                                },
+                                "startTime": {
+                                  "type": "string",
+                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                },
+                                "endTime": {
+                                  "type": "string",
+                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                },
+                                "timezone": {
+                                  "type": "string",
+                                  "const": "Asia/Kolkata"
+                                }
+                              }
                             },
-                            "startTime": {
-                              "type": "string",
-                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "timezone": {
+                                  "type": "string",
+                                  "const": "Asia/Kolkata"
+                                },
+                                "weekly": {
+                                  "type": "array",
+                                  "minItems": 1,
+                                  "maxItems": 14,
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "weekday": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 6,
+                                        "description": "0 Sunday through 6 Saturday"
+                                      },
+                                      "startMinute": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 1439
+                                      },
+                                      "endMinute": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 1440
+                                      }
+                                    },
+                                    "required": [
+                                      "weekday",
+                                      "startMinute",
+                                      "endMinute"
+                                    ]
+                                  }
+                                }
+                              },
+                              "required": [
+                                "timezone",
+                                "weekly"
+                              ]
                             },
-                            "endTime": {
-                              "type": "string",
-                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                            },
-                            "timezone": {
-                              "type": "string",
-                              "const": "Asia/Kolkata"
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "timezone",
+                                "slots"
+                              ],
+                              "properties": {
+                                "timezone": {
+                                  "const": "Asia/Kolkata",
+                                  "type": "string"
+                                },
+                                "slots": {
+                                  "type": "array",
+                                  "minItems": 1,
+                                  "maxItems": 6,
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                      "startsAt",
+                                      "endsAt"
+                                    ],
+                                    "properties": {
+                                      "startsAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "endsAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
                             }
-                          }
+                          ]
                         },
                         "agreedSchedule": {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "required": [
-                            "date",
-                            "startTime",
-                            "endTime",
-                            "timezone"
-                          ],
-                          "properties": {
-                            "date": {
-                              "type": "string",
-                              "format": "date"
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "date",
+                                "startTime",
+                                "endTime",
+                                "timezone"
+                              ],
+                              "properties": {
+                                "date": {
+                                  "type": "string",
+                                  "format": "date"
+                                },
+                                "startTime": {
+                                  "type": "string",
+                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                },
+                                "endTime": {
+                                  "type": "string",
+                                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                },
+                                "timezone": {
+                                  "type": "string",
+                                  "const": "Asia/Kolkata"
+                                }
+                              }
                             },
-                            "startTime": {
-                              "type": "string",
-                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "timezone": {
+                                  "type": "string",
+                                  "const": "Asia/Kolkata"
+                                },
+                                "weekly": {
+                                  "type": "array",
+                                  "minItems": 1,
+                                  "maxItems": 14,
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "weekday": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 6,
+                                        "description": "0 Sunday through 6 Saturday"
+                                      },
+                                      "startMinute": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 1439
+                                      },
+                                      "endMinute": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 1440
+                                      }
+                                    },
+                                    "required": [
+                                      "weekday",
+                                      "startMinute",
+                                      "endMinute"
+                                    ]
+                                  }
+                                }
+                              },
+                              "required": [
+                                "timezone",
+                                "weekly"
+                              ]
                             },
-                            "endTime": {
-                              "type": "string",
-                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                            },
-                            "timezone": {
-                              "type": "string",
-                              "const": "Asia/Kolkata"
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "timezone",
+                                "slots"
+                              ],
+                              "properties": {
+                                "timezone": {
+                                  "const": "Asia/Kolkata",
+                                  "type": "string"
+                                },
+                                "slots": {
+                                  "type": "array",
+                                  "minItems": 1,
+                                  "maxItems": 6,
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                      "startsAt",
+                                      "endsAt"
+                                    ],
+                                    "properties": {
+                                      "startsAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "endsAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
                             }
-                          }
+                          ]
                         },
                         "proposedBy": {
                           "type": "string",
@@ -1973,6 +2329,14 @@
                         "declineReason": {
                           "type": "string",
                           "maxLength": 1000
+                        },
+                        "agreedSourceVersion": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "sourceVersion": {
+                          "type": "integer",
+                          "minimum": 1
                         }
                       }
                     },
@@ -2063,7 +2427,7 @@
                       "confirmedTiming": {
                         "type": "string",
                         "minLength": 1,
-                        "maxLength": 300,
+                        "maxLength": 1200,
                         "description": "On ACCEPT after family approval, confirm the exact current proposal timing. A changed time requires a new proposal and family approval."
                       },
                       "message": {
@@ -2081,7 +2445,6 @@
                       "expectedVersion",
                       "confirmed",
                       "format",
-                      "timing",
                       "message",
                       "expectedSourceVersion"
                     ],
@@ -2111,7 +2474,7 @@
                       "timing": {
                         "type": "string",
                         "minLength": 1,
-                        "maxLength": 300
+                        "maxLength": 1200
                       },
                       "message": {
                         "type": "string",
@@ -2123,32 +2486,91 @@
                         "minimum": 1
                       },
                       "schedule": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": [
-                          "date",
-                          "startTime",
-                          "endTime",
-                          "timezone"
-                        ],
-                        "properties": {
-                          "date": {
-                            "type": "string",
-                            "format": "date"
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "timezone": {
+                                "type": "string",
+                                "const": "Asia/Kolkata"
+                              },
+                              "weekly": {
+                                "type": "array",
+                                "minItems": 1,
+                                "maxItems": 14,
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "weekday": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 6,
+                                      "description": "0 Sunday through 6 Saturday"
+                                    },
+                                    "startMinute": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 1439
+                                    },
+                                    "endMinute": {
+                                      "type": "integer",
+                                      "minimum": 1,
+                                      "maximum": 1440
+                                    }
+                                  },
+                                  "required": [
+                                    "weekday",
+                                    "startMinute",
+                                    "endMinute"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "timezone",
+                              "weekly"
+                            ]
                           },
-                          "startTime": {
-                            "type": "string",
-                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                          },
-                          "endTime": {
-                            "type": "string",
-                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                          },
-                          "timezone": {
-                            "type": "string",
-                            "const": "Asia/Kolkata"
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "timezone",
+                              "slots"
+                            ],
+                            "properties": {
+                              "timezone": {
+                                "const": "Asia/Kolkata",
+                                "type": "string"
+                              },
+                              "slots": {
+                                "type": "array",
+                                "minItems": 1,
+                                "maxItems": 6,
+                                "items": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "startsAt",
+                                    "endsAt"
+                                  ],
+                                  "properties": {
+                                    "startsAt": {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    },
+                                    "endsAt": {
+                                      "type": "string",
+                                      "format": "date-time"
+                                    }
+                                  }
+                                }
+                              }
+                            }
                           }
-                        }
+                        ]
                       }
                     }
                   }
