@@ -1,5 +1,8 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "1 tuition is already arranged for {0}": "{0} की 1 ट्यूशन पहले से तय है",
+  "{1} tuitions are already arranged for {0}": "{0} की {1} ट्यूशन पहले से तय हैं",
+  "{0} already has confirmed tuition for this subject. Review the arrangement before sending another enquiry.": "{0} की इस विषय की ट्यूशन पहले से पक्की है। नई पूछताछ भेजने से पहले व्यवस्था देखें।",
   "Checking ongoing tuition…": "चल रही ट्यूशन की जाँच हो रही है…",
   "Ongoing tuition could not be checked.": "चल रही ट्यूशन की जाँच नहीं हो सकी।",
   "Retry ongoing tuition check": "चल रही ट्यूशन की दोबारा जाँच करें",
