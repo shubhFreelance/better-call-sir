@@ -719,6 +719,73 @@
                               "teacherConfirmedAt": {
                                 "type": "string",
                                 "format": "date-time"
+                              },
+                              "schedule": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "date",
+                                  "startTime",
+                                  "endTime",
+                                  "timezone"
+                                ],
+                                "properties": {
+                                  "date": {
+                                    "type": "string",
+                                    "format": "date"
+                                  },
+                                  "startTime": {
+                                    "type": "string",
+                                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                  },
+                                  "endTime": {
+                                    "type": "string",
+                                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                  },
+                                  "timezone": {
+                                    "type": "string",
+                                    "const": "Asia/Kolkata"
+                                  }
+                                }
+                              },
+                              "agreedSchedule": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "date",
+                                  "startTime",
+                                  "endTime",
+                                  "timezone"
+                                ],
+                                "properties": {
+                                  "date": {
+                                    "type": "string",
+                                    "format": "date"
+                                  },
+                                  "startTime": {
+                                    "type": "string",
+                                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                  },
+                                  "endTime": {
+                                    "type": "string",
+                                    "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                  },
+                                  "timezone": {
+                                    "type": "string",
+                                    "const": "Asia/Kolkata"
+                                  }
+                                }
+                              },
+                              "proposedBy": {
+                                "type": "string",
+                                "enum": [
+                                  "TEACHER",
+                                  "FAMILY"
+                                ]
+                              },
+                              "declineReason": {
+                                "type": "string",
+                                "maxLength": 1000
                               }
                             }
                           },
@@ -1048,6 +1115,73 @@
                         "teacherConfirmedAt": {
                           "type": "string",
                           "format": "date-time"
+                        },
+                        "schedule": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "date",
+                            "startTime",
+                            "endTime",
+                            "timezone"
+                          ],
+                          "properties": {
+                            "date": {
+                              "type": "string",
+                              "format": "date"
+                            },
+                            "startTime": {
+                              "type": "string",
+                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                            },
+                            "endTime": {
+                              "type": "string",
+                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                            },
+                            "timezone": {
+                              "type": "string",
+                              "const": "Asia/Kolkata"
+                            }
+                          }
+                        },
+                        "agreedSchedule": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "date",
+                            "startTime",
+                            "endTime",
+                            "timezone"
+                          ],
+                          "properties": {
+                            "date": {
+                              "type": "string",
+                              "format": "date"
+                            },
+                            "startTime": {
+                              "type": "string",
+                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                            },
+                            "endTime": {
+                              "type": "string",
+                              "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                            },
+                            "timezone": {
+                              "type": "string",
+                              "const": "Asia/Kolkata"
+                            }
+                          }
+                        },
+                        "proposedBy": {
+                          "type": "string",
+                          "enum": [
+                            "TEACHER",
+                            "FAMILY"
+                          ]
+                        },
+                        "declineReason": {
+                          "type": "string",
+                          "maxLength": 1000
                         }
                       }
                     },
@@ -1140,6 +1274,11 @@
                         "minLength": 1,
                         "maxLength": 300,
                         "description": "On ACCEPT after family approval, confirm the exact current proposal timing. A changed time requires a new proposal and family approval."
+                      },
+                      "message": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
                       }
                     }
                   },
@@ -1158,7 +1297,10 @@
                     "properties": {
                       "action": {
                         "type": "string",
-                        "const": "PROPOSE"
+                        "enum": [
+                          "PROPOSE",
+                          "COUNTER_PROPOSE"
+                        ]
                       },
                       "expectedVersion": {
                         "type": "integer",
@@ -1188,6 +1330,34 @@
                       "expectedSourceVersion": {
                         "type": "integer",
                         "minimum": 1
+                      },
+                      "schedule": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "date",
+                          "startTime",
+                          "endTime",
+                          "timezone"
+                        ],
+                        "properties": {
+                          "date": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "startTime": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          },
+                          "endTime": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          },
+                          "timezone": {
+                            "type": "string",
+                            "const": "Asia/Kolkata"
+                          }
+                        }
                       }
                     }
                   }

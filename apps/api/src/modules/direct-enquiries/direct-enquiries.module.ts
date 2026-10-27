@@ -43,6 +43,19 @@ export async function createDirectEnquiry(
   return db.directEnquiry.create({ data: input });
 }
 const staff = (a: Account) => ["ADMIN", "OPERATOR"].includes(a.role);
+const proposedSchedule = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(value => {
+    const date = new Date(value + "T00:00:00Z");
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  }, "Choose a valid date."),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  timezone: z.literal("Asia/Kolkata"),
+}).strict().refine(value => value.endTime > value.startTime, "End time must be after start time.");
+function scheduleTiming(value: z.infer<typeof proposedSchedule>) {
+  const day = new Intl.DateTimeFormat("en", {weekday:"long", timeZone:"UTC"}).format(new Date(value.date + "T00:00:00Z"));
+  return `${day}, ${value.date} ${value.startTime}–${value.endTime} IST`;
+}
 async function source(db: DB, service: AppService, row: DirectEnquiry) {
   const owner = await db.account.findUniqueOrThrow({
       where: { id: row.ownerId },
@@ -415,17 +428,19 @@ class DirectEnquiriesController {
             expectedSourceVersion: version,
             confirmed: z.literal(true),
             confirmedTiming: text(300).optional(),
+            message: text(1000).optional(),
           })
           .strict(),
         z
           .object({
-            action: z.literal("PROPOSE"),
+            action: z.enum(["PROPOSE", "COUNTER_PROPOSE"]),
             expectedVersion: version,
             expectedSourceVersion: version,
             confirmed: z.literal(true),
             format: z.enum(["ONE_TO_ONE", "GROUP"]),
             timing: text(300),
             message: text(1000),
+            schedule: proposedSchedule.optional(),
           })
           .strict(),
       ]),
@@ -450,7 +465,7 @@ class DirectEnquiriesController {
             fail(403, "FORBIDDEN", "Only the family can decide a proposal.");
         } else {
           await ownerAuthority(db, this.service, actor, initial, true);
-          if (!["ACCEPT_PROPOSAL", "DECLINE_PROPOSAL"].includes(data.action))
+          if (!["ACCEPT_PROPOSAL", "DECLINE_PROPOSAL", "COUNTER_PROPOSE"].includes(data.action))
             fail(
               403,
               "FORBIDDEN",
@@ -472,11 +487,15 @@ class DirectEnquiriesController {
             "CONFLICT",
             "Enquiry changed or is already answered. Refresh before continuing.",
           );
-        if (actor.role !== "TEACHER" && row.status !== "PROPOSED")
-          fail(409, "CONFLICT", "There is no current proposal to decide.");
-        if (data.action === "ACCEPT" && row.status === "PROPOSED")
-          fail(409, "CONFLICT", "Wait for the family to confirm your latest proposal before accepting.");
         const currentProposal = row.proposal as Prisma.JsonObject | null;
+        if ("schedule" in data && data.schedule && new Date(`${data.schedule.date}T${data.schedule.startTime}:00+05:30`) <= new Date())
+          fail(400, "INVALID_REQUEST", "Choose a future date and time.");
+        if (data.action === "COUNTER_PROPOSE" && !("schedule" in data && data.schedule))
+          fail(400, "INVALID_REQUEST", "Choose a date and start/end time for your alternative.");
+        if (actor.role !== "TEACHER" && (row.status !== "PROPOSED" || currentProposal?.proposedBy === "FAMILY"))
+          fail(409, "CONFLICT", "There is no current proposal to decide.");
+        if (data.action === "ACCEPT" && row.status === "PROPOSED" && currentProposal?.proposedBy !== "FAMILY")
+          fail(409, "CONFLICT", "Wait for the family to confirm your latest proposal before accepting.");
         if (data.action === "ACCEPT" && currentProposal?.familyConfirmed === true) {
           if (!data.confirmedTiming || data.confirmedTiming !== currentProposal.timing)
             fail(409, "TIMING_CHANGED", "Confirm the family-approved time exactly, or send a new proposal for family approval.");
@@ -518,7 +537,7 @@ class DirectEnquiriesController {
           ? await openArrangement(db, row, context)
           : null;
         const status =
-          data.action === "PROPOSE"
+          ["PROPOSE", "COUNTER_PROPOSE"].includes(data.action)
             ? "PROPOSED"
             : data.action === "ACCEPT_PROPOSAL"
               ? "PENDING"
@@ -526,17 +545,21 @@ class DirectEnquiriesController {
               ? "ACCEPTED"
               : "DECLINED";
         const proposal =
-          data.action === "PROPOSE"
+          "format" in data
             ? {
                 format: data.format,
-                timing: data.timing,
+                timing: data.schedule ? scheduleTiming(data.schedule) : data.timing,
                 message: data.message,
                 timezone: "Asia/Kolkata",
+                ...(data.schedule ? {schedule: data.schedule} : {}),
+                proposedBy: actor.role === "TEACHER" ? "TEACHER" : "FAMILY",
+                ...(data.action === "COUNTER_PROPOSE" ? {familyConfirmed:true, familyConfirmedAt:new Date().toISOString()} : {}),
               }
             : data.action === "ACCEPT_PROPOSAL"
-              ? { ...(row.proposal as Prisma.JsonObject), familyConfirmed: true, familyConfirmedAt: new Date().toISOString() }
+              ? { ...currentProposal, familyConfirmed: true, familyConfirmedAt: new Date().toISOString(), ...(currentProposal?.schedule ? {agreedSchedule:currentProposal.schedule} : {}) }
               : accepted && currentProposal?.familyConfirmed === true
-                ? { ...currentProposal, agreedTiming: data.action === "ACCEPT" ? data.confirmedTiming : undefined, teacherConfirmedAt: new Date().toISOString() }
+                ? { ...currentProposal, agreedTiming: data.action === "ACCEPT" ? data.confirmedTiming : undefined, ...(currentProposal.schedule ? {agreedSchedule:currentProposal.schedule} : {}), teacherConfirmedAt: new Date().toISOString() }
+              : data.action === "DECLINE_PROPOSAL" && data.message ? {...currentProposal, declineReason:data.message}
               : (row.proposal ?? Prisma.DbNull);
         const updated = await db.directEnquiry.update({
           where: { id },
