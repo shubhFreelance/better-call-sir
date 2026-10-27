@@ -1,5 +1,16 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Original preferred time": "मूल पसंदीदा समय",
+  "Agreed time (IST)": "सहमत समय (IST)",
+  "Family-approved time (IST)": "परिवार द्वारा मंज़ूर समय (IST)",
+  "Confirm agreed time (IST)": "सहमत समय की पुष्टि करें (IST)",
+  "Confirm the time approved by the family. A different time needs a new proposal and family approval.": "परिवार द्वारा मंज़ूर समय की पुष्टि करें। अलग समय के लिए नया प्रस्ताव और परिवार की मंज़ूरी आवश्यक है।",
+  "This time differs from the family-approved proposal. Send a new proposal before accepting.": "यह समय परिवार द्वारा मंज़ूर प्रस्ताव से अलग है। स्वीकार करने से पहले नया प्रस्ताव भेजें।",
+  "Confirm the family-approved time exactly, or send a new proposal for family approval.": "परिवार द्वारा मंज़ूर समय की ठीक-ठीक पुष्टि करें या परिवार की मंज़ूरी के लिए नया प्रस्ताव भेजें।",
+  "Only a family-approved time can be confirmed when accepting an enquiry.": "पूछताछ स्वीकार करते समय केवल परिवार द्वारा मंज़ूर समय की पुष्टि की जा सकती है।",
+  "Loading agreed time…": "सहमत समय लोड हो रहा है…",
+  "Agreed time could not be loaded. Refresh before relying on the timing.": "सहमत समय लोड नहीं हो सका। समय पर भरोसा करने से पहले रीफ़्रेश करें।",
+  "Refresh agreed time": "सहमत समय रीफ़्रेश करें",
   "Your tuition arrangement is ready. Both parties review financial terms separately.": "आपकी ट्यूशन व्यवस्था तैयार है। दोनों पक्ष आर्थिक शर्तों की अलग-अलग समीक्षा करेंगे।",
   "Create spaces": "स्पेस बनाएँ",
   "Complete this learner’s education details before creating a subject space.": "विषय स्पेस बनाने से पहले इस विद्यार्थी की शिक्षा की जानकारी पूरी करें।",

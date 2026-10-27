@@ -34,7 +34,10 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
     [confirmed, setConfirmed] = useState(false),
     [format, setFormat] = useState("ONE_TO_ONE"),
     [timing, setTiming] = useState(""),
+    [confirmedTiming, setConfirmedTiming] = useState(""),
     [message, setMessage] = useState("");
+  const timingNeedsConfirmation = review?.action === "ACCEPT" && review.item.proposal?.familyConfirmed === true;
+  const timingMismatch = timingNeedsConfirmation && confirmedTiming.trim() !== review?.item.proposal?.timing;
   const conversation = useSearchParams().get("conversation");
   const cursor = conversation ? undefined : cursors.at(-1);
   const status = conversation ? "ALL" : filter;
@@ -70,6 +73,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
     setConfirmed(false);
     setFormat(item.proposal?.format ?? "ONE_TO_ONE");
     setTiming(item.proposal?.timing ?? "");
+    setConfirmedTiming(item.proposal?.timing ?? "");
     setMessage(item.proposal?.message ?? "");
   }
   function preferred(value: string) {
@@ -209,6 +213,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
               };
             },
             education = l.education ?? l;
+          const agreedTiming = item.status === "ACCEPTED" && item.proposal?.familyConfirmed ? item.proposal.agreedTiming || item.proposal.timing : undefined;
           const heading = (
               <div className="direct-enquiry-heading">
                 <div>
@@ -259,9 +264,10 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
           if (onViewEnquiry) return <article className="direct-enquiry-card" key={item.id}>{heading}</article>;
           return <LayeredSummaryCard collapsible className="direct-enquiry-card" key={item.id} open={conversation === item.id ? true : undefined} header={heading} footer={<>
                 <div className="direct-preferred-time">
-                  <strong>{appText("Preferred time")}</strong>
+                  <strong>{appText(agreedTiming ? "Original preferred time" : "Preferred time")}</strong>
                   <p>{preferred(item.preferredTime)}</p>
                 </div>
+                {agreedTiming && <div className="direct-agreed-time"><strong>{appText(item.proposal?.agreedTiming ? "Agreed time (IST)" : "Family-approved time (IST)")}</strong><p>{agreedTiming}</p></div>}
           </>} actions={
                 item.sourceOpen &&
                   (item.canReply || item.canDecide && item.status === "PROPOSED") &&
@@ -388,7 +394,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
           className="direct-reply-form"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!confirmed || decision.locked) return;
+            if (!confirmed || decision.locked || timingMismatch) return;
             decision.run({
               path: "/direct-enquiries/" + review.item.id + "/responses",
               body: {
@@ -396,6 +402,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
                 expectedVersion: review.item.version,
                 expectedSourceVersion: review.item.sourceVersion,
                 confirmed: true,
+                ...(timingNeedsConfirmation ? {confirmedTiming: confirmedTiming.trim()} : {}),
                 ...(review.action === "PROPOSE"
                   ? { format, timing, message }
                   : {}),
@@ -423,7 +430,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
             </label>
             } actions={
               <FilterButtonGroup>
-              <FilterButton accent type="submit" disabled={!confirmed}>
+              <FilterButton accent type="submit" disabled={!confirmed || timingMismatch}>
                 {appText("Confirm reply")}
               </FilterButton>
               <FilterButton
@@ -437,8 +444,9 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false }: { 
             <dl className="direct-learning-details">
               <div><dt>{appText(teacher || staff ? review.item.kind === "GUARDIAN" ? "Parent" : "Student" : "Teacher")}</dt><dd>{teacher || staff ? review.item.parentName : review.item.teacherName}</dd></div>
               <div><dt>{appText("Lesson mode")}</dt><dd>{appText(review.item.mode === "ONLINE" ? "Online" : "At home")} {"\u00b7"} {appCurriculum(review.item.language)}</dd></div>
-              <div><dt>{appText("Preferred time")}</dt><dd>{preferred(review.item.preferredTime)}</dd></div>
+              <div><dt>{appText(review.item.proposal ? "Original preferred time" : "Preferred time")}</dt><dd>{preferred(review.item.preferredTime)}</dd></div>
             </dl>
+            {timingNeedsConfirmation && <div className="direct-final-time"><label>{appText("Confirm agreed time (IST)")}<Input required maxLength={300} value={confirmedTiming} onChange={event => {setConfirmedTiming(event.target.value);setConfirmed(false);}}/></label><p>{appText("Confirm the time approved by the family. A different time needs a new proposal and family approval.")}</p>{timingMismatch && <p role="alert">{appText("This time differs from the family-approved proposal. Send a new proposal before accepting.")}</p>}</div>}
             {review.action !== "PROPOSE" && review.item.proposal && <aside className="direct-proposal">
               <strong>{appText(review.item.proposal.format === "GROUP" ? "Group learning proposal" : "One-to-one proposal")}</strong>
               <p>{appText("Suggested time (IST)")}: {review.item.proposal.timing}</p>

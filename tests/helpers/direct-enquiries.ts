@@ -47,6 +47,7 @@ async function inbox(page: Page, role = "TEACHER", pageSize = 10) {
       writes.push(body);
       expect(route.request().headers()["idempotency-key"]).toBeTruthy();
       if(body.expectedVersion !== item.version) return route.fulfill({status:409,json:{code:"CONFLICT",message:"Enquiry changed or is already answered. Refresh before continuing."}});
+      if(body.action==="ACCEPT" && item.proposal?.familyConfirmed && body.confirmedTiming!==item.proposal.timing)return route.fulfill({status:409,json:{code:"TIMING_CHANGED",message:"Confirm the family-approved time exactly, or send a new proposal for family approval."}});
       Object.assign(item, {
         version: item.version + 1,
         status:
@@ -65,7 +66,7 @@ async function inbox(page: Page, role = "TEACHER", pageSize = 10) {
                 message: body.message,
                 timezone: "Asia/Kolkata",
               }
-            : item.proposal,
+            : body.action === "ACCEPT" && item.proposal?.familyConfirmed ? {...item.proposal,agreedTiming:body.confirmedTiming,teacherConfirmedAt:new Date().toISOString()} : item.proposal,
       });
       return route.fulfill({ status: 201, json: item });
     }
@@ -316,4 +317,12 @@ test("accept enquiry uses a compact modal with acknowledgement, cancellation and
   expect(attempts).toHaveLength(2);expect(attempts[1]).toEqual(attempts[0]);expect(attempts[0].body).toMatchObject({action:"ACCEPT",expectedVersion:1,expectedSourceVersion:1,confirmed:true});expect(writes).toHaveLength(1);
   const toast=page.locator(".action-toast");await expect(toast).toContainText("Enquiry reply recorded.");await expect(toast).toHaveCSS("position","fixed");await expect(page.locator(".direct-inbox").getByText("Enquiry reply recorded.",{exact:true})).toHaveCount(0);await toast.getByRole("button",{name:"Close",exact:true}).click();await expect(toast).toHaveCount(0);
   await expect(card.locator(".direct-acceptance")).toContainText("The teacher has accepted this enquiry.");await expect(card.locator(".direct-acceptance").getByRole("link",{name:"View tuition arrangement",exact:true})).toBeVisible();expect((await new AxeBuilder({page}).include(".direct-acceptance").analyze()).violations).toEqual([]);await card.screenshot({path:"test-results/accepted-enquiry-card.png",style:"nextjs-portal{display:none!important}"});
+});
+
+
+test("teacher confirms the family-approved alternative and cannot silently change its recorded time",async({page})=>{
+  const {items,writes}=await inbox(page);items[0].preferredTime="Monday 6pm IST";items[0].proposal={format:"ONE_TO_ONE",timing:"Monday 5pm IST",message:"Family approved this alternative.",familyConfirmed:true,timezone:"Asia/Kolkata"};
+  await page.goto("/dashboard");const card=page.locator(".direct-inbox details").first();await card.locator("summary").click();await card.getByRole("button",{name:"Accept enquiry",exact:true}).click();const dialog=page.getByRole("dialog");const time=dialog.getByRole("textbox",{name:"Confirm agreed time (IST)",exact:true});await expect(time).toHaveValue("Monday 5pm IST");
+  await time.fill("Monday 3pm IST");await dialog.getByRole("checkbox").check();await expect(dialog.getByRole("button",{name:"Confirm reply",exact:true})).toBeDisabled();await expect(dialog.getByRole("alert")).toContainText("new proposal");expect(writes).toHaveLength(0);
+  await time.fill("Monday 5pm IST");await expect(dialog.getByRole("checkbox")).not.toBeChecked();await dialog.getByRole("checkbox").check();await dialog.getByRole("button",{name:"Confirm reply",exact:true}).click();await expect(dialog).not.toBeVisible();expect(writes[0]).toMatchObject({action:"ACCEPT",confirmedTiming:"Monday 5pm IST",confirmed:true});await expect(card.locator(".direct-agreed-time")).toContainText("Monday 5pm IST");await expect(card.locator(".direct-preferred-time")).toContainText("Monday 6pm IST");
 });
