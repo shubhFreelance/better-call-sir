@@ -1,5 +1,7 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Tuitions": "ट्यूशन",
+  "Your subject enquiries and saved tuition requests": "आपकी विषयवार पूछताछ और सहेजे गए ट्यूशन अनुरोध",
   "{0} enquiry": "{0} की पूछताछ",
   "View enquiry": "पूछताछ देखें",
   "Your subject enquiries": "आपकी विषयवार पूछताछ",

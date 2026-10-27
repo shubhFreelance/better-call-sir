@@ -216,12 +216,15 @@ function Field({
 export function GuardianOnboarding({
   session,
   onSessionChange,
+  overviewOnly=false,
 }: {
   session: Session;
   onSessionChange: (session: Session) => void;
+  overviewOnly?: boolean;
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
+  const Page=overviewOnly?"section":"main";
   const params = useSearchParams();
   const [reload, setReload] = useState(0);
   const [verificationError, setVerificationError] = useState("");
@@ -258,7 +261,7 @@ export function GuardianOnboarding({
   });
   if (!session.account.verified)
     return (
-      <main className="container narrow section wizard-verification">
+      <Page className="container narrow section wizard-verification">
         <ShieldCheck size={38} />
         <h1>{appText("Guardian verification is pending.")}</h1>
         <p>
@@ -296,7 +299,7 @@ export function GuardianOnboarding({
         <Link className="inline-link" href="/support">
           {appText("Get help with your account")}{" "}
         </Link>
-      </main>
+      </Page>
     );
   if (
     progress.isPending ||
@@ -304,12 +307,12 @@ export function GuardianOnboarding({
     (profile && teacherId && teacher.isPending)
   )
     return (
-      <main className="container section">
+      <Page className="container section">
         <p role="status">
           <LoaderCircle className="spin" />{" "}
           {appText("Loading your saved progress…")}{" "}
         </p>
-      </main>
+      </Page>
     );
   const error =
     [progress.error, enquiry.error, teacher.error].find(
@@ -335,7 +338,7 @@ export function GuardianOnboarding({
       onboardingAccessDenied(error))
   )
     return (
-      <main className="container narrow section">
+      <Page className="container narrow section">
         <Alert variant="destructive">
           <AlertDescription>
             {appText(
@@ -349,7 +352,7 @@ export function GuardianOnboarding({
         <Link className="inline-link" href="/teachers">
           {appText("Choose a teacher")}{" "}
         </Link>
-      </main>
+      </Page>
     );
   if (
     initial?.version &&
@@ -362,7 +365,7 @@ export function GuardianOnboarding({
       params.get("subject") && initial.draft.subject && params.get("subject") !== initial.draft.subject)
   )
     return (
-      <main className="container narrow section">
+      <Page className="container narrow section">
         <h1>{appText("A saved enquiry is already in progress.")}</h1>
         <p>
           {appText(
@@ -382,17 +385,17 @@ export function GuardianOnboarding({
           destination={"/onboarding/parent?" + params.toString()}
           label={appText("Discard draft & use this teacher")}
         />
-      </main>
+      </Page>
     );
   if (teacher.data && teacher.data.id !== teacherId)
     return (
-      <main className="container narrow section">
+      <Page className="container narrow section">
         <h1>{appText("Choose a teacher to continue.")}</h1>
         <p>{appText("The selected profile does not match this request.")}</p>
         <Link className="button" href="/teachers">
           {appText("Browse teachers")}{" "}
         </Link>
-      </main>
+      </Page>
     );
   if (!initial) return null;
   return (
@@ -404,6 +407,7 @@ export function GuardianOnboarding({
         enquiry={enquiry.data}
         teacherId={teacherId}
         teacher={teacher.data}
+        overviewOnly={overviewOnly}
         onReload={async () => {
           const result = await progress.refetch();
           const next = result.data?.completedResourceId
@@ -423,6 +427,7 @@ function Wizard({
   teacherId,
   teacher,
   onReload,
+  overviewOnly,
 }: {
   session: Session;
   initial: Progress;
@@ -430,9 +435,11 @@ function Wizard({
   teacherId: string;
   teacher?: Teacher;
   onReload: () => Promise<void>;
+  overviewOnly?: boolean;
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
+  const Page=overviewOnly?"section":"main";
   const client = useQueryClient();
   const searchContext = useSearchParams();
   const selectedIntent=!!searchContext.get("teacher")||!!searchContext.get("subject")||searchContext.get("discovery")==="ASSISTED";
@@ -440,7 +447,7 @@ function Wizard({
   const [additional, setAdditional] = useState(initial.kind === "ENQUIRY");
   const [success, setSuccess] = useState(initial.completedResourceId || "");
   const [justSubmitted,setJustSubmitted]=useState(false);
-  const [overview,setOverview]=useState(initial.kind === "ENQUIRY" && initial.version === 0 && !Object.keys(initial.draft).length && selectedIntent);
+  const [overview,setOverview]=useState(overviewOnly||initial.kind === "ENQUIRY" && initial.version === 0 && !Object.keys(initial.draft).length && selectedIntent);
   const draftPath = additional ? "/onboarding/enquiry" : "/onboarding/parent";
   const [step, setStep] = useState(0);
   const [accepted, setAccepted] = useState(false);
@@ -720,6 +727,7 @@ function Wizard({
   });
   async function startAnotherEnquiry(){
     if(busy)return;
+    if(!progress.completedResourceId){setOverview(false);return;}
     setBusy(true);
     try {
       const next = progress.kind === "ENQUIRY" && !!progress.completedResourceId
@@ -773,12 +781,12 @@ function Wizard({
     }
   }
   if (success || overview)
-    return <main className="container section tuition-subject-enquiries">
-      <GuardianEnquiryOverview session={session} completedId={success} subject={values.subject} learnerId={searchContext.get("learner")||values.childId} teacherId={teacherId} teacherName={teacher?.name} selectedIntent={selectedIntent} justSubmitted={justSubmitted} busy={busy} onContinue={()=>void startAnotherEnquiry()}/>
+    return <Page className="container section tuition-subject-enquiries">
+      <GuardianEnquiryOverview session={session} completedId={success} subject={values.subject} learnerId={searchContext.get("learner")||values.childId} teacherId={teacherId} teacherName={teacher?.name} selectedIntent={selectedIntent} justSubmitted={justSubmitted} hasDraft={!progress.completedResourceId&&!!Object.keys(progress.draft).length} busy={busy} onContinue={()=>void startAnotherEnquiry()}/>
       {serverError&&<Alert variant="destructive"><AlertDescription>{appError(serverError)} <RefreshButton disabled={busy} onClick={onReload} label={appText("Reload saved progress")}/></AlertDescription></Alert>}
-    </main>;
+    </Page>;
   return (
-    <main className="container section wizard-page tuition-setup-wizard">
+    <Page className="container section wizard-page tuition-setup-wizard">
       <div className="wizard-title">
         <h1>{appText("Set up your learner’s tuition.")}</h1>
         <p>
@@ -1529,6 +1537,6 @@ function Wizard({
           </form>
         </section>
       </div>
-    </main>
+    </Page>
   );
 }

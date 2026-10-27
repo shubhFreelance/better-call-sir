@@ -2291,6 +2291,7 @@ function DashboardShell({
     ...(role === "GUARDIAN"
       ? ([
           ["/dashboard/learning-preferences", "Learning preferences", Settings],
+          ["/dashboard/tuitions", "Tuitions", BookOpen],
           ["/dashboard/requests", "Enquiries & teacher choices", Users],
           ["/dashboard/arrangements", "Arrangements & replacement", RefreshCw],
           ["/dashboard/family", "Learners & access", ShieldCheck],
@@ -2387,6 +2388,7 @@ function DashboardShell({
     "/dashboard/learning-choices":"Choose a teacher within your permissions",
     "/onboarding/student":"Your subjects and learning preferences",
     "/onboarding/guardian":"Your verification and consent checklist",
+    "/dashboard/tuitions":"Your subject enquiries and saved tuition requests",
     "/dashboard/requests":"Shortlists, teacher replies and your choice",
     "/dashboard/arrangements":"Agreed tuition, help and replacement",
     "/dashboard/family":"Student invitations, devices and permissions",
@@ -2509,6 +2511,7 @@ function DashboardPage({ tab }: { tab: string }) {
         "/dashboard/learning-management",
         "/dashboard/learning-choices",
         "/dashboard/learning-preferences",
+        "/dashboard/tuitions",
         "/dashboard/guardian-details",
         "/dashboard/minimum-tuition",
         "/dashboard/service-followups",
@@ -2550,6 +2553,7 @@ function DashboardPage({ tab }: { tab: string }) {
   if (!session) return <LoginPrompt />;
   if (session.account.role === "OPERATOR" && tab === "/dashboard") return <DashboardShell tab={tab}><DirectEnquiries session={session}/></DashboardShell>;
   if (session.account.studentSetupPending) return <main className="container narrow section"><StudentConnection session={session} onSessionChange={setSession} /></main>;
+  if(tab === "/dashboard/tuitions") return <DashboardShell tab={tab}>{session.account.role === "GUARDIAN" ? <GuardianOnboarding session={session} onSessionChange={setSession} overviewOnly/> : <Notice error>{appText("Use a guardian account to create a tuition request.")}</Notice>}</DashboardShell>;
   if(tab === "/dashboard/learning-preferences" && session.account.role === "GUARDIAN") return <DashboardShell tab={tab}><GuardianLearningSpaces session={session}/></DashboardShell>;
   if(tab === "/dashboard/guardian-details" && session.account.role === "STUDENT") return <DashboardShell tab={tab}><StudentGuardianDetails session={session}/></DashboardShell>;
   if (tab === "/dashboard/learners") return <DashboardShell tab={tab}><LearnerProfilesPage /></DashboardShell>;

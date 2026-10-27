@@ -13,7 +13,7 @@ import {useAppTranslation} from "./locale";
 
 type Conversations=paths["/direct-enquiries"]["get"]["responses"][200]["content"]["application/json"];
 type Conversation=Conversations["items"][number];
-export function GuardianEnquiryOverview({session,completedId,subject,learnerId,teacherId,teacherName,selectedIntent,justSubmitted,busy,onContinue}:{session:Session;completedId:string;subject:string;learnerId:string;teacherId:string;teacherName?:string;selectedIntent:boolean;justSubmitted:boolean;busy:boolean;onContinue:()=>void}){
+export function GuardianEnquiryOverview({session,completedId,subject,learnerId,teacherId,teacherName,selectedIntent,justSubmitted,hasDraft=false,busy,onContinue}:{session:Session;completedId:string;subject:string;learnerId:string;teacherId:string;teacherName?:string;selectedIntent:boolean;justSubmitted:boolean;hasDraft?:boolean;busy:boolean;onContinue:()=>void}){
  const {appText,appCurriculum}=useAppTranslation(),heading=useRef<HTMLHeadingElement>(null);
  useEffect(()=>{heading.current?.focus();},[]);
  const requests=useHistory<{items:TuitionRequest[];nextCursor?:string|null}>({queryKey:["guardian-subject-enquiries",session.account.id],path:"/requests?limit=10"});
@@ -39,7 +39,7 @@ export function GuardianEnquiryOverview({session,completedId,subject,learnerId,t
   {conversations.error&&<div role="alert"><p>{appText("Teacher reply status could not be loaded. Open an enquiry to check its latest progress.")}</p><RefreshButton label={appText("Refresh enquiries")} disabled={busy} onClick={()=>void conversations.refetch()}/></div>}
   <HistoryPages history={requests} label="Subject enquiry history" disabled={busy}/>
   {conversations.hasNextPage&&<HistoryPages history={conversations} label="Teacher reply history" disabled={busy}/>}
-  <FilterButtonGroup><FilterButton asChild accent><Link href="/dashboard/requests">{appText("View tuition requests")}</Link></FilterButton>{newSelection?<FilterButton asChild><Link href="/teachers">{appText("Explore teachers")}</Link></FilterButton>:<FilterButton disabled={busy||checking||selectedIntent&&!justSubmitted&&!!current.error} onClick={onContinue}>{appText(busy?"Starting enquiry…":"Create another request")}</FilterButton>}</FilterButtonGroup>
+  <FilterButtonGroup><FilterButton asChild accent><Link href="/dashboard/requests">{appText("View tuition requests")}</Link></FilterButton>{newSelection?<FilterButton asChild><Link href="/teachers">{appText("Explore teachers")}</Link></FilterButton>:<FilterButton disabled={busy||checking||selectedIntent&&!justSubmitted&&!!current.error} onClick={onContinue}>{appText(busy?"Starting enquiry…":hasDraft?"Resume saved enquiry":"Create another request")}</FilterButton>}</FilterButtonGroup>
  </section>;
 }
 function SubmittedEnquiryCard({session,request,current,conversation,learnerName}:{session:Session;request:TuitionRequest;current:boolean;conversation?:Conversation;learnerName?:string}){
