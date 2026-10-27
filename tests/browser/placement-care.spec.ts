@@ -59,6 +59,9 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
   let requests: any[] = [source],
     stale = mode === "stale",
     failRead = false;
+  if(mode.startsWith('monthly-'))p={...p,status:'TERMS_PENDING',guardianStarted:false,teacherReceiptConfirmed:false};
+  let monthlyFamily=mode!=='monthly-waiting'&&mode!=='monthly-unknown',monthlyVersion=1;
+  const monthlyRecord=()=>({id:placement,kind:'PLACEMENT',version:p.version,month:'2026-11',bookingVersion:monthlyVersion,monthlyPaise:p.monthlyPaise,policyVersion:p.policyVersion,familyConfirmed:monthlyFamily,teacherConfirmed:true,confirmed:monthlyFamily,closed:p.status==='CLOSED',canConfirm:p.status!=='CLOSED',proActive:false,canMarkCompleted:false,completions:[]});
   const writes: { body: any; key: string; path: string }[] = [],
     reads: string[] = [],
     replays = new Map<string, any>();
@@ -84,6 +87,8 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
       });
     if (req.method() === "GET") {
       reads.push(path);
+      if(path.endsWith('/tuition-bookings/PLACEMENT/'+placement))return mode==='monthly-error'?route.fulfill({status:403,json:{code:'FORBIDDEN',message:'Booking unavailable.'}}):route.fulfill({json:monthlyRecord()});
+      if(mode==='monthly-switch'&&path.endsWith('/tuition-bookings/PLACEMENT/'+ids.placement))return route.fulfill({json:{...monthlyRecord(),id:ids.placement,month:'2026-12',familyConfirmed:false,confirmed:false}});
       if (failRead && path.endsWith("/requests")) {
         failRead = false;
         return route.fulfill({
@@ -107,7 +112,7 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
             metrics: {},
             children: [{ id: child, alias: "Aarav", grade: 8, board: "CBSE" }],
             teachers: [{ id: teacher, name: "Ananya Sharma" }],
-            placements: mode === "empty" ? [] : [p],
+            placements: mode === "empty" ? [] : mode==='monthly-switch'?[p,{...p,id:ids.placement,guardianAccepted:false}]:[p],
             consent: { withdrawnAt: mode === "withdrawn" ? now() : null },
           },
         });
@@ -128,6 +133,11 @@ async function mock(page: Page, mode = "normal", role = "GUARDIAN") {
     writes.push({ body, key, path });
     expect(key).toBeTruthy();
     expect(req.headers()["x-csrf-token"]).toBe("synthetic-csrf");
+    if(path.endsWith('/tuition-bookings/PLACEMENT/'+placement+'/confirmations')){
+      if(!replays.has(key)){monthlyFamily=true;monthlyVersion++;p={...p,version:p.version+1};replays.set(key,monthlyRecord());}
+      if(mode==='monthly-unknown'&&writes.length===1)return route.abort('failed');
+      return route.fulfill({status:201,json:replays.get(key)});
+    }
     check(
       path.endsWith("/rematches")
         ? "PlacementRematchInput"
@@ -202,6 +212,30 @@ async function replacementReview(page: Page) {
     .getByRole("button", { name: "Review decision", exact: true })
     .click();
 }
+test('dedicated arrangement reflects the same booked month despite legacy pending status',async({page})=>{
+ const state=await mock(page,'monthly-confirmed');await page.goto('/dashboard/arrangements?placement='+placement);const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');await expect(page.getByLabel('Tuition arrangement',{exact:true})).toContainText('Teacher booked for November 2026');await expect(card.getByRole('region',{name:'Monthly tuition confirmation',exact:true})).toContainText('Both parties confirmed this month.');await expect(card.getByRole('button',{name:'Confirm monthly tuition',exact:true})).toHaveCount(0);await expect(card.locator('.class-calendar-months button')).toHaveCount(12);expect(state.p().status).toBe('TERMS_PENDING');expect(state.writes).toHaveLength(0);await card.screenshot({path:'test-results/dedicated-monthly-agreement.png',style:'nextjs-portal{display:none!important}'});
+});
+
+test('switching arrangements reads each exact monthly record without carrying over the first booking',async({page})=>{
+ const state=await mock(page,'monthly-switch');await page.goto('/dashboard/arrangements?placement='+placement);const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');await page.getByLabel('Tuition arrangement',{exact:true}).selectOption(ids.placement);await expect(card.locator('.monthly-hiring')).toContainText('Confirm tuition for December 2026');await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked for November');await expect(card.locator('.placement-summary-heading')).toContainText('Terms pending');expect(state.reads).toContain('/api/v1/tuition-bookings/PLACEMENT/'+ids.placement);expect(state.writes).toHaveLength(0);
+});
+
+test('dedicated arrangement confirms once and refreshes placement version and labels',async({page})=>{
+ const state=await mock(page,'monthly-waiting');await page.goto('/dashboard/arrangements');const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Terms agreed');await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked');await card.getByRole('checkbox',{name:/I agree to the displayed monthly tuition/}).check();await card.getByRole('button',{name:'Confirm monthly tuition',exact:true}).click();await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');expect(state.writes).toHaveLength(1);await closeReview(page);await page.getByRole('checkbox',{name:/I reviewed these effects/}).check();await page.getByRole('button',{name:'Confirm closure',exact:true}).click();expect(state.writes[1].body.expectedVersion).toBe(2);
+});
+
+test('uncertain monthly confirmation locks arrangement changes and retries the same decision',async({page})=>{
+ const state=await mock(page,'monthly-unknown');await page.goto('/dashboard/arrangements');const card=page.locator('.placement-summary');await card.getByRole('checkbox',{name:/I agree to the displayed monthly tuition/}).check();await card.getByRole('button',{name:'Confirm monthly tuition',exact:true}).click();await expect(page.getByLabel('Tuition arrangement',{exact:true})).toBeDisabled();await expect(card.getByRole('button',{name:'Close arrangement',exact:true})).toBeDisabled();await expect(card.getByRole('button',{name:'Request a replacement',exact:true})).toBeDisabled();await card.getByRole('button',{name:'Retry same decision',exact:true}).click();await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');expect(state.writes).toHaveLength(2);expect(state.writes[1]).toEqual(state.writes[0]);
+});
+
+test('failed booking refresh hides a previously confirmed month instead of retaining stale success',async({page})=>{
+ await mock(page,'monthly-confirmed');await page.goto('/dashboard/arrangements');const card=page.locator('.placement-summary');await expect(card.locator('.placement-summary-heading')).toContainText('Teacher booked for November 2026');await page.route('**/api/v1/tuition-bookings/PLACEMENT/*',route=>route.fulfill({status:403,json:{code:'FORBIDDEN',message:'Booking unavailable.'}}));await card.locator('.monthly-hiring').getByRole('button',{name:'Refresh enquiries',exact:true}).click();await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked');await expect(card.locator('.class-calendar')).toHaveCount(0);await expect(card.getByRole('alert')).toContainText('Monthly tuition could not be loaded.');
+});
+
+test('failed monthly reads hide booked status while keeping support available',async({page})=>{
+ await mock(page,'monthly-error');await page.goto('/dashboard/arrangements');const card=page.locator('.placement-summary');await expect(card.getByRole('alert')).toContainText('Monthly tuition could not be loaded.');await expect(card.locator('.placement-summary-heading')).not.toContainText('Teacher booked');await expect(card.locator('.class-calendar')).toHaveCount(0);await expect(card.getByRole('link',{name:'Help and case progress for this arrangement',exact:true})).toBeVisible();
+});
+
 test("closure has explicit effects and requires acknowledgement before writing", async ({
   page,
 }) => {

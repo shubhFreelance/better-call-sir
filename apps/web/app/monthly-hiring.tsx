@@ -15,6 +15,9 @@ import {useAppTranslation} from "./locale";
 import {Feedback,useDecision} from "./tuition-workflow";
 
 type Booking=paths["/tuition-bookings/{kind}/{id}"]["get"]["responses"][200]["content"]["application/json"];
+export function useMonthlyBooking(session:Session,kind:"PLACEMENT"|"INDEPENDENT",id:string,enabled=true){
+ return useQuery({queryKey:["tuition-booking",session.account.id,kind,id],queryFn:({signal})=>api<Booking>(`/tuition-bookings/${kind}/${id}`,{signal}),enabled:enabled&&!!id,retry:false,staleTime:0});
+}
 export function TuitionArrangementCard({title,subtitle,footer,onLockChange,started=false,...props}:{title:ReactNode;subtitle:ReactNode;footer:ReactNode;started?:boolean;session:Session;kind:"PLACEMENT"|"INDEPENDENT";id:string;disabled?:boolean;onLockChange?:(locked:boolean,id:string)=>void}){
  const {appText}=useAppTranslation(),[locked,setLocked]=useState(false),[classRecorded,setClassRecorded]=useState(false);
  const lock=useCallback((value:boolean,id:string)=>{setLocked(value);onLockChange?.(value,id);},[onLockChange]);
@@ -26,8 +29,8 @@ export function MonthlyHiring({session,kind,id,disabled=false,onLockChange,onCla
  const {appText,appError,appLocale}=useAppTranslation(),client=useQueryClient();
  const [month,setMonth]=useState(""),[ack,setAck]=useState(false),[date,setDate]=useState<string|null>(null),[completionAck,setCompletionAck]=useState(false);
  const path=`/tuition-bookings/${kind}/${id}`;
- const query=useQuery({queryKey:["tuition-booking",session.account.id,kind,id],queryFn:({signal})=>api<Booking>(path,{signal}),retry:false,staleTime:0});
- async function refresh(){const result=await query.refetch();if(result.error)throw result.error;await client.invalidateQueries({queryKey:["hiring-dashboard"]});await client.invalidateQueries({queryKey:["student-arrangements"]});await client.invalidateQueries({queryKey:["direct-enquiries",session.account.id]});}
+ const query=useMonthlyBooking(session,kind,id);
+ async function refresh(){const result=await query.refetch();if(result.error)throw result.error;await client.invalidateQueries({queryKey:["hiring-dashboard"]});await client.invalidateQueries({queryKey:["dashboard",session.account.id]});await client.invalidateQueries({queryKey:["student-arrangement"]});await client.invalidateQueries({queryKey:["student-arrangements"]});await client.invalidateQueries({queryKey:["direct-enquiries",session.account.id]});}
  const decision=useDecision(session,refresh),data=!query.error?query.data:undefined;
  useEffect(()=>{onClassRecordedChange?.(!!data?.proActive&&data.completions.some(row=>row.completed));},[data,onClassRecordedChange]);
  useEffect(()=>{onLockChange?.(decision.locked,id);return()=>onLockChange?.(false,id);},[decision.locked,id,onLockChange]);

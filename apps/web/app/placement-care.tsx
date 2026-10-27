@@ -1,5 +1,6 @@
 "use client";
 import { RefreshButton } from "../components/ui/refresh-button";
+import {MonthlyHiring,useMonthlyBooking} from "./monthly-hiring";
 import { minimumHref } from "./tuition-minimum-workspace";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
@@ -8,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleMinus, RefreshCw } from "lucide-react";
+import { CalendarCheck, CircleMinus, RefreshCw } from "lucide-react";
 import { StatusBadge } from "../components/ui/status-controls";
 import {
   api,
@@ -70,6 +71,7 @@ export function PlacementCare({
   const [selected, setSelected] = useState(
       linkedPlacement || d.placements?.[0]?.id || "",
     ),
+    [monthlyLocked,setMonthlyLocked]=useState(false),
     [action, setAction] = useState<"close" | "replace" | "">(""),
     [reason, setReason] = useState(""),
     [review, setReview] = useState(false),
@@ -97,6 +99,13 @@ export function PlacementCare({
       (r) => r.rematchFromPlacementId === p?.id,
     );
   const timingReadable = canUse && !requests.error && !d.consent?.withdrawnAt;
+  const bookingQuery=useMonthlyBooking(session,"PLACEMENT",p?.id??"",timingReadable);
+  const booking=timingReadable&&!bookingQuery.error?bookingQuery.data:undefined;
+  function arrangementLabel(value:Placement){
+    if(value.status==="CLOSED"||value.status==="ACTIVE")return appText(labels[value.status]);
+    if(value.id===p?.id&&booking?.confirmed)return appText("Teacher booked for {0}",[new Intl.DateTimeFormat(appLocale,{month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(booking.month+"-01T00:00:00Z"))]);
+    return appText(value.guardianAccepted&&value.teacherAccepted?"Terms agreed":labels[value.status]||value.status);
+  }
   const timingRecord = useQuery({
     queryKey: ["arrangement-timing", session.account.id, p?.id],
     queryFn: ({signal}) => api<paths["/direct-enquiries"]["get"]["responses"][200]["content"]["application/json"]>("/direct-enquiries?arrangementId=" + p!.id, {signal}),
@@ -112,6 +121,7 @@ export function PlacementCare({
     ]);
     if (rs.error) throw rs.error;
     client.setQueryData(["dashboard", session.account.id], next);
+    await client.invalidateQueries({queryKey:["tuition-booking",session.account.id,"PLACEMENT",selected]});
   }
   const decision = useDecision(
       session,
@@ -130,7 +140,7 @@ export function PlacementCare({
             typeof r.request === "object" &&
             "id" in r.request)),
     ),
-    locked = decision.locked || !!action,
+    locked = decision.locked || !!action || monthlyLocked,
     permitted =
       session.account.verified && !!d.consent && !d.consent.withdrawnAt;
   useEffect(() => {
@@ -140,7 +150,7 @@ export function PlacementCare({
     }
   }, [linkedPlacement, locked, d.placements]);
   function begin(value: "close" | "replace") {
-    if (!p || decision.locked || action) return;
+    if (!p || decision.locked || action || monthlyLocked) return;
     setAction(value);
     setReview(false);
     setAgreed(false);
@@ -335,7 +345,7 @@ export function PlacementCare({
                   —{" "}
                   {d.teachers?.find((t) => t.id === x.teacherId)?.name ||
                     appText("Teacher {0}", [x.teacherId.slice(0, 8)])}{" "}
-                  — {appText(labels[x.status]) || x.status}
+                  — {arrangementLabel(x)}
                 </option>
               ))}
             </select>
@@ -356,9 +366,7 @@ export function PlacementCare({
             <LayeredSummaryCard className="placement-summary" header={
               <div className="placement-summary-heading">
                 <div>
-                  <span className="care-status">
-                    {appText(labels[p.status]) || p.status}
-                  </span>
+                  <StatusBadge label={arrangementLabel(p)} tone={booking?.confirmed||p.status==="ACTIVE"?"success":"neutral"} icon={CalendarCheck}/>
                   <h3>
                     {d.children?.find((c) => c.id === p.childId)?.alias ||
                       appText("Learner")}
@@ -408,6 +416,7 @@ export function PlacementCare({
                       disabled={
                         !permitted ||
                         decision.locked ||
+                        monthlyLocked ||
                         !source ||
                         !!requests.error
                       }
@@ -416,7 +425,7 @@ export function PlacementCare({
                       {appText("Request a replacement")}{" "}
                     </FilterButton>
                     <FilterButton
-                      disabled={!permitted || decision.locked}
+                      disabled={!permitted || decision.locked || monthlyLocked}
                       onClick={() => begin("close")}
                     >
                       {appText("Close arrangement")}{" "}
@@ -431,6 +440,7 @@ export function PlacementCare({
               </dl>
               {timingRecord.isFetching && <p role="status">{appText("Loading agreed time\u2026")}</p>}
               {timingRecord.error && <Notice error>{appText("Agreed time could not be loaded. Refresh before relying on the timing.")} <RefreshButton label={appText("Refresh agreed time")} disabled={timingRecord.isFetching} onClick={() => timingRecord.refetch()}/></Notice>}
+              {timingReadable&&<MonthlyHiring key={p.id} session={session} kind="PLACEMENT" id={p.id} disabled={decision.locked||!!action||!permitted} onLockChange={setMonthlyLocked}/>}
               <Link className="inline-link placement-summary-support" href={`/support?placement=${p.id}`}>{appText("Help and case progress for this arrangement")}</Link>
             </LayeredSummaryCard>
           )}

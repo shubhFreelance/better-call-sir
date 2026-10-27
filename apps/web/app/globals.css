@@ -6850,3 +6850,6 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .tuition-arrangement-card>.layered-summary-card-header {padding:16px 20px;}
 .hiring-records:has(.hiring-arrangements-panel[data-state="active"]) {padding:24px;}
 @media(max-width:600px){.hiring-records:has(.hiring-arrangements-panel[data-state="active"]) {padding:16px;}.tuition-arrangement-card>.layered-summary-card-header {padding:16px;}}
+.placement-summary-heading .status-badge {grid-column:2;grid-row:1;max-width:260px;white-space:normal;font-size:11px;}
+.placement-summary .monthly-hiring {margin-top:20px;}
+@media(max-width:640px){.placement-summary-heading .status-badge {grid-column:1;grid-row:auto;justify-self:start;}}

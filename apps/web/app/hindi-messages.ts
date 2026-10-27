@@ -1,5 +1,6 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Terms agreed": "शर्तों पर सहमति हो गई है",
   "Classes started": "कक्षाएँ शुरू हो गई हैं",
   "Based on recorded teaching commencement or a class completion reported by the teacher.": "दर्ज शिक्षण प्रारंभ या शिक्षक द्वारा पूरी दर्ज की गई कक्षा पर आधारित।",
   "Tuition months": "ट्यूशन के महीने",
