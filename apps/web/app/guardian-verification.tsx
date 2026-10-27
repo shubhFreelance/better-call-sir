@@ -1,4 +1,5 @@
 "use client";
+import {StepProgress} from "../components/ui/step-progress";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -573,28 +574,7 @@ function VerificationProgress({
               appText(verificationSteps[step][0]),
             ])}
       </p>
-      <ol aria-label={appText("Guardian verification steps")}>
-        {verificationSteps.map(([label], index) => (
-          <li
-            key={label}
-            data-state={
-              stopped
-                ? "paused"
-                : index < step
-                  ? "complete"
-                  : index === step
-                    ? "current"
-                    : "upcoming"
-            }
-            aria-current={!stopped && index === step ? "step" : undefined}
-          >
-            <span className="verification-step-marker" aria-hidden="true">
-              {!stopped && index < step ? "✓" : index + 1}
-            </span>
-            <strong>{appText(label)}</strong>
-          </li>
-        ))}
-      </ol>
+      <StepProgress steps={verificationSteps.map(([label])=>appText(label))} currentStep={stopped?null:step} label={appText("Guardian verification steps")}/>
       {!stopped && (
         <p className="verification-step-hint" key={step}>
           {appText(verificationSteps[step][1])}

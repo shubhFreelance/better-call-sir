@@ -5,6 +5,7 @@ import {useRouter} from "next/navigation";
 import {api,type Session} from "@bcs/api-client";
 import {Link2,KeyRound,Check,LoaderCircle} from "lucide-react";
 import {FilterButton,FilterButtonGroup} from "../components/ui/filter-button";
+import {StepProgress} from "../components/ui/step-progress";
 import {InfoTooltip} from "../components/ui/info-tooltip";
 import {Input} from "../components/ui/input";
 import {EmailLogin} from "./email-login";
@@ -19,7 +20,7 @@ export function StudentInvitationSignup({session,onSessionChange,hindi,onLanguag
  return <main className="container narrow section"><section className="student-invitation-signup" aria-labelledby="student-invitation-title">
  <header className="invitation-signup-header"><span className="invitation-signup-icon"><Link2 size={26} aria-hidden="true"/></span><div><h1 id="student-invitation-title">{appText("Join your guardian’s learning profile")}</h1><p>{appText("Connect your invitation to your own student account.")}</p></div><InfoTooltip label={appText("About your student invitation")} items={[appText("Invitation code → your own email → linked student dashboard. Your guardian does not need to create another child profile.")]}/></header>
  <div className="invitation-signup-body">
- <ol className="invitation-signup-progress" aria-label={appText("Invitation setup")}>{["Invitation code","Your own email","Student dashboard"].map((label,index)=><li key={label} data-active={step===index} aria-current={step===index?"step":undefined}><span aria-hidden="true">{index<step?<Check size={14}/>:index+1}</span>{appText(label)}</li>)}</ol>
+ <StepProgress steps={[appText("Invitation code"),appText("Your own email"),appText("Student dashboard")]} currentStep={step} label={appText("Invitation setup")}/>
  {!checked?<form className="invitation-code-form" onSubmit={e=>{e.preventDefault();check();}}>
  <div className="invitation-code-entry"><div className="invitation-code-label"><KeyRound size={18} aria-hidden="true"/><label htmlFor="student-join-code">{appText("Invitation code")}</label></div><Input id="student-join-code" type="password" autoComplete="off" maxLength={100} required value={token} disabled={busy} onChange={e=>setToken(e.target.value)}/><p>{appText("Enter the private code shared by your guardian.")}</p></div>
  <FilterButtonGroup><FilterButton accent disabled={busy||!token.trim()} type="submit">{busy&&<LoaderCircle size={16} className="invitation-check-spinner" aria-hidden="true"/>}{appText("Check my invitation")}</FilterButton>{signIn}</FilterButtonGroup>

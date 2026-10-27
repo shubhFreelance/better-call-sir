@@ -5667,16 +5667,6 @@ body:has(.guardian-verification-page) { background:#FFFFEB; }
 }
 .guardian-verification-editor .verification-progress { display: block; padding: 0 0 24px; margin: 0 0 28px; border-bottom: 1px solid #DADAD0; }
 .verification-progress-status { font-size: 14px; font-weight: 750; color: #000000; margin: 0 0 24px; }
-.verification-progress ol { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); list-style: none; margin: 0; padding: 0; gap: 0; }
-.verification-progress li { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-width: 0; padding-right: 12px; color: #62625B; }
-.verification-progress li:not(:last-child)::before { content: ""; position: absolute; top: 17px; left: 18px; width: 100%; height: 2px; background: #DADAD0; transition: background-color 350ms ease; }
-.verification-progress li[data-state=complete]::before { background: #034F46; }
-.verification-step-marker { position: relative; z-index: 1; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; border: 1px solid #C5C5BB; background: #F4F4EC; color: #55554D; font-size: 14px; font-weight: 750; transition: color 250ms ease, background-color 250ms ease, border-color 250ms ease; }
-.verification-progress li strong { font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; font-weight: 600; }
-.verification-progress li[data-state=complete] .verification-step-marker { color: #FFFFFF; background: #034F46; border-color: #034F46; }
-.verification-progress li[data-state=current] { color: #000000; }
-.verification-progress li[data-state=current] strong { font-weight: 800; }
-.verification-progress li[data-state=current] .verification-step-marker { color: #FFFFFF; background: #000000; border-color: #000000; box-shadow: 0 0 0 5px #F4F4EC; animation: verification-arrive 500ms ease-out; }
 .verification-step-hint { padding: 16px 18px; margin: 24px 0 0; border-radius: 10px; background: #F4F4EC; color: #393932; font-size: 14px; line-height: 1.7; animation: verification-hint 250ms ease-out; }
 .guardian-verification-editor .guardian-management-option:has(input:checked) { background: #F4F4EC; border: 1px solid #034F46; }
 .guardian-verification-editor .staff-summary { display: grid; grid-template-columns: minmax(140px,1fr) minmax(0,2fr); gap: 14px 24px; padding: 24px; background: #F4F4EC; }
@@ -5700,14 +5690,8 @@ body:has(.guardian-verification-page) { background:#FFFFEB; }
 .guardian-verification-editor button { min-height: 44px; }
 .guardian-verification-editor form > fieldset { padding: 20px; background: #F4F4EC; border-radius: 12px; }
 .guardian-verification-editor form > .guardian-verification-fields { padding: 0; background: transparent; }
-@keyframes verification-arrive { from { box-shadow: 0 0 0 0 #DADAD0; transform: scale(.9); } to { box-shadow: 0 0 0 5px #F4F4EC; transform: scale(1); } }
 @keyframes verification-hint { from { opacity: .4; } to { opacity: 1; } }
 @media(max-width:640px) {
-  .verification-progress ol { grid-template-columns: repeat(2,minmax(0,1fr)); row-gap: 20px; }
-  .verification-progress li { flex-direction: row; gap: 10px; align-items: center; padding-right: 10px; }
-  .verification-progress li::before { display: none; }
-  .verification-step-marker { flex-shrink: 0; width: 30px; height: 30px; }
-  .verification-progress li strong { font-size: 12px; }
   .guardian-verification-editor .staff-summary { grid-template-columns: minmax(0,1fr); gap: 6px; padding: 18px; }
   .guardian-verification-editor .staff-summary dd:not(:last-child) { margin-bottom: 12px; }
   .guardian-verification-editor .guardian-evidence-step { padding: 18px; }
@@ -6725,10 +6709,10 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .student-invitation-signup .invitation-signup-header p {margin:8px 0 0;font-size:12px;line-height:1.7;color:#FCFEEB;}
 .invitation-signup-header .info-tooltip-trigger {color:#F0D7FF;flex-shrink:0;}
 .invitation-signup-body {padding:26px;display:grid;gap:24px;}
-.invitation-signup-progress {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));list-style:none;margin:0;padding:5px;gap:5px;border-radius:12px;background:#EEF5F3;}
-.invitation-signup-progress li {display:flex;align-items:center;gap:8px;padding:10px;border-radius:9px;font-size:12px;line-height:1.5;}
-.invitation-signup-progress li[data-active=true] {background:#F0D7FF;font-weight:650;}
-.invitation-signup-progress li>span {display:grid;place-items:center;flex-shrink:0;width:22px;height:22px;border:1px solid #CDD8D1;border-radius:50%;font-size:11px;}
+.step-progress {display:grid;grid-template-columns:repeat(var(--step-count),minmax(0,1fr));list-style:none;margin:0;padding:5px;gap:5px;border-radius:12px;background:#EEF5F3;}
+.step-progress li {display:flex;align-items:center;gap:8px;padding:10px;border-radius:9px;font-size:12px;line-height:1.5;}
+.step-progress li[data-active=true] {background:#F0D7FF;font-weight:650;}
+.step-progress li>span {display:grid;place-items:center;flex-shrink:0;width:22px;height:22px;border:1px solid #CDD8D1;border-radius:50%;font-size:11px;}
 .invitation-code-form,.invitation-link-confirmation {display:grid;gap:24px;}
 .invitation-code-entry {padding:20px;border:1px solid #E4E4D0;border-radius:16px;background:#FFFFEB;}
 .invitation-code-label {display:flex;align-items:center;gap:8px;margin-bottom:12px;}
@@ -6743,8 +6727,17 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .invitation-signup-error {margin:0;padding:14px 16px;border:1px solid #F0C9C9;border-radius:12px;background:#FFF4F2;color:#8D2727;font-size:12px;line-height:1.7;}
 .invitation-check-spinner {animation:invitation-check-spin 1s linear infinite;}
 @keyframes invitation-check-spin {to{transform:rotate(360deg);}}
-@media(max-width:600px){.invitation-signup-header {padding:20px;flex-wrap:wrap;gap:12px;}.invitation-signup-icon {width:42px;height:42px;border-radius:12px;}.student-invitation-signup .invitation-signup-header h1 {font-size:22px;}.invitation-signup-header>div {flex-basis:calc(100% - 66px);}.invitation-signup-header>.info-tooltip-trigger {margin-left:auto;}.invitation-signup-body {padding:18px;gap:18px;}.invitation-signup-progress li {flex-direction:column;justify-content:flex-start;text-align:center;font-size:11px;padding:8px 4px;}.invitation-code-entry {padding:16px;}}
+@media(max-width:600px){.invitation-signup-header {padding:20px;flex-wrap:wrap;gap:12px;}.invitation-signup-icon {width:42px;height:42px;border-radius:12px;}.student-invitation-signup .invitation-signup-header h1 {font-size:22px;}.invitation-signup-header>div {flex-basis:calc(100% - 66px);}.invitation-signup-header>.info-tooltip-trigger {margin-left:auto;}.invitation-signup-body {padding:18px;gap:18px;}.invitation-code-entry {padding:16px;}}
 @media(prefers-reduced-motion:reduce){.invitation-check-spinner {animation:none;}}
 
 .invitation-signup-header {position:relative;}
 @media(max-width:600px){.invitation-signup-header>.info-tooltip-trigger {position:absolute;right:12px;top:12px;width:32px;height:32px;margin:0;}.invitation-signup-header>div {padding-right:22px;}}
+
+.step-progress {color:#034F46;}
+.step-progress li {min-width:0;}
+.step-progress-marker {background:transparent;}
+.step-progress li[data-state=complete]>.step-progress-marker {background:#034F46;color:#FCFEEB;border-color:#034F46;}
+.verification-progress-status {margin-bottom:16px;color:#034F46;font-size:13px;}
+.verification-step-hint {font-size:12px;margin-top:16px;}
+@media(max-width:1000px){.step-progress[data-many=true] {grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:600px){.step-progress li {flex-direction:column;justify-content:flex-start;text-align:center;font-size:11px;padding:8px 4px;}.step-progress[data-many=true] {grid-template-columns:repeat(2,minmax(0,1fr));}.step-progress[data-many=true] li {flex-direction:row;align-items:center;text-align:left;padding:10px 8px;}}
