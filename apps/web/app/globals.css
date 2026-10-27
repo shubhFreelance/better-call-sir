@@ -6930,3 +6930,13 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .guardian-student-access-options span { color: #344A43; }
 .guardian-student-access-options li > [data-slot="button"] { display: flex; width: fit-content; margin-top: 12px; font-size: 12px; }
 .invitation-recovery { scroll-margin-top: 24px; }
+.ongoing-subject-tuition { display:flex; align-items:center; gap:16px; margin:18px 0; padding:20px; border:1px solid #D7E4DF; border-radius:14px; background:#EEF5F3; color:#034F46; }
+.ongoing-subject-icon { display:grid; place-items:center; flex-shrink:0; width:44px; height:44px; border-radius:12px; background:#FFF; }
+.ongoing-subject-tuition > div { flex:1; min-width:0; }
+.ongoing-subject-tuition h3 { margin:0; font-size:17px; font-weight:700; line-height:1.4; }
+.ongoing-subject-tuition p { margin:5px 0 0; color:#52655F; font-size:12px; line-height:1.65; }
+.ongoing-subject-tuition > [data-slot=button] { min-height:44px; font-size:12px; background:#FFF; color:#034F46; }
+.ongoing-subject-tuition > [data-slot=button]:hover { background:#F0D7FF; border-color:#DAB5EE; }
+.ongoing-subject-loading,.ongoing-subject-error { margin:14px 0; color:#52655F; font-size:12px; }
+.ongoing-subject-error { display:flex; align-items:center; gap:12px; }
+@media(max-width:600px){.ongoing-subject-tuition {flex-wrap:wrap; align-items:flex-start; padding:16px; gap:12px;}.ongoing-subject-tuition > [data-slot=button] {width:100%;}.ongoing-subject-tuition h3 {font-size:15px;}}

@@ -28,6 +28,7 @@ import { StudentSupporters, StudentDevices } from "./independent-access";
 import { GuardianPriorities } from "./guardian-priorities";
 import { LiveBell } from "./live-bell";
 import { DirectEnquiries } from "./direct-enquiries";
+import { OngoingSubjectTuition } from "./ongoing-subject-tuition";
 import { GuardianLearners } from "./guardian-learners";
 import {
   StudentArrangements,
@@ -1332,6 +1333,7 @@ function Teachers() {
           {!interactive && (
             <p role="status">{appText("Preparing teacher search…")}</p>
           )}
+          {canSearch && !exploring && session && learnerSearch.learner && effectiveSubject && <OngoingSubjectTuition session={session} learnerId={learnerSearch.learner.id} learnerName={learnerSearch.learner.alias} subject={effectiveSubject} />}
           {canSearch && <><div className="results-heading">
             <span role="status" ref={resultSummary} tabIndex={-1}>
               {query.isPending

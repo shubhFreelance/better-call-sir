@@ -1,5 +1,12 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Checking ongoing tuition…": "चल रही ट्यूशन की जाँच हो रही है…",
+  "Ongoing tuition could not be checked.": "चल रही ट्यूशन की जाँच नहीं हो सकी।",
+  "Retry ongoing tuition check": "चल रही ट्यूशन की दोबारा जाँच करें",
+  "Ongoing tuition for this subject": "इस विषय की चल रही ट्यूशन",
+  "1 class is ongoing for {0}": "{0} की 1 कक्षा चल रही है",
+  "{1} classes are ongoing for {0}": "{0} की {1} कक्षाएँ चल रही हैं",
+  "{0} already has started tuition for this subject. You can review it or continue exploring teachers.": "{0} की इस विषय की ट्यूशन शुरू हो चुकी है। आप उसे देख सकते हैं या अन्य शिक्षक खोज सकते हैं।",
   "Review the learning brief before showing interest.": "रुचि जताने से पहले पढ़ाई की ज़रूरतें देखें।",
   "No student enquiries yet": "अभी विद्यार्थी की कोई पूछताछ नहीं है",
   "Keep your teaching coverage and availability up to date for new opportunities.": "नए अवसरों के लिए अपने पढ़ाने के विषय और उपलब्ध समय अद्यतन रखें।",
