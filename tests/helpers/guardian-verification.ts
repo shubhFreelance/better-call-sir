@@ -309,12 +309,12 @@ async function setup(
     if (options.readFailure) fail = true;
     return route.fulfill({ status: 201, json: value });
   });
-  await page.goto("/guardian-verification");
+  await page.goto(role === "STUDENT" ? "/guardian-verification?view=student" : "/guardian-verification");
   await expect(
     page.getByRole("heading", {
       name: options.mfaPending
         ? "Protect your staff access."
-        : "Guardian verification",
+        : role === "STUDENT" ? "Confirm your guardian" : "Guardian verification",
       exact: true,
     }),
   ).toBeVisible();
@@ -381,6 +381,15 @@ async function staffFields(page: Page) {
     .check();
 }
 export function guardianVerificationTests() {
+  for(const [width,hindi] of [[1440,false],[360,true]] as const) test(`student guardian relationship uses compact cards (${width}px)`,async({page})=>{
+    const f=await setup(page,{role:"STUDENT",status:"PENDING"});if(hindi)await page.getByRole("button",{name:"Switch English and Hindi",exact:true}).click();await page.setViewportSize({width,height:1000});const t=(text:string)=>hindi?hindiMessages[text]||text:text;
+    const panel=page.locator(".guardian-acknowledgment"),card=panel.locator(".guardian-relationship-card"),button=card.getByRole("button",{name:t("Review guardian relationship"),exact:true});
+    await expect(panel).toHaveCSS("background-color","rgb(255, 255, 255)");await expect(panel.locator("h2")).toHaveCSS("font-size",width>640?"22px":"20px");await expect(card).toHaveCSS("background-color","rgb(255, 255, 235)");await expect(card.locator(".status-badge")).toHaveText(t("Pending staff review"));await expect(card).toContainText("Synthetic Guardian");await expect(card).toContainText("Synthetic Learner");
+    const info=await card.locator("div").first().boundingBox(),action=await button.boundingBox();if(width>640)expect(action!.x).toBeGreaterThan(info!.x+info!.width);else expect(action!.y).toBeGreaterThan(info!.y+info!.height);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include(".guardian-acknowledgment").analyze()).violations).toEqual([]);await panel.screenshot({path:`test-results/guardian-relationship-card-${width}.png`,style:"nextjs-portal{display:none!important}"});
+    await button.click();await expect(panel.getByRole("region",{name:t("Review guardian relationship"),exact:true})).toBeVisible();expect(f.writes).toHaveLength(0);
+  });
+
   for(const [width,hindi] of [[1440,false],[390,false],[320,true]] as const) {
     test(`guardian verification overview uses themed cards and tooltips (${width}px)`,async({page})=>{
       const f=await setup(page,{empty:true});if(hindi) await page.getByRole("button",{name:"Switch English and Hindi",exact:true}).click();await page.setViewportSize({width,height:1000});

@@ -17,8 +17,9 @@ import { useHistory, HistoryPages } from "./history";
 import { Feedback, Notice, useDecision } from "./tuition-workflow";
 import { InfoTooltip } from "../components/ui/info-tooltip";
 import { LearningManagementBadge } from "../components/ui/learning-management-badge";
+import { StatusBadge } from "../components/ui/status-controls";
 import { GuardianDocumentPreview } from "./guardian-document-preview";
-import { LoaderCircle, UploadCloud } from "lucide-react";
+import { Info, LoaderCircle, UploadCloud } from "lucide-react";
 type Child = components["schemas"]["Child"];
 type Verification = components["schemas"]["GuardianVerification"];
 type Application = components["schemas"]["GuardianVerificationInput"];
@@ -1200,7 +1201,7 @@ function StudentAcknowledgments({
       <h2 ref={heading} tabIndex={-1}>
         {appText("Your guardian relationship")}
       </h2>
-      <p>
+      <p className="guardian-relationship-guidance">
         {appText(
           "Only acknowledge someone you recognize as your guardian. You can decline a relationship that is wrong.",
         )}
@@ -1233,7 +1234,7 @@ function StudentAcknowledgments({
       ) : (
         <>
           {history.data?.items.map((r) => (
-            <article className="staff-person" key={r.id}>
+            <article className="staff-person guardian-relationship-card" key={r.id}>
               <div>
                 <strong>
                   {r.status === "DELETED"
@@ -1244,11 +1245,10 @@ function StudentAcknowledgments({
                   {r.status === "DELETED"
                     ? appText("Deleted learner")
                     : r.learnerName}{" "}
-                  · {appText(statuses[r.status])}
                 </p>
               </div>
-              <Button
-                variant="outline"
+              <StatusBadge label={appText(statuses[r.status])} tone="neutral" icon={Info}/>
+              <FilterButton
                 disabled={!!selected || decision.locked}
                 onClick={() => {
                   setSelected(r);
@@ -1257,7 +1257,7 @@ function StudentAcknowledgments({
                 }}
               >
                 {appText("Review guardian relationship")}
-              </Button>
+              </FilterButton>
             </article>
           ))}
           <HistoryPages
