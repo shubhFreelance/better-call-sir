@@ -1,5 +1,5 @@
 "use client";
-import { MonthlyHiring } from "./monthly-hiring";
+import { TuitionArrangementCard } from "./monthly-hiring";
 import { InfoTooltip } from "../components/ui/info-tooltip";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { TeacherDashboardProfile } from "./teacher-dashboard-profile";
@@ -493,26 +493,7 @@ export function HiringOverview({ session }: { session: Session }) {
                     ) : (
                       <div className="hiring-card-grid">
                         {data.arrangements.map((p) => (
-                          <article
-                            className="care-card hiring-record"
-                            key={p.id}
-                            aria-label={appText("{0} arrangement with {1}", [
-                              p.subject,
-                              p.teacher.name,
-                            ])}
-                          >
-                            <div className="hiring-section-heading">
-                              <h4>{p.teacher.name}</h4>
-
-                            </div>
-                            <p>
-                              {appCurriculum(p.subject)} ·{" "}
-                              {p.mode === "HOME"
-                                ? appText("At home")
-                                : appText("Online")}{" "}
-                              · {p.learner.alias}
-                            </p>
-                            <MonthlyHiring session={session} kind="PLACEMENT" id={p.id} disabled={!!selected||decision.locked||!!query.error||query.isFetching||!!monthlyLockedId&&monthlyLockedId!==p.id} onLockChange={monthlyLock}/>
+                          <TuitionArrangementCard key={p.id} session={session} kind="PLACEMENT" id={p.id} title={p.teacher.name} subtitle={<>{appCurriculum(p.subject)} · {p.mode === "HOME" ? appText("At home") : appText("Online")} · {p.learner.alias}</>} disabled={!!selected||decision.locked||!!query.error||query.isFetching||!!monthlyLockedId&&monthlyLockedId!==p.id} onLockChange={monthlyLock} footer={
                             <details className="hiring-support"><summary>{appText("Support and existing records")}</summary>
                             <Link
                               className="inline-link"
@@ -536,8 +517,8 @@ export function HiringOverview({ session }: { session: Session }) {
                                 {appText("Support or replacement")}{" "}
                               </Link>
                             )}
-                            </details>
-                          </article>
+                            </details>                          }/>
+
                         ))}
                       </div>
                     )}

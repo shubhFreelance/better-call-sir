@@ -1,5 +1,11 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Tuition months": "ट्यूशन के महीने",
+  "Tuition recorded": "ट्यूशन दर्ज है",
+  "Lavender months have recorded tuition.": "लैवेंडर रंग वाले महीनों में ट्यूशन दर्ज है।",
+  "Monthly class records": "महीने की कक्षाओं का रिकॉर्ड",
+  "Classes recorded complete: {0}": "{0} कक्षाएँ पूरी दर्ज हैं",
+  "No tuition is recorded for this month.": "इस महीने के लिए कोई ट्यूशन दर्ज नहीं है।",
   "Edit requested availability": "माँगी गई उपलब्धता बदलें",
   "Date from the family request": "परिवार के अनुरोध की तारीख",
   "Edit the family's requested rows. No extra dates or time ranges will be added.": "परिवार की दी गई समय-सूची में बदलाव करें। नई तारीख या अतिरिक्त समय नहीं जोड़ा जाएगा।",

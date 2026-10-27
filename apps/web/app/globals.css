@@ -6808,3 +6808,35 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .proposal-calendar-fields select {width:100%;min-height:44px;padding:10px;border:1px solid #D8E3DB;border-radius:10px;background:white;font-size:13px;}
 .proposal-calendar-fields strong {font-size:13px;font-weight:600;}
 .proposal-calendar-fields small {display:block;margin-top:6px;font-size:11px;color:#52655F;}
+.tuition-arrangement-card {margin:0;background:#fff;}
+.tuition-arrangement-card>.layered-summary-card-header {display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;cursor:pointer;list-style:none;transition:background .18s;}
+.tuition-arrangement-card>.layered-summary-card-header::-webkit-details-marker {display:none;}
+.tuition-arrangement-card>.layered-summary-card-header:hover {background:#F8EDFF;}
+.tuition-arrangement-card>.layered-summary-card-header h4 {margin:0;font-size:17px;font-weight:700;line-height:1.4;}
+.tuition-arrangement-card>.layered-summary-card-header p {margin:5px 0 0;font-size:12px;line-height:1.6;}
+.tuition-arrangement-card>.layered-summary-card-header>svg {flex-shrink:0;transition:transform .2s;}
+.tuition-arrangement-card[open]>.layered-summary-card-header>svg {transform:rotate(180deg);}
+.tuition-arrangement-card>.layered-summary-card-body {padding:16px;}
+.tuition-arrangement-card>.layered-summary-card-footer {padding:14px 20px;font-size:12px;}
+.student-candidate-list>.student-arrangement-item {padding:0;border:0;background:transparent;}
+.class-calendar {max-width:440px;margin:16px auto;padding:16px;}
+.class-calendar-year {display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;font-weight:600;margin:12px 0;}
+.class-calendar-year select {width:120px;flex:0 0 120px;min-height:40px;padding:8px 12px;border:1px solid #D8E3DB;border-radius:10px;background:white;color:#034F46;font:inherit;cursor:pointer;}
+.class-calendar-months {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.class-calendar-months button {position:relative;min-height:44px;border:1px solid #D8E3DB;border-radius:10px;background:#fff;color:#034F46;font:inherit;font-size:12px;cursor:pointer;transition:background .18s,transform .18s;}
+.class-calendar-months button.has-tuition {background:#F0D7FF;border-color:#DAB5EE;font-weight:700;}
+.class-calendar-months button:hover:not(:disabled) {background:#F8EDFF;transform:translateY(-2px);}
+.class-calendar-months button[aria-expanded=true] {outline:2px solid #034F46;outline-offset:1px;}
+.class-calendar-months button:focus-visible,.class-calendar-year select:focus-visible {outline:2px solid #034F46;outline-offset:3px;}
+.class-month-dot {display:inline-block;width:5px;height:5px;border-radius:50%;background:#034F46;margin-left:5px;vertical-align:middle;}
+.class-calendar .class-month-legend {font-size:11px;margin:12px 0 0;}
+.class-month-detail {margin-top:16px;padding:14px 10px;border:1px solid #D8E3DB;border-radius:12px;background:white;animation:class-month-reveal .24s ease-out;}
+.class-month-detail>header {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px;}
+.class-month-detail h5 {margin:0;font-size:14px;font-weight:700;}
+.class-month-detail>header strong {padding:5px 8px;border-radius:7px;background:#F8EDFF;font-size:11px;font-weight:600;}
+.class-month-detail>p {font-size:12px;line-height:1.6;}
+.class-month-detail .class-calendar-grid {gap:5px;}
+.class-month-detail .class-calendar-grid button {min-height:36px;font-size:12px;}
+@keyframes class-month-reveal {from {opacity:0;transform:translateY(8px);}to {opacity:1;transform:translateY(0);}}
+@media(max-width:600px){.class-calendar {margin:14px;max-width:none;}.tuition-arrangement-card>.layered-summary-card-body {padding:10px;}.class-calendar-months {grid-template-columns:repeat(3,minmax(0,1fr));}.class-month-detail {padding:12px 6px;}}
+@media(prefers-reduced-motion:reduce){.class-month-detail {animation:none;}.class-calendar-months button,.tuition-arrangement-card>.layered-summary-card-header,.tuition-arrangement-card>.layered-summary-card-header>svg {transition:none;}}

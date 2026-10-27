@@ -1,9 +1,10 @@
 "use client";
-import {useEffect,useState} from "react";
+import {useEffect,useState,useId,useCallback,type ReactNode} from "react";
 import Link from "next/link";
 import {useQuery,useQueryClient} from "@tanstack/react-query";
 import {api,type paths,type Session} from "@bcs/api-client";
-import {CalendarDays,Check,Clock3,LockKeyhole} from "lucide-react";
+import {CalendarDays,Check,ChevronDown,Clock3,LockKeyhole} from "lucide-react";
+import {LayeredSummaryCard} from "../components/ui/layered-summary-card";
 import {FilterButton,FilterButtonGroup} from "../components/ui/filter-button";
 import {InfoTooltip} from "../components/ui/info-tooltip";
 import {Input} from "../components/ui/input";
@@ -14,6 +15,13 @@ import {useAppTranslation} from "./locale";
 import {Feedback,useDecision} from "./tuition-workflow";
 
 type Booking=paths["/tuition-bookings/{kind}/{id}"]["get"]["responses"][200]["content"]["application/json"];
+export function TuitionArrangementCard({title,subtitle,footer,onLockChange,...props}:{title:ReactNode;subtitle:ReactNode;footer:ReactNode;session:Session;kind:"PLACEMENT"|"INDEPENDENT";id:string;disabled?:boolean;onLockChange?:(locked:boolean,id:string)=>void}){
+ const [locked,setLocked]=useState(false);
+ const lock=useCallback((value:boolean,id:string)=>{setLocked(value);onLockChange?.(value,id);},[onLockChange]);
+ return <LayeredSummaryCard collapsible className="tuition-arrangement-card" aria-label={typeof title==='string'?title:undefined} onClick={event=>{if(locked&&(event.target as HTMLElement).closest('summary')===event.currentTarget.firstElementChild)event.preventDefault();}} header={<><div><h4>{title}</h4><p>{subtitle}</p></div><ChevronDown size={18} aria-hidden="true"/></>} footer={footer}>
+  <MonthlyHiring {...props} onLockChange={lock}/>
+ </LayeredSummaryCard>;
+}
 export function MonthlyHiring({session,kind,id,disabled=false,onLockChange}:{session:Session;kind:"PLACEMENT"|"INDEPENDENT";id:string;disabled?:boolean;onLockChange?:(locked:boolean,id:string)=>void}){
  const {appText,appError,appLocale}=useAppTranslation(),client=useQueryClient();
  const [month,setMonth]=useState(""),[ack,setAck]=useState(false),[date,setDate]=useState<string|null>(null),[completionAck,setCompletionAck]=useState(false);
@@ -52,17 +60,31 @@ export function MonthlyHiring({session,kind,id,disabled=false,onLockChange}:{ses
 }
 
 function ClassCompletionCalendar({data,disabled,onSelect}:{data:Booking;disabled:boolean;onSelect:(date:string)=>void}){
- const {appText,appLocale}=useAppTranslation(),[year,month]=data.month.split('-').map(Number),days=new Date(Date.UTC(year,month,0)).getUTCDate(),offset=(new Date(Date.UTC(year,month-1,1)).getUTCDay()+6)%7;
+ const {appText,appLocale}=useAppTranslation(),[year,setYear]=useState(Number(data.month.slice(0,4))),[selectedMonth,setSelectedMonth]=useState<string|null>(null),panelId=useId();
+ const month=selectedMonth?Number(selectedMonth.slice(5,7)):1,days=new Date(Date.UTC(year,month,0)).getUTCDate(),offset=(new Date(Date.UTC(year,month-1,1)).getUTCDay()+6)%7;
+ const recordedMonth=selectedMonth===data.month,completed=recordedMonth&&data.proActive?data.completions.filter(row=>row.completed).length:0;
+ const lastYear=Math.max(new Date().getFullYear(),Number(data.month.slice(0,4)))+1;
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata'}).format(new Date());
  const weekdays=Array.from({length:7},(_,index)=>new Intl.DateTimeFormat(appLocale,{weekday:'short',timeZone:'UTC'}).format(new Date(Date.UTC(2024,0,index+1))));
  return <section className={"class-calendar"+(!data.proActive?" class-calendar-locked":"")} aria-label={appText("Class completion calendar")}>
   <div className="class-calendar-heading"><h4>{appText("Class tracking")}</h4><StatusBadge label="Pro" tone="accent" icon={data.proActive?CalendarDays:LockKeyhole}/><InfoTooltip label={appText("About class tracking")} items={[appText("Lavender dates show classes recorded as completed by the teacher. This is not independent attendance or payment evidence."),appText("Dates follow the actual calendar month. Future dates cannot be marked complete.")]}/></div>
   {!data.proActive&&<p>{appText("An active Pro membership is required to track completed classes.")}</p>}
+  <label className="class-calendar-year">{appText("Year")}<select aria-label={appText("Year")} value={year} disabled={disabled} onChange={event=>{setYear(Number(event.target.value));setSelectedMonth(null);}}>{Array.from({length:lastYear-Math.min(2020,Number(data.month.slice(0,4)))+1},(_,i)=>lastYear-i).map(value=><option key={value} value={value}>{value}</option>)}</select></label>
+  <div className="class-calendar-months" role="group" aria-label={appText("Tuition months")}>
+   {Array.from({length:12},(_,index)=>{const value=`${year}-${String(index+1).padStart(2,'0')}`,active=value===data.month;return <button type="button" key={value} disabled={disabled} className={active?"has-tuition":""} aria-label={new Intl.DateTimeFormat(appLocale,{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(value+'-01T00:00:00Z'))} aria-expanded={selectedMonth===value} aria-controls={panelId} onClick={()=>setSelectedMonth(selectedMonth===value?null:value)}>{new Intl.DateTimeFormat(appLocale,{month:'short',timeZone:'UTC'}).format(new Date(value+'-01T00:00:00Z'))}{active&&<span className="class-month-dot" aria-label={appText("Tuition recorded")}/>}</button>;})}
+  </div>
+  <p className="class-month-legend">{appText("Lavender months have recorded tuition.")}</p>
+  <div id={panelId} hidden={!selectedMonth}>
+  {selectedMonth&&<section className="class-month-detail" key={selectedMonth} aria-label={appText("Monthly class records")}>
+  <header><h5>{new Intl.DateTimeFormat(appLocale,{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(selectedMonth+'-01T00:00:00Z'))}</h5>{data.proActive&&<strong>{appText("Classes recorded complete: {0}",[String(completed)])}</strong>}</header>
+  {!recordedMonth&&<p>{appText("No tuition is recorded for this month.")}</p>}
   <div className="class-calendar-grid" role="group" aria-label={appText("Class completion calendar")}>
    {weekdays.map((day,index)=><span className="class-calendar-weekday" key={index}>{day}</span>)}
    {Array.from({length:offset},(_,index)=><span aria-hidden="true" key={"blank"+index}/>)}
-   {Array.from({length:days},(_,index)=>{const date=`${data.month}-${String(index+1).padStart(2,'0')}`,done=data.proActive&&data.completions.some(row=>row.date===date&&row.completed);return <button key={date} type="button" className={done?"is-completed":""} disabled={disabled||!data.canMarkCompleted||date>today} aria-label={appText("{0}: {1}",[new Intl.DateTimeFormat(appLocale,{dateStyle:'full',timeZone:'UTC'}).format(new Date(date+'T00:00:00Z')),appText(done?"Completed":"Not recorded")])} aria-pressed={done} onClick={()=>onSelect(date)}><span>{index+1}</span>{done&&<Check size={12} aria-hidden="true"/>}</button>;})}
+   {Array.from({length:days},(_,index)=>{const date=`${selectedMonth}-${String(index+1).padStart(2,'0')}`,done=recordedMonth&&data.proActive&&data.completions.some(row=>row.date===date&&row.completed);return <button key={date} type="button" className={done?"is-completed":""} disabled={disabled||!recordedMonth||!data.canMarkCompleted||date>today} aria-label={appText("{0}: {1}",[new Intl.DateTimeFormat(appLocale,{dateStyle:'full',timeZone:'UTC'}).format(new Date(date+'T00:00:00Z')),appText(done?"Completed":"Not recorded")])} aria-pressed={done} onClick={()=>onSelect(date)}><span>{index+1}</span>{done&&<Check size={12} aria-hidden="true"/>}</button>;})}
   </div>
   <p className="class-calendar-legend"><span aria-hidden="true"/>{appText("Completed class")}</p>
+  </section>}
+  </div>
  </section>;
 }

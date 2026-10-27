@@ -1,5 +1,5 @@
 "use client";
-import { MonthlyHiring } from "./monthly-hiring";
+import { TuitionArrangementCard } from "./monthly-hiring";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { minimumHref } from "./tuition-minimum-workspace";
 import { useAppTranslation } from "./locale";
@@ -757,21 +757,8 @@ export function StudentArrangements({
             {q.data.pages
               .flatMap((p) => p.items)
               .map((a) => (
-                <li key={a.id}>
-                  <h3>
-                    {appCurriculum(a.terms.subject)} ·{" "}
-                    {rupees(a.terms.monthlyPaise, appLocale)}{" "}
-                    {appText(t("per month", "प्रति माह"))}
-                  </h3>
-                  <p>
-                    {a.status === "CONFIRMED"
-                      ? t("Both sides confirmed", "दोनों ने पुष्टि की")
-                      : a.status === "CLOSED"
-                        ? t("Closed", "बंद")
-                        : t("Reviewing terms", "शर्तों की समीक्षा")}{" "}
-                    · {a.id.slice(0, 8)}
-                  </p>
-                  <MonthlyHiring session={session} kind="INDEPENDENT" id={a.id}/>
+                <li key={a.id} className="student-arrangement-item">
+                  <TuitionArrangementCard session={session} kind="INDEPENDENT" id={a.id} title={appCurriculum(a.terms.subject)} subtitle={<>{rupees(a.terms.monthlyPaise, appLocale)} · {appText(a.status === "CLOSED" ? "Closed" : "Monthly tuition")}</>} footer={
                   <Button
                     variant="outline"
                     onClick={() =>
@@ -783,7 +770,7 @@ export function StudentArrangements({
                     }
                   >
                     {appText(t("View arrangement", "व्यवस्था देखें"))}
-                  </Button>
+                  </Button>                  }/>
                 </li>
               ))}
           </ul>
