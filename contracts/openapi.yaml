@@ -11,6 +11,797 @@
     }
   ],
   "paths": {
+    "/tuition-bookings/{kind}/{id}": {
+      "get": {
+        "operationId": "getTuitionBooking",
+        "tags": [
+          "placements"
+        ],
+        "summary": "Owned monthly hiring confirmation and Pro calendar",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "kind",
+                    "version",
+                    "month",
+                    "bookingVersion",
+                    "familyConfirmed",
+                    "teacherConfirmed",
+                    "confirmed",
+                    "closed",
+                    "canConfirm",
+                    "proActive",
+                    "canMarkCompleted",
+                    "completions"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "PLACEMENT",
+                        "INDEPENDENT"
+                      ]
+                    },
+                    "version": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "month": {
+                      "type": "string",
+                      "pattern": "^20\\d{2}-(0[1-9]|1[0-2])$"
+                    },
+                    "bookingVersion": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "monthlyPaise": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "policyVersion": {
+                      "type": "string"
+                    },
+                    "placementFeePaise": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "familyConfirmed": {
+                      "type": "boolean"
+                    },
+                    "teacherConfirmed": {
+                      "type": "boolean"
+                    },
+                    "confirmed": {
+                      "type": "boolean"
+                    },
+                    "closed": {
+                      "type": "boolean"
+                    },
+                    "canConfirm": {
+                      "type": "boolean"
+                    },
+                    "proActive": {
+                      "type": "boolean"
+                    },
+                    "canMarkCompleted": {
+                      "type": "boolean"
+                    },
+                    "completions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "date",
+                          "completed",
+                          "version"
+                        ],
+                        "properties": {
+                          "date": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "completed": {
+                            "type": "boolean"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "minimum": 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLACEMENT",
+                "INDEPENDENT"
+              ]
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/tuition-bookings/{kind}/{id}/confirmations": {
+      "post": {
+        "operationId": "confirmTuitionBooking",
+        "tags": [
+          "placements"
+        ],
+        "summary": "Explicitly confirm the displayed month and tuition terms",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "kind",
+                    "version",
+                    "month",
+                    "bookingVersion",
+                    "familyConfirmed",
+                    "teacherConfirmed",
+                    "confirmed",
+                    "closed",
+                    "canConfirm",
+                    "proActive",
+                    "canMarkCompleted",
+                    "completions"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "PLACEMENT",
+                        "INDEPENDENT"
+                      ]
+                    },
+                    "version": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "month": {
+                      "type": "string",
+                      "pattern": "^20\\d{2}-(0[1-9]|1[0-2])$"
+                    },
+                    "bookingVersion": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "monthlyPaise": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "policyVersion": {
+                      "type": "string"
+                    },
+                    "placementFeePaise": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "familyConfirmed": {
+                      "type": "boolean"
+                    },
+                    "teacherConfirmed": {
+                      "type": "boolean"
+                    },
+                    "confirmed": {
+                      "type": "boolean"
+                    },
+                    "closed": {
+                      "type": "boolean"
+                    },
+                    "canConfirm": {
+                      "type": "boolean"
+                    },
+                    "proActive": {
+                      "type": "boolean"
+                    },
+                    "canMarkCompleted": {
+                      "type": "boolean"
+                    },
+                    "completions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "date",
+                          "completed",
+                          "version"
+                        ],
+                        "properties": {
+                          "date": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "completed": {
+                            "type": "boolean"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "minimum": 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLACEMENT",
+                "INDEPENDENT"
+              ]
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "expectedVersion",
+                  "confirmed",
+                  "expectedBookingVersion",
+                  "month",
+                  "policyVersion",
+                  "contactShareAccepted"
+                ],
+                "properties": {
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "confirmed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "expectedBookingVersion": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "month": {
+                    "type": "string",
+                    "pattern": "^20\\d{2}-(0[1-9]|1[0-2])$"
+                  },
+                  "policyVersion": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "contactShareAccepted": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tuition-bookings/{kind}/{id}/completions": {
+      "post": {
+        "operationId": "recordTuitionCompletion",
+        "tags": [
+          "placements"
+        ],
+        "summary": "Assigned teacher records a Pro class date; not payment or independent attendance evidence",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "kind",
+                    "version",
+                    "month",
+                    "bookingVersion",
+                    "familyConfirmed",
+                    "teacherConfirmed",
+                    "confirmed",
+                    "closed",
+                    "canConfirm",
+                    "proActive",
+                    "canMarkCompleted",
+                    "completions"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "PLACEMENT",
+                        "INDEPENDENT"
+                      ]
+                    },
+                    "version": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "month": {
+                      "type": "string",
+                      "pattern": "^20\\d{2}-(0[1-9]|1[0-2])$"
+                    },
+                    "bookingVersion": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "monthlyPaise": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "policyVersion": {
+                      "type": "string"
+                    },
+                    "placementFeePaise": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "familyConfirmed": {
+                      "type": "boolean"
+                    },
+                    "teacherConfirmed": {
+                      "type": "boolean"
+                    },
+                    "confirmed": {
+                      "type": "boolean"
+                    },
+                    "closed": {
+                      "type": "boolean"
+                    },
+                    "canConfirm": {
+                      "type": "boolean"
+                    },
+                    "proActive": {
+                      "type": "boolean"
+                    },
+                    "canMarkCompleted": {
+                      "type": "boolean"
+                    },
+                    "completions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "date",
+                          "completed",
+                          "version"
+                        ],
+                        "properties": {
+                          "date": {
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "completed": {
+                            "type": "boolean"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "minimum": 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "description": "Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409."
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLACEMENT",
+                "INDEPENDENT"
+              ]
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "expectedVersion",
+                  "confirmed",
+                  "date",
+                  "completed"
+                ],
+                "properties": {
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "confirmed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "completed": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/children/{id}/learning-spaces": {
       "get": {
         "operationId": "getLearnerSpaces",

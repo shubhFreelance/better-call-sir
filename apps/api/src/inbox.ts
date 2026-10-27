@@ -42,6 +42,18 @@ export async function recordInbox(
         });
     }
   }
+  if (job.type.startsWith("tuition-booking.")) {
+    const booking = await db.tuitionBooking.findUnique({where:{resourceId:job.aggregateId}});
+    if (booking) {
+      const p = booking.kind === "PLACEMENT" ? await db.placement.findUnique({where:{id:booking.resourceId}}) : null;
+      const a = booking.kind === "INDEPENDENT" ? await db.studentArrangement.findUnique({where:{id:booking.resourceId}}) : null;
+      const ownerId = p?.guardianId ?? a?.studentAccountId;
+      const teacher = await db.teacher.findUnique({where:{id:p?.teacherId ?? a?.teacherId ?? "00000000-0000-4000-8000-000000000000"}});
+      const path = p ? "/dashboard/arrangements?arrangement="+p.id : "/dashboard/student-arrangements";
+      for (const accountId of [ownerId,teacher?.accountId]) if(accountId) recipients.push({accountId,actionPath:path});
+      if(p){const child=await db.child.findUnique({where:{id:p.childId}});if(child?.studentAccountId&&!child.studentAccessRevokedAt)recipients.push({accountId:child.studentAccountId,actionPath:path});}
+    }
+  }
   if (job.type.startsWith("direct.")) {
     const d = await db.directEnquiry.findUnique({
       where: { id: job.aggregateId },

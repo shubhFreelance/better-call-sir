@@ -60,7 +60,7 @@ const date = z
       new Date(s + "T00:00:00Z").toISOString().slice(0, 10) === s,
     "Use a valid date on or before today.",
   );
-async function context(
+export async function context(
   db: DB,
   service: AppService,
   req: HttpRequest,
