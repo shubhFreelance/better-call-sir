@@ -6672,3 +6672,47 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 @media(max-width:600px) {.proposal-calendar-fields {grid-template-columns:1fr 1fr;}.proposal-calendar-fields>label:first-child {grid-column:1/-1;}.proposal-calendar {padding:14px;}}
 
 .direct-reply-form select {width:100%;min-height:44px;margin-top:8px;padding:10px 12px;border:1px solid #D8E3DB;border-radius:10px;background:white;color:#034F46;font-size:13px;}
+
+.monthly-hiring {margin-top:20px;border:1px solid #D8E3DB;border-radius:18px;overflow:hidden;background:#fff;color:#034F46;}
+.monthly-hiring-heading {display:flex;align-items:center;gap:12px;padding:18px 20px;background:#EEF5F3;}
+.monthly-hiring-heading>div {flex:1;min-width:0;}
+.monthly-hiring .monthly-hiring-heading h3 {margin:0;font-size:18px;line-height:1.4;letter-spacing:-.03em;}
+.monthly-hiring .monthly-hiring-heading p {margin:6px 0 0;font-size:12px;line-height:1.7;color:#52655F;}
+.monthly-hiring-facts {display:flex;flex-wrap:wrap;gap:16px 28px;padding:20px;background:#FFFFEB;}
+.monthly-hiring-facts>div {display:grid;align-content:start;gap:8px;}
+.monthly-hiring-facts>div>span {font-size:11px;color:#52655F;}
+.monthly-hiring-facts strong {font-size:22px;line-height:1.3;}
+.monthly-hiring-facts .status-badge {font-size:11px;}
+.monthly-hiring>form {padding:20px;display:grid;gap:18px;}
+.monthly-hiring-month {display:flex;align-items:center;gap:12px;}
+.monthly-hiring-month>label {display:grid;gap:8px;font-size:12px;max-width:260px;flex:1;}
+.monthly-hiring-month input {font-size:13px;}
+.monthly-hiring-ack {display:flex;align-items:flex-start;gap:10px;padding:14px;border:1px solid #E3C8F4;border-radius:12px;background:#F8EDFF;font-size:12px;line-height:1.7;}
+.monthly-hiring-ack input {margin-top:4px;accent-color:#034F46;width:18px;height:18px;flex-shrink:0;}
+.monthly-hiring-wait {margin:0;padding:18px 20px;font-size:12px;background:#F8EDFF;}
+.class-calendar {margin:20px;padding:18px;border:1px solid #D8E3DB;border-radius:14px;background:#EEF5F3;}
+.class-calendar-heading {display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.class-calendar-heading h4 {margin:0;font-size:14px;}
+.class-calendar-heading .status-badge {font-size:11px;}
+.class-calendar>p {font-size:12px;line-height:1.7;color:#52655F;margin:8px 0 14px;}
+.class-calendar-grid {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;max-width:560px;margin-inline:auto;}
+.class-calendar-weekday {text-align:center;font-size:11px;color:#52655F;padding-bottom:6px;}
+.class-calendar-grid button {position:relative;display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:44px;padding:8px 2px;border:1px solid #D8E3DB;border-radius:10px;background:white;color:#034F46;font:inherit;font-size:13px;cursor:pointer;transition:background .15s,border-color .15s;}
+.class-calendar-grid button:disabled {cursor:default;color:#52655F;opacity:.75;}
+.class-calendar-grid button.is-completed {background:#F0D7FF;border-color:#DAB5EE;color:#034F46;opacity:1;font-weight:700;}
+.class-calendar-grid button:not(:disabled):hover {background:#F8EDFF;border-color:#C59CDE;}
+.class-calendar-grid button:focus-visible {outline:2px solid #034F46;outline-offset:2px;}
+.class-calendar .class-calendar-legend {display:flex;align-items:center;gap:8px;margin:16px 0 0;font-size:11px;}
+.class-calendar-legend>span {width:12px;height:12px;background:#F0D7FF;border:1px solid #DAB5EE;border-radius:3px;}
+.class-completion-review {display:grid;gap:18px;font-size:13px;}
+.class-completion-review>p {margin:0;font-size:12px;line-height:1.7;}
+.hiring-overview .hiring-record:has(.monthly-hiring) {background:#fff;padding:20px;}
+.hiring-overview .hiring-record:has(.monthly-hiring)>p {font-size:12px;}
+.hiring-support {margin-top:18px;font-size:12px;}
+.hiring-support summary {cursor:pointer;color:#034F46;}
+.hiring-support .inline-link {display:block;margin-top:12px;}
+@media(max-width:600px){.monthly-hiring-heading {padding:16px;align-items:flex-start;}.monthly-hiring-heading>svg {display:none;}.monthly-hiring .monthly-hiring-heading h3 {font-size:16px;}.monthly-hiring-facts {padding:16px;gap:16px;}.monthly-hiring>form {padding:16px;}.class-calendar {margin:14px;padding:12px;}.class-calendar-grid {gap:5px;}.class-calendar-grid button {min-height:40px;font-size:12px;}.hiring-overview .hiring-record:has(.monthly-hiring) {padding:14px;}}
+@media(prefers-reduced-motion:reduce){.class-calendar-grid button {transition:none;}}
+
+.class-calendar-grid button>span {white-space:nowrap;}
+.class-calendar-grid button>svg {position:absolute;right:2px;bottom:2px;width:9px;height:9px;}

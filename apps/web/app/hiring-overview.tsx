@@ -1,10 +1,12 @@
 "use client";
+import { MonthlyHiring } from "./monthly-hiring";
+import { InfoTooltip } from "../components/ui/info-tooltip";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { TeacherDashboardProfile } from "./teacher-dashboard-profile";
 import { minimumHref } from "./tuition-minimum-workspace";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
-import { useState, useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -20,7 +22,6 @@ import {
 import { Notice, Feedback, useDecision } from "./tuition-workflow";
 type View = components["schemas"]["HiringDashboard"];
 type Enquiry = components["schemas"]["HiringEnquiry"];
-type Arrangement = components["schemas"]["HiringArrangement"];
 const label = (s: string) => s.toLowerCase().replaceAll("_", " ");
 const date = (s: string, locale = "en-IN") =>
   new Intl.DateTimeFormat(locale, {
@@ -44,18 +45,15 @@ export function HiringOverview({ session }: { session: Session }) {
     student = role === "STUDENT",
     teacher = role === "TEACHER",
     admin = role === "ADMIN";
+  const [monthlyLockedId,setMonthlyLockedId]=useState<string|null>(null);
+  const monthlyLock=useCallback((locked:boolean,id:string)=>setMonthlyLockedId(current=>locked?id:current===id?null:current),[]);
   const [section, setSection] = useState<"ENQUIRIES" | "ARRANGEMENTS">(
       arrangementId ? "ARRANGEMENTS" : "ENQUIRIES",
     ),
     [cursors, setCursors] = useState<string[]>([]),
     [selected, setSelected] = useState<Enquiry | null>(null),
-    [terms, setTerms] = useState<Arrangement | null>(null),
     [response, setResponse] = useState("ACCEPTED"),
     [ack, setAck] = useState(false);
-  const termsHeading = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    if (terms) termsHeading.current?.focus();
-  }, [terms?.id]);
   const params = new URLSearchParams({ section });
   if (arrangementId && section === "ARRANGEMENTS")
     params.set("arrangementId", arrangementId);
@@ -70,10 +68,6 @@ export function HiringOverview({ session }: { session: Session }) {
   async function refresh() {
     const r = await query.refetch();
     if (r.error) throw r.error;
-    if (terms) {
-      setTerms(r.data?.arrangements.find((p) => p.id === terms.id) || null);
-      setAck(false);
-    }
     if (selected) {
       setSelected(r.data?.enquiries.find((e) => e.id === selected.id) || null);
       setAck(false);
@@ -81,7 +75,7 @@ export function HiringOverview({ session }: { session: Session }) {
   }
   const decision = useDecision(session, refresh),
     data = query.data,
-    locked = !!selected || !!terms || decision.locked;
+    locked = !!selected || decision.locked || !!monthlyLockedId;
   return (
     <div className="care-workspace hiring-overview">
       <section className="hiring-intro">
@@ -482,11 +476,7 @@ export function HiringOverview({ session }: { session: Session }) {
                         ? appText("Your teacher arrangements")
                         : appText("Your teaching arrangements")}
                     </h3>
-                    <p className="care-help">
-                      {appText(
-                        "A saved choice or accepted term is not proof that teaching has started. These are the current recorded arrangement states.",
-                      )}{" "}
-                    </p>
+                    <p className="care-help">{appText("Confirm your month and tuition below. Everything stays in this card.")} <InfoTooltip label={appText("About monthly hiring")} items={[appText("Mutual monthly confirmation does not confirm service start, attendance or payment.")]}/></p>
                     {!data.arrangements.length ? (
                       <section className="hiring-empty-state">
                         <h4>{appText("No arrangement recorded yet")}</h4>
@@ -513,13 +503,7 @@ export function HiringOverview({ session }: { session: Session }) {
                           >
                             <div className="hiring-section-heading">
                               <h4>{p.teacher.name}</h4>
-                              <span className="hiring-state">
-                                {p.status === "CLOSED"
-                                  ? appText("Closed")
-                                  : p.guardianAccepted && p.teacherAccepted
-                                    ? appText("Hiring terms confirmed")
-                                    : appText("Hiring terms pending")}
-                              </span>
+
                             </div>
                             <p>
                               {appCurriculum(p.subject)} ·{" "}
@@ -528,79 +512,8 @@ export function HiringOverview({ session }: { session: Session }) {
                                 : appText("Online")}{" "}
                               · {p.learner.alias}
                             </p>
-                            <dl className="hiring-details">
-                              <div>
-                                <dt>{appText("Teacher profile")}</dt>
-                                <dd>{appText(label(p.teacher.status))}</dd>
-                              </div>
-                              <div>
-                                <dt>{appText("Family learning terms")}</dt>
-                                <dd>
-                                  {p.guardianAccepted
-                                    ? appText("Acceptance recorded")
-                                    : appText("Pending")}
-                                </dd>
-                              </div>
-                              <div>
-                                <dt>{appText("Teacher terms")}</dt>
-                                <dd>
-                                  {p.teacherAccepted
-                                    ? appText("Acceptance recorded")
-                                    : appText("Pending")}
-                                </dd>
-                              </div>
-                              <div>
-                                <dt>{appText("Start evidence")}</dt>
-                                <dd>
-                                  {p.guardianStarted &&
-                                  p.teacherReceiptConfirmed
-                                    ? appText("Both confirmations recorded")
-                                    : appText("Not independently confirmed")}
-                                </dd>
-                              </div>
-                              {!student && p.monthlyPaise !== undefined && (
-                                <div>
-                                  <dt>{appText("Recorded monthly terms")}</dt>
-                                  <dd>{money(p.monthlyPaise, appLocale)}</dd>
-                                </div>
-                              )}
-                            </dl>
-                            <p className="hiring-next">
-                              {p.status === "CLOSED"
-                                ? appText(
-                                    "This arrangement is closed. Its recorded terms remain available for reference.",
-                                  )
-                                : p.guardianAccepted && p.teacherAccepted
-                                  ? appText(
-                                      "Both parties have confirmed the hiring terms. This does not confirm a lesson, tuition payment or service start.",
-                                    )
-                                  : student
-                                    ? appText(
-                                        "The permitted family decision maker and teacher review and confirm the learning terms.",
-                                      )
-                                    : (guardian && p.guardianAccepted) ||
-                                        (teacher && p.teacherAccepted)
-                                      ? appText(
-                                          "Your acceptance is recorded. Waiting for the other party to confirm the same terms.",
-                                        )
-                                      : appText(
-                                          "Review the monthly terms and policy before accepting. A demo and class timetable are not required to accept hiring terms.",
-                                        )}
-                            </p>
-                            {(guardian || teacher) && (
-                              <Button
-                                variant="outline"
-                                disabled={
-                                  locked || !!query.error || query.isFetching
-                                }
-                                onClick={() => {
-                                  setTerms(p);
-                                  setAck(false);
-                                }}
-                              >
-                                {appText("Review hiring terms")}{" "}
-                              </Button>
-                            )}
+                            <MonthlyHiring session={session} kind="PLACEMENT" id={p.id} disabled={!!selected||decision.locked||!!query.error||query.isFetching||!!monthlyLockedId&&monthlyLockedId!==p.id} onLockChange={monthlyLock}/>
+                            <details className="hiring-support"><summary>{appText("Support and existing records")}</summary>
                             <Link
                               className="inline-link"
                               href={minimumHref("PLACEMENT", p.id)}
@@ -623,6 +536,7 @@ export function HiringOverview({ session }: { session: Session }) {
                                 {appText("Support or replacement")}{" "}
                               </Link>
                             )}
+                            </details>
                           </article>
                         ))}
                       </div>
@@ -663,171 +577,6 @@ export function HiringOverview({ session }: { session: Session }) {
                   </div>
                 )}
               </section>
-              {terms && (
-                <section
-                  className="care-card hiring-terms-review"
-                  aria-label={appText("Hiring terms review")}
-                >
-                  <h3 ref={termsHeading} tabIndex={-1}>
-                    {appText("Review hiring terms")}{" "}
-                  </h3>
-                  <p>
-                    {terms.teacher.name} · {terms.learner.alias} ·{" "}
-                    {appCurriculum(terms.subject)} ·{" "}
-                    {terms.mode === "HOME"
-                      ? appText("Home tuition")
-                      : appText("Online tuition")}
-                  </p>
-                  <dl className="hiring-details">
-                    <div>
-                      <dt>{appText("Monthly tuition")}</dt>
-                      <dd>
-                        {terms.monthlyPaise !== undefined
-                          ? money(terms.monthlyPaise, appLocale)
-                          : appText("Unavailable")}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>{appText("Recorded policy")}</dt>
-                      <dd>{terms.policyVersion || appText("Unavailable")}</dd>
-                    </div>
-                    <div>
-                      <dt>{appText("Family acceptance")}</dt>
-                      <dd>
-                        {terms.guardianAccepted
-                          ? appText("Recorded")
-                          : appText("Pending")}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>{appText("Teacher acceptance")}</dt>
-                      <dd>
-                        {terms.teacherAccepted
-                          ? appText("Recorded")
-                          : appText("Pending")}
-                      </dd>
-                    </div>
-                  </dl>
-                  <p>
-                    {appText(
-                      "Tuition is paid directly to the teacher. Accepting these terms does not charge either party or confirm that teaching has started.",
-                    )}{" "}
-                  </p>
-                  <p className="care-help">
-                    {appText("Proposed teacher placement fee:")}{" "}
-                    {terms.placementFeePaise !== undefined
-                      ? money(terms.placementFeePaise, appLocale)
-                      : appText("Unavailable")}
-                    {appText(
-                      ", only after separate service-start and tuition-receipt evidence. Final live commercial terms remain under review.",
-                    )}{" "}
-                  </p>
-                  <p className="hiring-next">
-                    {appText(
-                      "A demo is optional. You can confirm hiring terms without booking a class or agreeing a class timetable.",
-                    )}{" "}
-                  </p>
-                  {terms.status === "CLOSED" ? (
-                    <p>
-                      {appText(
-                        "This arrangement is closed. Further acceptances are unavailable.",
-                      )}{" "}
-                    </p>
-                  ) : (
-                      guardian ? terms.guardianAccepted : terms.teacherAccepted
-                    ) ? (
-                    <p>
-                      {appText("Your acceptance is already recorded.")}{" "}
-                      {terms.guardianAccepted && terms.teacherAccepted
-                        ? appText(
-                            " Both parties have confirmed the hiring terms.",
-                          )
-                        : appText(" Waiting for the other party.")}
-                    </p>
-                  ) : (
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        if (!ack) {
-                          decision.invalid(
-                            "Review and acknowledge the hiring terms before accepting.",
-                          );
-                          return;
-                        }
-                        if (
-                          !terms.version ||
-                          !terms.policyVersion ||
-                          terms.monthlyPaise === undefined ||
-                          terms.placementFeePaise === undefined ||
-                          (guardian &&
-                            (!data.gate?.verified ||
-                              !data.gate.consent ||
-                              data.gate.privacyPaused))
-                        ) {
-                          decision.invalid(
-                            "Current terms and guardian permission are required. Refresh the overview before accepting.",
-                          );
-                          return;
-                        }
-                        void decision.run({
-                          path: `/placements/${terms.id}/acceptances`,
-                          body: {
-                            expectedVersion: terms.version,
-                            action: "ACCEPT_TERMS",
-                          },
-                          message: "Your hiring-term acceptance was recorded.",
-                          onSaved: () => {
-                            setTerms(null);
-                            setAck(false);
-                          },
-                        });
-                      }}
-                    >
-                      <label className="care-ack">
-                        <input
-                          type="checkbox"
-                          checked={ack}
-                          disabled={decision.locked}
-                          onChange={(e) => setAck(e.target.checked)}
-                        />{" "}
-                        {appText(
-                          "I have reviewed the monthly tuition and policy and agree to these hiring terms.",
-                        )}{" "}
-                      </label>
-                      <Button
-                        type="submit"
-                        disabled={
-                          !ack ||
-                          decision.locked ||
-                          !!query.error ||
-                          !terms.version ||
-                          !terms.policyVersion ||
-                          terms.monthlyPaise === undefined ||
-                          terms.placementFeePaise === undefined ||
-                          (guardian &&
-                            (!data.gate?.verified ||
-                              !data.gate.consent ||
-                              data.gate.privacyPaused))
-                        }
-                      >
-                        {appText("Accept hiring terms")}{" "}
-                      </Button>
-                    </form>
-                  )}
-                  <div className="action-row">
-                    <Button
-                      variant="outline"
-                      disabled={decision.locked}
-                      onClick={() => {
-                        setTerms(null);
-                        setAck(false);
-                      }}
-                    >
-                      {appText("Close terms review")}{" "}
-                    </Button>
-                  </div>
-                </section>
-              )}
               {selected?.candidate && (
                 <section
                   className="care-card hiring-response"

@@ -1,6 +1,6 @@
 "use client";
 import { RefreshButton } from "../components/ui/refresh-button";
-import { useState } from "react";
+import { useState,useEffect,useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -12,6 +12,7 @@ import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button"
 import { LayeredSummaryCard } from "../components/ui/layered-summary-card";
 import { Modal } from "../components/ui/modal";
 import { Input } from "../components/ui/input";
+import { MonthlyHiring } from "./monthly-hiring";
 import { InfoTooltip } from "../components/ui/info-tooltip";
 import { ProposalScheduleFields, type ProposalSchedule } from "./proposal-schedule";
 import { Textarea } from "../components/ui/textarea";
@@ -28,7 +29,9 @@ type Action =
   | "COUNTER_PROPOSE"
   | "ACCEPT_PROPOSAL"
   | "DECLINE_PROPOSAL";
-export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enquiryId }: { session: Session; onViewEnquiry?: (sourceId: string) => void; disabled?: boolean; enquiryId?: string }) {
+export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enquiryId, onLockChange }: { session: Session; onViewEnquiry?: (sourceId: string) => void; disabled?: boolean; enquiryId?: string; onLockChange?:(locked:boolean)=>void }) {
+  const [monthlyLockedId,setMonthlyLockedId]=useState<string|null>(null);
+  const monthlyLock=useCallback((locked:boolean,id:string)=>setMonthlyLockedId(current=>locked?id:current===id?null:current),[]);
   const { appText, appCurriculum, appLocale } = useAppTranslation(),
     client = useQueryClient();
   const [cursors, setCursors] = useState<string[]>([]),
@@ -70,6 +73,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
   const decision = useDecision(session, refresh),
     teacher = session.account.role === "TEACHER",
     staff = ["ADMIN", "OPERATOR"].includes(session.account.role);
+  useEffect(()=>{onLockChange?.(decision.locked||!!monthlyLockedId);return()=>onLockChange?.(false);},[decision.locked,monthlyLockedId,onLockChange]);
   const total = Object.values(query.data?.counts ?? {}).reduce(
     (a, b) => a + b,
     0,
@@ -177,7 +181,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
         </div>
       </header>}
       {!conversation && <StatusFilters<Filter> label={appText("Filter enquiries")}
-        value={filter} disabled={decision.locked || disabled} onChange={next => {
+        value={filter} disabled={decision.locked || disabled || !!monthlyLockedId} onChange={next => {
           setFilter(next); setCursors([]); setReview(null);
         }} options={[
           { value: "ALL", label: appText("All") },
@@ -261,7 +265,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
                     icon={!item.sourceOpen && ["PENDING", "PROPOSED"].includes(item.status) ? CircleMinus : item.status === "PENDING" ? Clock3 : item.status === "ACCEPTED" ? CircleCheck : item.status === "DECLINED" ? CircleX : MessageSquare}
                   />
                 </div>
-                {onViewEnquiry && item.kind === "GUARDIAN" && <Button type="button" variant="ghost" size="icon" className="evidence-preview-trigger" aria-label={appText("View enquiry {0}", [appCurriculum(item.subject)])} title={appText("View enquiry {0}", [appCurriculum(item.subject)])} aria-haspopup="dialog" disabled={decision.locked || disabled} onClick={() => onViewEnquiry(item.sourceId)}><Eye size={18} aria-hidden="true"/></Button>}
+                {onViewEnquiry && item.kind === "GUARDIAN" && <Button type="button" variant="ghost" size="icon" className="evidence-preview-trigger" aria-label={appText("View enquiry {0}", [appCurriculum(item.subject)])} title={appText("View enquiry {0}", [appCurriculum(item.subject)])} aria-haspopup="dialog" disabled={decision.locked || disabled || !!monthlyLockedId} onClick={() => onViewEnquiry(item.sourceId)}><Eye size={18} aria-hidden="true"/></Button>}
                 {!onViewEnquiry && !enquiryId && <ChevronDown size={18} aria-hidden="true" />}
               </div>
           );
@@ -300,18 +304,18 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
                         <>
                           <FilterButton
                             accent
-                            disabled={decision.locked}
+                            disabled={decision.locked || !!monthlyLockedId}
                             onClick={() => choose(item, "ACCEPT_PROPOSAL")}
                           >
                             {appText("Accept proposal")}
                           </FilterButton>
                           <FilterButton
-                            disabled={decision.locked}
+                            disabled={decision.locked || !!monthlyLockedId}
                             onClick={() => choose(item, "DECLINE_PROPOSAL")}
                           >
                             {appText("Decline proposal")}
                           </FilterButton>
-                          <FilterButton disabled={decision.locked} onClick={()=>choose(item,"COUNTER_PROPOSE")}>{appText("Suggest another time")}</FilterButton>
+                          <FilterButton disabled={decision.locked || !!monthlyLockedId} onClick={()=>choose(item,"COUNTER_PROPOSE")}>{appText("Suggest another time")}</FilterButton>
                         </>
                       )}
                     </FilterButtonGroup>
@@ -381,11 +385,11 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
                 {item.status === "ACCEPTED" && (
                   <section className="direct-acceptance">
                     <CircleCheck size={22} aria-hidden="true"/>
-                    <div role="status"><strong>{appText("The teacher has accepted this enquiry.")}</strong><p>{appText("Your tuition arrangement is ready. Both parties review financial terms separately.")}</p></div>
-                    {arrangementLink}
+                    <div role="status"><strong>{appText("The teacher has accepted this enquiry.")}</strong><p>{appText("Monthly tuition confirmation is shown below.")}</p></div>
                   </section>
                 )}
-                {item.status !== "ACCEPTED" && arrangementLink}
+                {item.status === "ACCEPTED" && item.arrangementId && !staff && <MonthlyHiring session={session} kind={item.kind==="GUARDIAN"?"PLACEMENT":"INDEPENDENT"} id={item.arrangementId} disabled={decision.locked||disabled||!!monthlyLockedId&&monthlyLockedId!==item.arrangementId} onLockChange={monthlyLock}/>}
+                {(item.status !== "ACCEPTED" || staff) && arrangementLink}
           </LayeredSummaryCard>;
         })}
       <Modal open={!!review} onOpenChange={next => {if(!next && !decision.locked){setReview(null);setConfirmed(false);}}} title={appText("Review your reply")} description={review ? appText(
@@ -424,7 +428,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
         >
           <Feedback decision={decision}/>
           {decision.conflict && <RefreshButton label={appText("Refresh enquiries")} disabled={decision.busy} onClick={() => {setReview(null);setConfirmed(false);void decision.reload();}}/>}
-          <fieldset disabled={decision.locked}>
+          <fieldset disabled={decision.locked || !!monthlyLockedId}>
             <LayeredSummaryCard className="direct-reply-summary" header={<><h3>{review.item.learner.name}</h3><p>{appCurriculum(review.item.subject)}</p></>} footer={
               <label className="wizard-checkbox">
               <input
@@ -496,7 +500,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
       <div className="wizard-actions">
         <RefreshButton
           variant="outline"
-          disabled={query.isFetching || decision.busy || decision.uncertain}
+          disabled={query.isFetching || decision.busy || decision.uncertain || !!monthlyLockedId}
           onClick={() => {
             setReview(null); setConfirmed(false);
             (decision.conflict ? decision.reload() : refresh()).catch(() => {});
@@ -505,7 +509,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
         {cursors.length > 0 && (
           <Button
             variant="outline"
-            disabled={decision.locked}
+            disabled={decision.locked || !!monthlyLockedId}
             onClick={() => setCursors([])}
           >
             {appText("First page")}
@@ -514,7 +518,7 @@ export function DirectEnquiries({ session, onViewEnquiry, disabled = false, enqu
         {query.data?.nextCursor && !query.error && (
           <Button
             variant="outline"
-            disabled={decision.locked}
+            disabled={decision.locked || !!monthlyLockedId}
             onClick={() => setCursors([...cursors, query.data!.nextCursor!])}
           >
             {appText("Older enquiries")}

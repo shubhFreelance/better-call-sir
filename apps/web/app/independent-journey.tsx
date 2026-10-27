@@ -1,4 +1,5 @@
 "use client";
+import { MonthlyHiring } from "./monthly-hiring";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { minimumHref } from "./tuition-minimum-workspace";
 import { useAppTranslation } from "./locale";
@@ -770,6 +771,7 @@ export function StudentArrangements({
                         : t("Reviewing terms", "शर्तों की समीक्षा")}{" "}
                     · {a.id.slice(0, 8)}
                   </p>
+                  <MonthlyHiring session={session} kind="INDEPENDENT" id={a.id}/>
                   <Button
                     variant="outline"
                     onClick={() =>

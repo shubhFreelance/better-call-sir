@@ -21,7 +21,7 @@ const stages = {
 } as const;
 
 export function DirectEnquiryStatus({session, enquiryId, disabled = false}:{session:Session; enquiryId:string; disabled?:boolean}) {
-  const {appText} = useAppTranslation(), [open,setOpen] = useState(false);
+  const {appText} = useAppTranslation(), [open,setOpen] = useState(false), [conversationLocked,setConversationLocked]=useState(false);
   const query = useQuery({queryKey:["direct-enquiries",session.account.id,undefined,enquiryId,"ALL"], queryFn:({signal})=>api<paths["/direct-enquiries"]["get"]["responses"][200]["content"]["application/json"]>("/direct-enquiries?limit=10&id="+encodeURIComponent(enquiryId),{signal}),retry:false,staleTime:0});
   const item = !query.error && query.data?.items.find(row=>row.id===enquiryId);
   if(query.isPending)return <p role="status">{appText("Loading enquiries…")}</p>;
@@ -29,8 +29,8 @@ export function DirectEnquiryStatus({session, enquiryId, disabled = false}:{sess
   const stage = !item.sourceOpen && ["PENDING","PROPOSED"].includes(item.status) ? stages.CLOSED : item.status==="PROPOSED" && item.proposal?.proposedBy==="FAMILY" ? stages.FAMILY_COUNTER : item.status==="PENDING" && item.proposal?.familyConfirmed ? stages.FAMILY_CONFIRMED : stages[item.status];
   return <>
     <div className="direct-stage-summary"><StatusBadge label={appText(stage.label)} tone={stage.tone} icon={stage.icon}/><p>{appText(stage.description)}{item.proposal?.agreedSchedule && <> <strong>{appText(item.proposal.agreedTiming ? "Agreed time (IST)" : "Family-approved time (IST)")}: </strong>{item.proposal.agreedTiming || item.proposal.timing}</>}</p><Button type="button" variant="ghost" size="icon" className="evidence-preview-trigger" aria-label={appText("View current enquiry status")} title={appText("View current enquiry status")} aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={()=>setOpen(true)}><Eye size={18} aria-hidden="true"/></Button></div>
-    <Modal open={open} onOpenChange={setOpen} title={appText("Current enquiry status")}>
-      <Suspense fallback={<p role="status">{appText("Loading enquiries…")}</p>}><Conversation session={session} enquiryId={enquiryId}/></Suspense>
+    <Modal open={open} onOpenChange={next=>{if(!conversationLocked)setOpen(next);}} title={appText("Current enquiry status")}>
+      <Suspense fallback={<p role="status">{appText("Loading enquiries…")}</p>}><Conversation session={session} enquiryId={enquiryId} onLockChange={setConversationLocked}/></Suspense>
     </Modal>
   </>;
 }
