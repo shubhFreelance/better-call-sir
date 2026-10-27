@@ -6658,3 +6658,17 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .direct-inbox .layered-summary-card>header .direct-enquiry-heading { cursor:default; }
 
 .direct-stage-summary>[data-slot=button].evidence-preview-trigger:hover { border:1px solid #DAB5EE; border-radius:50%; background:#F0D7FF; color:#034F46; }
+
+.proposal-calendar {margin-block:18px;padding:18px;border:1px solid #D8E3DB;border-radius:14px;background:#EEF5F3;color:#034F46;}
+.proposal-calendar-heading {display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.proposal-calendar-heading strong {font-size:14px;}
+.proposal-calendar-heading>span {margin-left:auto;font-size:12px;}
+.proposal-calendar-fields {display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px;}
+.proposal-calendar-fields label {display:grid;gap:7px;min-width:0;font-size:12px;font-weight:600;}
+.proposal-calendar-fields input {width:100%;min-width:0;background:white;font-size:13px;}
+.proposal-calendar>p {margin:12px 0 0;font-size:12px;line-height:1.7;}
+.proposal-call {display:flex;align-items:center;gap:10px;margin-top:16px;}
+.proposal-call [data-slot=button]:disabled {opacity:1;background:#FFFFEB;color:#52655F;font-size:12px;}
+@media(max-width:600px) {.proposal-calendar-fields {grid-template-columns:1fr 1fr;}.proposal-calendar-fields>label:first-child {grid-column:1/-1;}.proposal-calendar {padding:14px;}}
+
+.direct-reply-form select {width:100%;min-height:44px;margin-top:8px;padding:10px 12px;border:1px solid #D8E3DB;border-radius:10px;background:white;color:#034F46;font-size:13px;}

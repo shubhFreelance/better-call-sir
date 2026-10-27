@@ -105,6 +105,7 @@ export function LiveBell({ session }: { session: Session }) {
       "direct.decline": "Enquiry declined",
       "direct.accept_proposal": "Proposal confirmed — awaiting teacher acceptance",
       "direct.decline_proposal": "Alternative proposal declined",
+      "direct.counter_propose": "Family suggested another time",
       "placement.terms_requested": "Tuition terms need your review",
       "placement.started": "Tuition has started",
       "student-arrangement.created": "Tuition terms need your review",

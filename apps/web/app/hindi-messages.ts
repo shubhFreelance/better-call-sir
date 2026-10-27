@@ -1,5 +1,19 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Proposed tuition time": "प्रस्तावित ट्यूशन का समय",
+  "Choose an alternative time": "दूसरा समय चुनें",
+  "End time": "समाप्त होने का समय",
+  "End time must be after start time.": "समाप्त होने का समय शुरू होने के बाद होना चाहिए।",
+  "Suggest another time": "दूसरा समय सुझाएँ",
+  "Family response": "परिवार का उत्तर",
+  "Family suggested another time": "परिवार ने दूसरा समय सुझाया",
+  "The family suggested another time. Waiting for the teacher to agree or send an alternative.": "परिवार ने दूसरा समय सुझाया है। शिक्षक की सहमति या नए प्रस्ताव की प्रतीक्षा है।",
+  "Discuss on a call (Pro)": "कॉल पर चर्चा करें (Pro)",
+  "About Pro calls": "Pro कॉल की जानकारी",
+  "Calling is a future Pro feature and is not available yet. You can suggest another time here.": "कॉल की सुविधा भविष्य में Pro में आएगी। अभी आप यहाँ दूसरा समय सुझा सकते हैं।",
+  "Message to the teacher": "शिक्षक के लिए संदेश",
+  "Reason for declining (optional)": "अस्वीकार करने का कारण (वैकल्पिक)",
+
   "View the recorded enquiry and decision.": "दर्ज पूछताछ और निर्णय देखें।",
   "Awaiting family confirmation of the teacher's alternative time or format.": "शिक्षक के सुझाए वैकल्पिक समय या प्रारूप पर परिवार की पुष्टि की प्रतीक्षा है।",
   "Proposal confirmed by family": "परिवार ने प्रस्ताव की पुष्टि की",
