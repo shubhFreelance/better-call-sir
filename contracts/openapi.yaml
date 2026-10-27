@@ -37601,8 +37601,19 @@
               "null"
             ],
             "format": "uuid"
+          },
+          "guardianDecisionRequested": {
+            "type": "boolean"
+          },
+          "directEnquiryId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Exact direct conversation for this authorized request. Load its current proposal through the scoped direct-enquiry endpoint."
           }
-        ,"guardianDecisionRequested":{"type":"boolean"}},
+        },
         "required": [
           "id",
           "guardianId",
