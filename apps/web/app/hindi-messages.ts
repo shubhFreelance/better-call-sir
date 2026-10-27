@@ -1,5 +1,7 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Additional enquiry": "अतिरिक्त पूछताछ",
+  "Additional enquiry information": "अतिरिक्त पूछताछ की जानकारी",
   "Please wait…": "कृपया प्रतीक्षा करें…",
   "Connect your invitation to your own student account.": "अपने आमंत्रण को अपने विद्यार्थी खाते से जोड़ें।",
   "About your student invitation": "विद्यार्थी आमंत्रण की जानकारी",

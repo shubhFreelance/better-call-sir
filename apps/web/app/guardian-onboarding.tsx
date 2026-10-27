@@ -1,4 +1,8 @@
 "use client";
+import {StepProgress} from "../components/ui/step-progress";
+import {FilterButton,FilterButtonGroup} from "../components/ui/filter-button";
+import {LayeredSummaryCard} from "../components/ui/layered-summary-card";
+import {InfoTooltip} from "../components/ui/info-tooltip";
 import { RefreshButton } from "../components/ui/refresh-button";
 import {
   OnboardingReadBoundary,
@@ -29,10 +33,10 @@ import {
 import { GuardianDraftDiscard } from "./guardian-draft-discard";
 import {
   ArrowRight,
-  Check,
   CheckCircle2,
   LoaderCircle,
   Plus,
+  Pencil,
   ShieldCheck,
   X,
 } from "lucide-react";
@@ -712,39 +716,11 @@ function Wizard({
   });
   if (success)
     return (
-      <main className="container narrow section wizard-success">
-        <CheckCircle2 size={44} />
-        <h1 ref={heading} tabIndex={-1}>
-          {appText("Your tuition request is saved.")}{" "}
-        </h1>
-        <p>
-          {appText("Request")} {success.slice(0, 8)}{" "}
-          {appText(
-            "· Your criteria are ready for review. No teacher has been assigned yet.",
-          )}{" "}
-        </p>
-        <div className="wizard-next">
-          <h2>{appText("What happens next?")}</h2>
-          <p>
-            {appText(
-              "Fit and availability are reviewed before suitable options are presented. You choose a teacher and review hiring terms together. A demo is optional.",
-            )}{" "}
-          </p>
-        </div>
-        <Link className="button" href="/dashboard/requests">
-          {appText("View tuition requests")}{" "}
-        </Link>
-        {serverError && (
-          <Alert variant="destructive">
-            <AlertDescription>
-              {appError(serverError)}{" "}
-              <RefreshButton variant="outline" disabled={busy} onClick={onReload} label={appText("Reload saved progress")} />
-            </AlertDescription>
-          </Alert>
-        )}
-        <Button
-          variant="outline"
-          className="button secondary"
+      <main className="container narrow section wizard-success tuition-saved-page">
+        <LayeredSummaryCard className="tuition-saved-card" header={<div className="tuition-saved-heading"><span><CheckCircle2 size={28} aria-hidden="true"/></span><h1 ref={heading} tabIndex={-1}>{appText("Your tuition request is saved.")}</h1></div>}
+          footer={<div className="wizard-next"><h2>{appText("What happens next?")}</h2><p>{appText("Fit and availability are reviewed before suitable options are presented. You choose a teacher and review hiring terms together. A demo is optional.")}</p></div>}
+          actions={<FilterButtonGroup><FilterButton asChild accent><Link href="/dashboard/requests">{appText("View tuition requests")}</Link></FilterButton>
+        <FilterButton
           disabled={busy}
           onClick={async () => {
             setBusy(true);
@@ -801,11 +777,23 @@ function Wizard({
           {busy
             ? appText("Starting enquiry…")
             : appText("Create another request")}
-        </Button>
+        </FilterButton>
+          </FilterButtonGroup>}>
+          <div className="tuition-saved-reference"><span>{appText("Request")}</span><strong>{success.slice(0,8)}</strong></div>
+          <p className="tuition-saved-status">{appText("· Your criteria are ready for review. No teacher has been assigned yet.")}</p>
+        {serverError && (
+          <Alert variant="destructive">
+            <AlertDescription>
+              {appError(serverError)}{" "}
+              <RefreshButton variant="outline" disabled={busy} onClick={onReload} label={appText("Reload saved progress")} />
+            </AlertDescription>
+          </Alert>
+        )}
+        </LayeredSummaryCard>
       </main>
     );
   return (
-    <main className="container section wizard-page">
+    <main className="container section wizard-page tuition-setup-wizard">
       <div className="wizard-title">
         <h1>{appText("Set up your learner’s tuition.")}</h1>
         <p>
@@ -814,24 +802,7 @@ function Wizard({
       </div>
       <div className="wizard-layout">
         <aside className="wizard-aside">
-          <ol
-            className="wizard-steps"
-            aria-label={appText("Guardian onboarding progress")}
-          >
-            {steps.map((label, i) => (
-              <li
-                key={label}
-                className={i === step ? "current" : i < step ? "complete" : ""}
-                aria-current={i === step ? "step" : undefined}
-                aria-label={`${i + 1}. ${label}`}
-              >
-                <span className="wizard-step-number">
-                  {i < step ? <Check size={16} /> : i + 1}
-                </span>
-                <span className="wizard-step-name">{appText(label)}</span>
-              </li>
-            ))}
-          </ol>
+
           <div className="wizard-discovery">
             <ShieldCheck size={22} />
             <strong>
@@ -874,6 +845,7 @@ function Wizard({
                   : appText("New request")}
             </span>
           </div>
+          <StepProgress steps={steps.map(label=>appText(label))} currentStep={step} label={appText("Guardian onboarding progress")}/>
           <h2 id="wizard-step-title" ref={heading} tabIndex={-1}>
             {appText(
               [
@@ -899,13 +871,7 @@ function Wizard({
               )}{" "}
             </p>
           )}
-          {additional && (
-            <p className="wizard-help">
-              {appText(
-                "This is an additional enquiry. Your submitted enquiries stay saved; this draft is saved privately each time you continue.",
-              )}{" "}
-            </p>
-          )}
+          {additional && <div className="wizard-draft-info"><InfoTooltip label={appText("Additional enquiry information")} items={[appText("This is an additional enquiry. Your submitted enquiries stay saved; this draft is saved privately each time you continue.")]}/><span>{appText("Additional enquiry")}</span></div>}
           {serverError && (
             <Alert variant="destructive">
               <AlertDescription>
@@ -1476,10 +1442,14 @@ function Wizard({
                       <Button
                         type="button"
                         variant="ghost"
+                        size="icon"
+                        className="evidence-preview-trigger"
+                        aria-label={appText("Edit")+" "+appText(item.title.toLowerCase())}
+                        title={appText("Edit")+" "+appText(item.title.toLowerCase())}
                         disabled={uncertain}
                         onClick={() => setStep(item.edit)}
                       >
-                        {appText("Edit")} {appText(item.title.toLowerCase())}
+                        <Pencil size={16} aria-hidden="true"/>
                       </Button>
                     </div>
                   ))}
@@ -1504,10 +1474,14 @@ function Wizard({
                     <Button
                       type="button"
                       variant="ghost"
+                      size="icon"
+                      className="evidence-preview-trigger"
+                      aria-label={appText("Edit schedule")}
+                      title={appText("Edit schedule")}
                       disabled={uncertain}
                       onClick={() => setStep(3)}
                     >
-                      {appText("Edit schedule")}{" "}
+                      <Pencil size={16} aria-hidden="true"/>
                     </Button>
                   </div>
                   <Alert role="status">
@@ -1525,12 +1499,10 @@ function Wizard({
                 </div>
               )}
             </fieldset>
-            <div className="wizard-actions">
+            <FilterButtonGroup className="wizard-actions">
               {step > 0 && (
-                <Button
+                <FilterButton
                   type="button"
-                  variant="outline"
-                  className="button secondary"
                   disabled={busy || uncertain || draftLocked}
                   onClick={() => {
                     setStep((v) => v - 1);
@@ -1539,10 +1511,10 @@ function Wizard({
                   }}
                 >
                   {appText("Back")}{" "}
-                </Button>
+                </FilterButton>
               )}
-              <Button
-                className="button"
+              <FilterButton
+                accent
                 type="submit"
                 disabled={busy || conflict || draftLocked}
               >
@@ -1562,8 +1534,8 @@ function Wizard({
                   )
                 )}
                 {!busy && <ArrowRight size={17} />}
-              </Button>
-            </div>
+              </FilterButton>
+            </FilterButtonGroup>
             <p className="wizard-save-note">
               {appText(
                 "Your progress is saved securely as you continue. Changes on the current step are saved when you select Continue.",

@@ -12,7 +12,7 @@ test("real draft resumes privately, validates money and schedules, and preserves
   await page.getByText("Development accounts", { exact: true }).click();
   await page.getByRole("button", { name: /Vivek/ }).click();
   await expect(
-    page.getByRole("heading", { name: /Hello, Vivek/ }),
+    page.getByRole("heading", { name: "Parent or Guardian Dashboard",exact:true }),
   ).toBeVisible();
   await page.goto("/onboarding/parent");
   await beginGuardian(page);
@@ -252,6 +252,7 @@ test("mobile wizard protects an uncertain submission and retries the same operat
   ).toBeVisible();
   await inspect("permission");
   await beginGuardian(page);
+  await inspect("learner");
   await page
     .getByLabel("Learner alias", { exact: true })
     .fill("Synthetic Learner");
@@ -268,6 +269,7 @@ test("mobile wizard protects an uncertain submission and retries the same operat
       .getByLabel("Subjects studied in this class", { exact: true })
       .fill("Maths, Science, English, Hindi");
   await page.getByRole("button", { name: "Continue to tuition needs" }).click();
+  await inspect("tuition");
   await reviewGuardian(page, "After school works best");
   await inspect("review");
   await page.getByRole("button", { name: "Submit tuition request" }).click();
@@ -282,6 +284,8 @@ test("mobile wizard protects an uncertain submission and retries the same operat
   await expect(
     page.getByRole("heading", { name: "Your tuition request is saved." }),
   ).toBeVisible();
+  await inspect("saved");
+  await expect(page.locator(".tuition-saved-card .filter-button-group")).toHaveCount(1);
   expect(resources).toBe(1);
   expect(completionKeys).toHaveLength(2);
   expect(completionKeys[1]).toBe(completionKeys[0]);
@@ -921,6 +925,9 @@ test("weekly enquiry preferences save, resume and review without choosing class 
   ).toBeVisible();
   await page.getByLabel("Preferred day 2", { exact: true }).selectOption("3");
   await page.setViewportSize({ width: 1440, height: 1000 });
+  const actions=page.locator('.tuition-setup-wizard .filter-button-group').last(),buttons=actions.locator('button');
+  const first=await buttons.nth(0).boundingBox(),second=await buttons.nth(1).boundingBox();expect(first&&second).toBeTruthy();expect(Math.abs(first!.width-second!.width)).toBeLessThan(1);expect(first!.y).toBe(second!.y);
+
   await page.screenshot({
     path: "test-results/weekly-enquiry-desktop.png",
     fullPage: true,

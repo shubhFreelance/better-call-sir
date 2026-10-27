@@ -6741,3 +6741,64 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .verification-step-hint {font-size:12px;margin-top:16px;}
 @media(max-width:1000px){.step-progress[data-many=true] {grid-template-columns:repeat(3,minmax(0,1fr));}}
 @media(max-width:600px){.step-progress li {flex-direction:column;justify-content:flex-start;text-align:center;font-size:11px;padding:8px 4px;}.step-progress[data-many=true] {grid-template-columns:repeat(2,minmax(0,1fr));}.step-progress[data-many=true] li {flex-direction:row;align-items:center;text-align:left;padding:10px 8px;}}
+
+.tuition-setup-wizard>.wizard-title {max-width:none;margin-bottom:24px;padding:24px 28px;border-radius:22px;background:#034F46;color:#FCFEEB;}
+.tuition-setup-wizard>.wizard-title h1 {margin:0;font-size:32px;line-height:1.25;letter-spacing:-.04em;color:#FCFEEB;}
+.tuition-setup-wizard>.wizard-title p {margin:8px 0 0;font-size:13px;line-height:1.7;color:#FCFEEB;}
+.tuition-setup-wizard .wizard-layout {grid-template-columns:240px minmax(0,1fr);gap:24px;}
+.tuition-setup-wizard .wizard-card {padding:26px;border:1px solid #D8E3DB;border-radius:20px;}
+.tuition-setup-wizard .wizard-topline {margin-bottom:16px;font-size:11px;align-items:center;}
+.tuition-setup-wizard .wizard-topline>[role=status] {padding:5px 9px;border-radius:7px;background:#EEF5E7;}
+.tuition-setup-wizard .wizard-card>.step-progress {margin-bottom:24px;}
+.tuition-setup-wizard .wizard-card h2 {font-size:24px;line-height:1.35;margin:0 0 12px;color:#034F46;}
+.tuition-setup-wizard .wizard-card .wizard-help {font-size:12px;line-height:1.7;margin:10px 0;color:#52655F;}
+.tuition-setup-wizard .wizard-discovery {border:1px solid #DADCCB;border-radius:18px;padding:20px;background:#E4E4D0;}
+.tuition-setup-wizard .wizard-discovery strong {font-size:15px;}
+.tuition-setup-wizard .wizard-discovery p,.tuition-setup-wizard .wizard-discovery a {font-size:12px;line-height:1.7;}
+.tuition-setup-wizard .wizard-draft-info {display:flex;align-items:center;gap:7px;font-size:11px;color:#52655F;margin:12px 0;}
+.tuition-setup-wizard .wizard-card form>fieldset {margin:20px 0;}
+.tuition-setup-wizard .wizard-fields,.tuition-setup-wizard .wizard-permission {padding:20px;border:1px solid #E3E3D1;border-radius:16px;background:#FFFFEB;gap:18px;}
+.tuition-setup-wizard .wizard-permission p,.tuition-setup-wizard .wizard-permission li {font-size:12px;line-height:1.8;}
+.tuition-setup-wizard .wizard-permission ul {padding:14px 14px 14px 30px;border-radius:12px;background:#fff;}
+.tuition-setup-wizard .wizard-checkbox {font-size:12px;line-height:1.8;background:#F8EDFF;border-color:#E3C8F4;}
+.tuition-setup-wizard .wizard-fields .field>label {font-size:12px;}
+.tuition-setup-wizard .wizard-fields .field small {font-size:11px;line-height:1.7;}
+.tuition-setup-wizard .wizard-fields input,.tuition-setup-wizard .wizard-fields select,.tuition-setup-wizard .wizard-fields textarea {background:white;font-size:13px;border-radius:10px;}
+.tuition-setup-wizard .wizard-fields .form-row {margin:0;gap:16px;}
+.tuition-setup-wizard .wizard-fields .care-review {padding:14px;background:#EEF5F3;font-size:12px;border-radius:12px;}
+.tuition-setup-wizard .wizard-card fieldset.availability-mode {padding:16px;margin:0;background:#EEF5F3;border:1px solid #D8E3DB;border-radius:14px;gap:10px;}
+.tuition-setup-wizard .availability-mode legend {font-size:13px;margin-bottom:2px;}
+.tuition-setup-wizard .availability-mode label {flex:1;padding:12px;border:1px solid #D8E3DB;border-radius:10px;background:white;font-size:12px;}
+.tuition-setup-wizard .availability-mode label:has(input:checked) {background:#F0D7FF;border-color:#DAB5EE;font-weight:650;}
+.tuition-setup-wizard .weekly-availability>p {font-size:12px;line-height:1.8;margin:0 0 16px;}
+.tuition-setup-wizard .weekly-range,.tuition-setup-wizard .wizard-window {padding:16px;margin-bottom:14px;border:1px solid #D8E3DB;border-radius:12px;background:white;gap:12px;}
+.tuition-setup-wizard .weekly-range .field>label {font-size:11px;}
+.tuition-setup-wizard .weekly-availability>button {font-size:12px;background:#EEF5F3;border-color:#D8E3DB;}
+.tuition-setup-wizard .wizard-review {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.tuition-setup-wizard .wizard-review-row {padding:16px;border:1px solid #E3E3D1;border-radius:14px;background:#FFFFEB;}
+.tuition-setup-wizard .wizard-review-row h3 {font-size:12px;color:#52655F;}
+.tuition-setup-wizard .wizard-review-row p {font-size:13px;line-height:1.8;color:#034F46;white-space:pre-line;}
+.tuition-setup-wizard .wizard-review-row button {font-size:11px;max-width:100px;}
+.tuition-setup-wizard .wizard-review>.wizard-review-row:last-of-type {grid-column:1/-1;background:#F8EDFF;}
+.tuition-setup-wizard .wizard-review>[role=status],.tuition-setup-wizard .wizard-review>[role=alert] {grid-column:1/-1;font-size:12px;line-height:1.7;}
+.tuition-setup-wizard .wizard-actions.filter-button-group {display:flex;align-items:stretch;justify-content:stretch;margin-top:24px;}
+.tuition-setup-wizard .filter-button {font-size:13px;white-space:normal;line-height:1.5;}
+.tuition-setup-wizard .wizard-save-note {font-size:11px;line-height:1.7;}
+.tuition-saved-heading {display:flex;align-items:center;gap:16px;}
+.tuition-saved-heading>span {display:grid;place-items:center;flex-shrink:0;width:52px;height:52px;border-radius:16px;background:#F0D7FF;color:#034F46;}
+.tuition-saved-page .tuition-saved-heading h1 {font-size:28px;line-height:1.3;margin:0;color:#034F46;letter-spacing:-.04em;}
+.tuition-saved-reference {display:flex;align-items:center;gap:12px;font-size:12px;color:#52655F;}
+.tuition-saved-reference strong {padding:6px 10px;border-radius:8px;background:#EEF5F3;color:#034F46;font-size:13px;}
+.tuition-saved-page .tuition-saved-status {font-size:13px;line-height:1.8;margin:16px 0 0;color:#52655F;}
+.tuition-saved-card .wizard-next {padding:0;margin:0;background:transparent;}
+.tuition-saved-card .wizard-next h2 {font-size:16px;margin:0 0 8px;color:#034F46;}
+.tuition-saved-card .wizard-next p {font-size:12px;line-height:1.8;margin:0;}
+.tuition-saved-card .filter-button {font-size:13px;white-space:normal;}
+@media(max-width:960px){.tuition-setup-wizard .wizard-layout {display:flex;flex-direction:column;}.tuition-setup-wizard .wizard-card {order:1;width:100%;}.tuition-setup-wizard .wizard-aside {order:2;width:100%;position:static;}.tuition-setup-wizard .wizard-card>.step-progress {grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:600px){.tuition-setup-wizard>.wizard-title {padding:20px;}.tuition-setup-wizard>.wizard-title h1 {font-size:25px;}.tuition-setup-wizard .wizard-card {padding:18px;}.tuition-setup-wizard .wizard-card h2 {font-size:21px;}.tuition-setup-wizard .wizard-card>.step-progress {grid-template-columns:repeat(2,minmax(0,1fr));}.tuition-setup-wizard .wizard-fields,.tuition-setup-wizard .wizard-permission {padding:14px;}.tuition-setup-wizard .availability-mode label {flex-basis:100%;}.tuition-setup-wizard .wizard-review {grid-template-columns:minmax(0,1fr);}.tuition-setup-wizard .weekly-range {grid-template-columns:minmax(0,1fr);}.tuition-saved-heading {gap:12px;align-items:flex-start;}.tuition-saved-page .tuition-saved-heading h1 {font-size:23px;}.tuition-saved-heading>span {width:42px;height:42px;border-radius:12px;}}
+
+.tuition-setup-wizard .wizard-review-row {position:relative;display:block;}
+.tuition-setup-wizard .wizard-review-row>div {padding-right:30px;}
+.tuition-setup-wizard .wizard-review-row>button {position:absolute;top:8px;right:8px;width:36px;height:36px;min-height:36px;border-radius:50%;}
+.tuition-setup-wizard .wizard-review-row:nth-child(3) p {font-size:18px;font-weight:650;}
+.tuition-setup-wizard .wizard-review .tuition-windows {font-size:12px;line-height:1.8;padding-left:18px;}
