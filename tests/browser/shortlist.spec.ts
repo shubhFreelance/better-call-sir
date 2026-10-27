@@ -21,6 +21,7 @@ async function mock(
     | "waiting"
     | "uncertain"
     | "stale"
+    | "confirmed"
     | "terms"
     | "uncertain-terms"
     | "expired"
@@ -104,8 +105,8 @@ async function mock(
       weekly: [{ weekday: 1, startMinute: 960, endMinute: 1200 }],
     };
   let p: any =
-    mode === "terms" || mode === "uncertain-terms"
-      ? {
+    mode === "terms" || mode === "uncertain-terms" || mode === "confirmed"
+      ?  {
           id: placementId,
           guardianId: parent,
           teacherId,
@@ -113,7 +114,7 @@ async function mock(
           requestId,
           monthlyPaise: 250050,
           policyVersion: "pilot-v1",
-          guardianAccepted: false,
+          guardianAccepted: mode === "confirmed",
           teacherAccepted: true,
           guardianStarted: false,
           teacherReceiptConfirmed: false,
@@ -201,6 +202,7 @@ async function mock(
       expect(validator("HiringDashboard")(data)).toBe(true);
       return route.fulfill({ json: data });
     }
+    if(path.endsWith('/tuition-bookings/PLACEMENT/'+placementId)&&p)return route.fulfill({json:{id:p.id,kind:'PLACEMENT',version:p.version,month:'2026-11',bookingVersion:2,monthlyPaise:p.monthlyPaise,policyVersion:p.policyVersion,familyConfirmed:p.guardianAccepted,teacherConfirmed:p.teacherAccepted,confirmed:p.guardianAccepted&&p.teacherAccepted,closed:p.status==='CLOSED',canConfirm:true,proActive:false,canMarkCompleted:false,completions:[]}});
     if (path.endsWith("/dashboard")) {
       const { candidates, ...summary } = request;
       return route.fulfill({
@@ -229,6 +231,8 @@ async function mock(
         },
       });
     }
+    if(path.endsWith('/requests')&&req.method()==='GET'){const {candidates,...summary}=request;return route.fulfill({json:{items:[summary],nextCursor:null}});}
+    if(path.endsWith('/direct-enquiries')&&req.method()==='GET')return route.fulfill({json:{items:[],counts:{},nextCursor:null}});
     if (path === `/api/v1/requests/${requestId}`) {
       const check = validator("TuitionRequestDetails");
       expect(check(request), JSON.stringify(check.errors)).toBe(true);
@@ -738,19 +742,23 @@ test("a completed demo can open pending tuition terms after its shortlist is emp
   await page.getByRole("button", { name: "Open tuition agreement" }).click();
   await expect(
     page.getByText(
-      "Tuition terms created. Continue to hiring confirmation to review the amount and both parties’ acceptance.",
+      "Tuition terms created. View your arrangement to review the amount and both parties’ acceptance.",
     ),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Continue to hiring confirmation" }),
+    page.getByRole("link", { name: "View tuition arrangement" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Continue to hiring confirmation" }),
+    page.getByRole("link", { name: "View tuition arrangement" }),
   ).toBeVisible();
   expect(state.seen).toHaveLength(0);
   expect(
     state.paths.filter((p) => p === "POST /api/v1/placements"),
   ).toHaveLength(1);
+});
+
+test('confirmed agreement handoff offers viewing, opens the exact dedicated arrangement and requests no new acceptance',async({page})=>{
+ const state=await mock(page,'confirmed');await page.goto('/dashboard/requests?request='+requestId);const handoff=page.locator('.enquiry-handoff');await expect(handoff).toContainText('Hiring terms confirmed');await expect(handoff).toContainText('Both parties have accepted.');await expect(handoff.getByRole('link',{name:'Continue to hiring confirmation',exact:true})).toHaveCount(0);const view=handoff.getByRole('link',{name:'View tuition arrangement',exact:true});await expect(view).toHaveAttribute('href','/dashboard/arrangements?placement='+placementId);await view.click();await expect(page).toHaveURL('/dashboard/arrangements?placement='+placementId);const card=page.locator('.placement-summary');await expect(card).not.toHaveAttribute('open');await card.locator(':scope > summary').click();await expect(card.locator('.monthly-hiring')).toContainText('Both parties confirmed this month.');await expect(card.getByRole('button',{name:'Confirm monthly tuition',exact:true})).toHaveCount(0);expect(state.getTerms()).toBe(0);
 });
 
 test("an accepted teacher can open terms without a demo", async ({ page }) => {
@@ -780,7 +788,7 @@ test("an accepted teacher can open terms without a demo", async ({ page }) => {
     .check();
   await page.getByRole("button", { name: "Open tuition agreement" }).click();
   await expect(
-    page.getByRole("link", { name: "Continue to hiring confirmation" }),
+    page.getByRole("link", { name: "View tuition arrangement" }),
   ).toBeVisible();
   expect(
     state.paths.filter((p) => p === "POST /api/v1/placements"),
@@ -859,41 +867,16 @@ test("enquiry selection hands off to exact mutual hiring confirmation without cl
     .check();
   await page.getByRole("button", { name: "Open tuition agreement" }).click();
   await expect(
-    page.getByRole("link", { name: "Continue to hiring confirmation" }),
-  ).toHaveAttribute("href", "/dashboard?arrangement=" + placementId);
+    page.getByRole("link", { name: "View tuition arrangement" }),
+  ).toHaveAttribute("href", "/dashboard/arrangements?placement=" + placementId);
   await expect(
     page.getByRole("heading", { name: "Recurring tuition terms" }),
   ).toHaveCount(0);
   await page
-    .getByRole("link", { name: "Continue to hiring confirmation" })
+    .getByRole("link", { name: "View tuition arrangement" })
     .click();
-  await page
-    .getByRole("button", { name: "Review hiring terms", exact: true })
-    .click();
-  await page
-    .getByRole("checkbox", { name: /reviewed the monthly tuition and policy/ })
-    .check();
-  await page
-    .getByRole("button", { name: "Accept hiring terms", exact: true })
-    .click();
-  await expect(
-    page.getByText(/Your acceptance is recorded. Waiting for the other party/),
-  ).toBeVisible();
-  state.asTeacher();
-  await page.reload();
-  await page
-    .getByRole("button", { name: "Review hiring terms", exact: true })
-    .click();
-  await page
-    .getByRole("checkbox", { name: /reviewed the monthly tuition and policy/ })
-    .check();
-  await page
-    .getByRole("button", { name: "Accept hiring terms", exact: true })
-    .click();
-  await expect(
-    page.getByText("Hiring terms confirmed", { exact: true }),
-  ).toBeVisible();
-  expect(state.getTerms()).toBe(2);
+  await expect(page).toHaveURL('/dashboard/arrangements?placement='+placementId);
+  const arrangement=page.locator('.placement-summary');await expect(arrangement).not.toHaveAttribute('open');await arrangement.locator(':scope > summary').click();await expect(arrangement.getByRole('link',{name:'Help and case progress for this arrangement',exact:true})).toHaveAttribute('href','/support?placement='+placementId);expect(state.getTerms()).toBe(0);
   expect(
     state.paths.filter(
       (p) =>

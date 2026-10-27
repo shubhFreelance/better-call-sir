@@ -19,6 +19,28 @@ model Account {
   region String @default("Raipur")
   createdAt DateTime @default(now())
 }
+model TuitionBooking {
+ id String @id @default(uuid()) @db.Uuid
+ kind String
+ resourceId String @unique @db.Uuid
+ month String
+ familyConfirmed Boolean @default(false)
+ teacherConfirmed Boolean @default(false)
+ version Int @default(1)
+ createdAt DateTime @default(now())
+ completions TuitionCompletion[]
+}
+model TuitionCompletion {
+ id String @id @default(uuid()) @db.Uuid
+ bookingId String @db.Uuid
+ booking TuitionBooking @relation(fields:[bookingId],references:[id],onDelete:Cascade)
+ date String
+ completed Boolean @default(true)
+ recordedById String @db.Uuid
+ recordedAt DateTime @default(now())
+ version Int @default(1)
+ @@unique([bookingId,date])
+}
 model Otp {
   locale String @default("en")
   id String @id @default(uuid()) @db.Uuid

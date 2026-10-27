@@ -584,13 +584,18 @@ export function guardianVerificationTests() {
         .getByRole("list", { name: "Guardian verification steps", exact: true })
         .getByRole("listitem"),
     ).toHaveCount(6);
+    const steps=editor.locator('.step-progress');
+    await expect(steps).toHaveCSS('background-color','rgb(238, 245, 243)');
+    await expect(steps.locator('[aria-current=step]')).toHaveCSS('background-color','rgb(240, 215, 255)');
+    await expect(steps.getByRole('button')).toHaveCount(0);
+    await steps.screenshot({path:'test-results/guardian-step-progress-desktop.png'});
     await expect(editor.getByRole("radio")).toHaveCount(0);
     await expect(editor.locator('[aria-current="step"]')).toHaveText(
       /Relationship details/,
     );
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(
-      editor.locator('[aria-current="step"] .verification-step-marker'),
+      editor.locator('[aria-current="step"] .step-progress-marker'),
     ).toHaveCSS("animation-name", "none");
     await editor.focus();
     await page.evaluate(() => document.fonts.ready);
@@ -599,6 +604,8 @@ export function guardianVerificationTests() {
     });
     await page.setViewportSize({ width: 360, height: 850 });
     await expect(editor).toHaveCSS("padding-left", "20px");
+    expect(await steps.evaluate(node=>getComputedStyle(node).gridTemplateColumns.split(' ').length)).toBe(2);
+    await steps.screenshot({path:'test-results/guardian-step-progress-phone.png'});
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,

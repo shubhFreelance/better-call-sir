@@ -12,6 +12,11 @@ async function erase(db:DB,scope:string,resourceId:string,accountId:string){
  const erasedTeacher=scope==='ACCOUNT'?await db.teacher.findUnique({where:{accountId}}):null;
  const directWhere={OR:[{childId:{in:childIds}},...(scope==='ACCOUNT'?[{ownerId:accountId},...(erasedTeacher?[{teacherId:erasedTeacher.id}]:[])]:[])]};
  const directIds=(await db.directEnquiry.findMany({where:directWhere,select:{id:true}})).map(row=>row.id);
+ const placementIds=(await db.placement.findMany({where:{OR:[{childId:{in:childIds}},...(scope==='ACCOUNT'?[{guardianId:accountId},...(erasedTeacher?[{teacherId:erasedTeacher.id}]:[])]:[])]},select:{id:true}})).map(p=>p.id);
+ const independentIds=scope==='ACCOUNT'?(await db.studentArrangement.findMany({where:{OR:[{studentAccountId:accountId},...(erasedTeacher?[{teacherId:erasedTeacher.id}]:[])]},select:{id:true}})).map(a=>a.id):[];
+ await db.tuitionBooking.deleteMany({where:{resourceId:{in:[...placementIds,...independentIds]}}});
+ for(const id of placementIds)await db.idempotency.deleteMany({where:{operation:{contains:'/tuition-bookings/PLACEMENT/'+id}}});
+ for(const id of independentIds)await db.idempotency.deleteMany({where:{operation:{contains:'/tuition-bookings/INDEPENDENT/'+id}}});
  await db.directEnquiry.updateMany({where:{id:{in:directIds}},data:{proposal:Prisma.DbNull,version:{increment:1}}});
  for(const id of directIds)await db.idempotency.deleteMany({where:{operation:{contains:'/direct-enquiries/'+id}}});
 

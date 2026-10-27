@@ -74,6 +74,7 @@ export function LiveBell({ session }: { session: Session }) {
       void client.invalidateQueries({
         queryKey: ["direct-enquiries", session.account.id],
       });
+      void client.invalidateQueries({queryKey:["tuition-booking",session.account.id]});
     });
     return () => {
       socket.disconnect();
@@ -100,6 +101,8 @@ export function LiveBell({ session }: { session: Session }) {
   }, [open]);
   function title(topic: string) {
     const labels: Record<string, string> = {
+      "tuition-booking.confirmed": "Monthly tuition confirmation updated",
+      "tuition-booking.class_recorded": "Class record updated",
       "guardian-verification.ping": "Your student is asking you to complete guardian verification.",
       "direct.accept": "Enquiry accepted — review tuition terms",
       "direct.decline": "Enquiry declined",

@@ -18,7 +18,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "test": "npm run test:unit && npm run test:integration && npm run test:contract && npm run test:mock",
-    "test:unit": "tsx --test tests/policies.test.ts tests/calendar.test.ts tests/ranking.test.ts tests/email-otp.test.ts tests/email-delivery.test.ts tests/email-smtp.test.ts tests/recurring.test.ts tests/payments.test.ts tests/meetings.test.ts tests/mfa.test.ts",
+    "test:unit": "tsx --test tests/policies.test.ts tests/calendar.test.ts tests/enquiry-schedule.test.ts tests/ranking.test.ts tests/email-otp.test.ts tests/email-delivery.test.ts tests/email-smtp.test.ts tests/recurring.test.ts tests/payments.test.ts tests/meetings.test.ts tests/mfa.test.ts",
     "test:integration": "tsx --test --test-concurrency=1 tests/api.test.ts",
     "test:contract": "tsx --test tests/contract.test.ts",
     "test:e2e": "playwright test",

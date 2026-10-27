@@ -4,6 +4,66 @@
  */
 
 export interface paths {
+    "/tuition-bookings/{kind}/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Owned monthly hiring confirmation and Pro calendar
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        get: operations["getTuitionBooking"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tuition-bookings/{kind}/{id}/confirmations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Explicitly confirm the displayed month and tuition terms
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["confirmTuitionBooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tuition-bookings/{kind}/{id}/completions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assigned teacher records a Pro class date; not payment or independent attendance evidence
+         * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
+         */
+        post: operations["recordTuitionCompletion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/children/{id}/learning-spaces": {
         parameters: {
             query?: never;
@@ -7651,6 +7711,372 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getTuitionBooking: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        kind: "PLACEMENT" | "INDEPENDENT";
+                        version: number;
+                        month: string;
+                        bookingVersion: number;
+                        monthlyPaise?: number;
+                        policyVersion?: string;
+                        placementFeePaise?: number;
+                        familyConfirmed: boolean;
+                        teacherConfirmed: boolean;
+                        confirmed: boolean;
+                        closed: boolean;
+                        canConfirm: boolean;
+                        proActive: boolean;
+                        canMarkCompleted: boolean;
+                        completions: {
+                            /** Format: date */
+                            date: string;
+                            completed: boolean;
+                            version: number;
+                        }[];
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    confirmTuitionBooking: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expectedVersion: number;
+                    /** @constant */
+                    confirmed: true;
+                    expectedBookingVersion: number;
+                    month: string;
+                    policyVersion: string;
+                    /** @constant */
+                    contactShareAccepted: true;
+                };
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        kind: "PLACEMENT" | "INDEPENDENT";
+                        version: number;
+                        month: string;
+                        bookingVersion: number;
+                        monthlyPaise?: number;
+                        policyVersion?: string;
+                        placementFeePaise?: number;
+                        familyConfirmed: boolean;
+                        teacherConfirmed: boolean;
+                        confirmed: boolean;
+                        closed: boolean;
+                        canConfirm: boolean;
+                        proActive: boolean;
+                        canMarkCompleted: boolean;
+                        completions: {
+                            /** Format: date */
+                            date: string;
+                            completed: boolean;
+                            version: number;
+                        }[];
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    recordTuitionCompletion: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Scoped to principal, operation and resource. Same payload replays original result; changed payload returns 409. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                kind: "PLACEMENT" | "INDEPENDENT";
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expectedVersion: number;
+                    /** @constant */
+                    confirmed: true;
+                    /** Format: date */
+                    date: string;
+                    completed: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** @enum {string} */
+                        kind: "PLACEMENT" | "INDEPENDENT";
+                        version: number;
+                        month: string;
+                        bookingVersion: number;
+                        monthlyPaise?: number;
+                        policyVersion?: string;
+                        placementFeePaise?: number;
+                        familyConfirmed: boolean;
+                        teacherConfirmed: boolean;
+                        confirmed: boolean;
+                        closed: boolean;
+                        canConfirm: boolean;
+                        proActive: boolean;
+                        canMarkCompleted: boolean;
+                        completions: {
+                            /** Format: date */
+                            date: string;
+                            completed: boolean;
+                            version: number;
+                        }[];
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getLearnerSpaces: {
         parameters: {
             query?: never;
@@ -8126,6 +8552,24 @@ export interface operations {
                                     endTime: string;
                                     /** @constant */
                                     timezone: "Asia/Kolkata";
+                                } | {
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                    weekly: {
+                                        /** @description 0 Sunday through 6 Saturday */
+                                        weekday: number;
+                                        startMinute: number;
+                                        endMinute: number;
+                                    }[];
+                                } | {
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                    slots: {
+                                        /** Format: date-time */
+                                        startsAt: string;
+                                        /** Format: date-time */
+                                        endsAt: string;
+                                    }[];
                                 };
                                 agreedSchedule?: {
                                     /** Format: date */
@@ -8134,10 +8578,30 @@ export interface operations {
                                     endTime: string;
                                     /** @constant */
                                     timezone: "Asia/Kolkata";
+                                } | {
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                    weekly: {
+                                        /** @description 0 Sunday through 6 Saturday */
+                                        weekday: number;
+                                        startMinute: number;
+                                        endMinute: number;
+                                    }[];
+                                } | {
+                                    /** @constant */
+                                    timezone: "Asia/Kolkata";
+                                    slots: {
+                                        /** Format: date-time */
+                                        startsAt: string;
+                                        /** Format: date-time */
+                                        endsAt: string;
+                                    }[];
                                 };
                                 /** @enum {string} */
                                 proposedBy?: "TEACHER" | "FAMILY";
                                 declineReason?: string;
+                                agreedSourceVersion?: number;
+                                sourceVersion?: number;
                             } | null;
                             /** Format: uuid */
                             arrangementId: string | null;
@@ -8266,16 +8730,27 @@ export interface operations {
                     confirmed: true;
                     /** @enum {string} */
                     format: "ONE_TO_ONE" | "GROUP";
-                    timing: string;
+                    timing?: string;
                     message: string;
                     expectedSourceVersion: number;
                     schedule?: {
-                        /** Format: date */
-                        date: string;
-                        startTime: string;
-                        endTime: string;
                         /** @constant */
                         timezone: "Asia/Kolkata";
+                        weekly: {
+                            /** @description 0 Sunday through 6 Saturday */
+                            weekday: number;
+                            startMinute: number;
+                            endMinute: number;
+                        }[];
+                    } | {
+                        /** @constant */
+                        timezone: "Asia/Kolkata";
+                        slots: {
+                            /** Format: date-time */
+                            startsAt: string;
+                            /** Format: date-time */
+                            endsAt: string;
+                        }[];
                     };
                 };
             };
@@ -8325,6 +8800,24 @@ export interface operations {
                                 endTime: string;
                                 /** @constant */
                                 timezone: "Asia/Kolkata";
+                            } | {
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                                weekly: {
+                                    /** @description 0 Sunday through 6 Saturday */
+                                    weekday: number;
+                                    startMinute: number;
+                                    endMinute: number;
+                                }[];
+                            } | {
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                                slots: {
+                                    /** Format: date-time */
+                                    startsAt: string;
+                                    /** Format: date-time */
+                                    endsAt: string;
+                                }[];
                             };
                             agreedSchedule?: {
                                 /** Format: date */
@@ -8333,10 +8826,30 @@ export interface operations {
                                 endTime: string;
                                 /** @constant */
                                 timezone: "Asia/Kolkata";
+                            } | {
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                                weekly: {
+                                    /** @description 0 Sunday through 6 Saturday */
+                                    weekday: number;
+                                    startMinute: number;
+                                    endMinute: number;
+                                }[];
+                            } | {
+                                /** @constant */
+                                timezone: "Asia/Kolkata";
+                                slots: {
+                                    /** Format: date-time */
+                                    startsAt: string;
+                                    /** Format: date-time */
+                                    endsAt: string;
+                                }[];
                             };
                             /** @enum {string} */
                             proposedBy?: "TEACHER" | "FAMILY";
                             declineReason?: string;
+                            agreedSourceVersion?: number;
+                            sourceVersion?: number;
                         } | null;
                         /** Format: uuid */
                         arrangementId: string | null;

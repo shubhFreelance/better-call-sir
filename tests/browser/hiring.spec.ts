@@ -21,7 +21,10 @@ async function mock(page: Page, role = "GUARDIAN", mode = "normal") {
     guardianAccepted =
       !mode.startsWith("terms-") &&
       !["withdrawn", "paused", "unverified"].includes(mode),
-    teacherAccepted = false;
+    teacherAccepted = ["pro","leap-calendar","free-confirmed"].includes(mode);
+  let proActive=["pro","leap-calendar"].includes(mode);
+  const completions: {date:string;completed:boolean;version:number}[] = [];
+  const bookedMonth = mode === "leap-calendar" ? "2028-02" : new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata"}).format(new Date()).slice(0,7);
   const acceptedKeys = new Map<string, unknown>();
   await page.route("**/api/v1/**", async (route) => {
     const req = route.request(),
@@ -127,8 +130,8 @@ async function mock(page: Page, role = "GUARDIAN", mode = "normal") {
                   status: mode === "terms-closed" ? "CLOSED" : "TERMS_PENDING",
                   guardianAccepted,
                   teacherAccepted,
-                  guardianStarted: false,
-                  teacherReceiptConfirmed: false,
+                  guardianStarted: mode === "classes-started",
+                  teacherReceiptConfirmed: mode === "classes-started",
                   learner: { alias: "Mira", grade: 8, board: "CBSE" },
                   teacher: {
                     id: ids.teacher,
@@ -207,6 +210,21 @@ async function mock(page: Page, role = "GUARDIAN", mode = "normal") {
       const check = validator("HiringDashboard");
       expect(check(result), JSON.stringify(check.errors)).toBe(true);
       return route.fulfill({ json: result });
+    }
+    if(path.startsWith('/api/v1/tuition-bookings/PLACEMENT/')) {
+      const booking=()=>({id:ids.placement,kind:'PLACEMENT',version:termVersion,bookingVersion:Number(guardianAccepted)+Number(teacherAccepted),month:bookedMonth,...(role==='STUDENT'?{}:{monthlyPaise:300029,...(mode==='terms-missing'?{}:{policyVersion:'development-v1'}),placementFeePaise:75007}),familyConfirmed:guardianAccepted,teacherConfirmed:teacherAccepted,confirmed:guardianAccepted&&teacherAccepted,closed:mode==='terms-closed',canConfirm:role!=='STUDENT'&&!['withdrawn','paused','unverified'].includes(mode),proActive,canMarkCompleted:role==='TEACHER'&&proActive&&guardianAccepted&&teacherAccepted,completions:proActive?completions:[]});
+      if(req.method()==='GET')return route.fulfill(fail?{status:503,json:{code:'UNAVAILABLE',message:'Synthetic unavailable'}}:{json:booking()});
+      const key=req.headers()['idempotency-key'],body=req.postDataJSON();writes.push({key,body});
+      if(acceptedKeys.has(key))return route.fulfill({status:201,json:acceptedKeys.get(key)});
+      if(path.endsWith('/completions')){const old=completions.find(row=>row.date===body.date);if(old)Object.assign(old,{completed:body.completed,version:old.version+1});else completions.push({date:body.date,completed:body.completed,version:1});return route.fulfill({status:201,json:booking()});}
+      expect(req.headers()['x-csrf-token']).toBe('synthetic-csrf');
+      if(mode==='terms-stale'&&termVersion===1){termVersion=2;return route.fulfill({status:409,json:{code:'CONFLICT',message:'Synthetic stale hiring terms'}});}
+      expect(body).toMatchObject({expectedVersion:termVersion,month:bookedMonth,confirmed:true,contactShareAccepted:true,policyVersion:'development-v1'});
+      if(role==='TEACHER')teacherAccepted=true;else guardianAccepted=true;
+      termVersion++;const result=booking();acceptedKeys.set(key,result);
+      if(mode==='terms-saved-refresh')fail=true;
+      if(mode==='terms-unknown'&&writes.length===1)return route.fulfill({status:201,contentType:'application/json',body:'unreadable hiring result'});
+      return route.fulfill({status:201,json:result});
     }
     if (path === `/api/v1/placements/${ids.placement}/acceptances`) {
       expect(req.method()).toBe("POST");
@@ -292,6 +310,8 @@ async function mock(page: Page, role = "GUARDIAN", mode = "normal") {
     recover: () => {
       fail = false;
     },
+    revokePro:()=>{proActive=false;},
+    seedCompletion:(date:string)=>completions.push({date,completed:true,version:1}),
   };
 }
 const ready = (page: Page) =>
@@ -351,9 +371,7 @@ test("student can explore and see their own enquiry and teacher while purchases 
   );
   await page.getByRole("tab", { name: "Your teacher", exact: true }).click();
   await expect(
-    page.getByRole("article", {
-      name: "Maths arrangement with Synthetic reviewed teacher",
-    }),
+    page.getByRole("group", {name: "Synthetic reviewed teacher", exact:true}),
   ).toBeVisible();
   await expect(
     page.getByText("Recorded monthly terms", { exact: true }),
@@ -491,9 +509,7 @@ test("pagination keeps full totals and resets when switching to arrangements", a
   await expect(page.getByText("Page 2", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Teaching arrangements" }).click();
   await expect(
-    page.getByRole("article", {
-      name: "Maths arrangement with Synthetic reviewed teacher",
-    }),
+    page.getByRole("group", {name: "Synthetic reviewed teacher", exact:true}),
   ).toBeVisible();
   await expect(page.getByText("Page 1", { exact: true })).toBeVisible();
   expect(state.reads.some((p) => p.endsWith("/dashboard/hiring"))).toBe(true);
@@ -701,21 +717,52 @@ test("an expired scoped page can return to the first page without retrying a for
   ).toBeVisible();
 });
 
+for(const mode of ['classes-started','free-confirmed'])test('collapsed arrangement start badge follows recorded commencement, not booking: '+mode,async({page})=>{
+ await mock(page,'GUARDIAN',mode);await page.goto('/dashboard');await page.getByRole('tab',{name:'Teaching arrangements',exact:true}).click();const card=page.locator('.tuition-arrangement-card').first();await expect(card).not.toHaveAttribute('open');await expect(card.locator('.arrangement-start-badge')).toHaveCount(mode==='classes-started'?1:0);if(mode==='classes-started'){await expect(card.locator('.arrangement-start-badge')).toHaveText('Classes started');const heading=page.locator('.hiring-arrangements-heading');await expect(heading.locator('h3')).toHaveCSS('margin','0px');await expect(heading.locator('p')).toHaveCSS('margin','0px');await expect(heading.locator(':scope > div')).toHaveCSS('gap','6px');await page.setViewportSize({width:360,height:850});expect((await new AxeBuilder({page}).include('.tuition-arrangement-card').analyze()).violations).toEqual([]);await card.screenshot({path:'test-results/arrangement-started-badge-phone.png',style:'nextjs-portal{display:none!important}'});await page.locator('.hiring-records').screenshot({path:'test-results/arrangement-section-spacing-phone.png',style:'nextjs-portal{display:none!important}'});}
+});
+
+test("arrangements start compact and months reveal an inline calendar with honest activity and completion counts",async({page})=>{
+ const state=await mock(page,'GUARDIAN','leap-calendar');state.seedCompletion('2028-02-03');await page.goto('/dashboard');await page.getByRole('tab',{name:'Teaching arrangements',exact:true}).click();const card=page.locator('.tuition-arrangement-card').first();await expect(card).not.toHaveAttribute('open');await expect(card.locator('.monthly-hiring')).not.toBeVisible();await card.locator(':scope > summary').focus();await page.keyboard.press('Enter');await expect(card).toHaveAttribute('open','');
+ const calendar=card.locator('.class-calendar');await expect(calendar.locator('.class-calendar-months button')).toHaveCount(12);await expect(calendar.locator('.class-calendar-grid')).toHaveCount(0);await expect(calendar.locator('.has-tuition')).toHaveCount(1);await expect(calendar.locator('.has-tuition')).toHaveCSS('background-color','rgb(240, 215, 255)');await calendar.getByRole('button',{name:'February 2028',exact:true}).click();await expect(calendar.locator('.class-calendar-grid button')).toHaveCount(29);await expect(calendar).toContainText('Classes recorded complete: 1');await expect(calendar.locator('.class-month-detail')).toHaveCSS('animation-name','class-month-reveal');
+ await calendar.getByRole('button',{name:'March 2028',exact:true}).click();await expect(calendar).toContainText('No tuition is recorded for this month.');await expect(calendar.locator('.class-calendar-grid button')).toHaveCount(31);await expect(calendar.locator('.is-completed')).toHaveCount(0);for(const button of await calendar.locator('.class-calendar-grid button').all())await expect(button).toBeDisabled();await calendar.getByLabel('Year',{exact:true}).selectOption('2027');await expect(calendar.locator('.has-tuition')).toHaveCount(0);await expect(calendar.locator('.class-calendar-grid')).toHaveCount(0);await calendar.getByLabel('Year',{exact:true}).selectOption('2028');await calendar.getByRole('button',{name:'February 2028',exact:true}).click();
+ await expect(calendar.locator('.class-month-detail')).toHaveCSS('opacity','1');await page.setViewportSize({width:390,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.tuition-arrangement-card').analyze()).violations).toEqual([]);await card.screenshot({path:'test-results/compact-arrangement-months-phone.png',style:'nextjs-portal{display:none!important}'});await page.setViewportSize({width:1440,height:1000});await card.screenshot({path:'test-results/compact-arrangement-months-desktop.png',style:'nextjs-portal{display:none!important}'});await card.locator(':scope > summary').click();await expect(card).not.toHaveAttribute('open');expect(state.writes).toHaveLength(0);
+});
+
+test("Hindi month selector fits phones and respects reduced motion",async({page})=>{
+ await chooseHindi(page);await mock(page,'GUARDIAN','leap-calendar');await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:360,height:950});await page.goto('/dashboard');await page.getByRole('tab').last().click();const card=page.locator('.tuition-arrangement-card').first();await card.locator(':scope > summary').click();await card.locator('.class-calendar-months .has-tuition').click();await expect(card.locator('.class-month-detail')).toHaveCSS('animation-name','none');await expect(card.locator('.class-calendar-grid button')).toHaveCount(29);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.tuition-arrangement-card').analyze()).violations).toEqual([]);await card.screenshot({path:'test-results/compact-arrangement-months-hindi.png',style:'nextjs-portal{display:none!important}'});
+});
+
+test("Pro teacher records and corrects completed class dates; expiry hides completion data",async({page})=>{
+ const state=await mock(page,'TEACHER','pro');await openTerms(page);
+ await page.locator('.class-calendar-months .has-tuition').click();
+ const calendar=page.getByRole('region',{name:'Class completion calendar',exact:true}),grid=calendar.locator('.class-calendar-grid');
+ const now=new Date(),today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata'}).format(now),[year,month,day]=today.split('-').map(Number);
+ await expect(grid.locator('button')).toHaveCount(new Date(Date.UTC(year,month,0)).getUTCDate());
+ const cell=grid.locator('button').nth(day-1);await cell.click();const modal=page.getByRole('dialog',{name:'Record class completion',exact:true});await expect(modal.getByRole('button',{name:'Confirm',exact:true})).toBeDisabled();await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Confirm',exact:true}).click();await expect(cell).toHaveClass('is-completed');await expect(page.locator('.arrangement-start-badge')).toHaveText('Classes started');await expect(cell).toHaveCSS('background-color','rgb(240, 215, 255)');expect(state.writes[0].body).toMatchObject({date:today,completed:true,expectedVersion:0});
+ await cell.click();await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Confirm',exact:true}).click();await expect(cell).not.toHaveClass('is-completed');await expect(page.locator('.arrangement-start-badge')).toHaveCount(0);expect(state.writes[1].body).toMatchObject({date:today,completed:false,expectedVersion:1});
+ await cell.click();await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Confirm',exact:true}).click();await expect(cell).toHaveClass('is-completed');await page.setViewportSize({width:390,height:900});expect((await new AxeBuilder({page}).include('.monthly-hiring').analyze()).violations).toEqual([]);await page.locator('.monthly-hiring').screenshot({path:'test-results/pro-class-calendar-phone.png',style:'nextjs-portal{display:none!important}'});
+ state.revokePro();await page.locator('.monthly-hiring').getByRole('button',{name:'Refresh enquiries',exact:true}).click();await expect(calendar).toContainText('An active Pro membership is required');await expect(grid.locator('.is-completed')).toHaveCount(0);await expect(page.locator('.arrangement-start-badge')).toHaveCount(0);await expect(cell).toBeDisabled();
+});
+
+test("Pro family calendar is view-only and leap February has 29 real dates",async({page})=>{
+ const state=await mock(page,'GUARDIAN','leap-calendar');state.seedCompletion('2028-02-03');await openTerms(page);await page.locator('.class-calendar-months .has-tuition').click();const calendar=page.getByRole('region',{name:'Class completion calendar',exact:true});await expect(calendar.locator('.class-calendar-grid button')).toHaveCount(29);await expect(calendar.locator('.is-completed')).toHaveCount(1);for(const cell of await calendar.locator('.class-calendar-grid button').all())await expect(cell).toBeDisabled();await expect(page.getByRole('button',{name:'Confirm monthly tuition',exact:true})).toHaveCount(0);expect(state.writes).toHaveLength(0);
+});
+
+test("free confirmed family sees a locked calendar without fabricated completion marks",async({page})=>{
+ await mock(page,'GUARDIAN','free-confirmed');await openTerms(page);await page.locator('.class-calendar-months .has-tuition').click();const calendar=page.getByRole('region',{name:'Class completion calendar',exact:true});await expect(calendar).toContainText('An active Pro membership is required');await expect(calendar.locator('.is-completed')).toHaveCount(0);for(const cell of await calendar.locator('.class-calendar-grid button').all())await expect(cell).toBeDisabled();
+});
+
 async function openTerms(page: Page) {
   await page.goto("/dashboard");
   await page
     .getByRole("tab", { name: "Teaching arrangements", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Review hiring terms", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Review hiring terms", exact: true }),
-  ).toBeFocused();
+  const card=page.locator(".tuition-arrangement-card").first();await expect(card).not.toHaveAttribute("open");await card.locator(":scope > summary").click();
+  await expect(page.getByRole("region",{name:"Monthly tuition confirmation",exact:true})).toBeVisible();
 }
 const termsAck = (page: Page) =>
   page.getByRole("checkbox", {
-    name: /reviewed the monthly tuition and policy/,
+    name: /agree to the displayed monthly tuition/,
   });
 
 test("teacher confirms hiring terms from the primary dashboard without classes or financial execution", async ({
@@ -723,10 +770,10 @@ test("teacher confirms hiring terms from the primary dashboard without classes o
 }) => {
   const state = await mock(page, "TEACHER");
   await openTerms(page);
-  const review = page.getByRole("region", { name: "Hiring terms review" });
+  const review = page.getByRole("region", { name: "Monthly tuition confirmation" });
   await expect(review.getByText("₹3,000.29", { exact: true })).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Accept hiring terms", exact: true }),
+    page.getByRole("button", { name: "Confirm monthly tuition", exact: true }),
   ).toBeDisabled();
   await termsAck(page).check();
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -751,16 +798,13 @@ test("teacher confirms hiring terms from the primary dashboard without classes o
     ),
   ).toEqual([]);
   await page
-    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .getByRole("button", { name: "Confirm monthly tuition", exact: true })
     .click();
   await expect(
-    page.getByText("Hiring terms confirmed", { exact: true }),
+    page.getByRole("heading",{name:/Teacher booked for/}),
   ).toBeVisible();
   expect(state.writes).toHaveLength(1);
-  expect(state.writes[0].body).toEqual({
-    expectedVersion: 1,
-    action: "ACCEPT_TERMS",
-  });
+  expect(state.writes[0].body).toMatchObject({expectedVersion:1,expectedBookingVersion:1,confirmed:true,contactShareAccepted:true,policyVersion:'development-v1'});
   expect(
     state.reads.some(
       (p) =>
@@ -778,10 +822,10 @@ test("guardian accepts hiring terms and waits for the teacher; student never get
   await openTerms(page);
   await termsAck(page).check();
   await page
-    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .getByRole("button", { name: "Confirm monthly tuition", exact: true })
     .click();
   await expect(
-    page.getByText(/Your acceptance is recorded\. Waiting for the other party/),
+    page.getByText("Waiting for the other party to confirm this month.",{exact:true}),
   ).toBeVisible();
   expect(state.writes).toHaveLength(1);
   await page.unrouteAll();
@@ -802,16 +846,16 @@ for (const mode of ["terms-missing", "terms-closed", "withdrawn", "paused"])
     await openTerms(page);
     if (mode === "terms-closed")
       await expect(
-        page.getByRole("button", { name: "Accept hiring terms", exact: true }),
+        page.getByRole("button", { name: "Confirm monthly tuition", exact: true }),
       ).toHaveCount(0);
     else if (await termsAck(page).isVisible()) {
       await termsAck(page).check();
       await expect(
-        page.getByRole("button", { name: "Accept hiring terms", exact: true }),
+        page.getByRole("button", { name: "Confirm monthly tuition", exact: true }),
       ).toBeDisabled();
     } else
       await expect(
-        page.getByText(/Your acceptance is already recorded/),
+        page.getByText("Waiting for the other party to confirm this month.",{exact:true}),
       ).toBeVisible();
   });
 
@@ -822,17 +866,19 @@ test("uncertain hiring acceptance freezes controls and retries the identical bod
   await openTerms(page);
   await termsAck(page).check();
   await page
-    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .getByRole("button", { name: "Confirm monthly tuition", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Close terms review", exact: true }),
+    page.locator(".monthly-hiring").getByRole("button", { name: "Refresh enquiries", exact: true }),
   ).toBeDisabled();
   await expect(termsAck(page)).toBeDisabled();
+  await expect(page.getByRole("tab",{name:"Enquiry progress",exact:true})).toBeDisabled();
+  const card=page.locator('.tuition-arrangement-card').first();await card.locator(':scope > summary').click();await expect(card).toHaveAttribute('open','');
   await page
     .getByRole("button", { name: "Retry same decision", exact: true })
     .click();
   await expect(
-    page.getByText(/Your hiring-term acceptance was recorded/),
+    page.getByText(/Your monthly tuition confirmation was recorded/),
   ).toBeVisible();
   expect(state.writes).toHaveLength(2);
   expect(state.writes[1]).toEqual(state.writes[0]);
@@ -845,15 +891,15 @@ test("stale hiring terms refresh current version and require renewed acknowledge
   await openTerms(page);
   await termsAck(page).check();
   await page
-    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .getByRole("button", { name: "Confirm monthly tuition", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Reload current hiring terms", exact: true })
+  await page.locator(".monthly-hiring")
+    .getByRole("button", { name: "Refresh enquiries", exact: true })
     .click();
   await expect(termsAck(page)).not.toBeChecked();
   await termsAck(page).check();
   await page
-    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .getByRole("button", { name: "Confirm monthly tuition", exact: true })
     .click();
   expect(state.writes.map((w) => w.body.expectedVersion)).toEqual([1, 2]);
 });
@@ -865,14 +911,12 @@ test("saved hiring acceptance with a failed refresh prevents a duplicate write",
   await openTerms(page);
   await termsAck(page).check();
   await page
-    .getByRole("button", { name: "Accept hiring terms", exact: true })
+    .getByRole("button", { name: "Confirm monthly tuition", exact: true })
     .click();
   await expect(
     page.getByText(/saved, but current details could not be loaded/),
   ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Review hiring terms", exact: true }),
-  ).toBeDisabled();
+  await expect(page.getByRole("button",{name:"Confirm monthly tuition",exact:true})).toHaveCount(0);
   expect(state.writes).toHaveLength(1);
 });
 

@@ -2,7 +2,9 @@ import { expect, type Page } from "@playwright/test";
 export async function beginGuardian(page: Page) {
   const another = page.getByRole("button", { name: "Create another request" });
   const agree = page.getByRole("button", { name: "Agree and continue" });
-  await expect(another.or(agree)).toBeVisible();
+  const selectedSubject=page.locator('.enquiry-selection-card').getByRole('button');
+  await expect(another.or(agree).or(selectedSubject)).toBeVisible();
+  if (await selectedSubject.isVisible()) await selectedSubject.click();
   if (await another.isVisible()) await another.click();
   await page.getByRole("checkbox").check();
   await agree.click();

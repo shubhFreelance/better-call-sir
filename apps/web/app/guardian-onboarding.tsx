@@ -1,4 +1,8 @@
 "use client";
+import {GuardianEnquiryOverview} from "./guardian-enquiry-overview";
+import {StepProgress} from "../components/ui/step-progress";
+import {FilterButton,FilterButtonGroup} from "../components/ui/filter-button";
+import {InfoTooltip} from "../components/ui/info-tooltip";
 import { RefreshButton } from "../components/ui/refresh-button";
 import {
   OnboardingReadBoundary,
@@ -29,10 +33,9 @@ import {
 import { GuardianDraftDiscard } from "./guardian-draft-discard";
 import {
   ArrowRight,
-  Check,
-  CheckCircle2,
   LoaderCircle,
   Plus,
+  Pencil,
   ShieldCheck,
   X,
 } from "lucide-react";
@@ -213,12 +216,15 @@ function Field({
 export function GuardianOnboarding({
   session,
   onSessionChange,
+  overviewOnly=false,
 }: {
   session: Session;
   onSessionChange: (session: Session) => void;
+  overviewOnly?: boolean;
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
+  const Page=overviewOnly?"section":"main";
   const params = useSearchParams();
   const [reload, setReload] = useState(0);
   const [verificationError, setVerificationError] = useState("");
@@ -238,7 +244,7 @@ export function GuardianOnboarding({
   const initial =
     progress.data?.completedResourceId &&
     enquiry.data &&
-    (enquiry.data.version > 0 || params.get("teacher"))
+    (enquiry.data.version > 0 || params.get("teacher") || params.get("subject") || params.get("discovery"))
       ? enquiry.data
       : progress.data;
   const profile = params.get("profile"),
@@ -255,7 +261,7 @@ export function GuardianOnboarding({
   });
   if (!session.account.verified)
     return (
-      <main className="container narrow section wizard-verification">
+      <Page className="container narrow section wizard-verification">
         <ShieldCheck size={38} />
         <h1>{appText("Guardian verification is pending.")}</h1>
         <p>
@@ -293,7 +299,7 @@ export function GuardianOnboarding({
         <Link className="inline-link" href="/support">
           {appText("Get help with your account")}{" "}
         </Link>
-      </main>
+      </Page>
     );
   if (
     progress.isPending ||
@@ -301,12 +307,12 @@ export function GuardianOnboarding({
     (profile && teacherId && teacher.isPending)
   )
     return (
-      <main className="container section">
+      <Page className="container section">
         <p role="status">
           <LoaderCircle className="spin" />{" "}
           {appText("Loading your saved progress…")}{" "}
         </p>
-      </main>
+      </Page>
     );
   const error =
     [progress.error, enquiry.error, teacher.error].find(
@@ -332,7 +338,7 @@ export function GuardianOnboarding({
       onboardingAccessDenied(error))
   )
     return (
-      <main className="container narrow section">
+      <Page className="container narrow section">
         <Alert variant="destructive">
           <AlertDescription>
             {appText(
@@ -346,19 +352,20 @@ export function GuardianOnboarding({
         <Link className="inline-link" href="/teachers">
           {appText("Choose a teacher")}{" "}
         </Link>
-      </main>
+      </Page>
     );
   if (
     initial?.version &&
     !initial.completedResourceId &&
     Object.keys(initial.draft).length &&
-    params.get("teacher") &&
-    (params.get("teacher") !== initial.draft.preferredTeacherId ||
+    (params.get("teacher") || params.get("subject") || params.get("discovery")) &&
+    (params.get("teacher") && params.get("teacher") !== initial.draft.preferredTeacherId ||
+      params.get("discovery") === "ASSISTED" && initial.draft.discoveryMethod === "MANUAL" ||
       params.get("learner") && initial.draft.childId && params.get("learner") !== initial.draft.childId ||
       params.get("subject") && initial.draft.subject && params.get("subject") !== initial.draft.subject)
   )
     return (
-      <main className="container narrow section">
+      <Page className="container narrow section">
         <h1>{appText("A saved enquiry is already in progress.")}</h1>
         <p>
           {appText(
@@ -378,17 +385,17 @@ export function GuardianOnboarding({
           destination={"/onboarding/parent?" + params.toString()}
           label={appText("Discard draft & use this teacher")}
         />
-      </main>
+      </Page>
     );
   if (teacher.data && teacher.data.id !== teacherId)
     return (
-      <main className="container narrow section">
+      <Page className="container narrow section">
         <h1>{appText("Choose a teacher to continue.")}</h1>
         <p>{appText("The selected profile does not match this request.")}</p>
         <Link className="button" href="/teachers">
           {appText("Browse teachers")}{" "}
         </Link>
-      </main>
+      </Page>
     );
   if (!initial) return null;
   return (
@@ -400,6 +407,7 @@ export function GuardianOnboarding({
         enquiry={enquiry.data}
         teacherId={teacherId}
         teacher={teacher.data}
+        overviewOnly={overviewOnly}
         onReload={async () => {
           const result = await progress.refetch();
           const next = result.data?.completedResourceId
@@ -419,6 +427,7 @@ function Wizard({
   teacherId,
   teacher,
   onReload,
+  overviewOnly,
 }: {
   session: Session;
   initial: Progress;
@@ -426,14 +435,19 @@ function Wizard({
   teacherId: string;
   teacher?: Teacher;
   onReload: () => Promise<void>;
+  overviewOnly?: boolean;
 }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
+  const Page=overviewOnly?"section":"main";
   const client = useQueryClient();
   const searchContext = useSearchParams();
+  const selectedIntent=!!searchContext.get("teacher")||!!searchContext.get("subject")||searchContext.get("discovery")==="ASSISTED";
   const [progress, setProgress] = useState(initial);
   const [additional, setAdditional] = useState(initial.kind === "ENQUIRY");
   const [success, setSuccess] = useState(initial.completedResourceId || "");
+  const [justSubmitted,setJustSubmitted]=useState(false);
+  const [overview,setOverview]=useState(overviewOnly||initial.kind === "ENQUIRY" && initial.version === 0 && !Object.keys(initial.draft).length && selectedIntent);
   const draftPath = additional ? "/onboarding/enquiry" : "/onboarding/parent";
   const [step, setStep] = useState(0);
   const [accepted, setAccepted] = useState(false);
@@ -498,7 +512,7 @@ function Wizard({
     if (!searchContext.get("learner") || initial.draft.childId && initial.draft.childId !== searchContext.get("learner")) return;
     const child = children.data?.items.find(c => c.id === searchContext.get("learner"));
     if (child) setValues(old => old.childId === child.id && old.alias ? old : ({...old,childId:child.id,alias:child.alias,schoolName:child.schoolName || "",schoolSubjects:child.schoolSubjects?.join(", ") || "",grade:String(child.grade ?? ""),board:child.board || ""}));
-  }, [children.data, initial.draft.childId, searchContext]);
+  }, [children.data, initial.draft.childId, searchContext, step]);
   useEffect(() => {
     heading.current?.focus();
   }, [step, success]);
@@ -678,6 +692,7 @@ function Wizard({
         );
       if ("completedResourceId" in result) setProgress(result);
       setSuccess(id);
+      setJustSubmitted(true);
       setUncertain(false);
       client.invalidateQueries({ queryKey: ["dashboard"] });
       client.invalidateQueries({ queryKey: ["children"] });
@@ -710,102 +725,68 @@ function Wizard({
         ? `${name}-hint`
         : undefined,
   });
-  if (success)
-    return (
-      <main className="container narrow section wizard-success">
-        <CheckCircle2 size={44} />
-        <h1 ref={heading} tabIndex={-1}>
-          {appText("Your tuition request is saved.")}{" "}
-        </h1>
-        <p>
-          {appText("Request")} {success.slice(0, 8)}{" "}
-          {appText(
-            "· Your criteria are ready for review. No teacher has been assigned yet.",
-          )}{" "}
-        </p>
-        <div className="wizard-next">
-          <h2>{appText("What happens next?")}</h2>
-          <p>
-            {appText(
-              "Fit and availability are reviewed before suitable options are presented. You choose a teacher and review hiring terms together. A demo is optional.",
-            )}{" "}
-          </p>
-        </div>
-        <Link className="button" href="/dashboard/requests">
-          {appText("View tuition requests")}{" "}
-        </Link>
-        {serverError && (
-          <Alert variant="destructive">
-            <AlertDescription>
-              {appError(serverError)}{" "}
-              <RefreshButton variant="outline" disabled={busy} onClick={onReload} label={appText("Reload saved progress")} />
-            </AlertDescription>
-          </Alert>
-        )}
-        <Button
-          variant="outline"
-          className="button secondary"
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true);
-            try {
-              const next = additional
-                ? await post<Progress>("/onboarding/enquiry/restarts", {
-                    expectedVersion: progress.version,
-                  })
-                : enquiry || (await api<Progress>("/onboarding/enquiry"));
-              if (next.completedResourceId)
-                throw new Error(
-                  "Refresh saved progress before starting another enquiry.",
-                );
-              if (Object.keys(next.draft).length) {
-                await onReload();
-                return;
-              }
-              client.setQueryData(
-                ["guardian-enquiry-draft", session.account.id],
-                next,
-              );
-              setProgress(next);
-              setSuccess("");
-              setAdditional(true);
-              setValues({
-                ...initialValues(),
-                childId: "",
-                schoolName: "",
-                schoolSubjects: "",
-                alias: "",
-                schedule: "",
-              });
-              setWindows([{ start: "", duration: "40" }]);
-              setWeeklyMode(true);
-              setWeekly(emptyWeekly());
-              setAccepted(false);
-              setStep(0);
-              setServerError("");
-              setConflict(false);
-              retry.current = null;
-              submission.current = null;
-              setSaved(false);
-            } catch (error) {
-              setServerError(
-                error instanceof ApiError
-                  ? error.message
-                  : "We couldn’t confirm the new draft. Try again to check the same action.",
-              );
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          {busy
-            ? appText("Starting enquiry…")
-            : appText("Create another request")}
-        </Button>
-      </main>
-    );
+  async function startAnotherEnquiry(){
+    if(busy)return;
+    if(!progress.completedResourceId){setOverview(false);return;}
+    setBusy(true);
+    try {
+      const next = progress.kind === "ENQUIRY" && !!progress.completedResourceId
+        ? await post<Progress>("/onboarding/enquiry/restarts", {
+            expectedVersion: progress.version,
+          })
+        : enquiry || (await api<Progress>("/onboarding/enquiry"));
+      if (next.completedResourceId)
+        throw new Error(
+          "Refresh saved progress before starting another enquiry.",
+        );
+      if (Object.keys(next.draft).length) {
+        await onReload();
+        return;
+      }
+      client.setQueryData(
+        ["guardian-enquiry-draft", session.account.id],
+        next,
+      );
+      setProgress(next);
+      setSuccess("");
+      setOverview(false);
+      setJustSubmitted(false);
+      setAdditional(true);
+      setValues({
+        ...initialValues(),
+        childId: searchContext.get("learner") || "",
+        schoolName: "",
+        schoolSubjects: "",
+        alias: "",
+        schedule: "",
+      });
+      setWindows([{ start: "", duration: "40" }]);
+      setWeeklyMode(true);
+      setWeekly(emptyWeekly());
+      setAccepted(false);
+      setStep(0);
+      setServerError("");
+      setConflict(false);
+      retry.current = null;
+      submission.current = null;
+      setSaved(false);
+    } catch (error) {
+      setServerError(
+        error instanceof ApiError
+          ? error.message
+          : "We couldn’t confirm the new draft. Try again to check the same action.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  if (success || overview)
+    return <Page className="container section tuition-subject-enquiries">
+      <GuardianEnquiryOverview session={session} completedId={success} subject={values.subject} learnerId={searchContext.get("learner")||values.childId} teacherId={teacherId} teacherName={teacher?.name} selectedIntent={selectedIntent} justSubmitted={justSubmitted} hasDraft={!progress.completedResourceId&&!!Object.keys(progress.draft).length} busy={busy} onContinue={()=>void startAnotherEnquiry()}/>
+      {serverError&&<Alert variant="destructive"><AlertDescription>{appError(serverError)} <RefreshButton disabled={busy} onClick={onReload} label={appText("Reload saved progress")}/></AlertDescription></Alert>}
+    </Page>;
   return (
-    <main className="container section wizard-page">
+    <Page className="container section wizard-page tuition-setup-wizard">
       <div className="wizard-title">
         <h1>{appText("Set up your learner’s tuition.")}</h1>
         <p>
@@ -814,24 +795,7 @@ function Wizard({
       </div>
       <div className="wizard-layout">
         <aside className="wizard-aside">
-          <ol
-            className="wizard-steps"
-            aria-label={appText("Guardian onboarding progress")}
-          >
-            {steps.map((label, i) => (
-              <li
-                key={label}
-                className={i === step ? "current" : i < step ? "complete" : ""}
-                aria-current={i === step ? "step" : undefined}
-                aria-label={`${i + 1}. ${label}`}
-              >
-                <span className="wizard-step-number">
-                  {i < step ? <Check size={16} /> : i + 1}
-                </span>
-                <span className="wizard-step-name">{appText(label)}</span>
-              </li>
-            ))}
-          </ol>
+
           <div className="wizard-discovery">
             <ShieldCheck size={22} />
             <strong>
@@ -874,6 +838,7 @@ function Wizard({
                   : appText("New request")}
             </span>
           </div>
+          <StepProgress steps={steps.map(label=>appText(label))} currentStep={step} label={appText("Guardian onboarding progress")}/>
           <h2 id="wizard-step-title" ref={heading} tabIndex={-1}>
             {appText(
               [
@@ -899,13 +864,7 @@ function Wizard({
               )}{" "}
             </p>
           )}
-          {additional && (
-            <p className="wizard-help">
-              {appText(
-                "This is an additional enquiry. Your submitted enquiries stay saved; this draft is saved privately each time you continue.",
-              )}{" "}
-            </p>
-          )}
+          {additional && <div className="wizard-draft-info"><InfoTooltip label={appText("Additional enquiry information")} items={[appText("This is an additional enquiry. Your submitted enquiries stay saved; this draft is saved privately each time you continue.")]}/><span>{appText("Additional enquiry")}</span></div>}
           {serverError && (
             <Alert variant="destructive">
               <AlertDescription>
@@ -1476,10 +1435,14 @@ function Wizard({
                       <Button
                         type="button"
                         variant="ghost"
+                        size="icon"
+                        className="evidence-preview-trigger"
+                        aria-label={appText("Edit")+" "+appText(item.title.toLowerCase())}
+                        title={appText("Edit")+" "+appText(item.title.toLowerCase())}
                         disabled={uncertain}
                         onClick={() => setStep(item.edit)}
                       >
-                        {appText("Edit")} {appText(item.title.toLowerCase())}
+                        <Pencil size={16} aria-hidden="true"/>
                       </Button>
                     </div>
                   ))}
@@ -1504,10 +1467,14 @@ function Wizard({
                     <Button
                       type="button"
                       variant="ghost"
+                      size="icon"
+                      className="evidence-preview-trigger"
+                      aria-label={appText("Edit schedule")}
+                      title={appText("Edit schedule")}
                       disabled={uncertain}
                       onClick={() => setStep(3)}
                     >
-                      {appText("Edit schedule")}{" "}
+                      <Pencil size={16} aria-hidden="true"/>
                     </Button>
                   </div>
                   <Alert role="status">
@@ -1525,12 +1492,10 @@ function Wizard({
                 </div>
               )}
             </fieldset>
-            <div className="wizard-actions">
+            <FilterButtonGroup className="wizard-actions">
               {step > 0 && (
-                <Button
+                <FilterButton
                   type="button"
-                  variant="outline"
-                  className="button secondary"
                   disabled={busy || uncertain || draftLocked}
                   onClick={() => {
                     setStep((v) => v - 1);
@@ -1539,10 +1504,10 @@ function Wizard({
                   }}
                 >
                   {appText("Back")}{" "}
-                </Button>
+                </FilterButton>
               )}
-              <Button
-                className="button"
+              <FilterButton
+                accent
                 type="submit"
                 disabled={busy || conflict || draftLocked}
               >
@@ -1562,8 +1527,8 @@ function Wizard({
                   )
                 )}
                 {!busy && <ArrowRight size={17} />}
-              </Button>
-            </div>
+              </FilterButton>
+            </FilterButtonGroup>
             <p className="wizard-save-note">
               {appText(
                 "Your progress is saved securely as you continue. Changes on the current step are saved when you select Continue.",
@@ -1572,6 +1537,6 @@ function Wizard({
           </form>
         </section>
       </div>
-    </main>
+    </Page>
   );
 }
