@@ -6638,12 +6638,15 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .placement-replacement-status>span:first-child { color:#52655F; font-size:12px; }
 .placement-closed-help { margin:0; color:#52655F; font-size:12px; line-height:1.7; }
 
-.tuition-summary>div:has(.direct-stage-summary) { grid-column:1/-1; }
-.tuition-summary dd:has(.direct-stage-summary) { display:block; margin-top:8px; padding:0; background:transparent; }
-.direct-stage-summary { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:8px 16px; padding:14px 16px; border:1px solid #E3C8F4; border-radius:12px; background:#F8EDFF; }
+.tuition-request-review > .tuition-summary:has(.direct-stage-summary) { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.tuition-summary>div:has(.direct-stage-summary) { grid-column:1/-1; padding-top:14px; border-top:1px solid #E1E8E3; }
+.tuition-request-review > .tuition-summary > div:last-child dd:has(.direct-stage-summary) { display:block; margin:0; padding:0; border-radius:0; background:transparent; }
+.direct-stage-summary { display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:4px 16px; padding:0; border:0; background:transparent; }
 .direct-stage-summary>.status-badge { justify-self:start; font-size:12px; font-weight:650; }
 .direct-stage-summary>p { grid-column:1; margin:0; color:#52655F; font-size:12px; font-weight:400; line-height:1.7; }
 .direct-stage-summary>.evidence-preview-trigger { grid-column:2; grid-row:1/3; align-self:center; }
+@media(max-width:900px){.tuition-request-review > .tuition-summary:has(.direct-stage-summary) {grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:480px){.tuition-request-review > .tuition-summary:has(.direct-stage-summary) {grid-template-columns:minmax(0,1fr);}}
 
 .direct-inbox .layered-summary-card>header .direct-enquiry-heading { cursor:default; }
 
