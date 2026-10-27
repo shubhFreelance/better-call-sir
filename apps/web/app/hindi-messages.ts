@@ -1,5 +1,10 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Sign up or sign in": "साइन अप या साइन इन करें",
+  "Ask your child to use their own email and confirm the relationship. Enter that same email in this request.": "अपने बच्चे से उसके अपने ईमेल से साइन अप या साइन इन करके संबंध की पुष्टि करने को कहें। इस अनुरोध में वही ईमेल भरें।",
+  "Invitation code — after approval": "निमंत्रण कोड — मंज़ूरी के बाद",
+  "After approval and learner setup, share a student invitation code to link their account. This does not replace relationship confirmation.": "मंज़ूरी और विद्यार्थी की प्रोफ़ाइल तैयार होने के बाद, उसका खाता जोड़ने के लिए विद्यार्थी निमंत्रण कोड साझा करें। यह संबंध की पुष्टि का विकल्प नहीं है।",
+  "Use your child's own email, even if they still need to sign up. They sign in and confirm or decline this relationship. Do not enter your own email.": "बच्चे का अपना ईमेल भरें, भले ही उसे अभी साइन अप करना हो। वह साइन इन करके इस संबंध को स्वीकार या अस्वीकार करेगा। अपना ईमेल न भरें।",
   "Student confirmation required": "विद्यार्थी की पुष्टि ज़रूरी है",
   "Ask {0} to sign in and confirm you as their guardian before staff approval.": "{0} को साइन इन करके स्टाफ़ की मंज़ूरी से पहले आपको अपना अभिभावक मानने की पुष्टि करने को कहें।",
   "Before approval, {0} must confirm you as their guardian during the staff call.": "मंज़ूरी से पहले, {0} को स्टाफ़ कॉल में आपको अपना अभिभावक मानने की पुष्टि करनी होगी।",

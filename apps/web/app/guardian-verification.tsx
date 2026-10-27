@@ -56,6 +56,13 @@ const initialApplication = (): Application => ({
 });
 const editable = (r: Verification) =>
   ["DRAFT", "CHANGES_REQUESTED"].includes(r.status);
+function StudentAccessGuidance() {
+  const { appText } = useAppTranslation();
+  return <ol className="guardian-student-access-options">
+    <li><strong>{appText("Sign up or sign in")}</strong><span>{appText("Ask your child to use their own email and confirm the relationship. Enter that same email in this request.")}</span></li>
+    <li><strong>{appText("Invitation code — after approval")}</strong><span>{appText("After approval and learner setup, share a student invitation code to link their account. This does not replace relationship confirmation.")}</span></li>
+  </ol>;
+}
 export function GuardianVerificationWorkspace({
   session,
   onSessionChange,
@@ -367,6 +374,7 @@ function ApplicationFields({
       )}
       {step === 2 && (
         <>
+          <StudentAccessGuidance />
           <label>
             {appText("How will the student confirm this relationship?")}
             <select
@@ -402,7 +410,7 @@ function ApplicationFields({
               />
               <small>
                 {appText(
-                  "Use the same email the student already registered with. They sign in, open Guardian verification and confirm or decline this relationship. Do not enter your own email.",
+                  "Use your child's own email, even if they still need to sign up. They sign in and confirm or decline this relationship. Do not enter your own email.",
                 )}
               </small>
             </label>
@@ -949,6 +957,7 @@ function OwnerVerification({
                     : "Before approval, {0} must confirm you as their guardian during the staff call.",[r.learnerName])}</p></div>
                   {r.acknowledgmentMethod==="STAFF_CALL"&&<InfoTooltip label={appText("Student sign-in confirmation")} items={[appText("To confirm by sign-in instead, choose the student's separate email account in relationship details.")]}/>}
                 </aside>}
+                {!r.studentAcknowledgedAt&&["DRAFT","CHANGES_REQUESTED","PENDING"].includes(r.status)&&<StudentAccessGuidance />}
                 {editable(r) && (
                   <>
                     <Button

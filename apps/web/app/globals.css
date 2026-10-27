@@ -6892,3 +6892,16 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .guardian-student-confirmation-notice strong {font-size:13px;font-weight:700;}
 .guardian-verification-editor .guardian-student-confirmation-notice p {margin:4px 0 0;font-size:12px;line-height:1.65;color:#344A43;}
 .guardian-student-confirmation-notice>.info-tooltip-trigger {flex-shrink:0;}
+.guardian-student-access-options {
+  margin: 16px 0;
+  padding: 16px 16px 16px 34px;
+  border: 1px solid #D7E4DF;
+  border-radius: 12px;
+  background: #EEF5F3;
+  color: #034F46;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.guardian-student-access-options li + li { margin-top: 12px; }
+.guardian-student-access-options strong { display: block; font-size: 13px; font-weight: 700; }
+.guardian-student-access-options span { color: #344A43; }
