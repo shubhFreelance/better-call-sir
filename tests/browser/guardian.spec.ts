@@ -285,7 +285,7 @@ test("mobile wizard protects an uncertain submission and retries the same operat
     page.getByRole("heading", { name: "Your tuition request is saved." }),
   ).toBeVisible();
   await inspect("saved");
-  await expect(page.locator(".tuition-saved-card .filter-button-group")).toHaveCount(1);
+  await expect(page.locator(".guardian-enquiry-overview > .filter-button-group")).toHaveCount(1);
   expect(resources).toBe(1);
   expect(completionKeys).toHaveLength(2);
   expect(completionKeys[1]).toBe(completionKeys[0]);

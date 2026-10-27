@@ -1,7 +1,7 @@
 "use client";
+import {GuardianEnquiryOverview} from "./guardian-enquiry-overview";
 import {StepProgress} from "../components/ui/step-progress";
 import {FilterButton,FilterButtonGroup} from "../components/ui/filter-button";
-import {LayeredSummaryCard} from "../components/ui/layered-summary-card";
 import {InfoTooltip} from "../components/ui/info-tooltip";
 import { RefreshButton } from "../components/ui/refresh-button";
 import {
@@ -33,7 +33,6 @@ import {
 import { GuardianDraftDiscard } from "./guardian-draft-discard";
 import {
   ArrowRight,
-  CheckCircle2,
   LoaderCircle,
   Plus,
   Pencil,
@@ -242,7 +241,7 @@ export function GuardianOnboarding({
   const initial =
     progress.data?.completedResourceId &&
     enquiry.data &&
-    (enquiry.data.version > 0 || params.get("teacher"))
+    (enquiry.data.version > 0 || params.get("teacher") || params.get("subject") || params.get("discovery"))
       ? enquiry.data
       : progress.data;
   const profile = params.get("profile"),
@@ -356,8 +355,9 @@ export function GuardianOnboarding({
     initial?.version &&
     !initial.completedResourceId &&
     Object.keys(initial.draft).length &&
-    params.get("teacher") &&
-    (params.get("teacher") !== initial.draft.preferredTeacherId ||
+    (params.get("teacher") || params.get("subject") || params.get("discovery")) &&
+    (params.get("teacher") && params.get("teacher") !== initial.draft.preferredTeacherId ||
+      params.get("discovery") === "ASSISTED" && initial.draft.discoveryMethod === "MANUAL" ||
       params.get("learner") && initial.draft.childId && params.get("learner") !== initial.draft.childId ||
       params.get("subject") && initial.draft.subject && params.get("subject") !== initial.draft.subject)
   )
@@ -435,9 +435,12 @@ function Wizard({
 
   const client = useQueryClient();
   const searchContext = useSearchParams();
+  const selectedIntent=!!searchContext.get("teacher")||!!searchContext.get("subject")||searchContext.get("discovery")==="ASSISTED";
   const [progress, setProgress] = useState(initial);
   const [additional, setAdditional] = useState(initial.kind === "ENQUIRY");
   const [success, setSuccess] = useState(initial.completedResourceId || "");
+  const [justSubmitted,setJustSubmitted]=useState(false);
+  const [overview,setOverview]=useState(initial.kind === "ENQUIRY" && initial.version === 0 && !Object.keys(initial.draft).length && selectedIntent);
   const draftPath = additional ? "/onboarding/enquiry" : "/onboarding/parent";
   const [step, setStep] = useState(0);
   const [accepted, setAccepted] = useState(false);
@@ -502,7 +505,7 @@ function Wizard({
     if (!searchContext.get("learner") || initial.draft.childId && initial.draft.childId !== searchContext.get("learner")) return;
     const child = children.data?.items.find(c => c.id === searchContext.get("learner"));
     if (child) setValues(old => old.childId === child.id && old.alias ? old : ({...old,childId:child.id,alias:child.alias,schoolName:child.schoolName || "",schoolSubjects:child.schoolSubjects?.join(", ") || "",grade:String(child.grade ?? ""),board:child.board || ""}));
-  }, [children.data, initial.draft.childId, searchContext]);
+  }, [children.data, initial.draft.childId, searchContext, step]);
   useEffect(() => {
     heading.current?.focus();
   }, [step, success]);
@@ -682,6 +685,7 @@ function Wizard({
         );
       if ("completedResourceId" in result) setProgress(result);
       setSuccess(id);
+      setJustSubmitted(true);
       setUncertain(false);
       client.invalidateQueries({ queryKey: ["dashboard"] });
       client.invalidateQueries({ queryKey: ["children"] });
@@ -714,84 +718,65 @@ function Wizard({
         ? `${name}-hint`
         : undefined,
   });
-  if (success)
-    return (
-      <main className="container narrow section wizard-success tuition-saved-page">
-        <LayeredSummaryCard className="tuition-saved-card" header={<div className="tuition-saved-heading"><span><CheckCircle2 size={28} aria-hidden="true"/></span><h1 ref={heading} tabIndex={-1}>{appText("Your tuition request is saved.")}</h1></div>}
-          footer={<div className="wizard-next"><h2>{appText("What happens next?")}</h2><p>{appText("Fit and availability are reviewed before suitable options are presented. You choose a teacher and review hiring terms together. A demo is optional.")}</p></div>}
-          actions={<FilterButtonGroup><FilterButton asChild accent><Link href="/dashboard/requests">{appText("View tuition requests")}</Link></FilterButton>
-        <FilterButton
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true);
-            try {
-              const next = additional
-                ? await post<Progress>("/onboarding/enquiry/restarts", {
-                    expectedVersion: progress.version,
-                  })
-                : enquiry || (await api<Progress>("/onboarding/enquiry"));
-              if (next.completedResourceId)
-                throw new Error(
-                  "Refresh saved progress before starting another enquiry.",
-                );
-              if (Object.keys(next.draft).length) {
-                await onReload();
-                return;
-              }
-              client.setQueryData(
-                ["guardian-enquiry-draft", session.account.id],
-                next,
-              );
-              setProgress(next);
-              setSuccess("");
-              setAdditional(true);
-              setValues({
-                ...initialValues(),
-                childId: "",
-                schoolName: "",
-                schoolSubjects: "",
-                alias: "",
-                schedule: "",
-              });
-              setWindows([{ start: "", duration: "40" }]);
-              setWeeklyMode(true);
-              setWeekly(emptyWeekly());
-              setAccepted(false);
-              setStep(0);
-              setServerError("");
-              setConflict(false);
-              retry.current = null;
-              submission.current = null;
-              setSaved(false);
-            } catch (error) {
-              setServerError(
-                error instanceof ApiError
-                  ? error.message
-                  : "We couldn’t confirm the new draft. Try again to check the same action.",
-              );
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          {busy
-            ? appText("Starting enquiry…")
-            : appText("Create another request")}
-        </FilterButton>
-          </FilterButtonGroup>}>
-          <div className="tuition-saved-reference"><span>{appText("Request")}</span><strong>{success.slice(0,8)}</strong></div>
-          <p className="tuition-saved-status">{appText("· Your criteria are ready for review. No teacher has been assigned yet.")}</p>
-        {serverError && (
-          <Alert variant="destructive">
-            <AlertDescription>
-              {appError(serverError)}{" "}
-              <RefreshButton variant="outline" disabled={busy} onClick={onReload} label={appText("Reload saved progress")} />
-            </AlertDescription>
-          </Alert>
-        )}
-        </LayeredSummaryCard>
-      </main>
-    );
+  async function startAnotherEnquiry(){
+    if(busy)return;
+    setBusy(true);
+    try {
+      const next = progress.kind === "ENQUIRY" && !!progress.completedResourceId
+        ? await post<Progress>("/onboarding/enquiry/restarts", {
+            expectedVersion: progress.version,
+          })
+        : enquiry || (await api<Progress>("/onboarding/enquiry"));
+      if (next.completedResourceId)
+        throw new Error(
+          "Refresh saved progress before starting another enquiry.",
+        );
+      if (Object.keys(next.draft).length) {
+        await onReload();
+        return;
+      }
+      client.setQueryData(
+        ["guardian-enquiry-draft", session.account.id],
+        next,
+      );
+      setProgress(next);
+      setSuccess("");
+      setOverview(false);
+      setJustSubmitted(false);
+      setAdditional(true);
+      setValues({
+        ...initialValues(),
+        childId: searchContext.get("learner") || "",
+        schoolName: "",
+        schoolSubjects: "",
+        alias: "",
+        schedule: "",
+      });
+      setWindows([{ start: "", duration: "40" }]);
+      setWeeklyMode(true);
+      setWeekly(emptyWeekly());
+      setAccepted(false);
+      setStep(0);
+      setServerError("");
+      setConflict(false);
+      retry.current = null;
+      submission.current = null;
+      setSaved(false);
+    } catch (error) {
+      setServerError(
+        error instanceof ApiError
+          ? error.message
+          : "We couldn’t confirm the new draft. Try again to check the same action.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  if (success || overview)
+    return <main className="container section tuition-subject-enquiries">
+      <GuardianEnquiryOverview session={session} completedId={success} subject={values.subject} learnerId={searchContext.get("learner")||values.childId} teacherId={teacherId} teacherName={teacher?.name} selectedIntent={selectedIntent} justSubmitted={justSubmitted} busy={busy} onContinue={()=>void startAnotherEnquiry()}/>
+      {serverError&&<Alert variant="destructive"><AlertDescription>{appError(serverError)} <RefreshButton disabled={busy} onClick={onReload} label={appText("Reload saved progress")}/></AlertDescription></Alert>}
+    </main>;
   return (
     <main className="container section wizard-page tuition-setup-wizard">
       <div className="wizard-title">

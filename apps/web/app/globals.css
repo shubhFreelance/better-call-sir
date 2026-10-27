@@ -6856,3 +6856,18 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .placement-summary-heading .status-badge {grid-column:2;grid-row:1;max-width:260px;white-space:normal;font-size:11px;}
 .placement-summary .monthly-hiring {margin-top:20px;}
 @media(max-width:640px){.placement-summary-heading .status-badge {grid-column:1;grid-row:auto;justify-self:start;}}
+.guardian-enquiry-overview {display:grid;gap:20px;max-width:1100px;margin-inline:auto;}
+.guardian-enquiry-overview-heading {display:flex;align-items:flex-start;gap:16px;padding:24px;border:1px solid #D8E3DB;border-radius:20px;background:#034F46;color:#FCFEEB;}
+.guardian-enquiry-overview-heading>svg {flex-shrink:0;margin-top:4px;color:#F0D7FF;}
+.guardian-enquiry-overview-heading h1 {margin:0;font-size:28px;line-height:1.3;color:#FCFEEB;}
+.guardian-enquiry-overview-heading p {margin:8px 0 0;font-size:13px;line-height:1.7;color:#FCFEEB;}
+.guardian-enquiry-overview .student-subject-card {display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:0;padding:20px;}
+.guardian-enquiry-overview .student-spaces-grid {grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));}
+.guardian-enquiry-overview .student-subject-card h2 {margin:0;font-size:20px;font-weight:700;line-height:1.4;color:#034F46;}
+.guardian-enquiry-overview .student-subject-card p {margin:0;font-size:12px;line-height:1.7;}
+.guardian-enquiry-overview .student-subject-card .filter-button {margin-top:auto;min-height:44px;}
+.guardian-enquiry-overview .enquiry-selection-card {background:#F8EDFF;border-color:#DAB5EE;}
+.guardian-enquiry-overview .submitted-enquiry-card.is-current {border-color:#034F46;}
+.guardian-enquiry-overview .enquiry-current-label {font-weight:700;color:#034F46;}
+.guardian-enquiry-overview [role="alert"] {padding:14px;border:1px solid #D8E3DB;border-radius:12px;background:#fff;font-size:12px;}
+@media(max-width:600px){.guardian-enquiry-overview-heading {padding:18px;gap:10px;}.guardian-enquiry-overview-heading h1 {font-size:23px;}}
