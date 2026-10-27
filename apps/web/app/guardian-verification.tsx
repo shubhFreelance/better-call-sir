@@ -943,6 +943,12 @@ function OwnerVerification({
             r && (
               <>
                 <VerificationSummary record={r} />
+                {!r.studentAcknowledgedAt&&["DRAFT","CHANGES_REQUESTED","PENDING"].includes(r.status)&&<aside className="guardian-student-confirmation-notice" role="note">
+                  <Info size={18} aria-hidden="true"/><div><strong>{appText("Student confirmation required")}</strong><p>{appText(r.acknowledgmentMethod==="STUDENT_ACCOUNT"
+                    ? "Ask {0} to sign in and confirm you as their guardian before staff approval."
+                    : "Before approval, {0} must confirm you as their guardian during the staff call.",[r.learnerName])}</p></div>
+                  {r.acknowledgmentMethod==="STAFF_CALL"&&<InfoTooltip label={appText("Student sign-in confirmation")} items={[appText("To confirm by sign-in instead, choose the student's separate email account in relationship details.")]}/>}
+                </aside>}
                 {editable(r) && (
                   <>
                     <Button

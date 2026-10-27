@@ -6886,3 +6886,9 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .enquiry-handoff p,.enquiry-handoff .wizard-help {margin:0;font-size:12px;line-height:1.7;}
 .enquiry-handoff>.button {justify-self:start;}
 @media(prefers-reduced-motion:reduce){.placement-summary>.layered-summary-card-header,.placement-summary-heading>svg {transition:none;}}
+.guardian-student-confirmation-notice {display:flex;align-items:flex-start;gap:12px;margin:16px 0;padding:14px 16px;border:1px solid #DAB5EE;border-radius:12px;background:#F8EDFF;color:#034F46;}
+.guardian-student-confirmation-notice>svg {flex-shrink:0;margin-top:2px;}
+.guardian-student-confirmation-notice>div {flex:1;min-width:0;}
+.guardian-student-confirmation-notice strong {font-size:13px;font-weight:700;}
+.guardian-verification-editor .guardian-student-confirmation-notice p {margin:4px 0 0;font-size:12px;line-height:1.65;color:#344A43;}
+.guardian-student-confirmation-notice>.info-tooltip-trigger {flex-shrink:0;}

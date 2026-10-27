@@ -1,5 +1,10 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Student confirmation required": "विद्यार्थी की पुष्टि ज़रूरी है",
+  "Ask {0} to sign in and confirm you as their guardian before staff approval.": "{0} को साइन इन करके स्टाफ़ की मंज़ूरी से पहले आपको अपना अभिभावक मानने की पुष्टि करने को कहें।",
+  "Before approval, {0} must confirm you as their guardian during the staff call.": "मंज़ूरी से पहले, {0} को स्टाफ़ कॉल में आपको अपना अभिभावक मानने की पुष्टि करनी होगी।",
+  "Student sign-in confirmation": "विद्यार्थी की साइन-इन पुष्टि",
+  "To confirm by sign-in instead, choose the student's separate email account in relationship details.": "साइन इन से पुष्टि के लिए, संबंध की जानकारी में विद्यार्थी के अलग ईमेल खाते का विकल्प चुनें।",
   "Both parties have accepted. Open the arrangement to see the agreed month and class records.": "दोनों पक्षों ने स्वीकार कर लिया है। तय महीना और कक्षाओं का रिकॉर्ड देखने के लिए व्यवस्था खोलें।",
   "Tuition terms created. View your arrangement to review the amount and both parties’ acceptance.": "ट्यूशन की शर्तें बन गई हैं। राशि और दोनों पक्षों की स्वीकृति देखने के लिए अपनी व्यवस्था खोलें।",
   "Tuitions": "ट्यूशन",
