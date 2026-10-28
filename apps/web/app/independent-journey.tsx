@@ -16,6 +16,8 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Notice, Feedback, useDecision } from "./tuition-workflow";
+import { InfoTooltip } from "../components/ui/info-tooltip";
+import { ArrowUpRight, GraduationCap, Inbox } from "lucide-react";
 import {
   WeeklyAvailability,
   WeeklySummary,
@@ -511,7 +513,10 @@ export function StudentOpportunities({
   }
   const d = useDecision(session, refresh);
   return (
-    <section className="student-workspace" lang={hindi ? "hi" : "en"}>
+    <section className="student-workspace student-opportunities" lang={hindi ? "hi" : "en"}>
+      <header className="student-opportunities-heading">
+      <span className="student-opportunities-icon"><GraduationCap size={23} aria-hidden="true" /></span>
+      <div>
       <Heading>
         {appText(
           t(
@@ -520,19 +525,19 @@ export function StudentOpportunities({
           ),
         )}
       </Heading>
-      <p>
-        {appText(
-          t(
-            "Review the learning brief before showing interest. Accepting an enquiry starts a conversation; hiring needs a separate mutual agreement.",
-            "इच्छा जताने से पहले पढ़ाई की ज़रूरतें देखें। पूछताछ स्वीकारने के बाद भी नियुक्ति के लिए अलग सहमति ज़रूरी है।",
-          ),
-        )}
-      </p>
-      <Link className="inline-link" href="/dashboard/student-arrangements">
+      <p>{appText("Review the learning brief before showing interest.")}</p>
+      </div>
+      <InfoTooltip label={appText("Independent student enquiries")} items={[
+        appText("Review the learning brief before showing interest. Accepting an enquiry starts a conversation; hiring needs a separate mutual agreement."),
+        ...(embedded ? [appText("Direct enquiries arrive immediately above. Assisted-search opportunities appear in the separate queues below.")] : []),
+      ]} />
+      <Button asChild variant="outline" className="student-opportunities-arrangements"><Link href="/dashboard/student-arrangements">
         {appText(
           t("View student arrangements", "विद्यार्थी की व्यवस्थाएँ देखें"),
         )}
-      </Link>
+        <ArrowUpRight size={16} aria-hidden="true" />
+      </Link></Button>
+      </header>
       <StudentFeedback decision={d} hindi={hindi} />
       <ListState
         pending={q.isPending}
@@ -615,14 +620,10 @@ export function StudentOpportunities({
               ))}
           </ul>
           {!q.data.pages.some((p) => p.items.length) && (
-            <Notice>
-              {appText(
-                t(
-                  "No active student opportunities on this page. Keep your coverage and availability current.",
-                  "इस पृष्ठ पर सक्रिय पूछताछ नहीं है। पढ़ाने के विषय और उपलब्ध समय अद्यतन रखें।",
-                ),
-              )}
-            </Notice>
+            <div className="student-opportunities-empty" role="status">
+              <Inbox size={24} aria-hidden="true" />
+              <div><strong>{appText("No student enquiries yet")}</strong><p>{appText("Keep your teaching coverage and availability up to date for new opportunities.")}</p></div>
+            </div>
           )}
           {q.hasNextPage && (
             <Button

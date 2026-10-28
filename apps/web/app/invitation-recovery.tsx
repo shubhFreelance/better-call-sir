@@ -26,6 +26,10 @@ export function InvitationRecovery({
   onLockChange: (locked: boolean) => void;
 }) {
   const { appText, appError, appLocale } = useAppTranslation();
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (window.location.hash === "#student-invitation") root.current?.scrollIntoView({ block: "start" });
+  }, [childId]);
 
   const client = useQueryClient(),
     queryKey = ["child-invitation", session.account.id, childId];
@@ -163,7 +167,7 @@ export function InvitationRecovery({
   }
   const current = query.data;
   return (
-    <div className="invitation-recovery">
+    <div ref={root} className="invitation-recovery" id="student-invitation">
       <div className="panel-title">
         <h3>{appText("Student invitation")}</h3>
         <RefreshButton

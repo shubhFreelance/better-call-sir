@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { chooseHindi } from "../helpers/hindi";
 import AxeBuilder from "@axe-core/playwright";
+import { translateText } from "../../apps/web/app/locale";
 
 const account = "10000000-0000-4000-8000-000000000291";
 const kishan = "20000000-0000-4000-8000-000000000291", vivek = "20000000-0000-4000-8000-000000000292";
@@ -38,6 +39,33 @@ async function mock(page: import("@playwright/test").Page, role: string) {
   });
   return { reads, writes, deny: () => { denied = true; } };
 }
+
+for(const [role,count,hindi] of [['GUARDIAN',1,false],['STUDENT',2,true]] as const)test(`search shows started subject tuition for the exact learner (${role})`,async({page})=>{
+ const state=await mock(page,role);if(hindi)await chooseHindi(page);const child=role==='STUDENT'?kishan:vivek;
+ const placements=[...Array.from({length:count},(_,i)=>({id:'started-'+i,childId:child,requestId:'maths-'+i,status:'ACTIVE',guardianStarted:true,teacherReceiptConfirmed:true})),{id:'closed',childId:child,requestId:'closed',status:'CLOSED',guardianStarted:true,teacherReceiptConfirmed:true},{id:'other',childId:'other-child',requestId:'other',status:'ACTIVE',guardianStarted:true,teacherReceiptConfirmed:true},{id:'not-started',childId:child,requestId:'not-started',status:'ACTIVE',guardianStarted:false,teacherReceiptConfirmed:false}];
+ await page.route('**/api/v1/dashboard',route=>route.fulfill({json:{placements}}));await page.route('**/api/v1/requests/*',route=>route.fulfill({json:{childId:child,subject:'Maths'}}));await page.route('**/api/v1/tuition-bookings/**',route=>route.fulfill({json:{completions:[]}}));
+ await page.goto(`/teachers?learner=${child}&subject=Maths`);const card=page.locator('.ongoing-subject-tuition'),t=(s:string)=>translateText(hindi,s),message=t(count===1?'1 class is ongoing for {0}':'{1} classes are ongoing for {0}').replace('{0}',t('Maths')).replace('{1}',String(count));await expect(card).toContainText(message);await expect(card.getByRole('link')).toHaveAttribute('href','/dashboard/arrangements');
+ const filter=await page.locator('.teacher-filters').count()?page.locator('.teacher-filters'):page.locator('fieldset').first();const filterBox=await filter.boundingBox(),cardBox=await card.boundingBox();expect(cardBox!.y).toBeGreaterThanOrEqual(filterBox!.y+filterBox!.height);
+ await page.setViewportSize({width:hindi?320:390,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.ongoing-subject-tuition').analyze()).violations).toEqual([]);await card.screenshot({path:`test-results/ongoing-subject-${role}.png`,style:'nextjs-portal{display:none!important}'});
+ await page.locator('#search-learning-space').selectOption('Science');await expect(card).toHaveCount(0);await page.locator('#search-learning-space').selectOption('Maths');await expect(card).toContainText(message);await page.goto('/teachers?explore=all');await expect(card).toHaveCount(0);expect(state.writes).toEqual([]);
+});
+
+test("ongoing tuition checks fail without showing a stale count and can retry",async({page})=>{
+ await mock(page,'GUARDIAN');let failed=true;await page.route('**/api/v1/dashboard',route=>failed?route.fulfill({status:403,json:{code:'FORBIDDEN',message:'Unavailable'}}):route.fulfill({json:{placements:[]}}));await page.goto(`/teachers?learner=${vivek}&subject=Maths`);await expect(page.locator('.ongoing-subject-error')).toContainText('Ongoing tuition could not be checked.');await expect(page.locator('.ongoing-subject-tuition')).toHaveCount(0);failed=false;await page.getByRole('button',{name:'Retry ongoing tuition check',exact:true}).click();await expect(page.locator('.ongoing-subject-error')).toHaveCount(0);
+});
+
+for(const [role,monthly,hindi] of [['GUARDIAN',true,false],['STUDENT',false,true]] as const)test(`confirmed subject tuition stays visible without start or Pro attendance records (${role})`,async({page})=>{
+ const state=await mock(page,role);if(hindi)await chooseHindi(page);const child=role==='STUDENT'?kishan:vivek;
+ await page.route('**/api/v1/dashboard',route=>route.fulfill({json:{placements:[{id:'confirmed',childId:child,requestId:'confirmed-request',status:'TERMS_PENDING',guardianAccepted:!monthly,teacherAccepted:!monthly,guardianStarted:false,teacherReceiptConfirmed:false},{id:'awaiting-teacher',childId:child,requestId:'pending-request',status:'TERMS_PENDING',guardianAccepted:true,teacherAccepted:false,guardianStarted:false,teacherReceiptConfirmed:false}]}}));
+ await page.route('**/api/v1/requests/*',route=>route.fulfill({json:{childId:child,subject:'Maths'}}));await page.route('**/api/v1/tuition-bookings/**',route=>route.fulfill({json:{confirmed:monthly&&route.request().url().endsWith('/confirmed'),proActive:false,completions:[]}}));await page.goto(`/teachers?learner=${child}&subject=Maths`);
+ const card=page.locator('.ongoing-subject-tuition'),message=translateText(hindi,'1 tuition is already arranged for {0}').replace('{0}',translateText(hindi,'Maths'));await expect(card).toContainText(message);await expect(card).not.toContainText('class is ongoing');await expect(card.getByRole('link')).toHaveAttribute('href','/dashboard/arrangements');expect(state.writes).toEqual([]);
+});
+
+test("independent student ongoing subject counts follow all arrangement pages and recorded completions",async({page})=>{
+ await mock(page,'INDEPENDENT_STUDENT');await page.route('**/api/v1/independent-student/profile',route=>route.fulfill({json:{accountId:account,version:1,education:{stage:'SCHOOL',grade:7,board:'CBSE',institutionName:'DPS',subjects:['Maths','Science']}}}));
+ const pages:string[]=[];await page.route('**/api/v1/student-arrangements?*',route=>{const cursor=new URL(route.request().url()).searchParams.get('cursor')||'';if(new URL(route.request().url()).searchParams.get('limit')==='50')pages.push(cursor);return route.fulfill({json:{items:cursor?[{id:'second',status:'CONFIRMED',terms:{subject:'Maths'}},{id:'closed',status:'CLOSED',terms:{subject:'Maths'}}]:[{id:'first',status:'CONFIRMED',terms:{subject:'Maths'}},{id:'unstarted',status:'CONFIRMED',terms:{subject:'Maths'}},{id:'science',status:'CONFIRMED',terms:{subject:'Science'}}],nextCursor:cursor?null:'next'}});});
+ await page.route('**/api/v1/tuition-bookings/**',route=>route.fulfill({json:{completions:route.request().url().endsWith('/unstarted')?[]:[{completed:true}]}}));await page.goto('/teachers?subject=Maths');const card=page.locator('.ongoing-subject-tuition');await expect(card).toContainText('2 classes are ongoing for Maths');await expect(card.getByRole('link')).toHaveAttribute('href','/dashboard/student-arrangements');expect(pages).toContain('next');
+});
 
 test("guardian chooses the learner before discovery and Class 12 cannot fall back to Class 7 or 10", async ({ page }) => {
   const state = await mock(page, "GUARDIAN");

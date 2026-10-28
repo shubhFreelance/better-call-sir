@@ -381,6 +381,38 @@ async function staffFields(page: Page) {
     .check();
 }
 export function guardianVerificationTests() {
+  for(const [method,hindi] of [['STUDENT_ACCOUNT',false],['STAFF_CALL',false],['STUDENT_ACCOUNT',true]] as const)test(`pending verification counts the real remaining steps (${method}, ${hindi?'Hindi':'English'})`,async({page})=>{
+    const f=await setup(page,{status:'PENDING'});Object.assign(f.state(),{learnerName:'Sumi',acknowledgmentMethod:method});await openOwner(page);if(hindi)await page.getByRole('button',{name:'Switch English and Hindi',exact:true}).click();
+    const t=(s:string)=>hindi?hindiMessages[s]||s:s,card=page.locator('.guardian-review-notice');await expect(card.getByRole('heading',{name:t('2 steps remaining'),exact:true})).toBeVisible();await expect(card.locator('[aria-current="step"]')).toContainText(t('Student confirmation'));await expect(card).toContainText(t('Waiting for {0}').replace('{0}','Sumi'));await expect(card).toContainText(t(method==='STUDENT_ACCOUNT'?'Ask your child to sign in with the email in this request and confirm you as their guardian.':'Your child must confirm the relationship during the staff video or phone call.'));
+    f.state().studentAcknowledgedAt=new Date().toISOString();f.state().version++;await page.getByRole('button',{name:t('Refresh verification details'),exact:true}).click();await expect(card.getByRole('heading',{name:t('1 step remaining'),exact:true})).toBeVisible();await expect(card.locator('[aria-current="step"]')).toContainText(t('Staff review'));await expect(card.locator('[data-state="complete"]')).toHaveCount(1);await expect(card).toContainText(t('Student confirmation recorded'));await expect(card).toContainText(t('Awaiting staff approval'));
+    await page.setViewportSize({width:hindi?320:390,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.guardian-review-notice').analyze()).violations).toEqual([]);await card.screenshot({path:`test-results/guardian-remaining-steps-${method}-${hindi?'hi':'en'}.png`});expect(f.writes).toHaveLength(0);
+  });
+  for(const [method,hindi] of [["STUDENT_ACCOUNT",false],["STAFF_CALL",false],["STUDENT_ACCOUNT",true]] as const)test(`guardian sees concise student confirmation guidance before approval (${method}, ${hindi?'Hindi':'English'})`,async({page})=>{
+    const f=await setup(page,{status:'PENDING'});Object.assign(f.state(),{learnerName:'Sumi',acknowledgmentMethod:method,studentEmail:method==='STUDENT_ACCOUNT'?'sumi@example.test':null});
+    if(hindi)await page.getByRole('button',{name:'Switch English and Hindi',exact:true}).click();
+    const t=(s:string)=>hindi?hindiMessages[s]||s:s;
+    await page.getByRole('button',{name:t('View verification'),exact:true}).first().click();const notice=page.locator('.guardian-student-confirmation-notice');await expect(notice).toContainText(t('Student confirmation required'));const message=method==='STUDENT_ACCOUNT'?'Ask {0} to sign in and confirm you as their guardian before staff approval.':'Before approval, {0} must confirm you as their guardian during the staff call.';await expect(notice).toContainText(t(message).replace('{0}','Sumi'));await page.setViewportSize({width:390,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.guardian-student-confirmation-notice').analyze()).violations).toEqual([]);await notice.screenshot({path:`test-results/guardian-confirmation-notice-${method}-${hindi?'hi':'en'}.png`});
+    const guidance=page.locator('.guardian-student-access-options');await expect(guidance.locator('li')).toHaveCount(2);await expect(guidance).toContainText(t('Sign up or sign in'));await expect(guidance).toContainText(t('Invitation code — after approval'));await expect(guidance).toContainText(t('After approval and learner setup, share a student invitation code to link their account. This does not replace relationship confirmation.'));
+    f.state().studentAcknowledgedAt=new Date().toISOString();f.state().version++;await page.getByRole('button',{name:t('Refresh verification details'),exact:true}).click();await expect(notice).toHaveCount(0);await expect(guidance).toHaveCount(0);expect(f.writes).toHaveLength(0);
+  });
+  test('guardian confirmation form explains signup before approval and invitations after setup',async({page})=>{
+    const f=await setup(page,{empty:true});await page.getByRole('button',{name:'Start guardian verification',exact:true}).click();
+    await page.getByLabel("Guardian's full name",{exact:true}).fill('Synthetic Parent');await page.getByLabel("Learner's name on the school report",{exact:true}).fill('Sumi');
+    await page.getByRole('button',{name:'Continue',exact:true}).click();await page.getByRole('button',{name:'Continue',exact:true}).click();
+    const guidance=page.locator('.guardian-student-access-options');await expect(guidance.locator('li')).toHaveCount(2);await expect(guidance).toContainText('Enter that same email in this request.');await expect(guidance.getByRole('button',{name:'Generate invitation code',exact:true})).toBeDisabled();await expect(guidance.getByRole('link')).toHaveCount(0);
+    await page.getByRole('combobox',{name:/How will the student confirm this relationship/}).selectOption('STUDENT_ACCOUNT');await expect(page.getByText("Use your child's own email, even if they still need to sign up. They sign in and confirm or decline this relationship. Do not enter your own email.",{exact:true})).toBeVisible();
+    await page.setViewportSize({width:390,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.guardian-student-access-options').analyze()).violations).toEqual([]);expect(f.writes).toHaveLength(0);
+  });
+  for(const [hasLearner,hindi] of [[true,false],[true,true],[false,false]] as const)test(`guardian invitation navigation uses the approved saved learner (${hasLearner}, ${hindi?'Hindi':'English'})`,async({page})=>{
+    const f=await setup(page,{status:'APPROVED'}),learner='20000000-0000-4000-8000-000000000922';Object.assign(f.state(),{learnerId:hasLearner?learner:null,studentAcknowledgedAt:new Date().toISOString()});await openOwner(page);
+    if(hindi)await page.getByRole('button',{name:'Switch English and Hindi',exact:true}).click();const t=(s:string)=>hindi?hindiMessages[s]||s:s,guidance=page.locator('.guardian-student-access-options');
+    if(hasLearner)await expect(guidance.getByRole('link',{name:t('Generate invitation code'),exact:true})).toHaveAttribute('href',`/dashboard/family?learner=${learner}#student-invitation`);
+    else {await expect(guidance.getByRole('button',{name:t('Generate invitation code'),exact:true})).toBeDisabled();await expect(guidance.getByRole('link')).toHaveCount(0);}
+    await page.setViewportSize({width:390,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.guardian-student-access-options').analyze()).violations).toEqual([]);expect(f.writes).toHaveLength(0);
+  });
+  test('student confirmation guidance is visible on the report step before staff submission',async({page})=>{
+    const f=await setup(page);Object.assign(f.state(),{learnerName:'Sumi',acknowledgmentMethod:'STUDENT_ACCOUNT',studentEmail:'sumi@example.test'});await openOwner(page);await expect(page.locator('.guardian-student-confirmation-notice')).toContainText('Ask Sumi to sign in');expect(f.writes).toHaveLength(0);
+  });
   for(const [width,hindi] of [[1440,false],[360,true]] as const) test(`student guardian relationship uses compact cards (${width}px)`,async({page})=>{
     const f=await setup(page,{role:"STUDENT",status:"PENDING"});if(hindi)await page.getByRole("button",{name:"Switch English and Hindi",exact:true}).click();await page.setViewportSize({width,height:1000});const t=(text:string)=>hindi?hindiMessages[text]||text:text;
     const panel=page.locator(".guardian-acknowledgment"),card=panel.locator(".guardian-relationship-card"),button=card.getByRole("button",{name:t("Review guardian relationship"),exact:true});
@@ -639,7 +671,7 @@ export function guardianVerificationTests() {
       await expect(page.locator('.guardian-management-summary')).toHaveCount(0);
       if (status === "PENDING") {
         await expect(page.locator('.guardian-review-notice')).toHaveCSS("background-color","rgb(248, 237, 255)");
-        await expect(page.locator('.guardian-review-notice p')).toHaveCSS("font-size","13px");
+        for(const description of await page.locator('.guardian-review-notice p').all())await expect(description).toHaveCSS("font-size","12px");
         await expect(page.locator('.guardian-verification-actions .filter-button').filter({hasText:"Cancel verification request"})).toBeVisible();
       }
       if (label) await expect(current).toHaveText(new RegExp(label));
