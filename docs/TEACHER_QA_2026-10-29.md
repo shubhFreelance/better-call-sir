@@ -66,7 +66,7 @@ npm run build -w @bcs/web
 npm run test:teacher-qa
 ```
 
-This command starts its own disposable database, seed and sandbox-only API, exercises the production UI, then cleans them up. It requires no sending or payment credentials.
+This command starts its own disposable database, seed and sandbox-only API, exercises the production UI, then cleans them up. It requires no sending or payment credentials. Build the frontend with API_INTERNAL_URL=http://127.0.0.1:4000; the suite checks the compiled rewrite before making requests and refuses a remote API target.
 
 For full API SQL acceptance when the Prisma engine host is unavailable, first start the existing PostgreSQL and EICAR-only scanner fixtures:
 

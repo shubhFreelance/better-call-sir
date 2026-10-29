@@ -20,6 +20,26 @@ let db: PrismaClient,
 const origin = "http://localhost:3001",
   teacherEmail = "reviewed-teacher-qa@example.test";
 test.beforeAll(async () => {
+  const manifest = JSON.parse(
+    readFileSync("apps/web/.next/routes-manifest.json", "utf8"),
+  );
+  const rewrites = Array.isArray(manifest.rewrites)
+    ? manifest.rewrites
+    : (Object.values(manifest.rewrites).flat() as {
+        source: string;
+        destination: string;
+      }[]);
+  const rule = rewrites.find(
+    (entry: { source: string }) => entry.source === "/api/v1/:path*",
+  );
+  expect(
+    rule,
+    "Build the QA frontend with its API rewrite targeting localhost:4000.",
+  ).toBeTruthy();
+  const destination = new URL(rule.destination);
+  expect(["localhost", "127.0.0.1"]).toContain(destination.hostname);
+  expect(destination.protocol).toBe("http:");
+  expect(destination.port).toBe("4000");
   const occupied = await new Promise<boolean>((resolve) => {
     const socket = connect(4000, "127.0.0.1");
     socket.once("connect", () => {
@@ -142,9 +162,24 @@ test("reviewed teacher signs in, handles a real family enquiry, confirms tuition
   page,
   browser,
 }) => {
-  const browserErrors:string[]=[],apiFailures:string[]=[];
-  page.on('pageerror',error=>browserErrors.push(error.message));
-  page.on('response',response=>{if(response.url().includes('/api/v1/')&&(response.status()===403||response.status()===404||response.status()>=500))apiFailures.push(response.request().method()+' '+new URL(response.url()).pathname+' '+response.status());});
+  const browserErrors: string[] = [],
+    apiFailures: string[] = [];
+  page.on("pageerror", (error) => browserErrors.push(error.message));
+  page.on("response", (response) => {
+    if (
+      response.url().includes("/api/v1/") &&
+      (response.status() === 403 ||
+        response.status() === 404 ||
+        response.status() >= 500)
+    )
+      apiFailures.push(
+        response.request().method() +
+          " " +
+          new URL(response.url()).pathname +
+          " " +
+          response.status(),
+      );
+  });
   const family = await browser.newContext({ baseURL: origin }),
     staff = await browser.newContext({ baseURL: origin });
   try {
@@ -423,7 +458,9 @@ test("reviewed teacher signs in, handles a real family enquiry, confirms tuition
       const campaign = page.locator(".promotion-campaign");
       if ((await campaign.getAttribute("open")) === null)
         await campaign.locator("summary").click();
-      await campaign.getByRole("combobox", { name:"Action", exact: true }).selectOption(action);
+      await campaign
+        .getByRole("combobox", { name: "Action", exact: true })
+        .selectOption(action);
       await campaign
         .getByLabel("Review note", { exact: true })
         .fill("Synthetic QA " + action.toLowerCase());
@@ -468,14 +505,44 @@ test("reviewed teacher signs in, handles a real family enquiry, confirms tuition
         })
       ).arrangementId,
     ).toBe(accepted.arrangementId);
-    for(const label of ['Notifications','Assigned enquiries','Independent students','Student arrangements','Teaching profile','Privacy & data','Find a teacher','Help & safety']){
-      await page.goto('/dashboard');await page.evaluate(()=>{(window as unknown as {teacherQaNavigation:string}).teacherQaNavigation='retained';});
-      await page.locator('.dashboard-sidebar').getByRole('link',{name:label,exact:true}).click();
-      await expect(page.locator('main h1').first()).toBeVisible();await expect(page.locator('main h1').first()).not.toHaveText('This page could not be loaded.');
-      expect(await page.evaluate(()=>(window as unknown as {teacherQaNavigation:string}).teacherQaNavigation)).toBe('retained');
-      const current=await(await page.request.get('/api/v1/auth/session')).json();expect(current.account.id).toBe(ids.teacherAccount);console.log('QA: sidebar '+label+' loads without a document reload');
+    for (const label of [
+      "Notifications",
+      "Assigned enquiries",
+      "Independent students",
+      "Student arrangements",
+      "Teaching profile",
+      "Privacy & data",
+      "Find a teacher",
+      "Help & safety",
+    ]) {
+      await page.goto("/dashboard");
+      await page.evaluate(() => {
+        (
+          window as unknown as { teacherQaNavigation: string }
+        ).teacherQaNavigation = "retained";
+      });
+      await page
+        .locator(".dashboard-sidebar")
+        .getByRole("link", { name: label, exact: true })
+        .click();
+      await expect(page.locator("main h1").first()).toBeVisible();
+      await expect(page.locator("main h1").first()).not.toHaveText(
+        "This page could not be loaded.",
+      );
+      expect(
+        await page.evaluate(
+          () =>
+            (window as unknown as { teacherQaNavigation: string })
+              .teacherQaNavigation,
+        ),
+      ).toBe("retained");
+      const current = await (
+        await page.request.get("/api/v1/auth/session")
+      ).json();
+      expect(current.account.id).toBe(ids.teacherAccount);
+      console.log("QA: sidebar " + label + " loads without a document reload");
     }
-    await page.goto('/dashboard/promotions');
+    await page.goto("/dashboard/promotions");
     await promotionAction("CANCEL", "Cancelled");
     const hidden = await (
       await family.request.get(
@@ -484,7 +551,8 @@ test("reviewed teacher signs in, handles a real family enquiry, confirms tuition
     ).json();
     expect(hidden.items.some((t: any) => t.id === ids.teacher)).toBe(false);
     console.log("QA: cancellation removed sponsored delivery");
-    expect(browserErrors).toEqual([]);expect(apiFailures).toEqual([]);
+    expect(browserErrors).toEqual([]);
+    expect(apiFailures).toEqual([]);
   } finally {
     await family.close();
     await staff.close();
