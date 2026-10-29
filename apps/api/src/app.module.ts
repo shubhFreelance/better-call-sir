@@ -1,3 +1,4 @@
+import {PromotionsModule} from './modules/promotions/promotions.module';
 import {LiveInboxModule} from './modules/notifications/live-inbox.module';
 import {DirectEnquiriesModule} from './modules/direct-enquiries/direct-enquiries.module';
 import {ServiceModule} from './modules/service/service.module';
@@ -39,5 +40,5 @@ import {AdministrationModule} from './modules/administration/administration.modu
 import {LearningSpacesModule} from './modules/learners/learning-spaces.module';
 import {StudentGuardianModule} from './modules/learners/student-guardian.module';
 import {TuitionBookingModule} from './modules/placements/tuition-booking';
-@Module({imports:[TuitionBookingModule,StudentGuardianModule,LearningSpacesModule,LiveInboxModule,DirectEnquiriesModule,ServiceModule,NotificationsModule,TuitionMinimumModule,LearningManagementModule,GuardianVerificationModule,CommercialModule,StaffModule,StudentSupportModule,StudentHiringModule,StudentEnquiriesModule,IndependentStudentsModule,LearnersModule,MfaModule,AnalyticsModule,PrivacyModule,MeetingsModule,PaymentsModule,RecurringModule,StudentAccessModule,OnboardingModule,SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,PlacementsModule,TeachersModule,RevisionModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
+@Module({imports:[PromotionsModule,TuitionBookingModule,StudentGuardianModule,LearningSpacesModule,LiveInboxModule,DirectEnquiriesModule,ServiceModule,NotificationsModule,TuitionMinimumModule,LearningManagementModule,GuardianVerificationModule,CommercialModule,StaffModule,StudentSupportModule,StudentHiringModule,StudentEnquiriesModule,IndependentStudentsModule,LearnersModule,MfaModule,AnalyticsModule,PrivacyModule,MeetingsModule,PaymentsModule,RecurringModule,StudentAccessModule,OnboardingModule,SchedulingModule,VerificationModule,DemosModule,CatalogModule,IdentityModule,RequestsModule,MatchingModule,PlacementsModule,TeachersModule,RevisionModule,LearningRecordsModule,NotesModule,SupportModule,MembershipsModule,AdministrationModule]})
 export class AppModule {}

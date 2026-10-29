@@ -10,6 +10,8 @@ async function erase(db:DB,scope:string,resourceId:string,accountId:string){
  await eraseGuardianVerification(db,accountId,childIds,scope==='ACCOUNT');
  if(scope==='ACCOUNT')await db.inboxNotification.deleteMany({where:{accountId:{in:[accountId,...students]}}});
  const erasedTeacher=scope==='ACCOUNT'?await db.teacher.findUnique({where:{accountId}}):null;
+ if(erasedTeacher){await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended('teacher-promotions',0))`;const promotions=await db.teacherPromotion.findMany({where:{teacherId:erasedTeacher.id},select:{id:true}});for(const p of promotions)await db.idempotency.deleteMany({where:{operation:{contains:'/promotions/'+p.id}}});await db.teacherPromotion.updateMany({where:{teacherId:erasedTeacher.id},data:{status:'CANCELLED',reviewNote:null,version:{increment:1}}});}
+
  const directWhere={OR:[{childId:{in:childIds}},...(scope==='ACCOUNT'?[{ownerId:accountId},...(erasedTeacher?[{teacherId:erasedTeacher.id}]:[])]:[])]};
  const directIds=(await db.directEnquiry.findMany({where:directWhere,select:{id:true}})).map(row=>row.id);
  const placementIds=(await db.placement.findMany({where:{OR:[{childId:{in:childIds}},...(scope==='ACCOUNT'?[{guardianId:accountId},...(erasedTeacher?[{teacherId:erasedTeacher.id}]:[])]:[])]},select:{id:true}})).map(p=>p.id);

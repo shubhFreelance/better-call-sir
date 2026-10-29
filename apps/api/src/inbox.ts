@@ -54,6 +54,12 @@ export async function recordInbox(
       if(p){const child=await db.child.findUnique({where:{id:p.childId}});if(child?.studentAccountId&&!child.studentAccessRevokedAt)recipients.push({accountId:child.studentAccountId,actionPath:path});}
     }
   }
+  if(job.type.startsWith("promotion.")){
+    const campaign=await db.teacherPromotion.findUnique({where:{id:job.aggregateId}});
+    if(campaign){const teacher=await db.teacher.findUnique({where:{id:campaign.teacherId}});if(teacher)recipients.push({accountId:teacher.accountId,actionPath:"/dashboard/promotions"});
+      if(job.type==="promotion.requested")for(const admin of await db.account.findMany({where:{role:"ADMIN",disabled:false},select:{id:true}}))recipients.push({accountId:admin.id,actionPath:"/dashboard/promotions"});
+    }
+  }
   if (job.type.startsWith("direct.")) {
     const d = await db.directEnquiry.findUnique({
       where: { id: job.aggregateId },
@@ -165,7 +171,7 @@ export async function recordInbox(
         topic: job.type,
         actionPath: r.actionPath,
         important:
-          /direct\.|request|enquiry|placement|arrangement|tuition|invited|verification|case/.test(
+          /promotion\.|direct\.|request|enquiry|placement|arrangement|tuition|invited|verification|case/.test(
             job.type,
           ),
       },

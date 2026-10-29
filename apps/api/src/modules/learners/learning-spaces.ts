@@ -12,7 +12,9 @@ export async function learnerSpaces(db:DB,child:Child) {
  return spacesSchema.parse((draft?.subjects||[]).map(subject=>({subject,...(draft?.language?{language:draft.language}:{}),...(draft?.learningPreferences?{learningPreferences:draft.learningPreferences}:{})})));
 }
 export async function requireLearningSpace(db:DB,child:Child,subject?:string) {
- if(!subject || !(await learnerSpaces(db,child)).some(space=>space.subject.toLowerCase()===subject.toLowerCase()))fail(409,'LEARNING_SPACE_REQUIRED','Create a subject space and select it before searching for a teacher or sending an enquiry.');
+ const space=subject?(await learnerSpaces(db,child)).find(space=>space.subject.toLowerCase()===subject.toLowerCase()):undefined;
+ if(!space)fail(409,'LEARNING_SPACE_REQUIRED','Create a subject space and select it before searching for a teacher or sending an enquiry.');
+ return space;
 }
 
 export function legacyChild<T extends {learningSpaces:unknown;learningSpacesVersion:number}>({learningSpaces,learningSpacesVersion,...child}:T){return child;}

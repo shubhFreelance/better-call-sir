@@ -11,6 +11,810 @@
     }
   ],
   "paths": {
+    "/sponsored-teachers": {
+      "get": {
+        "operationId": "getSponsoredTeachers",
+        "tags": [
+          "teachers"
+        ],
+        "summary": "Up to three eligible paid placements; no learner or campaign private fields.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Eligible sponsored profiles, separately from organic results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "items"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "maxItems": 3,
+                      "items": {
+                        "$ref": "#/components/schemas/Teacher"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "VALIDATION",
+                      "message": "Validation",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "SESSION_EXPIRED",
+                      "message": "Session required/expired",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONSENT_REQUIRED",
+                      "message": "Role, ownership, consent, CSRF or Origin denied",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "message": "Missing or inaccessible resource",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "CONFLICT",
+                      "message": "Version, eligibility, reservation or retry conflict",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "RATE_LIMIT",
+                      "message": "Rate limit",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "failure": {
+                    "value": {
+                      "code": "PROVIDER_UNAVAILABLE",
+                      "message": "Provider unavailable or feature paused",
+                      "requestId": "80000000-0000-4000-8000-000000000001"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "learnerId",
+            "in": "query",
+            "description": "Requires an authenticated guardian or student. Uses the authorized saved learner education; caller-supplied education filters cannot override it.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "subject",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "description": "Empty value is treated as no filter for compatibility with existing v1 callers."
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "HOME",
+                "ONLINE",
+                ""
+              ]
+            },
+            "description": "Empty value is treated as no filter for compatibility with existing v1 callers."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "board",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "grade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "English",
+                "Hindi"
+              ]
+            }
+          },
+          {
+            "name": "locality",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "maxMonthlyPaise",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 50000,
+              "maximum": 2000000
+            }
+          },
+          {
+            "in": "query",
+            "name": "stage",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SCHOOL",
+                "EARLY_YEARS",
+                "COLLEGE"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "level",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NURSERY",
+                "KG1",
+                "KG2"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "courseName",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            }
+          },
+          {
+            "in": "query",
+            "name": "studyYear",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            }
+          },
+          {
+            "name": "promotionPlacement",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SEARCH",
+                "HOME",
+                "SPACE"
+              ]
+            },
+            "description": "Returns a separate, labelled sponsored list. SPACE requires an authorized learnerId and subject."
+          }
+        ]
+      }
+    },
+    "/promotion-plans": {
+      "get": {
+        "operationId": "getPromotionPlans",
+        "tags": [
+          "promotions"
+        ],
+        "summary": "getPromotionPlans",
+        "security": [],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed promotion state; no automatic charges or hiring guarantees.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionPlans"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/promotion-plans/{id}": {
+      "post": {
+        "operationId": "updatePromotionPlan",
+        "tags": [
+          "promotions"
+        ],
+        "summary": "updatePromotionPlan",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Confirmed promotion state; no automatic charges or hiring guarantees.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromotionPlan"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromotionPlanUpdate"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SEARCH",
+                "HOME",
+                "SPACE"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/promotions": {
+      "get": {
+        "operationId": "getTeacherPromotions",
+        "tags": [
+          "promotions"
+        ],
+        "summary": "getTeacherPromotions",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Confirmed promotion state; no automatic charges or hiring guarantees.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherPromotions"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "ACTIVE",
+                "PAUSED",
+                "REJECTED",
+                "CANCELLED",
+                "EXPIRED"
+              ]
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "requestTeacherPromotion",
+        "tags": [
+          "promotions"
+        ],
+        "summary": "requestTeacherPromotion",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Confirmed promotion state; no automatic charges or hiring guarantees.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherPromotion"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromotionRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/promotions/{id}/decision": {
+      "post": {
+        "operationId": "decideTeacherPromotion",
+        "tags": [
+          "promotions"
+        ],
+        "summary": "decideTeacherPromotion",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Confirmed promotion state; no automatic charges or hiring guarantees.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherPromotion"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromotionDecision"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
     "/tuition-bookings/{kind}/{id}": {
       "get": {
         "operationId": "getTuitionBooking",
@@ -4095,6 +4899,13 @@
                         "string",
                         "null"
                       ]
+                    },
+                    "sponsored": {
+                      "type": "array",
+                      "maxItems": 3,
+                      "items": {
+                        "$ref": "#/components/schemas/Teacher"
+                      }
                     }
                   },
                   "required": [
@@ -4230,7 +5041,7 @@
                         {
                           "name": "Arjun Deshmukh",
                           "slug": "arjun-deshmukh",
-                          "headline": "Turn \u201cI don\u2019t get it\u201d into \u201cI can do this.\u201d",
+                          "headline": "Turn “I don’t get it” into “I can do this.”",
                           "bio": "Focused online science lessons with visual explanations and practical questions. Revision sessions cover a clear topic, with a recap and next steps.",
                           "subjects": [
                             "Science"
@@ -4403,7 +5214,15 @@
           }
         },
         "parameters": [
-          {"name":"learnerId","in":"query","description":"Requires an authenticated guardian or student. Uses the authorized saved learner education; caller-supplied education filters cannot override it.","schema":{"type":"string","format":"uuid"}},
+          {
+            "name": "learnerId",
+            "in": "query",
+            "description": "Requires an authenticated guardian or student. Uses the authorized saved learner education; caller-supplied education filters cannot override it.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
           {
             "name": "q",
             "in": "query",
@@ -4550,6 +5369,19 @@
               "minimum": 1,
               "maximum": 10
             }
+          },
+          {
+            "name": "promotionPlacement",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SEARCH",
+                "HOME",
+                "SPACE"
+              ]
+            },
+            "description": "Returns a separate, labelled sponsored list. SPACE requires an authorized learnerId and subject."
           }
         ]
       }
@@ -37299,6 +38131,319 @@
 },
   "components": {
     "schemas": {
+      "PromotionPlan": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "SEARCH",
+              "HOME",
+              "SPACE"
+            ]
+          },
+          "amountPaise": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 1000000
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "id",
+          "amountPaise",
+          "days",
+          "enabled",
+          "version"
+        ]
+      },
+      "PromotionPlans": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PromotionPlan"
+            }
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "INR"
+            ]
+          },
+          "paymentMode": {
+            "type": "string",
+            "enum": [
+              "MANUAL_REVIEW"
+            ]
+          },
+          "chargesEnabled": {
+            "const": false
+          }
+        },
+        "required": [
+          "items",
+          "currency",
+          "paymentMode",
+          "chargesEnabled"
+        ]
+      },
+      "TeacherPromotion": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teacherId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "placement": {
+            "type": "string",
+            "enum": [
+              "SEARCH",
+              "HOME",
+              "SPACE"
+            ]
+          },
+          "amountPaise": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 1000000
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          },
+          "planVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "PAUSED",
+              "REJECTED",
+              "CANCELLED",
+              "EXPIRED"
+            ]
+          },
+          "paymentReference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reviewerId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "reviewNote": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "startsAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "endsAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "teacherName": {
+            "type": "string"
+          },
+          "teacherSlug": {
+            "type": "string"
+          },
+          "pausedByAdmin": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "teacherId",
+          "placement",
+          "amountPaise",
+          "days",
+          "planVersion",
+          "version",
+          "status",
+          "paymentReference",
+          "reviewerId",
+          "reviewNote",
+          "startsAt",
+          "endsAt",
+          "createdAt",
+          "updatedAt",
+          "pausedByAdmin"
+        ]
+      },
+      "TeacherPromotions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeacherPromotion"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ]
+      },
+      "PromotionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "placement": {
+            "type": "string",
+            "enum": [
+              "SEARCH",
+              "HOME",
+              "SPACE"
+            ]
+          },
+          "planVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "confirmed": {
+            "const": true
+          }
+        },
+        "required": [
+          "placement",
+          "planVersion",
+          "confirmed"
+        ]
+      },
+      "PromotionPlanUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "amountPaise": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 1000000
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "confirmed": {
+            "const": true
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "amountPaise",
+          "days",
+          "enabled",
+          "confirmed"
+        ]
+      },
+      "PromotionDecision": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "APPROVE",
+              "REJECT",
+              "PAUSE",
+              "RESUME",
+              "CANCEL"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "paymentReference": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]{5,99}$"
+          },
+          "paymentConfirmed": {
+            "const": true
+          },
+          "confirmed": {
+            "const": true
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "action",
+          "reason",
+          "confirmed"
+        ]
+      },
       "ServiceFollowup": {
         "type": "object",
         "additionalProperties": false,

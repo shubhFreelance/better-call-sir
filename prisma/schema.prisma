@@ -1023,3 +1023,31 @@ model InboxNotification {
  @@unique([accountId,eventId])
  @@index([accountId,createdAt,id])
 }
+
+model PromotionPlan {
+  id String @id
+  amountPaise Int
+  days Int @default(7)
+  enabled Boolean @default(true)
+  version Int @default(1)
+}
+model TeacherPromotion {
+  pausedByAdmin Boolean @default(false)
+  id String @id @default(uuid()) @db.Uuid
+  teacherId String @db.Uuid
+  placement String
+  amountPaise Int
+  days Int
+  planVersion Int
+  status String @default("PENDING")
+  version Int @default(1)
+  paymentReference String? @unique
+  reviewerId String? @db.Uuid
+  reviewNote String?
+  startsAt DateTime?
+  endsAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([teacherId, createdAt, id])
+  @@index([placement, status, endsAt])
+}
