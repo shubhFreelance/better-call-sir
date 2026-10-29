@@ -227,7 +227,7 @@ test("real teacher schedule saves capacity, weekly IST hours and leave, with ver
   const session = await (await page.request.get("/api/v1/auth/session")).json();
   const response = await page.request.post("/api/v1/teacher-applications", {
     headers: {
-      Origin: "http://localhost:3000",
+      Origin: new URL(page.url()).origin,
       "X-CSRF-Token": session.csrfToken,
       "Idempotency-Key": crypto.randomUUID(),
     },
@@ -486,7 +486,7 @@ test("student accounts cannot load teacher schedule data", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "A teacher account is required." }),
   ).toBeVisible();
-  expect(new Set(requests)).toEqual(new Set(["/api/v1/auth/session", "/api/v1/inbox", "/api/v1/live"]));
+  expect(new Set(requests)).toEqual(new Set(["/api/v1/auth/session", "/api/v1/inbox", "/api/v1/live", "/api/v1/onboarding/student/context"]));
 });
 
 test("Hindi complete interface — शिक्षक का समय और छुट्टी", async ({ page }) => {

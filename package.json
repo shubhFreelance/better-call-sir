@@ -22,6 +22,7 @@
     "test:integration": "tsx --test --test-concurrency=1 tests/api.test.ts tests/promotion-api.test.ts",
     "test:contract": "tsx --test tests/contract.test.ts",
     "test:e2e": "playwright test",
+    "test:teacher-qa": "playwright test --config playwright.teacher-qa.config.mts",
     "security:dependencies": "npm audit --omit=dev",
     "release:verify": "node scripts/release-verify.mjs",
     "test:release-gate": "tsx --test tests/release.test.ts",
