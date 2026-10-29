@@ -32,11 +32,11 @@ async function projection(db:DB,c:Awaited<ReturnType<typeof bookingContext>>,kin
 class TuitionBookingController {
  constructor(@Inject(AppService) private readonly service:AppService){}
  @Get('tuition-bookings/:kind/:id') async get(@Req() req:HttpRequest,@Param('kind') kind:string,@Param('id') id:string){
-  parse(kinds,kind);parse(uuid,id);const actor=await this.service.actor(req,roles);
+  const actor=await this.service.actor(req,roles);parse(kinds,kind);parse(uuid,id);
   return this.service.db.$transaction(async db=>projection(db,await bookingContext(db,this.service,req,actor,kind,id),kind,id));
  }
  @Post('tuition-bookings/:kind/:id/confirmations') async confirm(@Req() req:HttpRequest,@Param('kind') kind:string,@Param('id') id:string,@Body() body:unknown){
-  parse(kinds,kind);parse(uuid,id);const actor=await this.service.actor(req,roles),data=parse(z.object({expectedVersion:version,expectedBookingVersion:z.number().int().min(0),month,policyVersion:z.string().min(1).max(100),confirmed:z.literal(true),contactShareAccepted:z.literal(true)}).strict(),body);
+  const actor=await this.service.actor(req,roles);parse(kinds,kind);parse(uuid,id);const data=parse(z.object({expectedVersion:version,expectedBookingVersion:z.number().int().min(0),month,policyVersion:z.string().min(1).max(100),confirmed:z.literal(true),contactShareAccepted:z.literal(true)}).strict(),body);
   return this.service.once(req,actor,'tuition-booking.confirm',{kind,id,...data},async db=>{
    const c=await bookingContext(db,this.service,req,actor,kind,id,true),current=await projection(db,c,kind,id);
    if(!c.canConfirm||current.closed)fail(403,'BOOKING_CLOSED','This tuition arrangement cannot be confirmed.');
@@ -60,7 +60,7 @@ class TuitionBookingController {
   },async db=>{await bookingContext(db,this.service,req,actor,kind,id);});
  }
  @Post('tuition-bookings/:kind/:id/completions') async complete(@Req() req:HttpRequest,@Param('kind') kind:string,@Param('id') id:string,@Body() body:unknown){
-  parse(kinds,kind);parse(uuid,id);const actor=await this.service.actor(req,['TEACHER']),data=parse(z.object({date:z.string().regex(/^20\d{2}-\d{2}-\d{2}$/),completed:z.boolean(),expectedVersion:z.number().int().min(0),confirmed:z.literal(true)}).strict(),body);
+  const actor=await this.service.actor(req,['TEACHER']);parse(kinds,kind);parse(uuid,id);const data=parse(z.object({date:z.string().regex(/^20\d{2}-\d{2}-\d{2}$/),completed:z.boolean(),expectedVersion:z.number().int().min(0),confirmed:z.literal(true)}).strict(),body);
   return this.service.once(req,actor,'tuition-booking.complete',{kind,id,...data},async db=>{
    const c=await bookingContext(db,this.service,req,actor,kind,id,true),current=await projection(db,c,kind,id);
    if(!current.proActive)fail(403,'PRO_REQUIRED','An active Pro membership is required for class tracking.');
