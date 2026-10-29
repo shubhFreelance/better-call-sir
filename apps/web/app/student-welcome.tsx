@@ -1,4 +1,5 @@
 "use client";
+import {SpacePromotions} from "./sponsored-teachers";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 import { useEffect, useRef, useState } from "react";
@@ -142,6 +143,7 @@ export function StudentSpaceCards({context, disabled, onEdit,guardian=false}:{co
       </article>)}
       <button type="button" className="student-subject-card student-space-add" disabled={disabled || spaces.length >= 20 || !context.learner.enquiryEligible} onClick={()=>onEdit()}><Plus size={32} aria-hidden="true"/><span>{appText("Add a subject space")}</span></button>
     </div>
+    <SpacePromotions key={context.learner.id} learnerId={context.learner.id} spaces={spaces} disabled={disabled||!context.learner.enquiryEligible}/>
     {!context.learner.enquiryEligible && <p role="status">{appText(guardian ? "Complete this learner’s education details before creating a subject space." : "Some education details are missing. Ask your guardian to complete your profile, then reload your setup.")}{guardian && <> <Link href="/dashboard/learners">{appText("Open education profiles")}</Link></>}</p>}
   </section>;
 }

@@ -1,5 +1,10 @@
 # Frontend design direction
 
+## Sponsored teacher promotion — 29 October 2026
+
+Use shared LayeredSummaryCard pricing cards with quiet search, sage homepage and lavender subject-space headers. Keep the existing Manrope/Noto typography, white bodies, ivory page and teal actions; promotion request confirmation reuses Modal, StepProgress and FilterButtonGroup. Campaigns are newest-first collapsed shared cards with explicit status, price and review actions. Ads always display Sponsored, sit separately from organic results, and use the same compact reusable sponsored profile cards on homepage, filtered discovery and subject spaces. Scope family requests to the current learner and saved subject; hide stale/private data on access errors. Preserve English/Hindi, phone stacking, 44px targets and unknown-write locks.
+
+
 ## Guardian verification overview — 25 October 2026
 
 Use the latest ivory #FFFFEB page with a compact #034F46 title panel with a uniform teal border. Keep lavender for buttons and step markers; the owner removed the lavender left border. Keep per-child verification and explicit submission requirements visible in12px sage guidance; put fuller reassurance in the existing InfoTooltip. Frame the introduction in white, use the accent FilterButton for starting verification, and display the four real overview stages as individual white cards with lavender number markers on a #EEF5F3 track. Keep the visible ready-to-begin note in pale lavender. Use32px desktop/26px phone page titles,20/18px section headings and12px descriptions; stack stage cards on phones. Preserve the distinct six-step saved-request editor, scanner/authority/acknowledgment gates and current-status evidence. This supersedes the earlier grey/black overview palette.

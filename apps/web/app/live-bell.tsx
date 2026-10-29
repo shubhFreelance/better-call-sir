@@ -101,6 +101,12 @@ export function LiveBell({ session }: { session: Session }) {
   }, [open]);
   function title(topic: string) {
     const labels: Record<string, string> = {
+      "promotion.requested": "Promotion request awaiting review",
+      "promotion.approve": "Your promotion is active",
+      "promotion.reject": "Promotion request declined",
+      "promotion.pause": "Promotion paused",
+      "promotion.resume": "Promotion resumed",
+      "promotion.cancel": "Promotion cancelled",
       "tuition-booking.confirmed": "Monthly tuition confirmation updated",
       "tuition-booking.class_recorded": "Class record updated",
       "guardian-verification.ping": "Your student is asking you to complete guardian verification.",

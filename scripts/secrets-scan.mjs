@@ -19,7 +19,10 @@ const selected = files[0]==='--bundle'?walk('apps/web/.next/static'):files.lengt
 if (!selected.length)
   throw new Error("No source files selected for secrets scanning.");
 const batch=selected.filter(file=>!/^\.secretlintrc(?:\.(?:json|yaml|yml|js))?$|^\.secretlintignore/.test(path.basename(file)));
-const result = batch.length ? spawnSync(
+// JSON reports include file contents; bound each subprocess output without skipping inputs.
+let report=[],scanStatus=0;
+for(let offset=0;offset<batch.length;offset+=30){
+ const result = spawnSync(
   process.execPath,
   [
     "node_modules/secretlint/bin/secretlint.js",
@@ -29,18 +32,15 @@ const result = batch.length ? spawnSync(
     "--format",
     "json",
     "--",
-    ...batch,
+    ...batch.slice(offset,offset+30),
   ],
   { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 },
-) : {status:0,stdout:"[]",error:null};
-if (result.error) throw result.error;
-if (result.status !== 0 && result.status !== 1)
-  throw new Error("Secrets scanner failed to run.");
-let report;
-try {
-  report = JSON.parse(result.stdout);
-} catch {
-  throw new Error("Secrets scanner did not produce a valid report.");
+);
+ if(result.error)throw result.error;
+ if(result.status!==0&&result.status!==1)throw new Error("Secrets scanner failed to run.");
+ let entries;try{entries=JSON.parse(result.stdout);}catch{throw new Error("Secrets scanner did not produce a valid report.");}
+ if(!Array.isArray(entries))throw new Error("Secrets scanner returned invalid coverage.");
+ report.push(...entries);scanStatus=Math.max(scanStatus,result.status);
 }
 // Secretlint always excludes its own config names; scan skipped explicit inputs through stdin.
 if (!Array.isArray(report)) throw new Error("Secrets scanner returned invalid coverage.");
@@ -67,4 +67,4 @@ const findings = report.flatMap((file) =>
 process.stdout.write(
   JSON.stringify({ filesScanned: report.length, findings }, null, 2) + "\n",
 );
-process.exitCode = findings.length ? 1 : result.status;
+process.exitCode = findings.length ? 1 : scanStatus;

@@ -63,3 +63,8 @@ test('explicit generated assets and scanner config are scanned even when ignored
  mkdirSync('test-results',{recursive:true});const dir=mkdtempSync(path.join('test-results','secret-scan-')),token='ghp_'+randomBytes(18).toString('hex');
  try{for(const name of ['generated.js','.secretlintrc.json']){const file=path.join(dir,name);writeFileSync(file,'const synthetic='+JSON.stringify(token)+';');const result=spawnSync(process.execPath,['scripts/secrets-scan.mjs',file],{encoding:'utf8'});assert.equal(result.status,1);const report=JSON.parse(result.stdout);assert.equal(report.filesScanned,1);assert(report.findings.length>0);assert.equal(result.stdout.includes(token),false);}}finally{rmSync(dir,{recursive:true,force:true});}
 });
+
+test('batched source scans cover every input and redact findings from the final batch',()=>{
+ const dir=mkdtempSync(path.join(tmpdir(),'bcs-batched-scan-')),token='ghp_'+randomBytes(18).toString('hex');
+ try{const files=Array.from({length:31},(_,index)=>{const file=path.join(dir,index+'.txt');writeFileSync(file,index===30?'synthetic='+token:'ordinary synthetic content');return file;});const result=spawnSync(process.execPath,['scripts/secrets-scan.mjs',...files],{encoding:'utf8'});assert.equal(result.status,1);const report=JSON.parse(result.stdout);assert.equal(report.filesScanned,31);assert(report.findings.some((f:any)=>f.file.endsWith('/30.txt')));assert.equal(result.stdout.includes(token),false);assert.equal(result.stdout.includes('sourceContent'),false);}finally{rmSync(dir,{recursive:true,force:true});}
+});

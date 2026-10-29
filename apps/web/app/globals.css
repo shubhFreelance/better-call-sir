@@ -6940,3 +6940,59 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .ongoing-subject-loading,.ongoing-subject-error { margin:14px 0; color:#52655F; font-size:12px; }
 .ongoing-subject-error { display:flex; align-items:center; gap:12px; }
 @media(max-width:600px){.ongoing-subject-tuition {flex-wrap:wrap; align-items:flex-start; padding:16px; gap:12px;}.ongoing-subject-tuition > [data-slot=button] {width:100%;}.ongoing-subject-tuition h3 {font-size:15px;}}
+
+/* Promotions share the existing layered cards, typography and action controls. */
+.promotion-workspace { display: grid; gap: 28px; min-width: 0; }
+.promotion-intro { display: flex; gap: 18px; align-items: center; padding: 24px; background: #E4E4D0; border: 1px solid #F3F3E0; border-radius: 24px; }
+.promotion-intro h1 { font-size: 28px; margin: 0 0 8px; line-height: 1.3; }
+.promotion-intro p, .promotion-guidance p { margin: 6px 0 0; max-width: 76ch; font-size: 13px; line-height: 1.7; }
+.promotion-icon { display: grid; place-items: center; flex: 0 0 60px; height: 72px; background: #F0D7FF; border-radius: 18px; color: #034F46; }
+.promotion-guidance { padding: 22px; background: #EEF5F3; border: 1px solid #d4e3dd; border-radius: 18px; }
+.promotion-guidance strong { font-size: 15px; color: #034F46; }
+.promotion-plans, .sponsored-teacher-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
+.promotion-plan, .promotion-campaign, .sponsored-teacher { min-width: 0; margin: 0; }
+.promotion-plan h3, .promotion-campaign h3, .sponsored-teacher h3 { font-size: 17px; margin: 0; overflow-wrap: anywhere; }
+.promotion-plan .layered-summary-card-header { align-items: center; justify-content: flex-start; gap: 10px; }
+.promotion-plan-space .layered-summary-card-header { background: #F0D7FF; }
+.promotion-plan-home .layered-summary-card-header { background: #E4E4D0; }
+.promotion-plan .layered-summary-card-body p, .promotion-campaign p, .sponsored-teacher p { font-size: 13px; line-height: 1.7; }
+.promotion-plan .promotion-price { font-size: 27px; font-weight: 700; color: #111; margin-top: 0; }
+.promotion-price small { display: block; font-size: 12px; font-weight: 400; }
+.promotion-plan .layered-summary-card-footer { margin-top: auto; }
+.promotion-section-title { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+.promotion-section-title h2, .sponsored-teachers h2 { font-size: 20px; margin: 0; }
+.promotion-history { display: grid; gap: 18px; }
+.promotion-section-title label, .promotion-edit-form label, .space-promotions > label { display: grid; gap: 8px; font-size: 13px; font-weight: 600; }
+.promotion-edit-form { display: grid; gap: 16px; }
+.promotion-edit-form .check-row, .promotion-workspace .check-row { display: flex; gap: 10px; align-items: flex-start; font-size: 12px; line-height: 1.7; font-weight: 400; }
+.promotion-workspace input[type=checkbox] { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 3px; accent-color: #034F46; }
+.promotion-workspace select, .space-promotions select { min-height: 44px; padding: 10px; border-radius: 10px; background: white; border: 1px solid #c4ceca; width: 100%; max-width: 100%; }
+.promotion-workspace select:focus-visible, .space-promotions select:focus-visible { outline: 2px solid #034F46; outline-offset: 3px; }
+.promotion-quote { padding: 20px; background: #E4E4D0; border-radius: 18px; margin: 18px 0; }
+.promotion-quote strong { font-size: 28px; }
+.promotion-fineprint { padding: 12px; background: #F3F1EB; border-radius: 12px; }
+.sponsored-teachers { margin: 24px 0; border: 1px solid #d6bedf; background: #faf3fd; padding: 22px; border-radius: 24px; }
+.sponsored-teachers > header { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+.sponsored-teachers > header > div { display: flex; align-items: center; gap: 9px; }
+.sponsored-teachers > header p { font-size: 12px; margin: 0; }
+.sponsored-teacher .layered-summary-card-header { gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.promotion-sponsored-label { background: #F0D7FF; border-radius: 7px; font-size: 11px; padding: 5px 8px; color: #302238; }
+.sponsored-teacher .layered-summary-card-footer { display: grid; gap: 14px; font-size: 15px; }
+.sponsored-teacher small { font-size: 11px; font-weight: 400; display: block; }
+.space-promotions { margin-top: 24px; }
+.space-promotions > label { max-width: 390px; }
+.promotion-loading { display: flex; align-items: center; gap: 12px; font-size: 12px; margin: 16px 0; color: #496159; }
+@media(max-width: 1050px) { .promotion-plans, .sponsored-teacher-grid { grid-template-columns: 1fr; } }
+@media(max-width: 480px) { .promotion-intro { align-items: flex-start; padding: 18px; gap: 12px; } .promotion-intro h1 { font-size: 24px; } .promotion-icon { flex-basis: 42px; height: 48px; border-radius: 12px; } .promotion-guidance, .sponsored-teachers { padding: 16px; } .promotion-section-title > label { width: 100%; } }
+.promotion-plan { display: flex; flex-direction: column; }
+.promotion-plan > .layered-summary-card-header, .sponsored-teacher > .layered-summary-card-header, .promotion-campaign > .layered-summary-card-header { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+.promotion-campaign > summary { cursor: pointer; list-style: none; }
+.promotion-campaign > summary::-webkit-details-marker { display: none; }
+.promotion-campaign > summary::after { content: '+'; font-size: 22px; color: #034F46; }
+.promotion-campaign[open] > summary::after { content: '−'; }
+.promotion-plan .layered-summary-card-body .promotion-price { font-size: 27px; line-height: 1.3; }
+.promotion-plan > .layered-summary-card-header { justify-content: flex-start; }
+.promotion-pricing-editor > summary { min-height: 44px; cursor: pointer; color: #034F46; font-weight: 600; }
+.promotion-pricing-editor > summary span { display: block; font-size: 11px; font-weight: 400; }
+.promotion-pricing-editor[open] > summary { margin-bottom: 16px; }
+.promotion-pricing-editor > summary:focus-visible { outline: 2px solid #034F46; outline-offset: 4px; }

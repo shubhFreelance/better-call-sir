@@ -1,4 +1,7 @@
 "use client";
+import {Megaphone} from "lucide-react";
+import {PromotionsWorkspace} from "./promotions-workspace";
+import {SponsoredTeachers} from "./sponsored-teachers";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { SignedInIdentity } from "../components/ui/signed-in-identity";
 import { useAccountEntry } from "./account-entry";
@@ -810,6 +813,7 @@ function Home() {
           ))}
         </div>
       </section>
+      <div className="container"><SponsoredTeachers query="promotionPlacement=HOME"/></div>
       <section className="container how-section">
         <div>
           <span className="eyebrow">
@@ -1334,7 +1338,7 @@ function Teachers() {
             <p role="status">{appText("Preparing teacher search…")}</p>
           )}
           {canSearch && !exploring && session && learnerSearch.learner && effectiveSubject && <OngoingSubjectTuition session={session} learnerId={learnerSearch.learner.id} learnerName={learnerSearch.learner.alias} subject={effectiveSubject} />}
-          {canSearch && <><div className="results-heading">
+          {canSearch && <><SponsoredTeachers scope={session?.account.id||"public"} query={params.toString()+"&promotionPlacement="+(learnerSearch.learner&&effectiveSubject&&!exploring?"SPACE":"SEARCH")} context={learnerContext}/><div className="results-heading">
             <span role="status" ref={resultSummary} tabIndex={-1}>
               {query.isPending
                 ? appText("Searching for teachers…")
@@ -2225,6 +2229,7 @@ function DashboardShell({
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
     ["/dashboard/notifications", "Notifications", ShieldCheck],
+    ...(["TEACHER","ADMIN"].includes(role||"")?[["/dashboard/promotions",role==="ADMIN"?"Sponsored placements":"Promote profile",Megaphone] as [string,string,LucideIcon]]:[]),
     ...(role === "INDEPENDENT_STUDENT" ? ([
       ["/dashboard/enquiries", "My enquiries", ClipboardList],
       ["/dashboard/student-arrangements", "Hiring & arrangements", Users],
@@ -2405,6 +2410,7 @@ function DashboardShell({
     "/dashboard/matching":"Review and publish suitable teacher options",
     "/dashboard/student-enquiries":"Review adult-student requests",
     "/dashboard/support":"Safety, disputes and replacement cases",
+    "/dashboard/promotions":"Promotion packages, campaign review and visibility",
     "/dashboard/finance":"Payments, fees and settlement evidence",
     "/dashboard/reports":"Recorded activity and operational reports",
     "/support":"Ask for help or report a safety concern",
@@ -2519,6 +2525,7 @@ function DashboardPage({ tab }: { tab: string }) {
         "/dashboard/service-followups",
         "/dashboard/notifications",
         "/dashboard/email-delivery",
+        "/dashboard/promotions",
       ].includes(tab) &&
       !(
         ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
@@ -2687,6 +2694,7 @@ function DashboardPage({ tab }: { tab: string }) {
         />
       </DashboardShell>
     );
+  if (tab === "/dashboard/promotions") return <DashboardShell tab={tab}><PromotionsWorkspace session={session}/></DashboardShell>;
   const d = query.data;
   return (
     <DashboardShell tab={tab}>
