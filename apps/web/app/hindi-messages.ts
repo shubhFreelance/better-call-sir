@@ -2517,8 +2517,8 @@ export const hindiMessages: Record<string, string> = {
     "अनुमत उपकरण सँभालने के लिए विद्यार्थी की पहुँच फिर लोड करें।",
   "Create a first invitation?": "पहला निमंत्रण बनाएँ?",
   "Replace this learner’s invitation?": "इस विद्यार्थी का निमंत्रण बदलें?",
-  "The new invitation lasts 24 hours and is single-use. All earlier codes stop working. Only you, signed in as the inviting guardian on the intended student device, can activate it. This does not switch your current account.":
-    "नया निमंत्रण 24 घंटे और एक उपयोग के लिए है। सभी पुराने कोड बंद हो जाएँगे। केवल निमंत्रण भेजने वाला अभिभावक, इच्छित विद्यार्थी उपकरण पर अपने खाते से प्रवेश करके, इसे सक्रिय कर सकता है। इससे आपका वर्तमान खाता नहीं बदलता।",
+  "The new invitation lasts 24 hours and is single-use. All earlier codes stop working. Share it privately with your child. They enter the code first, then verify their own email to link this learner profile. Your guardian account stays separate.":
+    "नया निमंत्रण 24 घंटे और एक उपयोग के लिए है। सभी पुराने कोड बंद हो जाएँगे। इसे अपने बच्चे से निजी रूप से साझा करें। बच्चा पहले कोड दर्ज करेगा, फिर अपनी ईमेल की पुष्टि करके इस विद्यार्थी प्रोफ़ाइल से जुड़ेगा। आपका अभिभावक खाता अलग रहेगा।",
   "I am the learner’s guardian and will authorize only the intended student device. I understand that earlier invitation codes will stop working.":
     "मैं विद्यार्थी का अभिभावक हूँ और केवल इच्छित उपकरण को अनुमति दूँगा/दूँगी। पुराने निमंत्रण कोड बंद होने को समझता/समझती हूँ।",
   Cancel: "रद्द करें",

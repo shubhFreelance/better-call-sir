@@ -259,7 +259,7 @@ export function InvitationRecovery({
           </h3>
           <p>
             {appText(
-              "The new invitation lasts 24 hours and is single-use. All earlier codes stop working. Only you, signed in as the inviting guardian on the intended student device, can activate it. This does not switch your current account.",
+              "The new invitation lasts 24 hours and is single-use. All earlier codes stop working. Share it privately with your child. They enter the code first, then verify their own email to link this learner profile. Your guardian account stays separate.",
             )}{" "}
           </p>
           <fieldset className="wizard-fields" disabled={locked || conflict}>

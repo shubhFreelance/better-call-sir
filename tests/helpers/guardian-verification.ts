@@ -570,6 +570,7 @@ export function guardianVerificationTests() {
     await expect(page).toHaveURL(/guardian-verification$/);
     expect(consent&&saved).toBe(true);
     await page.getByRole("button",{name:"Create first student invitation",exact:true}).click();
+    await expect(page.getByText("The new invitation lasts 24 hours and is single-use. All earlier codes stop working. Share it privately with your child. They enter the code first, then verify their own email to link this learner profile. Your guardian account stays separate.", {exact:true})).toBeVisible();
     await page.getByRole("checkbox",{name:/I am the learner’s guardian and will authorize only the intended student device/}).check();
     await page.getByRole("button",{name:"Create invitation",exact:true}).click();
     const invite=page.locator(".invitation-recovery"), reveal=invite.getByRole("button",{name:"Reveal invitation code",exact:true}), onboarding=invite.getByRole("link",{name:"Open student onboarding",exact:true});
