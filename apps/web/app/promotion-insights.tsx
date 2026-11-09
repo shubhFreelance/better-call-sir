@@ -13,6 +13,8 @@ import {
   Eye,
   MousePointer2,
   Users,
+  LockKeyhole,
+  FlaskConical,
 } from "lucide-react";
 import { useAppTranslation } from "./locale";
 import { promotionLabels } from "./promotions-workspace";
@@ -24,6 +26,7 @@ import { InfoTooltip } from "../components/ui/info-tooltip";
 import { LayeredSummaryCard } from "../components/ui/layered-summary-card";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { StatusBadge } from "../components/ui/status-controls";
+import { Modal } from "../components/ui/modal";
 
 type Report = components["schemas"]["PromotionAnalytics"];
 const campaignStatus: Record<string, string> = {
@@ -156,6 +159,98 @@ function ReportPages({
   );
 }
 
+function DemoInterestPreview({
+  contact,
+}: {
+  contact: NonNullable<Report["enquiries"]["demoContact"]>;
+}) {
+  const { appText, appCurriculum } = useAppTranslation();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <div className="insight-demo-interest">
+        <StatusBadge
+          label={appText("Demo")}
+          tone="neutral"
+          icon={FlaskConical}
+        />
+        <div>
+          <strong>
+            {appText("Sample interest in {0}", [contact.teacherName])}
+          </strong>
+          <p>
+            {appText(
+              "Fictional contact for testing. Not included in your activity totals.",
+            )}
+          </p>
+        </div>
+        <FilterButton accent onClick={() => setOpen(true)}>
+          <Eye size={16} aria-hidden="true" />
+          {appText("Preview Pro details")}
+        </FilterButton>
+      </div>
+      <Modal
+        open={open}
+        onOpenChange={setOpen}
+        title={appText("Pro contact preview")}
+        description={appText(
+          "Demo data only. These are not a real family's contact details.",
+        )}
+      >
+        <LayeredSummaryCard
+          className="insight-demo-contact"
+          header={
+            <>
+              <div>
+                <small>{appText("Demo parent")}</small>
+                <h3>{contact.name}</h3>
+              </div>
+              <StatusBadge
+                label={appText("Pro")}
+                tone="accent"
+                icon={LockKeyhole}
+              />
+            </>
+          }
+          footer={
+            <p>
+              {appText(
+                "This preview does not activate Pro, send a message or create an enquiry.",
+              )}
+            </p>
+          }
+        >
+          <dl>
+            <div>
+              <dt>{appText("Mobile (demo)")}</dt>
+              <dd>{contact.phone}</dd>
+            </div>
+            <div>
+              <dt>{appText("Email (demo)")}</dt>
+              <dd>{contact.email}</dd>
+            </div>
+            <div>
+              <dt>{appText("Teacher")}</dt>
+              <dd>{contact.teacherName}</dd>
+            </div>
+            <div>
+              <dt>{appText("Subject")}</dt>
+              <dd>{appCurriculum(contact.subject)}</dd>
+            </div>
+          </dl>
+        </LayeredSummaryCard>
+        <FilterButton
+          className="insight-demo-close"
+          accent
+          onClick={() => setOpen(false)}
+        >
+          {appText("Close preview")}
+        </FilterButton>
+      </Modal>
+    </>
+  );
+}
+
 export function PromotionInsights({ session }: { session: Session }) {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation(),
     params = useSearchParams();
@@ -172,6 +267,7 @@ export function PromotionInsights({ session }: { session: Session }) {
     leadPage = pagination.teacherId === teacherId ? pagination.leadPage : 1;
   const report = useInsights(session, month, teacherId, page, leadPage),
     data = report.error ? undefined : report.data;
+  const canViewDetails = admin && data?.enquiries.detailsAccess === "ADMIN";
   const n = (value: number) => value.toLocaleString(appLocale);
   const date = (value: string) =>
     new Intl.DateTimeFormat(appLocale, {
@@ -378,7 +474,12 @@ export function PromotionInsights({ session }: { session: Session }) {
               }
             >
               {data.teachers.items.length ? (
-                <div className="insight-table-scroll insight-teachers-table" tabIndex={0} role="region" aria-label={appText("Teacher performance")}>
+                <div
+                  className="insight-table-scroll insight-teachers-table"
+                  tabIndex={0}
+                  role="region"
+                  aria-label={appText("Teacher performance")}
+                >
                   <table>
                     <caption>
                       {appText("Selected month · Up to 10 teachers per page")}
@@ -588,7 +689,14 @@ export function PromotionInsights({ session }: { session: Session }) {
             className="insight-panel"
             header={
               <div>
-                <h2>{appText("Families who sent an enquiry")}</h2>
+                <div className="insight-interest-title">
+                  <h2>{appText("Interested families")}</h2>
+                  <StatusBadge
+                    label={appText("Pro")}
+                    tone="accent"
+                    icon={LockKeyhole}
+                  />
+                </div>
                 <p>
                   {appText(
                     "Explicit interest from your existing direct enquiries.",
@@ -597,15 +705,23 @@ export function PromotionInsights({ session }: { session: Session }) {
               </div>
             }
             footer={
-              <ReportPages
-                label={appText("Interested family pages")}
-                page={leadPage}
-                total={data.enquiries.total}
-                disabled={report.isFetching}
-                onChange={(leadPage) =>
-                  setPagination({ teacherId, page, leadPage })
-                }
-              />
+              canViewDetails ? (
+                <ReportPages
+                  label={appText("Interested family pages")}
+                  page={leadPage}
+                  total={data.enquiries.total}
+                  disabled={report.isFetching}
+                  onChange={(leadPage) =>
+                    setPagination({ teacherId, page, leadPage })
+                  }
+                />
+              ) : (
+                <p>
+                  {appText(
+                    "Teacher Pro and family contact-sharing permission are required for real contact access.",
+                  )}
+                </p>
+              )
             }
           >
             <div className="insight-lead-totals">
@@ -620,58 +736,77 @@ export function PromotionInsights({ session }: { session: Session }) {
                 ])}
               </span>
             </div>
-            {data.enquiries.items.length ? (
-              <ul className="insight-leads">
-                {data.enquiries.items.map((e) => (
-                  <li key={e.id}>
-                    <div>
-                      <strong>{e.name}</strong>
-                      <small>
-                        {appText(
-                          e.audience === "GUARDIAN"
-                            ? "Parent or guardian"
-                            : "Student",
-                        )}{" "}
-                        · {appCurriculum(e.subject)}
-                        {admin && " · " + e.teacherName}
-                      </small>
-                      <small>{date(e.createdAt)}</small>
-                    </div>
-                    <StatusBadge
-                      icon={
-                        e.status === "ACCEPTED"
-                          ? CircleCheck
-                          : e.status === "DECLINED"
-                            ? CircleX
-                            : Clock3
-                      }
-                      tone={
-                        e.status === "ACCEPTED"
-                          ? "success"
-                          : e.status === "DECLINED"
-                            ? "danger"
-                            : "neutral"
-                      }
-                      label={appText(enquiryStatus[e.status] || e.status)}
-                    />
-                    <Link
-                      className="insight-eye"
-                      href={"/dashboard/enquiries?conversation=" + e.id}
-                      aria-label={appText("View enquiry from {0}", [e.name])}
-                      title={appText("View enquiry from {0}", [e.name])}
-                    >
-                      <Eye size={18} aria-hidden="true" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="insight-empty">
-                {appText(
-                  "No enquiries to show yet. Profile viewers remain private until they send an enquiry.",
-                )}
-              </p>
+            {!canViewDetails && (
+              <div className="insight-pro-lock">
+                <LockKeyhole size={22} aria-hidden="true" />
+                <div>
+                  <strong>
+                    {appText("Names and contact details are a Pro feature")}
+                  </strong>
+                  <p>
+                    {appText(
+                      "Teacher Pro is coming soon. Family names, mobile numbers and email addresses stay private here until access and sharing permission are available.",
+                    )}
+                  </p>
+                </div>
+              </div>
             )}
+            {data.enquiries.demoContact && (
+              <DemoInterestPreview contact={data.enquiries.demoContact} />
+            )}
+            {canViewDetails &&
+              (data.enquiries.items.length ? (
+                <ul className="insight-leads">
+                  {data.enquiries.items.map((e) => (
+                    <li key={e.id}>
+                      <div>
+                        <strong>{e.name}</strong>
+                        <small>
+                          {appText(
+                            e.audience === "GUARDIAN"
+                              ? "Parent or guardian"
+                              : "Student",
+                          )}{" "}
+                          · {appCurriculum(e.subject)}
+                          {admin && " · " + e.teacherName}
+                        </small>
+                        <small>{date(e.createdAt)}</small>
+                      </div>
+                      <StatusBadge
+                        icon={
+                          e.status === "ACCEPTED"
+                            ? CircleCheck
+                            : e.status === "DECLINED"
+                              ? CircleX
+                              : Clock3
+                        }
+                        tone={
+                          e.status === "ACCEPTED"
+                            ? "success"
+                            : e.status === "DECLINED"
+                              ? "danger"
+                              : "neutral"
+                        }
+                        label={appText(enquiryStatus[e.status] || e.status)}
+                      />
+                      <Link
+                        className="insight-eye"
+                        href={"/dashboard/enquiries?conversation=" + e.id}
+                        aria-label={appText("View enquiry from {0}", [e.name])}
+                        title={appText("View enquiry from {0}", [e.name])}
+                      >
+                        <Eye size={18} aria-hidden="true" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="insight-empty">
+                  {appText(
+                    "No enquiries to show yet. Profile viewers remain private until they send an enquiry.",
+                  )}
+                </p>
+              ))}
           </LayeredSummaryCard>
         </>
       )}

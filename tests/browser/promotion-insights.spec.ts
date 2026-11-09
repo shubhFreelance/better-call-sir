@@ -83,6 +83,15 @@ function report(query: URLSearchParams) {
             })),
     },
     enquiries: {
+      detailsAccess: "ADMIN",
+      demoContact: null as null | {
+        demo: true;
+        teacherName: string;
+        name: string;
+        email: string;
+        phone: string;
+        subject: string;
+      },
       total: 11,
       page: leadPage,
       items: Array.from({ length: leadPage === 1 ? 10 : 1 }, (_, i) => ({
@@ -109,6 +118,19 @@ async function setup(page: Page, role = "TEACHER") {
   await page.route("**/api/v1/promotions/analytics?*", (route) => {
     const url = new URL(route.request().url());
     reads.push(url);
+    const data = report(url.searchParams);
+    if (role === "TEACHER") {
+      data.enquiries.detailsAccess = "PRO_REQUIRED";
+      data.enquiries.items = [];
+      data.enquiries.demoContact = {
+        demo: true,
+        teacherName: "Meera Sahu",
+        name: "Asha Verma",
+        email: "asha.parent@example.test",
+        phone: "00000 00000",
+        subject: "Science",
+      };
+    }
     return denied
       ? route.fulfill({
           status: 403,
@@ -117,7 +139,7 @@ async function setup(page: Page, role = "TEACHER") {
             message: "Your role cannot perform this action.",
           },
         })
-      : route.fulfill({ json: report(url.searchParams) });
+      : route.fulfill({ json: data });
   });
   return {
     reads,
@@ -126,7 +148,7 @@ async function setup(page: Page, role = "TEACHER") {
   };
 }
 for (const hi of [false, true])
-  test(`teacher insights have real metrics, family pagination, month selection and accessible theme (${hi ? "Hindi phone" : "desktop"})`, async ({
+  test(`teacher insights retain metrics, Pro-lock identities and preview a demo contact (${hi ? "Hindi phone" : "desktop"})`, async ({
     page,
   }) => {
     if (hi)
@@ -149,31 +171,46 @@ for (const hi of [false, true])
       "4",
       "31",
     ]);
-    await expect(view.locator(".insight-leads li")).toHaveCount(10);
+    await expect(view.locator(".insight-leads li")).toHaveCount(0);
+    await expect(view.locator(".insight-pro-lock")).toBeVisible();
     await expect(
-      view.getByRole("link", {
-        name: translateText(hi, "View enquiry from {0}", [
-          "Synthetic parent 0",
-        ]),
-        exact: true,
-      }),
-    ).toHaveAttribute("href", /\/dashboard\/enquiries\?conversation=/);
-    const families = view.getByRole("group", {
-      name: t("Interested family pages"),
-      exact: true,
-    });
-    await families
-      .getByRole("button", { name: t("Next"), exact: true })
+      view.locator(".insight-interest-title .status-badge"),
+    ).toHaveText("Pro");
+    await expect(view.getByText("Asha Verma", { exact: true })).toHaveCount(0);
+    await view
+      .getByRole("button", { name: t("Preview Pro details"), exact: true })
       .click();
-    await expect(view.locator(".insight-leads li")).toHaveCount(1);
-    await expect(view.locator(".insight-leads")).toContainText(
-      "Synthetic returning parent",
-    );
-    expect(state.reads.at(-1)!.searchParams.get("leadPage")).toBe("2");
+    const modal = page.getByRole("dialog");
+    await expect(modal).toContainText("Asha Verma");
+    await expect(modal).toContainText("asha.parent@example.test");
+    await expect(modal).toContainText("00000 00000");
+    await expect(
+      modal.locator('a[href^="tel:"],a[href^="mailto:"]'),
+    ).toHaveCount(0);
+    expect(
+      (await new AxeBuilder({ page }).include("dialog").analyze()).violations,
+    ).toEqual([]);
+    await modal.screenshot({
+      path: `test-results/pro-contact-preview-${hi ? "hi" : "en"}.png`,
+      style: "nextjs-portal{display:none!important}",
+    });
+    await page.keyboard.press("Escape");
+    await expect(modal).toBeHidden();
+    await expect(
+      view.getByRole("button", { name: t("Preview Pro details"), exact: true }),
+    ).toBeFocused();
+    await expect(view.locator(".insight-summary dd")).toHaveText([
+      "12",
+      "8",
+      "3",
+      "19",
+      "4",
+      "31",
+    ]);
     await view
       .getByRole("combobox", { name: t("Activity month"), exact: true })
       .selectOption({ index: 1 });
-    await expect(view.locator(".insight-leads li")).toHaveCount(10);
+    await expect(view.locator(".insight-pro-lock")).toBeVisible();
     expect(state.reads.at(-1)!.searchParams.get("leadPage")).toBe("1");
     const info = view.getByRole("button", {
       name: t("How promotion activity is counted"),
@@ -259,12 +296,10 @@ test("superadmin compares ten teachers per page, drills into a teacher and opens
     (await new AxeBuilder({ page }).include(".promotion-insights").analyze())
       .violations,
   ).toEqual([]);
-  await page
-    .locator(".promotion-insights")
-    .screenshot({
-      path: "test-results/promotion-insights-admin-phone.png",
-      style: "nextjs-portal{display:none!important}",
-    });
+  await page.locator(".promotion-insights").screenshot({
+    path: "test-results/promotion-insights-admin-phone.png",
+    style: "nextjs-portal{display:none!important}",
+  });
   await teachers.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByRole("table").first().locator("tbody tr")).toHaveCount(
     1,
@@ -283,6 +318,15 @@ test("superadmin compares ten teachers per page, drills into a teacher and opens
   await expect(
     page.getByRole("heading", { name: "Teacher performance", exact: true }),
   ).toHaveCount(0);
+  const families = page.getByRole("group", {
+    name: "Interested family pages",
+    exact: true,
+  });
+  await families.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page.locator(".insight-leads li")).toHaveCount(1);
+  await expect(page.locator(".insight-leads")).toContainText(
+    "Synthetic returning parent",
+  );
   await page
     .getByRole("link", { name: "Manage promotions", exact: true })
     .click();
@@ -327,7 +371,13 @@ test("zero analytics shows honest empty states and a promotion action", async ({
         ),
         daily: [],
         campaigns: [],
-        enquiries: { items: [], total: 0, page: 1 },
+        enquiries: {
+          detailsAccess: "PRO_REQUIRED",
+          demoContact: null,
+          items: [],
+          total: 0,
+          page: 1,
+        },
         teachers: { items: [], total: 0, page: 1 },
       },
     });
