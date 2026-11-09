@@ -223,3 +223,11 @@
 | POST | `/admin/evidence/{id}/retries` | ADMIN, REVIEWER | [verification.module.ts](../apps/api/src/modules/verification/verification.module.ts) |
 | GET | `/admin/teachers/{id}/checks` | ADMIN, REVIEWER | [verification.module.ts](../apps/api/src/modules/verification/verification.module.ts) |
 | POST | `/admin/teachers/{id}/checks` | ADMIN, REVIEWER | [verification.module.ts](../apps/api/src/modules/verification/verification.module.ts) |
+
+## Promotion insights addition - 9 November 2026
+
+- POST /promotion-activity: GUARDIAN/STUDENT/INDEPENDENT_STUDENT; Origin/CSRF, current account/access, guardian consent, live public teacher/campaign, rate and privacy checks. Daily deduplicated server-side viewer references; no identifying response.
+- GET /promotions/analytics: TEACHER (own profile only) or ADMIN (current MFA, audited global/per-teacher reads). The interested-family subset reuses direct enquiry visibility/consent/deletion rules. No browsing identities or contact details returned.
+- GET /promotions also accepts teacherId; a teacher cannot use it to select another teacher. Existing campaign decisions retain role/version/recent-MFA gates.
+
+Eight real-HTTP promotion cases plus policy/contract checks cover these additions; this does not extend the historical 219-operation independent-review claim.

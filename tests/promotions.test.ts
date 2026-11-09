@@ -1,5 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { sponsoredTeachers } from "../apps/api/src/modules/promotions/delivery";
+import type { AppService } from "../apps/api/src/shared";
+import { activityDay } from "../apps/api/src/modules/promotions/policy";
+test("promotion day follows IST across UTC midnight boundaries", () => {
+  assert.equal(activityDay(new Date("2026-11-09T18:29:59Z")),"2026-11-09");
+  assert.equal(activityDay(new Date("2026-11-09T18:30:00Z")),"2026-11-10");
+});
 import {
   nextStatus,
   displayStatus,
@@ -37,4 +44,22 @@ test("space ads retain highest daily price, with homepage above search", () => {
     ),
   );
   assert(!pricesOrdered([]));
+});
+
+test("saved-space delivery includes every eligible promotion while homepage/search stay bounded", async () => {
+  const teachers = Array.from({ length: 5 }, (_, i) => ({ id: String(i) }));
+  const service = {
+    db: {
+      promotionPlan: { findUnique: async () => ({ enabled: true }) },
+      teacherPromotion: { findMany: async () => teachers.map(t => ({ teacherId: t.id })) },
+      teacher: { findMany: async () => teachers.map(t => ({ id: t.id, accountId: t.id, maxActiveStudents: 5 })) },
+      placement: { findMany: async () => [] },
+      studentArrangement: { findMany: async () => [] },
+      privacyRequest: { findMany: async () => [] },
+    },
+    publicTeachers: async () => teachers,
+  } as unknown as AppService;
+  assert.deepEqual(new Set((await sponsoredTeachers(service, "SPACE", {})).map(t => t.id)), new Set(teachers.map(t => t.id)));
+  assert.equal((await sponsoredTeachers(service, "SEARCH", {})).length, 3);
+  assert.equal((await sponsoredTeachers(service, "HOME", {})).length, 3);
 });

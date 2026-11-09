@@ -1051,3 +1051,18 @@ model TeacherPromotion {
   @@index([teacherId, createdAt, id])
   @@index([placement, status, endsAt])
 }
+
+model PromotionActivity {
+ id String @id
+ teacherId String @db.Uuid
+ promotionId String? @db.Uuid
+ viewerId String @db.Uuid
+ audience String
+ kind String
+ day DateTime @db.Date
+ createdAt DateTime @default(now())
+ @@index([teacherId, day])
+ @@index([promotionId, day])
+ @@index([viewerId])
+ @@index([day])
+}

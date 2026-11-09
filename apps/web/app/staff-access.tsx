@@ -7,6 +7,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, KeyRound } from "lucide-react";
 import { api, ApiError, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
+import { FilterButton, FilterButtonGroup } from "../components/ui/filter-button";
+import { InfoTooltip } from "../components/ui/info-tooltip";
 import { Input } from "../components/ui/input";
 import { Notice } from "./tuition-workflow";
 export const staffRole = (role: string) =>
@@ -376,7 +378,7 @@ function MfaPanel({
   return (
     <main className="container narrow section staff-security">
       <header className="staff-security-heading">
-        <ShieldCheck size={28} aria-hidden="true" />
+        <span className="staff-security-icon"><ShieldCheck size={25} aria-hidden="true" /></span>
         <div>
           <h1>{appText("Protect your staff access.")}</h1>
           <p>
@@ -385,7 +387,7 @@ function MfaPanel({
             )}{" "}
           </p>
         </div>
-        <span>{appText(session.account.role.toLowerCase())}</span>
+        <span className="staff-security-role">{appText(session.account.role.toLowerCase())}</span>
       </header>
       <section
         className="panel staff-security-form"
@@ -403,13 +405,16 @@ function MfaPanel({
           <p role="status">{appText("Checking your authenticator…")}</p>
         )}
         {status?.enabled && (
-          <p>
-            {verified
+          <div className="staff-security-status" role="status">
+            <ShieldCheck size={21} aria-hidden="true" />
+            <div><strong>{verified
               ? appText("Staff verification is current.")
-              : appText("A fresh verification is required.")}{" "}
+              : appText("A fresh verification is required.")}</strong><p>
             {status.recoveryCodesRemaining}{" "}
             {appText("recovery codes remain.")}{" "}
-          </p>
+            </p></div>
+            <InfoTooltip label={appText("Staff authenticator")} items={[appText("Verify an independent authenticator before opening private staff records.")]} />
+          </div>
         )}
         {status && !status.enabled && !secret && !codes.length && (
           <>
@@ -460,6 +465,8 @@ function MfaPanel({
               </label>
               <Input
                 id="staff-code"
+                className="staff-code-input"
+                data-recovery={recovery && !replace}
                 type="password"
                 inputMode={recovery && !replace ? "text" : "numeric"}
                 autoComplete="one-time-code"
@@ -484,19 +491,18 @@ function MfaPanel({
                         "Enter the current six-digit code. A code cannot be reused after verification.",
                       )}
               </p>
-              <div className="staff-security-actions">
-                <Button
-                  className="button"
+              <FilterButtonGroup className="staff-security-actions">
+                <FilterButton
+                  accent
                   type="submit"
                   disabled={busy || uncertain}
                 >
                   {replace
                     ? appText("Replace recovery codes")
                     : appText("Verify staff access")}
-                </Button>
+                </FilterButton>
                 {status?.enabled && !replace && (
-                  <Button
-                    variant="outline"
+                  <FilterButton
                     disabled={busy || uncertain}
                     onClick={() => {
                       setRecovery(!recovery);
@@ -507,11 +513,10 @@ function MfaPanel({
                     {recovery
                       ? appText("Use authenticator instead")
                       : appText("Use a recovery code")}
-                  </Button>
+                  </FilterButton>
                 )}
                 {replace && (
-                  <Button
-                    variant="outline"
+                  <FilterButton
                     disabled={busy || uncertain}
                     onClick={() => {
                       setReplace(false);
@@ -519,9 +524,9 @@ function MfaPanel({
                     }}
                   >
                     {appText("Cancel replacement")}{" "}
-                  </Button>
+                  </FilterButton>
                 )}
-              </div>
+              </FilterButtonGroup>
             </form>
           )}
         {codes.length > 0 && (
@@ -560,15 +565,14 @@ function MfaPanel({
             </Button>
           </div>
         )}
-        <div className="staff-security-actions">
-          <Button variant="outline" disabled={busy} onClick={inspect}>
+        <FilterButtonGroup className="staff-security-actions staff-security-secondary">
+          <FilterButton disabled={busy} onClick={inspect}>
             {busy
               ? appText("Checking…")
               : appText("Check current verification")}
-          </Button>
+          </FilterButton>
           {verified && !codes.length && !uncertain && !replace && (
-            <Button
-              variant="outline"
+            <FilterButton
               disabled={busy}
               onClick={() => {
                 setReplace(true);
@@ -577,17 +581,17 @@ function MfaPanel({
               }}
             >
               {appText("Replace recovery codes")}{" "}
-            </Button>
+            </FilterButton>
           )}
           {verified && inspected && !codes.length && !uncertain && (
-            <Button className="button" disabled={busy} onClick={finish}>
+            <FilterButton accent disabled={busy} onClick={finish}>
               {appText("Continue with recorded verification")}{" "}
-            </Button>
+            </FilterButton>
           )}
-          <Button variant="outline" disabled={busy} onClick={onSignIn}>
+          <FilterButton disabled={busy} onClick={onSignIn}>
             {appText("Return to sign-in")}{" "}
-          </Button>
-        </div>
+          </FilterButton>
+        </FilterButtonGroup>
         {verified && !codes.length && !uncertain && (
           <Link href="/dashboard" className="inline-link">
             {appText("Return to staff workspace")}{" "}

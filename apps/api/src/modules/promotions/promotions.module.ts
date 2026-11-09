@@ -22,6 +22,7 @@ import {
   text,
 } from "../../shared";
 import { capacity } from "../scheduling/calendar";
+import { PromotionInsightsController } from "./insights";
 import { recentAdmin } from "../administration/authority";
 import { pageQuery, pageBefore, pageResult } from "../../pagination";
 import {
@@ -146,6 +147,7 @@ class PromotionsController {
     const actor = await this.service.actor(req, ["TEACHER", "ADMIN"]),
       data = parse(
         pageQuery.extend({
+          teacherId: uuid.optional(),
           status: z
             .enum([
               "PENDING",
@@ -162,8 +164,9 @@ class PromotionsController {
       db = this.service.db;
     const t = actor.role === "TEACHER" ? await teacherFor(db, actor.id) : null,
       now = new Date();
+    if (t && data.teacherId && data.teacherId !== t.id) fail(403,"FORBIDDEN","You can view only your own promotions.");
     const where = {
-      ...(t ? { teacherId: t.id } : {}),
+      ...(t || data.teacherId ? { teacherId: t?.id || data.teacherId } : {}),
       ...(data.status === "EXPIRED"
         ? { status: { in: ["ACTIVE", "PAUSED"] }, endsAt: { lte: now } }
         : data.status
@@ -425,5 +428,5 @@ class PromotionsController {
     );
   }
 }
-@Module({ imports: [PersistenceModule], controllers: [PromotionsController] })
+@Module({ imports: [PersistenceModule], controllers: [PromotionsController, PromotionInsightsController] })
 export class PromotionsModule {}

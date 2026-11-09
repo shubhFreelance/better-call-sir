@@ -92,6 +92,6 @@ export async function sponsoredTeachers(
         .digest("hex"),
     }))
     .sort((a, b) => a.rank.localeCompare(b.rank))
-    .slice(0, 3)
-    .map((row) => row.teacher);
+    .slice(0, placement === "SPACE" ? available.length : 3)
+    .map((row) => ({ ...row.teacher, promotionId: campaigns.find(c => c.teacherId === row.teacher.id)!.id }));
 }

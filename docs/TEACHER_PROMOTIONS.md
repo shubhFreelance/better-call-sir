@@ -12,7 +12,7 @@ Owner-requested monetization increment, 29 October 2026. This is a fixed-duratio
 
 These are starting price proposals, not demand-qualified prices. Admin may edit price, duration and availability. The per-day search price must remain below homepage, and homepage below spaces. A request snapshots the exact total, duration and plan version; later edits never silently reprice it. Disabling a placement immediately hides its active campaigns without extending their expiry. The configuration is a total quoted promotion price; no additional tax or fee is automatically added. Tax, invoices, lawful advertising terms and real payment settlement need qualification before charging people.
 
-Recommended first launch experiment: keep the seven-day plans, manually review a small screened pilot cohort, and interview teachers about enquiries and value before increasing inventory or changing prices. Do not introduce pay-per-click billing until independently tested fraud-resistant accounting exists. Impression/click attribution and financial receipts are not fabricated by this implementation.
+Recommended first launch experiment: keep the seven-day plans, manually review a small screened pilot cohort, and interview teachers about enquiries and value before increasing inventory or changing prices. Do not introduce pay-per-click billing until independently tested fraud-resistant accounting exists. Click/visit insights are observational, not billable attribution; impressions and financial receipts are not fabricated.
 
 ## Teacher and superadmin flow
 
@@ -24,9 +24,11 @@ Approval starts the clock immediately for the quoted number of 24-hour days. Tea
 
 ## Matching, disclosure and privacy
 
+Every saved subject space loads its matching promoted profiles automatically, including the save-confirmation screen. The Suggested teachers for you section merges teachers by ID across saved spaces, with All and saved-subject filters. All shows a teacher once; the same teacher can appear in each matching subject filter. No separate sponsored-section marketing title is shown. Each shared teacher card retains its Sponsored badge and its exact learner/subject/language link context; inaccessible or failed groups stay hidden.
+
 Every ad displays **Sponsored**. Homepage, search and saved subject spaces use the same public teacher projection and the existing coverage rules. Space placement requires authorized learner access, a saved subject, the current education level, board/course/year, saved language when specified and online or relevant regional home coverage. Search also honors explicit mode, locality, language and budget filters. Ineligible, disabled, privacy-paused, screening-expired or full teachers do not serve ads. An ad does not authorize an enquiry or bypass the existing hiring checks.
 
-Sponsored profiles live in a separate block; organic order is unchanged. At most three eligible teacher profiles are returned. Rotation is deterministic in five-minute intervals, without cookies, viewer identifiers, tracking pixels or machine learning. Inventory is capped at 100 active/paused campaigns per placement; raise it only with a reviewed allocation strategy and load evidence. Advertisers never receive learner names, private preferences, guardian contacts or learning histories through promotion.
+Sponsored profiles live in a separate block; organic order is unchanged. Saved subject spaces return all eligible promoted profiles within the existing 100-campaign inventory bound. Homepage/search return at most three. Rotation is deterministic in five-minute intervals, without audience-based targeting, tracking pixels or machine learning. Inventory is capped at 100 active/paused campaigns per placement; raise it only with a reviewed allocation strategy and load evidence. Promotion viewing activity never reveals viewer names, private preferences, guardian contacts or learning histories. Existing authorized enquiries remain a separate source of explicit interest.
 
 Account erasure cancels campaigns, clears private review notes and deletes cached campaign decisions, including staff-owned retry receipts. Minimal quoted amounts, dates and reconciliation references follow the existing staff-reviewed financial/audit retention exception; no sensitive review narrative is copied into immutable audit records. A production retention policy and refund ledger remain release work.
 
@@ -37,7 +39,7 @@ Account erasure cancels campaigns, clears private review notes and deletes cache
 - `GET /promotions`: own-teacher or superadmin, newest-first, bounded cursor pagination and optional status.
 - `POST /promotions/:id/decision`: versioned approve/reject/pause/resume/cancel; approval requires reviewed payment reference and explicit confirmation.
 - `POST /admin/promotion-plans/:id`: recent-MFA admin price/duration/availability controls with optimistic version.
-- `GET /sponsored-teachers`: up to three public profiles, with placement and discovery criteria. SPACE requires authorized `learnerId` and subject. It does not retrieve the organic list again.
+- `GET /sponsored-teachers`: all eligible public profiles for SPACE, up to three for HOME/SEARCH, with placement and discovery criteria. SPACE requires authorized `learnerId` and subject. It does not retrieve the organic list again.
 - `GET /teachers` also supports optional `promotionPlacement` for clients wanting organic and sponsored results in one response; existing clients receive the same organic response when omitted.
 
 Promotion requests and decisions also write important notices to the existing live inbox for the teacher; new requests reach superadmin review. Socket.IO sends the existing post-commit invalidation only. These events do not enable new email delivery.
@@ -48,8 +50,34 @@ UI reuses LayeredSummaryCard, FilterButton/FilterButtonGroup, Modal, StepProgres
 
 ## Verification and limitations
 
+After pulling promotion changes into local development, run `prisma migrate deploy` against the intended local database before opening the page. Missing `PromotionPlan` or `TeacherPromotion` tables make both package and history reads fail. On 9 November 2026, the local database had only `202610290001_teacher_promotions` pending; applying that migration restored the public plans API to HTTP 200. No database reset or promotion activation was required. Production migrations still belong to the separately authorized release process.
+
 Run `npx tsx --test tests/promotions.test.ts tests/promotion-api.test.ts` and `npx playwright test tests/browser/promotions.spec.ts`. The real-HTTP integration test creates an isolated synthetic PostgreSQL database, executes every checked-in migration SQL file, seeds it, builds/starts the API, verifies the flow and drops only that temporary test database. It does not replace `prisma migrate deploy` qualification.
 
 In this environment the Prisma engine host returned HTTP 403. Client generation succeeded using the bundled generator with `PRISMA_SCHEMA_ENGINE_BINARY=/bin/false` only for `prisma generate`; this is not a migration engine and must never be used for deployment. Database acceptance executes real migration SQL. Normal deployment migration-runner qualification, real money/refunds/tax invoices, named payment reviewers, traffic fraud controls, performance attribution, external-device/load qualification and production launch remain open. No deployment or main merge is part of this feature.
 
 Acceptance for this increment includes eight real-HTTP/policy tests, English/Hindi promotion browser checks, existing family-space and learner-discovery regression checks, workspace type checking and API/security/localization contract checks. Exact final counts are recorded in `remaing.md` and `docs/SPRINTS.md` alongside the feature commits.
+
+## Promotion insights - 9 November 2026
+
+`GET /promotions/analytics` provides teacher-owned reports and recent-MFA superadmin global/per-teacher reports. `month=YYYY-MM` selects the daily table and campaign/teacher rankings; `page` and `leadPage` paginate ten teachers/enquiries. Promotion request/ever-approved/current-status counts include all campaign history. Direct-enquiry totals are all currently authorized direct conversations (not assisted opportunities and not claimed as ad conversions). Lead names come only from these existing enquiries; no email, phone, browsing identities or permission to call is exposed. Superadmin campaign history also accepts teacherId; teachers cannot use it to read another teacher.
+
+`POST /promotion-activity` accepts teacherId, optional promotionId and CARD_CLICK/PROFILE_VISIT from signed-in guardian/student/adult-student sessions with Origin/CSRF and rate limits. Active, enabled campaigns and available public profiles are rechecked; staff/self traffic and anonymous traffic are excluded. Duplicates count once per account/campaign/IST day for clicks and account/teacher/IST day for visits. Visits are not impressions or unique humans; multiple days count multiple visits. Profile visits include regular and sponsored entry paths; only visits with a valid promotion reference contribute to that campaign. A visit first recorded without attribution is not reassigned later that day.
+
+Audience totals distinguish guardian and student accounts. Raw viewer references stay server-side, never in reports. Activity is retained for 90 days, excluded immediately during deletion review, removed on account/linked-child erasure and expired by the existing worker. Reports apply the 90-day boundary even before worker cleanup. Historic traffic is not backfilled: firstRecordedAt is null until a real event is recorded. Browser privacy signals and blocked/failed telemetry can undercount activity. These are descriptive counters, not fraud-resistant billing evidence, targeting lists or consent to contact. Masked calls and contact permissions remain deferred.
+
+Apply migration `202611090001_promotion_insights` before running the updated API/worker. No live payment or Pro entitlement changes.
+
+## Teacher Pro interested-family preview - 9 November 2026
+
+Teacher analytics returns enquiries.detailsAccess=PRO_REQUIRED and an empty enquiries.items list. Counts remain readable; names are not merely hidden by CSS. Existing direct enquiry conversations remain available through their normal authorized workflow. Superadmin retains existing MFA-authorized oversight (detailsAccess=ADMIN), with no new email/phone exposure.
+
+Teacher Pro has no subscription/entitlement product yet. The Pro badge is a locked preview, not an active paid upgrade. Parent Pro and purchased promotion placements do not unlock it. Real contact access needs teacher entitlements and explicit, revocable family contact-sharing permission before launch; simply browsing a sponsored profile never grants that permission.
+
+In development mode only, Meera Sahu's own report and an admin report filtered to meera-sahu include enquiries.demoContact for fictional Asha Verma: asha.parent@example.test, 00000 00000, Science. These are intentionally unusable contact details, not a real registered account. The sample is separately labelled Demo and never inserted into PromotionActivity, enquiries, notifications, billing or real counters. No production sample is returned.
+
+The teacher and superadmin overview share PromotionPerformanceCard. Both sidebars expose **Promotion insights** at `/dashboard/promotion-insights`; the promotion-request workspace links there too. Superadmin can compare ten teachers per page, drill into a teacher and open `/dashboard/promotions?teacher=<id>` to manage that teacher's campaigns. The interest list is also paginated at ten rows and opens existing conversations. Month controls affect traffic tables/rankings, while campaign request/approval and authorized direct-enquiry totals include all history.
+
+UI reuses LayeredSummaryCard, InfoTooltip, FilterButtonGroup/FilterButton, StatusBadge and RefreshButton with small explanatory text, English/Hindi and a horizontally scrollable admin table on phones. Telemetry respects browser DNT/GPC, is best effort, and never blocks profile navigation. Stats refresh every minute or through the refresh icon. Explicit read failures remove cached report/lead data until an authorized retry succeeds.
+
+To inspect the sample locally, sign in as Meera Sahu and open Dashboard > Promotion insights > Interested families > Preview Pro details. Superadmin can open Meera's individual report to see the same development sample. The Pro lock and sample contact use existing StatusBadge, Modal, LayeredSummaryCard and FilterButton components; the real subscription and consented-contact launch are still deferred.

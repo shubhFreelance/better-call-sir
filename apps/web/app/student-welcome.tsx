@@ -116,7 +116,7 @@ export function StudentWelcome({ session }: { session: Session }) {
                   setEditor({subject,saved:true});
                   client.setQueryData<Context>(["student-setup",session.account.id], current => current ? {...current,progress,spacesVersion:(current.spacesVersion||0)+1} : current);
                 }}
-              /> : <StudentSpaceCards context={query.data} disabled={!!query.error || query.isFetching} onEdit={subject => setEditor({subject})} />}
+              /> : <StudentSpaceCards session={session} context={query.data} disabled={!!query.error || query.isFetching} onEdit={subject => setEditor({subject})} />}
 
             </div>
           )}
@@ -126,7 +126,7 @@ export function StudentWelcome({ session }: { session: Session }) {
     </div>
   );
 }
-export function StudentSpaceCards({context, disabled, onEdit,guardian=false}:{context:Context; disabled:boolean; onEdit:(subject?:string)=>void;guardian?:boolean}) {
+export function StudentSpaceCards({context, disabled, onEdit,guardian=false,session}:{session:Session;context:Context; disabled:boolean; onEdit:(subject?:string)=>void;guardian?:boolean}) {
   const {appText,appCurriculum} = useAppTranslation();
   const [,setSearch] = useTeacherSearchState();
   const spaces = savedSpaces(context.progress);
@@ -143,7 +143,7 @@ export function StudentSpaceCards({context, disabled, onEdit,guardian=false}:{co
       </article>)}
       <button type="button" className="student-subject-card student-space-add" disabled={disabled || spaces.length >= 20 || !context.learner.enquiryEligible} onClick={()=>onEdit()}><Plus size={32} aria-hidden="true"/><span>{appText("Add a subject space")}</span></button>
     </div>
-    <SpacePromotions key={context.learner.id} learnerId={context.learner.id} spaces={spaces} disabled={disabled||!context.learner.enquiryEligible}/>
+    <SpacePromotions session={session} key={context.learner.id} learnerId={context.learner.id} spaces={spaces} disabled={disabled||!context.learner.enquiryEligible}/>
     {!context.learner.enquiryEligible && <p role="status">{appText(guardian ? "Complete this learner’s education details before creating a subject space." : "Some education details are missing. Ask your guardian to complete your profile, then reload your setup.")}{guardian && <> <Link href="/dashboard/learners">{appText("Open education profiles")}</Link></>}</p>}
   </section>;
 }
@@ -607,6 +607,7 @@ export function StudentSetupForm({
           </>
         )}
       </FilterButtonGroup>
+      {saved && <SpacePromotions session={session} learnerId={context.learner.id} spaces={spaces} disabled={locked} />}
     </section>
   );
 }

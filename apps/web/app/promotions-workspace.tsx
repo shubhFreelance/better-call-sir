@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, rupees, type Session, type components } from "@bcs/api-client";
-import { Megaphone, Search, House, BookOpen, Clock } from "lucide-react";
+import { Megaphone, Search, House, BookOpen, Clock, CircleAlert } from "lucide-react";
 import { useAppTranslation } from "./locale";
 import { useHistory, HistoryPages } from "./history";
 import { useDecision, Feedback } from "./tuition-workflow";
@@ -47,8 +49,16 @@ const actionNames = {
   CANCEL: "Cancel promotion",
 };
 const icons = { SEARCH: Search, HOME: House, SPACE: BookOpen };
+function PromotionLoadError({ title, detail, retryLabel, retry, disabled }: { title: string; detail: string; retryLabel: string; retry: () => void; disabled: boolean }) {
+  return <div className="promotion-load-error" role="alert">
+    <CircleAlert size={22} aria-hidden="true" />
+    <div><strong>{title}</strong><p>{detail}</p></div>
+    <RefreshButton label={retryLabel} disabled={disabled} onClick={retry} />
+  </div>;
+}
 export function PromotionsWorkspace({ session }: { session: Session }) {
   const client = useQueryClient();
+  const teacherFilter = useSearchParams().get("teacher") || "";
   const { appText, appError, appLocale } = useAppTranslation(),
     admin = session.account.role === "ADMIN",
     allowed = admin || session.account.role === "TEACHER";
@@ -65,8 +75,8 @@ export function PromotionsWorkspace({ session }: { session: Session }) {
       }),
   });
   const history = useHistory<components["schemas"]["TeacherPromotions"]>({
-    queryKey: ["promotions", session.account.id, status],
-    path: "/promotions?limit=10" + (status ? "&status=" + status : ""),
+    queryKey: ["promotions", session.account.id, status, admin ? teacherFilter : ""],
+    path: "/promotions?limit=10" + (status ? "&status=" + status : "") + (admin && teacherFilter ? "&teacherId=" + encodeURIComponent(teacherFilter) : ""),
     enabled: allowed,
   });
   const decision = useDecision(session, async () => {
@@ -100,6 +110,7 @@ export function PromotionsWorkspace({ session }: { session: Session }) {
           </p>
         </div>
       </header>
+      <div className="promotion-insights-entry"><div><strong>{appText("Measure your promotion activity")}</strong><p>{appText("View clicks, visits and enquiry interest in one place.")}</p></div><FilterButton accent asChild><Link href={"/dashboard/promotion-insights"+(admin && teacherFilter ? "?teacher="+encodeURIComponent(teacherFilter) : "")}>{appText("View promotion insights")}</Link></FilterButton></div>
       <div className="promotion-guidance">
         <strong>{appText("Visibility, without compromising fit")}</strong>
         <p>
@@ -114,23 +125,26 @@ export function PromotionsWorkspace({ session }: { session: Session }) {
         </p>
       </div>
       <Feedback decision={decision} floating />
-      <section aria-label={appText("Promotion packages")}>
+      <section className="care-card promotion-packages" aria-label={appText("Promotion packages")}>
         <div className="promotion-section-title">
+          <div>
           <h2>
             {appText(
               admin ? "Pricing and availability" : "Choose your placement",
             )}
           </h2>
-          <RefreshButton
+          <p>{appText("Compare placements and review your quote before requesting.")}</p>
+          </div>
+          {!plans.error && <RefreshButton
             label={appText("Refresh")}
             disabled={blocked}
             onClick={() => decision.reload()}
-          />
+          />}
         </div>
         {plans.isPending && (
           <p role="status">{appText("Loading promotion packages…")}</p>
         )}
-        {plans.error && <p role="alert">{appError(plans.error.message)}</p>}
+        {plans.error && <PromotionLoadError title={appText("Promotion packages unavailable")} detail={appError(plans.error.message)} retryLabel={appText("Retry promotion packages")} disabled={blocked} retry={() => { void plans.refetch(); }} />}
         {!plans.error && (
           <div className="promotion-plans">
             {plans.data?.items.map((plan) => {
@@ -190,7 +204,10 @@ export function PromotionsWorkspace({ session }: { session: Session }) {
       </section>
       <section className="care-card promotion-history">
         <div className="promotion-section-title">
+          <div>
           <h2>{appText(admin ? "Campaign review" : "Your promotions")}</h2>
+          <p>{appText("Follow each request from review to active promotion.")}</p>
+          </div>
           <label>
             {appText("Status")}
             <select
@@ -207,19 +224,20 @@ export function PromotionsWorkspace({ session }: { session: Session }) {
             </select>
           </label>
         </div>
+        {admin && teacherFilter && <Link href="/dashboard/promotions">{appText("Show all promotions")}</Link>}
         {history.isPending && (
           <p role="status">{appText("Loading promotions…")}</p>
         )}
         {history.error ? (
-          <p role="alert">{appError(history.error.message)}</p>
+          <PromotionLoadError title={appText("Promotion history unavailable")} detail={appError(history.error.message)} retryLabel={appText("Retry promotions")} disabled={blocked} retry={() => { void history.refetch(); }} />
         ) : (
           <>
             {history.data?.items.length === 0 && (
-              <p>
+              <div className="promotion-empty" role="status"><Megaphone size={24} aria-hidden="true" /><div><strong>{appText("No promotion requests yet")}</strong><p>
                 {appText(
                   "No promotions here yet. Choose a placement to send your first request.",
                 )}
-              </p>
+              </p></div></div>
             )}
             {history.data?.items.map((c) => (
               <CampaignCard
@@ -234,11 +252,11 @@ export function PromotionsWorkspace({ session }: { session: Session }) {
             ))}
           </>
         )}
-        <HistoryPages
+        {!history.error && <HistoryPages
           history={history}
           disabled={decision.locked}
           label={appText("Promotion history")}
-        />
+        />}
       </section>
       <Modal
         open={!!selected}

@@ -78,6 +78,15 @@ async function setup(page: Page, role = "TEACHER", pending = false) {
   return posts;
 }
 export function promotionChecks(){
+for(const hi of [false,true])test(`promotion loading failures have compact recoverable panels (${hi?'Hindi phone':'English desktop'})`,async({page})=>{
+  if(hi)await page.addInitScript(()=>localStorage.setItem('bcs.interface-language','hi'));const posts=await setup(page),t=(s:string)=>translateText(hi,s);let plansUnavailable=true,historyUnavailable=true;
+  await page.route('**/api/v1/promotion-plans',route=>plansUnavailable?route.fulfill({status:500,json:{code:'INTERNAL',message:'Something went wrong. Please retry or contact support.'}}):route.fallback());
+  await page.route('**/api/v1/promotions?*',route=>historyUnavailable?route.fulfill({status:500,json:{code:'INTERNAL',message:'Something went wrong. Please retry or contact support.'}}):route.fallback());
+  await page.setViewportSize({width:hi?360:1440,height:1000});await page.goto('/dashboard/promotions');const workspace=page.locator('.promotion-workspace');await expect(workspace.locator('.promotion-load-error')).toHaveCount(2);await expect(page.getByRole('group',{name:t('Promotion history'),exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:t('Retry history'),exact:true})).toHaveCount(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.promotion-workspace').analyze()).violations).toEqual([]);await workspace.screenshot({path:`test-results/promotions-recovery-${hi?'hi':'en'}.png`,style:'nextjs-portal{display:none!important}'});
+  plansUnavailable=false;await page.getByRole('button',{name:t('Retry promotion packages'),exact:true}).click();await expect(page.locator('.promotion-plan')).toHaveCount(3);await expect(workspace.locator('.promotion-load-error')).toHaveCount(1);
+  historyUnavailable=false;await page.getByRole('button',{name:t('Retry promotions'),exact:true}).click();await expect(workspace.locator('.promotion-load-error')).toHaveCount(0);await expect(workspace.locator('.promotion-empty')).toContainText(t('No promotion requests yet'));await expect(workspace.locator('.promotion-empty p')).toHaveCSS('font-size','12px');await expect(page.getByRole('group',{name:t('Promotion history'),exact:true})).toBeVisible();expect(posts).toHaveLength(0);
+});
 for (const hi of [false, true])
   test(`teacher promotion quote, reusable cards and request (${hi ? "Hindi phone" : "English desktop"})`, async ({
     page,
@@ -206,6 +215,7 @@ test("superadmin reviews a collapsed campaign with explicit payment confirmation
 test("homepage sponsored profiles are labelled and regular discovery stays available on ad failure", async ({
   page,
 }) => {
+  const teacher={id,slug:"ananya-sharma",name:"Synthetic Ananya",headline:"Maths with confidence",subjects:["Maths"],monthlyPaise:299000,boards:["CBSE"],grades:[6,7],teachingCoverage:[{stage:"SCHOOL",subject:"Maths",board:"CBSE",grade:6}],modes:["HOME","ONLINE"],languages:["English","Hindi"],experience:8,avatarColor:"#E5E9DC",demoAvailable:true,lockInDays:0};
   await page.route("**/api/v1/**", async (r) => {
     const url = new URL(r.request().url());
     if (url.pathname.endsWith("/auth/session"))
@@ -216,19 +226,10 @@ test("homepage sponsored profiles are labelled and regular discovery stays avail
     if (url.pathname.endsWith("/sponsored-teachers"))
       return r.fulfill({
         json: {
-          items: [
-            {
-              id,
-              slug: "ananya-sharma",
-              name: "Synthetic Ananya",
-              headline: "Maths with confidence",
-              subjects: ["Maths"],
-              monthlyPaise: 299000,
-            },
-          ],
+          items: [teacher],
         },
       });
-    return r.fulfill({ json: { items: [], nextCursor: null } });
+    return r.fulfill({ json: { items: url.pathname.endsWith('/teachers')?[teacher]:[], nextCursor: null } });
   });
   await page.goto("/");
   const sponsored = page.getByRole("region", {
@@ -238,21 +239,25 @@ test("homepage sponsored profiles are labelled and regular discovery stays avail
   await expect(sponsored).toBeVisible();
   await expect(sponsored.getByText("Sponsored", { exact: true })).toBeVisible();
   await expect(
-    sponsored.getByRole("link", { name: "View profile", exact: true }),
+    sponsored.getByRole("link", { name: "View Synthetic Ananya", exact: true }),
   ).toHaveAttribute("href", "/teachers/ananya-sharma");
+  const ad=sponsored.locator('.teacher-card'),regular=page.locator('.teacher-grid .teacher-card').first();await expect(ad.locator('.avatar')).toContainText('SA');await expect(ad.locator('.teacher-demo-badge')).toHaveText('Demo available');await expect(ad.locator('.teacher-details')).toContainText('8 years teaching');await expect(ad.locator('.teaching-coverage-summary')).toContainText('Maths');await expect(ad.locator('.teacher-sponsored-badge')).toHaveCSS('font-size','9px');await expect(regular.locator('.teacher-sponsored-badge')).toHaveCount(0);
+  for(const selector of ['.teacher-name h3','.teacher-headline','.teacher-bottom strong']){const expected=await regular.locator(selector).evaluate(el=>getComputedStyle(el).fontSize);await expect(ad.locator(selector)).toHaveCSS('font-size',expected);}
+  await page.setViewportSize({width:390,height:1000});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.sponsored-teachers').analyze()).violations).toEqual([]);await ad.screenshot({path:'test-results/sponsored-shared-teacher-card.png',style:'nextjs-portal{display:none!important}'});
   await page.route("**/api/v1/sponsored-teachers**", (r) =>
     r.fulfill({
       status: 503,
       json: { code: "UNAVAILABLE", message: "Unavailable" },
     }),
   );
-  await page.reload();
+  await Promise.all([page.waitForResponse(response=>response.url().includes('/sponsored-teachers')&&response.status()===503),page.reload()]);
   await expect(
     page.getByText(
       "Sponsored teachers are unavailable. You can still browse the regular results.",
       { exact: true },
     ),
-  ).toBeVisible();
+  ).toHaveCount(0);
+  await expect(sponsored).toHaveCount(0);
   await expect(
     page.getByRole("link", { name: "Meet all teachers", exact: true }),
   ).toBeVisible();
