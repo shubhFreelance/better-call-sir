@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Up to three eligible paid placements; no learner or campaign private fields. */
+        /** Eligible paid profiles: all matches for saved spaces, up to three for homepage/search; no private fields. */
         get: operations["getSponsoredTeachers"];
         put?: never;
         post?: never;

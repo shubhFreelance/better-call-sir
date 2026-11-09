@@ -17,7 +17,7 @@
         "tags": [
           "teachers"
         ],
-        "summary": "Up to three eligible paid placements; no learner or campaign private fields.",
+        "summary": "Eligible paid profiles: all matches for saved spaces, up to three for homepage/search; no private fields.",
         "security": [],
         "responses": {
           "200": {
@@ -33,7 +33,7 @@
                   "properties": {
                     "items": {
                       "type": "array",
-                      "maxItems": 3,
+                      "maxItems": 100,
                       "items": {
                         "$ref": "#/components/schemas/Teacher"
                       }
