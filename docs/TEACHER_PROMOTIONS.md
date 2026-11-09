@@ -48,6 +48,8 @@ UI reuses LayeredSummaryCard, FilterButton/FilterButtonGroup, Modal, StepProgres
 
 ## Verification and limitations
 
+After pulling promotion changes into local development, run `prisma migrate deploy` against the intended local database before opening the page. Missing `PromotionPlan` or `TeacherPromotion` tables make both package and history reads fail. On 9 November 2026, the local database had only `202610290001_teacher_promotions` pending; applying that migration restored the public plans API to HTTP 200. No database reset or promotion activation was required. Production migrations still belong to the separately authorized release process.
+
 Run `npx tsx --test tests/promotions.test.ts tests/promotion-api.test.ts` and `npx playwright test tests/browser/promotions.spec.ts`. The real-HTTP integration test creates an isolated synthetic PostgreSQL database, executes every checked-in migration SQL file, seeds it, builds/starts the API, verifies the flow and drops only that temporary test database. It does not replace `prisma migrate deploy` qualification.
 
 In this environment the Prisma engine host returned HTTP 403. Client generation succeeded using the bundled generator with `PRISMA_SCHEMA_ENGINE_BINARY=/bin/false` only for `prisma generate`; this is not a migration engine and must never be used for deployment. Database acceptance executes real migration SQL. Normal deployment migration-runner qualification, real money/refunds/tax invoices, named payment reviewers, traffic fraud controls, performance attribution, external-device/load qualification and production launch remain open. No deployment or main merge is part of this feature.

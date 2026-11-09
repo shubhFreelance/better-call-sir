@@ -1,5 +1,12 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Compare placements and review your quote before requesting.": "अनुरोध भेजने से पहले स्थानों की तुलना करें और अपनी कीमत देखें।",
+  "Follow each request from review to active promotion.": "हर अनुरोध की समीक्षा से सक्रिय प्रचार तक की स्थिति देखें।",
+  "Promotion packages unavailable": "प्रचार पैकेज उपलब्ध नहीं हैं",
+  "Retry promotion packages": "प्रचार पैकेज फिर से लोड करें",
+  "Promotion history unavailable": "प्रचार का इतिहास उपलब्ध नहीं है",
+  "Retry promotions": "प्रचार फिर से लोड करें",
+  "No promotion requests yet": "अभी प्रचार का कोई अनुरोध नहीं है",
   "Refresh quote": "कीमत फिर लोड करें",
   "Edit pricing": "कीमत बदलें",
   "Disabling a placement hides active campaigns. Their end dates do not change.": "स्थान बंद करने पर सक्रिय प्रचार छिप जाते हैं। उनकी समाप्ति की तारीख नहीं बदलती।",

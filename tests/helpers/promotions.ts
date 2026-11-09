@@ -78,6 +78,15 @@ async function setup(page: Page, role = "TEACHER", pending = false) {
   return posts;
 }
 export function promotionChecks(){
+for(const hi of [false,true])test(`promotion loading failures have compact recoverable panels (${hi?'Hindi phone':'English desktop'})`,async({page})=>{
+  if(hi)await page.addInitScript(()=>localStorage.setItem('bcs.interface-language','hi'));const posts=await setup(page),t=(s:string)=>translateText(hi,s);let plansUnavailable=true,historyUnavailable=true;
+  await page.route('**/api/v1/promotion-plans',route=>plansUnavailable?route.fulfill({status:500,json:{code:'INTERNAL',message:'Something went wrong. Please retry or contact support.'}}):route.fallback());
+  await page.route('**/api/v1/promotions?*',route=>historyUnavailable?route.fulfill({status:500,json:{code:'INTERNAL',message:'Something went wrong. Please retry or contact support.'}}):route.fallback());
+  await page.setViewportSize({width:hi?360:1440,height:1000});await page.goto('/dashboard/promotions');const workspace=page.locator('.promotion-workspace');await expect(workspace.locator('.promotion-load-error')).toHaveCount(2);await expect(page.getByRole('group',{name:t('Promotion history'),exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:t('Retry history'),exact:true})).toHaveCount(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.promotion-workspace').analyze()).violations).toEqual([]);await workspace.screenshot({path:`test-results/promotions-recovery-${hi?'hi':'en'}.png`,style:'nextjs-portal{display:none!important}'});
+  plansUnavailable=false;await page.getByRole('button',{name:t('Retry promotion packages'),exact:true}).click();await expect(page.locator('.promotion-plan')).toHaveCount(3);await expect(workspace.locator('.promotion-load-error')).toHaveCount(1);
+  historyUnavailable=false;await page.getByRole('button',{name:t('Retry promotions'),exact:true}).click();await expect(workspace.locator('.promotion-load-error')).toHaveCount(0);await expect(workspace.locator('.promotion-empty')).toContainText(t('No promotion requests yet'));await expect(workspace.locator('.promotion-empty p')).toHaveCSS('font-size','12px');await expect(page.getByRole('group',{name:t('Promotion history'),exact:true})).toBeVisible();expect(posts).toHaveLength(0);
+});
 for (const hi of [false, true])
   test(`teacher promotion quote, reusable cards and request (${hi ? "Hindi phone" : "English desktop"})`, async ({
     page,
