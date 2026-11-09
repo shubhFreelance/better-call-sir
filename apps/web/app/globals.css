@@ -7003,15 +7003,11 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .promotion-quote { padding: 20px; background: #E4E4D0; border-radius: 18px; margin: 18px 0; }
 .promotion-quote strong { font-size: 28px; }
 .promotion-fineprint { padding: 12px; background: #F3F1EB; border-radius: 12px; }
-.sponsored-teachers { margin: 24px 0; border: 1px solid #d6bedf; background: #faf3fd; padding: 22px; border-radius: 24px; }
-.sponsored-teachers > header { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
-.sponsored-teachers > header > div { display: flex; align-items: center; gap: 9px; }
-.sponsored-teachers > header p { font-size: 12px; margin: 0; }
+.sponsored-teachers { margin:24px 0; }
 .space-promotions { margin-top: 24px; }
-.space-promotions > label { max-width: 390px; }
 .promotion-loading { display: flex; align-items: center; gap: 12px; font-size: 12px; margin: 16px 0; color: #496159; }
 @media(max-width: 1050px) { .promotion-plans, .sponsored-teacher-grid { grid-template-columns: 1fr; } }
-@media(max-width: 480px) { .promotion-intro { align-items: flex-start; padding: 18px; gap: 12px; } .promotion-intro h1 { font-size: 24px; } .promotion-icon { flex-basis: 42px; height: 48px; border-radius: 12px; } .promotion-guidance, .sponsored-teachers { padding: 16px; } .promotion-section-title > label { width: 100%; } }
+@media(max-width: 480px) { .promotion-intro { align-items: flex-start; padding: 18px; gap: 12px; } .promotion-intro h1 { font-size: 24px; } .promotion-icon { flex-basis: 42px; height: 48px; border-radius: 12px; } .promotion-guidance { padding: 16px; } .promotion-section-title > label { width: 100%; } }
 .promotion-plan { display: flex; flex-direction: column; }
 .promotion-plan > .layered-summary-card-header, .promotion-campaign > .layered-summary-card-header { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
 .promotion-campaign > summary { cursor: pointer; list-style: none; }

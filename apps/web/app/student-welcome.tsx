@@ -607,6 +607,7 @@ export function StudentSetupForm({
           </>
         )}
       </FilterButtonGroup>
+      {saved && <SpacePromotions learnerId={context.learner.id} spaces={spaces} disabled={locked} />}
     </section>
   );
 }
