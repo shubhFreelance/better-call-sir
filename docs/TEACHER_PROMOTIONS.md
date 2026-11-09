@@ -58,7 +58,7 @@ In this environment the Prisma engine host returned HTTP 403. Client generation 
 
 Acceptance for this increment includes eight real-HTTP/policy tests, English/Hindi promotion browser checks, existing family-space and learner-discovery regression checks, workspace type checking and API/security/localization contract checks. Exact final counts are recorded in `remaing.md` and `docs/SPRINTS.md` alongside the feature commits.
 
-## Promotion insights ? 9 November 2026
+## Promotion insights - 9 November 2026
 
 `GET /promotions/analytics` provides teacher-owned reports and recent-MFA superadmin global/per-teacher reports. `month=YYYY-MM` selects the daily table and campaign/teacher rankings; `page` and `leadPage` paginate ten teachers/enquiries. Promotion request/ever-approved/current-status counts include all campaign history. Direct-enquiry totals are all currently authorized direct conversations (not assisted opportunities and not claimed as ad conversions). Lead names come only from these existing enquiries; no email, phone, browsing identities or permission to call is exposed. Superadmin campaign history also accepts teacherId; teachers cannot use it to read another teacher.
 
@@ -67,3 +67,7 @@ Acceptance for this increment includes eight real-HTTP/policy tests, English/Hin
 Audience totals distinguish guardian and student accounts. Raw viewer references stay server-side, never in reports. Activity is retained for 90 days, excluded immediately during deletion review, removed on account/linked-child erasure and expired by the existing worker. Reports apply the 90-day boundary even before worker cleanup. Historic traffic is not backfilled: firstRecordedAt is null until a real event is recorded. Browser privacy signals and blocked/failed telemetry can undercount activity. These are descriptive counters, not fraud-resistant billing evidence, targeting lists or consent to contact. Masked calls and contact permissions remain deferred.
 
 Apply migration `202611090001_promotion_insights` before running the updated API/worker. No live payment or Pro entitlement changes.
+
+The teacher and superadmin overview share PromotionPerformanceCard. Both sidebars expose **Promotion insights** at `/dashboard/promotion-insights`; the promotion-request workspace links there too. Superadmin can compare ten teachers per page, drill into a teacher and open `/dashboard/promotions?teacher=<id>` to manage that teacher's campaigns. The interest list is also paginated at ten rows and opens existing conversations. Month controls affect traffic tables/rankings, while campaign request/approval and authorized direct-enquiry totals include all history.
+
+UI reuses LayeredSummaryCard, InfoTooltip, FilterButtonGroup/FilterButton, StatusBadge and RefreshButton with small explanatory text, English/Hindi and a horizontally scrollable admin table on phones. Telemetry respects browser DNT/GPC, is best effort, and never blocks profile navigation. Stats refresh every minute or through the refresh icon. Explicit read failures remove cached report/lead data until an authorized retry succeeds.

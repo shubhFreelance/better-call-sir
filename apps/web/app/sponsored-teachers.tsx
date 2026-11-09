@@ -2,17 +2,19 @@
 import { useState } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { StatusFilters } from "../components/ui/status-controls";
-import { api, type Teacher } from "@bcs/api-client";
+import { api, type Teacher, type Session } from "@bcs/api-client";
 import { TeacherCard } from "./teacher-card";
 import { useAppTranslation } from "./locale";
 export function SponsoredTeachers({
   query,
   context = "",
   scope = "public",
+  session,
 }: {
   query: string;
   context?: string;
   scope?: string;
+  session?: Session | null;
 }) {
   const { appText, appCurriculum } = useAppTranslation();
   const subject = new URLSearchParams(query).get("subject");
@@ -36,7 +38,7 @@ export function SponsoredTeachers({
     >
       <div className="sponsored-teacher-grid">
         {result.data.items.map((t) => (
-          <TeacherCard key={t.id} teacher={t} context={context} sponsored />
+          <TeacherCard key={t.id} teacher={t} context={context} session={session} sponsored />
         ))}
       </div>
     </section>
@@ -46,10 +48,12 @@ export function SpacePromotions({
   learnerId,
   spaces,
   disabled,
+  session,
 }: {
   learnerId: string;
   spaces: { subject: string; language?: string }[];
   disabled: boolean;
+  session?: Session | null;
 }) {
   const { appText, appCurriculum } = useAppTranslation();
   const [selection, setSelection] = useState({ learnerId, subject: "" });
@@ -81,7 +85,7 @@ export function SpacePromotions({
       <StatusFilters label={appText("Filter suggested teachers")} value={subject} onChange={subject => setSelection({ learnerId, subject })} options={[{ value: "", label: appText("All") }, ...spaces.map(space => ({ value: space.subject, label: appCurriculum(space.subject) }))]} />
     </header>
     <div className="sponsored-teacher-grid">
-      {[...teachers.values()].map(({ teacher, context }) => <TeacherCard key={teacher.id} teacher={teacher} context={context} sponsored />)}
+      {[...teachers.values()].map(({ teacher, context }) => <TeacherCard key={teacher.id} teacher={teacher} context={context} session={session} sponsored />)}
     </div>
     {!teachers.size && subject && results[spaces.findIndex(space => space.subject === subject)]?.isSuccess && <p className="space-suggestions-empty">{appText("No suggested teachers for this subject yet.")}</p>}
   </section>;

@@ -1,13 +1,16 @@
 "use client";
 import Link from "next/link";
 import { ArrowUpRight, BookOpen, Check, Languages, MapPin, ShieldCheck } from "lucide-react";
-import { rupees, type Teacher } from "@bcs/api-client";
+import { rupees, type Teacher, type Session } from "@bcs/api-client";
+import { recordPromotionActivity } from "./promotion-activity";
 import { useAppTranslation } from "./locale";
 import { TeacherLockIn } from "./teacher-lock-in";
 import { TeachingCoverageSummary } from "./teaching-coverage";
 
-export function TeacherCard({ teacher, context = "", sponsored = false }: { teacher: Teacher; context?: string; sponsored?: boolean }) {
+export function TeacherCard({ teacher, context = "", sponsored = false, session }: { teacher: Teacher; context?: string; sponsored?: boolean; session?: Session | null }) {
   const { appText, appLocale, appCurriculum } = useAppTranslation();
+  const href = `/teachers/${teacher.slug}${context}` + (sponsored && teacher.promotionId ? `${context.includes("?") ? "&" : "?"}promotion=${encodeURIComponent(teacher.promotionId)}` : "");
+  const clicked = () => { if (sponsored && teacher.promotionId) recordPromotionActivity(session,teacher.id,"CARD_CLICK",teacher.promotionId); };
 
   return (
     <article className="teacher-card">
@@ -25,7 +28,7 @@ export function TeacherCard({ teacher, context = "", sponsored = false }: { teac
           </span>
         </div>
       </div>
-      <Link href={`/teachers/${teacher.slug}${context}`} className="teacher-name">
+      <Link href={href} onClick={clicked} onAuxClick={e=>{if(e.button===1)clicked();}} className="teacher-name">
         <h3>{teacher.name}</h3>
         <ArrowUpRight size={19} />
       </Link>
@@ -72,7 +75,9 @@ export function TeacherCard({ teacher, context = "", sponsored = false }: { teac
           <small> {appText("/ month · tuition paid directly")}</small>
         </div>
         <Link
-          href={`/teachers/${teacher.slug}${context}`}
+          href={href}
+          onClick={clicked}
+          onAuxClick={e=>{if(e.button===1)clicked();}}
           className="round-link"
           aria-label={appText("View {0}", [teacher.name])}
         >

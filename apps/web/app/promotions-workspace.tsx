@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, rupees, type Session, type components } from "@bcs/api-client";
 import { Megaphone, Search, House, BookOpen, Clock, CircleAlert } from "lucide-react";
@@ -56,6 +58,7 @@ function PromotionLoadError({ title, detail, retryLabel, retry, disabled }: { ti
 }
 export function PromotionsWorkspace({ session }: { session: Session }) {
   const client = useQueryClient();
+  const teacherFilter = useSearchParams().get("teacher") || "";
   const { appText, appError, appLocale } = useAppTranslation(),
     admin = session.account.role === "ADMIN",
     allowed = admin || session.account.role === "TEACHER";
@@ -72,8 +75,8 @@ export function PromotionsWorkspace({ session }: { session: Session }) {
       }),
   });
   const history = useHistory<components["schemas"]["TeacherPromotions"]>({
-    queryKey: ["promotions", session.account.id, status],
-    path: "/promotions?limit=10" + (status ? "&status=" + status : ""),
+    queryKey: ["promotions", session.account.id, status, admin ? teacherFilter : ""],
+    path: "/promotions?limit=10" + (status ? "&status=" + status : "") + (admin && teacherFilter ? "&teacherId=" + encodeURIComponent(teacherFilter) : ""),
     enabled: allowed,
   });
   const decision = useDecision(session, async () => {
@@ -107,6 +110,7 @@ export function PromotionsWorkspace({ session }: { session: Session }) {
           </p>
         </div>
       </header>
+      <div className="promotion-insights-entry"><div><strong>{appText("Measure your promotion activity")}</strong><p>{appText("View clicks, visits and enquiry interest in one place.")}</p></div><FilterButton accent asChild><Link href={"/dashboard/promotion-insights"+(admin && teacherFilter ? "?teacher="+encodeURIComponent(teacherFilter) : "")}>{appText("View promotion insights")}</Link></FilterButton></div>
       <div className="promotion-guidance">
         <strong>{appText("Visibility, without compromising fit")}</strong>
         <p>
@@ -220,6 +224,7 @@ export function PromotionsWorkspace({ session }: { session: Session }) {
             </select>
           </label>
         </div>
+        {admin && teacherFilter && <Link href="/dashboard/promotions">{appText("Show all promotions")}</Link>}
         {history.isPending && (
           <p role="status">{appText("Loading promotions…")}</p>
         )}

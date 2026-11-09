@@ -1,5 +1,7 @@
 "use client";
-import {Megaphone} from "lucide-react";
+import {PromotionInsights, PromotionPerformanceCard} from "./promotion-insights";
+import {recordPromotionActivity} from "./promotion-activity";
+import {Megaphone, BarChart3} from "lucide-react";
 import {PromotionsWorkspace} from "./promotions-workspace";
 import {SponsoredTeachers} from "./sponsored-teachers";
 import { RefreshButton } from "../components/ui/refresh-button";
@@ -649,7 +651,7 @@ function Illustration() {
 function Home() {
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
-  const { hindi } = useAuth();
+  const { hindi, session } = useAuth();
   const { data, error, isPending } = useQuery({
     queryKey: ["teachers"],
     queryFn: ({ signal }) => api<{ items: Teacher[] }>("/teachers", { signal }),
@@ -741,7 +743,7 @@ function Home() {
           ))}
         </div>
       </section>
-      <div className="container"><SponsoredTeachers query="promotionPlacement=HOME"/></div>
+      <div className="container"><SponsoredTeachers session={session} query="promotionPlacement=HOME"/></div>
       <section className="container how-section">
         <div>
           <span className="eyebrow">
@@ -1266,7 +1268,7 @@ function Teachers() {
             <p role="status">{appText("Preparing teacher search…")}</p>
           )}
           {canSearch && !exploring && session && learnerSearch.learner && effectiveSubject && <OngoingSubjectTuition session={session} learnerId={learnerSearch.learner.id} learnerName={learnerSearch.learner.alias} subject={effectiveSubject} />}
-          {canSearch && <><SponsoredTeachers scope={session?.account.id||"public"} query={params.toString()+"&promotionPlacement="+(learnerSearch.learner&&effectiveSubject&&!exploring?"SPACE":"SEARCH")} context={learnerContext}/><div className="results-heading">
+          {canSearch && <><SponsoredTeachers session={session} scope={session?.account.id||"public"} query={params.toString()+"&promotionPlacement="+(learnerSearch.learner&&effectiveSubject&&!exploring?"SPACE":"SEARCH")} context={learnerContext}/><div className="results-heading">
             <span role="status" ref={resultSummary} tabIndex={-1}>
               {query.isPending
                 ? appText("Searching for teachers…")
@@ -1415,6 +1417,10 @@ function Profile({ slug }: { slug: string }) {
     retry: false,
   });
   const t = query.data;
+  const promotionId = profileParams.get("promotion") || undefined;
+  useEffect(() => {
+    if (t && !query.error && !query.isFetching) recordPromotionActivity(session,t.id,"PROFILE_VISIT",promotionId);
+  },[session,t?.id,promotionId,query.error,query.isFetching]);
   const profileTitle = useRef<HTMLHeadingElement>(null);
   const recoveryTitle = useRef<HTMLHeadingElement>(null);
   const lastFailure = useRef<{ slug: string; error: Error } | null>(null);
@@ -2157,6 +2163,7 @@ function DashboardShell({
   const links: [string, string, LucideIcon][] = [
     ["/dashboard", "Overview", LayoutDashboard],
     ["/dashboard/notifications", "Notifications", ShieldCheck],
+    ...(["TEACHER","ADMIN"].includes(role||"")?[["/dashboard/promotion-insights","Promotion insights",BarChart3] as [string,string,LucideIcon]]:[]),
     ...(["TEACHER","ADMIN"].includes(role||"")?[["/dashboard/promotions",role==="ADMIN"?"Sponsored placements":"Promote profile",Megaphone] as [string,string,LucideIcon]]:[]),
     ...(role === "INDEPENDENT_STUDENT" ? ([
       ["/dashboard/enquiries", "My enquiries", ClipboardList],
@@ -2338,6 +2345,7 @@ function DashboardShell({
     "/dashboard/matching":"Review and publish suitable teacher options",
     "/dashboard/student-enquiries":"Review adult-student requests",
     "/dashboard/support":"Safety, disputes and replacement cases",
+    "/dashboard/promotion-insights":"Promotion performance and interested families",
     "/dashboard/promotions":"Promotion packages, campaign review and visibility",
     "/dashboard/finance":"Payments, fees and settlement evidence",
     "/dashboard/reports":"Recorded activity and operational reports",
@@ -2454,6 +2462,7 @@ function DashboardPage({ tab }: { tab: string }) {
         "/dashboard/notifications",
         "/dashboard/email-delivery",
         "/dashboard/promotions",
+        "/dashboard/promotion-insights",
       ].includes(tab) &&
       !(
         ["GUARDIAN", "STUDENT", "TEACHER", "ADMIN"].includes(
@@ -2614,6 +2623,7 @@ function DashboardPage({ tab }: { tab: string }) {
         {session.account.role === "GUARDIAN" && tab === "/dashboard" && (
           <GuardianLearners key={session.account.id} session={session} />
         )}
+        {["TEACHER","ADMIN"].includes(session.account.role) && tab === "/dashboard" && <PromotionPerformanceCard session={session}/>}
         <DirectEnquiries session={session}/>
         {session.account.role === "TEACHER" && <section className="care-card teacher-opportunities-panel"><StudentOpportunities session={session} hindi={hindi} embedded/></section>}
         <HiringOverview
@@ -2622,6 +2632,7 @@ function DashboardPage({ tab }: { tab: string }) {
         />
       </DashboardShell>
     );
+  if (tab === "/dashboard/promotion-insights") return <DashboardShell tab={tab}><PromotionInsights session={session}/></DashboardShell>;
   if (tab === "/dashboard/promotions") return <DashboardShell tab={tab}><PromotionsWorkspace session={session}/></DashboardShell>;
   const d = query.data;
   return (
