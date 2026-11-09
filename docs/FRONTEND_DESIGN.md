@@ -1,6 +1,6 @@
 # Frontend design direction
 
-Saved spaces load matching promotions automatically for every saved subject, including immediately after saving a new space. Do not add a subject selector or visible Sponsored-teachers heading/subtitle. Keep only the small Sponsored badge on each shared TeacherCard, preserve subject/language/learner links, name each group accessibly by subject, and hide empty/loading/failed ad groups quietly.
+Saved spaces load matching promotions automatically for every saved subject, including immediately after saving a new space. Use one Suggested teachers for you section with shared All/subject filters at the top right. Merge saved-space matches by teacher ID so All renders one card per teacher; subject filters retain every matching teacher and that space's exact subject/language/learner link. Keep only the small Sponsored badge on each shared TeacherCard, omit sponsored-section marketing headings, and hide failed/empty overall groups quietly.
 
 Staff authenticator screens use a compact teal header/lavender shield and role badge, sage verification status, centred masked code entry and 12px ivory guidance. Reuse FilterButtonGroup/FilterButton for verify/recovery and inspection/sign-in actions; verification alone submits the form. Keep recovery/setup secrets private, unknown-write inspection available, all security gates intact and phone headings full width. Recovery-code replacement and enrollment inherit the same typography and private-key card styling.
 

@@ -7005,6 +7005,13 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .promotion-fineprint { padding: 12px; background: #F3F1EB; border-radius: 12px; }
 .sponsored-teachers { margin:24px 0; }
 .space-promotions { margin-top: 24px; }
+.space-suggestions { padding:20px; border:1px solid #DDE5DD; border-radius:16px; background:#FFF; }
+.space-suggestions-heading { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin-bottom:18px; }
+.space-suggestions-heading h2 { margin:0; font-size:20px; line-height:1.35; color:#034F46; }
+.space-suggestions-heading p,.space-suggestions-empty { margin:5px 0 0; font-size:12px; line-height:1.65; color:#52655F; }
+.space-suggestions-heading > .status-filters { display:flex; flex-wrap:wrap; max-width:100%; margin:0; }
+.space-suggestions-heading .status-filter { min-height:44px; padding:8px 14px; font-size:12px; }
+@media(max-width:600px){.space-suggestions {padding:16px;}.space-suggestions-heading h2 {font-size:18px;}.space-suggestions-heading > .status-filters {width:100%;}.space-suggestions-heading .status-filter {flex:1;}}
 .promotion-loading { display: flex; align-items: center; gap: 12px; font-size: 12px; margin: 16px 0; color: #496159; }
 @media(max-width: 1050px) { .promotion-plans, .sponsored-teacher-grid { grid-template-columns: 1fr; } }
 @media(max-width: 480px) { .promotion-intro { align-items: flex-start; padding: 18px; gap: 12px; } .promotion-intro h1 { font-size: 24px; } .promotion-icon { flex-basis: 42px; height: 48px; border-radius: 12px; } .promotion-guidance { padding: 16px; } .promotion-section-title > label { width: 100%; } }

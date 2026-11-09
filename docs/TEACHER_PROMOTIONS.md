@@ -24,7 +24,7 @@ Approval starts the clock immediately for the quoted number of 24-hour days. Tea
 
 ## Matching, disclosure and privacy
 
-Every saved subject space loads its matching promoted profiles automatically, including the save-confirmation screen. No separate subject dropdown or visible sponsored-section title is shown. Each shared teacher card retains its Sponsored badge and its exact learner/subject/language link context; inaccessible, empty or failed groups stay hidden.
+Every saved subject space loads its matching promoted profiles automatically, including the save-confirmation screen. The Suggested teachers for you section merges teachers by ID across saved spaces, with All and saved-subject filters. All shows a teacher once; the same teacher can appear in each matching subject filter. No separate sponsored-section marketing title is shown. Each shared teacher card retains its Sponsored badge and its exact learner/subject/language link context; inaccessible or failed groups stay hidden.
 
 Every ad displays **Sponsored**. Homepage, search and saved subject spaces use the same public teacher projection and the existing coverage rules. Space placement requires authorized learner access, a saved subject, the current education level, board/course/year, saved language when specified and online or relevant regional home coverage. Search also honors explicit mode, locality, language and budget filters. Ineligible, disabled, privacy-paused, screening-expired or full teachers do not serve ads. An ad does not authorize an enquiry or bypass the existing hiring checks.
 

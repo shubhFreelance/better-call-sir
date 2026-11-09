@@ -1,5 +1,9 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Suggested teachers for you": "आपके लिए सुझाए गए शिक्षक",
+  "Matched to your saved subject spaces.": "आपके सहेजे गए विषयों के अनुसार।",
+  "Filter suggested teachers": "सुझाए गए शिक्षक छाँटें",
+  "No suggested teachers for this subject yet.": "इस विषय के लिए अभी कोई शिक्षक सुझाव नहीं है।",
   "Compare placements and review your quote before requesting.": "अनुरोध भेजने से पहले स्थानों की तुलना करें और अपनी कीमत देखें।",
   "Follow each request from review to active promotion.": "हर अनुरोध की समीक्षा से सक्रिय प्रचार तक की स्थिति देखें।",
   "Promotion packages unavailable": "प्रचार पैकेज उपलब्ध नहीं हैं",
