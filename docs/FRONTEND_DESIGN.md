@@ -1,5 +1,7 @@
 # Frontend design direction
 
+Sponsored and organic teacher profiles reuse `apps/web/app/teacher-card.tsx`. Keep the same avatar, reviewed coverage, demo/lock-in, teaching scope, metadata and price/footer styling in every placement. Pass `sponsored` only for paid cards; the visible Sponsored disclosure uses a compact 9px badge with 2px/5px padding beside the reviewed badge. Preserve learner/subject/language link context and quiet sponsored-delivery failure behavior.
+
 ## Sponsored teacher promotion — 29 October 2026
 
 Use shared LayeredSummaryCard pricing cards with quiet search, sage homepage and lavender subject-space headers. Keep the existing Manrope/Noto typography, white bodies, ivory page and teal actions; promotion request confirmation reuses Modal, StepProgress and FilterButtonGroup. Campaigns are newest-first collapsed shared cards with explicit status, price and review actions. Ads always display Sponsored, sit separately from organic results, and use the same compact reusable sponsored profile cards on homepage, filtered discovery and subject spaces. Scope family requests to the current learner and saved subject; hide stale/private data on access errors. Preserve English/Hindi, phone stacking, 44px targets and unknown-write locks.

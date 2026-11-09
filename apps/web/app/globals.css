@@ -776,6 +776,8 @@ svg {
   padding: 4px 6px;
   margin-top: 2px;
 }
+.teacher-card-badges { display:flex; flex-direction:column; align-items:flex-end; gap:5px; min-width:0; }
+.teacher-sponsored-badge { display:inline-flex; padding:2px 5px; border:1px solid #E5C8F5; border-radius:4px; background:#F8EDFF; color:#5C366F; font-size:9px; font-weight:500; line-height:1.4; }
 .teacher-name {
   display: flex;
   justify-content: space-between;
@@ -6950,12 +6952,12 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .promotion-guidance { padding: 22px; background: #EEF5F3; border: 1px solid #d4e3dd; border-radius: 18px; }
 .promotion-guidance strong { font-size: 15px; color: #034F46; }
 .promotion-plans, .sponsored-teacher-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
-.promotion-plan, .promotion-campaign, .sponsored-teacher { min-width: 0; margin: 0; }
-.promotion-plan h3, .promotion-campaign h3, .sponsored-teacher h3 { font-size: 17px; margin: 0; overflow-wrap: anywhere; }
+.promotion-plan, .promotion-campaign { min-width: 0; margin: 0; }
+.promotion-plan h3, .promotion-campaign h3 { font-size: 17px; margin: 0; overflow-wrap: anywhere; }
 .promotion-plan .layered-summary-card-header { align-items: center; justify-content: flex-start; gap: 10px; }
 .promotion-plan-space .layered-summary-card-header { background: #F0D7FF; }
 .promotion-plan-home .layered-summary-card-header { background: #E4E4D0; }
-.promotion-plan .layered-summary-card-body p, .promotion-campaign p, .sponsored-teacher p { font-size: 13px; line-height: 1.7; }
+.promotion-plan .layered-summary-card-body p, .promotion-campaign p { font-size: 13px; line-height: 1.7; }
 .promotion-plan .promotion-price { font-size: 27px; font-weight: 700; color: #111; margin-top: 0; }
 .promotion-price small { display: block; font-size: 12px; font-weight: 400; }
 .promotion-plan .layered-summary-card-footer { margin-top: auto; }
@@ -6990,17 +6992,13 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .sponsored-teachers > header { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
 .sponsored-teachers > header > div { display: flex; align-items: center; gap: 9px; }
 .sponsored-teachers > header p { font-size: 12px; margin: 0; }
-.sponsored-teacher .layered-summary-card-header { gap: 10px; align-items: flex-start; flex-wrap: wrap; }
-.promotion-sponsored-label { background: #F0D7FF; border-radius: 7px; font-size: 11px; padding: 5px 8px; color: #302238; }
-.sponsored-teacher .layered-summary-card-footer { display: grid; gap: 14px; font-size: 15px; }
-.sponsored-teacher small { font-size: 11px; font-weight: 400; display: block; }
 .space-promotions { margin-top: 24px; }
 .space-promotions > label { max-width: 390px; }
 .promotion-loading { display: flex; align-items: center; gap: 12px; font-size: 12px; margin: 16px 0; color: #496159; }
 @media(max-width: 1050px) { .promotion-plans, .sponsored-teacher-grid { grid-template-columns: 1fr; } }
 @media(max-width: 480px) { .promotion-intro { align-items: flex-start; padding: 18px; gap: 12px; } .promotion-intro h1 { font-size: 24px; } .promotion-icon { flex-basis: 42px; height: 48px; border-radius: 12px; } .promotion-guidance, .sponsored-teachers { padding: 16px; } .promotion-section-title > label { width: 100%; } }
 .promotion-plan { display: flex; flex-direction: column; }
-.promotion-plan > .layered-summary-card-header, .sponsored-teacher > .layered-summary-card-header, .promotion-campaign > .layered-summary-card-header { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+.promotion-plan > .layered-summary-card-header, .promotion-campaign > .layered-summary-card-header { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
 .promotion-campaign > summary { cursor: pointer; list-style: none; }
 .promotion-campaign > summary::-webkit-details-marker { display: none; }
 .promotion-campaign > summary::after { content: '+'; font-size: 22px; color: #034F46; }

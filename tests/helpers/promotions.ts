@@ -215,6 +215,7 @@ test("superadmin reviews a collapsed campaign with explicit payment confirmation
 test("homepage sponsored profiles are labelled and regular discovery stays available on ad failure", async ({
   page,
 }) => {
+  const teacher={id,slug:"ananya-sharma",name:"Synthetic Ananya",headline:"Maths with confidence",subjects:["Maths"],monthlyPaise:299000,boards:["CBSE"],grades:[6,7],teachingCoverage:[{stage:"SCHOOL",subject:"Maths",board:"CBSE",grade:6}],modes:["HOME","ONLINE"],languages:["English","Hindi"],experience:8,avatarColor:"#E5E9DC",demoAvailable:true,lockInDays:0};
   await page.route("**/api/v1/**", async (r) => {
     const url = new URL(r.request().url());
     if (url.pathname.endsWith("/auth/session"))
@@ -225,19 +226,10 @@ test("homepage sponsored profiles are labelled and regular discovery stays avail
     if (url.pathname.endsWith("/sponsored-teachers"))
       return r.fulfill({
         json: {
-          items: [
-            {
-              id,
-              slug: "ananya-sharma",
-              name: "Synthetic Ananya",
-              headline: "Maths with confidence",
-              subjects: ["Maths"],
-              monthlyPaise: 299000,
-            },
-          ],
+          items: [teacher],
         },
       });
-    return r.fulfill({ json: { items: [], nextCursor: null } });
+    return r.fulfill({ json: { items: url.pathname.endsWith('/teachers')?[teacher]:[], nextCursor: null } });
   });
   await page.goto("/");
   const sponsored = page.getByRole("region", {
@@ -247,8 +239,11 @@ test("homepage sponsored profiles are labelled and regular discovery stays avail
   await expect(sponsored).toBeVisible();
   await expect(sponsored.getByText("Sponsored", { exact: true })).toBeVisible();
   await expect(
-    sponsored.getByRole("link", { name: "View profile", exact: true }),
+    sponsored.getByRole("link", { name: "View Synthetic Ananya", exact: true }),
   ).toHaveAttribute("href", "/teachers/ananya-sharma");
+  const ad=sponsored.locator('.teacher-card'),regular=page.locator('.teacher-grid .teacher-card').first();await expect(ad.locator('.avatar')).toContainText('SA');await expect(ad.locator('.teacher-demo-badge')).toHaveText('Demo available');await expect(ad.locator('.teacher-details')).toContainText('8 years teaching');await expect(ad.locator('.teaching-coverage-summary')).toContainText('Maths');await expect(ad.locator('.teacher-sponsored-badge')).toHaveCSS('font-size','9px');await expect(regular.locator('.teacher-sponsored-badge')).toHaveCount(0);
+  for(const selector of ['.teacher-name h3','.teacher-headline','.teacher-bottom strong']){const expected=await regular.locator(selector).evaluate(el=>getComputedStyle(el).fontSize);await expect(ad.locator(selector)).toHaveCSS('font-size',expected);}
+  await page.setViewportSize({width:390,height:1000});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.sponsored-teachers').analyze()).violations).toEqual([]);await ad.screenshot({path:'test-results/sponsored-shared-teacher-card.png',style:'nextjs-portal{display:none!important}'});
   await page.route("**/api/v1/sponsored-teachers**", (r) =>
     r.fulfill({
       status: 503,

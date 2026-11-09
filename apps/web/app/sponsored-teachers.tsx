@@ -1,11 +1,9 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Megaphone, ArrowUpRight } from "lucide-react";
-import { api, rupees, type Teacher } from "@bcs/api-client";
-import { LayeredSummaryCard } from "../components/ui/layered-summary-card";
-import { FilterButton } from "../components/ui/filter-button";
+import { Megaphone } from "lucide-react";
+import { api, type Teacher } from "@bcs/api-client";
+import { TeacherCard } from "./teacher-card";
 import { useAppTranslation } from "./locale";
 export function SponsoredTeachers({
   query,
@@ -16,7 +14,7 @@ export function SponsoredTeachers({
   context?: string;
   scope?: string;
 }) {
-  const { appText, appLocale, appCurriculum } = useAppTranslation();
+  const { appText } = useAppTranslation();
   const result = useQuery({
     queryKey: ["sponsored-teachers", scope, query],
     retry: false,
@@ -55,35 +53,7 @@ export function SponsoredTeachers({
       </header>
       <div className="sponsored-teacher-grid">
         {result.data.items.map((t) => (
-          <LayeredSummaryCard
-            key={t.id}
-            className="sponsored-teacher"
-            header={
-              <>
-                <h3>{t.name}</h3>
-                <span className="promotion-sponsored-label">
-                  {appText("Sponsored")}
-                </span>
-              </>
-            }
-            footer={
-              <>
-                <strong>
-                  {rupees(t.monthlyPaise, appLocale)}{" "}
-                  <small>{appText("/ month · tuition paid directly")}</small>
-                </strong>
-                <FilterButton asChild>
-                  <Link href={"/teachers/" + t.slug + context}>
-                    {appText("View profile")}
-                    <ArrowUpRight size={15} aria-hidden="true" />
-                  </Link>
-                </FilterButton>
-              </>
-            }
-          >
-            <p>{t.headline}</p>
-            <p>{t.subjects.map(appCurriculum).join(" · ")}</p>
-          </LayeredSummaryCard>
+          <TeacherCard key={t.id} teacher={t} context={context} sponsored />
         ))}
       </div>
     </section>
