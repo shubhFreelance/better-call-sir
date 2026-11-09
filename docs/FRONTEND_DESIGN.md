@@ -1,5 +1,7 @@
 # Frontend design direction
 
+Staff authenticator screens use a compact teal header/lavender shield and role badge, sage verification status, centred masked code entry and 12px ivory guidance. Reuse FilterButtonGroup/FilterButton for verify/recovery and inspection/sign-in actions; verification alone submits the form. Keep recovery/setup secrets private, unknown-write inspection available, all security gates intact and phone headings full width. Recovery-code replacement and enrollment inherit the same typography and private-key card styling.
+
 Sponsored and organic teacher profiles reuse `apps/web/app/teacher-card.tsx`. Keep the same avatar, reviewed coverage, demo/lock-in, teaching scope, metadata and price/footer styling in every placement. Pass `sponsored` only for paid cards; the visible Sponsored disclosure uses a compact 9px badge with 2px/5px padding beside the reviewed badge. Preserve learner/subject/language link context and quiet sponsored-delivery failure behavior.
 
 ## Sponsored teacher promotion — 29 October 2026

@@ -4689,40 +4689,55 @@ footer {
   }
 }
 
+.staff-security { max-width:780px; padding-block:32px; }
 .staff-security-heading {
   display: flex;
   align-items: flex-start;
-  gap: 18px;
-  padding: 30px;
+  gap: 14px;
+  padding: 24px;
   background: var(--primary);
-  color: white;
+  color: #FCFEEB;
   border-radius: 22px 22px 0 0;
 }
-.staff-security-heading > svg { flex-shrink: 0; margin-top: 6px; }
-.staff-security-heading h1 { margin: 0 0 12px; font-size: clamp(26px, 4vw, 34px); line-height: 1.2; }
-.staff-security-heading p { color: #d7eeea; margin: 0; }
-.staff-security-heading > span { background: var(--green); color: var(--primary); border-radius: 30px; padding: 6px 12px; font-size: 13px; }
-.staff-security-form { border-radius: 0 0 22px 22px; border-top: 0; }
-.staff-security-form h2 { font-size: 21px; margin: 0 0 12px; }
-.staff-security-form form { display: grid; gap: 12px; margin-top: 24px; }
-.staff-security-form label { font-weight: 600; }
-.staff-security-form p { color: var(--muted); }
-.staff-security-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
-.staff-security-private { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 22px; margin: 24px 0; }
+.staff-security-icon { display:grid; place-items:center; flex:0 0 46px; height:46px; border-radius:13px; background:#F0D7FF; color:#034F46; }
+.staff-security-heading > div { flex:1; min-width:0; }
+.staff-security-heading h1 { margin:0 0 7px; font-size:26px; line-height:1.25; letter-spacing:-.6px; }
+.staff-security-heading p { color:#E0EFEB; margin:0; font-size:12px; line-height:1.7; }
+.staff-security-role { background:#F0D7FF; color:#034F46; border-radius:7px; padding:4px 8px; font-size:11px; }
+.staff-security-form.panel { padding:24px; border-radius:0 0 22px 22px; border-top:0; }
+.staff-security-form h2 { font-size:18px; margin:0 0 10px; }
+.staff-security-form form { display:grid; gap:12px; margin-top:20px; padding:20px; border:1px solid #DFE5D8; border-radius:14px; background:#FFF; }
+.staff-security-form label { font-size:13px; font-weight:650; }
+.staff-security-form p { color:#52655F; font-size:12px; line-height:1.7; }
+.staff-security-status { display:flex; align-items:center; gap:12px; padding:14px 16px; border:1px solid #D7E4DF; border-radius:12px; background:#EEF5F3; color:#034F46; }
+.staff-security-status > svg { flex-shrink:0; }
+.staff-security-status > div { flex:1; min-width:0; }
+.staff-security-status strong { font-size:13px; font-weight:700; }
+.staff-security-status p { margin:4px 0 0; }
+.staff-security-form .staff-code-input { min-height:58px; padding:12px 16px; border-radius:10px; border-color:#C6D9D1; background:#FAFCFA; color:#034F46; font-size:24px; letter-spacing:.35em; text-align:center; }
+.staff-security-form .staff-code-input[data-recovery=true] { font-size:16px; letter-spacing:.04em; text-align:left; }
+.staff-security-form #staff-code-help { margin:0; padding:12px 14px; background:#FFFFEB; border-radius:10px; }
+.staff-security-actions.filter-button-group { margin:8px 0 0; padding:12px; gap:12px; }
+.staff-security-secondary.filter-button-group { margin-top:20px; }
+.staff-security-actions .filter-button { min-height:44px; font-size:12px; }
+.staff-security-private { background:#F8EDFF; border:1px solid #E3C8F4; border-radius:14px; padding:20px; margin:20px 0; }
 .staff-security-private > code { display: block; padding: 14px; background: white; overflow-wrap: anywhere; border-radius: 8px; font-size: 16px; color: var(--primary); }
-.staff-security-private > small { display: block; margin-top: 16px; color: var(--muted); }
+.staff-security-private > small { display:block; margin-top:12px; color:#52655F; font-size:12px; line-height:1.7; }
 .staff-recovery-codes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; list-style: none; padding: 0; margin: 20px 0; }
 .staff-recovery-codes li { background: white; border: 1px solid var(--line); padding: 12px; border-radius: 8px; overflow-wrap: anywhere; }
 .staff-recovery-codes code { font-size: 13px; color: var(--primary); }
-.staff-security-check { display: flex; align-items: flex-start; gap: 10px; margin: 20px 0; }
+.staff-security-check { display:flex; align-items:flex-start; gap:10px; padding:14px; margin:20px 0; border-radius:10px; background:#FFFFEB; }
 .staff-security-check input { width: 18px; height: 18px; flex-shrink: 0; }
 @media (max-width: 600px) {
-  .staff-security-heading { flex-wrap: wrap; padding: 22px; }
-  .staff-security-heading > div { flex: 1; min-width: 0; }
-  .staff-security-heading > span { margin-left: 46px; }
+  .staff-security-heading { display:grid; grid-template-columns:46px minmax(0,1fr); gap:12px; padding:20px; }
+  .staff-security-icon { grid-row:1; grid-column:1; }
+  .staff-security-heading > div { grid-row:2; grid-column:1/-1; }
+  .staff-security-heading h1 { font-size:22px; }
+  .staff-security-role { grid-row:1; grid-column:2; justify-self:end; align-self:start; }
+  .staff-security-form.panel { padding:16px; }
+  .staff-security-form form { padding:16px; }
   .staff-security-private { padding: 16px; }
   .staff-recovery-codes { grid-template-columns: 1fr; }
-  .staff-security-actions > button { flex: 1 1 100%; }
 }
 
 /* Lesson feedback keeps teaching notes, review state and private decisions distinct. */

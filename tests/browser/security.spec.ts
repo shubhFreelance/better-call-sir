@@ -3,6 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { randomBytes } from "node:crypto";
 import { validator } from "../helpers/contract";
 import { assertParserCsp } from "../helpers/csp";
+import { translateText } from "../../apps/web/app/locale";
 import {
   createStaffFixture,
   staffSession,
@@ -312,6 +313,13 @@ test("the local step-up clock removes private console content when proof expires
     page.getByRole("heading", { name: "Feature controls" }),
   ).toHaveCount(0);
 });
+for(const hi of [false,true])test(`staff verification uses compact status and shared action groups (${hi?'Hindi phone':'English desktop'})`,async({page})=>{
+  if(hi)await page.addInitScript(()=>localStorage.setItem('bcs.interface-language','hi'));const state=await staffMock(page),t=(s:string)=>translateText(hi,s);await page.setViewportSize({width:hi?360:1440,height:1000});await page.goto('/dashboard/admin');const card=page.locator('.staff-security');await expect(card.locator('.staff-security-status')).toContainText(t('A fresh verification is required.'));await expect(card.locator('.staff-security-heading h1')).toHaveCSS('font-size',hi?'22px':'26px');await expect(card.locator('#staff-code-help')).toHaveCSS('font-size','12px');await expect(card.locator('.filter-button-group')).toHaveCount(2);
+  const verify=card.getByRole('button',{name:t('Verify staff access'),exact:true});await expect(verify).toHaveAttribute('type','submit');await expect(verify).toHaveAttribute('data-accent','true');await expect(card.getByRole('button',{name:t('Use a recovery code'),exact:true})).toHaveAttribute('type','button');
+  await card.locator('.info-tooltip-trigger').focus();await page.keyboard.press('Enter');await expect(page.getByRole('tooltip')).toContainText(t('Verify an independent authenticator before opening private staff records.'));await page.keyboard.press('Escape');
+  await expect(card.getByLabel(t('Authenticator code'),{exact:true})).toHaveAttribute('type','password');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).include('.staff-security').analyze()).violations).toEqual([]);await card.screenshot({path:`test-results/staff-security-redesign-${hi?'hi':'en'}.png`,style:'nextjs-portal{display:none!important}'});expect(state.writes).toHaveLength(0);expect(state.paths.some(path=>path.endsWith('/dashboard')||path.endsWith('/requests'))).toBe(false);
+});
+
 test("staff verification is keyboard accessible, has no mobile overflow and uses the shared palette", async ({
   page,
 }) => {
