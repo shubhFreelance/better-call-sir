@@ -54,7 +54,7 @@ export class PromotionInsightsController {
       if (
         !current ||
         current.disabled ||
-        current.authVersion !== actor.authVersion
+        current.authVersion !== actor.authVersion || current.role !== actor.role
       )
         fail(401, "SESSION_REVOKED", "This account is unavailable.");
       const student =
@@ -77,7 +77,7 @@ export class PromotionInsightsController {
         return { recorded: false };
       if (
         actor.role === "GUARDIAN" &&
-        (!actor.verified ||
+        (!current.verified ||
           !(await db.consent.count({
             where: { guardianId: actor.id, withdrawnAt: null },
           })))
@@ -156,7 +156,7 @@ export class PromotionInsightsController {
           teacherId: uuid.optional(),
           month: z
             .string()
-            .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+            .regex(/^(?!0000)\d{4}-(0[1-9]|1[0-2])$/)
             .default(activityDay().slice(0, 7)),
           page: z.coerce.number().int().min(1).max(10000).default(1),
           leadPage: z.coerce.number().int().min(1).max(10000).default(1),

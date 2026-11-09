@@ -325,6 +325,7 @@ test("promotion activity and scoped reports measure real daily audience without 
   assert.equal((await other.call("/promotions/analytics?teacherId="+ids.teacher)).status,403);
   assert.equal((await other.call("/promotions?teacherId="+ids.teacher)).status,403);
   assert.equal((await teacher.call("/promotions/analytics?month=2026-13")).status,400);
+  assert.equal((await teacher.call("/promotions/analytics?month=0000-01")).status,400);
   assert.equal((await teacher.call("/promotions/analytics?month=9999-01")).status,400);
   const r=await teacher.call("/promotions/analytics");
   assert.equal(r.status,200,JSON.stringify(r.data));
