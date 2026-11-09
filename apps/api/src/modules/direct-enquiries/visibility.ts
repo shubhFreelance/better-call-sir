@@ -1,0 +1,4 @@
+import { Prisma } from "@prisma/client";
+
+// Shared by enquiry history and promotion insights; browsing never grants lead access.
+export const visibleDirectEnquiry = Prisma.sql`EXISTS(SELECT 1 FROM "Account" a WHERE a.id=d."ownerId" AND NOT a.disabled AND ((d.kind='GUARDIAN' AND a.role='GUARDIAN' AND a.verified AND EXISTS(SELECT 1 FROM "Consent" c WHERE c."guardianId"=a.id AND c."withdrawnAt" IS NULL) AND EXISTS(SELECT 1 FROM "Child" ch WHERE ch.id=d."childId" AND ch."guardianId"=a.id AND (ch."guardianVerificationId" IS NULL OR EXISTS(SELECT 1 FROM "GuardianVerification" v WHERE v.id=ch."guardianVerificationId" AND v.status='APPROVED')))) OR (d.kind='INDEPENDENT' AND a.role='INDEPENDENT_STUDENT' AND EXISTS(SELECT 1 FROM "IndependentStudentProfile" p WHERE p."accountId"=a.id)))) AND NOT EXISTS(SELECT 1 FROM "PrivacyRequest" p WHERE p."accountId"=d."ownerId" AND p.kind='DELETION' AND p.scope IN ('ACCOUNT','CHILD') AND p.status='PENDING')`;

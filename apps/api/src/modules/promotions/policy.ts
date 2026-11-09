@@ -48,3 +48,5 @@ export function pricesOrdered(
       )
   );
 }
+
+export const activityDay = (now = new Date()) => new Date(now.getTime() + 330 * 60000).toISOString().slice(0, 10);

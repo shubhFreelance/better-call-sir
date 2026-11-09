@@ -2,6 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { sponsoredTeachers } from "../apps/api/src/modules/promotions/delivery";
 import type { AppService } from "../apps/api/src/shared";
+import { activityDay } from "../apps/api/src/modules/promotions/policy";
+test("promotion day follows IST across UTC midnight boundaries", () => {
+  assert.equal(activityDay(new Date("2026-11-09T18:29:59Z")),"2026-11-09");
+  assert.equal(activityDay(new Date("2026-11-09T18:30:00Z")),"2026-11-10");
+});
 import {
   nextStatus,
   displayStatus,
