@@ -255,13 +255,14 @@ test("homepage sponsored profiles are labelled and regular discovery stays avail
       json: { code: "UNAVAILABLE", message: "Unavailable" },
     }),
   );
-  await page.reload();
+  await Promise.all([page.waitForResponse(response=>response.url().includes('/sponsored-teachers')&&response.status()===503),page.reload()]);
   await expect(
     page.getByText(
       "Sponsored teachers are unavailable. You can still browse the regular results.",
       { exact: true },
     ),
-  ).toBeVisible();
+  ).toHaveCount(0);
+  await expect(sponsored).toHaveCount(0);
   await expect(
     page.getByRole("link", { name: "Meet all teachers", exact: true }),
   ).toBeVisible();

@@ -6,7 +6,6 @@ import { Megaphone, ArrowUpRight } from "lucide-react";
 import { api, rupees, type Teacher } from "@bcs/api-client";
 import { LayeredSummaryCard } from "../components/ui/layered-summary-card";
 import { FilterButton } from "../components/ui/filter-button";
-import { RefreshButton } from "../components/ui/refresh-button";
 import { useAppTranslation } from "./locale";
 export function SponsoredTeachers({
   query,
@@ -17,7 +16,7 @@ export function SponsoredTeachers({
   context?: string;
   scope?: string;
 }) {
-  const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
+  const { appText, appLocale, appCurriculum } = useAppTranslation();
   const result = useQuery({
     queryKey: ["sponsored-teachers", scope, query],
     retry: false,
@@ -34,21 +33,7 @@ export function SponsoredTeachers({
         {appText("Loading sponsored teachers…")}
       </p>
     );
-  if (result.error)
-    return (
-      <div className="promotion-loading" role="status">
-        <span>
-          {appText(
-            "Sponsored teachers are unavailable. You can still browse the regular results.",
-          )}
-        </span>
-        <RefreshButton
-          label={appText("Refresh")}
-          onClick={() => result.refetch()}
-          disabled={result.isFetching}
-        />
-      </div>
-    );
+  if (result.error) return null;
   if (!result.data?.items?.length) return null;
   return (
     <section
