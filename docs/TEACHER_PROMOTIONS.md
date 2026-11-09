@@ -26,7 +26,7 @@ Approval starts the clock immediately for the quoted number of 24-hour days. Tea
 
 Every ad displays **Sponsored**. Homepage, search and saved subject spaces use the same public teacher projection and the existing coverage rules. Space placement requires authorized learner access, a saved subject, the current education level, board/course/year, saved language when specified and online or relevant regional home coverage. Search also honors explicit mode, locality, language and budget filters. Ineligible, disabled, privacy-paused, screening-expired or full teachers do not serve ads. An ad does not authorize an enquiry or bypass the existing hiring checks.
 
-Sponsored profiles live in a separate block; organic order is unchanged. At most three eligible teacher profiles are returned. Rotation is deterministic in five-minute intervals, without cookies, viewer identifiers, tracking pixels or machine learning. Inventory is capped at 100 active/paused campaigns per placement; raise it only with a reviewed allocation strategy and load evidence. Advertisers never receive learner names, private preferences, guardian contacts or learning histories through promotion.
+Sponsored profiles live in a separate block; organic order is unchanged. Saved subject spaces return all eligible promoted profiles within the existing 100-campaign inventory bound. Homepage/search return at most three. Rotation is deterministic in five-minute intervals, without cookies, viewer identifiers, tracking pixels or machine learning. Inventory is capped at 100 active/paused campaigns per placement; raise it only with a reviewed allocation strategy and load evidence. Advertisers never receive learner names, private preferences, guardian contacts or learning histories through promotion.
 
 Account erasure cancels campaigns, clears private review notes and deletes cached campaign decisions, including staff-owned retry receipts. Minimal quoted amounts, dates and reconciliation references follow the existing staff-reviewed financial/audit retention exception; no sensitive review narrative is copied into immutable audit records. A production retention policy and refund ledger remain release work.
 
@@ -37,7 +37,7 @@ Account erasure cancels campaigns, clears private review notes and deletes cache
 - `GET /promotions`: own-teacher or superadmin, newest-first, bounded cursor pagination and optional status.
 - `POST /promotions/:id/decision`: versioned approve/reject/pause/resume/cancel; approval requires reviewed payment reference and explicit confirmation.
 - `POST /admin/promotion-plans/:id`: recent-MFA admin price/duration/availability controls with optimistic version.
-- `GET /sponsored-teachers`: up to three public profiles, with placement and discovery criteria. SPACE requires authorized `learnerId` and subject. It does not retrieve the organic list again.
+- `GET /sponsored-teachers`: all eligible public profiles for SPACE, up to three for HOME/SEARCH, with placement and discovery criteria. SPACE requires authorized `learnerId` and subject. It does not retrieve the organic list again.
 - `GET /teachers` also supports optional `promotionPlacement` for clients wanting organic and sponsored results in one response; existing clients receive the same organic response when omitted.
 
 Promotion requests and decisions also write important notices to the existing live inbox for the teacher; new requests reach superadmin review. Socket.IO sends the existing post-commit invalidation only. These events do not enable new email delivery.
