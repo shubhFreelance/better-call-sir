@@ -52,6 +52,7 @@ async function extendRecurring(){
  }
 }
 async function tick() {
+  await db.promotionActivity.deleteMany({where:{day:{lt:new Date(Date.now()-90*86400000)}}});
   await db.rateBucket.deleteMany({where:{resetsAt:{lt:new Date(Date.now()-86400000)}}});
   await db.otp.deleteMany({where:{expiresAt:{lte:new Date()}}});
   await email.tick(db);

@@ -308,12 +308,66 @@ test("activation requires admin payment review; price quotes stay immutable", as
     [],
   );
 });
+test("promotion activity and scoped reports measure real daily audience without disclosing viewers", async () => {
+  const event = {teacherId:ids.teacher,promotionId:campaign,kind:"CARD_CLICK"};
+  assert.equal((await new Client().call("/promotion-activity",event)).status,401);
+  assert.equal((await teacher.call("/promotion-activity",event)).status,403);
+  assert.equal((await parent.call("/promotion-activity",event,randomUUID(),"wrong")).status,403);
+  assert.equal((await parent.call("/promotion-activity",{...event,viewerId:ids.admin})).status,400);
+  assert.equal((await parent.call("/promotion-activity",{...event,promotionId:randomUUID()})).data.recorded,false);
+  const writes = await Promise.all([parent.call("/promotion-activity",event),parent.call("/promotion-activity",event)]);
+  assert.equal(writes.filter(r=>r.data.recorded).length,1,JSON.stringify(writes));
+  const student = await login(ids.student);
+  assert.equal((await student.call("/promotion-activity",event)).data.recorded,true);
+  for (const viewer of [parent,student]) assert.equal((await viewer.call("/promotion-activity",{...event,kind:"PROFILE_VISIT"})).data.recorded,true);
+  assert.equal((await parent.call("/promotion-activity",{teacherId:ids.teacher,kind:"PROFILE_VISIT"})).data.recorded,false);
+  assert.equal((await parent.call("/promotions/analytics")).status,403);
+  assert.equal((await other.call("/promotions/analytics?teacherId="+ids.teacher)).status,403);
+  assert.equal((await other.call("/promotions?teacherId="+ids.teacher)).status,403);
+  assert.equal((await teacher.call("/promotions/analytics?month=2026-13")).status,400);
+  assert.equal((await teacher.call("/promotions/analytics?month=9999-01")).status,400);
+  const r=await teacher.call("/promotions/analytics");
+  assert.equal(r.status,200,JSON.stringify(r.data));
+  const validate=operationValidator("/promotions/analytics","get","200");
+  assert(validate(r.data),JSON.stringify(validate.errors));
+  assert.equal(r.data.summary.clicks,2);assert.equal(r.data.summary.parents,1);assert.equal(r.data.summary.students,1);
+  assert.equal(r.data.summary.visitsToday,2);assert.equal(r.data.summary.visitsMonth,2);
+  assert.equal(r.data.campaigns[0].id,campaign);assert.equal(r.data.campaigns[0].clicks,2);
+  assert.equal(r.data.daily.length,1);
+  const reportText=JSON.stringify(r.data);
+  assert(!reportText.includes(ids.guardian));assert(!reportText.includes(ids.student));assert(!reportText.includes('viewerId'));
+  const all=await admin.call("/promotions/analytics");assert.equal(all.status,200,JSON.stringify(all.data));assert.equal(all.data.summary.clicks,2);
+  const requestRow=await db.tuitionRequest.findUniqueOrThrow({where:{id:ids.request}});
+  for (let i=0;i<11;i++) {
+    const sourceId=randomUUID();
+    await db.tuitionRequest.create({data:{...requestRow,id:sourceId,discoveryMethod:"MANUAL",preferredTeacherId:ids.teacher}});
+    await db.directEnquiry.create({data:{kind:"GUARDIAN",sourceId,ownerId:ids.guardian,childId:ids.child,teacherId:ids.teacher,region:"Raipur"}});
+  }
+  const leads=await teacher.call("/promotions/analytics");
+  assert.equal(leads.data.summary.enquiries,11);assert.equal(leads.data.summary.interestedParents,1);
+  assert.equal(leads.data.enquiries.items.length,10);assert.equal((await teacher.call("/promotions/analytics?leadPage=2")).data.enquiries.items.length,1);
+  assert(leads.data.enquiries.items.every((e:any)=>e.name&&!('email' in e)&&!('phone' in e)));
+  assert.equal((await admin.call("/promotions?teacherId="+ids.teacher)).data.items.every((p:any)=>p.teacherId===ids.teacher),true);
+  const privacy=await db.privacyRequest.create({data:{kind:"DELETION",scope:"ACCOUNT",resourceId:ids.guardian,accountId:ids.guardian,reason:"Synthetic analytics privacy pause"}});
+  assert.equal((await parent.call("/promotion-activity",event)).data.recorded,false);
+  assert.equal((await teacher.call("/promotions/analytics")).data.summary.clicks,0);
+  assert.equal((await teacher.call("/promotions/analytics")).data.enquiries.total,0);
+  await db.privacyRequest.delete({where:{id:privacy.id}});
+  await db.consent.update({where:{guardianId:ids.guardian},data:{withdrawnAt:new Date()}});
+  assert.equal((await teacher.call("/promotions/analytics")).data.enquiries.total,0);
+  await db.consent.update({where:{guardianId:ids.guardian},data:{withdrawnAt:null}});
+  const old = new Date(Date.now()-100*86400000);
+  await db.promotionActivity.create({data:{id:randomUUID(),teacherId:ids.teacher,viewerId:ids.guardian,audience:"GUARDIAN",kind:"PROFILE_VISIT",day:old,createdAt:old}});
+  assert.equal((await teacher.call("/promotions/analytics")).data.summary.visits,2);
+});
+
 test("pause/resume, expiry, disabled plans and teachers stop public delivery", async () => {
   const paused = await teacher.call(
     "/promotions/" + campaign + "/decision",
     decision("PAUSE", 2),
   );
   assert.equal(paused.status, 201);
+  assert.equal((await parent.call("/promotion-activity",{teacherId:ids.teacher,promotionId:campaign,kind:"CARD_CLICK"})).data.recorded,false);
   assert.deepEqual(
     (await new Client().call("/teachers?promotionPlacement=SEARCH")).data
       .sponsored,
@@ -569,6 +623,7 @@ test("teacher erasure cancels campaigns and scrubs private review notes and cach
     where: { teacherId: ids.teacher },
   });
   assert(campaigns.length);
+  assert.equal(await db.promotionActivity.count({where:{teacherId:ids.teacher}}),0);
   for (const row of campaigns) {
     assert.equal(row.status, "CANCELLED");
     assert.equal(row.reviewNote, null);
@@ -596,4 +651,14 @@ test("teacher erasure cancels campaigns and scrubs private review notes and cach
       .data.items,
     [],
   );
+});
+
+test("family erasure removes viewer activity as well as private enquiry access", async () => {
+  const t=await db.teacher.findFirstOrThrow({where:{accountId:{not:ids.teacherAccount}}});
+  await db.promotionActivity.create({data:{id:randomUUID(),teacherId:t.id,viewerId:ids.guardian,kind:"PROFILE_VISIT",audience:"GUARDIAN",day:new Date()}});
+  const privacy=await parent.call("/privacy-requests",{kind:"DELETION",scope:"ACCOUNT",resourceId:ids.guardian,reason:"Synthetic viewer erasure"});
+  assert.equal(privacy.status,201,JSON.stringify(privacy.data));
+  const result=await admin.call("/admin/privacy-requests/"+privacy.data.id+"/reviews",{expectedVersion:1,action:"FULFIL",reason:"Synthetic privacy review",policyVersion:"synthetic-v1",retentionReason:"Retain reviewed nonpersonal financial audit only",confirmed:true});
+  assert.equal(result.status,201,JSON.stringify(result.data));
+  assert.equal(await db.promotionActivity.count({where:{viewerId:{in:[ids.guardian,ids.student]}}}),0);
 });
