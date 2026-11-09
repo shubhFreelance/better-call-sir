@@ -68,6 +68,14 @@ Audience totals distinguish guardian and student accounts. Raw viewer references
 
 Apply migration `202611090001_promotion_insights` before running the updated API/worker. No live payment or Pro entitlement changes.
 
+## Teacher Pro interested-family preview - 9 November 2026
+
+Teacher analytics returns enquiries.detailsAccess=PRO_REQUIRED and an empty enquiries.items list. Counts remain readable; names are not merely hidden by CSS. Existing direct enquiry conversations remain available through their normal authorized workflow. Superadmin retains existing MFA-authorized oversight (detailsAccess=ADMIN), with no new email/phone exposure.
+
+Teacher Pro has no subscription/entitlement product yet. The Pro badge is a locked preview, not an active paid upgrade. Parent Pro and purchased promotion placements do not unlock it. Real contact access needs teacher entitlements and explicit, revocable family contact-sharing permission before launch; simply browsing a sponsored profile never grants that permission.
+
+In development mode only, Meera Sahu's own report and an admin report filtered to meera-sahu include enquiries.demoContact for fictional Asha Verma: asha.parent@example.test, 00000 00000, Science. These are intentionally unusable contact details, not a real registered account. The sample is separately labelled Demo and never inserted into PromotionActivity, enquiries, notifications, billing or real counters. No production sample is returned.
+
 The teacher and superadmin overview share PromotionPerformanceCard. Both sidebars expose **Promotion insights** at `/dashboard/promotion-insights`; the promotion-request workspace links there too. Superadmin can compare ten teachers per page, drill into a teacher and open `/dashboard/promotions?teacher=<id>` to manage that teacher's campaigns. The interest list is also paginated at ten rows and opens existing conversations. Month controls affect traffic tables/rankings, while campaign request/approval and authorized direct-enquiry totals include all history.
 
 UI reuses LayeredSummaryCard, InfoTooltip, FilterButtonGroup/FilterButton, StatusBadge and RefreshButton with small explanatory text, English/Hindi and a horizontally scrollable admin table on phones. Telemetry respects browser DNT/GPC, is best effort, and never blocks profile navigation. Stats refresh every minute or through the refresh icon. Explicit read failures remove cached report/lead data until an authorized retry succeeds.

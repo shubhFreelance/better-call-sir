@@ -346,8 +346,21 @@ test("promotion activity and scoped reports measure real daily audience without 
   }
   const leads=await teacher.call("/promotions/analytics");
   assert.equal(leads.data.summary.enquiries,11);assert.equal(leads.data.summary.interestedParents,1);
-  assert.equal(leads.data.enquiries.items.length,10);assert.equal((await teacher.call("/promotions/analytics?leadPage=2")).data.enquiries.items.length,1);
-  assert(leads.data.enquiries.items.every((e:any)=>e.name&&!('email' in e)&&!('phone' in e)));
+  assert.equal(leads.data.enquiries.detailsAccess,"PRO_REQUIRED");
+  assert.deepEqual(leads.data.enquiries.items,[]);assert.deepEqual((await teacher.call("/promotions/analytics?leadPage=2")).data.enquiries.items,[]);
+  assert.equal(leads.data.enquiries.demoContact,null);
+  const parentName=(await db.account.findUniqueOrThrow({where:{id:ids.guardian}})).name;
+  assert(!JSON.stringify(leads.data).includes(parentName));
+  const staffLeads=await admin.call("/promotions/analytics?teacherId="+ids.teacher);
+  assert.equal(staffLeads.data.enquiries.detailsAccess,"ADMIN");assert.equal(staffLeads.data.enquiries.items.length,10);
+  assert.equal((await admin.call("/promotions/analytics?teacherId="+ids.teacher+"&leadPage=2")).data.enquiries.items.length,1);
+  assert(staffLeads.data.enquiries.items.every((e:any)=>e.name&&!('email' in e)&&!('phone' in e)));
+  const meera=await db.teacher.findUniqueOrThrow({where:{slug:"meera-sahu"}}),meeraClient=await login(meera.accountId);
+  const sample=await meeraClient.call("/promotions/analytics");
+  assert.equal(sample.status,200,JSON.stringify(sample.data));assert(validate(sample.data),JSON.stringify(validate.errors));
+  assert.equal(sample.data.enquiries.detailsAccess,"PRO_REQUIRED");assert.deepEqual(sample.data.enquiries.items,[]);
+  assert.deepEqual(sample.data.enquiries.demoContact,{demo:true,teacherName:meera.name,name:"Asha Verma",email:"asha.parent@example.test",phone:"00000 00000",subject:"Science"});
+  assert.equal(sample.data.summary.enquiries,0);assert.equal(sample.data.summary.clicks,0);
   assert.equal((await admin.call("/promotions?teacherId="+ids.teacher)).data.items.every((p:any)=>p.teacherId===ids.teacher),true);
   const privacy=await db.privacyRequest.create({data:{kind:"DELETION",scope:"ACCOUNT",resourceId:ids.guardian,accountId:ids.guardian,reason:"Synthetic analytics privacy pause"}});
   assert.equal((await parent.call("/promotion-activity",event)).data.recorded,false);

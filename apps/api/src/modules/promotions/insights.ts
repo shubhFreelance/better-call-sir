@@ -9,7 +9,15 @@ import {
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { AppService, HttpRequest, fail, hash, parse, uuid } from "../../shared";
+import {
+  AppService,
+  HttpRequest,
+  development,
+  fail,
+  hash,
+  parse,
+  uuid,
+} from "../../shared";
 import { visibleDirectEnquiry } from "../direct-enquiries/visibility";
 import { activityDay, displayStatus } from "./policy";
 
@@ -54,7 +62,8 @@ export class PromotionInsightsController {
       if (
         !current ||
         current.disabled ||
-        current.authVersion !== actor.authVersion || current.role !== actor.role
+        current.authVersion !== actor.authVersion ||
+        current.role !== actor.role
       )
         fail(401, "SESSION_REVOKED", "This account is unavailable.");
       const student =
@@ -244,20 +253,24 @@ export class PromotionInsightsController {
         >(
           Prisma.sql`SELECT count(*) AS total,count(DISTINCT d."ownerId") FILTER(WHERE d.kind='GUARDIAN') AS parents,count(DISTINCT d."ownerId") FILTER(WHERE d.kind='INDEPENDENT') AS students FROM "DirectEnquiry" d WHERE ${enquiryScope}`,
         );
-        const enquiries = await db.$queryRaw<
-          {
-            id: string;
-            teacherName: string;
-            name: string;
-            audience: string;
-            subject: string;
-            status: string;
-            createdAt: Date;
-          }[]
-        >(Prisma.sql`SELECT d.id,t.name AS "teacherName",a.name,CASE WHEN d.kind='GUARDIAN' THEN 'GUARDIAN' ELSE 'STUDENT' END AS audience,COALESCE(r.subject,s.subject,'') AS subject,d.status,d."createdAt"
+        // shortcut: Teacher Pro is not launched; keep identities locked until teacher entitlements and consented contact sharing exist.
+        const enquiries =
+          actor.role === "ADMIN"
+            ? await db.$queryRaw<
+                {
+                  id: string;
+                  teacherName: string;
+                  name: string;
+                  audience: string;
+                  subject: string;
+                  status: string;
+                  createdAt: Date;
+                }[]
+              >(Prisma.sql`SELECT d.id,t.name AS "teacherName",a.name,CASE WHEN d.kind='GUARDIAN' THEN 'GUARDIAN' ELSE 'STUDENT' END AS audience,COALESCE(r.subject,s.subject,'') AS subject,d.status,d."createdAt"
     FROM "DirectEnquiry" d JOIN "Teacher" t ON t.id=d."teacherId" JOIN "Account" a ON a.id=d."ownerId"
     LEFT JOIN "TuitionRequest" r ON d.kind='GUARDIAN' AND r.id=d."sourceId" LEFT JOIN "StudentEnquiry" s ON d.kind='INDEPENDENT' AND s.id=d."sourceId"
-    WHERE ${enquiryScope} ORDER BY d."createdAt" DESC,d.id DESC LIMIT 10 OFFSET ${(q.leadPage - 1) * 10}`);
+    WHERE ${enquiryScope} ORDER BY d."createdAt" DESC,d.id DESC LIMIT 10 OFFSET ${(q.leadPage - 1) * 10}`)
+            : [];
         const teacherScope = Prisma.sql`(${teacherId}::uuid IS NULL OR t.id=${teacherId}::uuid) AND EXISTS(SELECT 1 FROM "TeacherPromotion" p WHERE p."teacherId"=t.id)`;
         const [teacherCount] = await db.$queryRaw<{ total: bigint }[]>(
           Prisma.sql`SELECT count(*) AS total FROM "Teacher" t WHERE ${teacherScope}`,
@@ -297,6 +310,18 @@ export class PromotionInsightsController {
             visits: Number(visits),
           })),
           enquiries: {
+            detailsAccess: actor.role === "ADMIN" ? "ADMIN" : "PRO_REQUIRED",
+            demoContact:
+              development() && selected?.slug === "meera-sahu"
+                ? {
+                    demo: true,
+                    teacherName: selected.name,
+                    name: "Asha Verma",
+                    phone: "00000 00000",
+                    email: "asha.parent@example.test",
+                    subject: "Science",
+                  }
+                : null,
             items: enquiries,
             total: Number(enquiryCount.total),
             page: q.leadPage,
