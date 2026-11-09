@@ -63,3 +63,11 @@ Acceptance for this increment includes eight real-HTTP/policy tests, English/Hin
 Audience totals distinguish guardian and student accounts. Raw viewer references stay server-side, never in reports. Activity is retained for 90 days, excluded immediately during deletion review, removed on account/linked-child erasure and expired by the existing worker. Reports apply the 90-day boundary even before worker cleanup. Historic traffic is not backfilled: firstRecordedAt is null until a real event is recorded. Browser privacy signals and blocked/failed telemetry can undercount activity. These are descriptive counters, not fraud-resistant billing evidence, targeting lists or consent to contact. Masked calls and contact permissions remain deferred.
 
 Apply migration `202611090001_promotion_insights` before running the updated API/worker. No live payment or Pro entitlement changes.
+
+## Teacher Pro interested-family preview - 9 November 2026
+
+Teacher analytics returns enquiries.detailsAccess=PRO_REQUIRED and an empty enquiries.items list. Counts remain readable; names are not merely hidden by CSS. Existing direct enquiry conversations remain available through their normal authorized workflow. Superadmin retains existing MFA-authorized oversight (detailsAccess=ADMIN), with no new email/phone exposure.
+
+Teacher Pro has no subscription/entitlement product yet. The Pro badge is a locked preview, not an active paid upgrade. Parent Pro and purchased promotion placements do not unlock it. Real contact access needs teacher entitlements and explicit, revocable family contact-sharing permission before launch; simply browsing a sponsored profile never grants that permission.
+
+In development mode only, Meera Sahu's own report and an admin report filtered to meera-sahu include enquiries.demoContact for fictional Asha Verma: asha.parent@example.test, 00000 00000, Science. These are intentionally unusable contact details, not a real registered account. The sample is separately labelled Demo and never inserted into PromotionActivity, enquiries, notifications, billing or real counters. No production sample is returned.

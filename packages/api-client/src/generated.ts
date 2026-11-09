@@ -4264,6 +4264,17 @@ export interface components {
                 }[];
                 total: number;
                 page: number;
+                /** @enum {string} */
+                detailsAccess: "ADMIN" | "PRO_REQUIRED";
+                demoContact: null | {
+                    /** @enum {boolean} */
+                    demo: true;
+                    teacherName: string;
+                    name: string;
+                    email: string;
+                    phone: string;
+                    subject: string;
+                };
             };
             teachers: {
                 items: {

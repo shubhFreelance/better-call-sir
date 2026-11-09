@@ -38623,7 +38623,9 @@
             "required": [
               "items",
               "total",
-              "page"
+              "page",
+              "detailsAccess",
+              "demoContact"
             ],
             "properties": {
               "items": {
@@ -38678,6 +38680,55 @@
               "page": {
                 "type": "integer",
                 "minimum": 0
+              },
+              "detailsAccess": {
+                "type": "string",
+                "enum": [
+                  "ADMIN",
+                  "PRO_REQUIRED"
+                ]
+              },
+              "demoContact": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "demo",
+                      "teacherName",
+                      "name",
+                      "email",
+                      "phone",
+                      "subject"
+                    ],
+                    "properties": {
+                      "demo": {
+                        "type": "boolean",
+                        "enum": [
+                          true
+                        ]
+                      },
+                      "teacherName": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "phone": {
+                        "type": "string"
+                      },
+                      "subject": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
