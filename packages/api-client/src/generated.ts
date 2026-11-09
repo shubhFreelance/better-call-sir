@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/promotions/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Teacher-owned or recent-MFA superadmin insights; signed-in daily-deduplicated activity retained 90 days; only authorized enquiries identify interested families. */
+        get: operations["getPromotionAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/promotion-activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Authenticated family telemetry only; CSRF/Origin protected, no billing. One visit per account/teacher/IST day, one click per account/campaign/IST day. No browsing identities returned. */
+        post: operations["recordPromotionActivity"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sponsored-teachers": {
         parameters: {
             query?: never;
@@ -4149,44 +4183,103 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/promotions/analytics": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Teacher-owned or recent-MFA superadmin insights; signed-in daily-deduplicated activity retained 90 days; only authorized enquiries identify interested families. */
-        get: operations["getPromotionAnalytics"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/promotion-activity": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Authenticated family telemetry only; CSRF/Origin protected, no billing. One visit per account/teacher/IST day, one click per account/campaign/IST day. No browsing identities returned. */
-        post: operations["recordPromotionActivity"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        PromotionActivityInput: {
+            /** Format: uuid */
+            teacherId: string;
+            /** Format: uuid */
+            promotionId?: string;
+            /** @enum {string} */
+            kind: "CARD_CLICK" | "PROFILE_VISIT";
+        };
+        PromotionAnalytics: {
+            month: string;
+            /** @enum {string} */
+            timezone: "Asia/Kolkata";
+            retentionDays: number;
+            /** Format: date-time */
+            asOf: string;
+            /** Format: date-time */
+            firstRecordedAt: string | null;
+            teacher: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                slug: string;
+                status: string;
+            } | null;
+            summary: {
+                requests: number;
+                approved: number;
+                pending: number;
+                active: number;
+                paused: number;
+                expired: number;
+                rejected: number;
+                cancelled: number;
+                clicks: number;
+                parents: number;
+                students: number;
+                visits: number;
+                visitsToday: number;
+                visitsMonth: number;
+                clicksMonth: number;
+                enquiries: number;
+                interestedParents: number;
+                interestedStudents: number;
+            };
+            daily: {
+                /** Format: date */
+                day: string;
+                clicks: number;
+                visits: number;
+            }[];
+            campaigns: {
+                /** Format: uuid */
+                id: string;
+                teacherName: string;
+                /** @enum {string} */
+                placement: "SEARCH" | "HOME" | "SPACE";
+                status: string;
+                /** Format: date-time */
+                endsAt: string | null;
+                clicks: number;
+                visits: number;
+            }[];
+            enquiries: {
+                items: {
+                    /** Format: uuid */
+                    id: string;
+                    teacherName: string;
+                    name: string;
+                    /** @enum {string} */
+                    audience: "GUARDIAN" | "STUDENT";
+                    subject: string;
+                    status: string;
+                    /** Format: date-time */
+                    createdAt: string;
+                }[];
+                total: number;
+                page: number;
+            };
+            teachers: {
+                items: {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    status: string;
+                    requests: number;
+                    approved: number;
+                    clicks: number;
+                    visits: number;
+                }[];
+                total: number;
+                page: number;
+            };
+        };
         PromotionPlan: {
             /** @enum {string} */
             id: "SEARCH" | "HOME" | "SPACE";
@@ -4354,6 +4447,8 @@ export interface components {
         };
         Teacher: {
             /** Format: uuid */
+            promotionId?: string;
+            /** Format: uuid */
             id: string;
             slug: string;
             name: string;
@@ -4377,8 +4472,6 @@ export interface components {
              */
             lockInDays?: 0 | 15 | 30 | null;
             teachingCoverage?: components["schemas"]["TeachingScope"][];
-            /** Format: uuid */
-            promotionId?: string;
         };
         Account: {
             /** Format: uuid */
@@ -7901,99 +7994,6 @@ export interface components {
             /** @enum {string} */
             status: "RECORDED";
         };
-        PromotionActivityInput: {
-            /** Format: uuid */
-            teacherId: string;
-            /** Format: uuid */
-            promotionId?: string;
-            /** @enum {string} */
-            kind: "CARD_CLICK" | "PROFILE_VISIT";
-        };
-        PromotionAnalytics: {
-            month: string;
-            /** @enum {string} */
-            timezone: "Asia/Kolkata";
-            retentionDays: number;
-            /** Format: date-time */
-            asOf: string;
-            /** Format: date-time */
-            firstRecordedAt: string | null;
-            teacher: {
-                /** Format: uuid */
-                id: string;
-                name: string;
-                slug: string;
-                status: string;
-            } | null;
-            summary: {
-                requests: number;
-                approved: number;
-                pending: number;
-                active: number;
-                paused: number;
-                expired: number;
-                rejected: number;
-                cancelled: number;
-                clicks: number;
-                parents: number;
-                students: number;
-                visits: number;
-                visitsToday: number;
-                visitsMonth: number;
-                clicksMonth: number;
-                enquiries: number;
-                interestedParents: number;
-                interestedStudents: number;
-            };
-            daily: {
-                /** Format: date */
-                day: string;
-                clicks: number;
-                visits: number;
-            }[];
-            campaigns: {
-                /** Format: uuid */
-                id: string;
-                teacherName: string;
-                /** @enum {string} */
-                placement: "SEARCH" | "HOME" | "SPACE";
-                status: string;
-                /** Format: date-time */
-                endsAt: string | null;
-                clicks: number;
-                visits: number;
-            }[];
-            enquiries: {
-                items: {
-                    /** Format: uuid */
-                    id: string;
-                    teacherName: string;
-                    name: string;
-                    /** @enum {string} */
-                    audience: "GUARDIAN" | "STUDENT";
-                    subject: string;
-                    status: string;
-                    /** Format: date-time */
-                    createdAt: string;
-                }[];
-                total: number;
-                page: number;
-            };
-            teachers: {
-                items: {
-                    /** Format: uuid */
-                    id: string;
-                    name: string;
-                    status: string;
-                    requests: number;
-                    approved: number;
-                    clicks: number;
-                    visits: number;
-                }[];
-                total: number;
-                page: number;
-            };
-        };
     };
     responses: never;
     parameters: never;
@@ -8003,6 +8003,147 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getPromotionAnalytics: {
+        parameters: {
+            query?: {
+                teacherId?: string;
+                month?: string;
+                page?: number;
+                leadPage?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Confirmed promotion state; no automatic charges or hiring guarantees. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionAnalytics"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    recordPromotionActivity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionActivityInput"];
+            };
+        };
+        responses: {
+            /** @description Confirmed promotion state; no automatic charges or hiring guarantees. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        recorded: boolean;
+                    };
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validation */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getSponsoredTeachers: {
         parameters: {
             query?: {
@@ -8248,10 +8389,10 @@ export interface operations {
     getTeacherPromotions: {
         parameters: {
             query?: {
+                teacherId?: string;
                 limit?: number;
                 cursor?: string;
                 status?: "PENDING" | "ACTIVE" | "PAUSED" | "REJECTED" | "CANCELLED" | "EXPIRED";
-                teacherId?: string;
             };
             header?: never;
             path?: never;
@@ -29529,147 +29670,6 @@ export interface operations {
             };
             /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
             503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-        };
-    };
-    getPromotionAnalytics: {
-        parameters: {
-            query?: {
-                teacherId?: string;
-                month?: string;
-                page?: number;
-                leadPage?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Confirmed promotion state; no automatic charges or hiring guarantees. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PromotionAnalytics"];
-                };
-            };
-            /** @description Validation */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Validation */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Validation */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Validation */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Validation */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-        };
-    };
-    recordPromotionActivity: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PromotionActivityInput"];
-            };
-        };
-        responses: {
-            /** @description Confirmed promotion state; no automatic charges or hiring guarantees. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        recorded: boolean;
-                    };
-                };
-            };
-            /** @description Validation */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Validation */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Validation */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Validation */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Validation */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
