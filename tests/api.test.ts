@@ -44,6 +44,32 @@ class Client {
 async function login(id:string,verifyMfa=true){const c=new Client();const r=await c.call('/dev/session',{accountId:id});assert.equal(r.status,201);if(verifyMfa&&privileged(r.data.account.role)){let code=mfaRecovery.get(id)?.pop();if(!code){const enrollment=await c.call('/auth/mfa/enrollment',{});assert.equal(enrollment.status,201);code=totp(enrollment.data.secret,BigInt(Math.floor(Date.now()/30000)));}const verified=await c.call('/auth/mfa/verification',{code});assert.equal(verified.status,201,JSON.stringify(verified.data));if(verified.data.recoveryCodes.length)mfaRecovery.set(id,verified.data.recoveryCodes);}return c;}
 const future=(days=15,hour=6)=>{const d=new Date();d.setUTCDate(d.getUTCDate()+days);d.setUTCHours(hour,0,0,0);return d.toISOString();};
 const intake=(extra={})=>({schoolName:'Synthetic school',schoolSubjects:['Maths','Science','English','Hindi'],alias:'Test learner',grade:8,board:'CBSE',subject:'Maths',mode:'HOME',language:'English',locality:'Shankar Nagar',budgetPaise:400000,schedule:'Monday after 5pm',...extra});
+test('screening progress synchronizes owner and staff without exposing reviewer details',async()=>{
+ const a=await db.account.create({data:{name:'Synthetic screening progress',role:'TEACHER'}}),owner=await dashboardLogin(a.id);
+ const t=await db.teacher.create({data:{...teacherDetails,accountId:a.id,slug:'progress-'+randomUUID(),name:a.name,headline:'Synthetic',bio:'Test only',subjects:['Maths'],boards:['CBSE'],grades:[8],languages:['English'],modes:['ONLINE'],localities:[],monthlyPaise:100000,feeTermsAcceptedAt:new Date()}}),path=`/teachers/${t.id}/screening`;
+ const read=async()=>{const own=await owner.call(path),staff=await operator.call(path);assert.equal(own.status,200);assert.deepEqual(own.data,staff.data);const valid=operationValidator('/teachers/{id}/screening','get','200');assert(valid(own.data),JSON.stringify(valid.errors));assert.equal(own.headers.get('cache-control'),'no-store');assert(!/reviewerId|evidenceId|sha256|reason/.test(JSON.stringify(own.data)));return own.data;};
+ let s=await read();assert(s.categories.every((c:any)=>!c.uploaded&&c.reviewStatus==='NOT_RECORDED'));assert.equal(s.readyForApproval,false);
+ for(const client of [parent,student])assert.equal((await client.call(path)).status,403);
+ assert.equal((await teacher.call(path)).status,404);assert.equal((await new Client().call(path)).status,401);
+ let version=1;const files:string[]=[];
+ for(const kind of ['IDENTITY','QUALIFICATIONS','CAPABILITY','REFERENCES']){
+  const e=await db.evidence.create({data:{teacherId:t.id,kind,mediaType:'application/pdf',size:20,sha256:'a'.repeat(64)}});files.push(e.id);
+  s=await read();assert.equal(s.categories.find((c:any)=>c.kind===kind).scanning,1);
+  await db.evidence.update({where:{id:e.id},data:{status:'CLEAN',scannedAt:new Date(),scannerVersion:'synthetic-progress-scan'}});
+  s=await read();assert.equal(s.categories.find((c:any)=>c.kind===kind).cleared,1);assert.equal(s.categories.find((c:any)=>c.kind===kind).reviewStatus,'NOT_RECORDED');
+  const checked=await operator.call(`/admin/teachers/${t.id}/checks`,{expectedVersion:version,kind,evidenceId:e.id,result:'PASSED',reason:'Synthetic private assessment',validUntil:future(30),...(kind==='CAPABILITY'?{coverage:{subjects:t.subjects,boards:t.boards,grades:t.grades}}:{})});assert.equal(checked.status,201,JSON.stringify(checked.data));version++;
+ }
+ s=await read();assert.equal(s.readyForApproval,true);assert.equal(s.version,5);assert(s.categories.every((c:any)=>c.reviewStatus==='PASSED'));
+ await db.teacher.update({where:{id:t.id},data:{feeTermsAcceptedAt:null}});assert.equal((await read()).readyForApproval,false);await db.teacher.update({where:{id:t.id},data:{feeTermsAcceptedAt:new Date()}});
+ await db.teacher.update({where:{id:t.id},data:{profileRevision:2,version:6}});
+ await db.verificationCheck.createMany({data:['IDENTITY','QUALIFICATIONS','REFERENCES'].map((kind,i)=>({teacherId:t.id,reviewerId:ids.admin,profileRevision:2,kind,evidenceId:files[i===2?3:i],result:kind==='REFERENCES'?'FAILED':'PASSED',reason:'Synthetic revision assessment',validUntil:kind==='IDENTITY'?new Date(0):new Date(future(30))}))});
+ s=await read();assert.equal(s.categories[0].reviewStatus,'EXPIRED');assert.equal(s.readyForApproval,false);
+ await db.evidence.update({where:{id:files[1]},data:{status:'INFECTED'}});s=await read();assert.equal(s.categories[1].reviewStatus,'NEEDS_REVIEW');assert.equal(s.categories[1].blocked,1);
+ assert.equal(s.categories[3].reviewStatus,'FAILED');
+ await db.teacher.update({where:{id:t.id},data:{profileRevision:3,version:7}});s=await read();assert.equal(s.profileRevision,3);assert(s.categories.every((c:any)=>c.reviewStatus==='NOT_RECORDED'));assert.equal(s.categories[0].cleared,1);
+ await db.evidence.updateMany({where:{teacherId:t.id},data:{status:'DELETED'}});s=await read();assert(s.categories.every((c:any)=>c.uploaded===0));
+});
+
 before(async()=>{
  await admin.query(`CREATE DATABASE "${name}"`);
  const env={...process.env,...local,MFA_ENCRYPTION_KEY:process.env.MFA_ENCRYPTION_KEY,OTP_HASH_KEY:process.env.OTP_HASH_KEY,EMAIL_WEBHOOK_SECRET:process.env.EMAIL_WEBHOOK_SECRET,DATABASE_URL:base.href,MIGRATION_DATABASE_URL:base.href,APP_MODE:'development',PORT:'4100',NODE_ENV:'test',EMAIL_DELIVERY_MODE:'sandbox',RAZORPAY_KEY_ID:'rzp_test_synthetic_public',RAZORPAY_WEBHOOK_SECRET:['synthetic','webhook','key'].join('-'),EVIDENCE_DIRECTORY:evidenceDir};

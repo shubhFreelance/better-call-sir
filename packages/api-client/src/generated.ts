@@ -4183,6 +4183,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/teachers/{id}/screening": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Private current-revision screening progress for the owning teacher or authorized staff
+         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
+         */
+        get: operations["getTeacherScreeningProgress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -8015,6 +8035,29 @@ export interface components {
             id: string;
             /** @enum {string} */
             status: "RECORDED";
+        };
+        TeacherScreeningProgress: {
+            /** Format: uuid */
+            teacherId: string;
+            profileRevision: number;
+            version: number;
+            /** @enum {string} */
+            applicationStatus: "SUBMITTED" | "CHANGES_REQUESTED" | "APPROVED" | "SUSPENDED";
+            feeTermsAccepted: boolean;
+            detailsComplete: boolean;
+            readyForApproval: boolean;
+            categories: {
+                /** @enum {string} */
+                kind: "IDENTITY" | "QUALIFICATIONS" | "CAPABILITY" | "REFERENCES";
+                uploaded: number;
+                cleared: number;
+                scanning: number;
+                blocked: number;
+                /** @enum {string} */
+                reviewStatus: "NOT_RECORDED" | "PASSED" | "FAILED" | "EXPIRED" | "NEEDS_REVIEW";
+                /** Format: date-time */
+                validUntil: string | null;
+            }[];
         };
     };
     responses: never;
@@ -29691,6 +29734,91 @@ export interface operations {
                 };
             };
             /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getTeacherScreeningProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherScreeningProgress"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
             503: {
                 headers: {
                     [name: string]: unknown;
