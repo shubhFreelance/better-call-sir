@@ -4265,7 +4265,7 @@ export interface components {
                 total: number;
                 page: number;
                 /** @enum {string} */
-                detailsAccess: "ADMIN" | "PRO_REQUIRED";
+                detailsAccess: "ADMIN" | "PRO_PREVIEW" | "PRO_REQUIRED";
                 demoContact: null | {
                     /** @enum {boolean} */
                     demo: true;
