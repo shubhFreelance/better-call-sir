@@ -5825,7 +5825,7 @@ body:has(.teacher-discovery-page) { background: #F4F4EC; }
 .guardian-relationships[data-complete=true] .history-controls > p { display:none; }
 .guardian-learners .history-controls > .refresh-button { flex:0 0 44px; width:44px; }
 .guardian-education-link { display:inline-flex; align-items:center; min-height:44px; color:#034F46; font-size:12px; text-decoration:underline; text-underline-offset:3px; }
-.guardian-support-invitations { min-width:0; border:1px solid #DAB7EC; border-radius:16px; background:#F8ECFF; }
+.guardian-support-invitations { align-self:stretch; min-width:0; border:1px solid #DAB7EC; border-radius:16px; background:#F8ECFF; }
 .guardian-support-invitations > summary { display:grid; grid-template-columns:18px minmax(0,1fr) 18px; align-items:center; gap:6px 10px; padding:18px; border-radius:15px; background:#F0D7FF; color:#034F46; cursor:pointer; list-style:none; }
 .guardian-support-invitations > summary::-webkit-details-marker { display:none; }
 .guardian-support-invitations > summary:focus-visible { outline:2px solid #034F46; outline-offset:-5px; }

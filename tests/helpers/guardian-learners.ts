@@ -379,11 +379,12 @@ export function guardianLearnerChecks() {
       const panel = await hub.locator(".guardian-family-panel").boundingBox(),
         box = await invited.boundingBox(),
         main = await own.boundingBox();
-      expect(box!.height).toBeLessThan(400);
       if (hindi) {
+        expect(box!.height).toBeLessThan(400);
         expect(main!.width).toBeGreaterThan(panel!.width * 0.9);
         expect(box!.y).toBeGreaterThan(main!.y);
       } else {
+        expect(Math.abs(box!.height - main!.height)).toBeLessThan(2);
         expect(box!.x).toBeGreaterThan(main!.x + main!.width);
         expect(Math.abs(box!.y - main!.y)).toBeLessThan(2);
         const learners = own.locator(".guardian-relationship-list > li");
