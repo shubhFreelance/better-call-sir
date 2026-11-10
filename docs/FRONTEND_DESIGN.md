@@ -1,5 +1,7 @@
 # Frontend design direction
 
+Promotion analytics contrast: summary/report cards use white bodies on the cream page, sage #EEF5F3 title bands and subtle dividing borders. Profile activity uses a soft lavender #F8EDFF header; layered report footers retain lavender. Keep the existing compact teal typography and consistent 22px desktop/18px phone summary gutters. Scope these colours to analytics rather than changing every LayeredSummaryCard.
+
 Shared enquiry inbox heading: top-align a bounded metric column with the conversation title and guidance. Use a centered 56px lavender icon, 34px count (32px phone), 22px heading and 12px supporting copy with explicit zero paragraph margins. Preserve the #E4E4D0 enclosure and stack columns on phones. All dashboard roles share these styles; keep pending/error count semantics and role-specific wording.
 
 Saved spaces load matching promotions automatically for every saved subject, including immediately after saving a new space. Use one Suggested teachers for you section with shared All/subject filters at the top right. Merge saved-space matches by teacher ID so All renders one card per teacher; subject filters retain every matching teacher and that space's exact subject/language/learner link. Keep only the small Sponsored badge on each shared TeacherCard, omit sponsored-section marketing headings, and hide failed/empty overall groups quietly.

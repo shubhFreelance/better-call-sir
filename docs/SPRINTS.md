@@ -1,5 +1,7 @@
 # Delivery board
 
+10 November 2026 - Promotion analytics colour refinement: white card bodies, sage summary/report headers, lavender Profile activity header and retained lavender footers distinguish analytics from the cream page. Phone padding remains balanced. Eight promotion browser scenarios pass, including teacher/admin/Hindi/Pro privacy/paging/empty/telemetry checks; screenshots reviewed, CSS parse and whitespace pass. Styling only; no API change, production build or phase advancement. Next remains critical Next.js dependency security remediation; grouped backlog unchanged.
+
 10 November 2026 - Shared enquiry header: aligned icon/count and conversation title/guidance with bounded desktop metric width, explicit margins/line heights and smaller theme typography. Six guardian/teacher/student/independent-student/admin/operator browser scenarios pass, including Hindi phone/accessibility/filter regression coverage; desktop/phone screenshots reviewed, CSS parse and whitespace pass. No data/API change, production build or phase advancement. Next remains critical Next.js dependency security remediation; grouped backlog unchanged.
 
 10 November 2026 - Guardian invitation height: owner refinement stretches the lavender desktop panel to match the learner section and cover unused teal space. Phone sections remain content-sized. Two existing desktop/Hindi-phone browser cases, CSS parsing and whitespace pass; no API/behavior change, production build or phase advancement. Next remains critical Next.js dependency security remediation; grouped backlog unchanged.
