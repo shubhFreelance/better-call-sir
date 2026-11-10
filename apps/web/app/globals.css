@@ -5807,6 +5807,7 @@ body:has(.teacher-discovery-page) { background: #F4F4EC; }
 .guardian-relationship-list h3, .guardian-support-list h3 { margin:0; font-size:18px; line-height:1.4; letter-spacing:-.2px; font-weight:650; color:#034F46; }
 .guardian-relationship-list > li > .status-badge, .guardian-support-list > li > .status-badge { grid-column:2; justify-self:end; max-width:210px; }
 .guardian-learners .status-badge { font-size:11px; font-weight:500; white-space:normal; line-height:1.5; }
+.guardian-relationships .status-badge { font-size:10px; }
 .guardian-learner-management, .guardian-support-permission { grid-column:1/3; min-width:0; }
 .guardian-learner-management .learning-management-badge { max-width:100%; gap:8px; }
 .guardian-learner-management .learning-management-badge > .status-badge { min-width:0; }

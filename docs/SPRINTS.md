@@ -1,5 +1,7 @@
 # Delivery board
 
+10 November 2026 - Guardian learner badge follow-up: scoped relationship-status and learning-management labels reduced from 11px to 10px. Two existing English desktop/Hindi phone browser cases, including accessibility/keyboard/refresh, plus CSS parsing and whitespace pass. No functional change, API/migration or phase advancement. Next remains dependency security remediation, starting with critical Next.js advisories; existing backlog unchanged.
+
 # 10 November 2026 - Guardian learner hub refinement
 
 Owner-requested refinement of the existing guardian relationships/support invitation dashboard: replaced the two equal-height panels with a full-width compact learner list and a collapsed lavender Student support invitations disclosure. Reused FilterButton, status/management badges, InfoTooltip and shared history; eye controls deep-link to each exact relationship. Retained independent-adult support invitations, own-account scope, pagination, loading/error distinctions, retry focus and revoked-access hiding. No product phase advancement or live P0 acceptance claimed.
