@@ -83,17 +83,45 @@ export function guardianLearnerChecks() {
       );
       await page.goto("/dashboard");
       const hub = page.locator(".guardian-learners"),
-        own = hub.locator(".guardian-learner-group").first(),
-        invited = hub.locator(".guardian-learner-group").last();
-      await expect(own).toHaveCSS("border-top-color", "rgb(243, 243, 224)");
-      await expect(own).toHaveCSS("border-top-width", "2px");
-      await expect(invited).toHaveCSS("border-top-color", "rgb(240, 215, 255)");
-      await expect(invited).toHaveCSS("background-color", "rgb(248, 236, 255)");
+        own = hub.locator(".guardian-relationships"),
+        invited = hub.locator(".guardian-support-invitations");
+      await expect(hub.locator(".guardian-family-panel")).toHaveCSS(
+        "background-color",
+        "rgb(3, 79, 70)",
+      );
       await expect(own).toHaveCSS("background-color", "rgb(255, 255, 235)");
-      await expect(own.locator(".guardian-learner-cards > li").first()).toHaveCSS("background-color", "rgb(255, 255, 255)");
-      await expect(own.locator(".guardian-learner-cards li > p").first()).toHaveCSS("background-color", "rgb(243, 245, 236)");
-      await expect(invited.getByText(t("Invited access"), { exact: true })).toBeVisible();
-      await expect(own.getByText(t("Invited access"), { exact: true })).toHaveCount(0);
+      await expect(invited.locator("summary")).toHaveCSS(
+        "background-color",
+        "rgb(240, 215, 255)",
+      );
+      await expect(invited).not.toHaveAttribute("open", "");
+      await expect(invited.locator("summary")).toContainText(
+        translateText(hindi, "{0} invitations", ["2+"]),
+      );
+      await expect(invited.locator("summary")).toContainText(
+        translateText(hindi, "{0} awaiting reply", [1]),
+      );
+      await expect(
+        invited.getByRole("heading", { name: "Ram", exact: true }),
+      ).toBeHidden();
+      await invited.locator("summary").focus();
+      await invited.locator("summary").press("Enter");
+      await expect(invited).toHaveAttribute("open", "");
+      await expect(
+        own.locator(".guardian-relationship-list > li").first(),
+      ).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+      await expect(
+        own.getByRole("link", {
+          name: translateText(hindi, "View relationship for {0}", ["Anshuman"]),
+          exact: true,
+        }),
+      ).toHaveAttribute("href", "/guardian-verification?request=proof1");
+      await expect(
+        own.getByRole("link", { name: t("Verify learner"), exact: true }),
+      ).toHaveAttribute("href", "/guardian-verification?new=1");
+      await expect(
+        own.getByText(t("Verification choice"), { exact: true }),
+      ).toHaveCount(0);
       await expect(
         own.getByRole("heading", { name: "Anshuman", exact: true }),
       ).toBeVisible();
@@ -109,19 +137,25 @@ export function guardianLearnerChecks() {
         meera = invited.locator("li").filter({
           has: page.getByRole("heading", { name: "Meera", exact: true }),
         });
-      await expect(ram).toHaveCSS("background-color", "rgb(255, 255, 255)");
+      await expect(invited.locator(".guardian-support-list")).toHaveCSS(
+        "background-color",
+        "rgb(255, 255, 255)",
+      );
       await expect(
-        ram.getByRole("link", { name: t("Review invitation"), exact: true }),
+        ram.getByRole("link", {
+          name: translateText(hindi, "Review invitation from {0}", ["Ram"]),
+          exact: true,
+        }),
       ).toHaveAttribute("href", "/dashboard/supported-students");
       await expect(
         ram.getByRole("link", {
-          name: t("Manage shared learning"),
+          name: translateText(hindi, "Manage shared learning for {0}", ["Ram"]),
           exact: true,
         }),
       ).toHaveCount(0);
       await expect(
         meera.getByRole("link", {
-          name: t("View shared learning"),
+          name: translateText(hindi, "View shared learning for {0}", ["Meera"]),
           exact: true,
         }),
       ).toHaveAttribute(
@@ -142,16 +176,18 @@ export function guardianLearnerChecks() {
         }),
       ).toHaveCount(0);
       await meera
-        .getByRole("link", { name: t("View shared learning"), exact: true })
+        .getByRole("link", {
+          name: translateText(hindi, "View shared learning for {0}", ["Meera"]),
+          exact: true,
+        })
         .focus();
       await expect(
         meera.getByRole("link", {
-          name: t("View shared learning"),
+          name: translateText(hindi, "View shared learning for {0}", ["Meera"]),
           exact: true,
         }),
       ).toBeFocused();
-      await expect(invited).toHaveCSS("border-right-color", "rgb(25, 25, 25)");
-      await expect(invited).toHaveCSS("border-top-color", "rgb(240, 215, 255)");
+      await expect(invited).toHaveCSS("border-color", "rgb(218, 183, 236)");
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,
@@ -170,7 +206,10 @@ export function guardianLearnerChecks() {
         path: `test-results/guardian-learners-${hindi ? "hi-phone" : "en-desktop"}.png`,
       });
       await meera
-        .getByRole("link", { name: t("View shared learning"), exact: true })
+        .getByRole("link", {
+          name: translateText(hindi, "View shared learning for {0}", ["Meera"]),
+          exact: true,
+        })
         .click();
       await expect(page.locator(".supported-student-context")).toContainText(
         "Meera",
@@ -228,14 +267,15 @@ export function guardianLearnerChecks() {
     );
     await page.goto("/dashboard");
     const hub = page.locator(".guardian-learners"),
-      own = hub.locator(".guardian-learner-group").first(),
-      invited = hub.locator(".guardian-learner-group").last();
+      own = hub.locator(".guardian-relationships"),
+      invited = hub.locator(".guardian-support-invitations");
+    await invited.locator("summary").click();
     await expect(
       own.getByText("Staff review pending", { exact: true }),
     ).toBeVisible();
     await expect(
       invited.getByRole("link", {
-        name: "Manage shared learning",
+        name: "Manage shared learning for Ram",
         exact: true,
       }),
     ).toHaveAttribute("href", "/dashboard/supported-students?student=ram-id");
@@ -245,13 +285,16 @@ export function guardianLearnerChecks() {
       .click();
     await expect(
       invited.getByRole("link", {
-        name: "Manage shared learning",
+        name: "Manage shared learning for Ram",
         exact: true,
       }),
     ).toHaveCount(0);
     await expect(
       invited.getByRole("heading", { name: "Ram", exact: true }),
     ).toHaveCount(0);
+    await expect(invited.locator("summary")).toContainText(
+      "Invitations unavailable",
+    );
     await expect(
       own.getByRole("heading", { name: "Anshuman", exact: true }),
     ).toBeVisible();
@@ -265,11 +308,159 @@ export function guardianLearnerChecks() {
     ).toBeVisible();
     await expect(
       invited.getByRole("link", {
-        name: "Manage shared learning",
+        name: "Manage shared learning for Ram",
         exact: true,
       }),
     ).toHaveCount(0);
   });
+  for (const hindi of [false, true])
+    test(`empty invitations stay compact through loading and a new invitation ${hindi ? "Hindi phone" : "English desktop"}`, async ({
+      page,
+    }) => {
+      await dashboard(page, "GUARDIAN");
+      if (hindi) await chooseHindi(page);
+      await page.setViewportSize({ width: hindi ? 320 : 1440, height: 1000 });
+      const t = (s: string) => translateText(hindi, s);
+      let release!: () => void;
+      const loaded = new Promise<void>((resolve) => (release = resolve));
+      let items: any[] = [],
+        calls = 0;
+      await page.route("**/api/v1/guardian-verifications?*", (route) =>
+        route.fulfill({
+          json: {
+            items: [
+              {
+                id: "sumi",
+                learnerName: "Sumi",
+                status: "APPROVED",
+                managementMode: "SHARED",
+              },
+              {
+                id: "ami",
+                learnerName: "Ami",
+                status: "APPROVED",
+                managementMode: "GUARDIAN_ONLY",
+              },
+              {
+                id: "kamla",
+                learnerName: "Kamla",
+                status: "APPROVED",
+                managementMode: "STUDENT_LED",
+              },
+            ],
+            nextCursor: null,
+          },
+        }),
+      );
+      await page.route("**/api/v1/student-guardian-grants?*", async (route) => {
+        calls++;
+        await loaded;
+        await route.fulfill({ json: { items, nextCursor: null } });
+      });
+      await page.goto("/dashboard");
+      const hub = page.locator(".guardian-learners"),
+        invited = hub.locator(".guardian-support-invitations"),
+        summary = invited.locator("summary"),
+        own = hub.locator(".guardian-relationships");
+      await expect(summary).toContainText(t("Loading invitations…"));
+      await expect(summary).not.toContainText(t("No invitations"));
+      release();
+      await expect(summary).toContainText(t("No invitations"));
+      await expect(invited).toHaveJSProperty("open", false);
+      await expect(own.locator(".guardian-relationship-list > li")).toHaveCount(
+        3,
+      );
+      await expect(own.locator(".guardian-relationships-footer")).toHaveCSS(
+        "background-color",
+        "rgba(0, 0, 0, 0)",
+      );
+      await expect(own.locator(".history-controls > p")).toBeHidden();
+      const panel = await hub.locator(".guardian-family-panel").boundingBox(),
+        box = await invited.boundingBox(),
+        main = await own.boundingBox();
+      expect(box!.height).toBeLessThan(120);
+      expect(main!.width).toBeGreaterThan(panel!.width * 0.9);
+      await expect(
+        own.locator(".guardian-relationship-list h3").first(),
+      ).toHaveCSS("font-size", hindi ? "16px" : "18px");
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      expect(
+        (await new AxeBuilder({ page }).include(".guardian-learners").analyze())
+          .violations,
+      ).toEqual([]);
+      await hub.screenshot({
+        path: `test-results/guardian-minimal-empty-${hindi ? "hi" : "en"}.png`,
+        style: "nextjs-portal{display:none!important}",
+      });
+      await summary.focus();
+      await summary.press("Enter");
+      await expect(invited).toHaveJSProperty("open", true);
+      await expect(
+        invited.getByText(translateText(hindi, "Showing {0} records.", [0]), {
+          exact: true,
+        }),
+      ).toBeHidden();
+      await expect(
+        invited.getByRole("link", {
+          name: t("Manage invitations & shared access"),
+          exact: true,
+        }),
+      ).toHaveAttribute("href", "/dashboard/supported-students");
+      items = [
+        {
+          id: "new-invitation",
+          studentName: "Independent learner",
+          studentAccountId: "adult-id",
+          status: "PENDING",
+          supportMode: "ADVICE",
+        },
+      ];
+      const beforeRefresh = calls;
+      await invited
+        .getByRole("button", { name: t("Reload history"), exact: true })
+        .click();
+      await expect(
+        invited.getByRole("heading", {
+          name: "Independent learner",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(summary).toContainText(
+        translateText(hindi, "{0} invitations", ["1"]),
+      );
+      await expect(summary).toContainText(
+        translateText(hindi, "{0} awaiting reply", [1]),
+      );
+      expect(calls).toBe(beforeRefresh + 1);
+      await expect(
+        invited.getByRole("group", {
+          name: t("Student invitation history"),
+          exact: true,
+        }),
+      ).toBeFocused();
+      await expect(
+        invited.getByRole("link", {
+          name: translateText(hindi, "Review invitation from {0}", [
+            "Independent learner",
+          ]),
+          exact: true,
+        }),
+      ).toHaveAttribute("href", "/dashboard/supported-students");
+      await summary.focus();
+      await summary.press("Enter");
+      await expect(invited).toHaveJSProperty("open", false);
+      await expect(
+        invited.getByRole("heading", {
+          name: "Independent learner",
+          exact: true,
+        }),
+      ).toBeHidden();
+      if (hindi) await checkHindi(page);
+    });
   test("teacher dashboard does not request guardian learner or invitation records", async ({
     page,
   }) => {

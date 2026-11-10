@@ -1,8 +1,20 @@
 "use client";
 import Link from "next/link";
-import { Link2 } from "lucide-react";
+import {
+  Link2,
+  Eye,
+  Plus,
+  ChevronDown,
+  ShieldCheck,
+  Clock3,
+} from "lucide-react";
 import type { Session, components } from "@bcs/api-client";
-import { Button } from "../components/ui/button";
+import {
+  FilterButton,
+  FilterButtonGroup,
+} from "../components/ui/filter-button";
+import { InfoTooltip } from "../components/ui/info-tooltip";
+import { StatusBadge } from "../components/ui/status-controls";
 import { LearningManagementBadge } from "../components/ui/learning-management-badge";
 import { useAppTranslation } from "./locale";
 import { useHistory, HistoryPages } from "./history";
@@ -25,7 +37,7 @@ const invitationStatus = {
   REVOKED: "Invitation access removed",
 };
 export function GuardianLearners({ session }: { session: Session }) {
-  const { appText } = useAppTranslation();
+  const { appText, appLocale } = useAppTranslation();
   const relationships = useHistory<{
     items: S["GuardianVerification"][];
     nextCursor: string | null;
@@ -40,186 +52,266 @@ export function GuardianLearners({ session }: { session: Session }) {
     queryKey: ["guardian-overview-invitations", session.account.id],
     path: "/student-guardian-grants?limit=6",
   });
+  const invitationCount = invitations.loadedCount.toLocaleString(appLocale),
+    pendingInvitations =
+      invitations.data?.items.filter((row) => row.status === "PENDING")
+        .length || 0,
+    invitationsEmpty = !!invitations.data && !invitations.loadedCount;
   return (
     <section
       className="guardian-learners"
-      aria-labelledby="guardian-learners-heading"
+      aria-labelledby="guardian-relationships-heading"
     >
-      <header className="guardian-learners-heading">
-        <div>
-          <h2 id="guardian-learners-heading">
-            {appText("Your learners & invitations")}
-          </h2>
-          <p>
-            {appText(
-              "Manage your child here. Each relationship and invitation has its own permissions.",
-            )}
-          </p>
-        </div>
-        <Button asChild variant="outline">
-          <Link href="/dashboard/learners">
-            {appText("Open education profiles")}
-          </Link>
-        </Button>
-      </header>
-      <div className="guardian-learner-groups">
+      <div className="guardian-family-panel">
         <section
-          className="guardian-learner-group"
-          aria-labelledby="guardian-relationships-heading"
+          className="guardian-relationships"
+          data-complete={
+            !relationships.isFetching &&
+            !!relationships.data &&
+            !relationships.hasNextPage &&
+            !relationships.looped
+              ? "true"
+              : undefined
+          }
         >
-          <h3 id="guardian-relationships-heading">
-            {appText("Your learner relationships")}
-          </h3>
-          <p>
-            {appText(
-              "Hi, Verify each additional child separately.",
-            )}
-          </p>
-          {relationships.data && (
-            <>
-              {!relationships.data.items.length && (
-                <p className="guardian-learner-empty">
-                  {appText(
-                    "No relationship requests yet. Start verification for your first learner.",
-                  )}
-                </p>
-              )}
-              <ul className="guardian-learner-cards">
+          <header className="guardian-relationships-heading">
+            <div>
+              <h2 id="guardian-relationships-heading">
+                {appText("Your learner relationships")}
+              </h2>
+              <InfoTooltip
+                label={appText("About learner relationships")}
+                items={[
+                  appText(
+                    "Verify each child separately. Saving education details does not send a verification request.",
+                  ),
+                  appText(
+                    "Relationship approval is separate from learning permission and profile setup.",
+                  ),
+                ]}
+              />
+            </div>
+            <FilterButton asChild accent>
+              <Link href="/guardian-verification?new=1">
+                <Plus size={16} aria-hidden="true" />
+                {appText("Verify learner")}
+              </Link>
+            </FilterButton>
+          </header>
+          {relationships.data &&
+            (!relationships.data.items.length ? (
+              <p className="guardian-relationship-empty">
+                {appText(
+                  "No relationship requests yet. Start verification for your first learner.",
+                )}
+              </p>
+            ) : (
+              <ul className="guardian-relationship-list">
                 {relationships.data.items.map((row) => (
                   <li key={row.id}>
-                    <div className="guardian-learner-card-heading">
-                      <h4>{row.learnerName}</h4>
-                      <span
-                        className={
-                          row.status === "APPROVED"
-                            ? "guardian-learner-status verified"
-                            : "guardian-learner-status"
-                        }
-                      >
-                        {appText(relationshipStatus[row.status])}
-                      </span>
-                    </div>
-                    <p>
-                      <strong>{appText("Verification choice")}: </strong>
-                      <LearningManagementBadge label={appText(
-                        {
-                          GUARDIAN_ONLY: "Guardian manages learning",
-                          SHARED: "Guardian and student manage together",
-                          STUDENT_LED:
-                            "Student manages; guardian follows progress",
-                        }[row.managementMode],
-                      )} items={[appText("Relationship approval is separate from learning permission and profile setup.")]} />
-                    </p>
-                    <p className="care-help">
-                      {appText(
+                    <h3>{row.learnerName}</h3>
+                    <StatusBadge
+                      label={appText(relationshipStatus[row.status])}
+                      tone={
                         row.status === "APPROVED"
-                          ? "Relationship approval is separate from learning permission and profile setup."
-                          : "Review this request for evidence, acknowledgment and the next verification step.",
-                      )}
-                    </p>
-                    <Button asChild variant="ghost">
-                      <Link href="/guardian-verification">
-                        {appText("Review relationship requests")}
-                      </Link>
-                    </Button>
+                          ? "success"
+                          : ["PENDING", "CHANGES_REQUESTED"].includes(
+                                row.status,
+                              )
+                            ? "warning"
+                            : "neutral"
+                      }
+                      icon={row.status === "APPROVED" ? ShieldCheck : Clock3}
+                    />
+                    <Link
+                      className="guardian-learner-eye"
+                      href={
+                        "/guardian-verification?request=" +
+                        encodeURIComponent(row.id)
+                      }
+                      aria-label={appText("View relationship for {0}", [
+                        row.learnerName,
+                      ])}
+                      title={appText("View relationship for {0}", [
+                        row.learnerName,
+                      ])}
+                    >
+                      <Eye size={18} aria-hidden="true" />
+                    </Link>
+                    <div className="guardian-learner-management">
+                      <LearningManagementBadge
+                        label={appText(
+                          {
+                            GUARDIAN_ONLY: "Guardian manages learning",
+                            SHARED: "Guardian and student manage together",
+                            STUDENT_LED:
+                              "Student manages; guardian follows progress",
+                          }[row.managementMode],
+                        )}
+                        items={[
+                          appText(
+                            "Relationship approval is separate from learning permission and profile setup.",
+                          ),
+                          ...(row.status === "APPROVED"
+                            ? []
+                            : [
+                                appText(
+                                  "Review this request for evidence, acknowledgment and the next verification step.",
+                                ),
+                              ]),
+                        ]}
+                      />
+                    </div>
                   </li>
                 ))}
               </ul>
-            </>
-          )}
-          <HistoryPages
-            history={relationships}
-            label="Learner relationship history"
-          />
-          <Button asChild variant="outline">
-            <Link href="/guardian-verification">
-              {appText("Verify another learner relationship")}
+            ))}
+          <footer className="guardian-relationships-footer">
+            <HistoryPages
+              history={relationships}
+              label="Learner relationship history"
+            />
+            <Link
+              className="guardian-education-link"
+              href="/dashboard/learners"
+            >
+              {appText("Open education profiles")}
             </Link>
-          </Button>
+          </footer>
         </section>
-        <section
-          className="guardian-learner-group invited"
-          aria-labelledby="guardian-invitations-heading"
+        <details
+          className="guardian-support-invitations"
+          data-empty={invitationsEmpty ? "true" : undefined}
         >
-          <div className="guardian-invitation-header">
-            <h3 id="guardian-invitations-heading">{appText("Students who invited you")}</h3>
-            <span className="guardian-invitation-label"><Link2 size={16} aria-hidden="true" />{appText("Invited access")}</span>
-          </div>
-          <p>
-            {appText(
-              "An invitation shares learning access; it does not verify a parent or guardian relationship.",
-            )}
-          </p>
-          {invitations.data && (
-            <>
-              {!invitations.data.items.length && (
-                <p className="guardian-learner-empty">
-                  {appText(
-                    "No student invitations yet. Students can invite your registered email from Learning support.",
-                  )}
-                </p>
+          <summary>
+            <Link2 size={18} aria-hidden="true" />
+            <span className="guardian-support-title">
+              {appText("Student support invitations")}
+            </span>
+            <span className="guardian-support-meta" aria-live="polite">
+              {appText(
+                invitations.error
+                  ? "Invitations unavailable"
+                  : invitations.isPending || invitations.isFetching
+                    ? "Loading invitations…"
+                    : invitations.loadedCount
+                      ? "{0} invitations"
+                      : "No invitations",
+                [
+                  invitationCount +
+                    (invitations.hasNextPage || invitations.looped ? "+" : ""),
+                ],
               )}
-              <ul className="guardian-learner-cards">
-                {invitations.data.items.map((row) => (
-                  <li key={row.id}>
-                    <div className="guardian-learner-card-heading">
-                      <h4>{row.studentName || appText("Student")}</h4>
-                      <span className="guardian-learner-status">
-                        {appText(invitationStatus[row.status])}
-                      </span>
-                    </div>
-                    <p>
-                      <strong>{appText("Permission")}: </strong>
-                      {appText(
-                        row.supportMode === "MANAGE"
-                          ? "Manage shared learning"
-                          : "Advice only",
-                      )}
-                    </p>
-                    <p className="care-help">
-                      {appText(
-                        row.status === "ACTIVE"
-                          ? "Access covers this student's shared learning only. Account ownership, sign-in and financial confirmations stay with the student."
-                          : "No shared-profile access is granted by a pending or closed invitation.",
-                      )}
-                    </p>
-                    {row.status === "ACTIVE" ? (
-                      <Button asChild variant="secondary">
+              {!!pendingInvitations && (
+                <span className="guardian-support-pending">
+                  {appText("{0} awaiting reply", [pendingInvitations])}
+                </span>
+              )}
+            </span>
+            <ChevronDown
+              className="guardian-support-chevron"
+              size={18}
+              aria-hidden="true"
+            />
+          </summary>
+          <div className="guardian-support-content">
+            <div className="guardian-support-explainer">
+              <p>
+                {appText(
+                  "Independent adult students can invite your registered email from Learning support.",
+                )}
+              </p>
+              <InfoTooltip
+                label={appText("About invited access")}
+                items={[
+                  appText(
+                    "An invitation shares learning access; it does not verify a parent or guardian relationship.",
+                  ),
+                  appText(
+                    "Access covers this student's shared learning only. Account ownership, sign-in and financial confirmations stay with the student.",
+                  ),
+                ]}
+              />
+            </div>
+            {invitations.data && !!invitations.data.items.length && (
+              <ul className="guardian-support-list">
+                {invitations.data.items.map((row) => {
+                  const name = row.studentName || appText("Student"),
+                    action =
+                      row.status === "PENDING"
+                        ? appText("Review invitation from {0}", [name])
+                        : appText(
+                            row.supportMode === "MANAGE"
+                              ? "Manage shared learning for {0}"
+                              : "View shared learning for {0}",
+                            [name],
+                          );
+                  return (
+                    <li key={row.id}>
+                      <h3>{name}</h3>
+                      <StatusBadge
+                        label={appText(invitationStatus[row.status])}
+                        tone={
+                          row.status === "ACTIVE"
+                            ? "accent"
+                            : row.status === "PENDING"
+                              ? "warning"
+                              : "neutral"
+                        }
+                        icon={row.status === "PENDING" ? Clock3 : Link2}
+                      />
+                      {["ACTIVE", "PENDING"].includes(row.status) && (
                         <Link
+                          className="guardian-learner-eye"
                           href={
-                            "/dashboard/supported-students?student=" +
-                            encodeURIComponent(row.studentAccountId)
+                            row.status === "ACTIVE"
+                              ? "/dashboard/supported-students?student=" +
+                                encodeURIComponent(row.studentAccountId)
+                              : "/dashboard/supported-students"
                           }
+                          aria-label={action}
+                          title={action}
                         >
+                          <Eye size={18} aria-hidden="true" />
+                        </Link>
+                      )}
+                      <div className="guardian-support-permission">
+                        <span>
                           {appText(
                             row.supportMode === "MANAGE"
                               ? "Manage shared learning"
-                              : "View shared learning",
+                              : "Advice only",
                           )}
-                        </Link>
-                      </Button>
-                    ) : row.status === "PENDING" ? (
-                      <Button asChild variant="secondary">
-                        <Link href="/dashboard/supported-students">
-                          {appText("Review invitation")}
-                        </Link>
-                      </Button>
-                    ) : null}
-                  </li>
-                ))}
+                        </span>
+                        <InfoTooltip
+                          label={appText("Shared access for {0}", [name])}
+                          items={[
+                            appText(
+                              row.status === "ACTIVE"
+                                ? "Access covers this student's shared learning only. Account ownership, sign-in and financial confirmations stay with the student."
+                                : "No shared-profile access is granted by a pending or closed invitation.",
+                            ),
+                          ]}
+                        />
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
-            </>
-          )}
-          <HistoryPages
-            history={invitations}
-            label="Student invitation history"
-          />
-          <Button asChild variant="outline">
-            <Link href="/dashboard/supported-students">
-              {appText("Manage invitations & shared access")}
-            </Link>
-          </Button>
-        </section>
+            )}
+            <FilterButtonGroup className="guardian-support-actions">
+              <HistoryPages
+                history={invitations}
+                label="Student invitation history"
+              />
+              <FilterButton asChild>
+                <Link href="/dashboard/supported-students">
+                  {appText("Manage invitations & shared access")}
+                </Link>
+              </FilterButton>
+            </FilterButtonGroup>
+          </div>
+        </details>
       </div>
     </section>
   );
