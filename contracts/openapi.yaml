@@ -38685,6 +38685,7 @@
                 "type": "string",
                 "enum": [
                   "ADMIN",
+                  "PRO_PREVIEW",
                   "PRO_REQUIRED"
                 ]
               },

@@ -253,7 +253,9 @@ export class PromotionInsightsController {
         >(
           Prisma.sql`SELECT count(*) AS total,count(DISTINCT d."ownerId") FILTER(WHERE d.kind='GUARDIAN') AS parents,count(DISTINCT d."ownerId") FILTER(WHERE d.kind='INDEPENDENT') AS students FROM "DirectEnquiry" d WHERE ${enquiryScope}`,
         );
-        // shortcut: Teacher Pro is not launched; keep identities locked until teacher entitlements and consented contact sharing exist.
+        const proPreview = development() && actor.role === "TEACHER" && selected?.slug === "meera-sahu" &&
+          !!(await db.featureFlag.findUnique({where:{name:"teacherProPreview:" + teacherId}}))?.enabled;
+        // shortcut: Local Pro preview unlocks demo contacts only; real identities require teacher entitlements and consented sharing.
         const enquiries =
           actor.role === "ADMIN"
             ? await db.$queryRaw<
@@ -310,7 +312,7 @@ export class PromotionInsightsController {
             visits: Number(visits),
           })),
           enquiries: {
-            detailsAccess: actor.role === "ADMIN" ? "ADMIN" : "PRO_REQUIRED",
+            detailsAccess: actor.role === "ADMIN" ? "ADMIN" : proPreview ? "PRO_PREVIEW" : "PRO_REQUIRED",
             demoContact:
               development() && selected?.slug === "meera-sahu"
                 ? {

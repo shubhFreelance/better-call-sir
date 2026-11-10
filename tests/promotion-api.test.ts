@@ -361,6 +361,20 @@ test("promotion activity and scoped reports measure real daily audience without 
   assert.equal(sample.data.enquiries.detailsAccess,"PRO_REQUIRED");assert.deepEqual(sample.data.enquiries.items,[]);
   assert.deepEqual(sample.data.enquiries.demoContact,{demo:true,teacherName:meera.name,name:"Asha Verma",email:"asha.parent@example.test",phone:"00000 00000",subject:"Science"});
   assert.equal(sample.data.summary.enquiries,0);assert.equal(sample.data.summary.clicks,0);
+  const previewName="teacherProPreview:"+meera.id;
+  try {
+    await db.featureFlag.create({data:{name:previewName,enabled:true}});
+    const preview=await meeraClient.call("/promotions/analytics");
+    assert.equal(preview.status,200);assert(validate(preview.data),JSON.stringify(validate.errors));
+    assert.equal(preview.data.enquiries.detailsAccess,"PRO_PREVIEW");
+    assert.deepEqual(preview.data.enquiries.items,[]);
+    assert.deepEqual(preview.data.enquiries.demoContact,sample.data.enquiries.demoContact);
+    assert.deepEqual(preview.data.summary,sample.data.summary);
+    assert.equal((await teacher.call("/promotions/analytics")).data.enquiries.detailsAccess,"PRO_REQUIRED");
+    assert.equal((await admin.call("/promotions/analytics?teacherId="+meera.id)).data.enquiries.detailsAccess,"ADMIN");
+    await db.featureFlag.update({where:{name:previewName},data:{enabled:false}});
+    assert.equal((await meeraClient.call("/promotions/analytics")).data.enquiries.detailsAccess,"PRO_REQUIRED");
+  } finally { await db.featureFlag.deleteMany({where:{name:previewName}}); }
   assert.equal((await admin.call("/promotions?teacherId="+ids.teacher)).data.items.every((p:any)=>p.teacherId===ids.teacher),true);
   const privacy=await db.privacyRequest.create({data:{kind:"DELETION",scope:"ACCOUNT",resourceId:ids.guardian,accountId:ids.guardian,reason:"Synthetic analytics privacy pause"}});
   assert.equal((await parent.call("/promotion-activity",event)).data.recorded,false);
