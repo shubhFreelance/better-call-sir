@@ -234,9 +234,9 @@ export class PromotionInsightsController {
         >(Prisma.sql`SELECT to_char(e.day,'YYYY-MM-DD') AS day,count(*) FILTER (WHERE e.kind='CARD_CLICK') AS clicks,count(*) FILTER (WHERE e.kind='PROFILE_VISIT') AS visits
     FROM "PromotionActivity" e JOIN "Account" a ON a.id=e."viewerId" WHERE ${eventScope} AND ${monthScope} GROUP BY e.day ORDER BY e.day DESC`);
         const recentActivity = await db.$queryRaw<{
-          id: string; teacherName: string; kind: string; audience: string;
+          teacherName: string; kind: string; audience: string;
           placement: string | null; createdAt: Date;
-        }[]>(Prisma.sql`SELECT e.id,t.name AS "teacherName",e.kind,e.audience,p.placement,e."createdAt"
+        }[]>(Prisma.sql`SELECT t.name AS "teacherName",e.kind,e.audience,p.placement,e."createdAt"
     FROM "PromotionActivity" e JOIN "Account" a ON a.id=e."viewerId" JOIN "Teacher" t ON t.id=e."teacherId"
     LEFT JOIN "TeacherPromotion" p ON p.id=e."promotionId" AND p."teacherId"=e."teacherId"
     WHERE ${eventScope} AND ${monthScope} ORDER BY e."createdAt" DESC,e.id DESC LIMIT 10`);
