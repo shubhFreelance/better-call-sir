@@ -25,7 +25,7 @@ import {
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { Check, FileCheck2, GraduationCap } from "lucide-react";
+import { Check, FileCheck2, GraduationCap, Pencil } from "lucide-react";
 import {
   api,
   sessionApi,
@@ -35,6 +35,10 @@ import {
 } from "@bcs/api-client";
 import { EmailLogin } from "./email-login";
 import { Button } from "../components/ui/button";
+import {
+  FilterButton,
+  FilterButtonGroup,
+} from "../components/ui/filter-button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Alert, AlertDescription } from "../components/ui/alert";
@@ -1054,7 +1058,7 @@ function ApplicationWizard({
               </>
             )}
             {step === 4 && (
-              <div className="wizard-review">
+              <div className="wizard-review teacher-application-review">
                 {[
                   [
                     "Your teaching",
@@ -1115,88 +1119,96 @@ Not shown publicly`,
                     ),
                     `${values.languages?.join(", ")} · ${values.modes?.map((m) => (m === "HOME" ? "At home" : "Online")).join(", ")}\n${values.modes?.includes("HOME") ? values.localities?.join(", ") + "\n" : ""}${money(Math.round(Number(price) * 100), appLocale)} per month\nConsultation interest: ${values.consultationOptIn ? "Yes" : "No"}`,
                   ],
-                ].map(([title, line, detail], i) => (
-                  <div className="wizard-review-row" key={title}>
-                    <div>
-                      <h3>{appText(title)}</h3>
-                      <p>
-                        {i === 0
-                          ? appText("{0} · {1} years", [values.name, years])
-                          : i === 2
-                            ? values.education
-                                ?.map(
-                                  (r) =>
-                                    `${appText(milestones[r.milestone])}: ${appText(r.status)}`,
-                                )
-                                .join(" · ")
-                            : appText(line)}
-                      </p>
-                      <p className="teacher-review-detail">
-                        {i === 0 ? (
-                          detail
-                        ) : i === 1 ? (
-                          <>
-                            {values.address?.locality}, {values.address?.city},{" "}
-                            {values.address?.state} {values.address?.postalCode}{" "}
-                            · {appText("India")}
-                            <br />
-                            {appText("Not shown publicly")}
-                          </>
-                        ) : i === 2 ? (
-                          detail
-                        ) : i === 6 ? (
-                          <>
-                            {values.languages
-                              ?.map((value) => appCurriculum(value))
-                              .join(", ")}{" "}
-                            ·{" "}
-                            {values.modes
-                              ?.map((value) => appText(value))
-                              .join(", ")}
-                            <br />
-                            {values.localities?.join(", ")}
-                            <br />
-                            {money(
-                              Math.round(Number(price) * 100),
-                              appLocale,
-                            )}{" "}
-                            {appText("per month")}
-                            <br />
-                            {appText("Consultation interest:")}{" "}
-                            {appText(values.consultationOptIn ? "Yes" : "No")}
-                          </>
-                        ) : i === 3 ? (
-                          values.employment
-                            ?.map(
-                              (r) =>
-                                `${r.organization} · ${r.role} · ${r.fromYear}–${r.toYear || appText("current")} · ${appText(r.proof)}`,
-                            )
-                            .join("\n") || appText("No previous work recorded.")
-                        ) : (
-                          appText(detail)
-                        )}
-                      </p>
+                ].map(([title, line, detail], i) => {
+                  const editLabel =
+                    appText("Edit") +
+                    " " +
+                    appText(
+                      [
+                        "teaching profile",
+                        "private address",
+                        "education",
+                        "previous work",
+                        "lock-in preference",
+                        "demo preference",
+                        "coverage",
+                      ][i],
+                    );
+                  return (
+                    <div className="wizard-review-row" key={title}>
+                      <div>
+                        <h3>{appText(title)}</h3>
+                        <p>
+                          {i === 0
+                            ? appText("{0} · {1} years", [values.name, years])
+                            : i === 2
+                              ? values.education
+                                  ?.map(
+                                    (r) =>
+                                      `${appText(milestones[r.milestone])}: ${appText(r.status)}`,
+                                  )
+                                  .join(" · ")
+                              : appText(line)}
+                        </p>
+                        <p className="teacher-review-detail">
+                          {i === 0 ? (
+                            detail
+                          ) : i === 1 ? (
+                            <>
+                              {values.address?.locality}, {values.address?.city}
+                              , {values.address?.state}{" "}
+                              {values.address?.postalCode} · {appText("India")}
+                              <br />
+                              {appText("Not shown publicly")}
+                            </>
+                          ) : i === 2 ? (
+                            detail
+                          ) : i === 6 ? (
+                            <>
+                              {values.languages
+                                ?.map((value) => appCurriculum(value))
+                                .join(", ")}{" "}
+                              ·{" "}
+                              {values.modes
+                                ?.map((value) => appText(value))
+                                .join(", ")}
+                              <br />
+                              {values.localities?.join(", ")}
+                              <br />
+                              {money(
+                                Math.round(Number(price) * 100),
+                                appLocale,
+                              )}{" "}
+                              {appText("per month")}
+                              <br />
+                              {appText("Consultation interest:")}{" "}
+                              {appText(values.consultationOptIn ? "Yes" : "No")}
+                            </>
+                          ) : i === 3 ? (
+                            values.employment
+                              ?.map(
+                                (r) =>
+                                  `${r.organization} · ${r.role} · ${r.fromYear}–${r.toYear || appText("current")} · ${appText(r.proof)}`,
+                              )
+                              .join("\n") ||
+                            appText("No previous work recorded.")
+                          ) : (
+                            appText(detail)
+                          )}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        type="button"
+                        aria-label={editLabel}
+                        title={editLabel}
+                        onClick={() => setStep([0, 1, 2, 2, 3, 3, 3][i])}
+                      >
+                        <Pencil size={16} aria-hidden="true" />
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      type="button"
-                      onClick={() => setStep([0, 1, 2, 2, 3, 3, 3][i])}
-                    >
-                      {appText("Edit")}{" "}
-                      {appText(
-                        [
-                          "teaching profile",
-                          "private address",
-                          "education",
-                          "previous work",
-                          "lock-in preference",
-                          "demo preference",
-                          "coverage",
-                        ][i],
-                      )}
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
                 <Message>
                   {profile
                     ? appText(
@@ -1241,33 +1253,31 @@ Not shown publicly`,
           </fieldset>
           {error && <Message error>{appError(error)}</Message>}
           {conflict && (
-            <RefreshButton type="button" variant="outline" onClick={onReload} label={appText("Reload saved application")} />
+            <RefreshButton
+              type="button"
+              variant="outline"
+              onClick={onReload}
+              label={appText("Reload saved application")}
+            />
           )}
-          <div className="wizard-actions">
+          <FilterButtonGroup className="wizard-actions teacher-application-actions">
             {step > 0 && (
-              <Button
-                variant="outline"
+              <FilterButton
                 type="button"
-                className="button secondary"
                 disabled={locked}
                 onClick={() => setStep((s) => s - 1)}
               >
                 {appText("Back")}{" "}
-              </Button>
+              </FilterButton>
             )}
             {onCancel && (
-              <Button
-                variant="ghost"
-                type="button"
-                disabled={locked}
-                onClick={onCancel}
-              >
+              <FilterButton type="button" disabled={locked} onClick={onCancel}>
                 {appText("Return to workspace")}{" "}
-              </Button>
+              </FilterButton>
             )}
-            <Button
+            <FilterButton
               type="submit"
-              className="button"
+              accent
               disabled={busy || conflict || (uncertain && step < 4)}
             >
               {busy
@@ -1279,11 +1289,11 @@ Not shown publicly`,
                   : profile
                     ? appText("Resubmit for review")
                     : appText("Submit teacher application")}
-            </Button>
+            </FilterButton>
             {uncertain && step < 4 && (
-              <Button
+              <FilterButton
                 type="button"
-                className="button"
+                accent
                 disabled={busy}
                 onClick={async () => {
                   setUncertain(false);
@@ -1291,9 +1301,9 @@ Not shown publicly`,
                 }}
               >
                 {appText("Retry saving progress")}{" "}
-              </Button>
+              </FilterButton>
             )}
-          </div>
+          </FilterButtonGroup>
           {profile && (
             <p className="wizard-save-note">
               {appText(
@@ -1457,7 +1467,8 @@ function RevisionEditor({
               variant="ghost"
               disabled={busy || !!pending.current}
               onClick={onReload}
-             label={appText("Reload current application")} />
+              label={appText("Reload current application")}
+            />
           </div>
         </section>
       </main>
@@ -1584,7 +1595,8 @@ function TeacherWorkspace({
                 className="button secondary"
                 onClick={onReload}
                 disabled={scheduleLocked}
-               label={appText("Refresh review status")} />
+                label={appText("Refresh review status")}
+              />
               <Button
                 variant="ghost"
                 disabled={scheduleLocked}

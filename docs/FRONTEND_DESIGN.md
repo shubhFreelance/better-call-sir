@@ -1,5 +1,7 @@
 # Frontend design direction
 
+Teacher application review: scope styles to teacher-application-review so guardian review screens keep their own layout. Separate white sections with 16px gaps (14px phone), sage title bands, 12px detail copy and a lavender private-address heading. Keep private visibility and submission/fee/screening guidance visible. Use translated aria-label/title pencil-only 44px edit buttons at each heading's right edge with lavender hover, preserving step targets and locks. Application action rows reuse FilterButtonGroup/FilterButton; retain native submit/button types and exact uncertain-write retries.
+
 Promotion analytics contrast: summary/report cards use white bodies on the cream page, sage #EEF5F3 title bands and subtle dividing borders. Profile activity uses a soft lavender #F8EDFF header; layered report footers retain lavender. Keep the existing compact teal typography and consistent 22px desktop/18px phone summary gutters. Scope these colours to analytics rather than changing every LayeredSummaryCard.
 
 Shared enquiry inbox heading: top-align a bounded metric column with the conversation title and guidance. Use a centered 56px lavender icon, 34px count (32px phone), 22px heading and 12px supporting copy with explicit zero paragraph margins. Preserve the #E4E4D0 enclosure and stack columns on phones. All dashboard roles share these styles; keep pending/error count semantics and role-specific wording.

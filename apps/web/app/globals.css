@@ -6380,6 +6380,23 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .wizard-review .wizard-review-row { padding:18px; border:1px solid #E2E5D6; border-radius:12px; background:#FFFFEB; }
 .wizard-review-row h3 { font-size:14px; }
 .wizard-review-row p { font-size:13px; }
+.teacher-application-review { display:grid; gap:16px; }
+.teacher-application-review .wizard-review-row { position:relative; display:block; overflow:hidden; padding:0; border-color:#DDE5DD; border-radius:14px; background:#FFF; }
+.teacher-application-review .wizard-review-row h3 { margin:0; padding:16px 64px 16px 20px; border-bottom:1px solid #DDE5DD; background:#EEF5F3; color:#034F46; font-size:14px; font-weight:650; line-height:1.5; }
+.teacher-application-review .wizard-review-row:nth-child(2) h3 { background:#F8EDFF; }
+.teacher-application-review .wizard-review-row p { margin:0; padding:16px 20px 0; font-size:12px; line-height:1.8; color:#52655F; }
+.teacher-application-review .wizard-review-row .teacher-review-detail { padding:6px 20px 18px; }
+.teacher-application-review .wizard-review-row > button { position:absolute; top:4px; right:10px; display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; max-width:none; padding:0; border:1px solid transparent; border-radius:50%; color:#034F46; background:transparent; }
+.teacher-application-review .wizard-review-row > button:hover:not(:disabled) { border-color:#D8A8ED; background:#F0D7FF; }
+.teacher-application-review .wizard-review-row > button:focus-visible { outline:2px solid #034F46; outline-offset:-3px; }
+.teacher-application-review > :is(.wizard-checkbox,[data-slot=alert],.wizard-help) { margin:0; font-size:12px; line-height:1.7; }
+.teacher-application-actions.filter-button-group { margin:24px 0 0; }
+@media(max-width:640px) {
+  .teacher-application-review {gap:14px;}
+  .teacher-application-review .wizard-review-row h3 {padding:16px 60px 16px 16px;}
+  .teacher-application-review .wizard-review-row p {padding:14px 16px 0;}
+  .teacher-application-review .wizard-review-row .teacher-review-detail {padding:6px 16px 16px;}
+}
 .student-enquiry-layout .independent-guide p { font-size:12px; line-height:1.7; padding:12px 14px; border:1px solid #E0D4EA; border-radius:12px; }
 @media(max-width:640px) {
   .invitation-recovery, .invitation-recovery .family-invitation, .guardian-verification-editor .guardian-evidence-step:has(.guardian-inline-setup) { padding:16px; }

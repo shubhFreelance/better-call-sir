@@ -808,6 +808,16 @@ test("private education records and a declined demo survive review and submissio
     })
     .click();
   await expect(page.getByText(/12 Synthetic Road/)).toBeVisible();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.locator(".wizard-card").screenshot({
+    path: "test-results/teacher-application-review-desktop.png",
+    style: "nextjs-portal{display:none!important}",
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator(".wizard-card").screenshot({
+    path: "test-results/teacher-application-review-phone.png",
+    style: "nextjs-portal{display:none!important}",
+  });
   await page.getByRole("checkbox").check();
   await page
     .getByRole("button", { name: "Submit teacher application", exact: true })
