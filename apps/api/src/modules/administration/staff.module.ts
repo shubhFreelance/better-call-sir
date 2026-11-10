@@ -60,11 +60,14 @@ class StaffController {
    const authority=await this.admin(req,db);
    const row=await db.staffChange.findUnique({where:{id}});
    if(!row)fail(404,'NOT_FOUND','Staff change not found.');
+   const ownSuperCreate=row.kind==='CREATE'&&authority.superAdmin&&row.proposerId===actor.id;
    if(row.status!=='PENDING'||row.version!==data.expectedVersion)fail(409,'STALE_VERSION','The staff change was already decided. Refresh its history.');
-   if(data.decision==='CANCEL'?(actor.id!==row.proposerId):(actor.id===row.targetAccountId||actor.id===row.proposerId&&!(row.kind==='CREATE'&&authority.superAdmin)))fail(403,'INDEPENDENT_APPROVAL_REQUIRED','A different administrator must independently review this change.');
+   if(data.decision==='CANCEL'?(actor.id!==row.proposerId):(actor.id===row.targetAccountId||actor.id===row.proposerId&&!ownSuperCreate))fail(403,'INDEPENDENT_APPROVAL_REQUIRED','A different administrator must independently review this change.');
    if(data.decision==='APPROVE'){
     if(row.expiresAt<new Date())fail(409,'APPROVAL_EXPIRED','This proposal expired. Create a fresh review.');
-    const proposer=await db.account.findUnique({where:{id:row.proposerId}});if(!proposer||proposer.disabled||proposer.role!=='ADMIN'||proposer.authVersion!==row.proposerAuthVersion)fail(409,'PROPOSER_UNAVAILABLE','The proposer is no longer an active administrator.');
+    const proposer=await db.account.findUnique({where:{id:row.proposerId}});if(!proposer||proposer.disabled||proposer.role!=='ADMIN')fail(409,'PROPOSER_UNAVAILABLE','The proposer is no longer an active administrator.');
+    // Current Super admin authority re-confirms only their own new-staff request after an access upgrade.
+    if(proposer.authVersion!==row.proposerAuthVersion&&!ownSuperCreate)fail(409,'PROPOSER_UNAVAILABLE','The proposer access changed. Create a new staff proposal.');
     if(row.kind==='CREATE'){
      if(await db.account.findUnique({where:{email:row.email}}))fail(409,'STAFF_EMAIL_IN_USE','That email is already assigned.');
      const created=await db.account.create({data:{email:row.email,name:row.name,role:row.role,region:row.region,authVersion:1}});
@@ -83,7 +86,7 @@ class StaffController {
     }
    }
    const result=await db.staffChange.update({where:{id},data:{status:data.decision==='APPROVE'?'APPROVED':data.decision==='REJECT'?'REJECTED':'CANCELLED',approverId:data.decision==='CANCEL'?null:actor.id,decisionReason:data.reason,decidedAt:new Date(),version:{increment:1}}});
-   await this.service.audit(db,actor,req,'STAFF_CHANGE_'+result.status,id,data.reason,{status:row.status,version:row.version},{status:result.status,kind:row.kind,targetAccountId:result.targetAccountId,proposerId:row.proposerId,approverId:result.approverId});return result;
+   await this.service.audit(db,actor,req,'STAFF_CHANGE_'+result.status,id,data.reason,{status:row.status,version:row.version},{status:result.status,kind:row.kind,targetAccountId:result.targetAccountId,proposerId:row.proposerId,approverId:result.approverId,...(ownSuperCreate?{authority:'SUPER_ADMIN',proposerAuthVersion:row.proposerAuthVersion,currentAuthVersion:authority.authVersion}:{})});return result;
   });
  }
 }

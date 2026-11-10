@@ -1631,10 +1631,23 @@ test('explicit super admin creates approved staff atomically without granting su
 test('super admin can approve their earlier pending creation while ordinary administrators cannot manage highest access',async()=>{
  const a=await staffAdmin('future super administrator'),b=await staffAdmin('ordinary approver'),old=await a.client.call('/admin/staff/changes',staffProposal());assert.equal(old.data.status,'PENDING');
  const before=await b.client.call('/admin/staff/changes',staffProposal({kind:'RECOVER',targetAccountId:a.account.id,expectedAuthVersion:0,email:undefined,name:undefined,role:undefined,region:undefined}));assert.equal(before.status,201);
- await db.account.update({where:{id:a.account.id},data:{superAdmin:true}});
+ await db.account.update({where:{id:a.account.id},data:{superAdmin:true,authVersion:{increment:1}}});
+ assert.equal((await a.client.call('/auth/session')).status,401);a.client=await login(a.account.id);
  assert.equal((await b.client.call(`/admin/staff/changes/${before.data.id}/decision`,staffDecision())).status,403);
- const approved=await a.client.call(`/admin/staff/changes/${old.data.id}/decision`,staffDecision());assert.equal(approved.status,201,JSON.stringify(approved.data));assert.equal(approved.data.status,'APPROVED');assert.equal(approved.data.approverId,a.account.id);
+ const ordinary=await b.client.call(`/admin/staff/changes/${old.data.id}/decision`,staffDecision());assert.equal(ordinary.status,409);assert.equal(ordinary.data.code,'PROPOSER_UNAVAILABLE');
+ const key=randomUUID(),path=`/admin/staff/changes/${old.data.id}/decision`,approved=await a.client.call(path,staffDecision(),{key});assert.equal(approved.status,201,JSON.stringify(approved.data));assert.equal(approved.data.status,'APPROVED');assert.equal(approved.data.approverId,a.account.id);
+ assert.equal((await a.client.call(path,staffDecision(),{key})).data.targetAccountId,approved.data.targetAccountId);assert.equal((await db.staffChange.findUniqueOrThrow({where:{id:old.data.id}})).proposerAuthVersion,0);
+ const audit=await db.audit.findFirstOrThrow({where:{aggregateId:old.data.id,action:'STAFF_CHANGE_APPROVED'}});assert.deepEqual(audit.after,{status:'APPROVED',kind:'CREATE',targetAccountId:approved.data.targetAccountId,proposerId:a.account.id,approverId:a.account.id,authority:'SUPER_ADMIN',proposerAuthVersion:0,currentAuthVersion:1});assert.equal(await db.audit.count({where:{aggregateId:old.data.id,action:'STAFF_CHANGE_APPROVED'}}),1);
  await assert.rejects(db.staffChange.create({data:{id:randomUUID(),kind:'CHANGE',targetAccountId:b.account.id,email:b.account.email!,name:b.account.name,role:'REVIEWER',region:'Raipur',expectedAuthVersion:0,proposerId:a.account.id,proposerAuthVersion:0,approverId:a.account.id,reason:'Synthetic disallowed self approval',evidenceRef:'test:authority',status:'APPROVED',expiresAt:new Date(Date.now()+86400000)}}));
+});
+
+test('super admin re-confirmation keeps expired, disabled, foreign-proposer and other access-change protections',async()=>{
+ const a=await staffAdmin('reconfirm own'),b=await staffAdmin('other proposer'),target=await staffAdmin('unchanged target');
+ const own=await a.client.call('/admin/staff/changes',staffProposal()),expired=await a.client.call('/admin/staff/changes',staffProposal()),foreign=await b.client.call('/admin/staff/changes',staffProposal()),change=await a.client.call('/admin/staff/changes',staffProposal({kind:'CHANGE',email:undefined,name:undefined,targetAccountId:target.account.id,expectedAuthVersion:0,role:'REVIEWER'}));
+ await db.account.update({where:{id:a.account.id},data:{superAdmin:true,authVersion:{increment:1}}});a.client=await login(a.account.id);await db.account.update({where:{id:b.account.id},data:{authVersion:{increment:1}}});await db.staffChange.update({where:{id:expired.data.id},data:{expiresAt:new Date(0)}});
+ assert.equal((await a.client.call(`/admin/staff/changes/${expired.data.id}/decision`,staffDecision())).data.code,'APPROVAL_EXPIRED');assert.equal((await a.client.call(`/admin/staff/changes/${foreign.data.id}/decision`,staffDecision())).data.code,'PROPOSER_UNAVAILABLE');assert.equal((await a.client.call(`/admin/staff/changes/${change.data.id}/decision`,staffDecision())).status,403);
+ await db.session.updateMany({where:{accountId:a.account.id},data:{mfaVerifiedAt:new Date(Date.now()-301000)}});assert.equal((await a.client.call(`/admin/staff/changes/${own.data.id}/decision`,staffDecision())).data.code,'MFA_REQUIRED');await db.session.updateMany({where:{accountId:a.account.id},data:{mfaVerifiedAt:new Date()}});await db.account.update({where:{id:a.account.id},data:{disabled:true}});assert.notEqual((await a.client.call(`/admin/staff/changes/${own.data.id}/decision`,staffDecision())).status,201);
+ for(const row of [own,expired,foreign,change])assert.equal((await db.staffChange.findUniqueOrThrow({where:{id:row.data.id}})).status,'PENDING');
 });
 
 test('staff proposals require recent administrator MFA, strict dedicated identity and independent approval',async()=>{
@@ -1693,7 +1706,7 @@ test('staff suspension, rejection and last-administrator protections preserve se
 });
 test('staff directory and decisions paginate beyond fifty without exposing MFA material',async()=>{
  const a=await staffAdmin('history');await db.account.createMany({data:Array.from({length:53},(_,i)=>({name:'Synthetic directory '+i,email:randomUUID()+'@example.test',role:'REVIEWER'}))});
- let cursor:string|undefined;const seen=new Set<string>();do{const r=await a.client.call('/admin/staff?limit=17'+(cursor?'&cursor='+cursor:''));assert.equal(r.status,200);for(const row of r.data.items){assert(!seen.has(row.id));seen.add(row.id);assert.deepEqual(Object.keys(row).sort(),['id','name','email','role','region','disabled','authVersion'].sort());}cursor=r.data.nextCursor;}while(cursor);assert(seen.size>53);
+ let cursor:string|undefined;const seen=new Set<string>();do{const r=await a.client.call('/admin/staff?limit=17'+(cursor?'&cursor='+cursor:''));assert.equal(r.status,200);for(const row of r.data.items){assert(!seen.has(row.id));seen.add(row.id);assert.deepEqual(Object.keys(row).sort(),['id','name','email','role','region','disabled','authVersion','superAdmin'].sort());}cursor=r.data.nextCursor;}while(cursor);assert(seen.size>53);
  assert.equal((await a.client.call('/admin/staff?cursor='+ids.guardian)).status,404);assert.equal((await a.client.call('/admin/staff?limit=51')).status,400);
  const page=await a.client.call('/admin/staff/changes?limit=1');assert.equal(page.status,200);assert(page.data.nextCursor);assert.equal((await a.client.call('/admin/staff/changes?status=APPROVED&cursor='+ (await db.staffChange.findFirstOrThrow({where:{status:'PENDING'}})).id)).status,404);
 });
