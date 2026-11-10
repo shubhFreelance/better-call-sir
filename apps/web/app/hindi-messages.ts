@@ -1,5 +1,6 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "The proposer access changed. Create a new staff proposal.": "प्रस्ताव देने वाले की पहुँच बदल गई है। कर्मचारी के लिए नया प्रस्ताव बनाएँ।",
   "Super admin": "सुपर एडमिन",
   "Administrator workspace": "प्रशासक कार्यक्षेत्र",
   "Super admins create approved staff immediately. Choose Reviewer for teacher screening; the new staff member sets up their own authenticator.": "सुपर एडमिन द्वारा बनाए गए कर्मचारी तुरंत स्वीकृत होते हैं। शिक्षक जाँच के लिए समीक्षक चुनें; नया कर्मचारी अपना प्रमाणीकरण सेट करता है।",
