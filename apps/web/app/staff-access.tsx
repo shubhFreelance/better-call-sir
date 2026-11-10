@@ -391,7 +391,7 @@ function MfaPanel({
             )}{" "}
           </p>
         </div>
-        <span className="staff-security-role">{appText(session.account.role.toLowerCase())}</span>
+        <span className="staff-security-role">{appText(session.account.role === "ADMIN" && session.account.superAdmin ? "Super admin" : session.account.role.toLowerCase())}</span>
       </header>
       <section
         className="panel staff-security-form"

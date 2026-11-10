@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { validator, operationValidator } from "./contract";
-import { checkHindi } from "./hindi";
+import { checkHindi, chooseHindi } from "./hindi";
 import { hindiMessages } from "../../apps/web/app/hindi-messages";
 const actor = "10000000-0000-4000-8000-000000000821",
   target = "10000000-0000-4000-8000-000000000822",
@@ -36,7 +36,7 @@ async function setup(page: Page, mode = "normal") {
   let denied = false,
     saved = false,
     record = proposal(
-      mode === "suspension" ? {kind:"SUSPEND"} : mode === "self"
+      mode === "super-self" ? {kind:"CREATE",targetAccountId:null,proposerId:actor} : mode === "suspension" ? {kind:"SUSPEND"} : mode === "self"
         ? { proposerId: actor }
         : mode === "target"
           ? { targetAccountId: actor }
@@ -57,6 +57,7 @@ async function setup(page: Page, mode = "normal") {
             id: actor,
             name: "Synthetic administrator",
             role: "ADMIN",
+            superAdmin: mode.startsWith("super"),
             verified: false,
           },
           csrfToken: "synthetic-csrf",
@@ -178,7 +179,7 @@ async function setup(page: Page, mode = "normal") {
       expect(validate(body), JSON.stringify(validate.errors)).toBe(true);
       writes.push({ body, key: req.headers()["idempotency-key"], path: p });
       expect(writes.at(-1)!.key).toBeTruthy();
-      if (mode === "unknown" && writes.length === 1)
+      if ((mode === "unknown" || mode === "super-unknown") && writes.length === 1)
         return route.abort("failed");
       saved = true;
       record = isDecision
@@ -201,6 +202,7 @@ async function setup(page: Page, mode = "normal") {
             targetAccountId: null,
             expectedAuthVersion: 0,
             proposerId: actor,
+            ...(mode.startsWith("super")&&body.kind==="CREATE"?{status:"APPROVED",targetAccountId:target,approverId:actor,decidedAt:new Date().toISOString(),decisionReason:body.reason}:{}),
           });
       delete (record as any).confirmed;
       const check = validator("StaffChange");
@@ -255,6 +257,16 @@ async function startReview(page: Page) {
   await page.getByRole("checkbox").check();
 }
 export function staffAdministrationChecks() {
+  test("Hindi super admin creation retries the same request and shows immediate approval on phones",async({page})=>{
+    const s=await setup(page,"super-unknown");await chooseHindi(page);await page.goto("/dashboard/admin?tab=staff");const t=(text:string)=>hindiMessages[text]||text;await page.setViewportSize({width:360,height:800});await page.getByRole("button",{name:t("Add staff member"),exact:true}).click();await page.getByLabel(t("Staff name"),{exact:true}).fill("Synthetic reviewer");await page.getByLabel(t("Dedicated staff email"),{exact:true}).fill("new@example.test");await page.getByLabel(t("Proposal reason"),{exact:true}).fill("Authorized identity check");await page.getByLabel(t("Restricted review reference"),{exact:false}).fill("staff:identity-review");await page.getByRole("button",{name:t("Review staff details"),exact:true}).click();await page.getByRole("checkbox").check();await page.getByRole("button",{name:t("Create & approve staff"),exact:true}).click();await expect(page.getByRole("dialog").getByRole("button",{name:t("Close"),exact:true})).toBeDisabled();await page.getByRole("button",{name:t("Retry same decision"),exact:true}).click();await expect(page.getByText(t("Staff account created and approved. They can sign in with their staff email and set up an authenticator."),{exact:true})).toBeVisible();expect(s.writes).toHaveLength(2);expect(s.writes[0]).toEqual(s.writes[1]);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await checkHindi(page);await page.getByRole("dialog").screenshot({path:"test-results/super-admin-hindi-phone.png"});
+  });
+  test("super admin creates already-approved staff with clear confirmation and no second approval",async({page})=>{
+    const s=await setup(page,"super");await expect(page.locator('.signed-in-role')).toHaveText("Super admin");await expect(page.getByText("Another administrator is required",{exact:true})).toHaveCount(0);
+    await page.getByRole("button",{name:"Add staff member",exact:true}).click();await page.getByLabel("Staff name",{exact:true}).fill("New synthetic reviewer");await page.getByLabel("Dedicated staff email",{exact:true}).fill("reviewer@example.test");await page.getByLabel("Proposal reason",{exact:true}).fill("Super-admin reviewed identity");await page.getByLabel(/^Restricted review reference/).fill("staff:super-review");await page.getByRole("button",{name:"Review staff details",exact:true}).click();await expect(page.getByRole("button",{name:"Create & approve staff",exact:true})).toBeVisible();expect(s.writes).toHaveLength(0);await page.getByRole("checkbox").check();await page.getByRole("button",{name:"Create & approve staff",exact:true}).click();await expect(page.getByText("Staff account created and approved. They can sign in with their staff email and set up an authenticator.",{exact:true})).toBeVisible();expect(s.writes).toHaveLength(1);expect(s.writes[0].body).toMatchObject({kind:"CREATE",role:"REVIEWER"});await expect(page.getByRole("dialog").getByText("Approved",{exact:true})).toBeVisible();await page.getByRole("dialog").screenshot({path:"test-results/super-admin-created.png"});
+  });
+  test("super admin can approve an own legacy creation request without a second administrator",async({page})=>{
+    const s=await setup(page,"super-self");await startReview(page);await page.getByRole("button",{name:"Approve staff access",exact:true}).click();expect(s.writes[0].body.decision).toBe("APPROVE");await expect(page.getByRole("dialog").getByText("Approved",{exact:true})).toBeVisible();
+  });
   test("staff administration provides an actionable fresh-authenticator recovery",async({page})=>{
     await setup(page,"mfa-expired");await page.getByRole("tab",{name:"Staff access",exact:true}).click();await expect(page.getByLabel("Authenticator code",{exact:true})).toBeVisible();await expect(page.getByText("A fresh verification is required.",{exact:true})).toBeVisible();await page.getByRole("button",{name:"Check current verification",exact:true}).click();await expect(page.getByLabel("Authenticator code",{exact:true})).toBeVisible();await expect(page.getByRole("button",{name:"Add staff member",exact:true})).toHaveCount(0);await page.getByLabel("Authenticator code",{exact:true}).fill("123456");await page.getByRole("button",{name:"Verify staff access",exact:true}).click();await expect(page.getByRole("button",{name:"Add staff member",exact:true})).toBeEnabled();
   });

@@ -13,7 +13,7 @@ export function SignedInIdentity({ session }: { session: Session }) {
   const learner = !context.error ? context.data?.learner : undefined;
   const management = useQuery({queryKey:["learning-management",session.account.id,learner?.id],queryFn:({signal})=>api<components["schemas"]["LearningManagement"]>(`/children/${learner!.id}/learning-management`,{signal}),enabled:student&&!!learner,retry:false});
   const Icon = student || pending || session.account.role === "INDEPENDENT_STUDENT" ? GraduationCap : ShieldCheck;
-  const label = pending ? "Student setup pending" : student || session.account.role === "INDEPENDENT_STUDENT" ? "Student account" : session.account.role === "GUARDIAN" ? "Parent or guardian" : session.account.role === "TEACHER" ? "Teacher account" : "Staff account";
+  const label = session.account.role === "ADMIN" && session.account.superAdmin ? "Super admin" : pending ? "Student setup pending" : student || session.account.role === "INDEPENDENT_STUDENT" ? "Student account" : session.account.role === "GUARDIAN" ? "Parent or guardian" : session.account.role === "TEACHER" ? "Teacher account" : "Staff account";
   return <div className="signed-in-identity" aria-label={appText("Signed in as {0}",[session.account.name])}>
     <span className="signed-in-name">{session.account.name}</span>
     <span className="signed-in-role" data-pending={pending}><Icon size={16} aria-hidden="true" />{appText(label)}</span>

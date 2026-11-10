@@ -44,6 +44,8 @@ export function StaffAdministration({
 }) {
   const { appText } = useAppTranslation(),
     client = useQueryClient();
+  const superAdmin =
+    session.account.role === "ADMIN" && !!session.account.superAdmin;
   const [editor, setEditor] = useState<Editor | null>(null),
     [status, setStatus] = useState("PENDING");
   const [modalLocked, setModalLocked] = useState(false),
@@ -108,7 +110,9 @@ export function StaffAdministration({
           </h3>
           <p>
             {appText(
-              "Add a Reviewer to screen teacher applications. A different administrator approves access before they can sign in.",
+              superAdmin
+                ? "Super admins create approved staff immediately. Choose Reviewer for teacher screening; the new staff member sets up their own authenticator."
+                : "Add a Reviewer to screen teacher applications. A different administrator approves access before they can sign in.",
             )}
           </p>
         </div>
@@ -124,7 +128,7 @@ export function StaffAdministration({
       <StepProgress
         steps={[
           appText("Staff details"),
-          appText("Independent approval"),
+          appText(superAdmin ? "Review & create" : "Independent approval"),
           appText("Sign-in & authenticator"),
         ]}
         currentStep={null}
@@ -141,7 +145,9 @@ export function StaffAdministration({
           label={appText("About staff access controls")}
           items={[
             appText(
-              "One administrator proposes. Another independently reviews. Nobody can change or approve their own access.",
+              superAdmin
+                ? "New staff creation is approved immediately by your Super admin permission. Other access changes still require independent review."
+                : "One administrator proposes. Another independently reviews. Nobody can change or approve their own access.",
             ),
             appText(
               "Use a dedicated staff email. Staff sign in only after approval and must set up their own authenticator.",
@@ -165,7 +171,7 @@ export function StaffAdministration({
           )}
         </Notice>
       )}
-      {!directory.isPending && !directory.error && !hasAnotherAdmin && (
+      {!superAdmin && !directory.isPending && !directory.error && !hasAnotherAdmin && (
         <div className="staff-approval-warning" role="status">
           <strong>{appText("Another administrator is required")}</strong>
           <p>
@@ -222,6 +228,11 @@ export function StaffAdministration({
               expired = Date.parse(change.expiresAt) <= Date.now(),
               own = change.proposerId === session.account.id,
               affected = change.targetAccountId === session.account.id;
+            const canApprove =
+              pending &&
+              !affected &&
+              !expired &&
+              (!own || (superAdmin && change.kind === "CREATE"));
             return (
               <article className="staff-person" key={change.id}>
                 <div className="staff-row-heading">
@@ -236,7 +247,7 @@ export function StaffAdministration({
                       pending
                         ? expired
                           ? "Review expired"
-                          : own
+                          : own && !(superAdmin && change.kind === "CREATE")
                             ? "Waiting for another admin"
                             : affected
                               ? "Independent review required"
@@ -261,7 +272,7 @@ export function StaffAdministration({
                 <p className="staff-request-next">
                   {appText(
                     pending
-                      ? own
+                      ? own && !(superAdmin && change.kind === "CREATE")
                         ? "You submitted this request. Another administrator must approve or reject it."
                         : affected
                           ? "Another administrator must review changes to your access."
@@ -277,11 +288,11 @@ export function StaffAdministration({
                 </p>
                 <FilterButton
                   disabled={!!editor || unavailable}
-                  accent={pending && !own && !affected && !expired}
+                  accent={canApprove}
                   onClick={() => setEditor({ change })}
                 >
                   {appText(
-                    pending && !own && !affected && !expired
+                    canApprove
                       ? "Review & approve"
                       : pending
                         ? "View request"
@@ -340,7 +351,12 @@ export function StaffAdministration({
                     appText("Test identity without a staff email")}
                 </p>
                 <p>
-                  {appText(roleNames[person.role])} · {person.region}
+                  {appText(
+                    person.role === "ADMIN" && person.superAdmin
+                      ? "Super admin"
+                      : roleNames[person.role],
+                  )}{" "}
+                  · {person.region}
                 </p>
                 {person.id === session.account.id ? (
                   <p className="staff-request-next">
@@ -358,7 +374,7 @@ export function StaffAdministration({
                           .map((kind) => (
                             <FilterButton
                               key={kind}
-                              disabled={!!editor || unavailable}
+                              disabled={!!editor || unavailable || (!!person.superAdmin && !superAdmin)}
                               onClick={() =>
                                 setEditor({ kind, target: person })
                               }
@@ -504,10 +520,14 @@ function StaffEditor({
   useEffect(() => {
     if (saved && !decision.busy) root.current?.focus();
   }, [saved, decision.busy]);
+  const superAdmin =
+    session.account.role === "ADMIN" && !!session.account.superAdmin;
+  const directCreate = kind === "CREATE" && superAdmin;
   const existing =
       recorded || latest || ("change" in editor ? editor.change : null),
     proposer = existing?.proposerId === session.account.id,
     targetActor = existing?.targetAccountId === session.account.id;
+  const cancelOnly = proposer && !directCreate;
   const expired = !!existing && Date.parse(existing.expiresAt) <= Date.now(),
     stale =
       !!target &&
@@ -522,7 +542,7 @@ function StaffEditor({
         path: `/admin/staff/changes/${encodeURIComponent(existing.id)}/decision`,
         body: {
           expectedVersion: existing.version,
-          decision: proposer ? "CANCEL" : outcome,
+          decision: cancelOnly ? "CANCEL" : outcome,
           reason: reason.trim(),
           independentlyVerified: true,
         },
@@ -554,8 +574,13 @@ function StaffEditor({
       await decision.run({
         path: "/admin/staff/changes",
         body,
-        message: "Staff proposal saved for independent review.",
-        onSaved: () => setSaved(true),
+        message: directCreate
+          ? "Staff account created and approved."
+          : "Staff proposal saved for independent review.",
+        onSaved: (result) => {
+          if (directCreate) setRecorded(result as Change);
+          setSaved(true);
+        },
       });
     }
   }
@@ -589,7 +614,7 @@ function StaffEditor({
       <StepProgress
         steps={[
           appText("Staff details"),
-          appText("Independent approval"),
+          appText(directCreate ? "Review & create" : "Independent approval"),
           appText("Sign-in & authenticator"),
         ]}
         currentStep={
@@ -599,7 +624,7 @@ function StaffEditor({
               : existing
                 ? null
                 : 1
-            : existing
+            : existing || (directCreate && reviewing)
               ? 1
               : 0
         }
@@ -626,12 +651,14 @@ function StaffEditor({
             <p>
               {appText(
                 saved
-                  ? existing
-                    ? existing.status === "APPROVED" &&
-                      existing.kind === "SUSPEND"
-                      ? "Staff access is suspended. Existing sessions are revoked."
-                      : "The review is recorded. Approved changes take effect immediately; affected staff must sign in and enroll their authenticator again."
-                    : "Your proposal is saved. A different administrator must review it before access changes."
+                  ? directCreate && existing?.status === "APPROVED"
+                    ? "Staff account created and approved. They can sign in with their staff email and set up an authenticator."
+                    : existing
+                      ? existing.status === "APPROVED" &&
+                        existing.kind === "SUSPEND"
+                        ? "Staff access is suspended. Existing sessions are revoked."
+                        : "The review is recorded. Approved changes take effect immediately; affected staff must sign in and enroll their authenticator again."
+                      : "Your proposal is saved. A different administrator must review it before access changes."
                   : "This proposal is already decided. Use the history to inspect its recorded outcome.",
               )}
             </p>
@@ -701,7 +728,7 @@ function StaffEditor({
                           "Another administrator must review changes to your access.",
                         )}
                       </Notice>
-                    ) : proposer ? (
+                    ) : cancelOnly ? (
                       <Notice>
                         {appText(
                           "You proposed this change. You can cancel it, but another administrator must approve or reject it.",
@@ -874,10 +901,14 @@ function StaffEditor({
                         <span>
                           {appText(
                             existing
-                              ? proposer
+                              ? cancelOnly
                                 ? "I confirm that I want to cancel this proposal."
-                                : "I independently checked the restricted identity record, role, region and effects of this decision."
-                              : "I checked the dedicated identity, requested access and recovery effects. A different administrator must approve.",
+                                : directCreate
+                                  ? "I checked the staff identity, role and region and approve this new account."
+                                  : "I independently checked the restricted identity record, role, region and effects of this decision."
+                              : directCreate
+                                ? "I checked the staff identity, role and region. Create and approve this account now."
+                                : "I checked the dedicated identity, requested access and recovery effects. A different administrator must approve.",
                           )}
                         </span>
                       </label>
@@ -903,19 +934,23 @@ function StaffEditor({
                       locked ||
                       (!!existing &&
                         (targetActor ||
-                          (!proposer && expired && outcome === "APPROVE")))
+                          (!cancelOnly && expired && outcome === "APPROVE")))
                     }
                   >
                     {appText(
                       !reviewing
-                        ? "Review staff proposal"
+                        ? directCreate
+                          ? "Review staff details"
+                          : "Review staff proposal"
                         : existing
-                          ? proposer
+                          ? cancelOnly
                             ? "Cancel staff proposal"
                             : outcome === "APPROVE"
                               ? "Approve staff access"
                               : "Reject staff request"
-                          : "Send for independent review",
+                          : directCreate
+                            ? "Create & approve staff"
+                            : "Send for independent review",
                     )}
                   </FilterButton>
                 </FilterButtonGroup>

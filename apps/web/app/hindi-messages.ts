@@ -1,5 +1,16 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Super admin": "सुपर एडमिन",
+  "Administrator workspace": "प्रशासक कार्यक्षेत्र",
+  "Super admins create approved staff immediately. Choose Reviewer for teacher screening; the new staff member sets up their own authenticator.": "सुपर एडमिन द्वारा बनाए गए कर्मचारी तुरंत स्वीकृत होते हैं। शिक्षक जाँच के लिए समीक्षक चुनें; नया कर्मचारी अपना प्रमाणीकरण सेट करता है।",
+  "Review & create": "समीक्षा करें और बनाएँ",
+  "New staff creation is approved immediately by your Super admin permission. Other access changes still require independent review.": "आपकी सुपर एडमिन अनुमति से नए कर्मचारी तुरंत स्वीकृत होते हैं। बाकी पहुँच बदलावों के लिए स्वतंत्र समीक्षा अभी भी आवश्यक है।",
+  "Staff account created and approved.": "कर्मचारी खाता बन गया और स्वीकृत है।",
+  "Staff account created and approved. They can sign in with their staff email and set up an authenticator.": "कर्मचारी खाता बन गया और स्वीकृत है। वे अपने कर्मचारी ईमेल से साइन इन करके प्रमाणीकरण सेट कर सकते हैं।",
+  "I checked the staff identity, role and region and approve this new account.": "मैंने कर्मचारी की पहचान, भूमिका और क्षेत्र जाँच लिया है और इस नए खाते को स्वीकृत करता हूँ।",
+  "I checked the staff identity, role and region. Create and approve this account now.": "मैंने कर्मचारी की पहचान, भूमिका और क्षेत्र जाँच लिया है। अब यह खाता बनाएँ और स्वीकृत करें।",
+  "Review staff details": "कर्मचारी विवरण की समीक्षा करें",
+  "Create & approve staff": "कर्मचारी बनाएँ और स्वीकृत करें",
   "Manage staff access": "कर्मचारी पहुँच प्रबंधित करें",
   "Manage access": "पहुँच प्रबंधित करें",
   "Review & approve": "समीक्षा करें और स्वीकृत करें",

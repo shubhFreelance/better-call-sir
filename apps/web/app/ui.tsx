@@ -1764,7 +1764,7 @@ function Login() {
                 <span>
                   <strong>{a.name}</strong>
                   <small>
-                    {appText(pretty(a.role))}
+                    {appText(a.role === "ADMIN" && a.superAdmin ? "Super admin" : pretty(a.role))}
                     {a.role === "GUARDIAN" && !a.verified
                       ? appText(" · verification pending")
                       : ""}
@@ -2362,14 +2362,14 @@ function DashboardShell({
   return (
     <main className="container dashboard-layout" key={`${session?.account.id}:${role}`}>
       <aside className="dashboard-sidebar">
-        <p className="sidebar-title">{appText(role === "TEACHER" ? "Teacher workspace" : role === "ADMIN" ? "Superadmin workspace" : role === "GUARDIAN" ? "Parent / guardian workspace" : ["STUDENT", "INDEPENDENT_STUDENT"].includes(role || "") ? "Student workspace" : "Staff workspace")}</p>
+        <p className="sidebar-title">{appText(role === "TEACHER" ? "Teacher workspace" : role === "ADMIN" ? session?.account.superAdmin ? "Superadmin workspace" : "Administrator workspace" : role === "GUARDIAN" ? "Parent / guardian workspace" : ["STUDENT", "INDEPENDENT_STUDENT"].includes(role || "") ? "Student workspace" : "Staff workspace")}</p>
         <div className="sidebar-person">
           <span className="avatar small-avatar">
             {initials(session?.account.name || "You")}
           </span>
           <div>
             <strong>{session?.account.name.split(" · ")[0]}</strong>
-            <small>{appText(role === "INDEPENDENT_STUDENT" ? "Student" : role === "GUARDIAN" ? "Parent or guardian" : pretty(role || "account"))}</small>
+            <small>{appText(role === "ADMIN" && session?.account.superAdmin ? "Super admin" : role === "INDEPENDENT_STUDENT" ? "Student" : role === "GUARDIAN" ? "Parent or guardian" : pretty(role || "account"))}</small>
           </div>
         </div>
         <nav
