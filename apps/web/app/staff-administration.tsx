@@ -1,8 +1,18 @@
 "use client";
+import Link from "next/link";
+import { UserPlus, ShieldCheck, Clock3, CircleCheck } from "lucide-react";
+import { Modal } from "../components/ui/modal";
+import {
+  FilterButton,
+  FilterButtonGroup,
+} from "../components/ui/filter-button";
+import { StatusBadge } from "../components/ui/status-controls";
+import { InfoTooltip } from "../components/ui/info-tooltip";
+import { StepProgress } from "../components/ui/step-progress";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { type Session, type components } from "@bcs/api-client";
+import { ApiError, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
@@ -36,17 +46,22 @@ export function StaffAdministration({
     client = useQueryClient();
   const [editor, setEditor] = useState<Editor | null>(null),
     [status, setStatus] = useState("PENDING");
+  const [modalLocked, setModalLocked] = useState(false),
+    [directoryPage, setDirectoryPage] = useState(0);
   const title = useRef<HTMLHeadingElement>(null),
     previous = useRef(false);
   const directory = useHistory<{ items: Staff[]; nextCursor: string | null }>({
     queryKey: ["staff-directory", session.account.id],
-    path: "/admin/staff",
+    path: "/admin/staff?limit=10",
   });
   const changes = useHistory<{ items: Change[]; nextCursor: string | null }>({
     queryKey: ["staff-changes", session.account.id, status],
     path: "/admin/staff/changes" + (status ? "?status=" + status : ""),
   });
   const unavailable = !!directory.error || !!changes.error;
+  const needsMfa = [directory.error, changes.error].some(
+    (error) => error instanceof ApiError && error.code === "MFA_REQUIRED",
+  );
   useEffect(() => {
     onLockChange(!!editor);
     return () => onLockChange(false);
@@ -68,103 +83,126 @@ export function StaffAdministration({
       ? changes.data?.items.find((r) => r.id === editor.change.id) ||
         editor.change
       : null;
+  const people = directory.data?.items || [];
+  const currentPage = Math.min(
+    directoryPage,
+    Math.max(0, Math.ceil(people.length / 10) - 1),
+  );
+  const hasAnotherAdmin = people.some(
+    (p) => p.role === "ADMIN" && !p.disabled && p.id !== session.account.id,
+  );
+  async function nextDirectoryPage() {
+    if ((currentPage + 1) * 10 < people.length)
+      setDirectoryPage(currentPage + 1);
+    else if (directory.hasNextPage && !directory.looped) {
+      const result = await directory.fetchNextPage();
+      if (!result.error) setDirectoryPage(currentPage + 1);
+    }
+  }
   return (
     <section className="staff-workspace" aria-label={appText("Staff access")}>
       <header className="staff-heading">
         <div>
           <h3 ref={title} tabIndex={-1}>
-            {appText("Access with a second pair of eyes.")}
+            {appText("Manage staff access")}
           </h3>
           <p>
             {appText(
-              "One administrator proposes. Another independently reviews. Nobody can change or approve their own access.",
+              "Add a Reviewer to screen teacher applications. A different administrator approves access before they can sign in.",
             )}
           </p>
         </div>
-        <Button
+        <FilterButton
+          accent
           disabled={!!editor || unavailable || directory.isPending}
           onClick={() => setEditor({ kind: "CREATE" })}
         >
+          <UserPlus size={16} aria-hidden="true" />
           {appText("Add staff member")}
-        </Button>
+        </FilterButton>
       </header>
-      <Notice>
-        {appText(
-          "Staff administration requires authenticator verification within five minutes. Live sign-in, key custody and operator recovery still require launch qualification.",
-        )}
-      </Notice>
+      <StepProgress
+        steps={[
+          appText("Staff details"),
+          appText("Independent approval"),
+          appText("Sign-in & authenticator"),
+        ]}
+        currentStep={null}
+        label={appText("How staff access works")}
+      />
+      <div className="staff-security-guidance">
+        <ShieldCheck size={18} aria-hidden="true" />
+        <p>
+          {appText(
+            "Staff changes require authenticator verification within five minutes.",
+          )}
+        </p>
+        <InfoTooltip
+          label={appText("About staff access controls")}
+          items={[
+            appText(
+              "One administrator proposes. Another independently reviews. Nobody can change or approve their own access.",
+            ),
+            appText(
+              "Use a dedicated staff email. Staff sign in only after approval and must set up their own authenticator.",
+            ),
+          ]}
+        />
+      </div>
+      {unavailable && (
+        <Notice error>
+          <p>
+            {appText(
+              needsMfa
+                ? "Staff records could not be loaded. Verify your authenticator, then retry the history below."
+                : "Staff records could not be loaded.",
+            )}
+          </p>
+          {needsMfa && (
+            <Link className="inline-link" href="/dashboard/security">
+              {appText("Verify authenticator")}
+            </Link>
+          )}
+        </Notice>
+      )}
+      {!directory.isPending && !directory.error && !hasAnotherAdmin && (
+        <div className="staff-approval-warning" role="status">
+          <strong>{appText("Another administrator is required")}</strong>
+          <p>
+            {appText(
+              directory.hasNextPage || directory.looped
+                ? "Another active administrator must approve your request. Check the remaining directory pages for an independent approver. You cannot approve your own request."
+                : "No other active administrator is listed. You can submit a request, but an independently authorized administrator must approve it. Your own request cannot be self-approved.",
+            )}
+          </p>
+        </div>
+      )}
       <div className="staff-columns">
         <section
-          className="care-card"
-          aria-label={appText("Current staff access")}
-        >
-          <h4>{appText("Current staff access")}</h4>
-          <HistoryPages
-            history={directory}
-            label="Staff directory history"
-            disabled={!!editor}
-          />
-          {!directory.isPending &&
-            !directory.error &&
-            !directory.data?.items.length && (
-              <p>{appText("No staff accounts to display.")}</p>
-            )}
-          {directory.data?.items.map((person) => (
-            <article key={person.id} className="staff-person">
-              <h5>{person.name}</h5>
-              <p>{person.email || appText("Dedicated staff email required")}</p>
-              <p>
-                {appText(roleNames[person.role])} · {person.region} ·{" "}
-                {appText(person.disabled ? "Suspended" : "Active")}
-              </p>
-              <small>
-                {appText("Access version {0}", [person.authVersion])}
-              </small>
-              {person.id === session.account.id ? (
-                <p className="muted">
-                  {appText("Another administrator must manage your access.")}
-                </p>
-              ) : !person.email ? (
-                <p className="muted">
-                  {appText(
-                    "Synthetic accounts cannot use this workflow. Provision a dedicated staff identity.",
-                  )}
-                </p>
-              ) : (
-                <div className="care-actions">
-                  {(["CHANGE", "SUSPEND", "RECOVER"] as const)
-                    .filter((k) => !person.disabled || k === "CHANGE")
-                    .map((kind) => (
-                      <Button
-                        key={kind}
-                        variant="outline"
-                        disabled={!!editor || unavailable}
-                        onClick={() => setEditor({ kind, target: person })}
-                      >
-                        {appText(kindNames[kind])}
-                      </Button>
-                    ))}
-                </div>
-              )}
-            </article>
-          ))}
-        </section>
-        <section
-          className="care-card"
+          className="care-card staff-requests"
           aria-label={appText("Staff change history")}
         >
-          <h4>{appText("Independent review")}</h4>
-          <label className="field">
-            <span>{appText("Staff change status")}</span>
-            <select
-              value={status}
-              disabled={!!editor}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <option value="PENDING">{appText("Pending review")}</option>
-              <option value="">{appText("All decisions")}</option>
-            </select>
-          </label>
+          <header className="staff-list-heading">
+            <div>
+              <h4>{appText("Approvals & requests")}</h4>
+              <p>
+                {appText(
+                  "Review requests from another administrator, or track your own.",
+                )}
+              </p>
+            </div>
+            <label className="field">
+              <span>{appText("Staff change status")}</span>
+              <select
+                value={status}
+                disabled={!!editor}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="PENDING">{appText("Pending review")}</option>
+                <option value="">{appText("All decisions")}</option>
+              </select>
+            </label>
+          </header>
           <HistoryPages
             history={changes}
             label="Staff approval history"
@@ -173,62 +211,237 @@ export function StaffAdministration({
           {!changes.isPending &&
             !changes.error &&
             !changes.data?.items.length && (
-              <p>
+              <p className="staff-empty">
                 {appText(
                   "No staff changes in this view. New proposals appear here for independent review.",
                 )}
               </p>
             )}
-          {changes.data?.items.map((change) => (
-            <article className="staff-person" key={change.id}>
-              <h5>{appText(kindNames[change.kind])}</h5>
-              <p>
-                {change.name} · {appText(roleNames[change.role])} ·{" "}
-                {change.region}
-              </p>
+          {changes.data?.items.map((change) => {
+            const pending = change.status === "PENDING",
+              expired = Date.parse(change.expiresAt) <= Date.now(),
+              own = change.proposerId === session.account.id,
+              affected = change.targetAccountId === session.account.id;
+            return (
+              <article className="staff-person" key={change.id}>
+                <div className="staff-row-heading">
+                  <div>
+                    <h5>{change.name}</h5>
+                    <p>
+                      {appText(roleNames[change.role])} · {change.region}
+                    </p>
+                  </div>
+                  <StatusBadge
+                    label={appText(
+                      pending
+                        ? expired
+                          ? "Review expired"
+                          : own
+                            ? "Waiting for another admin"
+                            : affected
+                              ? "Independent review required"
+                              : "Ready for your review"
+                        : change.status === "APPROVED"
+                          ? "Approved"
+                          : change.status === "REJECTED"
+                            ? "Rejected"
+                            : "Cancelled",
+                    )}
+                    tone={
+                      change.status === "APPROVED"
+                        ? "success"
+                        : pending
+                          ? "warning"
+                          : "neutral"
+                    }
+                    icon={change.status === "APPROVED" ? CircleCheck : Clock3}
+                  />
+                </div>
+                <p>{appText(kindNames[change.kind])}</p>
+                <p className="staff-request-next">
+                  {appText(
+                    pending
+                      ? own
+                        ? "You submitted this request. Another administrator must approve or reject it."
+                        : affected
+                          ? "Another administrator must review changes to your access."
+                          : expired
+                            ? "This request has expired. Reject it and request a fresh proposal."
+                            : "Check the identity, role and region, then approve or reject this request."
+                      : change.status === "APPROVED"
+                        ? change.kind === "SUSPEND"
+                          ? "Staff access is suspended. Existing sessions are revoked."
+                          : "Access approved. The staff member can sign in with their dedicated email and set up an authenticator."
+                        : "This request is closed. Its decision remains in history.",
+                  )}
+                </p>
+                <FilterButton
+                  disabled={!!editor || unavailable}
+                  accent={pending && !own && !affected && !expired}
+                  onClick={() => setEditor({ change })}
+                >
+                  {appText(
+                    pending && !own && !affected && !expired
+                      ? "Review & approve"
+                      : pending
+                        ? "View request"
+                        : "View decision",
+                  )}
+                </FilterButton>
+              </article>
+            );
+          })}
+        </section>
+        <section
+          className="care-card staff-directory"
+          aria-label={appText("Current staff access")}
+        >
+          <header className="staff-list-heading">
+            <div>
+              <h4>{appText("Current staff access")}</h4>
               <p>
                 {appText(
-                  change.status === "PENDING"
-                    ? change.expiresAt < new Date().toISOString()
-                      ? "Review expired"
-                      : "Pending review"
-                    : change.status === "APPROVED"
-                      ? "Approved"
-                      : change.status === "REJECTED"
-                        ? "Rejected"
-                        : "Cancelled",
+                  "Accounts with approved access. Pending requests appear separately.",
                 )}
               </p>
-              <Button
-                variant="outline"
-                disabled={!!editor || unavailable}
-                onClick={() => setEditor({ change })}
-              >
-                {appText("Review staff change")}
-              </Button>
-            </article>
-          ))}
+            </div>
+            <InfoTooltip
+              label={appText("About the staff directory")}
+              items={[
+                appText(
+                  "Accounts without a dedicated email are test identities and cannot be managed here.",
+                ),
+                appText("Another administrator must manage your access."),
+              ]}
+            />
+          </header>
+          <HistoryPages
+            history={directory}
+            label="Staff directory history"
+            disabled={!!editor}
+          />
+          {!directory.isPending && !directory.error && !people.length && (
+            <p>{appText("No staff accounts to display.")}</p>
+          )}
+          {people
+            .slice(currentPage * 10, (currentPage + 1) * 10)
+            .map((person) => (
+              <article key={person.id} className="staff-person">
+                <div className="staff-row-heading">
+                  <h5>{person.name}</h5>
+                  <StatusBadge
+                    label={appText(person.disabled ? "Suspended" : "Active")}
+                    tone={person.disabled ? "neutral" : "success"}
+                    icon={person.disabled ? Clock3 : CircleCheck}
+                  />
+                </div>
+                <p>
+                  {person.email ||
+                    appText("Test identity without a staff email")}
+                </p>
+                <p>
+                  {appText(roleNames[person.role])} · {person.region}
+                </p>
+                {person.id === session.account.id ? (
+                  <p className="staff-request-next">
+                    {appText(
+                      "Your account is managed by another administrator",
+                    )}
+                  </p>
+                ) : (
+                  person.email && (
+                    <details className="staff-manage">
+                      <summary>{appText("Manage access")}</summary>
+                      <FilterButtonGroup>
+                        {(["CHANGE", "SUSPEND", "RECOVER"] as const)
+                          .filter((k) => !person.disabled || k === "CHANGE")
+                          .map((kind) => (
+                            <FilterButton
+                              key={kind}
+                              disabled={!!editor || unavailable}
+                              onClick={() =>
+                                setEditor({ kind, target: person })
+                              }
+                            >
+                              {appText(kindNames[kind])}
+                            </FilterButton>
+                          ))}
+                      </FilterButtonGroup>
+                    </details>
+                  )
+                )}
+              </article>
+            ))}
+          {!!people.length && (
+            <div className="staff-directory-pages">
+              <p>{appText("Page {0}", [currentPage + 1])}</p>
+              <FilterButtonGroup>
+                <FilterButton
+                  disabled={
+                    !!editor ||
+                    directory.isFetching ||
+                    !!directory.error ||
+                    !currentPage
+                  }
+                  onClick={() => setDirectoryPage(currentPage - 1)}
+                >
+                  {appText("Previous page")}
+                </FilterButton>
+                <FilterButton
+                  disabled={
+                    !!editor ||
+                    directory.isFetching ||
+                    !!directory.error ||
+                    directory.looped ||
+                    !(
+                      (currentPage + 1) * 10 < people.length ||
+                      directory.hasNextPage
+                    )
+                  }
+                  onClick={() => void nextDirectoryPage()}
+                >
+                  {appText("Next page")}
+                </FilterButton>
+              </FilterButtonGroup>
+            </div>
+          )}
         </section>
       </div>
       {editor && (
-        <StaffEditor
-          key={
+        <Modal
+          open
+          closeDisabled={modalLocked}
+          onOpenChange={(open) => {
+            if (!open && !modalLocked) setEditor(null);
+          }}
+          title={appText(
             "change" in editor
-              ? editor.change.id
-              : editor.kind + (editor.target?.id || "new")
-          }
-          editor={editor}
-          latest={latest}
-          currentTarget={
-            "target" in editor
-              ? directory.data?.items.find((p) => p.id === editor.target?.id)
-              : undefined
-          }
-          unavailable={unavailable}
-          session={session}
-          refresh={refresh}
-          close={() => setEditor(null)}
-        />
+              ? "Review staff change"
+              : editor.kind === "CREATE"
+                ? "Add staff member"
+                : kindNames[editor.kind],
+          )}
+        >
+          <StaffEditor
+            key={
+              "change" in editor
+                ? editor.change.id
+                : editor.kind + (editor.target?.id || "new")
+            }
+            editor={editor}
+            latest={latest}
+            currentTarget={
+              "target" in editor
+                ? directory.data?.items.find((p) => p.id === editor.target?.id)
+                : undefined
+            }
+            unavailable={unavailable}
+            session={session}
+            refresh={refresh}
+            onLockChange={setModalLocked}
+            close={() => setEditor(null)}
+          />
+        </Modal>
       )}
     </section>
   );
@@ -241,6 +454,7 @@ function StaffEditor({
   session,
   refresh,
   close,
+  onLockChange,
 }: {
   editor: Editor;
   latest: Change | null;
@@ -249,6 +463,7 @@ function StaffEditor({
   session: Session;
   refresh: () => Promise<void>;
   close: () => void;
+  onLockChange: (locked: boolean) => void;
 }) {
   const { appText, appLocale } = useAppTranslation();
   const [recorded, setRecorded] = useState<Change | null>(null);
@@ -344,6 +559,10 @@ function StaffEditor({
       });
     }
   }
+  useEffect(() => {
+    onLockChange(decision.locked);
+    return () => onLockChange(false);
+  }, [decision.locked, onLockChange]);
   const recovery = (
     <>
       <Feedback decision={decision} />
@@ -352,7 +571,8 @@ function StaffEditor({
           variant="outline"
           disabled={decision.busy || decision.uncertain}
           onClick={() => decision.reload()}
-         label={appText("Reload staff records")} />
+          label={appText("Reload staff records")}
+        />
       )}
       <Button variant="ghost" disabled={decision.locked} onClick={close}>
         {appText(finished ? "Close staff review" : "Discard staff review")}
@@ -366,6 +586,25 @@ function StaffEditor({
       className="care-card staff-editor"
       aria-label={appText("Staff access review")}
     >
+      <StepProgress
+        steps={[
+          appText("Staff details"),
+          appText("Independent approval"),
+          appText("Sign-in & authenticator"),
+        ]}
+        currentStep={
+          finished
+            ? existing?.status === "APPROVED" && existing.kind !== "SUSPEND"
+              ? 2
+              : existing
+                ? null
+                : 1
+            : existing
+              ? 1
+              : 0
+        }
+        label={appText("Staff access progress")}
+      />
       <h3>{appText(kindNames[kind])}</h3>
       {recovery}
       {unavailable ? (
@@ -388,7 +627,10 @@ function StaffEditor({
               {appText(
                 saved
                   ? existing
-                    ? "The review is recorded. Approved changes take effect immediately; affected staff must sign in and enroll their authenticator again."
+                    ? existing.status === "APPROVED" &&
+                      existing.kind === "SUSPEND"
+                      ? "Staff access is suspended. Existing sessions are revoked."
+                      : "The review is recorded. Approved changes take effect immediately; affected staff must sign in and enroll their authenticator again."
                     : "Your proposal is saved. A different administrator must review it before access changes."
                   : "This proposal is already decided. Use the history to inspect its recorded outcome.",
               )}
@@ -555,6 +797,17 @@ function StaffEditor({
                             ))}
                           </select>
                         </label>
+                        <p className="staff-role-guidance">
+                          {appText(
+                            role === "REVIEWER"
+                              ? "Reviewers assess teacher evidence and applications within their assigned region. They cannot create or approve staff."
+                              : role === "ADMIN"
+                                ? "Administrators manage staff proposals and platform controls. Independent approval is still required."
+                                : role === "FINANCE"
+                                  ? "Finance staff handle authorized financial records, not teacher screening."
+                                  : "Operators manage assigned support and operational work, not teacher screening.",
+                          )}
+                        </p>
                         <label className="field">
                           <span>{appText("Configured region")}</span>
                           <Input
@@ -631,20 +884,20 @@ function StaffEditor({
                     )}
                   </>
                 )}
-                <div className="care-actions">
+                <FilterButtonGroup>
                   {!existing && reviewing && (
-                    <Button
+                    <FilterButton
                       type="button"
-                      variant="outline"
                       onClick={() => {
                         setReviewing(false);
                         setConfirmed(false);
                       }}
                     >
                       {appText("Edit staff proposal")}
-                    </Button>
+                    </FilterButton>
                   )}
-                  <Button
+                  <FilterButton
+                    accent
                     type="submit"
                     disabled={
                       locked ||
@@ -659,11 +912,13 @@ function StaffEditor({
                         : existing
                           ? proposer
                             ? "Cancel staff proposal"
-                            : "Record independent review"
+                            : outcome === "APPROVE"
+                              ? "Approve staff access"
+                              : "Reject staff request"
                           : "Send for independent review",
                     )}
-                  </Button>
-                </div>
+                  </FilterButton>
+                </FilterButtonGroup>
               </fieldset>
             </form>
           )}

@@ -5,7 +5,8 @@ import { StaffAdministration } from "./staff-administration";
 import { useHistory, HistoryPages } from "./history";
 import { useAppTranslation } from "./locale";
 import { educationLabel } from "./learner-education";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { api, type Session, type components } from "@bcs/api-client";
@@ -64,8 +65,13 @@ function ConsoleWorkspace({ session }: { session: Session }) {
 
   const [staffLocked, setStaffLocked] = useState(false);
   const [commercialLocked, setCommercialLocked] = useState(false);
-  const [tab, setTab] = useState("overview"),
+  const requestedTab = useSearchParams().get("tab");
+  const router = useRouter();
+  const [tab, setTab] = useState(requestedTab === "staff" ? "staff" : "overview"),
     [selected, setSelected] = useState<Action | null>(null);
+  useEffect(() => {
+    if (requestedTab === "staff" && !selected && !staffLocked && !commercialLocked) setTab("staff");
+  }, [requestedTab]);
   const current = useQuery({
     queryKey: ["admin-console", session.account.id],
     queryFn: ({ signal }) => api<Console>("/admin/console", { signal }),
@@ -98,7 +104,11 @@ function ConsoleWorkspace({ session }: { session: Session }) {
       <Tabs
         value={tab}
         onValueChange={(v) => {
-          if (!selected && !staffLocked && !commercialLocked) setTab(v);
+          if (!selected && !staffLocked && !commercialLocked) {
+            setTab(v);
+            if (v === "staff") router.replace("/dashboard/admin?tab=staff", {scroll:false});
+            else if (requestedTab === "staff") router.replace("/dashboard/admin", {scroll:false});
+          }
         }}
       >
         <TabsList

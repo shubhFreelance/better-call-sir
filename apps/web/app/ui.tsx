@@ -2254,7 +2254,7 @@ function DashboardShell({
             ["/dashboard/privacy", "Privacy & data", ShieldCheck],
           ] as [string, string, LucideIcon][])
         : role === "ADMIN"
-          ? ([["/dashboard/admin", "Control console", Settings]] as [
+          ? ([["/dashboard/admin", "Control console", Settings], ["/dashboard/admin?tab=staff", "Staff access", ShieldCheck]] as [
               string,
               string,
               LucideIcon,

@@ -86,7 +86,7 @@ function VerifiedStaff({
   });
   const [now, setNow] = useState(Date.now()),
     [hold, setHold] = useState(false),
-    [denied, setDenied] = useState(false);
+    [denied, setDenied] = useState(0);
   useEffect(() => {
     const tick = () => setNow(Date.now()),
       timer = setInterval(tick, 1000);
@@ -110,7 +110,7 @@ function VerifiedStaff({
               "SESSION_REVOKED",
             ].includes(error.code)
           )
-            setDenied(true);
+            setDenied(Date.parse(client.getQueryData<Status>(key)?.verifiedUntil || "") || 1);
         }
       }),
     [client],
@@ -143,10 +143,11 @@ function VerifiedStaff({
     if (
       !status.enabled ||
       !status.verifiedUntil ||
-      Date.parse(status.verifiedUntil) <= Date.now()
+      Date.parse(status.verifiedUntil) <= Date.now() ||
+      (denied > 0 && Date.parse(status.verifiedUntil) <= denied)
     )
       throw new Error("Use a fresh authenticator code to verify staff access.");
-    setDenied(false);
+    setDenied(0);
     setHold(false);
   }
   if (!blocked && !managing) return children;
@@ -161,6 +162,7 @@ function VerifiedStaff({
       session={session}
       status={query.data}
       statusError={appError(query.error?.message)}
+      forceVerification={!!denied}
       refresh={refresh}
       complete={complete}
       hold={setHold}
@@ -172,6 +174,7 @@ function MfaPanel({
   session,
   status,
   statusError,
+  forceVerification,
   refresh,
   complete,
   hold,
@@ -180,6 +183,7 @@ function MfaPanel({
   session: Session;
   status: Status | undefined;
   statusError?: string;
+  forceVerification: boolean;
   refresh: () => Promise<Status>;
   complete: () => Promise<void>;
   hold: (value: boolean) => void;
@@ -215,7 +219,7 @@ function MfaPanel({
   const verified =
     !!status?.verifiedUntil &&
     Date.parse(status.verifiedUntil) > Date.now() &&
-    !statusError;
+    !statusError && !forceVerification;
   async function enroll() {
     if (submitting.current) return;
     submitting.current = true;

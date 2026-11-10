@@ -7265,3 +7265,46 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .teacher-dashboard-details .screening-categories { grid-template-columns:1fr; }
 .teacher-dashboard-details .screening-guidance { display:none; }
 @media(max-width:600px) { .screening-categories { grid-template-columns:1fr; } .teacher-screening-card { padding:16px; } }
+.staff-workspace { font-size:12px; line-height:1.65; }
+.staff-workspace .staff-heading { padding:20px; margin:18px 0; border:1px solid #DDE5DD; border-radius:18px; background:#FFF; align-items:center; }
+.staff-workspace .staff-heading h3 { font-size:22px; margin:0 0 8px; }
+.staff-workspace .staff-heading p { font-size:12px; line-height:1.7; }
+.staff-workspace .staff-heading > .filter-button { flex-shrink:0; }
+.staff-workspace .staff-security-guidance { display:flex; align-items:center; gap:12px; padding:12px 16px; margin:16px 0; background:#EEF5F3; border-radius:12px; }
+.staff-security-guidance p { margin:0; flex:1; font-size:12px; }
+.staff-security-guidance > svg { flex-shrink:0; }
+.staff-workspace .staff-approval-warning { padding:14px 16px; margin:16px 0; background:#F8EDFF; border:1px solid #E8C9F7; border-radius:12px; }
+.staff-approval-warning strong { font-size:13px; color:#034F46; }
+.staff-approval-warning p { margin:6px 0 0; font-size:12px; }
+.staff-workspace .staff-columns { grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); align-items:start; gap:18px; margin-top:18px; }
+.staff-workspace .staff-columns > .care-card { padding:18px; background:#FFF; border:1px solid #DDE5DD; border-radius:18px; }
+.staff-workspace .staff-list-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:14px; margin-bottom:16px; border-radius:12px; background:#EEF5F3; }
+.staff-workspace .staff-list-heading h4 { margin:0 0 6px; font-size:17px; }
+.staff-workspace .staff-list-heading p { margin:0; font-size:12px; }
+.staff-list-heading .field { min-width:130px; font-size:11px; gap:6px; }
+.staff-workspace .staff-person { padding:16px 0; }
+.staff-workspace .staff-row-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.staff-workspace .staff-person h5 { margin:0 0 4px; font-size:15px; font-weight:650; }
+.staff-workspace .staff-person p { margin:4px 0; font-size:12px; }
+.staff-workspace .staff-person .staff-request-next { padding:10px 12px; margin:10px 0 12px; border-radius:10px; background:#FFFFEB; font-size:12px; }
+.staff-workspace .staff-person .filter-button-group { padding:8px; gap:6px; margin-top:12px; }
+.staff-workspace .staff-person .filter-button { font-size:12px; }
+.staff-directory-pages { padding-top:14px; margin-top:12px; border-top:1px solid #DDE5DD; }
+.staff-directory-pages p { margin:0 0 10px; }
+.app-modal .staff-editor.care-card { margin:0; padding:0; border:0; background:transparent; outline:none; box-shadow:none; font-size:12px; }
+.app-modal .staff-editor h3 { font-size:18px; margin:18px 0 12px; }
+.app-modal .staff-editor p,.app-modal .staff-editor small { font-size:12px; line-height:1.7; }
+.app-modal .staff-editor .staff-fields { margin-top:18px; padding:16px; background:#EEF5F3; border:1px solid #DDE5DD; border-radius:14px; }
+.app-modal .staff-editor .staff-fields legend { font-size:14px; margin-bottom:8px; float:left; width:100%; }
+.app-modal .staff-editor .field { display:grid; gap:7px; font-size:12px; margin:14px 0; }
+.app-modal .staff-editor .staff-role-guidance { padding:12px; border-radius:10px; background:#F8EDFF; margin:12px 0; }
+.app-modal .staff-editor .staff-summary { background:#FFFFEB; padding:16px; margin:16px 0; border:1px solid #DDE5DD; display:grid; grid-template-columns:minmax(110px,1fr) minmax(0,2fr); gap:12px 18px; }
+.app-modal .staff-editor .staff-summary dt { margin:0; font-size:11px; }
+.app-modal .staff-editor .staff-summary dd { margin:0; font-size:12px; }
+.app-modal .staff-editor .filter-button-group { margin-top:16px; }
+@media(max-width:900px) { .staff-workspace .staff-columns { grid-template-columns:1fr; } }
+@media(max-width:600px) { .staff-workspace .staff-heading { padding:16px; flex-direction:column; align-items:stretch; } .staff-workspace .staff-heading h3 { font-size:20px; } .staff-workspace .staff-list-heading { flex-direction:column; } .staff-list-heading .field { width:100%; } .staff-workspace .staff-row-heading { flex-direction:column; } .app-modal .staff-editor .staff-summary { grid-template-columns:1fr; gap:5px; } .app-modal .staff-editor .staff-summary dd { margin-bottom:10px; } }
+.staff-workspace .staff-manage { margin-top:10px; }
+.staff-workspace .staff-manage summary { cursor:pointer; color:#034F46; min-height:36px; display:list-item; font-size:12px; font-weight:600; padding:8px 0; }
+.staff-workspace .staff-directory .staff-person { padding:12px 0; }
+.app-modal .staff-editor .staff-fields legend { float:none; width:auto; padding:0 6px; }

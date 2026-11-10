@@ -5,8 +5,8 @@ import { X } from "lucide-react";
 import { Button } from "./button";
 import { useAppTranslation } from "../../app/locale";
 
-export function Modal({ open, onOpenChange, title, description, children }: {
-  open: boolean; onOpenChange: (open: boolean) => void; title: string; description?: string; children: ReactNode;
+export function Modal({ open, onOpenChange, title, description, children, closeDisabled = false }: {
+  open: boolean; onOpenChange: (open: boolean) => void; title: string; description?: string; children: ReactNode; closeDisabled?: boolean;
 }) {
   const { appText } = useAppTranslation(), id = useId(), dialog = useRef<HTMLDialogElement>(null);
   const [mounted, setMounted] = useState(false);
@@ -24,7 +24,7 @@ export function Modal({ open, onOpenChange, title, description, children }: {
   }, [open, mounted]);
   if (!mounted) return null;
   return createPortal(<dialog ref={dialog} className="app-modal" aria-labelledby={id} aria-describedby={description ? id + "-description" : undefined}
-    onCancel={event => { event.preventDefault(); event.stopPropagation(); onOpenChange(false); }} onClose={event => {event.stopPropagation();onOpenChange(false);}}
+    onCancel={event => { event.preventDefault(); event.stopPropagation(); if (!closeDisabled) onOpenChange(false); }} onClose={event => {event.stopPropagation();onOpenChange(false);}}
     onKeyDown={event => {
       if (event.key !== "Tab" || event.defaultPrevented) return;
       const items = [...event.currentTarget.querySelectorAll<HTMLElement>("button,a[href],input,select,textarea,summary,[tabindex],[contenteditable=true]")]
@@ -35,12 +35,12 @@ export function Modal({ open, onOpenChange, title, description, children }: {
     }}
     onClick={event => {
       event.stopPropagation();
-      if (event.target !== event.currentTarget) return;
+      if (closeDisabled || event.target !== event.currentTarget) return;
       const box = event.currentTarget.getBoundingClientRect();
       if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) onOpenChange(false);
     }}>
     {open && <><header className="app-modal-header"><div><h2 id={id}>{title}</h2>{description && <p id={id + "-description"}>{description}</p>}</div>
-      <Button type="button" variant="ghost" size="icon" autoFocus aria-label={appText("Close")} onClick={() => onOpenChange(false)}><X aria-hidden="true" size={20} /></Button>
+      <Button type="button" variant="ghost" size="icon" autoFocus disabled={closeDisabled} aria-label={appText("Close")} onClick={() => onOpenChange(false)}><X aria-hidden="true" size={20} /></Button>
     </header><div className="app-modal-body">{children}</div></>}
   </dialog>, document.body);
 }

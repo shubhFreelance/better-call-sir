@@ -32,10 +32,11 @@ function proposal(extra = {}) {
   };
 }
 async function setup(page: Page, mode = "normal") {
+  let verifiedUntil = new Date(Date.now() + 600000).toISOString(), mfaRequired = mode === "mfa-expired";
   let denied = false,
     saved = false,
     record = proposal(
-      mode === "self"
+      mode === "suspension" ? {kind:"SUSPEND"} : mode === "self"
         ? { proposerId: actor }
         : mode === "target"
           ? { targetAccountId: actor }
@@ -65,10 +66,14 @@ async function setup(page: Page, mode = "normal") {
       return route.fulfill({
         json: {
           enabled: true,
-          verifiedUntil: new Date(Date.now() + 600000).toISOString(),
+          verifiedUntil,
           recoveryCodesRemaining: 8,
         },
       });
+    if (p.endsWith("/auth/mfa/verification")) {
+      mfaRequired=false; verifiedUntil=new Date(Date.now()+600000).toISOString();
+      return route.fulfill({status:201,json:{verifiedUntil,recoveryCodes:[]}});
+    }
     if (p.endsWith("/dashboard"))
       return route.fulfill({
         json: {
@@ -109,6 +114,7 @@ async function setup(page: Page, mode = "normal") {
       });
     if (req.method() === "GET" && p.includes("/admin/staff")) {
       reads.push(url);
+      if (mfaRequired)return route.fulfill({status:403,json:{code:"MFA_REQUIRED",message:"Verify your authenticator again."}});
       if (denied)
         return route.fulfill({
           status: 403,
@@ -156,6 +162,7 @@ async function setup(page: Page, mode = "normal") {
               ? target
               : null,
         };
+      if(mode==="many"&&!p.endsWith("/changes"))data={items:url.searchParams.has("cursor")?[{id:"10000000-0000-4000-8000-000000000839",name:"Last synthetic staff",email:"last@example.test",role:"REVIEWER",region:"Raipur",disabled:false,authVersion:0}]:Array.from({length:10},(_,i)=>({id:i===0?actor:i===9?target:`10000000-0000-4000-8000-00000000083${i}`,name:i===0?"Synthetic administrator":`Synthetic staff ${i}`,email:i===0?"admin@example.test":`staff${i}@example.test`,role:i===0?"ADMIN":"REVIEWER",region:"Raipur",disabled:false,authVersion:0})),nextCursor:url.searchParams.has("cursor")?null:target};
       const validate = operationValidator(
         p.endsWith("/changes") ? "/admin/staff/changes" : "/admin/staff",
         "get",
@@ -203,10 +210,12 @@ async function setup(page: Page, mode = "normal") {
     }
     return route.fulfill({ json: { items: [] } });
   });
-  await page.goto("/dashboard/admin");
-  await page.getByRole("tab", { name: "Staff access", exact: true }).click();
+  await page.goto(mode==="many"?"/dashboard/admin?tab=staff":"/dashboard/admin");
+  if(mode==="mfa-expired")return {writes,reads,fail(value:boolean){denied=value;}};
+  if(mode==="many")await expect(page.getByRole("tab",{name:"Staff access",exact:true})).toHaveAttribute("data-state","active");
+  else await page.getByRole("tab", { name: "Staff access", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Access with a second pair of eyes." }),
+    page.getByRole("heading", { name: "Manage staff access" }),
   ).toBeVisible();
   return {
     writes,
@@ -238,7 +247,7 @@ async function startCreate(page: Page) {
 }
 async function startReview(page: Page) {
   await page
-    .getByRole("button", { name: "Review staff change", exact: true })
+    .getByRole("button", { name: /^(Review & approve|View request|View decision)$/, exact: true })
     .click();
   await page
     .getByLabel("Decision reason", { exact: true })
@@ -246,10 +255,32 @@ async function startReview(page: Page) {
   await page.getByRole("checkbox").check();
 }
 export function staffAdministrationChecks() {
+  test("staff administration provides an actionable fresh-authenticator recovery",async({page})=>{
+    await setup(page,"mfa-expired");await page.getByRole("tab",{name:"Staff access",exact:true}).click();await expect(page.getByLabel("Authenticator code",{exact:true})).toBeVisible();await expect(page.getByText("A fresh verification is required.",{exact:true})).toBeVisible();await page.getByRole("button",{name:"Check current verification",exact:true}).click();await expect(page.getByLabel("Authenticator code",{exact:true})).toBeVisible();await expect(page.getByRole("button",{name:"Add staff member",exact:true})).toHaveCount(0);await page.getByLabel("Authenticator code",{exact:true}).fill("123456");await page.getByRole("button",{name:"Verify staff access",exact:true}).click();await expect(page.getByRole("button",{name:"Add staff member",exact:true})).toBeEnabled();
+  });
+  test("approved staff suspension does not direct the suspended member to sign in",async({page})=>{
+    await setup(page,"suspension");await startReview(page);await page.getByRole("button",{name:"Approve staff access",exact:true}).click();const dialog=page.getByRole("dialog");await expect(dialog.getByText("Staff access is suspended. Existing sessions are revoked.",{exact:true})).toBeVisible();await expect(dialog.locator('.step-progress [aria-current="step"]')).toHaveCount(0);
+  });
+  test("staff entry opens directly, keeps ten directory rows per page and opens creation above the list",async({page})=>{
+    const s=await setup(page,"many");const directory=page.getByRole("region",{name:"Current staff access",exact:true});
+    await page.getByRole("tab",{name:"Overview & controls",exact:true}).click();await expect(page).toHaveURL(/\/dashboard\/admin$/);await page.getByRole("link",{name:"Staff access",exact:true}).click();await expect(page.getByRole("tab",{name:"Staff access",exact:true})).toHaveAttribute("data-state","active");
+    await expect(page.getByRole("link",{name:"Staff access",exact:true})).toHaveAttribute("href","/dashboard/admin?tab=staff");
+    await expect(directory.locator(".staff-person")).toHaveCount(10);
+    await directory.getByRole("button",{name:"Next page",exact:true}).click();await expect(directory.locator(".staff-person")).toHaveCount(1);await expect(directory.getByText("Last synthetic staff",{exact:true})).toBeVisible();
+    expect(s.reads.some(u=>u.searchParams.get("limit")==="10"&&u.searchParams.get("cursor")===target)).toBe(true);
+    await directory.getByRole("button",{name:"Previous page",exact:true}).click();await expect(directory.locator(".staff-person")).toHaveCount(10);
+    await page.locator(".staff-workspace").screenshot({path:"test-results/staff-management-desktop.png",style:"nextjs-portal{display:none!important}"});
+    await page.getByRole("button",{name:"Add staff member",exact:true}).click();const dialog=page.getByRole("dialog",{name:"Add staff member",exact:true});await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel("Staff name",{exact:true})).toBeVisible();expect((await dialog.getByLabel("Staff name",{exact:true}).boundingBox())!.width).toBeGreaterThan(220);await expect(dialog.getByRole("combobox",{name:"Staff role",exact:true})).toHaveValue("REVIEWER");
+    await expect(dialog.getByText("Reviewers assess teacher evidence and applications within their assigned region. They cannot create or approve staff.",{exact:true})).toBeVisible();
+    await dialog.screenshot({path:"test-results/staff-create-desktop.png"});expect((await new AxeBuilder({page}).include(".app-modal").analyze()).violations).toEqual([]);
+    await page.keyboard.press("Escape");await expect(dialog).toHaveCount(0);expect(s.writes).toHaveLength(0);
+  });
   test("staff role changes review reactivation and preserve the current access version", async ({
     page,
   }) => {
     const s = await setup(page);
+    await page.locator(".staff-manage summary").click();
     await page
       .getByRole("button", { name: "Change staff access", exact: true })
       .click();
@@ -335,7 +366,7 @@ export function staffAdministrationChecks() {
       .getByRole("button", { name: "Close staff review", exact: true })
       .click();
     await expect(
-      page.getByRole("heading", { name: "Access with a second pair of eyes." }),
+      page.getByRole("heading", { name: "Manage staff access" }),
     ).toBeFocused();
   });
   test("independent staff recovery records the reviewed version and displays the confirmed outcome", async ({
@@ -344,7 +375,7 @@ export function staffAdministrationChecks() {
     const s = await setup(page);
     await startReview(page);
     await page
-      .getByRole("button", { name: "Record independent review", exact: true })
+      .getByRole("button", { name: /^(Approve staff access|Reject staff request)$/, exact: true })
       .click();
     await expect(
       page.getByText(
@@ -368,11 +399,11 @@ export function staffAdministrationChecks() {
   }) => {
     const s = await setup(page, "self");
     await page
-      .getByRole("button", { name: "Review staff change", exact: true })
+      .getByRole("button", { name: /^(Review & approve|View request|View decision)$/, exact: true })
       .click();
     await expect(
       page.getByRole("button", {
-        name: "Record independent review",
+        name: /^(Approve staff access|Reject staff request)$/,
         exact: true,
       }),
     ).toHaveCount(0);
@@ -387,11 +418,11 @@ export function staffAdministrationChecks() {
     await page.unroute("**/api/v1/**");
     await setup(page, "target");
     await page
-      .getByRole("button", { name: "Review staff change", exact: true })
+      .getByRole("button", { name: /^(Review & approve|View request|View decision)$/, exact: true })
       .click();
     await expect(
       page.getByRole("button", {
-        name: "Record independent review",
+        name: /^(Approve staff access|Reject staff request)$/,
         exact: true,
       }),
     ).toBeDisabled();
@@ -402,7 +433,7 @@ export function staffAdministrationChecks() {
     const s = await setup(page, "unknown");
     await startReview(page);
     await page
-      .getByRole("button", { name: "Record independent review", exact: true })
+      .getByRole("button", { name: /^(Approve staff access|Reject staff request)$/, exact: true })
       .click();
     await expect(
       page.getByRole("button", { name: "Retry same decision", exact: true }),
@@ -413,6 +444,8 @@ export function staffAdministrationChecks() {
     await expect(
       page.getByRole("button", { name: "Discard staff review", exact: true }),
     ).toBeDisabled();
+    await expect(page.getByRole("dialog").getByRole("button",{name:"Close",exact:true})).toBeDisabled();
+    await page.keyboard.press("Escape");await expect(page.getByRole("dialog")).toBeVisible();
     await page
       .getByRole("button", { name: "Retry same decision", exact: true })
       .click();
@@ -428,7 +461,7 @@ export function staffAdministrationChecks() {
     const s = await setup(page, "failed-refresh");
     await startReview(page);
     await page
-      .getByRole("button", { name: "Record independent review", exact: true })
+      .getByRole("button", { name: /^(Approve staff access|Reject staff request)$/, exact: true })
       .click();
     await expect(
       page.getByText(
@@ -482,7 +515,7 @@ export function staffAdministrationChecks() {
         .getByRole("button", { name: "Retry history", exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Review staff change", exact: true }),
+      page.getByRole("button", { name: /^(Review & approve|View request|View decision)$/, exact: true }),
     ).toHaveCount(0);
     s.fail(false);
     await page
@@ -490,7 +523,7 @@ export function staffAdministrationChecks() {
       .getByRole("button", { name: "Retry history", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Review staff change", exact: true }),
+      page.getByRole("button", { name: /^(Review & approve|View request|View decision)$/, exact: true }),
     ).toBeVisible();
     expect(
       s.reads
@@ -505,7 +538,7 @@ export function staffAdministrationChecks() {
     await startReview(page);
     await expect(
       page.getByRole("button", {
-        name: "Record independent review",
+        name: /^(Approve staff access|Reject staff request)$/,
         exact: true,
       }),
     ).toBeDisabled();
@@ -513,7 +546,7 @@ export function staffAdministrationChecks() {
       .getByRole("combobox", { name: "Review outcome", exact: true })
       .selectOption("REJECT");
     await page
-      .getByRole("button", { name: "Record independent review", exact: true })
+      .getByRole("button", { name: /^(Approve staff access|Reject staff request)$/, exact: true })
       .click();
     expect(s.writes[0].body.decision).toBe("REJECT");
   });
@@ -522,11 +555,9 @@ export function staffAdministrationChecks() {
   }) => {
     await setup(page);
     await page
-      .getByRole("button", { name: "Add staff member", exact: true })
-      .click();
-    await page
       .getByRole("button", { name: "Switch English and Hindi", exact: true })
       .click();
+    await page.getByRole("button", {name:hindiMessages["Add staff member"],exact:true}).click();
     await checkHindi(page);
     for (const width of [320, 360, 390, 430]) {
       await page.setViewportSize({ width, height: 900 });
@@ -547,7 +578,7 @@ export function staffAdministrationChecks() {
       expect(bounds!.height).toBeGreaterThanOrEqual(44);
     }
     const results = await new AxeBuilder({ page })
-      .include(".staff-workspace")
+      .include(".app-modal")
       .analyze();
     expect(
       results.violations.filter((v) =>
