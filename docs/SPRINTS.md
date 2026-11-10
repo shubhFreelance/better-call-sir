@@ -1,5 +1,7 @@
 # Delivery board
 
+10 November 2026 - Guardian learner rows: compact desktop columns align name, management, verification and view icon; tablet groups name/management and phones retain stacking. Preserved 10px badges, tooltips, colors and exact-record actions. Six existing guardian browser scenarios pass, including English/Hindi, keyboard/accessibility and denied/revoked refresh; CSS parse and whitespace pass, captures reviewed. No functional/API change, production build or phase advancement. Next remains critical dependency security remediation; existing backlog unchanged.
+
 10 November 2026 - Guardian learner badge follow-up: scoped relationship-status and learning-management labels reduced from 11px to 10px. Two existing English desktop/Hindi phone browser cases, including accessibility/keyboard/refresh, plus CSS parsing and whitespace pass. No functional change, API/migration or phase advancement. Next remains dependency security remediation, starting with critical Next.js advisories; existing backlog unchanged.
 
 # 10 November 2026 - Guardian learner hub refinement
