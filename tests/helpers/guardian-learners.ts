@@ -94,7 +94,7 @@ export function guardianLearnerChecks() {
         "background-color",
         "rgb(240, 215, 255)",
       );
-      await expect(invited).not.toHaveAttribute("open", "");
+      await expect(invited).toHaveAttribute("open", "");
       await expect(invited.locator("summary")).toContainText(
         translateText(hindi, "{0} invitations", ["2+"]),
       );
@@ -103,13 +103,15 @@ export function guardianLearnerChecks() {
       );
       await expect(
         invited.getByRole("heading", { name: "Ram", exact: true }),
-      ).toBeHidden();
+      ).toBeVisible();
       await invited.locator("summary").focus();
+      await invited.locator("summary").press("Enter");
+      await expect(invited).not.toHaveAttribute("open", "");
       await invited.locator("summary").press("Enter");
       await expect(invited).toHaveAttribute("open", "");
       await expect(
         own.locator(".guardian-relationship-list > li").first(),
-      ).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+      ).toHaveCSS("background-color", "rgb(255, 255, 255)");
       await expect(
         own.getByRole("link", {
           name: translateText(hindi, "View relationship for {0}", ["Anshuman"]),
@@ -269,7 +271,6 @@ export function guardianLearnerChecks() {
     const hub = page.locator(".guardian-learners"),
       own = hub.locator(".guardian-relationships"),
       invited = hub.locator(".guardian-support-invitations");
-    await invited.locator("summary").click();
     await expect(
       own.getByText("Staff review pending", { exact: true }),
     ).toBeVisible();
@@ -366,7 +367,7 @@ export function guardianLearnerChecks() {
       await expect(summary).not.toContainText(t("No invitations"));
       release();
       await expect(summary).toContainText(t("No invitations"));
-      await expect(invited).toHaveJSProperty("open", false);
+      await expect(invited).toHaveJSProperty("open", true);
       await expect(own.locator(".guardian-relationship-list > li")).toHaveCount(
         3,
       );
@@ -378,8 +379,19 @@ export function guardianLearnerChecks() {
       const panel = await hub.locator(".guardian-family-panel").boundingBox(),
         box = await invited.boundingBox(),
         main = await own.boundingBox();
-      expect(box!.height).toBeLessThan(120);
-      expect(main!.width).toBeGreaterThan(panel!.width * 0.9);
+      expect(box!.height).toBeLessThan(400);
+      if (hindi) {
+        expect(main!.width).toBeGreaterThan(panel!.width * 0.9);
+        expect(box!.y).toBeGreaterThan(main!.y);
+      } else {
+        expect(box!.x).toBeGreaterThan(main!.x + main!.width);
+        expect(Math.abs(box!.y - main!.y)).toBeLessThan(2);
+        const learners = own.locator(".guardian-relationship-list > li");
+        const first = await learners.nth(0).boundingBox(),
+          second = await learners.nth(1).boundingBox();
+        expect(second!.x).toBeGreaterThan(first!.x);
+        expect(Math.abs(second!.y - first!.y)).toBeLessThan(2);
+      }
       await expect(
         own.locator(".guardian-relationship-list h3").first(),
       ).toHaveCSS("font-size", hindi ? "16px" : "18px");
@@ -396,8 +408,6 @@ export function guardianLearnerChecks() {
         path: `test-results/guardian-minimal-empty-${hindi ? "hi" : "en"}.png`,
         style: "nextjs-portal{display:none!important}",
       });
-      await summary.focus();
-      await summary.press("Enter");
       await expect(invited).toHaveJSProperty("open", true);
       await expect(
         invited.getByText(translateText(hindi, "Showing {0} records.", [0]), {

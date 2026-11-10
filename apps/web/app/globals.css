@@ -5795,28 +5795,25 @@ body:has(.teacher-discovery-page) { background: #F4F4EC; }
 @media(max-width:640px) { .learner-profile-navigation { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; margin-top:20px; } .learner-profile-navigation [data-slot=button] { width:100%; } }
 
 .guardian-learners { margin:0 0 32px; }
-.guardian-family-panel { display:grid; gap:12px; padding:14px; border-radius:24px; background:#034F46; }
+.guardian-family-panel { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); align-items:start; gap:14px; padding:14px; border-radius:24px; background:#034F46; }
 .guardian-relationships { min-width:0; padding:22px; border:1px solid #E1E6D7; border-radius:18px; background:#FFFFEB; }
 .guardian-relationships-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
 .guardian-relationships-heading > div { display:flex; align-items:center; gap:8px; min-width:0; }
 .guardian-relationships-heading h2 { margin:0; font-size:20px; line-height:1.4; letter-spacing:-.4px; color:#034F46; }
 .guardian-learners .filter-button { font-size:13px; white-space:normal; }
 .guardian-relationship-list, .guardian-support-list { list-style:none; padding:0; margin:0; border:1px solid #DFE7DF; border-radius:14px; background:#FFF; }
-.guardian-relationship-list > li, .guardian-support-list > li { display:grid; grid-template-columns:minmax(0,1fr) auto 44px; align-items:center; gap:4px 12px; padding:14px 18px; border-bottom:1px solid #E2E8DF; overflow-wrap:anywhere; }
+.guardian-relationship-list > li, .guardian-support-list > li { display:grid; grid-template-columns:minmax(0,1fr) 44px; align-content:start; align-items:center; gap:8px; padding:14px; border-bottom:1px solid #E2E8DF; overflow-wrap:anywhere; }
 .guardian-relationship-list > li:last-child, .guardian-support-list > li:last-child { border-bottom:0; }
 .guardian-relationship-list h3, .guardian-support-list h3 { margin:0; font-size:18px; line-height:1.4; letter-spacing:-.2px; font-weight:650; color:#034F46; }
-.guardian-relationship-list > li > .status-badge, .guardian-support-list > li > .status-badge { grid-column:2; justify-self:end; max-width:210px; }
+.guardian-relationship-list > li > .status-badge, .guardian-support-list > li > .status-badge { grid-column:1/3; grid-row:2; justify-self:start; max-width:100%; }
 .guardian-learners .status-badge { font-size:11px; font-weight:500; white-space:normal; line-height:1.5; }
 .guardian-relationships .status-badge { font-size:10px; }
-.guardian-relationship-list > li { grid-template-columns:minmax(100px,.6fr) minmax(0,1.4fr) auto 44px; gap:12px; padding:14px 18px; }
-.guardian-relationship-list h3 { grid-column:1; grid-row:1; }
-.guardian-relationship-list > li > .status-badge { grid-column:3; grid-row:1; }
-.guardian-relationship-list .guardian-learner-eye { grid-column:4; grid-row:1; }
-.guardian-relationship-list .guardian-learner-management { grid-column:2; grid-row:1; }
-.guardian-learner-management, .guardian-support-permission { grid-column:1/3; min-width:0; }
+.guardian-relationship-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; border:0; background:transparent; }
+.guardian-relationship-list > li, .guardian-relationship-list > li:last-child { border:1px solid #DFE7DF; border-radius:12px; background:#FFF; }
+.guardian-learner-management, .guardian-support-permission { grid-column:1/3; grid-row:3; min-width:0; }
 .guardian-learner-management .learning-management-badge { max-width:100%; gap:8px; }
 .guardian-learner-management .learning-management-badge > .status-badge { min-width:0; }
-.guardian-learner-eye { display:inline-flex; align-items:center; justify-content:center; grid-column:3; grid-row:1/3; width:44px; height:44px; border:1px solid transparent; border-radius:50%; color:#034F46; cursor:pointer; transition:background-color .15s,border-color .15s; }
+.guardian-learner-eye { display:inline-flex; align-items:center; justify-content:center; grid-column:2; grid-row:1; width:44px; height:44px; border:1px solid transparent; border-radius:50%; color:#034F46; cursor:pointer; transition:background-color .15s,border-color .15s; }
 .guardian-learner-eye:hover { background:#F0D7FF; border-color:#D8A8ED; }
 .guardian-learner-eye:focus-visible, .guardian-education-link:focus-visible { outline:2px solid #034F46; outline-offset:2px; border-radius:12px; }
 .guardian-relationship-empty { margin:0; padding:16px; border-radius:12px; background:#EEF5F3; color:#52655F; font-size:12px; line-height:1.7; }
@@ -5829,34 +5826,30 @@ body:has(.teacher-discovery-page) { background: #F4F4EC; }
 .guardian-learners .history-controls > .refresh-button { flex:0 0 44px; width:44px; }
 .guardian-education-link { display:inline-flex; align-items:center; min-height:44px; color:#034F46; font-size:12px; text-decoration:underline; text-underline-offset:3px; }
 .guardian-support-invitations { min-width:0; border:1px solid #DAB7EC; border-radius:16px; background:#F8ECFF; }
-.guardian-support-invitations > summary { display:flex; align-items:center; gap:12px; padding:16px 20px; border-radius:15px; background:#F0D7FF; color:#034F46; cursor:pointer; list-style:none; }
+.guardian-support-invitations > summary { display:grid; grid-template-columns:18px minmax(0,1fr) 18px; align-items:center; gap:6px 10px; padding:18px; border-radius:15px; background:#F0D7FF; color:#034F46; cursor:pointer; list-style:none; }
 .guardian-support-invitations > summary::-webkit-details-marker { display:none; }
 .guardian-support-invitations > summary:focus-visible { outline:2px solid #034F46; outline-offset:-5px; }
-.guardian-support-title { flex:1; min-width:0; font-size:14px; font-weight:650; line-height:1.5; }
-.guardian-support-meta { display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:8px; font-size:12px; line-height:1.5; }
+.guardian-support-title { min-width:0; font-size:18px; font-weight:650; line-height:1.5; letter-spacing:-.3px; }
+.guardian-support-meta { grid-column:2; display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:12px; line-height:1.5; }
 .guardian-support-pending { padding:4px 8px; border-radius:8px; background:#FFF5CE; color:#73540C; }
-.guardian-support-chevron { flex:none; transition:transform .15s; }
+.guardian-support-chevron { grid-column:3; grid-row:1/3; transition:transform .15s; }
 .guardian-support-invitations[open] > summary .guardian-support-chevron { transform:rotate(180deg); }
 .guardian-support-content { display:grid; gap:16px; padding:18px 20px; }
 .guardian-support-explainer { display:flex; align-items:center; gap:12px; }
 .guardian-support-explainer > p { flex:1; margin:0; color:#52655F; font-size:12px; line-height:1.7; }
 .guardian-support-list { border-color:#E7D4F0; }
 .guardian-support-permission { display:flex; align-items:center; gap:8px; color:#52655F; font-size:12px; line-height:1.6; }
-.guardian-support-actions.filter-button-group { margin:0; padding:10px; align-items:center; }
+.guardian-support-actions.filter-button-group { margin:0; padding:10px; align-items:center; flex-wrap:wrap; }
 .guardian-support-actions > .history-controls { flex:1; }
 .guardian-support-invitations[data-empty=true] .history-controls p { display:none; }
 .guardian-support-invitations[data-empty=true] .guardian-support-actions > .history-controls { flex:none; }
-@media(min-width:641px) and (max-width:1000px) {
-  .guardian-relationship-list > li {grid-template-columns:minmax(0,1fr) auto 44px; gap:0 12px;}
-  .guardian-relationship-list > li > .status-badge {grid-column:2; grid-row:1/3;}
-  .guardian-relationship-list .guardian-learner-eye {grid-column:3; grid-row:1/3;}
-  .guardian-relationship-list .guardian-learner-management {grid-column:1; grid-row:2;}
-}
+@media(max-width:1100px) { .guardian-family-panel {grid-template-columns:minmax(0,1fr);} }
 @media(max-width:640px) {
   .guardian-family-panel {padding:10px; gap:10px; border-radius:20px;}
   .guardian-relationships {padding:16px;}
   .guardian-relationships-heading h2 {font-size:18px;}
   .guardian-relationships-heading > .filter-button {width:100%;}
+  .guardian-relationship-list {grid-template-columns:minmax(0,1fr);}
   .guardian-relationship-list > li,.guardian-support-list > li {grid-template-columns:minmax(0,1fr) 44px; padding:14px 12px; gap:6px 8px;}
   .guardian-relationship-list h3,.guardian-support-list h3 {font-size:16px;}
   .guardian-relationship-list > li > .status-badge,.guardian-support-list > li > .status-badge {grid-column:1/3; grid-row:2; justify-self:start; max-width:100%;}

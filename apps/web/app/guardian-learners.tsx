@@ -181,6 +181,7 @@ export function GuardianLearners({ session }: { session: Session }) {
         </section>
         <details
           className="guardian-support-invitations"
+          open
           data-empty={invitationsEmpty ? "true" : undefined}
         >
           <summary>
