@@ -4277,7 +4277,6 @@ export interface components {
                 };
             };
             recentActivity: {
-                id: string;
                 teacherName: string;
                 /** @enum {string} */
                 kind: "CARD_CLICK" | "PROFILE_VISIT";

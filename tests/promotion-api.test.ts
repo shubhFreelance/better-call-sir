@@ -338,7 +338,7 @@ test("promotion activity and scoped reports measure real daily audience without 
   assert.equal(r.data.recentActivity.length,4);
   assert.deepEqual(new Set(r.data.recentActivity.map((e:any)=>e.kind)),new Set(["CARD_CLICK","PROFILE_VISIT"]));
   assert.deepEqual(new Set(r.data.recentActivity.map((e:any)=>e.audience)),new Set(["GUARDIAN","STUDENT"]));
-  assert(r.data.recentActivity.every((e:any)=>e.placement==="SEARCH" && !('viewerId' in e) && !('name' in e) && !('email' in e) && !('phone' in e)));
+  assert(r.data.recentActivity.every((e:any)=>e.placement==="SEARCH" && !('id' in e) && !('viewerId' in e) && !('name' in e) && !('email' in e) && !('phone' in e)));
   assert.deepEqual((await other.call("/promotions/analytics")).data.recentActivity,[]);
   const previous=new Date(); previous.setUTCDate(1); previous.setUTCMonth(previous.getUTCMonth()-1);
   assert.deepEqual((await teacher.call("/promotions/analytics?month="+previous.toISOString().slice(0,7))).data.recentActivity,[]);
