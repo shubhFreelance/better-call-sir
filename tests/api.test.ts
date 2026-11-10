@@ -1614,6 +1614,29 @@ test('support invitations reject expired or non-guardian acceptance and do not r
 async function staffAdmin(label:string){await db.rateBucket.deleteMany({where:{key:createHash('sha256').update('dev:127.0.0.1').digest('hex')}});const account=await db.account.create({data:{phone:'+91000000'+randomUUID().slice(0,8),email:randomUUID()+'@example.test',name:'Synthetic staff '+label,role:'ADMIN'}});return {account,client:await login(account.id)};}
 const staffProposal=(extra={})=>({kind:'CREATE',email:randomUUID()+'@example.test',name:'New synthetic reviewer',role:'REVIEWER',region:'Raipur',reason:'Approved synthetic staffing requirement',evidenceRef:'review:synthetic-identity',confirmed:true,...extra});
 const staffDecision=(extra={})=>({expectedVersion:1,decision:'APPROVE',reason:'Independently checked restricted review record',independentlyVerified:true,...extra});
+test('explicit super admin creates approved staff atomically without granting super authority to the new account',async()=>{
+ const a=await staffAdmin('super administrator'),b=await staffAdmin('ordinary administrator');await db.account.update({where:{id:a.account.id},data:{superAdmin:true}});
+ const session=await a.client.call('/auth/session');assert.equal(session.data.account.superAdmin,true);assert(operationValidator('/auth/session','get','200')(session.data));
+ const body=staffProposal(),key=randomUUID(),created=await a.client.call('/admin/staff/changes',body,{key});assert.equal(created.status,201,JSON.stringify(created.data));assert.equal(created.data.status,'APPROVED');assert.equal(created.data.approverId,a.account.id);assert.equal(created.data.proposerId,a.account.id);assert(created.data.decidedAt);
+ const account=await db.account.findUniqueOrThrow({where:{id:created.data.targetAccountId}});assert.equal(account.role,'REVIEWER');assert.equal(account.disabled,false);assert.equal(account.superAdmin,false);assert.equal(account.authVersion,1);assert.equal(account.verified,false);
+ assert.equal((await a.client.call('/admin/staff/changes',body,{key})).data.targetAccountId,account.id);assert.equal(await db.account.count({where:{email:body.email}}),1);assert.equal(await db.audit.count({where:{aggregateId:created.data.id,action:'STAFF_CHANGE_APPROVED'}}),1);
+ assert.equal((await a.client.call('/admin/staff/changes',body)).status,409);assert.equal((await a.client.call('/admin/staff/changes',{...staffProposal(),superAdmin:true})).status,400);
+ const nextAdmin=await a.client.call('/admin/staff/changes',staffProposal({role:'ADMIN'}));assert.equal(nextAdmin.data.status,'APPROVED');assert.equal((await db.account.findUniqueOrThrow({where:{id:nextAdmin.data.targetAccountId}})).superAdmin,false);
+ await db.session.updateMany({where:{accountId:a.account.id},data:{mfaVerifiedAt:new Date(Date.now()-301000)}});assert.equal((await a.client.call('/admin/staff/changes',staffProposal())).status,403);await db.session.updateMany({where:{accountId:a.account.id},data:{mfaVerifiedAt:new Date()}});
+ assert.equal((await b.client.call('/admin/staff/changes',staffProposal({kind:'RECOVER',targetAccountId:a.account.id,expectedAuthVersion:0,email:undefined,name:undefined,role:undefined,region:undefined}))).status,403);
+ await assert.rejects(db.account.update({where:{id:account.id},data:{superAdmin:true}}));
+ const validate=operationValidator('/admin/staff/changes','post','201');assert(validate(created.data),JSON.stringify(validate.errors));
+});
+
+test('super admin can approve their earlier pending creation while ordinary administrators cannot manage highest access',async()=>{
+ const a=await staffAdmin('future super administrator'),b=await staffAdmin('ordinary approver'),old=await a.client.call('/admin/staff/changes',staffProposal());assert.equal(old.data.status,'PENDING');
+ const before=await b.client.call('/admin/staff/changes',staffProposal({kind:'RECOVER',targetAccountId:a.account.id,expectedAuthVersion:0,email:undefined,name:undefined,role:undefined,region:undefined}));assert.equal(before.status,201);
+ await db.account.update({where:{id:a.account.id},data:{superAdmin:true}});
+ assert.equal((await b.client.call(`/admin/staff/changes/${before.data.id}/decision`,staffDecision())).status,403);
+ const approved=await a.client.call(`/admin/staff/changes/${old.data.id}/decision`,staffDecision());assert.equal(approved.status,201,JSON.stringify(approved.data));assert.equal(approved.data.status,'APPROVED');assert.equal(approved.data.approverId,a.account.id);
+ await assert.rejects(db.staffChange.create({data:{id:randomUUID(),kind:'CHANGE',targetAccountId:b.account.id,email:b.account.email!,name:b.account.name,role:'REVIEWER',region:'Raipur',expectedAuthVersion:0,proposerId:a.account.id,proposerAuthVersion:0,approverId:a.account.id,reason:'Synthetic disallowed self approval',evidenceRef:'test:authority',status:'APPROVED',expiresAt:new Date(Date.now()+86400000)}}));
+});
+
 test('staff proposals require recent administrator MFA, strict dedicated identity and independent approval',async()=>{
  const a=await staffAdmin('proposer'),b=await staffAdmin('approver'),body=staffProposal();
  assert.equal((await parent.call('/admin/staff')).status,403);assert.equal((await teacher.call('/admin/staff/changes')).status,403);

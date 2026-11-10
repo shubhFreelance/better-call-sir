@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/teachers/{id}/screening": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Private current-revision screening progress for the owning teacher or authorized staff
+         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
+         */
+        get: operations["getTeacherScreeningProgress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/promotions/analytics": {
         parameters: {
             query?: never;
@@ -3586,7 +3606,7 @@ export interface paths {
         get: operations["getStaffChanges"];
         put?: never;
         /**
-         * proposeStaffChange — administrator, five-minute MFA, independent approval
+         * Create staff with recent MFA; explicit super admins activate new staff immediately, ordinary administrators propose independent review
          * @description Requires exact Origin, CSRF for authenticated operations, and expectedVersion where present. Synthetic adapters cannot satisfy live-release acceptance.
          */
         post: operations["proposeStaffChange"];
@@ -4183,30 +4203,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/teachers/{id}/screening": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Private current-revision screening progress for the owning teacher or authorized staff
-         * @description Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.
-         */
-        get: operations["getTeacherScreeningProgress"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        TeacherScreeningProgress: {
+            /** Format: uuid */
+            teacherId: string;
+            profileRevision: number;
+            version: number;
+            /** @enum {string} */
+            applicationStatus: "SUBMITTED" | "CHANGES_REQUESTED" | "APPROVED" | "SUSPENDED";
+            feeTermsAccepted: boolean;
+            detailsComplete: boolean;
+            readyForApproval: boolean;
+            categories: {
+                /** @enum {string} */
+                kind: "IDENTITY" | "QUALIFICATIONS" | "CAPABILITY" | "REFERENCES";
+                uploaded: number;
+                cleared: number;
+                scanning: number;
+                blocked: number;
+                /** @enum {string} */
+                reviewStatus: "NOT_RECORDED" | "PASSED" | "FAILED" | "EXPIRED" | "NEEDS_REVIEW";
+                /** Format: date-time */
+                validUntil: string | null;
+            }[];
+        };
         PromotionActivityInput: {
             /** Format: uuid */
             teacherId: string;
@@ -4516,6 +4539,8 @@ export interface components {
             teachingCoverage?: components["schemas"]["TeachingScope"][];
         };
         Account: {
+            /** @description Explicit administrator authority. Only true ADMIN accounts can create immediately approved staff; public input cannot grant it. */
+            readonly superAdmin?: boolean;
             /** Format: uuid */
             id: string;
             name: string;
@@ -7446,6 +7471,8 @@ export interface components {
             current: boolean;
         };
         StaffAccount: {
+            /** @description Explicit administrator authority. Only true ADMIN accounts can create immediately approved staff; public input cannot grant it. */
+            readonly superAdmin?: boolean;
             /** Format: uuid */
             id: string;
             /** Format: email */
@@ -8036,29 +8063,6 @@ export interface components {
             /** @enum {string} */
             status: "RECORDED";
         };
-        TeacherScreeningProgress: {
-            /** Format: uuid */
-            teacherId: string;
-            profileRevision: number;
-            version: number;
-            /** @enum {string} */
-            applicationStatus: "SUBMITTED" | "CHANGES_REQUESTED" | "APPROVED" | "SUSPENDED";
-            feeTermsAccepted: boolean;
-            detailsComplete: boolean;
-            readyForApproval: boolean;
-            categories: {
-                /** @enum {string} */
-                kind: "IDENTITY" | "QUALIFICATIONS" | "CAPABILITY" | "REFERENCES";
-                uploaded: number;
-                cleared: number;
-                scanning: number;
-                blocked: number;
-                /** @enum {string} */
-                reviewStatus: "NOT_RECORDED" | "PASSED" | "FAILED" | "EXPIRED" | "NEEDS_REVIEW";
-                /** Format: date-time */
-                validUntil: string | null;
-            }[];
-        };
     };
     responses: never;
     parameters: never;
@@ -8068,6 +8072,91 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getTeacherScreeningProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherScreeningProgress"];
+                };
+            };
+            /** @description Validation */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Session required/expired */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Role, ownership, consent, CSRF or Origin denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Missing or inaccessible resource */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Version, eligibility, reservation or retry conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rate limit */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Provider unavailable or feature paused */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getPromotionAnalytics: {
         parameters: {
             query?: {
@@ -29734,91 +29823,6 @@ export interface operations {
                 };
             };
             /** @description Validated request, authentication, permission, version, rate or provider-configuration error */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-        };
-    };
-    getTeacherScreeningProgress: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Backend-confirmed result. Pending states are not fulfilled services. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TeacherScreeningProgress"];
-                };
-            };
-            /** @description Validation */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Session required/expired */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Role, ownership, consent, CSRF or Origin denied */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Missing or inaccessible resource */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Version, eligibility, reservation or retry conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Rate limit */
-            429: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Provider unavailable or feature paused */
             503: {
                 headers: {
                     [name: string]: unknown;

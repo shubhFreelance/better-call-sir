@@ -8,7 +8,7 @@ import {pageQuery,pageResult} from '../../pagination';
 const roles=z.enum(['ADMIN','OPERATOR','REVIEWER','FINANCE']);
 const proposal=z.object({kind:z.enum(['CREATE','CHANGE','SUSPEND','RECOVER']),targetAccountId:uuid.optional(),email:emailAddress.optional(),name:text(80).optional(),role:roles.optional(),region:text(80).optional(),expectedAuthVersion:z.number().int().nonnegative().optional(),reason:text(500),evidenceRef:z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:/-]{2,119}$/),confirmed:z.literal(true)}).strict();
 const decision=z.object({expectedVersion:version,decision:z.enum(['APPROVE','REJECT','CANCEL']),reason:text(500),independentlyVerified:z.literal(true)}).strict();
-const staffSelect={id:true,name:true,email:true,role:true,region:true,disabled:true,authVersion:true} as const;
+const staffSelect={id:true,name:true,email:true,role:true,region:true,disabled:true,authVersion:true,superAdmin:true} as const;
 @Controller('api/v1')
 class StaffController {
  constructor(@Inject(AppService) private readonly service:AppService){}
@@ -28,7 +28,7 @@ class StaffController {
   const actor=await this.admin(req),data=parse(proposal,body);
   return this.service.once(req,actor,'STAFF_CHANGE_PROPOSED',data,async db=>{
    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended('staff-administration',0))`;
-   await this.admin(req,db);
+   const authority=await this.admin(req,db);
    if(data.region&&!await db.region.findUnique({where:{id:data.region}}))fail(400,'INVALID_REGION','Choose a configured region.');
    let target:Account|null=null;
    if(data.kind==='CREATE'){
@@ -39,24 +39,29 @@ class StaffController {
     target=await db.account.findUnique({where:{id:data.targetAccountId}});
     if(!target||!privileged(target.role)||!target.email)fail(404,'NOT_FOUND','A dedicated email staff account is required.');
     if(target.id===actor.id)fail(403,'SELF_REVIEW','You cannot propose changes to your own access.');
+    if(target.superAdmin&&!authority.superAdmin)fail(403,'SUPER_ADMIN_REQUIRED','Only a super admin can manage super-admin access.');
     if(target.authVersion!==data.expectedAuthVersion)fail(409,'STALE_VERSION','Staff access changed. Refresh before proposing.');
     if(data.kind!=='CHANGE'&&(data.role||data.region))fail(400,'VALIDATION','Recovery and suspension preserve the existing role and region.');
     if(data.kind==='CHANGE'&&(!data.role||!data.region))fail(400,'VALIDATION','Choose both role and region.');
     if(target.disabled&&data.kind!=='CHANGE')fail(409,'STAFF_DISABLED','Only a reviewed access change can reactivate suspended staff.');
    }
-   const row=await db.staffChange.create({data:{kind:data.kind,targetAccountId:target?.id,email:target?.email||data.email!,name:target?.name||data.name!,role:data.role||target!.role,region:data.region||target!.region,expectedAuthVersion:target?.authVersion||0,proposerId:actor.id,proposerAuthVersion:actor.authVersion,reason:data.reason,evidenceRef:data.evidenceRef,expiresAt:new Date(Date.now()+86400000)}});
-   await this.service.audit(db,actor,req,'STAFF_CHANGE_PROPOSED',row.id,data.reason,{targetAccountId:target?.id||null,authVersion:row.expectedAuthVersion},{kind:row.kind,role:row.role,region:row.region,evidenceRef:row.evidenceRef});return row;
+   const direct=data.kind==='CREATE'&&authority.superAdmin;
+   if(direct)target=await db.account.create({data:{email:data.email!,name:data.name!,role:data.role!,region:data.region!,authVersion:1}});
+   const row=await db.staffChange.create({data:{kind:data.kind,targetAccountId:target?.id,email:target?.email||data.email!,name:target?.name||data.name!,role:data.role||target!.role,region:data.region||target!.region,expectedAuthVersion:data.kind==='CREATE'?0:target?.authVersion||0,proposerId:actor.id,proposerAuthVersion:actor.authVersion,reason:data.reason,evidenceRef:data.evidenceRef,expiresAt:new Date(Date.now()+86400000),...(direct?{status:'APPROVED',approverId:actor.id,decidedAt:new Date(),decisionReason:data.reason}:{})}});
+   await this.service.audit(db,actor,req,'STAFF_CHANGE_PROPOSED',row.id,data.reason,{targetAccountId:target?.id||null,authVersion:row.expectedAuthVersion},{kind:row.kind,role:row.role,region:row.region,evidenceRef:row.evidenceRef});
+   if(direct)await this.service.audit(db,actor,req,'STAFF_CHANGE_APPROVED',row.id,data.reason,{status:'NEW'},{status:'APPROVED',kind:'CREATE',targetAccountId:target!.id,authority:'SUPER_ADMIN'});
+   return row;
   });
  }
  @Post('admin/staff/changes/:id/decision') async decide(@Req() req:HttpRequest,@Param('id') id:string,@Body() body:unknown){
   parse(uuid,id);const actor=await this.admin(req),data=parse(decision,body);
   return this.service.once(req,actor,'STAFF_CHANGE_DECIDED',data,async db=>{
    await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended('staff-administration',0))`;
-   await this.admin(req,db);
+   const authority=await this.admin(req,db);
    const row=await db.staffChange.findUnique({where:{id}});
    if(!row)fail(404,'NOT_FOUND','Staff change not found.');
    if(row.status!=='PENDING'||row.version!==data.expectedVersion)fail(409,'STALE_VERSION','The staff change was already decided. Refresh its history.');
-   if(data.decision==='CANCEL'?(actor.id!==row.proposerId):(actor.id===row.proposerId||actor.id===row.targetAccountId))fail(403,'INDEPENDENT_APPROVAL_REQUIRED','A different administrator must independently review this change.');
+   if(data.decision==='CANCEL'?(actor.id!==row.proposerId):(actor.id===row.targetAccountId||actor.id===row.proposerId&&!(row.kind==='CREATE'&&authority.superAdmin)))fail(403,'INDEPENDENT_APPROVAL_REQUIRED','A different administrator must independently review this change.');
    if(data.decision==='APPROVE'){
     if(row.expiresAt<new Date())fail(409,'APPROVAL_EXPIRED','This proposal expired. Create a fresh review.');
     const proposer=await db.account.findUnique({where:{id:row.proposerId}});if(!proposer||proposer.disabled||proposer.role!=='ADMIN'||proposer.authVersion!==row.proposerAuthVersion)fail(409,'PROPOSER_UNAVAILABLE','The proposer is no longer an active administrator.');
@@ -68,8 +73,9 @@ class StaffController {
      await db.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${row.targetAccountId!+':mfa'},0))`;
      const target=await db.account.findUnique({where:{id:row.targetAccountId!}});
      if(!target||!privileged(target.role)||target.email!==row.email||target.authVersion!==row.expectedAuthVersion)fail(409,'STALE_VERSION','Current staff access no longer matches this proposal.');
+     if(target.superAdmin&&!authority.superAdmin)fail(403,'SUPER_ADMIN_REQUIRED','Only a super admin can manage super-admin access.');
      if(target.role==='ADMIN'&&!target.disabled&&(row.kind==='SUSPEND'||row.kind==='CHANGE'&&row.role!=='ADMIN')&&await db.account.count({where:{role:'ADMIN',disabled:false}})<=2)fail(409,'ADMIN_QUORUM','Keep at least two active administrators.');
-     await db.account.update({where:{id:target.id},data:{authVersion:{increment:1},...(row.kind==='SUSPEND'?{disabled:true}:row.kind==='CHANGE'?{role:row.role,region:row.region,disabled:false}:{})}});
+     await db.account.update({where:{id:target.id},data:{authVersion:{increment:1},...(row.kind==='SUSPEND'?{disabled:true}:row.kind==='CHANGE'?{role:row.role,region:row.region,disabled:false,...(row.role!=='ADMIN'?{superAdmin:false}:{})}:{})}});
      await db.session.updateMany({where:{accountId:target.id},data:{revoked:true}});
      // A role/region change also requires fresh enrollment; old recovery codes grant no new authority.
      await db.mfaCredential.deleteMany({where:{accountId:target.id}});
