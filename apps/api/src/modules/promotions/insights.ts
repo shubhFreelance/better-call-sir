@@ -233,6 +233,13 @@ export class PromotionInsightsController {
           { day: string; clicks: bigint; visits: bigint }[]
         >(Prisma.sql`SELECT to_char(e.day,'YYYY-MM-DD') AS day,count(*) FILTER (WHERE e.kind='CARD_CLICK') AS clicks,count(*) FILTER (WHERE e.kind='PROFILE_VISIT') AS visits
     FROM "PromotionActivity" e JOIN "Account" a ON a.id=e."viewerId" WHERE ${eventScope} AND ${monthScope} GROUP BY e.day ORDER BY e.day DESC`);
+        const recentActivity = await db.$queryRaw<{
+          id: string; teacherName: string; kind: string; audience: string;
+          placement: string | null; createdAt: Date;
+        }[]>(Prisma.sql`SELECT e.id,t.name AS "teacherName",e.kind,e.audience,p.placement,e."createdAt"
+    FROM "PromotionActivity" e JOIN "Account" a ON a.id=e."viewerId" JOIN "Teacher" t ON t.id=e."teacherId"
+    LEFT JOIN "TeacherPromotion" p ON p.id=e."promotionId" AND p."teacherId"=e."teacherId"
+    WHERE ${eventScope} AND ${monthScope} ORDER BY e."createdAt" DESC,e.id DESC LIMIT 10`);
         const campaigns = await db.$queryRaw<
           {
             id: string;
@@ -255,7 +262,7 @@ export class PromotionInsightsController {
         );
         const proPreview = development() && actor.role === "TEACHER" && selected?.slug === "meera-sahu" &&
           !!(await db.featureFlag.findUnique({where:{name:"teacherProPreview:" + teacherId}}))?.enabled;
-        // shortcut: Local Pro preview unlocks demo contacts only; real identities require teacher entitlements and consented sharing.
+        // Browsing does not grant contact sharing; real identities remain subject to existing enquiry permissions.
         const enquiries =
           actor.role === "ADMIN"
             ? await db.$queryRaw<
@@ -305,6 +312,7 @@ export class PromotionInsightsController {
             interestedStudents: Number(enquiryCount.students),
           },
           daily: daily.map(({ day, ...v }) => ({ day, ...numbers(v) })),
+          recentActivity,
           campaigns: campaigns.map(({ clicks, visits, ...c }) => ({
             ...c,
             status: displayStatus(c, now),
@@ -313,17 +321,7 @@ export class PromotionInsightsController {
           })),
           enquiries: {
             detailsAccess: actor.role === "ADMIN" ? "ADMIN" : proPreview ? "PRO_PREVIEW" : "PRO_REQUIRED",
-            demoContact:
-              development() && selected?.slug === "meera-sahu"
-                ? {
-                    demo: true,
-                    teacherName: selected.name,
-                    name: "Asha Verma",
-                    phone: "00000 00000",
-                    email: "asha.parent@example.test",
-                    subject: "Science",
-                  }
-                : null,
+            demoContact: null,
             items: enquiries,
             total: Number(enquiryCount.total),
             page: q.leadPage,

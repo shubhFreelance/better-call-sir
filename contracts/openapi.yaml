@@ -38383,6 +38383,7 @@
           "daily",
           "campaigns",
           "enquiries",
+          "recentActivity",
           "teachers"
         ],
         "properties": {
@@ -38730,6 +38731,23 @@
                     }
                   }
                 ]
+              }
+            }
+          },
+          "recentActivity": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "teacherName", "kind", "audience", "placement", "createdAt"],
+              "properties": {
+                "id": { "type": "string" },
+                "teacherName": { "type": "string" },
+                "kind": { "type": "string", "enum": ["CARD_CLICK", "PROFILE_VISIT"] },
+                "audience": { "type": "string", "enum": ["GUARDIAN", "STUDENT"] },
+                "placement": { "type": ["string", "null"], "enum": ["HOME", "SEARCH", "SPACE", null] },
+                "createdAt": { "type": "string", "format": "date-time" }
               }
             }
           },
