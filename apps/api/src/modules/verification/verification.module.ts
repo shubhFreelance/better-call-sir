@@ -17,6 +17,7 @@ import { Account, Prisma } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import * as files from "@bcs/evidence";
+import { detailsShape } from "../teachers/details";
 import {
   AppService,
   PersistenceModule,
@@ -275,6 +276,31 @@ class VerificationController {
       );
       return db.evidence.findUniqueOrThrow({ where: { id } });
     });
+  }
+  @Get("teachers/:id/screening") async screening(
+    @Req() req: HttpRequest,
+    @Param("id") id: string,
+  ) {
+    parse(uuid, id);
+    const actor = await this.service.actor(req, ["TEACHER", "ADMIN", "REVIEWER"]);
+    return this.service.db.$transaction(async (db) => {
+      const teacher = await this.teacher(db, actor, id, actor.role !== "TEACHER");
+      const now = new Date();
+      const checks = await db.verificationCheck.findMany({where:{teacherId:id,profileRevision:teacher.profileRevision}});
+      const groups = await db.evidence.groupBy({by:["kind","status"],where:{teacherId:id,status:{not:"DELETED"}},_count:true});
+      const clean = await db.evidence.findMany({where:{teacherId:id,id:{in:checks.map(c=>c.evidenceId)},status:"CLEAN"},select:{id:true}});
+      const categories = checkKinds.map(kind => {
+        const count = (status:string) => groups.find(g=>g.kind===kind&&g.status===status)?._count || 0;
+        const check = checks.find(c=>c.kind===kind);
+        const reviewStatus = !check ? "NOT_RECORDED" : check.result === "FAILED" ? "FAILED"
+          : check.validUntil <= now ? "EXPIRED"
+          : !clean.some(e=>e.id===check.evidenceId) || (kind==="CAPABILITY"&&teacher.teachingCoverage&&!sameCoverage(teacher,(check.coverage as {teachingCoverage?:unknown}|null)?.teachingCoverage)) ? "NEEDS_REVIEW" : "PASSED";
+        return {kind,uploaded:groups.filter(g=>g.kind===kind).reduce((n,g)=>n+g._count,0),cleared:count("CLEAN"),scanning:count("QUARANTINED"),blocked:count("INFECTED"),reviewStatus,validUntil:check?.validUntil||null};
+      });
+      const detailsComplete=z.object(detailsShape).safeParse(teacher).success;
+      await this.service.audit(db,actor,req,"TEACHER_SCREENING_PROGRESS_READ",id,"Authorized screening progress read");
+      return {teacherId:id,profileRevision:teacher.profileRevision,version:teacher.version,applicationStatus:teacher.status,feeTermsAccepted:!!teacher.feeTermsAcceptedAt,detailsComplete,readyForApproval:detailsComplete&&!!teacher.feeTermsAcceptedAt&&categories.every(c=>c.reviewStatus==="PASSED"),categories};
+    }, {isolationLevel:Prisma.TransactionIsolationLevel.RepeatableRead});
   }
   @Get("admin/teachers/:id/checks") async checks(
     @Req() req: HttpRequest,

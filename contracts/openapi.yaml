@@ -11,6 +11,114 @@
     }
   ],
   "paths": {
+    "/teachers/{id}/screening": {
+      "get": {
+        "operationId": "getTeacherScreeningProgress",
+        "tags": [
+          "backend-core"
+        ],
+        "summary": "Private current-revision screening progress for the owning teacher or authorized staff",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Backend-confirmed result. Pending states are not fulfilled services.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeacherScreeningProgress"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Session required/expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role, ownership, consent, CSRF or Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Missing or inaccessible resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Version, eligibility, reservation or retry conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable or feature paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Server role, owner/region, active eligibility and current-version checks apply. Private evidence never appears in public projections.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
     "/promotions/analytics": {
       "get": {
         "operationId": "getPromotionAnalytics",
@@ -38344,6 +38452,114 @@
 },
   "components": {
     "schemas": {
+      "TeacherScreeningProgress": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "teacherId",
+          "profileRevision",
+          "version",
+          "applicationStatus",
+          "feeTermsAccepted",
+          "detailsComplete",
+          "readyForApproval",
+          "categories"
+        ],
+        "properties": {
+          "teacherId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "profileRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "applicationStatus": {
+            "type": "string",
+            "enum": [
+              "SUBMITTED",
+              "CHANGES_REQUESTED",
+              "APPROVED",
+              "SUSPENDED"
+            ]
+          },
+          "feeTermsAccepted": {
+            "type": "boolean"
+          },
+          "detailsComplete": {
+            "type": "boolean"
+          },
+          "readyForApproval": {
+            "type": "boolean"
+          },
+          "categories": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "uploaded",
+                "cleared",
+                "scanning",
+                "blocked",
+                "reviewStatus",
+                "validUntil"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "IDENTITY",
+                    "QUALIFICATIONS",
+                    "CAPABILITY",
+                    "REFERENCES"
+                  ]
+                },
+                "uploaded": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "cleared": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "scanning": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "blocked": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "reviewStatus": {
+                  "type": "string",
+                  "enum": [
+                    "NOT_RECORDED",
+                    "PASSED",
+                    "FAILED",
+                    "EXPIRED",
+                    "NEEDS_REVIEW"
+                  ]
+                },
+                "validUntil": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      },
       "PromotionActivityInput": {
         "type": "object",
         "additionalProperties": false,
