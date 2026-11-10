@@ -6,6 +6,7 @@ datasource db {
   provider = "postgresql"
 }
 model Account {
+  superAdmin Boolean @default(false)
   registrationIntent String?
   emailLocale String @default("en")
   authVersion Int @default(0)

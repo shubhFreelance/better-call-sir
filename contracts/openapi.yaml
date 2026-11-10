@@ -33442,7 +33442,7 @@
         "tags": [
           "staff"
         ],
-        "summary": "proposeStaffChange \u2014 administrator, five-minute MFA, independent approval",
+        "summary": "Create staff with recent MFA; explicit super admins activate new staff immediately, ordinary administrators propose independent review",
         "security": [
           {
             "cookieSession": []
@@ -39893,6 +39893,11 @@
       "Account": {
         "type": "object",
         "properties": {
+          "superAdmin": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "Explicit administrator authority. Only true ADMIN accounts can create immediately approved staff; public input cannot grant it."
+          },
           "id": {
             "type": "string",
             "format": "uuid"
@@ -52049,6 +52054,11 @@
       "StaffAccount": {
         "type": "object",
         "properties": {
+          "superAdmin": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "Explicit administrator authority. Only true ADMIN accounts can create immediately approved staff; public input cannot grant it."
+          },
           "id": {
             "type": "string",
             "format": "uuid"

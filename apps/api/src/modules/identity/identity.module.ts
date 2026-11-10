@@ -23,7 +23,7 @@ class IdentityController {
   get db() {return this.service.db;}
   @Get('dev/accounts') async devAccounts() {
     if (!development()) fail(404,'NOT_FOUND','Not found.');
-    return this.db.account.findMany({where:{phone:{startsWith:'+91000000'},disabled:false},select:{id:true,name:true,role:true,verified:true},orderBy:{role:'asc'},take:50});
+    return this.db.account.findMany({where:{phone:{startsWith:'+91000000'},disabled:false},select:{id:true,name:true,role:true,verified:true,superAdmin:true},orderBy:{role:'asc'},take:50});
   }
 
   @Post('dev/session') async devSession(@Body() body: unknown,@Res({passthrough:true}) res: Response,@Req() req: Request) {
@@ -72,7 +72,7 @@ class IdentityController {
   @Get('auth/session') async session(@Req() req: Request) {
     const account = await this.service.actor(req,undefined,true,true);
     const current = await this.db.session.findUniqueOrThrow({where:{accessHash:hash(req.cookies.bcs_access)}});
-    return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified,...(account.role==='GUARDIAN'&&account.registrationIntent==='STUDENT'?{studentSetupPending:true}:{})},csrfToken:current.csrf};
+    return {account:{id:account.id,name:account.name,role:account.role,verified:account.verified,...(account.superAdmin?{superAdmin:true}:{}),...(account.role==='GUARDIAN'&&account.registrationIntent==='STUDENT'?{studentSetupPending:true}:{})},csrfToken:current.csrf};
   }
 
   @Post('auth/refresh') async refresh(@Req() req: Request,@Res({passthrough:true}) res: Response) {
