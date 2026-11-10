@@ -390,6 +390,10 @@ async function mock(
     getUploads: () => uploads,
   };
 }
+test("teacher can view cleared private evidence details in the shared modal",async({page})=>{
+ await mock(page,{screening:true});await page.goto('/onboarding/teacher#screening-evidence');const eye=page.locator('.teacher-evidence-list .evidence-preview-trigger').first();await expect(eye).toBeVisible();await eye.click();const modal=page.getByRole('dialog');await expect(modal.locator('.document-preview-details')).toContainText('Safety scan complete');await expect(modal.getByRole('link',{name:'Download private file',exact:true})).toHaveAttribute('href',/^\/api\/v1\/evidence\/.+\/content$/);await page.keyboard.press('Escape');await expect(modal).toHaveCount(0);await expect(eye).toBeFocused();
+});
+
 test("teacher screening shows all four requirements, preserves uploaded evidence and selects the missing category", async ({page})=>{
  const options={screening:true,screeningError:false};const s=await mock(page,options);
  await page.goto('/onboarding/teacher#screening-evidence');

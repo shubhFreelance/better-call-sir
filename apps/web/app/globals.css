@@ -6222,6 +6222,14 @@ html body .hiring-counts > .overview-stat-card:where(.tone-lavender, .tone-ivory
 .app-modal-body { min-height:0; overflow:auto; overscroll-behavior:contain; padding:20px; font-size:13px; line-height:1.7; }
 .document-preview-image { display:block; width:auto; max-width:100%; height:auto; margin:auto; border:1px solid #DAE5DC; border-radius:10px; background:#FFF; }
 .document-preview-image[hidden] { display:none; }
+.document-preview-details { padding:14px 16px; margin-bottom:18px; border:1px solid #DDE5DD; border-radius:12px; background:#EEF5F3; font-size:12px; line-height:1.7; }
+.document-preview-details p { margin:0; }
+.document-preview-details p + p { margin-top:6px; }
+.document-preview-file { display:grid; justify-items:center; gap:16px; padding:24px; border:1px solid #E8C9F7; border-radius:12px; background:#F8EDFF; text-align:center; color:#034F46; }
+.document-preview-file p { margin:0; font-size:12px; }
+.document-preview-loading { display:flex; align-items:center; gap:10px; font-size:12px; color:#034F46; }
+.document-preview-loading svg { animation:spin 1s linear infinite; }
+@media(prefers-reduced-motion:reduce) { .document-preview-loading svg { animation:none; } }
 .document-preview-error { padding:16px; border:1px solid #EFC7CD; border-radius:12px; background:#FFF; }
 .document-preview-error p { margin:0 0 14px; color:#952D35; font-size:13px; }
 @media(max-width:640px) { .app-modal { border-radius:16px; } .app-modal-header,.app-modal-body { padding:16px; } .app-modal-header h2 { font-size:18px; } }

@@ -80,7 +80,7 @@ async function mock(page: Page, mode = "normal", role = "REVIEWER") {
       id: eid(i),
       teacherId: teacher,
       kind,
-      mediaType: "application/pdf",
+      mediaType: mode === "image" && i === 0 ? "image/png" : "application/pdf",
       size: 128,
       sha256: "a".repeat(64),
       status: mode === "quarantine" && i === 0 ? "QUARANTINED" : "CLEAN",
@@ -303,6 +303,37 @@ async function capability(page: Page) {
     .getByRole("checkbox", { name: /I independently reviewed/ })
     .check();
 }
+test("private evidence eye previews only on demand, retries denial and clears private images on close", async ({page}) => {
+  await mock(page, "image");
+  await page.addInitScript(() => { const original = URL.revokeObjectURL; (window as any).revokedPreviews = []; URL.revokeObjectURL = url => { (window as any).revokedPreviews.push(url); original(url); }; });
+  const requests: string[] = []; let denied = true, imageBytes = Buffer.alloc(0);
+  await page.route("**/api/v1/evidence/*/content*", route => {
+    requests.push(route.request().url());
+    return denied ? route.fulfill({status:403,json:{message:"Private server detail"}}) : route.fulfill({contentType:"application/octet-stream",headers:{"Cache-Control":"no-store"},body:imageBytes});
+  });
+  await page.goto("/dashboard/review");
+  imageBytes=Buffer.from(await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=420;canvas.height=540;const ctx=canvas.getContext('2d')!;ctx.fillStyle='#fff';ctx.fillRect(0,0,420,540);ctx.fillStyle='#034F46';ctx.font='bold 22px sans-serif';ctx.fillText('Synthetic evidence',32,65);ctx.font='16px sans-serif';ctx.fillText('Private document preview test',32,110);return canvas.toDataURL('image/png').split(',')[1];}),'base64');
+  const eye = page.getByRole("button",{name:"View private evidence: Identity",exact:true});
+  await expect(eye).toBeVisible(); expect(requests).toHaveLength(0);
+  await eye.hover(); await expect(eye).toHaveCSS("color","rgb(240, 215, 255)");
+  await eye.click(); const modal=page.getByRole("dialog",{name:"Private evidence: Identity",exact:true});
+  await expect(modal.getByRole("alert")).toContainText("The document could not be loaded");await expect(modal).not.toContainText("Private server detail");await expect(modal.locator("img")).toHaveCount(0);
+  const deniedReads=requests.length;denied=false;await modal.getByRole("button",{name:"Retry",exact:true}).click();
+  const image=modal.getByRole("img",{name:"Private evidence: Identity",exact:true});await expect(image).toBeVisible();expect(await image.evaluate((el:HTMLImageElement)=>el.naturalWidth)).toBe(420);
+  expect(requests.length).toBeGreaterThan(deniedReads);expect(new Set(requests).size).toBe(requests.length);const loadedReads=requests.length;const blob=await image.getAttribute("src");
+  await modal.screenshot({path:"test-results/private-evidence-image.png"});await page.keyboard.press("Escape");await expect(modal).toHaveCount(0);await expect(eye).toBeFocused();expect(await page.evaluate(()=> (window as any).revokedPreviews)).toContain(blob);
+  await eye.click();await expect(page.getByRole("dialog").getByRole("img")).toBeVisible();expect(requests.length).toBeGreaterThan(loadedReads);
+  await page.route(`**/api/v1/teachers/${teacher}/evidence*`,route=>route.fulfill({status:403,json:{code:'FORBIDDEN',message:'Private server detail'}}));
+  await page.context().setOffline(true);await page.context().setOffline(false);await expect(modal).toHaveCount(0);await expect(eye).toHaveCount(0);expect(await page.evaluate(()=> (window as any).revokedPreviews.length)).toBeGreaterThanOrEqual(2);
+});
+
+test("private PDF evidence shows its details and explicit private download on Hindi phones", async ({page}) => {
+  await chooseHindi(page); await mock(page);await page.setViewportSize({width:360,height:850});let downloads=0;page.on("download",()=>downloads++);
+  const response=await page.goto("/dashboard/review");expect(response!.headers()["content-security-policy"]).toContain("object-src 'none'");expect(response!.headers()["content-security-policy"]).not.toContain("frame-src blob:");
+  await page.locator('.reviewer-evidence .evidence-preview-trigger').first().click();const modal=page.getByRole("dialog");await expect(modal.locator('.document-preview-details')).toContainText('application/pdf');await expect(modal.getByRole('link')).toHaveAttribute('href',`/api/v1/evidence/${eid(0)}/content`);await expect(modal.locator('iframe')).toHaveCount(0);
+  await checkHindi(page);expect((await new AxeBuilder({page}).include(".app-modal").analyze()).violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);await modal.screenshot({path:"test-results/private-evidence-pdf-hindi.png"});await page.keyboard.press("Escape");await expect(modal).toHaveCount(0);expect(downloads).toBe(0);
+});
+
 test("guardian cannot read reviewer queue; unverified staff MFA blocks private reads", async ({
   page,
 }) => {
@@ -343,6 +374,7 @@ test("quarantined evidence has no download and scan retry stays quarantined", as
   await expect(
     page.getByRole("link", { name: "Download private identity evidence" }),
   ).toHaveCount(0);
+  await expect(page.getByRole("button",{name:"View private evidence: Identity",exact:true})).toHaveCount(0);
   await expect(
     page.getByRole("link", { name: "Download private capability evidence" }),
   ).toHaveAttribute("href", "/api/v1/evidence/" + eid(2) + "/content");

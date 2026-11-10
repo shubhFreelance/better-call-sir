@@ -1,5 +1,6 @@
 "use client";
 import { RefreshButton } from "../components/ui/refresh-button";
+import { PrivateDocumentPreview } from "../components/ui/private-document-preview";
 import { useHistory, HistoryPages } from "./history";
 import {
   OnboardingReadBoundary,
@@ -1676,6 +1677,7 @@ function TeacherWorkspace({
                       </p>
                     </div>
                     <div>
+                      <div className="evidence-scan-status">
                       <span>
                         {file.status === "CLEAN"
                           ? appText("Safety scan complete")
@@ -1685,6 +1687,13 @@ function TeacherWorkspace({
                               ? appText("Blocked by safety scan")
                               : appText("Deleted")}
                       </span>
+                      {file.status === "CLEAN" && (
+                        <PrivateDocumentPreview evidenceId={file.id} mediaType={file.mediaType} kind={appText(file.kind.toLowerCase().replaceAll("_", " "))} disabled={scheduleLocked || uploadLocked || !!evidence.error}>
+                          <p>{appText("Safety scan complete")}</p>
+                          <p>{file.mediaType} · {Math.ceil(file.size / 1024)} {appText("KB ·")} {new Date(file.uploadedAt).toLocaleDateString(appLocale)}</p>
+                        </PrivateDocumentPreview>
+                      )}
+                      </div>
                       {file.status === "CLEAN" && (
                         <a
                           className="inline-link"

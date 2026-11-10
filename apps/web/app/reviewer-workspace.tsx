@@ -25,6 +25,7 @@ import {
 } from "../components/ui/filter-button";
 import { InfoTooltip } from "../components/ui/info-tooltip";
 import { StatusBadge } from "../components/ui/status-controls";
+import { PrivateDocumentPreview } from "../components/ui/private-document-preview";
 import { Notice, Feedback, useDecision } from "./tuition-workflow";
 import { localTime } from "./guardian-onboarding";
 type Teacher = components["schemas"]["PrivateTeacher"];
@@ -844,6 +845,7 @@ function TeacherReview({
                 <article className="privacy-record" key={e.id}>
                   <div className="reviewer-record-heading">
                     <h4>{appText(label(e.kind))}</h4>
+                    <div className="evidence-scan-status">
                     <StatusBadge
                       label={appText(
                         e.status === "CLEAN" ? "Scan cleared" : label(e.status),
@@ -857,6 +859,14 @@ function TeacherReview({
                       }
                       icon={e.status === "CLEAN" ? CircleCheck : Clock3}
                     />
+                    {e.status === "CLEAN" && (
+                      <PrivateDocumentPreview evidenceId={e.id} mediaType={e.mediaType} kind={appText(label(e.kind))} disabled={decision.locked || !!action || unavailable}>
+                        <StatusBadge label={appText("Scan cleared")} tone="success" icon={CircleCheck} />
+                        <p>{e.mediaType} · {Math.ceil(e.size / 1024)} {appText("KiB · Evidence")} {e.id.slice(0, 8)}</p>
+                        <p>{appText("Scanner:")} {e.scannerVersion || appText("Not recorded")} · {e.scannedAt ? appText("{0} IST", [new Date(e.scannedAt).toLocaleString(appLocale, { timeZone: "Asia/Kolkata" })]) : appText("Not scanned")}</p>
+                      </PrivateDocumentPreview>
+                    )}
+                    </div>
                   </div>
                   <p>
                     {e.mediaType} · {Math.ceil(e.size / 1024)}{" "}

@@ -1,5 +1,8 @@
 // Interface copy only. Authored content and API values are never translated.
 export const hindiMessages: Record<string, string> = {
+  "Private evidence: {0}": "निजी प्रमाण: {0}",
+  "View private evidence: {0}": "निजी प्रमाण देखें: {0}",
+  "Download this PDF to view all pages in your PDF reader.": "सभी पृष्ठ अपने PDF रीडर में देखने के लिए यह PDF डाउनलोड करें।",
   "The proposer access changed. Create a new staff proposal.": "प्रस्ताव देने वाले की पहुँच बदल गई है। कर्मचारी के लिए नया प्रस्ताव बनाएँ।",
   "Super admin": "सुपर एडमिन",
   "Administrator workspace": "प्रशासक कार्यक्षेत्र",
