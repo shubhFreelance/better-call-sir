@@ -6,6 +6,7 @@ import { Notice } from "./tuition-workflow";
 import { useAppTranslation } from "./locale";
 import { milestones } from "./teacher-details-form";
 import { TeacherLockIn } from "./teacher-lock-in";
+import { TeacherScreeningProgress } from "./teacher-screening-progress";
 
 export function TeacherDashboardProfile({ session }: { session: Session }) {
   const { appText, appCurriculum, appLocale } = useAppTranslation();
@@ -51,6 +52,7 @@ export function TeacherDashboardProfile({ session }: { session: Session }) {
       )}
       {p && (
         <>
+          <TeacherScreeningProgress teacherId={p.id} actorId={session.account.id}/>
           <dl className="dashboard-facts">
             <div>
               <dt>{appText("Qualification")}</dt>

@@ -7,12 +7,12 @@ import { TeachingCoverageSummary, coverageText } from "./teaching-coverage";
 import { TeacherDetailsSummary } from "./teacher-details-form";
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { TeacherScreeningProgress } from "./teacher-screening-progress";
 import {
   ShieldCheck,
   ChevronDown,
   CircleCheck,
-  CircleAlert,
   Clock3,
 } from "lucide-react";
 import { api, type Session, type components } from "@bcs/api-client";
@@ -244,7 +244,9 @@ function TeacherReview({
   useEffect(() => {
     if (action) editorHeading.current?.focus();
   }, [action, review]);
+  const client = useQueryClient();
   async function refresh() {
+    await client.invalidateQueries({queryKey:["teacher-screening"]});
     const [, e, c] = await Promise.all([
       refreshQueue(),
       evidence.refetch(),
@@ -519,83 +521,7 @@ function TeacherReview({
       {!own && (
         <>
           <section className="care-card reviewer-progress">
-            <header className="reviewer-section-heading">
-              <div>
-                <h3>{appText("Screening checklist")}</h3>
-                <p>
-                  {unavailable
-                    ? appText(
-                        "Load the current evidence and checks before acting.",
-                      )
-                    : appText("{0} of {1} checks current for revision {2}", [
-                        passedKinds.length,
-                        kinds.length,
-                        t.profileRevision,
-                      ])}
-                </p>
-              </div>
-              <RefreshButton
-                variant="outline"
-                disabled={decision.locked || !!action}
-                onClick={() => decision.reload()}
-                label={appText("Refresh evidence and checks")}
-              />
-            </header>
-            <ul className="reviewer-checklist">
-              {kinds.map((k) => {
-                const current =
-                  checks.data?.items.filter(
-                    (c) =>
-                      c.profileRevision === t.profileRevision && c.kind === k,
-                  ) || [];
-                const blocked = current.some((c) => c.result === "FAILED"),
-                  passed = passedKinds.includes(k);
-                return (
-                  <li key={k}>
-                    <strong>{appText(label(k))}</strong>
-                    <StatusBadge
-                      label={appText(
-                        unavailable
-                          ? "Unavailable"
-                          : blocked
-                            ? "Failed"
-                            : passed
-                              ? "Passed"
-                              : current.length
-                                ? "Needs review"
-                                : checks.hasNextPage || checks.looped
-                                  ? "Not in loaded history"
-                                  : "Not recorded",
-                      )}
-                      tone={
-                        unavailable
-                          ? "neutral"
-                          : blocked
-                            ? "danger"
-                            : passed
-                              ? "success"
-                              : "warning"
-                      }
-                      icon={
-                        passed && !unavailable
-                          ? CircleCheck
-                          : blocked
-                            ? CircleAlert
-                            : Clock3
-                      }
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="reviewer-fee-status">
-              {appText("Fee terms:")}{" "}
-              <strong>
-                {t.feeTermsAcceptedAt
-                  ? appText("Accepted")
-                  : appText("Not accepted")}
-              </strong>
-            </p>
+            <TeacherScreeningProgress teacherId={t.id} actorId={session.account.id} staff disabled={decision.locked || !!action}/>
             <p>
               {appText(
                 "A clean file scan does not verify a teacher. Each screening check and the final decision are recorded separately.",

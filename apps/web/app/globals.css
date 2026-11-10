@@ -3344,10 +3344,6 @@ footer {
 .reviewer-declarations .dashboard-facts { margin:0; font-size:12px; }
 .reviewer-declarations .dashboard-facts > div { gap:12px; }
 .reviewer-declarations .dashboard-facts dd { margin:0; overflow-wrap:anywhere; }
-.reviewer-checklist { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; padding:0; margin:16px 0; list-style:none; }
-.reviewer-checklist li { display:flex; flex-direction:column; align-items:flex-start; gap:8px; min-width:0; padding:12px; border:1px solid #DDE5DD; border-radius:12px; background:#EEF5F3; }
-.reviewer-checklist strong { font-size:12px; color:#034F46; }
-.reviewer-progress .reviewer-fee-status { padding:10px 12px; border-radius:10px; background:#FFFFEB; color:#034F46; }
 .reviewer-progress > .filter-button-group { margin:18px 0 0; }
 .reviewer-records { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:18px; min-width:0; }
 .reviewer-records > section { min-width:0; }
@@ -3371,7 +3367,6 @@ footer {
   .reviewer-declarations > summary {padding:16px;}
   .reviewer-declarations .teacher-private-summary {padding:0 16px 16px;}
   .reviewer-queue .care-fields,.reviewer-profile-grid,.reviewer-records,.reviewer-declarations .teacher-private-summary ul,.reviewer-workspace .care-editor .care-fields {grid-template-columns:minmax(0,1fr);}
-  .reviewer-checklist {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
   .reviewer-application-heading {flex-wrap:wrap;}
 }
 @media(prefers-reduced-motion:reduce) { .reviewer-declarations > summary > svg {transition:none;} }
@@ -7244,3 +7239,29 @@ article.direct-enquiry-card>.direct-enquiry-heading { cursor:default; }
 .promotion-pricing-editor > summary span { display: block; font-size: 11px; font-weight: 400; }
 .promotion-pricing-editor[open] > summary { margin-bottom: 16px; }
 .promotion-pricing-editor > summary:focus-visible { outline: 2px solid #034F46; outline-offset: 4px; }
+.teacher-screening-progress { min-width:0; color:#034F46; font-size:12px; line-height:1.65; }
+.teacher-screening-progress > header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:12px; }
+.teacher-screening-progress h3 { margin:0 0 6px; font-size:18px; font-weight:650; line-height:1.35; }
+.teacher-screening-progress p { margin:0 0 12px; font-size:12px; color:#536664; }
+.teacher-screening-progress .screening-revision { color:#034F46; font-weight:600; }
+.screening-categories { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:14px 0; }
+.screening-categories article { padding:16px; border:1px solid #DDE5DD; border-radius:14px; background:#EEF5F3; min-width:0; overflow-wrap:anywhere; }
+.screening-categories h4 { margin:0 0 8px; font-size:14px; font-weight:650; }
+.screening-categories .screening-guidance { font-size:12px; }
+.screening-categories dl { margin:12px 0; display:grid; gap:10px; }
+.screening-categories dt { font-size:11px; color:#536664; }
+.screening-categories dd { margin:3px 0 0; font-size:12px; }
+.screening-categories dd > span:not(.status-badge) { display:block; }
+.screening-categories .filter-button { width:100%; margin-top:4px; }
+.teacher-screening-progress .screening-next-step { padding:12px 14px; border:1px solid #E8C9F7; border-radius:12px; background:#F8EDFF; color:#034F46; }
+.teacher-screening-progress .screening-fees { margin:10px 0; }
+.teacher-screening-card { scroll-margin-top:24px; padding:22px; border:1px solid #DDE5DD; border-radius:20px; }
+.teacher-screening-card > h2 { margin:0 0 12px; font-size:20px; }
+.teacher-screening-card > p,.teacher-screening-card .wizard-help { font-size:12px; line-height:1.7; }
+.teacher-screening-card .teacher-upload { padding:18px; border-radius:14px; background:#EEF5F3; border:1px solid #DDE5DD; }
+.teacher-screening-card .teacher-evidence-list { margin-top:18px; }
+.teacher-private-declarations > summary { cursor:pointer; font-size:16px; font-weight:600; color:#034F46; }
+.teacher-private-declarations[open] > summary { margin-bottom:18px; }
+.teacher-dashboard-details .screening-categories { grid-template-columns:1fr; }
+.teacher-dashboard-details .screening-guidance { display:none; }
+@media(max-width:600px) { .screening-categories { grid-template-columns:1fr; } .teacher-screening-card { padding:16px; } }

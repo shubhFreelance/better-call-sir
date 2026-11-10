@@ -52,6 +52,7 @@ import {
   type TeacherDetails,
 } from "./teacher-details-form";
 import { TeacherSchedule } from "./teacher-schedule";
+import { TeacherScreeningProgress, type ScreeningKind } from "./teacher-screening-progress";
 
 type Profile = components["schemas"]["PrivateTeacher"];
 type RevisionProgress = components["schemas"]["TeacherRevisionProgress"];
@@ -1510,6 +1511,9 @@ function TeacherWorkspace({
 
   const [edit, setEdit] = useState(false);
   const [scheduleLocked, setScheduleLocked] = useState(false);
+  const [uploadLocked, setUploadLocked] = useState(false);
+  const [uploadKind, setUploadKind] = useState<ScreeningKind>("IDENTITY");
+  const client = useQueryClient();
   const evidence = useHistory<{
     items: Evidence[];
     nextCursor?: string | null;
@@ -1594,12 +1598,12 @@ function TeacherWorkspace({
                 variant="outline"
                 className="button secondary"
                 onClick={onReload}
-                disabled={scheduleLocked}
+                disabled={scheduleLocked || uploadLocked}
                 label={appText("Refresh review status")}
               />
               <Button
                 variant="ghost"
-                disabled={scheduleLocked}
+                disabled={scheduleLocked || uploadLocked}
                 onClick={() => setEdit(true)}
               >
                 {appText("Edit application")}{" "}
@@ -1609,10 +1613,13 @@ function TeacherWorkspace({
               </Link>
             </div>
           </section>
-          <section className="wizard-card">
-            <TeacherDetailsSummary profile={profile} />
+          <section className="wizard-card teacher-screening-card" id="screening-evidence">
+            <TeacherScreeningProgress teacherId={profile.id} actorId={session.account.id} disabled={scheduleLocked || uploadLocked} onUpload={(kind)=>{
+              setUploadKind(kind);
+              document.getElementById("evidence-kind")?.focus();
+            }}/>
           </section>
-          <section className="wizard-card">
+          <section className="wizard-card teacher-screening-card">
             <h2>{appText("Private screening evidence")}</h2>
             <p>
               {appText(
@@ -1627,14 +1634,18 @@ function TeacherWorkspace({
             <EvidenceUpload
               session={session}
               profile={profile}
+              kind={uploadKind}
+              onKindChange={setUploadKind}
+              onLockChange={setUploadLocked}
+              disabled={scheduleLocked}
               onUploaded={async () => {
-                await evidence.refetch();
+                await Promise.all([evidence.refetch(),client.invalidateQueries({queryKey:["teacher-screening"]})]);
               }}
             />
             <HistoryPages
               history={evidence}
               label="Private evidence"
-              disabled={scheduleLocked}
+              disabled={scheduleLocked || uploadLocked}
             />
             {evidence.isPending ? (
               <p role="status">{appText("Loading evidence…")}</p>
@@ -1694,6 +1705,10 @@ function TeacherWorkspace({
               </p>
             )}
           </section>
+          <details className="wizard-card teacher-private-declarations">
+            <summary>{appText("Private onboarding details")}</summary>
+            <TeacherDetailsSummary profile={profile} />
+          </details>
           <TeacherSchedule
             session={session}
             profile={profile}
@@ -1708,16 +1723,23 @@ function EvidenceUpload({
   session,
   profile,
   onUploaded,
+  kind,
+  onKindChange,
+  onLockChange,
+  disabled,
 }: {
   session: Session;
   profile: Profile;
   onUploaded: () => Promise<void>;
+  kind: ScreeningKind;
+  onKindChange: (kind: ScreeningKind) => void;
+  onLockChange: (locked: boolean) => void;
+  disabled: boolean;
 }) {
   const api = useContext(TeacherRequestContext);
   const { appText, appError, appLocale, appCurriculum } = useAppTranslation();
 
-  const [kind, setKind] = useState("IDENTITY"),
-    [file, setFile] = useState<File | null>(null),
+  const [file, setFile] = useState<File | null>(null),
     [busy, setBusy] = useState(false),
     [uncertain, setUncertain] = useState(false),
     [error, setError] = useState(""),
@@ -1725,6 +1747,7 @@ function EvidenceUpload({
   const pending = useRef<{ body: unknown; key: string } | null>(null),
     input = useRef<HTMLInputElement>(null),
     fileChooser = useRef<HTMLButtonElement>(null);
+  useEffect(()=>{onLockChange(busy || uncertain);},[busy,uncertain,onLockChange]);
   const allowed =
     profile.status === "SUBMITTED" || profile.status === "CHANGES_REQUESTED";
   async function upload() {
@@ -1806,14 +1829,14 @@ function EvidenceUpload({
         upload();
       }}
     >
-      <fieldset disabled={busy || uncertain} className="wizard-fields">
+      <fieldset disabled={busy || uncertain || disabled} className="wizard-fields">
         <div className="field">
           <label htmlFor="evidence-kind">{appText("Check category")}</label>
           <select
             id="evidence-kind"
             value={kind}
             onChange={(e) => {
-              setKind(e.target.value);
+              onKindChange(e.target.value as ScreeningKind);
               pending.current = null;
             }}
           >
@@ -1879,7 +1902,7 @@ function EvidenceUpload({
           )}{" "}
         </Message>
       )}
-      <Button className="button" type="submit" disabled={busy}>
+      <Button className="button" type="submit" disabled={busy || disabled}>
         {busy
           ? appText("Uploading…")
           : uncertain

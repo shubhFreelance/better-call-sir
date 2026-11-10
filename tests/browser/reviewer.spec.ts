@@ -170,6 +170,10 @@ async function mock(page: Page, mode = "normal", role = "REVIEWER") {
           json: check("PrivateTeacherList", { items: [t] }),
         });
       }
+      if (path.endsWith("/screening")) {
+        const categories=kinds.map(kind=>{const c=checks.find(c=>c.kind===kind&&c.profileRevision===t.profileRevision);const files=evidence.filter(e=>e.kind===kind);return {kind,uploaded:files.length,cleared:files.filter(e=>e.status==='CLEAN').length,scanning:files.filter(e=>e.status==='QUARANTINED').length,blocked:0,reviewStatus:!c?'NOT_RECORDED':c.result==='FAILED'?'FAILED':new Date(c.validUntil)<=new Date()?'EXPIRED':'PASSED',validUntil:c?.validUntil||null};});
+        return route.fulfill({json:check('TeacherScreeningProgress',{teacherId:t.id,version:t.version,profileRevision:t.profileRevision,applicationStatus:t.status,feeTermsAccepted:true,detailsComplete:true,readyForApproval:categories.every(c=>c.reviewStatus==='PASSED'),categories})});
+      }
       if (path.endsWith("/evidence"))
         return route.fulfill({
           json: check("EvidenceList", { items: evidence }),
@@ -402,7 +406,7 @@ test("missing, expired, previous-revision and failed checks cannot enable approv
         { exact: true },
       ),
     ).toBeVisible();
-    await expect(page.locator(".reviewer-checklist li")).toHaveCount(4);
+    await expect(page.locator(".screening-categories article")).toHaveCount(4);
     await page
       .getByRole("button", { name: "Review teacher decision", exact: true })
       .click();
@@ -413,19 +417,19 @@ test("missing, expired, previous-revision and failed checks cannot enable approv
     ).toBeDisabled();
   }
 });
-test("screening checklist distinguishes unloaded history and updates after loading more", async ({
+test("screening progress covers all checks while private history remains paginated", async ({
   page,
 }) => {
   await mock(page, "paged");
   await page.goto("/dashboard/review");
   await expect(
-    page.getByText("2 of 4 checks current for revision 2", { exact: true }),
+    page.getByText("4 of 4 checks current for revision 2", { exact: true }),
   ).toBeVisible();
   await expect(
     page
-      .locator(".reviewer-checklist")
+      .locator(".screening-categories")
       .getByText("Not in loaded history", { exact: true }),
-  ).toHaveCount(2);
+  ).toHaveCount(0);
   await page
     .getByRole("group", { name: "Screening history", exact: true })
     .getByRole("button", { name: "Load more records", exact: true })
@@ -435,7 +439,7 @@ test("screening checklist distinguishes unloaded history and updates after loadi
   ).toBeVisible();
   await expect(
     page
-      .locator(".reviewer-checklist")
+      .locator(".screening-categories")
       .getByText("Not in loaded history", { exact: true }),
   ).toHaveCount(0);
   await page

@@ -2250,6 +2250,7 @@ function DashboardShell({
             ],
             ["/dashboard/student-arrangements", "Student arrangements", Users],
             ["/onboarding/teacher", "Teaching profile", Settings],
+            ["/onboarding/teacher#screening-evidence", "Evidence & screening", ShieldCheck],
             ["/dashboard/privacy", "Privacy & data", ShieldCheck],
           ] as [string, string, LucideIcon][])
         : role === "ADMIN"

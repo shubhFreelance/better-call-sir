@@ -91,9 +91,11 @@ async function mock(
     uncertainRevisionSave?: boolean;
     uncertainRevisionSubmit?: boolean;
     uncertainUpload?: boolean;
+    screening?: boolean;
+    screeningError?: boolean;
   } = {},
 ) {
-  let role = options.teacher ? "TEACHER" : "GUARDIAN",
+  let role = options.teacher || options.screening ? "TEACHER" : "GUARDIAN",
     completions = 0,
     uploads = 0,
     profile: any = null;
@@ -156,6 +158,7 @@ async function mock(
       status: "APPROVED",
       screeningComplete: true,
     };
+  if(options.screening){profile={...privateProfile(),status:'SUBMITTED'};files.push(...['IDENTITY','QUALIFICATIONS','CAPABILITY'].map((kind,i)=>({id:`80000000-0000-4000-8000-00000000009${i+1}`,teacherId:profile.id,kind,mediaType:'application/pdf',size:100,sha256:'a'.repeat(64),status:'CLEAN',scannerVersion:'synthetic',scannedAt:new Date().toISOString(),uploadedAt:new Date().toISOString(),version:1})));}
   if (options.revisionStale) {
     profile.version = 2;
     revision = {
@@ -334,6 +337,7 @@ async function mock(
       expect(validator("PrivateTeacher")(profile)).toBe(true);
       return route.fulfill({ status: 201, json: profile });
     }
+    if(path.endsWith('/screening'))return options.screeningError?route.fulfill({status:403,json:{code:'FORBIDDEN',message:'Access revoked'}}):route.fulfill({json:{teacherId:profile.id,version:profile.version,profileRevision:profile.profileRevision,applicationStatus:profile.status,feeTermsAccepted:true,detailsComplete:true,readyForApproval:false,categories:['IDENTITY','QUALIFICATIONS','CAPABILITY','REFERENCES'].map(kind=>({kind,uploaded:files.filter(f=>f.kind===kind).length,cleared:files.filter(f=>f.kind===kind&&f.status==='CLEAN').length,scanning:files.filter(f=>f.kind===kind&&f.status==='QUARANTINED').length,blocked:0,reviewStatus:'NOT_RECORDED',validUntil:null}))}});
     if (path.endsWith("/evidence")) {
       if (req.method() === "POST") {
         uploads++;
@@ -386,6 +390,29 @@ async function mock(
     getUploads: () => uploads,
   };
 }
+test("teacher screening shows all four requirements, preserves uploaded evidence and selects the missing category", async ({page})=>{
+ const options={screening:true,screeningError:false};const s=await mock(page,options);
+ await page.goto('/onboarding/teacher#screening-evidence');
+ const progress=page.getByRole('region',{name:'Evidence & screening',exact:true});
+ await expect(progress.locator('article')).toHaveCount(4);
+ await expect(progress.getByText('Awaiting staff review',{exact:true})).toHaveCount(3);
+ const references=progress.locator('article').filter({has:page.getByRole('heading',{name:'References',exact:true})});
+ await expect(references.getByText('Not uploaded',{exact:true})).toBeVisible();
+ await references.getByRole('button',{name:'Upload evidence',exact:true}).click();
+ await expect(page.getByLabel('Check category',{exact:true})).toHaveValue('REFERENCES');
+ await expect(page.getByLabel('Check category',{exact:true})).toBeFocused();
+ await page.getByLabel('Private evidence file',{exact:true}).setInputFiles({name:'synthetic-reference.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4 Synthetic reference')});
+ await page.getByRole('button',{name:'Upload private evidence',exact:true}).click();
+ await expect(progress.getByText('1 awaiting scan',{exact:true})).toBeVisible();
+ expect(s.uploadBodies[0]).toMatchObject({kind:'REFERENCES'});
+ await page.setViewportSize({width:1440,height:1000});await page.locator('.teacher-screening-card').first().screenshot({path:'test-results/teacher-screening-desktop.png'});
+ await page.setViewportSize({width:360,height:800});await page.locator('.teacher-screening-card').first().screenshot({path:'test-results/teacher-screening-phone.png'});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ expect((await new AxeBuilder({page}).include('.teacher-screening-card').analyze()).violations).toEqual([]);
+ await chooseHindi(page);await page.reload();await checkHindi(page);const hindiProgress=page.getByRole('region',{name:translateText(true,'Evidence & screening'),exact:true});await expect(hindiProgress.getByRole('heading',{name:translateText(true,'Evidence & screening'),exact:true})).toBeVisible();
+ options.screeningError=true;await hindiProgress.getByRole('button',{name:translateText(true,'Refresh screening progress'),exact:true}).click();await expect(hindiProgress.getByRole('alert')).toBeVisible();await expect(hindiProgress.locator('article')).toHaveCount(0);
+});
+
 test("real teacher application resumes, switches role and uploads private quarantined evidence", async ({
   page,
 }) => {
