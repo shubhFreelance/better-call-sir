@@ -335,6 +335,20 @@ test("promotion activity and scoped reports measure real daily audience without 
   assert.equal(r.data.summary.visitsToday,2);assert.equal(r.data.summary.visitsMonth,2);
   assert.equal(r.data.campaigns[0].id,campaign);assert.equal(r.data.campaigns[0].clicks,2);
   assert.equal(r.data.daily.length,1);
+  assert.equal(r.data.recentActivity.length,4);
+  assert.deepEqual(new Set(r.data.recentActivity.map((e:any)=>e.kind)),new Set(["CARD_CLICK","PROFILE_VISIT"]));
+  assert.deepEqual(new Set(r.data.recentActivity.map((e:any)=>e.audience)),new Set(["GUARDIAN","STUDENT"]));
+  assert(r.data.recentActivity.every((e:any)=>e.placement==="SEARCH" && !('viewerId' in e) && !('name' in e) && !('email' in e) && !('phone' in e)));
+  assert.deepEqual((await other.call("/promotions/analytics")).data.recentActivity,[]);
+  const previous=new Date(); previous.setUTCDate(1); previous.setUTCMonth(previous.getUTCMonth()-1);
+  assert.deepEqual((await teacher.call("/promotions/analytics?month="+previous.toISOString().slice(0,7))).data.recentActivity,[]);
+  const extraIds=Array.from({length:12},()=>randomUUID());
+  try {
+    await db.promotionActivity.createMany({data:extraIds.map((id,i)=>({id,teacherId:ids.teacher,viewerId:ids.guardian,audience:"GUARDIAN",kind:"PROFILE_VISIT",day:new Date(new Date(Date.now()+330*60000).toISOString().slice(0,10)),createdAt:new Date(Date.now()-i*1000)}))});
+    const recent=(await teacher.call("/promotions/analytics")).data.recentActivity;
+    assert.equal(recent.length,10);
+    assert(recent.every((e:any,i:number)=>i===0||recent[i-1].createdAt>=e.createdAt));
+  } finally {await db.promotionActivity.deleteMany({where:{id:{in:extraIds}}});}
   const reportText=JSON.stringify(r.data);
   assert(!reportText.includes(ids.guardian));assert(!reportText.includes(ids.student));assert(!reportText.includes('viewerId'));
   const all=await admin.call("/promotions/analytics");assert.equal(all.status,200,JSON.stringify(all.data));assert.equal(all.data.summary.clicks,2);
@@ -359,7 +373,7 @@ test("promotion activity and scoped reports measure real daily audience without 
   const sample=await meeraClient.call("/promotions/analytics");
   assert.equal(sample.status,200,JSON.stringify(sample.data));assert(validate(sample.data),JSON.stringify(validate.errors));
   assert.equal(sample.data.enquiries.detailsAccess,"PRO_REQUIRED");assert.deepEqual(sample.data.enquiries.items,[]);
-  assert.deepEqual(sample.data.enquiries.demoContact,{demo:true,teacherName:meera.name,name:"Asha Verma",email:"asha.parent@example.test",phone:"00000 00000",subject:"Science"});
+  assert.equal(sample.data.enquiries.demoContact,null);
   assert.equal(sample.data.summary.enquiries,0);assert.equal(sample.data.summary.clicks,0);
   const previewName="teacherProPreview:"+meera.id;
   try {
@@ -379,6 +393,7 @@ test("promotion activity and scoped reports measure real daily audience without 
   const privacy=await db.privacyRequest.create({data:{kind:"DELETION",scope:"ACCOUNT",resourceId:ids.guardian,accountId:ids.guardian,reason:"Synthetic analytics privacy pause"}});
   assert.equal((await parent.call("/promotion-activity",event)).data.recorded,false);
   assert.equal((await teacher.call("/promotions/analytics")).data.summary.clicks,0);
+  assert.deepEqual((await teacher.call("/promotions/analytics")).data.recentActivity.filter((e:any)=>e.audience==='GUARDIAN'),[]);
   assert.equal((await teacher.call("/promotions/analytics")).data.enquiries.total,0);
   await db.privacyRequest.delete({where:{id:privacy.id}});
   await db.consent.update({where:{guardianId:ids.guardian},data:{withdrawnAt:new Date()}});

@@ -4276,6 +4276,18 @@ export interface components {
                     subject: string;
                 };
             };
+            recentActivity: {
+                id: string;
+                teacherName: string;
+                /** @enum {string} */
+                kind: "CARD_CLICK" | "PROFILE_VISIT";
+                /** @enum {string} */
+                audience: "GUARDIAN" | "STUDENT";
+                /** @enum {string|null} */
+                placement: "HOME" | "SEARCH" | "SPACE" | null;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
             teachers: {
                 items: {
                     /** Format: uuid */
