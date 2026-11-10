@@ -13,7 +13,6 @@ import { RefreshButton } from "../components/ui/refresh-button";
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiError, type Session, type components } from "@bcs/api-client";
-import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { useAppTranslation } from "./locale";
@@ -520,6 +519,9 @@ function StaffEditor({
   useEffect(() => {
     if (saved && !decision.busy) root.current?.focus();
   }, [saved, decision.busy]);
+  useEffect(() => {
+    root.current?.parentElement?.scrollTo({ top: 0 });
+  }, [reviewing]);
   const superAdmin =
     session.account.role === "ADMIN" && !!session.account.superAdmin;
   const directCreate = kind === "CREATE" && superAdmin;
@@ -599,16 +601,13 @@ function StaffEditor({
           label={appText("Reload staff records")}
         />
       )}
-      <Button variant="ghost" disabled={decision.locked} onClick={close}>
-        {appText(finished ? "Close staff review" : "Discard staff review")}
-      </Button>
     </>
   );
   return (
     <section
       ref={root}
       tabIndex={-1}
-      className="care-card staff-editor"
+      className="staff-editor"
       aria-label={appText("Staff access review")}
     >
       <StepProgress
@@ -979,6 +978,11 @@ function StaffEditor({
           )}
         </>
       )}
+      <div className="staff-editor-footer">
+        <FilterButton disabled={decision.locked} onClick={close}>
+          {appText(finished ? "Close staff review" : "Discard staff review")}
+        </FilterButton>
+      </div>
     </section>
   );
 }
