@@ -111,7 +111,7 @@ function report(query: URLSearchParams) {
     },
   };
 }
-async function setup(page: Page, role = "TEACHER") {
+async function setup(page: Page, role = "TEACHER", proPreview = false) {
   await dashboard(page, role);
   let denied = false;
   const reads: URL[] = [];
@@ -120,7 +120,9 @@ async function setup(page: Page, role = "TEACHER") {
     reads.push(url);
     const data = report(url.searchParams);
     if (role === "TEACHER") {
-      data.enquiries.detailsAccess = "PRO_REQUIRED";
+      data.enquiries.detailsAccess = proPreview
+        ? "PRO_PREVIEW"
+        : "PRO_REQUIRED";
       data.enquiries.items = [];
       data.enquiries.demoContact = {
         demo: true,
@@ -145,8 +147,95 @@ async function setup(page: Page, role = "TEACHER") {
     reads,
     deny: () => (denied = true),
     restore: () => (denied = false),
+    revokePreview: () => (proPreview = false),
   };
 }
+for (const hi of [false, true])
+  test(`local Teacher Pro access shows demo details and respects revocation (${hi ? "Hindi phone" : "desktop"})`, async ({
+    page,
+  }) => {
+    if (hi)
+      await page.addInitScript(() =>
+        localStorage.setItem("bcs.interface-language", "hi"),
+      );
+    const t = (s: string) => translateText(hi, s),
+      state = await setup(page, "TEACHER", true);
+    await page.setViewportSize({ width: hi ? 360 : 1440, height: 1000 });
+    await page.goto("/dashboard");
+    await expect(
+      page
+        .locator(".promotion-performance-card")
+        .getByText(t("Pro test access"), { exact: true }),
+    ).toBeVisible();
+    await page.goto("/dashboard/promotion-insights");
+    const view = page.locator(".promotion-insights");
+    await expect(
+      view
+        .locator(".insight-toolbar")
+        .getByText(t("Pro test access"), { exact: true }),
+    ).toBeVisible();
+    await expect(
+      view.getByText(t("Pro test access is active"), { exact: true }),
+    ).toBeVisible();
+    await expect(view.locator(".insight-leads li")).toHaveCount(0);
+    const open = view.getByRole("button", {
+      name: t("View demo contact"),
+      exact: true,
+    });
+    await open.focus();
+    await open.press("Enter");
+    const modal = page.getByRole("dialog");
+    await expect(modal).toContainText("Asha Verma");
+    await expect(modal).toContainText("asha.parent@example.test");
+    await expect(modal).toContainText("00000 00000");
+    await expect(
+      modal.locator('a[href^="tel:"],a[href^="mailto:"]'),
+    ).toHaveCount(0);
+    await expect(modal).toContainText(
+      t(
+        "Local test access only. No subscription, billing or real contact access is enabled.",
+      ),
+    );
+    expect(
+      (await new AxeBuilder({ page }).include(".app-modal").analyze())
+        .violations,
+    ).toEqual([]);
+    await page.keyboard.press("Escape");
+    await expect(modal).toBeHidden();
+    await expect(open).toBeFocused();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      (await new AxeBuilder({ page }).include(".promotion-insights").analyze())
+        .violations,
+    ).toEqual([]);
+    await view.screenshot({
+      path: `test-results/teacher-pro-test-${hi ? "hi" : "en"}.png`,
+      style: "nextjs-portal{display:none!important}",
+    });
+    state.revokePreview();
+    await view
+      .getByRole("button", {
+        name: t("Refresh promotion insights"),
+        exact: true,
+      })
+      .click();
+    await expect(
+      view.getByText(t("Pro test access"), { exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      view.getByText(t("Names and contact details are a Pro feature"), {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(open).toHaveCount(0);
+    await expect(
+      view.getByRole("button", { name: t("Preview Pro details"), exact: true }),
+    ).toBeVisible();
+  });
 for (const hi of [false, true])
   test(`teacher insights retain metrics, Pro-lock identities and preview a demo contact (${hi ? "Hindi phone" : "desktop"})`, async ({
     page,

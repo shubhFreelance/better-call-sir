@@ -89,6 +89,14 @@ export function PromotionPerformanceCard({ session }: { session: Session }) {
       <div>
         <BarChart3 size={22} aria-hidden="true" />
         <h2>{appText("Promotion insights")}</h2>
+        {!report.error &&
+          report.data?.enquiries.detailsAccess === "PRO_PREVIEW" && (
+            <StatusBadge
+              label={appText("Pro test access")}
+              tone="accent"
+              icon={CircleCheck}
+            />
+          )}
       </div>
       {report.data && !report.error ? (
         <dl>
@@ -161,8 +169,10 @@ function ReportPages({
 
 function DemoInterestPreview({
   contact,
+  proPreview = false,
 }: {
   contact: NonNullable<Report["enquiries"]["demoContact"]>;
+  proPreview?: boolean;
 }) {
   const { appText, appCurriculum } = useAppTranslation();
   const [open, setOpen] = useState(false);
@@ -186,7 +196,7 @@ function DemoInterestPreview({
         </div>
         <FilterButton accent onClick={() => setOpen(true)}>
           <Eye size={16} aria-hidden="true" />
-          {appText("Preview Pro details")}
+          {appText(proPreview ? "View demo contact" : "Preview Pro details")}
         </FilterButton>
       </div>
       <Modal
@@ -215,7 +225,9 @@ function DemoInterestPreview({
           footer={
             <p>
               {appText(
-                "This preview does not activate Pro, send a message or create an enquiry.",
+                proPreview
+                  ? "Local test access only. No subscription, billing or real contact access is enabled."
+                  : "This preview does not activate Pro, send a message or create an enquiry.",
               )}
             </p>
           }
@@ -268,6 +280,7 @@ export function PromotionInsights({ session }: { session: Session }) {
   const report = useInsights(session, month, teacherId, page, leadPage),
     data = report.error ? undefined : report.data;
   const canViewDetails = admin && data?.enquiries.detailsAccess === "ADMIN";
+  const proPreview = !admin && data?.enquiries.detailsAccess === "PRO_PREVIEW";
   const n = (value: number) => value.toLocaleString(appLocale);
   const date = (value: string) =>
     new Intl.DateTimeFormat(appLocale, {
@@ -321,6 +334,13 @@ export function PromotionInsights({ session }: { session: Session }) {
             {data?.teacher?.name ||
               appText(admin ? "All teachers" : "Your teaching profile")}
           </strong>
+          {proPreview && (
+            <StatusBadge
+              label={appText("Pro test access")}
+              tone="accent"
+              icon={CircleCheck}
+            />
+          )}
           {admin && teacherId && (
             <Link href="/dashboard/promotion-insights">
               {appText("Back to all teachers")}
@@ -692,9 +712,9 @@ export function PromotionInsights({ session }: { session: Session }) {
                 <div className="insight-interest-title">
                   <h2>{appText("Interested families")}</h2>
                   <StatusBadge
-                    label={appText("Pro")}
+                    label={appText(proPreview ? "Pro test access" : "Pro")}
                     tone="accent"
-                    icon={LockKeyhole}
+                    icon={proPreview ? CircleCheck : LockKeyhole}
                   />
                 </div>
                 <p>
@@ -738,21 +758,34 @@ export function PromotionInsights({ session }: { session: Session }) {
             </div>
             {!canViewDetails && (
               <div className="insight-pro-lock">
-                <LockKeyhole size={22} aria-hidden="true" />
+                {proPreview ? (
+                  <CircleCheck size={22} aria-hidden="true" />
+                ) : (
+                  <LockKeyhole size={22} aria-hidden="true" />
+                )}
                 <div>
                   <strong>
-                    {appText("Names and contact details are a Pro feature")}
+                    {appText(
+                      proPreview
+                        ? "Pro test access is active"
+                        : "Names and contact details are a Pro feature",
+                    )}
                   </strong>
                   <p>
                     {appText(
-                      "Teacher Pro is coming soon. Family names, mobile numbers and email addresses stay private here until access and sharing permission are available.",
+                      proPreview
+                        ? "Demo contacts are available for testing. Real family contact details still require sharing permission."
+                        : "Teacher Pro is coming soon. Family names, mobile numbers and email addresses stay private here until access and sharing permission are available.",
                     )}
                   </p>
                 </div>
               </div>
             )}
             {data.enquiries.demoContact && (
-              <DemoInterestPreview contact={data.enquiries.demoContact} />
+              <DemoInterestPreview
+                contact={data.enquiries.demoContact}
+                proPreview={proPreview}
+              />
             )}
             {canViewDetails &&
               (data.enquiries.items.length ? (

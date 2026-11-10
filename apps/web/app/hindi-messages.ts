@@ -6340,4 +6340,9 @@ export const hindiMessages: Record<string, string> = {
   "Email address": "ईमेल पता",
   "Not provided": "दिया नहीं गया",
   "Selected teacher does not teach this subject for the learner's education level. Choose another teacher.": "चुने गए शिक्षक विद्यार्थी के शैक्षिक स्तर पर यह विषय नहीं पढ़ाते हैं। कोई दूसरा शिक्षक चुनें।",
+  "Pro test access": "प्रो परीक्षण सुविधा",
+  "View demo contact": "नमूना संपर्क देखें",
+  "Pro test access is active": "प्रो परीक्षण सुविधा सक्रिय है",
+  "Demo contacts are available for testing. Real family contact details still require sharing permission.": "परीक्षण के लिए नमूना संपर्क उपलब्ध हैं। वास्तविक परिवारों का संपर्क विवरण साझा करने की अनुमति अभी भी ज़रूरी है।",
+  "Local test access only. No subscription, billing or real contact access is enabled.": "केवल स्थानीय परीक्षण सुविधा है। सदस्यता, बिलिंग या वास्तविक संपर्क विवरण की सुविधा सक्रिय नहीं है।",
 };
