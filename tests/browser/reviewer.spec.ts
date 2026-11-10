@@ -91,7 +91,7 @@ async function mock(page: Page, mode = "normal", role = "REVIEWER") {
       version: 1,
     })),
     checks: any[] = [];
-  if (["ready", "old", "expired", "failed"].includes(mode))
+  if (["ready", "old", "expired", "failed", "paged"].includes(mode))
     checks = kinds.map((kind, i) => ({
       id: cid(i),
       teacherId: teacher,
@@ -176,7 +176,19 @@ async function mock(page: Page, mode = "normal", role = "REVIEWER") {
         });
       if (path.endsWith("/checks"))
         return route.fulfill({
-          json: check("VerificationList", { items: checks }),
+          json: check(
+            "VerificationList",
+            mode === "paged"
+              ? {
+                  items: new URL(req.url()).searchParams.has("cursor")
+                    ? checks.slice(2)
+                    : checks.slice(0, 2),
+                  nextCursor: new URL(req.url()).searchParams.has("cursor")
+                    ? null
+                    : cid(1),
+                }
+              : { items: checks },
+          ),
         });
       return route.fulfill({
         status: 404,
@@ -311,6 +323,7 @@ test("quarantined evidence has no download and scan retry stays quarantined", as
 }) => {
   const s = await mock(page, "quarantine");
   await page.goto("/dashboard/review");
+  await page.locator(".reviewer-declarations > summary").click();
   const details = page.getByRole("region", {
     name: "Private onboarding details",
     exact: true,
@@ -383,6 +396,13 @@ test("missing, expired, previous-revision and failed checks cannot enable approv
     await page.unrouteAll();
     await mock(page, mode);
     await page.goto("/dashboard/review");
+    await expect(
+      page.getByText(
+        `${mode === "failed" ? 3 : 0} of 4 checks current for revision 2`,
+        { exact: true },
+      ),
+    ).toBeVisible();
+    await expect(page.locator(".reviewer-checklist li")).toHaveCount(4);
     await page
       .getByRole("button", { name: "Review teacher decision", exact: true })
       .click();
@@ -393,11 +413,48 @@ test("missing, expired, previous-revision and failed checks cannot enable approv
     ).toBeDisabled();
   }
 });
+test("screening checklist distinguishes unloaded history and updates after loading more", async ({
+  page,
+}) => {
+  await mock(page, "paged");
+  await page.goto("/dashboard/review");
+  await expect(
+    page.getByText("2 of 4 checks current for revision 2", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator(".reviewer-checklist")
+      .getByText("Not in loaded history", { exact: true }),
+  ).toHaveCount(2);
+  await page
+    .getByRole("group", { name: "Screening history", exact: true })
+    .getByRole("button", { name: "Load more records", exact: true })
+    .click();
+  await expect(
+    page.getByText("4 of 4 checks current for revision 2", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator(".reviewer-checklist")
+      .getByText("Not in loaded history", { exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Review teacher decision", exact: true })
+    .click();
+  await expect(
+    page
+      .getByLabel("Teacher decision", { exact: true })
+      .locator('option[value="APPROVED"]'),
+  ).toBeEnabled();
+});
 test("current passed checks allow approval and a separate reviewed suspension", async ({
   page,
 }) => {
   const s = await mock(page, "ready");
   await page.goto("/dashboard/review");
+  await expect(
+    page.getByText("4 of 4 checks current for revision 2", { exact: true }),
+  ).toBeVisible();
   await decision(page, "APPROVED");
   await page
     .getByRole("button", { name: "Confirm reviewer decision", exact: true })
@@ -517,6 +574,23 @@ test("mobile reviewer decisions support keyboard acknowledgement and accessible 
   await mock(page, "ready");
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/dashboard/review");
+  await expect(
+    page.getByText("4 of 4 checks current for revision 2", { exact: true }),
+  ).toBeVisible();
+  await page
+    .locator(".care-workspace")
+    .screenshot({
+      path: "test-results/reviewer-overview-phone.png",
+      style: "nextjs-portal{display:none!important}",
+    });
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page
+    .locator(".care-workspace")
+    .screenshot({
+      path: "test-results/reviewer-overview-desktop.png",
+      style: "nextjs-portal{display:none!important}",
+    });
+  await page.setViewportSize({ width: 360, height: 800 });
   await decision(page, "SUSPENDED");
   await page
     .getByRole("checkbox", { name: /I independently reviewed/ })
@@ -624,9 +698,9 @@ test.describe("real scoped reviewer flow", () => {
         )
         .toBe("SUSPENDED");
       await page.reload();
-      await expect(page.locator(".care-status").first()).toContainText(
-        "Suspended",
-      );
+      await expect(
+        page.locator(".reviewer-application-heading .status-badge"),
+      ).toContainText("Suspended");
       expect(
         await db.audit.count({
           where: { aggregateId: t.id, action: "TEACHER_REVIEW" },

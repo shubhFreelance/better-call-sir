@@ -8,11 +8,23 @@ import { TeacherDetailsSummary } from "./teacher-details-form";
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ShieldCheck } from "lucide-react";
+import {
+  ShieldCheck,
+  ChevronDown,
+  CircleCheck,
+  CircleAlert,
+  Clock3,
+} from "lucide-react";
 import { api, type Session, type components } from "@bcs/api-client";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
+import {
+  FilterButton,
+  FilterButtonGroup,
+} from "../components/ui/filter-button";
+import { InfoTooltip } from "../components/ui/info-tooltip";
+import { StatusBadge } from "../components/ui/status-controls";
 import { Notice, Feedback, useDecision } from "./tuition-workflow";
 import { localTime } from "./guardian-onboarding";
 type Teacher = components["schemas"]["PrivateTeacher"];
@@ -69,91 +81,110 @@ export function ReviewerWorkspace({ session }: { session: Session }) {
       </Notice>
     );
   return (
-    <div className="care-workspace">
+    <div className="care-workspace reviewer-workspace">
       <Link href="/guardian-verification" className="inline-link">
         {appText("Review guardian relationships")}
       </Link>
       <section className="care-intro">
         <ShieldCheck size={28} aria-hidden="true" />
-        <h2>{appText("Evidence before approval.")}</h2>
+        <h2>{appText("Review teacher applications")}</h2>
         <p>
           {appText(
-            "Review private evidence and record the full screening assessment for the current application revision. Server MFA, regional scope and independent review apply.",
+            "Choose an application, compare its declarations with evidence, then record screening checks and a decision.",
           )}{" "}
         </p>
       </section>
-      <div className="care-fields">
-        <div>
-          <label htmlFor="review-status">{appText("Queue status")}</label>
-          <select
-            id="review-status"
-            disabled={locked}
-            value={filter}
-            onChange={(e) => {
-              setFilter(e.target.value);
-              setSelected("");
-            }}
-          >
-            <option value="">{appText("All statuses")}</option>
-            {["SUBMITTED", "CHANGES_REQUESTED", "APPROVED", "SUSPENDED"].map(
-              (s) => (
-                <option key={s} value={s}>
-                  {appText(label(s))}
-                </option>
+      <section className="care-card reviewer-queue">
+        <header className="reviewer-section-heading">
+          <h3>{appText("Application queue")}</h3>
+          <InfoTooltip
+            label={appText("About the review queue")}
+            items={[
+              appText(
+                "Filters select the queue. The application selector chooses whose details, files and checks appear below.",
               ),
-            )}
-          </select>
+              appText(
+                "Review private evidence and record the full screening assessment for the current application revision. Server MFA, regional scope and independent review apply.",
+              ),
+              appText(
+                "Browse the queue, evidence and screening history using Load more records. Scanner clearance is file safety, not identity or teaching approval. Live reviewer staffing and production qualification remain open.",
+              ),
+            ]}
+          />
+        </header>
+        <div className="care-fields">
+          <div>
+            <label htmlFor="review-status">{appText("Queue status")}</label>
+            <select
+              id="review-status"
+              disabled={locked}
+              value={filter}
+              onChange={(e) => {
+                setFilter(e.target.value);
+                setSelected("");
+              }}
+            >
+              <option value="">{appText("All statuses")}</option>
+              {["SUBMITTED", "CHANGES_REQUESTED", "APPROVED", "SUSPENDED"].map(
+                (s) => (
+                  <option key={s} value={s}>
+                    {appText(label(s))}
+                  </option>
+                ),
+              )}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="review-teacher">
+              {appText("Teacher application")}
+            </label>
+            <select
+              id="review-teacher"
+              disabled={locked}
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+            >
+              <option value="">{appText("Choose an application")}</option>
+              {teachers.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name} — {appText(label(t.status))} {appText("— Revision")}{" "}
+                  {t.profileRevision}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div>
-          <label htmlFor="review-teacher">
-            {appText("Teacher application")}
-          </label>
-          <select
-            id="review-teacher"
-            disabled={locked}
-            value={selected}
-            onChange={(e) => setSelected(e.target.value)}
-          >
-            <option value="">{appText("Choose an application")}</option>
-            {teachers.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name} — {appText(label(t.status))} {appText("— Revision")}{" "}
-                {t.profileRevision}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-      <HistoryPages
-        history={queue}
-        label="Teacher review queue"
-        disabled={locked}
-      />
-      {queue.isPending && (
-        <p role="status">{appText("Loading review queue…")}</p>
-      )}
-      {queue.error && (
-        <Notice error>
-          {appText("Review queue could not be loaded.")}{" "}
-          <Button
-            variant="outline"
-            disabled={locked}
-            onClick={() => queue.refetch()}
-          >
-            {appText("Retry review queue")}{" "}
-          </Button>
-        </Notice>
-      )}
-      {!queue.isPending && !queue.error && !teachers.length && (
-        <Notice>{appText("No applications for this status.")}</Notice>
-      )}
-      {!queue.isPending && !teacher && teachers.length > 0 && (
-        <Notice>
-          {appText(
-            "Choose an application from this queue. Load more records for earlier applications; regional access still applies.",
-          )}{" "}
-        </Notice>
-      )}
+        <HistoryPages
+          history={queue}
+          label="Teacher review queue"
+          disabled={locked}
+        />
+        {queue.isPending && (
+          <p role="status">{appText("Loading review queue…")}</p>
+        )}
+        {queue.error && (
+          <Notice error>
+            {appText("Review queue could not be loaded.")}{" "}
+            <Button
+              variant="outline"
+              disabled={locked}
+              onClick={() => queue.refetch()}
+            >
+              {appText("Retry review queue")}{" "}
+            </Button>
+          </Notice>
+        )}
+        {!queue.isPending && !queue.error && !teachers.length && (
+          <Notice>{appText("No applications for this status.")}</Notice>
+        )}
+        {!queue.isPending && !teacher && teachers.length > 0 && (
+          <Notice>
+            {appText(
+              "Choose an application from this queue. Load more records for earlier applications; regional access still applies.",
+            )}{" "}
+          </Notice>
+        )}
+      </section>
       {teacher && (
         <TeacherReview
           key={teacher.id}
@@ -167,11 +198,6 @@ export function ReviewerWorkspace({ session }: { session: Session }) {
           }}
         />
       )}
-      <small className="care-help">
-        {appText(
-          "Browse the queue, evidence and screening history using Load more records. Scanner clearance is file safety, not identity or teaching approval. Live reviewer staffing and production qualification remain open.",
-        )}{" "}
-      </small>
     </div>
   );
 }
@@ -214,6 +240,10 @@ function TeacherReview({
     [agreed, setAgreed] = useState(false),
     [coverage, setCoverage] = useState(false);
   const sending = useRef(false);
+  const editorHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (action) editorHeading.current?.focus();
+  }, [action, review]);
   async function refresh() {
     const [, e, c] = await Promise.all([
       refreshQueue(),
@@ -233,21 +263,20 @@ function TeacherReview({
     failed = checks.data?.items.some(
       (c) => c.profileRevision === t.profileRevision && c.result === "FAILED",
     ),
-    ready =
-      !!t.feeTermsAcceptedAt &&
-      !failed &&
-      kinds.every((k) =>
-        checks.data?.items.some(
-          (c) =>
-            c.profileRevision === t.profileRevision &&
-            c.kind === k &&
-            c.result === "PASSED" &&
-            new Date(c.validUntil).getTime() > Date.now() &&
-            evidence.data?.items.some(
-              (e) => e.id === c.evidenceId && e.status === "CLEAN",
-            ),
-        ),
+    passedKinds = kinds.filter((k) =>
+      checks.data?.items.some(
+        (c) =>
+          c.profileRevision === t.profileRevision &&
+          c.kind === k &&
+          c.result === "PASSED" &&
+          new Date(c.validUntil).getTime() > Date.now() &&
+          evidence.data?.items.some(
+            (e) => e.id === c.evidenceId && e.status === "CLEAN",
+          ),
       ),
+    ),
+    ready =
+      !!t.feeTermsAcceptedAt && !failed && passedKinds.length === kinds.length,
     unavailable =
       queueUnavailable ||
       own ||
@@ -383,7 +412,7 @@ function TeacherReview({
   if (queueUnavailable)
     return (
       <>
-        <Feedback decision={decision} />
+        <Feedback decision={decision} floating />
         <Button disabled>{appText("Review teacher decision")}</Button>
         <RefreshButton
           variant="outline"
@@ -393,30 +422,65 @@ function TeacherReview({
             setAgreed(false);
             void decision.reload();
           }}
-         label={appText("Refresh screening")} />
+          label={appText("Refresh screening")}
+        />
       </>
     );
   return (
     <>
-      <section className="care-card">
-        <span className="care-status">
-          {appText(label(t.status))} {appText("· Revision")} {t.profileRevision}
-        </span>
-        <h3>{t.name}</h3>
-        <p>{t.headline}</p>
-        <p>{t.bio}</p>
-        <TeachingCoverageSummary profile={t} />
-        <p>
-          {appText("Teaching language and format:")}{" "}
-          {t.languages.map((value) => appCurriculum(value)).join(", ")} ·{" "}
-          {t.modes.map(label).join(", ")} ·{" "}
-          {t.localities.join(", ") || appText("No home localities")}
+      <section className="care-card reviewer-application">
+        <header className="reviewer-application-heading">
+          <div>
+            <h3>{t.name}</h3>
+            <p>
+              {appText("Application revision {0} · Record version {1}", [
+                t.profileRevision,
+                t.version,
+              ])}
+            </p>
+          </div>
+          <StatusBadge
+            label={appText(label(t.status))}
+            tone={
+              t.status === "APPROVED"
+                ? "success"
+                : t.status === "SUSPENDED"
+                  ? "danger"
+                  : "warning"
+            }
+            icon={t.status === "APPROVED" ? CircleCheck : Clock3}
+          />
+        </header>
+        <p className="reviewer-next-step">
+          {appText(
+            t.status === "CHANGES_REQUESTED"
+              ? "Changes have been requested from the teacher. This is the currently submitted revision."
+              : t.status === "APPROVED"
+                ? "This profile is approved. Screening history and any further decision remain recorded below."
+                : t.status === "SUSPENDED"
+                  ? "This profile is suspended. Review the recorded checks before any further decision."
+                  : ready && !unavailable
+                    ? "The current checks meet approval requirements. Review and record the teacher decision."
+                    : "This application needs evidence review and screening before approval.",
+          )}
         </p>
-        <p>
-          {appText("Fee terms:")}{" "}
-          {t.feeTermsAcceptedAt ? appText("Accepted") : appText("Not accepted")}{" "}
-          {appText("· Version")} {t.version}
-        </p>
+        <div className="reviewer-profile-grid">
+          <div>
+            <h4>{appText("Teacher declarations")}</h4>
+            <p>{t.headline}</p>
+            <p>{t.bio}</p>
+          </div>
+          <div>
+            <h4>{appText("Declared teaching areas")}</h4>
+            <TeachingCoverageSummary profile={t} />
+            <p>
+              {appText("Teaching language and format:")}{" "}
+              {t.languages.map((value) => appCurriculum(value)).join(", ")} ·{" "}
+              {t.modes.map(label).join(", ")} ·{" "}
+              {t.localities.join(", ") || appText("No home localities")}
+            </p>
+          </div>
+        </div>
         {own && (
           <Notice>
             {appText(
@@ -425,10 +489,21 @@ function TeacherReview({
           </Notice>
         )}
       </section>
-      <section className="care-card">
+      <details className="care-card reviewer-declarations">
+        <summary>
+          <div>
+            <h3>{appText("Private onboarding details")}</h3>
+            <p>
+              {appText(
+                "View submitted address, education and previous work. These are declarations, not verified evidence.",
+              )}
+            </p>
+          </div>
+          <ChevronDown size={20} aria-hidden="true" />
+        </summary>
         <TeacherDetailsSummary profile={t} />
-      </section>
-      <Feedback decision={decision} />
+      </details>
+      <Feedback decision={decision} floating />
       {decision.conflict && (
         <RefreshButton
           variant="outline"
@@ -438,151 +513,129 @@ function TeacherReview({
             setAgreed(false);
             void decision.reload();
           }}
-         label={appText("Refresh screening")} />
+          label={appText("Refresh screening")}
+        />
       )}
       {!own && (
         <>
-          <div className="care-actions">
-            <RefreshButton
-              variant="outline"
-              disabled={decision.locked || !!action}
-              onClick={() => decision.reload()}
-             label={appText("Refresh evidence and checks")} />
-            <Button
-              disabled={
-                decision.locked ||
-                !!action ||
-                unavailable ||
-                !availableKinds.length ||
-                !["SUBMITTED", "CHANGES_REQUESTED"].includes(t.status)
-              }
-              onClick={() => begin("check")}
-            >
-              {appText("Record screening check")}{" "}
-            </Button>
-            <Button
-              disabled={decision.locked || !!action || unavailable}
-              onClick={() => begin("decision")}
-            >
-              {appText("Review teacher decision")}{" "}
-            </Button>
-          </div>
-          {(evidence.error || checks.error) && (
-            <Notice error>
-              {appText(
-                "Private evidence or screening history is unavailable. Refresh before making a decision.",
-              )}{" "}
-            </Notice>
-          )}
-          <section className="care-card">
-            <h3>{appText("Private evidence")}</h3>
-            <HistoryPages
-              history={evidence}
-              label="Private evidence"
-              disabled={decision.locked || !!action}
-            />
-            {evidence.isPending && (
-              <p role="status">{appText("Loading private evidence…")}</p>
-            )}
-            {!evidence.isPending &&
-              !evidence.error &&
-              !evidence.data?.items.length && (
-                <p>{appText("No evidence uploaded yet.")}</p>
-              )}
-            {evidence.data?.items.map((e) => (
-              <article className="privacy-record" key={e.id}>
-                <h4>
-                  {appText(label(e.kind))} · {appText(label(e.status))}
-                </h4>
+          <section className="care-card reviewer-progress">
+            <header className="reviewer-section-heading">
+              <div>
+                <h3>{appText("Screening checklist")}</h3>
                 <p>
-                  {e.mediaType} · {Math.ceil(e.size / 1024)}{" "}
-                  {appText("KiB · Evidence")} {e.id.slice(0, 8)}
+                  {unavailable
+                    ? appText(
+                        "Load the current evidence and checks before acting.",
+                      )
+                    : appText("{0} of {1} checks current for revision {2}", [
+                        passedKinds.length,
+                        kinds.length,
+                        t.profileRevision,
+                      ])}
                 </p>
-                <small>
-                  {appText("Scanner:")}{" "}
-                  {e.scannerVersion || appText("Not recorded")} ·{" "}
-                  {e.scannedAt
-                    ? appText("{0} IST", [
-                        new Date(e.scannedAt).toLocaleString(appLocale, {
-                          timeZone: "Asia/Kolkata",
-                        }),
-                      ])
-                    : appText("Not scanned")}
-                </small>
-                <div className="care-actions">
-                  {e.status === "CLEAN" && (
-                    <a
-                      className="inline-link"
-                      href={`/api/v1/evidence/${e.id}/content`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {appText("Download private")}{" "}
-                      {appText(label(e.kind).toLowerCase())}{" "}
-                      {appText("evidence")}{" "}
-                    </a>
-                  )}
-                  {e.status === "QUARANTINED" && (
-                    <Button
-                      variant="outline"
-                      disabled={decision.locked || !!action || unavailable}
-                      onClick={() => begin("scan", e.id)}
-                    >
-                      {appText("Review scan retry")} {e.id.slice(0, 8)}
-                    </Button>
-                  )}
-                </div>
-              </article>
-            ))}
-          </section>
-          <section className="care-card">
-            <h3>{appText("Screening history")}</h3>
-            <p>
-              {ready
-                ? appText(
-                    "Current visible checks meet the approval prerequisites; the server rechecks every decision.",
-                  )
-                : appText("Approval prerequisites are incomplete or blocked.")}
+              </div>
+              <RefreshButton
+                variant="outline"
+                disabled={decision.locked || !!action}
+                onClick={() => decision.reload()}
+                label={appText("Refresh evidence and checks")}
+              />
+            </header>
+            <ul className="reviewer-checklist">
+              {kinds.map((k) => {
+                const current =
+                  checks.data?.items.filter(
+                    (c) =>
+                      c.profileRevision === t.profileRevision && c.kind === k,
+                  ) || [];
+                const blocked = current.some((c) => c.result === "FAILED"),
+                  passed = passedKinds.includes(k);
+                return (
+                  <li key={k}>
+                    <strong>{appText(label(k))}</strong>
+                    <StatusBadge
+                      label={appText(
+                        unavailable
+                          ? "Unavailable"
+                          : blocked
+                            ? "Failed"
+                            : passed
+                              ? "Passed"
+                              : current.length
+                                ? "Needs review"
+                                : checks.hasNextPage || checks.looped
+                                  ? "Not in loaded history"
+                                  : "Not recorded",
+                      )}
+                      tone={
+                        unavailable
+                          ? "neutral"
+                          : blocked
+                            ? "danger"
+                            : passed
+                              ? "success"
+                              : "warning"
+                      }
+                      icon={
+                        passed && !unavailable
+                          ? CircleCheck
+                          : blocked
+                            ? CircleAlert
+                            : Clock3
+                      }
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="reviewer-fee-status">
+              {appText("Fee terms:")}{" "}
+              <strong>
+                {t.feeTermsAcceptedAt
+                  ? appText("Accepted")
+                  : appText("Not accepted")}
+              </strong>
             </p>
-            {failed && (
-              <Notice error>
+            <p>
+              {appText(
+                "A clean file scan does not verify a teacher. Each screening check and the final decision are recorded separately.",
+              )}
+            </p>
+            {(checks.hasNextPage ||
+              evidence.hasNextPage ||
+              checks.looped ||
+              evidence.looped) && (
+              <p>
                 {appText(
-                  "A failed check exists on this revision. Request changes and require a new application revision before approval.",
-                )}{" "}
-              </Notice>
+                  "More records are available. Load the evidence and screening history below before making a decision.",
+                )}
+              </p>
             )}
-            <HistoryPages
-              history={checks}
-              label="Screening history"
-              disabled={decision.locked || !!action}
-            />
-            {checks.isPending && (
-              <p role="status">{appText("Loading screening history…")}</p>
-            )}
-            {checks.data?.items.map((c) => (
-              <article className="privacy-record" key={c.id}>
-                <h4>
-                  {appText(label(c.kind))} · {appText(label(c.result))}{" "}
-                  {appText("· Revision")} {c.profileRevision}
-                </h4>
-                <p>{c.reason}</p>
-                <small>
-                  {appText("Valid until")}{" "}
-                  {new Date(c.validUntil).toLocaleString(appLocale, {
-                    timeZone: "Asia/Kolkata",
-                  })}{" "}
-                  {appText("IST ·")}{" "}
-                  {c.profileRevision === t.profileRevision
-                    ? appText("Current revision")
-                    : appText("Earlier revision")}{" "}
-                  {appText("· Policy")} {c.policyVersion}
-                </small>
-              </article>
-            ))}
+            <FilterButtonGroup>
+              <FilterButton
+                disabled={
+                  decision.locked ||
+                  !!action ||
+                  unavailable ||
+                  !availableKinds.length ||
+                  !["SUBMITTED", "CHANGES_REQUESTED"].includes(t.status)
+                }
+                onClick={() => begin("check")}
+              >
+                {appText("Record screening check")}{" "}
+              </FilterButton>
+              <FilterButton
+                accent
+                disabled={decision.locked || !!action || unavailable}
+                onClick={() => begin("decision")}
+              >
+                {appText("Review teacher decision")}{" "}
+              </FilterButton>
+            </FilterButtonGroup>
           </section>
           {action && (
             <section className="care-card care-editor">
-              <h3>
+              <h3 ref={editorHeading} tabIndex={-1}>
                 {review
                   ? appText("Confirm the recorded assessment")
                   : action === "check"
@@ -814,9 +867,8 @@ function TeacherReview({
                       </label>
                     </div>
                   )}
-                  <div className="care-actions">
-                    <Button
-                      variant="outline"
+                  <FilterButtonGroup>
+                    <FilterButton
                       type="button"
                       onClick={() =>
                         review
@@ -827,17 +879,153 @@ function TeacherReview({
                       {review
                         ? appText("Back to editing")
                         : appText("Cancel decision")}
-                    </Button>
-                    <Button type="submit">
+                    </FilterButton>
+                    <FilterButton accent type="submit">
                       {review
                         ? appText("Confirm reviewer decision")
                         : appText("Review assessment")}
-                    </Button>
-                  </div>
+                    </FilterButton>
+                  </FilterButtonGroup>
                 </fieldset>
               </form>
             </section>
           )}
+          {(evidence.error || checks.error) && (
+            <Notice error>
+              {appText(
+                "Private evidence or screening history is unavailable. Refresh before making a decision.",
+              )}{" "}
+            </Notice>
+          )}
+          <div className="reviewer-records">
+            <section className="care-card reviewer-evidence">
+              <h3>{appText("Private evidence")}</h3>
+              <p>{appText("Uploaded files and their safety-scan results.")}</p>
+              <HistoryPages
+                history={evidence}
+                label="Private evidence"
+                disabled={decision.locked || !!action}
+              />
+              {evidence.isPending && (
+                <p role="status">{appText("Loading private evidence…")}</p>
+              )}
+              {!evidence.isPending &&
+                !evidence.error &&
+                !evidence.data?.items.length && (
+                  <p>{appText("No evidence uploaded yet.")}</p>
+                )}
+              {evidence.data?.items.map((e) => (
+                <article className="privacy-record" key={e.id}>
+                  <div className="reviewer-record-heading">
+                    <h4>{appText(label(e.kind))}</h4>
+                    <StatusBadge
+                      label={appText(
+                        e.status === "CLEAN" ? "Scan cleared" : label(e.status),
+                      )}
+                      tone={
+                        e.status === "CLEAN"
+                          ? "success"
+                          : e.status === "INFECTED"
+                            ? "danger"
+                            : "warning"
+                      }
+                      icon={e.status === "CLEAN" ? CircleCheck : Clock3}
+                    />
+                  </div>
+                  <p>
+                    {e.mediaType} · {Math.ceil(e.size / 1024)}{" "}
+                    {appText("KiB · Evidence")} {e.id.slice(0, 8)}
+                  </p>
+                  <small>
+                    {appText("Scanner:")}{" "}
+                    {e.scannerVersion || appText("Not recorded")} ·{" "}
+                    {e.scannedAt
+                      ? appText("{0} IST", [
+                          new Date(e.scannedAt).toLocaleString(appLocale, {
+                            timeZone: "Asia/Kolkata",
+                          }),
+                        ])
+                      : appText("Not scanned")}
+                  </small>
+                  <div className="care-actions">
+                    {e.status === "CLEAN" && (
+                      <a
+                        className="inline-link"
+                        href={`/api/v1/evidence/${e.id}/content`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {appText("Download private")}{" "}
+                        {appText(label(e.kind).toLowerCase())}{" "}
+                        {appText("evidence")}{" "}
+                      </a>
+                    )}
+                    {e.status === "QUARANTINED" && (
+                      <Button
+                        variant="outline"
+                        disabled={decision.locked || !!action || unavailable}
+                        onClick={() => begin("scan", e.id)}
+                      >
+                        {appText("Review scan retry")} {e.id.slice(0, 8)}
+                      </Button>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </section>
+            <section className="care-card reviewer-checks">
+              <h3>{appText("Screening history")}</h3>
+              <p>
+                {appText(
+                  "Recorded reviewer assessments. Only current, valid checks for this revision count toward approval.",
+                )}
+              </p>
+              <p>
+                {ready
+                  ? appText(
+                      "Current visible checks meet the approval prerequisites; the server rechecks every decision.",
+                    )
+                  : appText(
+                      "Approval prerequisites are incomplete or blocked.",
+                    )}
+              </p>
+              {failed && (
+                <Notice error>
+                  {appText(
+                    "A failed check exists on this revision. Request changes and require a new application revision before approval.",
+                  )}{" "}
+                </Notice>
+              )}
+              <HistoryPages
+                history={checks}
+                label="Screening history"
+                disabled={decision.locked || !!action}
+              />
+              {checks.isPending && (
+                <p role="status">{appText("Loading screening history…")}</p>
+              )}
+              {checks.data?.items.map((c) => (
+                <article className="privacy-record" key={c.id}>
+                  <h4>
+                    {appText(label(c.kind))} · {appText(label(c.result))}{" "}
+                    {appText("· Revision")} {c.profileRevision}
+                  </h4>
+                  <p>{c.reason}</p>
+                  <small>
+                    {appText("Valid until")}{" "}
+                    {new Date(c.validUntil).toLocaleString(appLocale, {
+                      timeZone: "Asia/Kolkata",
+                    })}{" "}
+                    {appText("IST ·")}{" "}
+                    {c.profileRevision === t.profileRevision
+                      ? appText("Current revision")
+                      : appText("Earlier revision")}{" "}
+                    {appText("· Policy")} {c.policyVersion}
+                  </small>
+                </article>
+              ))}
+            </section>
+          </div>
         </>
       )}
     </>
