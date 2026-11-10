@@ -82,6 +82,24 @@ function report(query: URLSearchParams) {
               name: i ? "Synthetic teacher " + i : teacher.name,
             })),
     },
+    recentActivity: [
+      {
+        id: "recorded-click",
+        teacherName: teacher.name,
+        kind: "CARD_CLICK",
+        audience: "GUARDIAN",
+        placement: "SPACE",
+        createdAt: month + "-02T10:30:00Z",
+      },
+      {
+        id: "recorded-visit",
+        teacherName: teacher.name,
+        kind: "PROFILE_VISIT",
+        audience: "STUDENT",
+        placement: null,
+        createdAt: month + "-01T10:00:00Z",
+      },
+    ],
     enquiries: {
       detailsAccess: "ADMIN",
       demoContact: null as null | {
@@ -151,7 +169,7 @@ async function setup(page: Page, role = "TEACHER", proPreview = false) {
   };
 }
 for (const hi of [false, true])
-  test(`local Teacher Pro access shows demo details and respects revocation (${hi ? "Hindi phone" : "desktop"})`, async ({
+  test(`local Teacher Pro access uses recorded activity and respects revocation (${hi ? "Hindi phone" : "desktop"})`, async ({
     page,
   }) => {
     if (hi)
@@ -177,32 +195,27 @@ for (const hi of [false, true])
     await expect(
       view.getByText(t("Pro test access is active"), { exact: true }),
     ).toBeVisible();
-    await expect(view.locator(".insight-leads li")).toHaveCount(0);
-    const open = view.getByRole("button", {
-      name: t("View demo contact"),
-      exact: true,
-    });
-    await open.focus();
-    await open.press("Enter");
-    const modal = page.getByRole("dialog");
-    await expect(modal).toContainText("Asha Verma");
-    await expect(modal).toContainText("asha.parent@example.test");
-    await expect(modal).toContainText("00000 00000");
-    await expect(
-      modal.locator('a[href^="tel:"],a[href^="mailto:"]'),
-    ).toHaveCount(0);
-    await expect(modal).toContainText(
-      t(
-        "Local test access only. No subscription, billing or real contact access is enabled.",
-      ),
+    await expect(view.locator(".insight-activity li")).toHaveCount(2);
+    await expect(view.locator(".insight-activity li").first()).toContainText(
+      t("Sponsored card clicked"),
     );
-    expect(
-      (await new AxeBuilder({ page }).include(".app-modal").analyze())
-        .violations,
-    ).toEqual([]);
-    await page.keyboard.press("Escape");
-    await expect(modal).toBeHidden();
-    await expect(open).toBeFocused();
+    await expect(view.locator(".insight-activity li").last()).toContainText(
+      t("Profile viewed"),
+    );
+    await expect(
+      view.locator(".insight-activity time").first(),
+    ).toHaveAttribute("datetime", /T10:30:00Z$/);
+    await expect(view.locator(".insight-activity time").first()).toContainText(
+      "IST",
+    );
+    await expect(view.locator(".insight-leads li")).toHaveCount(0);
+    await expect(view.getByText("Asha Verma", { exact: true })).toHaveCount(0);
+    await expect(
+      view.getByRole("button", { name: t("View demo contact"), exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      view.locator('a[href^="tel:"],a[href^="mailto:"]'),
+    ).toHaveCount(0);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -213,7 +226,7 @@ for (const hi of [false, true])
         .violations,
     ).toEqual([]);
     await view.screenshot({
-      path: `test-results/teacher-pro-test-${hi ? "hi" : "en"}.png`,
+      path: `test-results/teacher-real-activity-${hi ? "hi" : "en"}.png`,
       style: "nextjs-portal{display:none!important}",
     });
     state.revokePreview();
@@ -231,13 +244,10 @@ for (const hi of [false, true])
         exact: true,
       }),
     ).toBeVisible();
-    await expect(open).toHaveCount(0);
-    await expect(
-      view.getByRole("button", { name: t("Preview Pro details"), exact: true }),
-    ).toBeVisible();
+    await expect(view.locator(".insight-activity li")).toHaveCount(2);
   });
 for (const hi of [false, true])
-  test(`teacher insights retain metrics, Pro-lock identities and preview a demo contact (${hi ? "Hindi phone" : "desktop"})`, async ({
+  test(`teacher insights retain metrics, recorded activity and private identities (${hi ? "Hindi phone" : "desktop"})`, async ({
     page,
   }) => {
     if (hi)
@@ -266,28 +276,10 @@ for (const hi of [false, true])
       view.locator(".insight-interest-title .status-badge"),
     ).toHaveText("Pro");
     await expect(view.getByText("Asha Verma", { exact: true })).toHaveCount(0);
-    await view
-      .getByRole("button", { name: t("Preview Pro details"), exact: true })
-      .click();
-    const modal = page.getByRole("dialog");
-    await expect(modal).toContainText("Asha Verma");
-    await expect(modal).toContainText("asha.parent@example.test");
-    await expect(modal).toContainText("00000 00000");
-    await expect(
-      modal.locator('a[href^="tel:"],a[href^="mailto:"]'),
-    ).toHaveCount(0);
-    expect(
-      (await new AxeBuilder({ page }).include("dialog").analyze()).violations,
-    ).toEqual([]);
-    await modal.screenshot({
-      path: `test-results/pro-contact-preview-${hi ? "hi" : "en"}.png`,
-      style: "nextjs-portal{display:none!important}",
-    });
-    await page.keyboard.press("Escape");
-    await expect(modal).toBeHidden();
+    await expect(view.locator(".insight-activity li")).toHaveCount(2);
     await expect(
       view.getByRole("button", { name: t("Preview Pro details"), exact: true }),
-    ).toBeFocused();
+    ).toHaveCount(0);
     await expect(view.locator(".insight-summary dd")).toHaveText([
       "12",
       "8",
@@ -341,6 +333,7 @@ for (const hi of [false, true])
       .click();
     await expect(view.getByRole("alert")).toBeVisible();
     await expect(view.locator(".insight-summary")).toHaveCount(0);
+    await expect(view.locator(".insight-activity")).toHaveCount(0);
     await expect(view.locator(".insight-leads")).toHaveCount(0);
     state.restore();
     await view
@@ -459,6 +452,7 @@ test("zero analytics shows honest empty states and a promotion action", async ({
           Object.keys(data.summary).map((k) => [k, 0]),
         ),
         daily: [],
+        recentActivity: [],
         campaigns: [],
         enquiries: {
           detailsAccess: "PRO_REQUIRED",

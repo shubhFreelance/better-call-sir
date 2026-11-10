@@ -14,7 +14,6 @@ import {
   MousePointer2,
   Users,
   LockKeyhole,
-  FlaskConical,
 } from "lucide-react";
 import { useAppTranslation } from "./locale";
 import { promotionLabels } from "./promotions-workspace";
@@ -26,7 +25,6 @@ import { InfoTooltip } from "../components/ui/info-tooltip";
 import { LayeredSummaryCard } from "../components/ui/layered-summary-card";
 import { RefreshButton } from "../components/ui/refresh-button";
 import { StatusBadge } from "../components/ui/status-controls";
-import { Modal } from "../components/ui/modal";
 
 type Report = components["schemas"]["PromotionAnalytics"];
 const campaignStatus: Record<string, string> = {
@@ -164,102 +162,6 @@ function ReportPages({
         </FilterButton>
       </FilterButtonGroup>
     </div>
-  );
-}
-
-function DemoInterestPreview({
-  contact,
-  proPreview = false,
-}: {
-  contact: NonNullable<Report["enquiries"]["demoContact"]>;
-  proPreview?: boolean;
-}) {
-  const { appText, appCurriculum } = useAppTranslation();
-  const [open, setOpen] = useState(false);
-  return (
-    <>
-      <div className="insight-demo-interest">
-        <StatusBadge
-          label={appText("Demo")}
-          tone="neutral"
-          icon={FlaskConical}
-        />
-        <div>
-          <strong>
-            {appText("Sample interest in {0}", [contact.teacherName])}
-          </strong>
-          <p>
-            {appText(
-              "Fictional contact for testing. Not included in your activity totals.",
-            )}
-          </p>
-        </div>
-        <FilterButton accent onClick={() => setOpen(true)}>
-          <Eye size={16} aria-hidden="true" />
-          {appText(proPreview ? "View demo contact" : "Preview Pro details")}
-        </FilterButton>
-      </div>
-      <Modal
-        open={open}
-        onOpenChange={setOpen}
-        title={appText("Pro contact preview")}
-        description={appText(
-          "Demo data only. These are not a real family's contact details.",
-        )}
-      >
-        <LayeredSummaryCard
-          className="insight-demo-contact"
-          header={
-            <>
-              <div>
-                <small>{appText("Demo parent")}</small>
-                <h3>{contact.name}</h3>
-              </div>
-              <StatusBadge
-                label={appText("Pro")}
-                tone="accent"
-                icon={LockKeyhole}
-              />
-            </>
-          }
-          footer={
-            <p>
-              {appText(
-                proPreview
-                  ? "Local test access only. No subscription, billing or real contact access is enabled."
-                  : "This preview does not activate Pro, send a message or create an enquiry.",
-              )}
-            </p>
-          }
-        >
-          <dl>
-            <div>
-              <dt>{appText("Mobile (demo)")}</dt>
-              <dd>{contact.phone}</dd>
-            </div>
-            <div>
-              <dt>{appText("Email (demo)")}</dt>
-              <dd>{contact.email}</dd>
-            </div>
-            <div>
-              <dt>{appText("Teacher")}</dt>
-              <dd>{contact.teacherName}</dd>
-            </div>
-            <div>
-              <dt>{appText("Subject")}</dt>
-              <dd>{appCurriculum(contact.subject)}</dd>
-            </div>
-          </dl>
-        </LayeredSummaryCard>
-        <FilterButton
-          className="insight-demo-close"
-          accent
-          onClick={() => setOpen(false)}
-        >
-          {appText("Close preview")}
-        </FilterButton>
-      </Modal>
-    </>
   );
 }
 
@@ -477,6 +379,66 @@ export function PromotionInsights({ session }: { session: Session }) {
               ]}
             />
           </div>
+          <LayeredSummaryCard
+            className="insight-panel"
+            header={
+              <>
+                <Eye size={18} aria-hidden="true" />
+                <h2>{appText("Recent profile activity")}</h2>
+              </>
+            }
+            footer={
+              <p>
+                {appText(
+                  "Latest 10 recorded actions for the selected month. Visitor identities remain private.",
+                )}
+              </p>
+            }
+          >
+            {data.recentActivity?.length ? (
+              <ol className="insight-ranking insight-activity">
+                {data.recentActivity.map((activity, index) => (
+                  <li key={activity.createdAt + ":" + activity.kind + ":" + index}>
+                    <div>
+                      <strong>
+                        {appText(
+                          activity.kind === "CARD_CLICK"
+                            ? "Sponsored card clicked"
+                            : "Profile viewed",
+                        )}
+                      </strong>
+                      <small>
+                        {appText(
+                          activity.audience === "GUARDIAN"
+                            ? "Parent or guardian"
+                            : "Student",
+                        )}
+                        {" · "}
+                        {appText(
+                          activity.placement
+                            ? promotionLabels[activity.placement]
+                            : "Regular profile",
+                        )}
+                        {admin && " · " + activity.teacherName}
+                      </small>
+                    </div>
+                    <time dateTime={activity.createdAt}>
+                      {new Date(activity.createdAt).toLocaleString(appLocale, {
+                        timeZone: "Asia/Kolkata",
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}{" "}
+                      {appText("IST")}
+                    </time>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="insight-empty">
+                {appText("No recorded profile activity for this month.")}
+              </p>
+            )}
+          </LayeredSummaryCard>
           {admin && !teacherId && (
             <LayeredSummaryCard
               className="insight-panel"
@@ -774,18 +736,12 @@ export function PromotionInsights({ session }: { session: Session }) {
                   <p>
                     {appText(
                       proPreview
-                        ? "Demo contacts are available for testing. Real family contact details still require sharing permission."
+                        ? "This report shows recorded activity. Profile visitors remain anonymous; contact details require family sharing permission."
                         : "Teacher Pro is coming soon. Family names, mobile numbers and email addresses stay private here until access and sharing permission are available.",
                     )}
                   </p>
                 </div>
               </div>
-            )}
-            {data.enquiries.demoContact && (
-              <DemoInterestPreview
-                contact={data.enquiries.demoContact}
-                proPreview={proPreview}
-              />
             )}
             {canViewDetails &&
               (data.enquiries.items.length ? (

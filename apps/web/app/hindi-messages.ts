@@ -6345,4 +6345,11 @@ export const hindiMessages: Record<string, string> = {
   "Pro test access is active": "प्रो परीक्षण सुविधा सक्रिय है",
   "Demo contacts are available for testing. Real family contact details still require sharing permission.": "परीक्षण के लिए नमूना संपर्क उपलब्ध हैं। वास्तविक परिवारों का संपर्क विवरण साझा करने की अनुमति अभी भी ज़रूरी है।",
   "Local test access only. No subscription, billing or real contact access is enabled.": "केवल स्थानीय परीक्षण सुविधा है। सदस्यता, बिलिंग या वास्तविक संपर्क विवरण की सुविधा सक्रिय नहीं है।",
+  "Recent profile activity": "हाल की प्रोफ़ाइल गतिविधि",
+  "Latest 10 recorded actions for the selected month. Visitor identities remain private.": "चुने गए महीने की हाल की 10 दर्ज गतिविधियाँ। आने वाले लोगों की पहचान निजी रहती है।",
+  "Sponsored card clicked": "प्रायोजित कार्ड पर क्लिक किया गया",
+  "Profile viewed": "प्रोफ़ाइल देखी गई",
+  "Regular profile": "सामान्य प्रोफ़ाइल",
+  "No recorded profile activity for this month.": "इस महीने की कोई प्रोफ़ाइल गतिविधि दर्ज नहीं है।",
+  "This report shows recorded activity. Profile visitors remain anonymous; contact details require family sharing permission.": "यह रिपोर्ट दर्ज गतिविधि दिखाती है। प्रोफ़ाइल देखने वालों की पहचान निजी रहती है; संपर्क विवरण के लिए परिवार की अनुमति ज़रूरी है।",
 };
